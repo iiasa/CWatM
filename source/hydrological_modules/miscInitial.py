@@ -4,13 +4,12 @@
 #
 # Author:      pb
 #
-# Created:     29.03.2014
-# Copyright:   (c) pb 2014
-# Licence:     <your licence>
+# Created:     13.07.2016
+# Copyright:   (c) pb 2016
+
 # -------------------------------------------------------------------------
 
-#from global_modules.add1 import *
-
+from management_modules.data_handling import *
 
 class miscInitial(object):
 
@@ -71,7 +70,7 @@ class miscInitial(object):
 
         self.var.InvPixelLength = 1.0 / self.var.PixelLength
         # Inverse of pixel size [1/m]
-        self.var.DtSec = loadmap('DtSec')
+        self.var.DtSec = 86400.0
         self.var.DtDay = self.var.DtSec / 86400
         # Time step, expressed as fraction of day (used to convert
         # rate variables that are expressed as a quantity per day to
@@ -80,7 +79,8 @@ class miscInitial(object):
         # Inverse of time step [1/s]
         self.var.InvDtDay = 1 / self.var.DtDay
         # Inverse of time step [1/d]
-        self.var.DtSecChannel = loadmap('DtSecChannel')
+
+       # self.var.DtSecChannel = loadmap('DtSecChannel')
         # Sub time step used for kinematic wave channel routing [seconds]
         # within the model,the smallest out of DtSecChannel and DtSec is used
 
@@ -90,20 +90,11 @@ class miscInitial(object):
         # Multiplier to convert wate depths in meters to mm
         self.var.MMtoM3 = 0.001 * self.var.PixelArea
         # self.var.MMtoM3=0.001*float(celllength())**2
-        # Multiplier to convert water depths in mm to cubic
-        # metres
+        # Multiplier to convert water depths in mm to cubic metres
         self.var.M3toMM = 1 / self.var.MMtoM3
         # Multiplier to convert from cubic metres to mm water slice
 
-        self.var.GwLoss = loadmap('GwLoss')
-        self.var.GwPerc = np.maximum(loadmap('GwPercValue'), self.var.GwLoss)
-        # new Gwloss  PB 12.11.2009
-        # if GWloss > GwPercValue -> GwPerc = GwLoss
-        self.var.GwPercStep = self.var.GwPerc * self.var.DtDay
-        # Percolation from upper to lower groundwater zone, expressed as
-        # amount per time step
-        self.var.GwLossStep = self.var.GwLoss * self.var.DtDay
-        # change similar to GwPercStep
+
 
         # ************************************************************
         # ***** Some additional stuff
@@ -114,67 +105,6 @@ class miscInitial(object):
            timestepInit.append(binding["timestepInit"])
         except: pass
 
-        self.var.PrScaling = loadmap('PrScaling')
-        self.var.CalEvaporation = loadmap('CalEvaporation')
-
-        self.var.Precipitation = None
-        self.var.Tavg = None
-        self.var.ETRef = None
-        self.var.ESRef = None
-        self.var.EWRef = None
-        # setting meteo data to none - is this necessary?
 
 
 
-
-        self.var.EndOfMonthTable="D:/LisfloodWorld2/tables/EndOfMonth.txt"
-	       # '1' if last day of the month, '0' if not
-
-        self.var.DayCounterMap ="./outMonth/Days"
-        self.var.ETpotMonthly="./outMonth/ETpot"
-        self.var.ETactMonthly="./outMonth/ETact"
-        self.var.WDMonthly="./outMonth/WD"
-        self.var.WUMonthly="./outMonth/WU"
-        self.var.DisMonthly="./outMonth/FlowE"
-        self.var.FlowIMonthly = "./outMonth/FlowI"
-
-        self.var.WEI_Use = "./outMonth/WEIu"
-        self.var.WEI_Demand = "./outMonth/WEId"
-        self.var.lWEI_Use = "./outMonth/lWEIu"
-        self.var.lWEI_Demand = "./outMonth/lWEId"
-        self.var.WDI = "./outMonth/WDI"
-
-
-        self.var.FlagDemandUse="./outMonth/DaysDemandGTUSE.map"
-        self.var.torun="./torun"
-
-
-
-        self.var.DayCounter= 0.0
-        self.var.MonthETpot= globals.inZero
-        self.var.MonthETact= globals.inZero
-        self.var.MonthWDemand= globals.inZero
-        self.var.MonthWUse= globals.inZero
-        self.var.MonthWDemand= globals.inZero
-        self.var.MonthDis= globals.inZero
-        self.var.MonthInternalFlow =  globals.inZero
-
-
-        self.var.TotalInternalFlowM3 =  globals.inZero
-        self.var.PerMonthInternalFlowM3 =  globals.inZero
-	# total freshwater generated in the sub-area (m3), basically local P-ET-Storage
-        self.var.TotalExternalInflowM3 =  globals.inZero
-        self.var.PerMonthExternalInflowM3 =  globals.inZero
-	 # Total channel inflow (m3) from inlet points
-        self.var.PerMonthWaterDemandM3 =  globals.inZero
-        self.var.PerMonthWaterUseM3 =  globals.inZero
-
-        self.var.FlagDemandBiggerUse =  scalar(0.0)
-
-
-        self.var.TotWEI =  scalar(0.0)
-        self.var.TotlWEI =  scalar(0.0)
-        self.var.TotCount =  scalar(0.0)
-
-        self.var.SumETpot =  globals.inZero
-        self.var.SumETpotact =   globals.inZero

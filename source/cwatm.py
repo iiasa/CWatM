@@ -16,7 +16,7 @@
 
 __authors__ = "Peter Burek IIASA"
 __version__ = "Version: 0.99"
-__date__ ="16/05/2016"
+__date__ = "16/05/2016"
 __copyright__ = "Copyright 2016, IIASA"
 __maintainer__ = "Peter Burek"
 __status__ = "Development"
@@ -31,8 +31,8 @@ from netCDF4 import Dataset
 from pcraster import *
 from pcraster.framework import *
 
-
 from management_modules.configuration import *
+from management_modules.messages import *
 
 # ---------------------------
 
@@ -53,17 +53,16 @@ def CWATMexe():
     parse_configuration(settings)
     print option
     print binding
-    ### optionBinding(settings, optionxml)
     # read all the possible option for modelling and for generating output
-    # read the settingsfile with all information about the catchments(s)
-    # and the choosen option for mdelling and output
+    # read the settings file with all information about the catchments(s)
+
     ### bindkey = sorted(binding.keys())
 
     #os.chdir(outputDir[0])
     # this prevent from using relative path in settings!
 
-
-    #checkifDate('StepStart','StepEnd')
+    checkifDate('StepStart','StepEnd')
+    # checks if end date is later than start date and puts both in modelSteps
 
     #if option['InitCWATM']: print "INITIALISATION RUN"
     #print "Start - End: ",modelSteps[0]," - ", modelSteps[1]
@@ -81,8 +80,8 @@ def CWATMexe():
     Deterministic run
     ----------------------------------------------
     """
-   # print CWATNRunInfo(outputDir = outputDir[0])
-   # stCWATM.run()
+    print CWATMRunInfo(outputDir = outputDir[0])
+    stCWATM.run()
 
 		# cProfile.run('stLisflood.run()')
     # python -m cProfile -o  l1.pstats lisf1.py settingsNew3.xml
@@ -96,7 +95,7 @@ def CWATMexe():
         timePrint = timeSum
         for i in xrange(len(timePrint)):
             print "%2i %-17s %10.2f %8.1f"  %(i,timeMesString[i],timePrint[i],100 * timePrint[i] / timePrint[-1])
-    i=1
+
 
 # ==================================================
 # ============== USAGE ==============================
@@ -142,7 +141,6 @@ if __name__ == "__main__":
 
     if len(sys.argv) < 2:
         usage()
-
 
     CWatM_Path = os.path.dirname(sys.argv[0])
     CWatM_Path = os.path.abspath(CWatM_Path)

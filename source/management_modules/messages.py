@@ -66,8 +66,8 @@ class CWATMRunInfo(Warning):
     """
     prints out an error
     """
-    def __init__(self, mode, outputDir, Steps = 1, ensMembers=1, Cores=1):
-        header = "\n\n ========================== CWATM Simulation Information and Setting =============================\n"
+    def __init__(self, outputDir, Steps = 1, ensMembers=1, Cores=1):
+        header = "\n ========================== CWATM Simulation Information and Setting =============================\n"
         msg = "   The simulation output as specified in the settings file can be found in "+str(outputDir)+"\n"
         self._msg = header + msg
     def __str__(self):

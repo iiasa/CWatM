@@ -87,3 +87,7 @@ def parse_configuration(settingsFileName):
                 option[opt] = config.getboolean(sec, opt)
             else:
                 binding[opt] = config.get(sec, opt)
+
+    outputDir.append(binding["PathOut"])
+     # Output directory is stored in a separat global array
+

@@ -2,20 +2,23 @@
 # Name:       CWATM Initial
 # Purpose:
 #
-# Author:      burekpe
+# Author:      PB
 #
 # Created:     16/05/2016
-# Copyright:   (c) burekpe 2016
+# Copyright:   (c) PB 2016
 # -------------------------------------------------------------------------
 
 
 from hydrological_modules.miscInitial import *
-"""
 from hydrological_modules.readmeteo import *
-from hydrological_modules.leafarea import *
 from hydrological_modules.inflow import *
+from hydrological_modules.snow_frost import *
+
+"""
+from hydrological_modules.leafarea import *
+
 from hydrological_modules.landusechange import *
-from hydrological_modules.snow import *
+
 from hydrological_modules.frost import *
 from hydrological_modules.soil import *
 from hydrological_modules.routing import *
@@ -45,6 +48,9 @@ from hydrological_modules.structures import *
 # --------------------------------------------
 from pcraster import*
 from pcraster.framework import *
+from management_modules.data_handling import *
+
+
 
 class CWATModel_ini(DynamicModel):
 
@@ -63,12 +69,12 @@ class CWATModel_ini(DynamicModel):
         ## MaskMap: the maskmap is flexible e.g. col,row,x1,y1  or x1,x2,y1,y2
         self.MaskMap = loadsetclone('MaskMap')
 
-        if option['readNetcdfStack']:
-            # get the extent of the maps from the precipitation input maps
-            # and the modelling extent from the MaskMap
-            # cutmap[] defines the MaskMap inside the precipitation map
-            cutmap[0], cutmap[1], cutmap[2], cutmap[
-                3] = mapattrNetCDF(binding['E0Maps'])
+
+        # get the extent of the maps from the precipitation input maps
+        # and the modelling extent from the MaskMap
+        # cutmap[] defines the MaskMap inside the precipitation map
+        cutmap[0], cutmap[1], cutmap[2], cutmap[
+            3] = mapattrNetCDF(binding['E0Maps'])
         if option['writeNetcdfStack'] or option['writeNetcdf']:
             # if NetCDF is writen, the pr.nc is read to get the metadata
             # like projection
@@ -78,13 +84,14 @@ class CWATModel_ini(DynamicModel):
 
         # include all the hydrological modules
         self.misc_module = miscInitial(self)
-        """   
         self.readmeteo_module = readmeteo(self)
+        self.inflow_module = inflow(self)
+        self.snowfrost_module = snow(self)
+        """
         self.landusechange_module = landusechange(self)
         self.leafarea_module = leafarea(self)
-        self.snow_module = snow(self)
-        self.frost_module = frost(self)
-        self.inflow_module = inflow(self)
+
+
         self.soil_module = soil(self)
         self.routing_module = routing(self)
         self.groundwater_module = groundwater(self)
@@ -112,6 +119,9 @@ class CWATModel_ini(DynamicModel):
 		
         # run intial misc to get all global variables
         self.misc_module.initial()
+        self.inflow_module.initial()
+        self.snowfrost_module.initial()
+
         """
         # include output of tss and maps
         self.output_module = outputTssMap(self)
@@ -123,8 +133,6 @@ class CWATModel_ini(DynamicModel):
 
         self.landusechange_module.initial()
 
-        self.snow_module.initial()
-        self.frost_module.initial()
         self.leafarea_module.initial()
 
         self.soil_module.initial()
@@ -133,7 +141,6 @@ class CWATModel_ini(DynamicModel):
         self.groundwater_module.initial()
         self.waterlevel_module.initial()
 
-        self.inflow_module.initial()
         self.surface_routing_module.initial()
 
         self.reservoir_module.initial()

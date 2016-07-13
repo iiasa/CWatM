@@ -20,6 +20,7 @@ from management_modules.messages import *
 
 
 
+
 class CWATModel_dyn(DynamicModel):
 
     # =========== DYNAMIC ====================================================
@@ -35,7 +36,7 @@ class CWATModel_dyn(DynamicModel):
         #correct method to calculate the day of the year
 
         i = self.currentTimeStep()
-        if i==1:    globals.cdfFlag = [0, 0, 0, 0 ,0 ,0,0]
+#        if i==1:    globals.cdfFlag = [0, 0, 0, 0 ,0 ,0,0]
           # flag for netcdf output for all, steps and end
           # set back to 0,0,0,0,0,0 if new Monte Carlo run
 
@@ -54,13 +55,16 @@ class CWATModel_dyn(DynamicModel):
         # ************************************************************
         """ up to here it was fun, now the real stuff starts
         """
-        #self.readmeteo_module.dynamic()
-        #timemeasure("Read meteo") # 1. timing after read input maps
+        self.readmeteo_module.dynamic()
+        timemeasure("Read meteo") # 1. timing after read input maps
 
         #if Flags['check']: return  # if check than finish here
 
         """ Here it starts with hydrological modules:
         """
+        # ***** RAIN AND SNOW *****************************************
+        self.snowfrost_module.dynamic()
+        timemeasure("Snow")  # 2. timing
 
         # ***** READ land use fraction maps***************************
         """
