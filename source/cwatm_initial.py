@@ -13,6 +13,10 @@ from hydrological_modules.miscInitial import *
 from hydrological_modules.readmeteo import *
 from hydrological_modules.inflow import *
 from hydrological_modules.snow_frost import *
+from hydrological_modules.soil import *
+from hydrological_modules.landcoverType import *
+from hydrological_modules.groundwater import *
+from hydrological_modules.waterdemand import *
 
 """
 from hydrological_modules.leafarea import *
@@ -20,9 +24,9 @@ from hydrological_modules.leafarea import *
 from hydrological_modules.landusechange import *
 
 from hydrological_modules.frost import *
-from hydrological_modules.soil import *
+
 from hydrological_modules.routing import *
-from hydrological_modules.groundwater import *
+
 from hydrological_modules.surface_routing import *
 from hydrological_modules.reservoir import *
 from hydrological_modules.lakes import *
@@ -42,8 +46,6 @@ from hydrological_modules.waterlevel import *
 from hydrological_modules.structures import *
 """
 
-# from global_modules.output import *
-# from global_modules.stateVar import *
 
 # --------------------------------------------
 from pcraster import*
@@ -87,14 +89,18 @@ class CWATModel_ini(DynamicModel):
         self.readmeteo_module = readmeteo(self)
         self.inflow_module = inflow(self)
         self.snowfrost_module = snow(self)
+        self.soil_module = soil(self)
+        self.landcoverType_module = landcoverType(self)
+        self.groundwater_module = groundwater(self)
+        self.waterdemand_module = waterdemand(self)
+
         """
         self.landusechange_module = landusechange(self)
         self.leafarea_module = leafarea(self)
 
 
-        self.soil_module = soil(self)
+
         self.routing_module = routing(self)
-        self.groundwater_module = groundwater(self)
         self.surface_routing_module = surface_routing(self)
         self.reservoir_module = reservoir(self)
         self.lakes_module = lakes(self)
@@ -121,6 +127,10 @@ class CWATModel_ini(DynamicModel):
         self.misc_module.initial()
         self.inflow_module.initial()
         self.snowfrost_module.initial()
+        self.soil_module.initial()
+        self.landcoverType_module.initial()
+        self.groundwater_module.initial()
+        self.waterdemand_module.initial()
 
         """
         # include output of tss and maps
@@ -138,7 +148,7 @@ class CWATModel_ini(DynamicModel):
         self.soil_module.initial()
         self.routing_module.initial()
 
-        self.groundwater_module.initial()
+
         self.waterlevel_module.initial()
 
         self.surface_routing_module.initial()
