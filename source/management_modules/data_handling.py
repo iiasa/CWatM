@@ -16,7 +16,7 @@ from messages import *
 
 from pcraster import *
 from pcraster.framework import *
-from netCDF4 import Dataset,num2date,date2num
+from netCDF4 import Dataset,num2date,date2num,date2index
 
 
 def valuecell(mask, coordx, coordstr):
@@ -399,7 +399,56 @@ def readnetcdf(name, time):
     return mapC
 
 
+def readnetcdf2(name, date, useDaily):
+    """
+      load stack of maps 1 at each timestamp in netcdf format
+    """
+    #date = CalendarDate
 
+    if isinstance(date, str) == True:
+        date = datetime.datetime.strptime(str(date), '%Y-%m-%d')
+    date = datetime.datetime(date.year, date.month, date.day)
+
+    # time index (in the netCDF file)
+    if useDaily == "month":
+      idx = int(date.month) - 1
+    if useDaily == "yearly":
+            date = datetime.datetime(date.year, int(1), int(1))
+    if useDaily == "monthly":
+            date = datetime.datetime(date.year, date.month, int(1))
+
+    #filename = name + ".nc"
+    filename =  os.path.normpath(name)
+
+
+    try:
+       nf1 = Dataset(filename, 'r')
+    except:
+        msg = "Netcdf map stacks: \n"
+        raise CWATMFileError(filename,msg)
+
+    # A netCDF time variable object.
+    nctime = nf1.variables['time']
+    idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
+
+    value = nf1.variables.items()[-1][0]  # get the last variable name
+    mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
+    nf1.close()
+
+    #mapnp[np.isnan(mapnp)] = -9999
+    #map = numpy2pcr(Scalar, mapnp, -9999)
+    #report(map, 'C:\work\output\out1.map')
+
+    mapC = compressArray(mapnp,pcr=False,name=filename)
+    map = decompress(mapC)
+    report(map, 'C:\work\output\out2.map')
+
+
+    timename = os.path.basename(name) + str(time)
+    if Flags['check']:
+       map = decompress(mapC)
+       checkmap(timename, filename, map, True, 1)
+    return mapC
 
 
 

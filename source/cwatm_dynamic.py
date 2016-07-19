@@ -67,6 +67,8 @@ class CWATModel_dyn(DynamicModel):
         timemeasure("Snow")  # 2. timing
 
         # ***** READ land use fraction maps***************************
+
+        self.landcoverType_module.dynamic()
         """
         self.landusechange_module.dynamic()
 
