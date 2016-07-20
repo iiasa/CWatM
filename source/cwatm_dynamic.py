@@ -68,7 +68,10 @@ class CWATModel_dyn(DynamicModel):
 
         # ***** READ land use fraction maps***************************
 
-        self.landcoverType_module.dynamic()
+        self.landcoverType_module.dynamic_fracIrrigation()
+        self.capillarRise_module.dynamic()
+        self.waterdemand_module.dynamic()
+        self.landcoverType_module.dynamic_soil()
         """
         self.landusechange_module.dynamic()
 

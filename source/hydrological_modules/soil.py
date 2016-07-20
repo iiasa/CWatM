@@ -39,6 +39,13 @@ class soil(object):
         self.var.tanslope = np.maximum(self.var.tanslope, 0.00001)
         # setting slope >= 0.00001 to prevent 0 value
 
+        # maps of relative elevation above flood plains
+        dzRel = ['dzRel0001','dzRel0005',
+                 'dzRel0010','dzRel0020','dzRel0030','dzRel0040','dzRel0050',
+                 'dzRel0060','dzRel0070','dzRel0080','dzRel0090','dzRel0100']
+        for i in dzRel:
+            vars(self.var)[i] = readnetcdfWithoutTime(binding['relativeElevation'],i)
+
         # --- Soil -----------------------------------------------------
         # soil properties of FAO
         self.var.airEntryValue1 = loadmap('airEntryValue1')

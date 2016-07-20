@@ -37,12 +37,12 @@ class miscInitial(object):
             # Limitation: always assumes square grid cells (not rectangles!). Size of grid cells
             # may vary across map though
 
-            self.var.PixelLengthPcr = loadmap('PixelLengthUser',pcr=True)
-            self.var.PixelLength = compressArray(self.var.PixelLengthPcr)
+            self.var.cellLengthPcr = loadmap('CellLength',pcr=True)
+            self.var.cellLength = compressArray(self.var.cellLengthPcr)
             # Length of pixel [m]
             # Area of pixel [m2]
-            self.var.PixelAreaPcr = loadmap('PixelAreaUser',pcr=True)
-            self.var.PixelArea = compressArray(self.var.PixelAreaPcr)
+            self.var.cellAreaPcr = loadmap('CellArea',pcr=True)
+            self.var.cellArea = compressArray(self.var.cellAreaPcr)
 
         else:
             # Default behaviour: grid size is derived from location attributes of
@@ -53,13 +53,13 @@ class miscInitial(object):
 
             # Length of pixel [m]
             #self.var.PixelLength = celllength()
-            self.var.PixelLengthPcr = celllength()
-            self.var.PixelLength = maskmapAttr['cell']
+            self.var.cellLengthPcr = celllength()
+            self.var.cellLength = maskmapAttr['cell']
 
             # Area of pixel [m2]
-            self.var.PixelAreaPcr = self.var.PixelLength ** 2
-            self.var.PixelArea=np.empty(maskinfo['mapC'])
-            self.var.PixelArea.fill(self.var.PixelLength ** 2)
+            self.var.cellAreaPcr = self.var.cellLength ** 2
+            self.var.cellArea=np.empty(maskinfo['mapC'])
+            self.var.cellArea.fill(self.var.cellLength ** 2)
 
 #            self.var.PixelArea = spatial(self.var.PixelArea)
             # Convert to spatial expresion (otherwise this variable cannnot be
@@ -68,7 +68,8 @@ class miscInitial(object):
 # -----------------------------------------------------------------
         # Miscellaneous repeatedly used expressions (as suggested by GF)
 
-        self.var.InvPixelLength = 1.0 / self.var.PixelLength
+        self.var.InvCellLength = 1.0 / self.var.cellLength
+        self.var.InvCellArea = 1.0 / self.var.cellArea
         # Inverse of pixel size [1/m]
         self.var.DtSec = 86400.0
         self.var.DtDay = self.var.DtSec / 86400
@@ -88,7 +89,7 @@ class miscInitial(object):
         # Multiplier to convert wate depths in mm to meters
         self.var.MtoMM = 1000
         # Multiplier to convert wate depths in meters to mm
-        self.var.MMtoM3 = 0.001 * self.var.PixelArea
+        self.var.MMtoM3 = 0.001 * self.var.cellArea
         # self.var.MMtoM3=0.001*float(celllength())**2
         # Multiplier to convert water depths in mm to cubic metres
         self.var.M3toMM = 1 / self.var.MMtoM3

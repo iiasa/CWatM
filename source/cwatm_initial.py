@@ -17,6 +17,7 @@ from hydrological_modules.soil import *
 from hydrological_modules.landcoverType import *
 from hydrological_modules.groundwater import *
 from hydrological_modules.waterdemand import *
+from hydrological_modules.capillarRise import *
 
 """
 from hydrological_modules.leafarea import *
@@ -93,7 +94,7 @@ class CWATModel_ini(DynamicModel):
         self.landcoverType_module = landcoverType(self)
         self.groundwater_module = groundwater(self)
         self.waterdemand_module = waterdemand(self)
-
+        self.capillarRise_module = capillarRise(self)
         """
         self.landusechange_module = landusechange(self)
         self.leafarea_module = leafarea(self)
