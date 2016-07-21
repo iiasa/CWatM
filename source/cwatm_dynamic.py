@@ -71,7 +71,13 @@ class CWATModel_dyn(DynamicModel):
         self.landcoverType_module.dynamic_fracIrrigation()
         self.capillarRise_module.dynamic()
         self.waterdemand_module.dynamic()
-        self.landcoverType_module.dynamic_soil()
+
+        coverNo = 0
+        # update soil (loop per each land cover type):
+        for coverType in self.coverTypes:
+            print(coverType)
+            self.landcoverType_module.dynamic(coverType, coverNo)
+            coverNo =+ 1
         """
         self.landusechange_module.dynamic()
 

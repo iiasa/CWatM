@@ -111,16 +111,25 @@ class landcoverType(object):
             i += 1
 
 
+        # output variable per land cover class
+        self.var.potBareSoilEvap = [0, 0, 0, 0]
+        self.var.potTranspiration = [0, 0, 0, 0]
+        self.var.liquidPrecip = [0, 0, 0, 0]
+        self.var.interceptEvap = [0, 0, 0, 0]
+        self.var.actualET = [0, 0, 0, 0]
+
+        self.var.soilWaterStorage = [0, 0, 0, 0]
+        self.var.a2ctualET = [0, 0, 0, 0]
+        self.var.a3ctualET = [0, 0, 0, 0]
 
 
 
-# --------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def dynamic_fracIrrigation(self):
         """ dynamic part of the land cover type module
             calculating fraction of land cover
         """
-
 
         if option['includeIrrigation'] and option['dynamicIrrigationArea']:
         # if first day of the year or first day of run
@@ -152,54 +161,47 @@ class landcoverType(object):
 
 # --------------------------------------------------------------------------
 
-    def dynamic_soil(self):
+    def dynamic(self, coverType, coverNo):
         """ dynamic part of the land cover type module
             calculating soil for each land cover class
         """
 
-        def getPotET(coverType, coverNo):
-            """
-            get crop coefficient, use potential ET, calculate potential bare soil evaporation and transpiration
-            """
-
-            # get crop coefficient:
-            self.var.cropKC = readnetcdf2(binding[coverType+'_cropCoefficientNC'], self.var.CalendarDay,"DOY")
-            self.var.cropKC = np.maximum(self.var.cropKC, self.var.minCropKC[coverNo])
-
-            # calculate potential ET:
-            self.var.totalPotET = self.var.cropKC * self.var.ETRef
-
-            # calculate potential bare soil evaporation and transpiration
-            self.var.potBareSoilEvap = self.var.minCropKC[coverNo] * self.var.ETRef
-            self.var.potTranspiration = self.var.cropKC[coverNo] * self.var.ETRef - self.var.potBareSoilEvap
-
-        def interceptionUpdate(coverType, coverNo)
-
-            if not coverType.startswith("irr"):
-
-        # ----------------------------------------------------------------------------------------
-        # update (loop per each land cover type):
-        coverNo = 0
-        for coverType in self.var.coverTypes:
-            print(coverType)
-            # landcover UpdateLC 370
-            """
-            self.landCoverObj[coverType].updateLC(meteo,groundwater,routing,\
-                                                  self.parameters,self.capRiseFrac,\
-                                                  self.potentialNonIrrGrossWaterDemand,\
-                                                  self.swAbstractionFraction,\
-                                                  currTimeStep,\
-                                                  allocSegments = self.allocSegments)
-            """
-
-            getPotET(coverType,coverNo)
+        self.var.soil_module.dynamic_PotET(coverType, coverNo)
+        self.var.soil_module.dynamic_interception(coverType, coverNo)
+        self.var.soil_module.dynamic_getSoilStates(coverType, coverNo)
+        i = 1
 
 
 
-            # self.interceptionUpdate(meteo, currTimeStep)  # calculate interception and update storage
+
+
+        # landcover UpdateLC 370
+        """
+        self.landCoverObj[coverType].updateLC(meteo,groundwater,routing,\
+                                      self.parameters,self.capRiseFrac,\
+                                      self.potentialNonIrrGrossWaterDemand,\
+                                      self.swAbstractionFraction,\
+                                      currTimeStep,\
+                                      allocSegments = self.allocSegments)
+
+
+        getPotET(coverType,coverNo)
+        self.interceptionUpdate(meteo, currTimeStep)  # calculate interception and update storage
             # snow already calculated
-            # calculate qDR & qSF & q23 (and update storages)
-            # self.upperSoilUpdate(meteo,groundwater,routing, parameters,capRiseFrac, nonIrrGrossDemand,swAbstractionFraction,\
-            #                 currTimeStep, allocSegments)
-            coverNo += 1
+
+        # calculate qDR & qSF & q23 (and update storages)
+        self.upperSoilUpdate(meteo,groundwater,routing, parameters,capRiseFrac, nonIrrGrossDemand,swAbstractionFraction 378 -> 1642
+            self.getSoilStates(parameters) 1656 -> 626
+            self.calculateWaterDemand  777
+            self.calculateOpenWaterEvap() 1027
+            self.calculateDirectRunoff(parameters)   940
+            self.calculateInfiltration(parameters)  1052
+            self.estimateTranspirationAndBareSoilEvap(parameters)
+            self.estimateSoilFluxes(parameters,capRiseFrac)
+            self.scaleAllFluxes(parameters, groundwater)
+            self.updateSoilStates(parameters)
+
+        """
+
+
 

@@ -47,7 +47,7 @@ class readmeteo(object):
         # potential evaporation rate from water surface (conversion to [mm] per time step)
 
 
-        self.var.ESRef = (self.var.EWRef + self.var.ETRef)/2
+        #self.var.ESRef = (self.var.EWRef + self.var.ETRef)/2
         # potential evaporation rate from a bare soil surface (conversion # to [mm] per time step)
 
         if option['TemperatureInKelvin']:
