@@ -137,9 +137,7 @@ class snow(object):
         self.var.Rain /= 3
         self.var.SnowMelt /= 3
         self.var.SnowCover /= 3
-
-        self.var.TotalPrecipitation += self.var.Snow + self.var.Rain
-        # total precipitation in pixel [mm]
+        # all in pixel [mm]
 
 
         map = decompress( self.var.TotalPrecipitation)

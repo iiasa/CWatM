@@ -48,13 +48,19 @@ class landcoverType(object):
         self.var.cropCoefficientNC_filename = []; self.var.interceptCapNC_filename = []; self.var.coverFractionNC_filename = []
         self.var.interceptStor = []; self.var.topWaterLayer = []
         self.var.storUpp000005 = []; self.var.storUpp005030 = []; self.var.storLow030150 = []
-        self.var.interflow = []
+        self.var.interflow = [];self.var.arnoBeta=[]
 
         # fraction of what type of irrigation area
         self.var.irrTypeFracOverIrr = [0, 0, 0, 0]
         # fraction (m2) of a certain irrigation type over (only) total irrigation area ; will be assigned by the landSurface module
         self.var.fractionArea = [0,0,0,0]
-
+        self.var.totAvlWater = [0,0,0,0]
+        self.var.adjRootFrUpp000005 = [0,0,0,0]
+        self.var.adjRootFrUpp005030 = [0,0,0,0]
+        self.var.adjRootFrLow030150 = [0,0,0,0]
+        self.var.effSatAt50 = [0,0,0,0]
+        self.var.effPoreSizeBetaAt50 = [0,0,0,0]
+        self.var.directRunoff = [0,0,0,0]
 
         i = 0
         for coverType in self.var.coverTypes:
@@ -77,6 +83,8 @@ class landcoverType(object):
         i = 0
         for coverType in self.var.coverTypes:
             # other paramater values
+            self.var.arnoBeta.append(loadmap(coverType + "_arnoBeta"))
+            # b coefficient of soil water storage capacity distribution
             self.var.minTopWaterLayer.append(loadmap(coverType + "_minTopWaterLayer"))
             self.var.minCropKC.append(loadmap(coverType + "_minCropKC"))
             self.var.minInterceptCap.append(loadmap(coverType + "_minInterceptCap"))
@@ -108,13 +116,92 @@ class landcoverType(object):
             self.var.sumstorUpp000005 += self.var.fracVegCover[i] * self.var.storUpp000005[i]
             self.var.sumstorUpp005030 += self.var.fracVegCover[i] * self.var.storUpp005030[i]
             self.var.sumstorLow030150 += self.var.fracVegCover[i] * self.var.storLow030150[i]
+
+            # Improved Arno's scheme parameters:
+            if self.var.arnoBeta[i] == 0:
+                self.var.arnoBeta[i] = np.minimum(10.0,
+                    np.maximum(0.001, (self.var.maxSoilDepthFrac[i] - 1.) / (1. - self.var.minSoilDepthFrac[i]) + self.var.orographyBeta - 0.01))
+            else:
+                self.var.arnoBeta[i] = np.minimum(10.0,np.maximum(0.001, self.arnoBeta))
+
+            #report(decompress(self.var.arnoBeta[i]), "C:\work\output\harno.map")
+
+
+
+            self.var.rootZoneWaterStorageMin = self.var.minSoilDepthFrac * self.var.rootZoneWaterStorageCap
+            self.var.rootZoneWaterStorageRange = self.var.rootZoneWaterStorageCap - self.var.rootZoneWaterStorageMin
+
+            # scaleRootFractions
+            rootFracUpp000005 = 0.05/0.30 * self.var.rootFraction1[i]
+            rootFracUpp005030 = 0.25/0.30 * self.var.rootFraction1[i]
+            rootFracLow030150 = 1.20/1.20 * self.var.rootFraction2[i]
+            self.var.adjRootFrUpp000005[i] = rootFracUpp000005 / (rootFracUpp000005 + rootFracUpp005030 + rootFracLow030150)
+            self.var.adjRootFrUpp005030[i] = rootFracUpp005030 / (rootFracUpp000005 + rootFracUpp005030 + rootFracLow030150)
+            self.var.adjRootFrLow030150[i] = rootFracLow030150 / (rootFracUpp000005 + rootFracUpp005030 + rootFracLow030150)
+            #
+            # if not defined, put everything in the first layer:
+            #self.var.adjRootFrUpp000005 = pcr.cover(self.adjRootFrUpp000005,1.0)
+            self.var.adjRootFrUpp005030[i] = np.where(self.var.adjRootFrUpp000005[i] < 1.0, self.var.adjRootFrUpp005030[i], 0.0)
+            self.var.adjRootFrLow030150[i] = 1.0 - (self.var.adjRootFrUpp000005[i] + self.var.adjRootFrUpp005030[i])
+
+
+            # ------------------------------------------
+            # calculateTotAvlWaterCapacityInRootZone
+            # total water capacity in the root zone (upper soil layers)
+            # Note: This is dependent on the land cover type.
+
+            h1 = np.maximum(0., self.var.effSatAtFieldCapUpp000005 - self.var.effSatAtWiltPointUpp000005) * \
+                (self.var.satVolMoistContUpp000005 - self.var.resVolMoistContUpp000005) * \
+                np.minimum(self.var.thickUpp000005, self.var.maxRootDepth[i])
+
+            h2 = np.maximum(0., self.var.effSatAtFieldCapUpp005030 - self.var.effSatAtWiltPointUpp005030) * \
+                (self.var.satVolMoistContUpp005030 - self.var.resVolMoistContUpp005030) * \
+                np.minimum(self.var.thickUpp005030, np.maximum(0.,self.var.maxRootDepth[i] - self.var.thickUpp000005))
+
+
+            h3 = np.maximum(0., self.var.effSatAtFieldCapLow030150 - self.var.effSatAtWiltPointLow030150) * \
+                (self.var.satVolMoistContLow030150 - self.var.resVolMoistContLow030150) * \
+                np.minimum(self.var.thickLow030150, np.maximum(self.var.maxRootDepth[i] - self.var.thickUpp005030, 0.))
+
+            self.var.totAvlWater[i] = h1 + h2 + h3
+            self.var.totAvlWater[i] = np.minimum(self.var.totAvlWater[i], self.var.storCapUpp000005 + self.var.storCapUpp005030 + self.var.storCapLow030150)
+
+            # --------------------------------------------------------------------------------------------------------
+            # calculateParametersAtHalfTranspiration(self, parameters):
+            # average soil parameters at which actual transpiration is halved
+            h1 = self.var.storCapUpp000005 * self.var.adjRootFrUpp000005[i] * \
+                 (self.var.matricSuction50 / self.var.airEntryValueUpp000005) ** (-1. / self.var.poreSizeBetaUpp000005)
+
+            h2 = self.var.storCapUpp005030 * self.var.adjRootFrUpp005030[i] * \
+                 (self.var.matricSuction50 / self.var.airEntryValueUpp000005) ** (-1. / self.var.poreSizeBetaUpp000005)
+
+            h3 = self.var.storCapLow030150 * self.var.adjRootFrLow030150[i] * \
+                (self.var.matricSuction50 / self.var.airEntryValueLow030150) ** \
+                (-1. / self.var.poreSizeBetaLow030150) / \
+                (self.var.storCapUpp000005 * self.var.adjRootFrUpp000005[i] + \
+                 self.var.storCapUpp005030 * self.var.adjRootFrUpp005030[i] + \
+                 self.var.storCapLow030150 * self.var.adjRootFrLow030150[i])
+            self.var.effSatAt50[i] = h1 + h2 + h3
+
+            h1 = self.var.storCapUpp000005 * self.var.adjRootFrUpp000005[i] * self.var.poreSizeBetaUpp000005 +\
+                 self.var.storCapUpp005030 * self.var.adjRootFrUpp005030[i] * self.var.poreSizeBetaUpp005030 +\
+                 self.var.storCapLow030150 * self.var.adjRootFrLow030150[i] * self.var.poreSizeBetaLow030150
+            h2 = self.var.storCapUpp000005 * self.var.adjRootFrUpp000005[i] + self.var.storCapUpp005030 *\
+                 self.var.adjRootFrUpp005030[i] + self.var.storCapLow030150[i] * self.var.adjRootFrLow030150[i]
+            self.var.effPoreSizeBetaAt50[i] = h1 / h2
+
+
+
             i += 1
+
+
+
 
 
         # output variable per land cover class
         self.var.potBareSoilEvap = [0, 0, 0, 0]
         self.var.potTranspiration = [0, 0, 0, 0]
-        self.var.liquidPrecip = [0, 0, 0, 0]
+        self.var.availWaterInfiltration = [0, 0, 0, 0]
         self.var.interceptEvap = [0, 0, 0, 0]
         self.var.actualET = [0, 0, 0, 0]
 

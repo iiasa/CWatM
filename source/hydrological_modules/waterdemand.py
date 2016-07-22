@@ -94,6 +94,7 @@ class waterdemand(object):
 
         gwAbstractionFraction = 1.0 - swAbstractionFraction
         """
+        self.var.swAbstractionFraction = 0.5
         self.var.gwAbstractionFraction = 0.5
 
 
@@ -106,23 +107,20 @@ class waterdemand(object):
         # irrigation water demand for paddy and non-paddy (m)
         self.var.irrGrossDemand = 0.0
         if coverType == 'irrPaddy':
-            self.var.irrGrossDemand = np.where(self.var.cropKC > 0.75, np.maximum(0.0, self.var.minTopWaterLayer - (self.var.topWaterLayer + self.var.netLqWaterToSoil)), 0.)
+            self.var.irrGrossDemand = np.where(self.var.cropKC > 0.75, np.maximum(0.0, self.var.minTopWaterLayer[No] - (self.var.topWaterLayer[No] + self.var.availWaterInfiltration[No])), 0.)
             # a function of cropKC (evaporation and transpiration),
             #  topWaterLayer (water available in the irrigation field), and netLqWaterToSoil (amout of liquid precipitation)
+            self.var.irrGrossDemand = np.where(self.var.irrGrossDemand > (1.0 / self.var.cellArea), self.var.irrGrossDemand, 0)  # ignore demand if less than 1 m3
         if coverType == 'irrNonPaddy':
-            adjDeplFactor = np.maximum(0.1, np.minimum(0.8, (self.var.cropDeplFactor + 40. * (0.005 - self.var.totalPotET))))
+            adjDeplFactor = np.maximum(0.1, np.minimum(0.8, (self.var.cropDeplFactor[No] + 40. * (0.005 - self.var.totalPotET))))
             self.var.irrGrossDemand = np.where(self.var.cropKC > 0.20, np.where(self.var.readAvlWater < adjDeplFactor * self.var.totAvlWater, np.maximum(0.0, self.var.totAvlWater - self.var.readAvlWater), 0.), 0.)
             # a function of cropKC and totalPotET (evaporation and transpiration),
             #    readAvlWater (available water in the root zone), and
             #    netLqWaterToSoil (amout of liquid precipitation)
-
-        #self.var.irrGrossDemand = pcr.cover(self.var.irrGrossDemand, 0.0)
-        #self.var.irrGrossDemand = np.where(self.var.landmask, self.var.irrGrossDemand)
-        self.var.irrGrossDemand = np.where(self.var.irrGrossDemand > (1.0 / self.var.cellArea), self.var.irrGrossDemand, 0)  # ignore demand if less than 1 m3
+            self.var.irrGrossDemand = np.where(self.var.irrGrossDemand > (1.0 / self.var.cellArea), self.var.irrGrossDemand, 0)  # ignore demand if less than 1 m3
 
         # totalGrossDemand (m): total maximum (potential) water demand: irrigation and non irrigation
         totalGrossDemand = nonIrrGrossDemand + self.var.irrGrossDemand
-
         self.var.totalPotentialGrossDemand = totalGrossDemand
 
         # surface water abstraction that can be extracted to fulfil totalGrossDemand
@@ -202,15 +200,16 @@ class waterdemand(object):
                                       "", threshold=5e-3)
 
         else:
+        """
+        # alooocation has to be done!! TODO
+        # to be changed  TODO
+        self.var.readAvlChannelStorage = globals.inZero.copy()
 
-            # only local surface water abstraction is allowed (network is only within a cell)
-            self.var.actSurfaceWaterAbstract = np.minimum(routing.readAvlChannelStorage / routing.cellArea, \
-                                                   swAbstractionFraction * totalGrossDemand)  # unit: m
-            self.var.actSurfaceWaterAbstract = pcr.cover(self.var.actSurfaceWaterAbstract, 0.0)
-            self.var.allocSurfaceWaterAbstract = self.var.actSurfaceWaterAbstract  # unit: m
+        # only local surface water abstraction is allowed (network is only within a cell)
+        self.var.actSurfaceWaterAbstract = np.minimum(self.var.readAvlChannelStorage / self.var.cellArea, self.var.swAbstractionFraction * totalGrossDemand)  # unit: m
+        self.var.allocSurfaceWaterAbstract = self.var.actSurfaceWaterAbstract  # unit: m
 
-        self.var.actSurfaceWaterAbstract = pcr.ifthen(self.var.landmask, self.var.actSurfaceWaterAbstract)
-        self.var.allocSurfaceWaterAbstract = pcr.ifthen(self.var.landmask, self.var.allocSurfaceWaterAbstract)
+        # end of else
 
         self.var.potGroundwaterAbstract = np.maximum(0.0, totalGrossDemand - self.var.allocSurfaceWaterAbstract)  # unit: m
 
@@ -221,6 +220,7 @@ class waterdemand(object):
         #
         self.var.reducedGroundWaterAbstraction = 0.0  # variable to reduce/limit groundwater abstraction (> 0 if limitAbstraction = True)
         #
+        """
         if self.var.limitAbstraction == 'True':
 
             print ('Fossil groundwater abstractions are NOT allowed.')
