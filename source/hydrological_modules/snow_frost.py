@@ -140,8 +140,8 @@ class snow(object):
         # all in pixel [mm]
 
 
-        map = decompress( self.var.TotalPrecipitation)
-        report(map, 'C:\work\output\out3.map')
+        #map = decompress( self.var.TotalPrecipitation)
+        #report(map, 'C:\work\output\out3.map')
 
         # ---------------------------------------------------------------------------------
         # Dynamic part of frost index

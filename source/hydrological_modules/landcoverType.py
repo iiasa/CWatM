@@ -208,6 +208,9 @@ class landcoverType(object):
         self.var.soilWaterStorage = [0, 0, 0, 0]
         self.var.a2ctualET = [0, 0, 0, 0]
         self.var.a3ctualET = [0, 0, 0, 0]
+        self.var.infiltration = [0, 0, 0, 0]
+        self.var.actBareSoilEvap = [0, 0, 0, 0]
+        self.var.landSurfaceRunoff = [0, 0, 0, 0]
 
 
 

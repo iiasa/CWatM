@@ -60,7 +60,7 @@ def loadsetclone(name):
     filename = binding[name]
     coord = filename.split()
     if len(coord) == 5:
-        # changed order of x, y i- in setclone y is first in Lisflood
+        # changed order of x, y i- in setclone y is first in CWATM
         # settings x is first
         # setclone row col cellsize xupleft yupleft
         setclone(int(coord[1]), int(coord[0]), float(coord[2]), float(coord[3]), float(coord[4]))
@@ -80,7 +80,7 @@ def loadsetclone(name):
             try:
                 nf1 = Dataset(filename, 'r')
             except:
-                raise LisfloodFileError(filename)
+                raise CWATMFileError(filename)
 
             value = nf1.variables.items()[-1][0]  # get the last variable name
 
@@ -388,8 +388,8 @@ def readnetcdf(name, time):
     #report(map, 'C:\work\output\out1.map')
 
     mapC = compressArray(mapnp,pcr=False,name=filename)
-    map = decompress(mapC)
-    report(map, 'C:\work\output\out2.map')
+    #map = decompress(mapC)
+    #report(map, 'C:\work\output\out2.map')
 
 
     timename = os.path.basename(name) + str(time)
@@ -500,7 +500,7 @@ def checkifDate(start,end):
     if (intStart<0) or (intEnd<0) or ((intEnd-intStart)<0):
         strBegin = begin.strftime("%d/%m/%Y")
         msg="Start Date: "+strStart+" and/or end date: "+ strEnd + " are wrong!\n or smaller than the first time step date: "+strBegin
-        raise LisfloodError(msg)
+        raise CWATMError(msg)
     modelSteps.append(intStart)
     modelSteps.append(intEnd)
     return

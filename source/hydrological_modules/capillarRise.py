@@ -78,7 +78,7 @@ class capillarRise(object):
         CRFRAC = np.where(dzGroundwater < self.var.dzRel0001, 0.01 - (self.var.dzRel0001 - dzGroundwater) * 0.1 / np.maximum(1e-3, self.var.dzRel0001), CRFRAC)
 
         CRFRAC = np.where(FRACWAT < 1.0,np.maximum(0.0,CRFRAC-FRACWAT)/(1-FRACWAT), 0.0);
-        capRiseFrac = np.maximum(0.0,np.minimum(1.0,CRFRAC))
+        self.var.capRiseFrac = np.maximum(0.0,np.minimum(1.0,CRFRAC))
 
-        return capRiseFrac
+
 

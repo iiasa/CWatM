@@ -268,7 +268,7 @@ class soil(object):
             #    Q1_L[TYPE]= max(0,Pn-(WMAX[TYPE]+P2_L[TYPE]-W[TYPE])+
             #      if(Pn>=(BCF[TYPE]+1)*WRANGE[TYPE]*WFRACB, 0,
             #      WRANGE[TYPE]*(WFRACB-Pn/((BCF[TYPE]+1)*WRANGE[TYPE]))**(BCF[TYPE]+1))); #*
-            return directRunoff
+            return directRunoff, WFRACB, satAreaFrac
             #---------------------------------------------------------
             # ---------------------------------------------------------
 
@@ -342,7 +342,7 @@ class soil(object):
         # calculate openWaterEvap: open water evaporation from the paddy field,
         # and update topWaterLayer after openWaterEvap.
 
-        self.var.openWaterEvap = 0.0
+        self.var.openWaterEvap = globals.inZero.copy()
         if coverType == 'irrPaddy':
              # open water evaporation from the paddy field  - using potential evaporation from open water
             self.var.openWaterEvap = np.minimum( np.maximum(0., self.var.topWaterLayer[No]), self.var.EWRef)
@@ -364,7 +364,7 @@ class soil(object):
         # topwater = water net from precipitaion (- soil - interception - snow + snow melt) + water for irrigation
 
         # topWaterLater is partitioned into directRunoff (and infiltration)
-        self.var.directRunoff[No] = improvedArnoScheme( No,kUnsatLow030150,
+        self.var.directRunoff[No], WFRACB, satAreaFrac = improvedArnoScheme( No,kUnsatLow030150,
                     iniWaterStorage=self.var.soilWaterStorage[No], inputNetLqWaterToSoil=self.var.topWaterLayer[No])
         self.var.directRunoff[No] = np.minimum(self.var.topWaterLayer[No], self.var.directRunoff[No])
 
@@ -379,68 +379,60 @@ class soil(object):
         # ---------------------------------------------------------
         # calculateInfiltration
         # infiltration, limited with KSat1 and available water in topWaterLayer
-        self.infiltration = pcr.min(self.topWaterLayer,parameters.kSatUpp000005)  # P0_L = min(P0_L,KS1*Duration*timeslice());
+        self.var.infiltration[No] = np.minimum(self.var.topWaterLayer[No],self.var.kSatUpp000005)  # P0_L = min(P0_L,KS1*Duration*timeslice());
 
         # update top water layer after infiltration
-        self.topWaterLayer = self.topWaterLayer - self.infiltration
+        self.var.topWaterLayer[No] = self.var.topWaterLayer[No] - self.var.infiltration[No]
 
         # ---------------------------------------------------------
         #estimateTranspirationAndBareSoilEvap
         # TRANSPIRATION
         # - partitioning transpiration (based on actual each layer storage)
 
-        dividerTranspFracs = pcr.max(1e-9, self.adjRootFrUpp000005 * self.storUpp000005 + \
-                                     self.adjRootFrUpp005030 * self.storUpp005030 + \
-                                     self.adjRootFrLow030150 * self.storLow030150)
+        dividerTranspFracs = np.maximum(1e-9, self.var.adjRootFrUpp000005[No] * self.var.storUpp000005[No] + \
+                    self.var.adjRootFrUpp005030[No] * self.var.storUpp005030[No] + \
+                    self.var.adjRootFrLow030150[No] * self.var.storLow030150[No])
 
-        transpFracUpp000005 = pcr.ifthenelse((self.storUpp000005 + self.storUpp005030 + self.storLow030150) > 0., \
-                   self.adjRootFrUpp000005 * self.storUpp000005 / dividerTranspFracs, self.adjRootFrUpp000005)
+        transpFracUpp000005 = np.where((self.var.storUpp000005[No] + self.var.storUpp005030[No] + self.var.storLow030150[No]) > 0., \
+                    self.var.adjRootFrUpp000005[No] * self.var.storUpp000005[No] / dividerTranspFracs[No], self.var.adjRootFrUpp000005[No])
 
-        transpFracUpp005030 =  pcr.ifthenelse((self.storUpp000005 +  self.storUpp005030 + \
-                    self.storLow030150) > 0., self.adjRootFrUpp005030 * self.storUpp005030 / dividerTranspFracs, \
-                   self.adjRootFrUpp005030)
+        transpFracUpp005030 =  np.where((self.var.storUpp000005[No] +  self.var.storUpp005030[No] + \
+                    self.var.storLow030150[No]) > 0., self.var.adjRootFrUpp005030[No] * self.var.storUpp005030[No] / dividerTranspFracs, \
+                    self.var.adjRootFrUpp005030[No])
 
-        transpFracLow030150 = pcr.ifthenelse((self.storUpp000005 + self.storUpp005030 + \
-                    self.storLow030150) > 0., self.adjRootFrLow030150 * self.storLow030150 / dividerTranspFracs, \
-                   self.adjRootFrLow030150)
+        transpFracLow030150 = np.where((self.var.storUpp000005[No] + self.var.storUpp005030[No] + \
+                    self.var.storLow030150[No]) > 0., self.var.adjRootFrLow030150[No] * self.var.storLow030150[No] / dividerTranspFracs, \
+                    self.var.adjRootFrLow030150[No])
 
 
         # - relActTranspiration = fraction actual transpiration over potential transpiration
-        relActTranspiration = (parameters.rootZoneWaterStorageCap  + \
-                       self.arnoBeta*self.rootZoneWaterStorageRange*(1.- \
-                   (1.+self.arnoBeta)/self.arnoBeta*self.WFRACB)) / \
-                                  (parameters.rootZoneWaterStorageCap  + \
-                       self.arnoBeta*self.rootZoneWaterStorageRange*(1.- self.WFRACB))   # original Rens's line:
-                                                                                         # FRACTA[TYPE] = (WMAX[TYPE]+BCF[TYPE]*WRANGE[TYPE]*(1-(1+BCF[TYPE])/BCF[TYPE]*WFRACB))/
-                                                                                         #                (WMAX[TYPE]+BCF[TYPE]*WRANGE[TYPE]*(1-WFRACB));
-        relActTranspiration = (1.-self.satAreaFrac) / \
-              (1.+(pcr.max(0.01,relActTranspiration)/self.effSatAt50)**\
-                                           (self.effPoreSizeBetaAt50*pcr.scalar(-3.0)))  # original Rens's line:
-                                                                                         # FRACTA[TYPE] = (1-SATFRAC_L)/(1+(max(0.01,FRACTA[TYPE])/THEFF_50[TYPE])**(-3*BCH_50));
-        relActTranspiration = pcr.max(0.0, relActTranspiration)
-        relActTranspiration = pcr.min(1.0, relActTranspiration)
+        relActTranspiration = (self.var.rootZoneWaterStorageCap  + self.var.arnoBeta[No]*self.var.rootZoneWaterStorageRange[No]*(1.- \
+                    (1.+self.var.arnoBeta[No])/self.var.arnoBeta[No]* WFRACB)) / \
+                    (self.var.rootZoneWaterStorageCap  + self.var.arnoBeta[No]*self.var.rootZoneWaterStorageRange[No]*(1.- WFRACB))   # original Rens's line:
+
+
+        relActTranspiration = (1.- satAreaFrac) / \
+                    (1.+(np.maximum(0.01,relActTranspiration)/self.var.effSatAt50[No])**\
+                    (self.var.effPoreSizeBetaAt50[No]* -3.0))
+
+        relActTranspiration = np.maximum(0.0, relActTranspiration)
+        relActTranspiration = np.minimum(1.0, relActTranspiration)
 
         # estimates of actual transpiration fluxes:
-        self.actTranspiUpp000005 = \
-              relActTranspiration*transpFracUpp000005*self.potTranspiration
-        self.actTranspiUpp005030 = \
-              relActTranspiration*transpFracUpp005030*self.potTranspiration
-        self.actTranspiLow030150 = \
-              relActTranspiration*transpFracLow030150*self.potTranspiration
+        self.var.actTranspiUpp000005 = relActTranspiration * transpFracUpp000005* self.var.potTranspiration[No]
+        self.var.actTranspiUpp005030 = relActTranspiration * transpFracUpp005030* self.var.potTranspiration[No]
+        self.var.actTranspiLow030150 = relActTranspiration * transpFracLow030150* self.var.potTranspiration[No]
 
         # BARE SOIL EVAPORATION
         #
         # actual bare soil evaporation (potential)
-        self.actBareSoilEvap = pcr.scalar(0.0)
-        self.actBareSoilEvap = self.satAreaFrac * pcr.min( \
-            self.potBareSoilEvap, parameters.kSatUpp000005) + \
-                               (1. - self.satAreaFrac) * pcr.min( \
-                                   self.potBareSoilEvap, self.kUnsatUpp000005)
+        self.var.actBareSoilEvap[No] = satAreaFrac * np.minimum( \
+                    self.var.potBareSoilEvap[No], self.var.kSatUpp000005) + \
+                    (1. - satAreaFrac) * np.minimum(self.var.potBareSoilEvap[No], kUnsatUpp000005)
 
         # no bare soil evaporation in the inundated paddy field
-        if self.name == 'irrPaddy':
-            self.actBareSoilEvap = pcr.ifthenelse(self.topWaterLayer > 0.0, 0.0, self.actBareSoilEvap)
-
+        if coverType == 'irrPaddy':
+                    self.var.actBareSoilEvap[No] = np.where(self.var.topWaterLayer[No] > 0.0, 0.0, self.var.actBareSoilEvap[No])
 
 
 
@@ -450,63 +442,191 @@ class soil(object):
         # estimateSoilFluxes(self, parameters, capRiseFrac):
         # Given states, we estimate all fluxes.
             # - percolation from storUpp000005 to storUpp005030 (m)
-        self.percUpp000005 = self.kThVertUpp000005Upp005030 * 1.
-        self.percUpp000005 = \
-            pcr.ifthenelse(self.effSatUpp000005 > parameters.effSatAtFieldCapUpp000005, \
-                           pcr.min(pcr.max(0.,
-                                           self.effSatUpp000005 - parameters.effSatAtFieldCapUpp000005) * parameters.storCapUpp000005,
-                                   self.percUpp000005), self.percUpp000005) + \
-            pcr.max(0., self.infiltration - \
-                    (parameters.storCapUpp000005 - self.storUpp000005))
+        self.var.percUpp000005 = kThVertUpp000005Upp005030 * 1.
+        self.var.percUpp000005 = np.where(effSatUpp000005 > self.var.effSatAtFieldCapUpp000005, \
+                    np.minimum(np.maximum(0.,effSatUpp000005 - self.var.effSatAtFieldCapUpp000005) * self.var.storCapUpp000005,
+                    self.var.percUpp000005[No]), self.var.percUpp000005[No]) + np.maximum(0., self.var.infiltration[No] - \
+                    (self.var.storCapUpp000005 - self.var.storUpp000005[No]))
 
         # - percolation from storUpp005030 to storLow030150 (m)
-        self.percUpp005030 = self.kThVertUpp005030Low030150 * 1.
-        self.percUpp005030 = \
-            pcr.ifthenelse(self.effSatUpp005030 > parameters.effSatAtFieldCapUpp005030, \
-                           pcr.min(pcr.max(0.,
-                                           self.effSatUpp005030 - parameters.effSatAtFieldCapUpp005030) * parameters.storCapUpp005030,
-                                   self.percUpp005030), self.percUpp005030) + \
-            pcr.max(0., self.percUpp000005 - \
-                    (parameters.storCapUpp005030 - self.storUpp005030))
+        self.var.percUpp005030 = kThVertUpp005030Low030150 * 1.
+        self.var.percUpp005030 = np.where(effSatUpp005030 > self.var.effSatAtFieldCapUpp005030, \
+                    np.minimum(np.maximum(0., effSatUpp005030 - self.var.effSatAtFieldCapUpp005030) * self.var.storCapUpp005030,
+                    self.var.percUpp005030), self.var.percUpp005030) + np.maximum(0., self.var.percUpp000005 - \
+                    (self.var.storCapUpp005030 - self.var.storUpp005030[No]))
 
         # - percolation from storLow030150 to storGroundwater (m)
-        self.percLow030150 = pcr.min(self.kUnsatLow030150, pcr.sqrt( \
-            parameters.kUnsatAtFieldCapLow030150 * \
-            self.kUnsatLow030150))
+        self.var.percLow030150 = np.minimum(kUnsatLow030150, np.sqrt(self.var.kUnsatAtFieldCapLow030150 * kUnsatLow030150))
 
         # - capillary rise to storUpp000005 from storUpp005030 (m)
-        self.capRiseUpp000005 = pcr.min(pcr.max(0., \
-                                                parameters.effSatAtFieldCapUpp000005 - \
-                                                self.effSatUpp000005) * \
-                                        parameters.storCapUpp000005, \
-                                        self.kThVertUpp000005Upp005030 * \
-                                        self.gradientUpp000005Upp005030)
+        self.var.capRiseUpp000005 = np.minimum(np.maximum(0., self.var.effSatAtFieldCapUpp000005 - \
+                    effSatUpp000005) * self.var.storCapUpp000005, \
+                    kThVertUpp000005Upp005030 * gradientUpp000005Upp005030)
 
         # - capillary rise to storUpp005030 from storLow030150 (m)
-        self.capRiseUpp005030 = pcr.min(pcr.max(0., \
-                                                parameters.effSatAtFieldCapUpp005030 - \
-                                                self.effSatUpp005030) * \
-                                        parameters.storCapUpp005030, \
-                                        self.kThVertUpp005030Low030150 * \
-                                        self.gradientUpp005030Low030150)
+        self.var.capRiseUpp005030 = np.minimum(np.maximum(0., self.var.effSatAtFieldCapUpp005030 - \
+                    effSatUpp005030) * self.var.storCapUpp005030, \
+                    kThVertUpp005030Low030150 * gradientUpp005030Low030150)
+
 
         # - capillary rise to storLow030150 from storGroundwater (m)
-        self.capRiseLow030150 = 0.5 * (self.satAreaFrac + capRiseFrac) * \
-                                pcr.min((1. - self.effSatLow030150) * \
-                                        pcr.sqrt(parameters.kSatLow030150 * \
-                                                 self.kUnsatLow030150), \
-                                        pcr.max(0.0, parameters.effSatAtFieldCapLow030150 - \
-                                                self.effSatLow030150) * \
-                                        parameters.storCapLow030150)
+        self.var.capRiseLow030150 = 0.5 * (satAreaFrac + self.var.capRiseFrac) * \
+                    np.minimum((1. - effSatLow030150) * np.sqrt(self.var.kSatLow030150 * \
+                    kUnsatLow030150), np.maximum(0.0, self.var.effSatAtFieldCapLow030150 - \
+                    effSatLow030150) * self.var.storCapLow030150)
 
         # - interflow (m)
-        percToInterflow = parameters.percolationImp * ( \
-            self.percUpp005030 + self.capRiseLow030150 - \
-            (self.percLow030150 + self.capRiseUpp005030))
-        self.interflow = pcr.max( \
-            parameters.interflowConcTime * percToInterflow + \
-            (pcr.scalar(1.) - parameters.interflowConcTime) * self.interflow, 0.0)
+        percToInterflow = self.var.percolationImp * ( self.var.percUpp005030 + self.var.capRiseLow030150 - \
+                    (self.var.percLow030150 + self.var.capRiseUpp005030))
+        self.var.interflow = np.maximum( self.var.interflowConcTime * percToInterflow + \
+                    (1.0 - self.var.interflowConcTime) * self.var.interflow[No], 0.0)
+
+        # ---------------------------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------------------------
+
+        # scaleAllFluxes(self, parameters, groundwater):
+        # re-scale all fluxes (based on available water).
+        # ####################################################
+        # scale fluxes (for Upp000005)
+        ADJUST = self.var.actBareSoilEvap[No] + self.var.actTranspiUpp000005[No] + self.var.percUpp000005[No]
+        ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.storUpp000005[No] + self.var.infiltration[No]) / ADJUST), 0.)
+        self.var.actBareSoilEvap[No] = ADJUST * self.var.actBareSoilEvap[No]
+        self.var.actTranspiUpp000005 = ADJUST * self.var.actTranspiUpp000005
+        self.var.percUpp000005 = ADJUST * self.var.percUpp000005
+
+        # scale fluxes (for Upp000005)
+        ADJUST = self.var.actTranspiUpp005030[No] + self.var.percUpp005030[No]
+        ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.storUpp005030[No] + self.var.percUpp000005[No]) / ADJUST), 0.)
+        self.var.actTranspiUpp005030 = ADJUST * self.var.actTranspiUpp005030
+        self.var.percUpp005030 = ADJUST * self.var.percUpp005030
+
+        # scale fluxes (for Low030150)
+        ADJUST = self.var.actTranspiLow030150[No] + self.var.percLow030150[No] + self.var.interflow[No]
+        ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.storLow030150[No] + self.var.percUpp005030[No]) / ADJUST), 0.)
+        self.var.actTranspiLow030150[No] = ADJUST * self.var.actTranspiLow030150[No]
+        self.var.percLow030150 = ADJUST * self.var.percLow030150
+        self.var.interflow[No] = ADJUST * self.var.interflow[No]
+
+        # capillary rise to storLow is limited to available storGroundwater
+        # and also limited with reducedGroundWaterAbstraction
+        #
+        self.var.capRiseLow030150 = np.maximum(0., np.minimum( \
+                np.maximum(0., self.var.storGroundwater - self.var.reducedGroundWaterAbstraction), self.var.capRiseLow030150))
+
+        # capillary rise to storUpp005030 is limited to available storLow030150
+        #
+        estimateStorLow030150BeforeCapRise = np.maximum(0, self.var.storLow030150[No] + self.var.percUpp005030 - \
+                (self.var.actTranspiLow030150 + self.var.percLow030150 + self.var.interflow))
+        self.var.capRiseUpp005030 = np.minimum(estimateStorLow030150BeforeCapRise, self.var.capRiseUpp005030)
+
+        # capillary rise to storUpp000005 is limited to available storUpp005030
+        #
+        estimateStorUpp005030BeforeCapRise = np.maximum(0, self.var.storUpp005030[No] + self.var.percUpp000005 - \
+                (self.var.actTranspiUpp005030 + self.var.percUpp005030))
+        self.var.capRiseUpp000005 = np.minimum(estimateStorUpp005030BeforeCapRise, self.var.capRiseUpp000005)
 
 
+        # ---------------------------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------------------------
+        # Give new states and make sure that no storage capacities will be exceeded.
+        #################################################################################
+        # update storLow030150 after the following fluxes:
+        # + percUpp005030
+        # + capRiseLow030150
+        # - percLow030150
+        # - interflow
+        # - actTranspiLow030150
+        # - capRiseUpp005030
+        #
+        self.var.storLow030150[No] = np.maximum(0., self.var.storLow030150[No] + self.var.percUpp005030 + self.var.capRiseLow030150 - \
+                    (self.var.percLow030150 + self.var.interflow + self.var.actTranspiLow030150 + self.var.capRiseUpp005030))
+        #
+        # If necessary, reduce percolation input:
+        percUpp005030 = self.var.percUpp005030.copy()
+        self.var.percUpp005030 = np.maximum(0., percUpp005030 - np.maximum(0., self.var.storLow030150[No] - self.var.storCapLow030150))
+        self.var.storLow030150[No] = self.var.storLow030150[No] - percUpp005030 + self.var.percUpp005030
+        #
+        # If necessary, reduce capRise input:
+        capRiseLow030150 = self.var.capRiseLow030150.copy()
+        self.var.capRiseLow030150 = np.maximum(0., capRiseLow030150 - np.maximum(0., self.var.storLow030150[No] - self.var.storCapLow030150))
+        self.var.storLow030150[No] = self.var.storLow030150[No] - capRiseLow030150 + self.var.capRiseLow030150
+        #
+        # If necessary, increase interflow outflow:
+        addInterflow = np.maximum(0., self.var.storLow030150[No] - self.var.storCapLow030150)
+        self.var.interflow += addInterflow
+        self.var.storLow030150[No] -= addInterflow
 
+        self.var.storLow030150[No] = np.minimum(self.var.storLow030150[No], self.var.storCapLow030150)
+
+        # update storUpp005030 after the following fluxes:
+        # + percUpp000005
+        # + capRiseUpp005030
+        # - percUpp005030
+        # - actTranspiUpp005030
+        # - capRiseUpp000005
+        #
+        self.var.storUpp005030[No] = np.maximum(0., self.var.storUpp005030[No] + self.var.percUpp000005 + self.var.capRiseUpp005030 - \
+                    (self.var.percUpp005030 + self.var.actTranspiUpp005030 + self.var.capRiseUpp000005))
+        #
+        # If necessary, reduce percolation input:
+        percUpp000005 = self.var.percUpp000005.copy()
+        self.var.percUpp000005 = np.maximum(0., percUpp000005 - np.maximum(0., self.var.storUpp005030[No] - self.var.storCapUpp005030))
+        self.var.storUpp005030[No] = self.var.storUpp005030[No] - percUpp000005 + self.var.percUpp000005
+        #
+        # If necessary, reduce capRise input:
+        capRiseUpp005030 = self.var.capRiseUpp005030.copy()
+        self.var.capRiseUpp005030 = np.maximum(0., capRiseUpp005030 - np.maximum(0., self.var.storUpp005030[No] - self.var.storCapUpp005030))
+        self.var.storUpp005030[No] = self.var.storUpp005030[No] - capRiseUpp005030 + self.var.capRiseUpp005030
+        #
+        # If necessary, introduce interflow outflow:
+        self.var.interflowUpp005030 = np.maximum(0., self.var.storUpp005030[No] - self.var.storCapUpp005030)
+        self.var.storUpp005030[No] = self.var.storUpp005030[No] - self.var.interflowUpp005030
+
+        # update storUpp000005 after the following fluxes:
+        # + infiltration
+        # + capRiseUpp000005
+        # - percUpp000005
+        # - actTranspiUpp000005
+        # - actBareSoilEvap
+        #
+        self.var.storUpp000005[No] = np.maximum(0., self.var.storUpp000005[No] + self.var.infiltration[No] + self.var.capRiseUpp000005 - \
+                    (self.var.percUpp000005 + self.var.actTranspiUpp000005 + self.var.actBareSoilEvap[No]))
+        #
+        # any excess above storCapUpp is handed to topWaterLayer
+        self.var.satExcess = np.maximum(0., self.var.storUpp000005[No] - self.var.storCapUpp000005)
+        self.var.topWaterLayer[No] = self.var.topWaterLayer[No] + self.var.satExcess
+
+        # any excess above minTopWaterLayer is released as directRunoff
+        self.var.directRunoff[No] = self.var.directRunoff[No] + np.maximum(0., self.var.topWaterLayer[No] - self.var.minTopWaterLayer[No])
+
+        # make sure that storage capacities are not exceeded
+        self.var.topWaterLayer[No] = np.minimum(self.var.topWaterLayer[No], self.var.minTopWaterLayer[No])
+        self.var.storUpp000005[No] = np.minimum(self.var.storUpp000005[No], self.var.storCapUpp000005)
+        self.var.storUpp005030[No] = np.minimum(self.var.storUpp005030[No], self.var.storCapUpp005030)
+        self.var.storLow030150[No] = np.minimum(self.var.storLow030150[No], self.var.storCapLow030150)
+
+        # total actual evaporation + transpiration
+
+        self.var.actualET[No] += self.var.actBareSoilEvap[No] + self.var.openWaterEvap[No] + self.var.actTranspiUpp000005 + \
+                         self.var.actTranspiUpp005030 + self.var.actTranspiLow030150
+
+        # total actual transpiration
+        self.var.actTranspiUppTotal = self.var.actTranspiUpp000005 + self.var.actTranspiUpp005030
+
+        # total actual transpiration
+        self.var.actTranspiTotal = self.var.actTranspiUppTotal + self.var.actTranspiLow030150
+
+        # net percolation between upperSoilStores (positive indicating downward direction)
+        self.var.netPercUpp000005 = self.var.percUpp000005 - self.var.capRiseUpp000005
+        self.var.netPercUpp005030 = self.var.percUpp005030 - self.var.capRiseUpp005030
+
+        # groundwater recharge
+        self.var.gwRecharge = self.var.percLow030150 - self.var.capRiseLow030150
+
+
+        # variables / states that are defined the twoLayer and threeLayer model:
+        ########################################################################
+
+        # landSurfaceRunoff (needed for routing)
+        self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflow + self.var.interflowUpp005030
 
