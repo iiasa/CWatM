@@ -43,6 +43,7 @@ class groundwater(object):
         # initial conditions
           #   def getICs(self,iniItems,iniConditions = None):
         self.var.storGroundwater = loadmap('storGroundwater')
+        self.var.storGroundwater = np.maximum(0.010, self.var.storGroundwater)
 
 # --------------------------------------------------------------------------
 
@@ -51,18 +52,18 @@ class groundwater(object):
         """
 
         i = 1
-        """
-        if self.var.debugWaterBalance == str('True'): prestorGroundwater = self.var.storGroundwater
+
+        # if self.var.debugWaterBalance == str('True'): prestorGroundwater = self.var.storGroundwater
 
         # get riverbed infiltration from the previous time step (from routing)
-        self.var.surfaceWaterInf = routing.riverbedExchange / routing.cellArea
+###        self.var.surfaceWaterInf = routing.riverbedExchange / routing.cellArea
         self.var.storGroundwater += self.var.surfaceWaterInf
 
         # get net recharge (percolation-capRise) and update storage:
-        self.var.storGroundwater = np.maximum(0., self.var.storGroundwater + landSurface.gwRecharge)
+        self.var.storGroundwater = np.maximum(0., self.var.storGroundwater + self.var.sum_gwRecharge)
 
         # Current assumption: Groundwater is only abstracted to satisfy local demand.
-        potGroundwaterAbstract = landSurface.potGroundwaterAbstract
+###        potGroundwaterAbstract = landSurface.potGroundwaterAbstract
 
         # non fossil gw abstraction to fulfil water demand
         self.var.nonFossilGroundwaterAbs = np.maximum(0.0, np.minimum(self.var.storGroundwater, potGroundwaterAbstract))
@@ -91,8 +92,7 @@ class groundwater(object):
 
         # to avoid small values and to avoid excessive abstractions from dry groundwater
         tresholdStorGroundwater = 0.00005  # 0.05 mm
-        self.var.readAvlStorGroundwater = pcr.ifthenelse(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater,0.0)
+        self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater,0.0)
         # self.var.readAvlStorGroundwater = pcr.cover(self.var.readAvlStorGroundwater, 0.0)
 
 
-        """

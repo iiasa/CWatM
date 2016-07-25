@@ -30,37 +30,34 @@ class landcoverType(object):
         """
         self.var.coverTypes= map(str.strip, binding["coverTypes"].split(","))
 
-        # first, we set the following aggregated storages to zero
-        self.var.suminterceptStor = globals.inZero.copy()
-        self.var.sumtopWaterLayer = globals.inZero.copy()
-        self.var.sumstorUpp000005 = globals.inZero.copy()
-        self.var.sumstorUpp005030 = globals.inZero.copy()
-        self.var.sumstorLow030150 = globals.inZero.copy()
 
-        self.var.minTopWaterLayer =[];  self.var.minCropKC =[];  self.var.minInterceptCap =[]
-        self.var.cropDeplFactor = []
-        # area (m2) of a certain land cover type ;
-        # grassland + forest adds up to 100% will be corrected by irrigation
-        self.var.fracVegCover = []
 
-        self.var.rootFraction1 = []; self.var.rootFraction2 = []
-        self.var.maxRootDepth = []; self.var.minSoilDepthFrac = []; self.var.maxSoilDepthFrac = []
-        self.var.cropCoefficientNC_filename = []; self.var.interceptCapNC_filename = []; self.var.coverFractionNC_filename = []
-        self.var.interceptStor = []; self.var.topWaterLayer = []
-        self.var.storUpp000005 = []; self.var.storUpp005030 = []; self.var.storLow030150 = []
-        self.var.interflow = [];self.var.arnoBeta=[]
+        landcoverPara = ['minTopWaterLayer','minCropKC','minInterceptCap','cropDeplFactor','fracVegCover','rootFraction1','rootFraction2',
+                         'maxRootDepth', 'minSoilDepthFrac','maxSoilDepthFrac','interceptStor', 'topWaterLayer',
+                         'storUpp000005', 'storUpp005030', 'storLow030150', 'interflow','arnoBeta',
+                         'cropCoefficientNC_filename', 'interceptCapNC_filename','coverFractionNC_filename']
+        for variable in landcoverPara:
+            vars(self.var)[variable] = []
 
         # fraction of what type of irrigation area
-        self.var.irrTypeFracOverIrr = [0, 0, 0, 0]
         # fraction (m2) of a certain irrigation type over (only) total irrigation area ; will be assigned by the landSurface module
-        self.var.fractionArea = [0,0,0,0]
-        self.var.totAvlWater = [0,0,0,0]
-        self.var.adjRootFrUpp000005 = [0,0,0,0]
-        self.var.adjRootFrUpp005030 = [0,0,0,0]
-        self.var.adjRootFrLow030150 = [0,0,0,0]
-        self.var.effSatAt50 = [0,0,0,0]
-        self.var.effPoreSizeBetaAt50 = [0,0,0,0]
-        self.var.directRunoff = [0,0,0,0]
+        # output variable per land cover class
+        landcoverVars = ['irrTypeFracOverIrr','fractionArea','totAvlWater', 'adjRootFrUpp000005','adjRootFrUpp005030', 'adjRootFrLow030150',
+                         'effSatAt50',  'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin','rootZoneWaterStorageRange',
+                         'directRunoff','totalPotET','potBareSoilEvap','potTranspiration','availWaterInfiltration','interceptEvap','soilWaterStorage',
+                         'infiltration','actBareSoilEvap','landSurfaceRunoff','actTranspiTotal','netPercUpp000005', 'netPercUpp005030',
+                         'gwRecharge','interflow','actualET']
+        for variable in landcoverVars:
+             vars(self.var)[variable] = [globals.inZero.copy(), globals.inZero.copy(), globals.inZero.copy(), globals.inZero.copy()]
+
+        # set aggregated storages to zero
+        self.var.landcoverSum = [ 'interceptStor', 'topWaterLayer','interflow', 'storUpp000005', 'storUpp005030', 'storLow030150',
+                         'directRunoff', 'totalPotET', 'potBareSoilEvap', 'potTranspiration', 'availWaterInfiltration',
+                         'interceptEvap', 'soilWaterStorage', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTranspiTotal', 'netPercUpp000005',
+                         'netPercUpp005030','gwRecharge','actualET']
+        for variable in self.var.landcoverSum:
+            vars(self.var)["sum_"+variable] = globals.inZero.copy()
+
 
         i = 0
         for coverType in self.var.coverTypes:
@@ -111,25 +108,26 @@ class landcoverType(object):
             self.var.interflow.append(loadmap(coverType + "_interflowIni"))
 
             # summarize the following initial storages:
-            self.var.suminterceptStor += self.var.fracVegCover[i] * self.var.interceptStor[i]
-            self.var.sumtopWaterLayer += self.var.fracVegCover[i] * self.var.topWaterLayer[i]
-            self.var.sumstorUpp000005 += self.var.fracVegCover[i] * self.var.storUpp000005[i]
-            self.var.sumstorUpp005030 += self.var.fracVegCover[i] * self.var.storUpp005030[i]
-            self.var.sumstorLow030150 += self.var.fracVegCover[i] * self.var.storLow030150[i]
+            self.var.sum_interceptStor += self.var.fracVegCover[i] * self.var.interceptStor[i]
+            self.var.sum_topWaterLayer += self.var.fracVegCover[i] * self.var.topWaterLayer[i]
+            self.var.sum_storUpp000005 += self.var.fracVegCover[i] * self.var.storUpp000005[i]
+            self.var.sum_storUpp005030 += self.var.fracVegCover[i] * self.var.storUpp005030[i]
+            self.var.sum_storLow030150 += self.var.fracVegCover[i] * self.var.storLow030150[i]
 
             # Improved Arno's scheme parameters:
             if self.var.arnoBeta[i] == 0:
                 self.var.arnoBeta[i] = np.minimum(10.0,
                     np.maximum(0.001, (self.var.maxSoilDepthFrac[i] - 1.) / (1. - self.var.minSoilDepthFrac[i]) + self.var.orographyBeta - 0.01))
             else:
-                self.var.arnoBeta[i] = np.minimum(10.0,np.maximum(0.001, self.arnoBeta))
+                self.var.arnoBeta[i] = np.minimum(1.0,np.maximum(0.001, self.arnoBeta))
 
+            # PB changed to max 1.0 #TODO
             #report(decompress(self.var.arnoBeta[i]), "C:\work\output\harno.map")
 
 
 
-            self.var.rootZoneWaterStorageMin = self.var.minSoilDepthFrac * self.var.rootZoneWaterStorageCap
-            self.var.rootZoneWaterStorageRange = self.var.rootZoneWaterStorageCap - self.var.rootZoneWaterStorageMin
+            self.var.rootZoneWaterStorageMin[i] = self.var.minSoilDepthFrac[i] * self.var.rootZoneWaterStorageCap
+            self.var.rootZoneWaterStorageRange[i] = self.var.rootZoneWaterStorageCap - self.var.rootZoneWaterStorageMin[i]
 
             # scaleRootFractions
             rootFracUpp000005 = 0.05/0.30 * self.var.rootFraction1[i]
@@ -194,29 +192,9 @@ class landcoverType(object):
 
             i += 1
 
-
-
-
-
-        # output variable per land cover class
-        self.var.totalPotET = [0, 0, 0, 0]
-		self.var.potBareSoilEvap = [0, 0, 0, 0]
-        self.var.potTranspiration = [0, 0, 0, 0]
-        self.var.availWaterInfiltration = [0, 0, 0, 0]
-        self.var.interceptEvap = [0, 0, 0, 0]
-        self.var.actualET = [0, 0, 0, 0]
-
-        self.var.soilWaterStorage = [0, 0, 0, 0]
-        self.var.a2ctualET = [0, 0, 0, 0]
-        self.var.a3ctualET = [0, 0, 0, 0]
-        self.var.infiltration = [0, 0, 0, 0]
-        self.var.actBareSoilEvap = [0, 0, 0, 0]
-        self.var.landSurfaceRunoff = [0, 0, 0, 0]
-		self.var.actTranspiTotal = [0, 0, 0, 0]
-		self.var.netPercUpp000005 = [0, 0, 0, 0]
-		self.var.netPercUpp005030 = [0, 0, 0, 0]
-		self.var.gwRecharge = [0, 0, 0, 0]
-		
+        self.var.landcoverSumSum = ['directRunoff', 'totalPotET', 'potTranspiration', "Precipitation", 'ETRef','gwRecharge']
+        for variable in self.var.landcoverSumSum:
+            vars(self.var)["sumsum_" + variable] = globals.inZero.copy()
 
 
 
@@ -257,29 +235,56 @@ class landcoverType(object):
 
 # --------------------------------------------------------------------------
 
-    def dynamic(self, coverType, coverNo):
+    def dynamic(self):
         """ dynamic part of the land cover type module
             calculating soil for each land cover class
         """
 
-        self.var.soil_module.dynamic_PotET(coverType, coverNo)
-        self.var.soil_module.dynamic_Interception(coverType, coverNo)
-        self.var.soil_module.dynamic_Soil(coverType, coverNo)
-        i = 1
+
+        coverNo = 0
+        print
+        # update soil (loop per each land cover type):
+        for coverType in self.var.coverTypes:
+            print coverNo,coverType
+
+            self.var.soil_module.dynamic_PotET(coverType, coverNo)
+            a = self.var.potTranspiration[coverNo]
+            self.var.soil_module.dynamic_Interception(coverType, coverNo)
+            a = self.var.potTranspiration[coverNo]
+            self.var.soil_module.dynamic_Soil(coverType, coverNo)
+            a = self.var.potTranspiration[coverNo]
+            coverNo += 1
+
+        # aggregated variables by fraction of land cover
+        # Land surface module 725
 
 
+        # set aggregated storages to zero
+        self.var.landcoverSum = [ 'interceptStor', 'topWaterLayer','interflow', 'storUpp000005', 'storUpp005030', 'storLow030150',
+                         'directRunoff', 'totalPotET', 'potBareSoilEvap', 'potTranspiration', 'availWaterInfiltration',
+                         'interceptEvap', 'soilWaterStorage', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTranspiTotal', 'netPercUpp000005',
+                         'netPercUpp005030','gwRecharge','actualET']
+        for variable in self.var.landcoverSum:
+            vars(self.var)["sum_"+variable] = globals.inZero.copy()
+
+        for variable in self.var.landcoverSum:
+            for No in xrange(4):
+                vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
+
+        self.var.sumsum_directRunoff +=  self.var.sum_directRunoff
+        self.var.sumsum_Precipitation += self.var.Precipitation
+        self.var.sumsum_gwRecharge += self.var.sum_gwRecharge
+
+        report(decompress(self.var.sum_potTranspiration), "C:\work\output/trans.map")
+        report(decompress(self.var.sum_directRunoff), "C:\work\output\dir.map")
+        report(decompress(self.var.sumsum_directRunoff), "C:\work\output\dirsum.map")
+        report(decompress(self.var.sumsum_Precipitation), "C:\work\output\Prsum.map")
+        report(decompress(self.var.sumsum_gwRecharge), "C:\work\output\gwrsum.map")
 
 
 
         # landcover UpdateLC 370
         """
-        self.landCoverObj[coverType].updateLC(meteo,groundwater,routing,\
-                                      self.parameters,self.capRiseFrac,\
-                                      self.potentialNonIrrGrossWaterDemand,\
-                                      self.swAbstractionFraction,\
-                                      currTimeStep,\
-                                      allocSegments = self.allocSegments)
-
 
         getPotET(coverType,coverNo)
         self.interceptionUpdate(meteo, currTimeStep)  # calculate interception and update storage

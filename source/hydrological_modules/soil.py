@@ -152,15 +152,17 @@ class soil(object):
         """
 
         # get crop coefficient:
-        cropKC = readnetcdf2(binding[coverType + '_cropCoefficientNC'], self.var.CalendarDay, "DOY")
-        cropKC = np.maximum(self.var.cropKC, self.var.minCropKC[No])
+        self.var.cropKC = readnetcdf2(binding[coverType + '_cropCoefficientNC'], self.var.CalendarDay, "DOY")
+        self.var.cropKC = np.maximum(self.var.cropKC, self.var.minCropKC[No])
 
         # calculate potential ET:
-        self.var.totalPotET[No] = cropKC * self.var.ETRef
+        self.var.totalPotET[No] = self.var.cropKC * self.var.ETRef
 
         # calculate potential bare soil evaporation and transpiration
         self.var.potBareSoilEvap[No] = self.var.minCropKC[No] * self.var.ETRef
-        self.var.potTranspiration[No] = cropKC * self.var.ETRef - self.var.potBareSoilEvap[No]
+        self.var.potTranspiration[No] = self.var.cropKC * self.var.ETRef - self.var.potBareSoilEvap[No]
+
+
 
     def dynamic_Interception(self,coverType, No):
 
@@ -168,7 +170,7 @@ class soil(object):
             interceptCap  = readnetcdf2(binding[coverType + '_interceptCapNC'], self.var.CalendarDay, "DOY")
             coverFraction = readnetcdf2(binding[coverType + '_coverFractionNC'], self.var.CalendarDay, "DOY")
             interceptCap = coverFraction * interceptCap
-            self.interceptCap = np.maximum(interceptCap, self.var.minInterceptCap[No])
+            interceptCap = np.maximum(interceptCap, self.var.minInterceptCap[No])
         else:
             interceptCap = self.var.minInterceptCap[No]
 
@@ -269,11 +271,14 @@ class soil(object):
             #      if(Pn>=(BCF[TYPE]+1)*WRANGE[TYPE]*WFRACB, 0,
             #      WRANGE[TYPE]*(WFRACB-Pn/((BCF[TYPE]+1)*WRANGE[TYPE]))**(BCF[TYPE]+1))); #*
             return directRunoff, WFRACB, satAreaFrac
-            #---------------------------------------------------------
-            # ---------------------------------------------------------
 
 
-        # initial total soilWaterStorage
+#---------------------------------------------------------
+# ---------------------------------------------------------
+
+
+        #with np.errstate(invalid='ignore', divide='ignore'):
+            # initial total soilWaterStorage
         self.var.soilWaterStorage[No] = np.maximum(0., self.var.storUpp000005[No] + self.var.storUpp005030[No] + self.var.storLow030150[No])
 
         # effective degree of saturation (-)
@@ -319,14 +324,14 @@ class soil(object):
         # readily available water in the root zone (upper soil layers)
         h1 = np.maximum(0., effSatUpp000005 - self.var.effSatAtWiltPointUpp000005) *\
              (self.var.satVolMoistContUpp000005 - self.var.resVolMoistContUpp000005) *\
-              np.minimum(self.var.thickUpp000005, self.var.maxRootDepth)
+              np.minimum(self.var.thickUpp000005, self.var.maxRootDepth[No])
         h2 = (np.maximum(0., effSatUpp005030 - self.var.effSatAtWiltPointUpp005030)) *\
             (self.var.satVolMoistContUpp005030 - self.var.resVolMoistContUpp005030) *\
-             np.minimum(self.var.thickUpp005030, np.maximum(self.var.maxRootDepth - self.var.thickUpp000005,0.))
+             np.minimum(self.var.thickUpp005030, np.maximum(self.var.maxRootDepth[No] - self.var.thickUpp000005,0.))
 
         h3 = np.maximum(0.,effSatLow030150 - self.var.effSatAtWiltPointLow030150) *\
              (self.var.satVolMoistContLow030150 - self.var.resVolMoistContLow030150) *\
-             np.minimum(self.var.thickLow030150, np.maximum(self.var.maxRootDepth - self.var.thickUpp005030, 0.))
+             np.minimum(self.var.thickLow030150, np.maximum(self.var.maxRootDepth[No] - self.var.thickUpp005030, 0.))
 
         self.var.readAvlWater = h1 + h2 + h3
         self.var.readAvlWater = np.minimum(self.var.readAvlWater, self.var.storUpp000005[No] + self.var.storUpp005030[No] + self.var.storLow030150[No])
@@ -341,17 +346,18 @@ class soil(object):
         # calculate openWaterEvap: open water evaporation from the paddy field,
         # and update topWaterLayer after openWaterEvap.
 
-        self.var.openWaterEvap = globals.inZero.copy()
+        openWaterEvap = 0
         if coverType == 'irrPaddy':
              # open water evaporation from the paddy field  - using potential evaporation from open water
-            self.var.openWaterEvap = np.minimum( np.maximum(0., self.var.topWaterLayer[No]), self.var.EWRef)
+            openWaterEvap = np.minimum( np.maximum(0., self.var.topWaterLayer[No]), self.var.EWRef)
 
              # update potBareSoilEvap & potTranspiration (after openWaterEvap)
-            self.var.potBareSoilEvap[No]  = self.var.potBareSoilEvap[No] - (self.var.potBareSoilEvap[No]/self.var.EWRef) * self.var.openWaterEvap
-            self.var.potTranspiration[No] = self.var.potTranspiration[No]- (self.var.potTranspiration[No]/self.var.EWRef)* self.var.openWaterEvap
+            with np.errstate(invalid='ignore', divide='ignore'):
+                self.var.potBareSoilEvap[No]  = np.where(self.var.EWRef < 0.00001, 0.0, self.var.potBareSoilEvap[No] - (self.var.potBareSoilEvap[No]/self.var.EWRef) * openWaterEvap)
+                self.var.potTranspiration[No] = np.where(self.var.EWRef < 0.00001, 0.0, self.var.potTranspiration[No]- (self.var.potTranspiration[No]/self.var.EWRef)* openWaterEvap)
 
             # update top water layer after openWaterEvap
-            self.var.topWaterLayer[No] = np.maximum(0.,self.var.topWaterLayer[No] - self.var.openWaterEvap)
+            self.var.topWaterLayer[No] = np.maximum(0.,self.var.topWaterLayer[No] - openWaterEvap)
 
         # -----------------------------------------------------------
         # calculate directRunoff and infiltration, based on the improved Arno scheme (Hageman and Gates, 2003):
@@ -451,7 +457,7 @@ class soil(object):
         percUpp005030 = kThVertUpp005030Low030150 * 1.
         percUpp005030 = np.where(effSatUpp005030 > self.var.effSatAtFieldCapUpp005030, \
                     np.minimum(np.maximum(0., effSatUpp005030 - self.var.effSatAtFieldCapUpp005030) * self.var.storCapUpp005030,
-                    percUpp005030), percUpp005030) + np.maximum(0., self.var.percUpp000005 - \
+                    percUpp005030), percUpp005030) + np.maximum(0., percUpp000005 - \
                     (self.var.storCapUpp005030 - self.var.storUpp005030[No]))
 
         # - percolation from storLow030150 to storGroundwater (m)
@@ -476,7 +482,7 @@ class soil(object):
         # - interflow (m)
         percToInterflow = self.var.percolationImp * (percUpp005030 + capRiseLow030150 - \
                     (percLow030150 + capRiseUpp005030))
-        self.var.interflow = np.maximum( self.var.interflowConcTime * percToInterflow + \
+        self.var.interflow[No] = np.maximum( self.var.interflowConcTime * percToInterflow + \
                     (1.0 - self.var.interflowConcTime) * self.var.interflow[No], 0.0)
 
         # ---------------------------------------------------------------------------------------------
@@ -487,20 +493,23 @@ class soil(object):
         # ####################################################
         # scale fluxes (for Upp000005)
         ADJUST = self.var.actBareSoilEvap[No] + actTranspiUpp000005 + percUpp000005
-        ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.storUpp000005[No] + self.var.infiltration[No]) / ADJUST), 0.)
+        with np.errstate(invalid='ignore', divide='ignore'):
+            ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.storUpp000005[No] + self.var.infiltration[No]) / ADJUST), 0.)
         self.var.actBareSoilEvap[No] = ADJUST * self.var.actBareSoilEvap[No]
         actTranspiUpp000005 = ADJUST * actTranspiUpp000005
         percUpp000005 = ADJUST * percUpp000005
 
         # scale fluxes (for Upp000005)
         ADJUST = actTranspiUpp005030 + percUpp005030
-        ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.storUpp005030[No] + percUpp000005) / ADJUST), 0.)
+        with np.errstate(invalid='ignore', divide='ignore'):
+            ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.storUpp005030[No] + percUpp000005) / ADJUST), 0.)
         actTranspiUpp005030 = ADJUST * actTranspiUpp005030
         percUpp005030 = ADJUST * percUpp005030
 
         # scale fluxes (for Low030150)
         ADJUST = actTranspiLow030150 + percLow030150 + self.var.interflow[No]
-        ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.storLow030150[No] + percUpp005030) / ADJUST), 0.)
+        with np.errstate(invalid='ignore', divide='ignore'):
+            ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.storLow030150[No] + percUpp005030) / ADJUST), 0.)
         actTranspiLow030150 = ADJUST * actTranspiLow030150
         percLow030150 = ADJUST * percLow030150
         self.var.interflow[No] = ADJUST * self.var.interflow[No]
@@ -543,7 +552,7 @@ class soil(object):
         # If necessary, reduce capRise input:
         capRiseLowH = capRiseLow030150.copy()
         capRiseLow030150 = np.maximum(0., capRiseLow030150 - np.maximum(0., self.var.storLow030150[No] - self.var.storCapLow030150))
-        self.var.storLow030150[No] = self.var.storLow030150[No] - capRiseLowH + self.var.capRiseLow030150
+        self.var.storLow030150[No] = self.var.storLow030150[No] - capRiseLowH + capRiseLow030150
         #
         # If necessary, increase interflow outflow:
         addInterflow = np.maximum(0., self.var.storLow030150[No] - self.var.storCapLow030150)
@@ -567,7 +576,7 @@ class soil(object):
         self.var.storUpp005030[No] = self.var.storUpp005030[No] - percUppH + percUpp000005
         #
         # If necessary, reduce capRise input:
-        capRiseUppH = self.var.capRiseUpp005030.copy()
+        capRiseUppH = capRiseUpp005030.copy()
         self.var.capRiseUpp005030 = np.maximum(0., capRiseUpp005030 - np.maximum(0., self.var.storUpp005030[No] - self.var.storCapUpp005030))
         self.var.storUpp005030[No] = self.var.storUpp005030[No] - capRiseUppH + capRiseUpp005030
         #
@@ -600,11 +609,11 @@ class soil(object):
 
         # total actual evaporation + transpiration
 
-        self.var.actualET[No] += self.var.actBareSoilEvap[No] + self.var.openWaterEvap[No] + actTranspiUpp000005 + \
+        self.var.actualET[No] += self.var.actBareSoilEvap[No] + openWaterEvap + actTranspiUpp000005 + \
                          actTranspiUpp005030 + actTranspiLow030150
 
         # total actual transpiration
-        actTranspiUppTotal = actTranspiUpp000005 + var.actTranspiUpp005030
+        actTranspiUppTotal = actTranspiUpp000005 + actTranspiUpp005030
 
         # total actual transpiration
         self.var.actTranspiTotal[No] = actTranspiUppTotal + actTranspiLow030150

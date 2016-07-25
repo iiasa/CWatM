@@ -112,8 +112,9 @@ class waterdemand(object):
             #  topWaterLayer (water available in the irrigation field), and netLqWaterToSoil (amout of liquid precipitation)
             self.var.irrGrossDemand = np.where(self.var.irrGrossDemand > (1.0 / self.var.cellArea), self.var.irrGrossDemand, 0)  # ignore demand if less than 1 m3
         if coverType == 'irrNonPaddy':
-            adjDeplFactor = np.maximum(0.1, np.minimum(0.8, (self.var.cropDeplFactor[No] + 40. * (0.005 - self.var.totalPotET))))
-            self.var.irrGrossDemand = np.where(self.var.cropKC > 0.20, np.where(self.var.readAvlWater < adjDeplFactor * self.var.totAvlWater, np.maximum(0.0, self.var.totAvlWater - self.var.readAvlWater), 0.), 0.)
+            adjDeplFactor = np.maximum(0.1, np.minimum(0.8, (self.var.cropDeplFactor[No] + 40. * (0.005 - self.var.totalPotET[No]))))
+            self.var.irrGrossDemand = np.where(self.var.cropKC > 0.20, np.where(self.var.readAvlWater < adjDeplFactor * self.var.totAvlWater[No],
+                        np.maximum(0.0, self.var.totAvlWater[No] - self.var.readAvlWater), 0.), 0.)
             # a function of cropKC and totalPotET (evaporation and transpiration),
             #    readAvlWater (available water in the root zone), and
             #    netLqWaterToSoil (amout of liquid precipitation)
