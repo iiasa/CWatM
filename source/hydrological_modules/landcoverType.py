@@ -199,7 +199,8 @@ class landcoverType(object):
 
 
         # output variable per land cover class
-        self.var.potBareSoilEvap = [0, 0, 0, 0]
+        self.var.totalPotET = [0, 0, 0, 0]
+		self.var.potBareSoilEvap = [0, 0, 0, 0]
         self.var.potTranspiration = [0, 0, 0, 0]
         self.var.availWaterInfiltration = [0, 0, 0, 0]
         self.var.interceptEvap = [0, 0, 0, 0]
@@ -211,6 +212,11 @@ class landcoverType(object):
         self.var.infiltration = [0, 0, 0, 0]
         self.var.actBareSoilEvap = [0, 0, 0, 0]
         self.var.landSurfaceRunoff = [0, 0, 0, 0]
+		self.var.actTranspiTotal = [0, 0, 0, 0]
+		self.var.netPercUpp000005 = [0, 0, 0, 0]
+		self.var.netPercUpp005030 = [0, 0, 0, 0]
+		self.var.gwRecharge = [0, 0, 0, 0]
+		
 
 
 
@@ -257,8 +263,8 @@ class landcoverType(object):
         """
 
         self.var.soil_module.dynamic_PotET(coverType, coverNo)
-        self.var.soil_module.dynamic_interception(coverType, coverNo)
-        self.var.soil_module.dynamic_getSoilStates(coverType, coverNo)
+        self.var.soil_module.dynamic_Interception(coverType, coverNo)
+        self.var.soil_module.dynamic_Soil(coverType, coverNo)
         i = 1
 
 
