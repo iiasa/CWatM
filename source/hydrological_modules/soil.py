@@ -241,7 +241,7 @@ class soil(object):
 
 
             if directRunoffReduction == "Default":
-                directRunoffReduction = np.minimum(kUnsatLow030150, np.sqrt(self.var.kUnsatAtFieldCapLow030150[No] * kUnsatLow030150))
+                directRunoffReduction = np.minimum(kUnsatLow030150, np.sqrt(self.var.kUnsatAtFieldCapLow030150 * kUnsatLow030150))
                 # In order to maintain full saturation and
                 # continuous groundwater recharge/percolation,
                 # the amount of directRunoff may be reduced.
@@ -402,7 +402,7 @@ class soil(object):
                     self.var.adjRootFrLow030150[No] * self.var.storLow030150[No])
 
         transpFracUpp000005 = np.where((self.var.storUpp000005[No] + self.var.storUpp005030[No] + self.var.storLow030150[No]) > 0., \
-                    self.var.adjRootFrUpp000005[No] * self.var.storUpp000005[No] / dividerTranspFracs[No], self.var.adjRootFrUpp000005[No])
+                    self.var.adjRootFrUpp000005[No] * self.var.storUpp000005[No] / dividerTranspFracs, self.var.adjRootFrUpp000005[No])
 
         transpFracUpp005030 =  np.where((self.var.storUpp000005[No] +  self.var.storUpp005030[No] + \
                     self.var.storLow030150[No]) > 0., self.var.adjRootFrUpp005030[No] * self.var.storUpp005030[No] / dividerTranspFracs, \

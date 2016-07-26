@@ -383,10 +383,6 @@ def readnetcdf(name, time):
         number, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
     nf1.close()
 
-    #mapnp[np.isnan(mapnp)] = -9999
-    #map = numpy2pcr(Scalar, mapnp, -9999)
-    #report(map, 'C:\work\output\out1.map')
-
     mapC = compressArray(mapnp,pcr=False,name=filename)
     #map = decompress(mapC)
     #report(map, 'C:\work\output\out2.map')

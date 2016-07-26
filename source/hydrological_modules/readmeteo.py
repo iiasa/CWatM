@@ -34,16 +34,16 @@ class readmeteo(object):
         # ***** READ METEOROLOGICAL DATA *****************************
         # ************************************************************
         self.var.Precipitation = readnetcdf(
-            binding['PrecipitationMaps'], self.var.currentTimeStep()) * self.var.DtDay
+            binding['PrecipitationMaps'], self.var.currentTimeStep()) * self.var.DtDay * self.var.con_precipitation
         # precipitation (conversion to [mm] per time step)
         self.var.Tavg = readnetcdf(binding['TavgMaps'], self.var.currentTimeStep())
         # average DAILY temperature (even if you are running the model
         # on say an hourly time step) [degrees C]
         self.var.ETRef = readnetcdf(
-            binding['ETMaps'], self.var.currentTimeStep()) * self.var.DtDay
-        # daily reference evapotranspiration (conversion to [mm] per time step)
+            binding['ETMaps'], self.var.currentTimeStep()) * self.var.DtDay * self.var.con_e
+        # daily reference evaporation (conversion to [mm] per time step)
         self.var.EWRef = readnetcdf(
-            binding['E0Maps'], self.var.currentTimeStep()) * self.var.DtDay
+            binding['E0Maps'], self.var.currentTimeStep()) * self.var.DtDay * self.var.con_e
         # potential evaporation rate from water surface (conversion to [mm] per time step)
 
 

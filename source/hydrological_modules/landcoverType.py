@@ -185,7 +185,7 @@ class landcoverType(object):
                  self.var.storCapUpp005030 * self.var.adjRootFrUpp005030[i] * self.var.poreSizeBetaUpp005030 +\
                  self.var.storCapLow030150 * self.var.adjRootFrLow030150[i] * self.var.poreSizeBetaLow030150
             h2 = self.var.storCapUpp000005 * self.var.adjRootFrUpp000005[i] + self.var.storCapUpp005030 *\
-                 self.var.adjRootFrUpp005030[i] + self.var.storCapLow030150[i] * self.var.adjRootFrLow030150[i]
+                 self.var.adjRootFrUpp005030[i] + self.var.storCapLow030150 * self.var.adjRootFrLow030150[i]
             self.var.effPoreSizeBetaAt50[i] = h1 / h2
 
 
@@ -275,11 +275,15 @@ class landcoverType(object):
         self.var.sumsum_Precipitation += self.var.Precipitation
         self.var.sumsum_gwRecharge += self.var.sum_gwRecharge
 
-        report(decompress(self.var.sum_potTranspiration), "C:\work\output/trans.map")
-        report(decompress(self.var.sum_directRunoff), "C:\work\output\dir.map")
-        report(decompress(self.var.sumsum_directRunoff), "C:\work\output\dirsum.map")
-        report(decompress(self.var.sumsum_Precipitation), "C:\work\output\Prsum.map")
-        report(decompress(self.var.sumsum_gwRecharge), "C:\work\output\gwrsum.map")
+        report(decompress(self.var.sum_potTranspiration), "d:\work\output/trans.map")
+        report(decompress(self.var.directRunoff[3 ]), "d:\work\output\dir.map")
+        report(decompress(self.var.sumsum_directRunoff), "d:\work\output\dirsum.map")
+        #a = decompress(self.var.sumsum_Precipitation)
+        #b = cellvalue(a,81,379)
+
+
+        report(decompress(self.var.sumsum_Precipitation), "d:\work\output\Prsum.map")
+        report(decompress(self.var.sumsum_gwRecharge), "d:\work\output\gwrsum.map")
 
 
 

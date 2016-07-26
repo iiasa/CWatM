@@ -95,7 +95,8 @@ class miscInitial(object):
         self.var.M3toMM = 1 / self.var.MMtoM3
         # Multiplier to convert from cubic metres to mm water slice
 
-
+        self.var.con_precipitation = loadmap('precipitation_coversion')
+        self.var.con_e = loadmap('evaporation_coversion')
 
         # ************************************************************
         # ***** Some additional stuff
