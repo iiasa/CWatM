@@ -15,7 +15,7 @@ class groundwater(object):
 
     """
     # ************************************************************
-    # ***** SOIL *****************************************
+    # ***** GROUNDWATER   *****************************************
     # ************************************************************
     """
 
@@ -43,21 +43,27 @@ class groundwater(object):
         # initial conditions
           #   def getICs(self,iniItems,iniConditions = None):
         self.var.storGroundwater = loadmap('storGroundwater')
-        self.var.storGroundwater = np.maximum(0.010, self.var.storGroundwater)
+        self.var.storGroundwater = np.maximum(0.0, self.var.storGroundwater)
 
 # --------------------------------------------------------------------------
 
     def dynamic(self):
-        """ dynamic part of the soil module
+        """ dynamic part of the groundwater module
         """
 
-        i = 1
+        print "groundwater"
+        if (self.var.currentTimeStep() == 50):
+            kk = 1
+
 
         # if self.var.debugWaterBalance == str('True'): prestorGroundwater = self.var.storGroundwater
 
         # get riverbed infiltration from the previous time step (from routing)
 ###        self.var.surfaceWaterInf = routing.riverbedExchange / routing.cellArea
-        self.var.storGroundwater += self.var.surfaceWaterInf
+        self.var.surfaceWaterInf = globals.inZero.copy()
+        # to be replaced #TODO
+
+        self.var.storGroundwater = self.var.storGroundwater + self.var.surfaceWaterInf
 
         # get net recharge (percolation-capRise) and update storage:
         self.var.storGroundwater = np.maximum(0., self.var.storGroundwater + self.var.sum_gwRecharge)
@@ -66,20 +72,17 @@ class groundwater(object):
 ###        potGroundwaterAbstract = landSurface.potGroundwaterAbstract
 
         # non fossil gw abstraction to fulfil water demand
-        self.var.nonFossilGroundwaterAbs = np.maximum(0.0, np.minimum(self.var.storGroundwater, potGroundwaterAbstract))
+        self.var.nonFossilGroundwaterAbs = np.maximum(0.0, np.minimum(self.var.storGroundwater, self.var.potGroundwaterAbstract))
 
         # unmetDemand (m), satisfied by fossil gwAbstractions (and/or desalinization or other sources)
-        self.var.unmetDemand = np.maximum(0.0, potGroundwaterAbstract - self.var.nonFossilGroundwaterAbs)
+        self.var.unmetDemand = np.maximum(0.0, self.var.potGroundwaterAbstract - self.var.nonFossilGroundwaterAbs)
                 # (equal to zero if limitAbstraction = True)
 
         # fractions of water demand sources (to satisfy water demand):
-        self.var.fracNonFossilGroundwater = np.where(self.var.landmask,
-                np.where(landSurface.totalPotentialGrossDemand > 0., \
-                self.var.nonFossilGroundwaterAbs / landSurface.totalPotentialGrossDemand,0.0))
-        self.var.fracUnmetDemand = np.where(self.var.landmask, np.where(landSurface.totalPotentialGrossDemand > 0., \
-                self.var.unmetDemand / landSurface.totalPotentialGrossDemand, 0.0))
-        self.var.fracSurfaceWater = np.where(self.var.landmask, np.where(landSurface.totalPotentialGrossDemand > 0., \
-                np.maximum(0.0, 1.0 - self.var.fracNonFossilGroundwater - self.var.fracUnmetDemand), 0.0))
+        with np.errstate(invalid='ignore', divide='ignore'):
+            self.var.fracNonFossilGroundwater = np.where(self.var.totalPotentialGrossDemand > 0., self.var.nonFossilGroundwaterAbs / self.var.totalPotentialGrossDemand,0.0)
+            self.var.fracUnmetDemand = np.where(self.var.totalPotentialGrossDemand > 0., self.var.unmetDemand / self.var.totalPotentialGrossDemand, 0.0)
+            self.var.fracSurfaceWater = np.where(self.var.totalPotentialGrossDemand > 0., np.maximum(0.0, 1.0 - self.var.fracNonFossilGroundwater - self.var.fracUnmetDemand), 0.0)
 
         # update storGoundwater after self.var.nonFossilGroundwaterAbs
         self.var.storGroundwater = np.maximum(0., self.var.storGroundwater - self.var.nonFossilGroundwaterAbs)

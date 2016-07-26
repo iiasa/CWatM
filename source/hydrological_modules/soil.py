@@ -161,6 +161,7 @@ class soil(object):
         # calculate potential bare soil evaporation and transpiration
         self.var.potBareSoilEvap[No] = self.var.minCropKC[No] * self.var.ETRef
         self.var.potTranspiration[No] = self.var.cropKC * self.var.ETRef - self.var.potBareSoilEvap[No]
+        i =1
 
 
 
@@ -178,17 +179,23 @@ class soil(object):
         # throughfall = np.maximum(0.0, self.var.interceptStor[No] + self.var.Precipitation - interceptCap)
         # PB changed to Rain instead Pr, bceause snow is substracted later
         # PB it is assuming that all interception storage is used the other time step
-        self.var.availWaterInfiltration[No] = np.maximum(0.0, self.var.Rain + self.var.interceptStor[No] - interceptCap + self.var.SnowMelt)
-
+        throughfall = np.maximum(0.0, self.var.Rain + self.var.interceptStor[No] - interceptCap)
 
         # update interception storage after throughfall
         #self.var.interceptStor[No] = np.maximum(0.0, self.var.interceptStor[No] + self.var.Precipitation - throughfall)
         # PB or to make it short
-        self.var.interceptStor[No] = interceptCap
+        self.var.interceptStor[No] = self.var.interceptStor[No] + self.var.Rain - throughfall
+
+        self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + self.var.SnowMelt)
+
+
+
 
 
         # evaporation from intercepted water (based on potTranspiration)
-        mult = getValDivZero(self.var.interceptStor[No], interceptCap, 1e39, 0.) ** 0.66666
+        #mult = getValDivZero(self.var.interceptStor[No], interceptCap, 1e39, 0.) ** 0.66666
+        with np.errstate(invalid='ignore', divide='ignore'):
+            mult = np.where(interceptCap > 0, self.var.interceptStor[No]/interceptCap, 0.0)  ** 0.66666666
         self.var.interceptEvap[No] = np.minimum(self.var.interceptStor[No], self.var.potTranspiration[No] * mult)
         self.var.interceptEvap[No] = np.minimum(self.var.interceptEvap[No], self.var.potTranspiration[No])
 
@@ -386,6 +393,9 @@ class soil(object):
         # ---------------------------------------------------------
         # calculateInfiltration
         # infiltration, limited with KSat1 and available water in topWaterLayer
+        if No ==3:
+            kk = 1
+
         self.var.infiltration[No] = np.minimum(self.var.topWaterLayer[No],self.var.kSatUpp000005)  
 		          # P0_L = min(P0_L,KS1*Duration*timeslice());
 
@@ -447,6 +457,7 @@ class soil(object):
         # estimateSoilFluxes(self, parameters, capRiseFrac):
         # Given states, we estimate all fluxes.
             # - percolation from storUpp000005 to storUpp005030 (m)
+
         percUpp000005 = kThVertUpp000005Upp005030 * 1.
         percUpp000005 = np.where(effSatUpp000005 > self.var.effSatAtFieldCapUpp000005, \
                     np.minimum(np.maximum(0.,effSatUpp000005 - self.var.effSatAtFieldCapUpp000005) * self.var.storCapUpp000005,
@@ -492,6 +503,7 @@ class soil(object):
         # re-scale all fluxes (based on available water).
         # ####################################################
         # scale fluxes (for Upp000005)
+
         ADJUST = self.var.actBareSoilEvap[No] + actTranspiUpp000005 + percUpp000005
         with np.errstate(invalid='ignore', divide='ignore'):
             ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.storUpp000005[No] + self.var.infiltration[No]) / ADJUST), 0.)

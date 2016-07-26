@@ -81,6 +81,7 @@ def CWATMexe():
     ----------------------------------------------
     """
     print CWATMRunInfo(outputDir = outputDir[0])
+    start_time = datetime.datetime.now().time()
     stCWATM.run()
 
 		# cProfile.run('stLisflood.run()')
@@ -95,7 +96,9 @@ def CWATMexe():
         timePrint = timeSum
         for i in xrange(len(timePrint)):
             print "%2i %-17s %10.2f %8.1f"  %(i,timeMesString[i],timePrint[i],100 * timePrint[i] / timePrint[-1])
-
+    current_time = datetime.datetime.now().time()
+    print start_time.isoformat()
+    print current_time.isoformat()
 
 # ==================================================
 # ============== USAGE ==============================
@@ -131,6 +134,8 @@ def headerinfo():
 Community Water Model
 International Institute of Applied Systems Analysis (IIASA)
 ----------------------------------------------------------"""
+current_time = datetime.datetime.now().time()
+print current_time.isoformat()
 
 
 # ==================================================

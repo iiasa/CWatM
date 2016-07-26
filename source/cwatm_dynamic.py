@@ -51,6 +51,7 @@ class CWATModel_dyn(DynamicModel):
                 if (not(Flags['quiet'])) and (not(Flags['veryquiet'])):
                     sys.stdout.write("\r%d" % i)
                     sys.stdout.flush()
+        print
 
         # ************************************************************
         """ up to here it was fun, now the real stuff starts
@@ -73,6 +74,7 @@ class CWATModel_dyn(DynamicModel):
         self.waterdemand_module.dynamic()
 
         self.landcoverType_module.dynamic()
+        self.groundwater_module.dynamic()
         """
         self.landusechange_module.dynamic()
 

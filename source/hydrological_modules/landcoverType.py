@@ -227,10 +227,15 @@ class landcoverType(object):
                    self.var.fracVegCover[i] = np.where(self.var.fracVegCover[i] > 0.001, self.var.fracVegCover[i], 0.0)
 
                irrigatedAreaFrac = self.var.fracVegCover[2] + self.var.fracVegCover[3]
+               nonirrigatedAreaFrac = self.var.fracVegCover[0] + self.var.fracVegCover[1]
+               totalAreafrac = irrigatedAreaFrac + nonirrigatedAreaFrac
                # Correction of forest and grassland by irrigation part: #have to think if irrigation should go at the same pecentage from forest
                # BETTER adjust these maps before !!!
-               self.var.fracVegCover[0] = self.var.fracVegCover[0] * (1.0 - irrigatedAreaFrac)
-               self.var.fracVegCover[1] = self.var.fracVegCover[1] * (1.0 - irrigatedAreaFrac)
+               for i in xrange(0,3):
+                   self.var.fracVegCover[i] = self.var.fracVegCover[i]/totalAreafrac
+               #self.var.fracVegCover[0] = self.var.fracVegCover[0] * (1.0 - irrigatedAreaFrac)
+               #self.var.fracVegCover[1] = self.var.fracVegCover[1] * (1.0 - irrigatedAreaFrac)
+               i = 1
 
 
 # --------------------------------------------------------------------------
@@ -242,17 +247,15 @@ class landcoverType(object):
 
 
         coverNo = 0
-        print
+        print "soil"
         # update soil (loop per each land cover type):
         for coverType in self.var.coverTypes:
-            print coverNo,coverType
+            #print coverNo,coverType
 
             self.var.soil_module.dynamic_PotET(coverType, coverNo)
-            a = self.var.potTranspiration[coverNo]
+
             self.var.soil_module.dynamic_Interception(coverType, coverNo)
-            a = self.var.potTranspiration[coverNo]
             self.var.soil_module.dynamic_Soil(coverType, coverNo)
-            a = self.var.potTranspiration[coverNo]
             coverNo += 1
 
         # aggregated variables by fraction of land cover
@@ -275,15 +278,22 @@ class landcoverType(object):
         self.var.sumsum_Precipitation += self.var.Precipitation
         self.var.sumsum_gwRecharge += self.var.sum_gwRecharge
 
-        report(decompress(self.var.sum_potTranspiration), "d:\work\output/trans.map")
-        report(decompress(self.var.directRunoff[3 ]), "d:\work\output\dir.map")
-        report(decompress(self.var.sumsum_directRunoff), "d:\work\output\dirsum.map")
+        #report(decompress(self.var.sum_potTranspiration), "c:\work\output/trans.map")
+        #report(decompress(self.var.directRunoff[3 ]), "c:\work\output\dir.map")
+        report(decompress(self.var.sumsum_directRunoff), "c:\work\output\dirsum.map")
+        report(decompress(self.var.sumsum_Precipitation), "c:\work\output\prsum.map")
         #a = decompress(self.var.sumsum_Precipitation)
         #b = cellvalue(a,81,379)
+        #print self.var.sum_directRunoff
 
 
-        report(decompress(self.var.sumsum_Precipitation), "d:\work\output\Prsum.map")
-        report(decompress(self.var.sumsum_gwRecharge), "d:\work\output\gwrsum.map")
+        #report(decompress(self.var.sumsum_Precipitation), "c:\work\output\Prsum.map")
+        #report(decompress(self.var.sumsum_gwRecharge), "c:\work\output\gwrsum.map")
+
+
+
+
+
 
 
 
