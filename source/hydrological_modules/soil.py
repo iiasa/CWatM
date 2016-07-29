@@ -638,5 +638,6 @@ class soil(object):
         self.var.gwRecharge[No] = percLow030150 - capRiseLow030150
 
         # landSurfaceRunoff (needed for routing)
-        self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflow[No] + interflowUpp005030
+        self.var.interflowTotal[No] = self.var.interflow[No] + interflowUpp005030
+        self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflowTotal[No]
 

@@ -14,9 +14,11 @@ from pcraster import*
 from pcraster.framework import *
 
 
-from management_modules.checks import *
+
+from management_modules.data_handling import *
 from management_modules.improvepcraster import *
 from management_modules.messages import *
+
 
 
 
@@ -75,6 +77,26 @@ class CWATModel_dyn(DynamicModel):
 
         self.landcoverType_module.dynamic()
         self.groundwater_module.dynamic()
+
+
+        self.sumsum_directRunoff +=  self.sum_directRunoff
+        self.sumsum_Runoff += self.sum_directRunoff
+        self.sumsum_Precipitation += self.Precipitation
+        self.sumsum_gwRecharge += self.sum_gwRecharge
+        runoff = self.baseflow + self.sum_landSurfaceRunoff
+        self.sumsum_Runoff += runoff
+
+        print self.sum_directRunoff,  self.sum_interflowTotal, self.sum_landSurfaceRunoff, self.baseflow, runoff
+        print self.sumsum_Precipitation, self.sumsum_Runoff
+
+
+        #report(decompress(self.var.sum_potTranspiration), "c:\work\output/trans.map")
+        #report(decompress(self.var.directRunoff[3 ]), "c:\work\output\dir.map")
+        report(decompress(runoff), "c:\work\output\dirsum.map")
+        report(decompress(self.sumsum_Precipitation), "c:\work\output\prsum.map")
+        #report(decompress(runoff), "c:\work\output/runoff.map")
+
+
         """
         self.landusechange_module.dynamic()
 

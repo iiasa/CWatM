@@ -11,7 +11,7 @@
 import os
 import numpy as np
 import globals
-
+from management_modules.checks import *
 from messages import *
 
 from pcraster import *

@@ -51,9 +51,7 @@ class groundwater(object):
         """ dynamic part of the groundwater module
         """
 
-        print "groundwater"
-        if (self.var.currentTimeStep() == 50):
-            kk = 1
+       # if (self.var.currentTimeStep() == 50):
 
 
         # if self.var.debugWaterBalance == str('True'): prestorGroundwater = self.var.storGroundwater
