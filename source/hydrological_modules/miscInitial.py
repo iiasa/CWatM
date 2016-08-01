@@ -37,9 +37,11 @@ class miscInitial(object):
             # Limitation: always assumes square grid cells (not rectangles!). Size of grid cells
             # may vary across map though
 
-            self.var.cellLengthPcr = loadmap('CellLength',pcr=True)
-            self.var.cellLength = compressArray(self.var.cellLengthPcr)
+            #self.var.cellLengthPcr = loadmap('CellLength',pcr=True)
+            #self.var.cellLength = compressArray(self.var.cellLengthPcr)
             # Length of pixel [m]
+            # NOT needed only in routing
+
             # Area of pixel [m2]
             self.var.cellAreaPcr = loadmap('CellArea',pcr=True)
             self.var.cellArea = compressArray(self.var.cellAreaPcr)
@@ -53,11 +55,11 @@ class miscInitial(object):
 
             # Length of pixel [m]
             #self.var.PixelLength = celllength()
-            self.var.cellLengthPcr = celllength()
-            self.var.cellLength = maskmapAttr['cell']
+            # self.var.cellLengthPcr = celllength()
+            #self.var.cellLength = maskmapAttr['cell']
 
             # Area of pixel [m2]
-            self.var.cellAreaPcr = self.var.cellLength ** 2
+            #self.var.cellAreaPcr = self.var.cellLength ** 2
             self.var.cellArea=np.empty(maskinfo['mapC'])
             self.var.cellArea.fill(self.var.cellLength ** 2)
 
@@ -68,7 +70,7 @@ class miscInitial(object):
 # -----------------------------------------------------------------
         # Miscellaneous repeatedly used expressions (as suggested by GF)
 
-        self.var.InvCellLength = 1.0 / self.var.cellLength
+        # self.var.InvCellLength = 1.0 / self.var.cellLength
         self.var.InvCellArea = 1.0 / self.var.cellArea
         # Inverse of pixel size [1/m]
         self.var.DtSec = 86400.0
@@ -97,6 +99,8 @@ class miscInitial(object):
 
         self.var.con_precipitation = loadmap('precipitation_coversion')
         self.var.con_e = loadmap('evaporation_coversion')
+
+        self.var.twothird = 2.0 / 3.0
 
         # ************************************************************
         # ***** Some additional stuff

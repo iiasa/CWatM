@@ -78,6 +78,8 @@ class CWATModel_dyn(DynamicModel):
         self.landcoverType_module.dynamic()
         self.groundwater_module.dynamic()
 
+        self.routing_module.dynamic()
+
 
         self.sumsum_directRunoff +=  self.sum_directRunoff
         self.sumsum_Runoff += self.sum_directRunoff

@@ -15,9 +15,13 @@ from hydrological_modules.inflow import *
 from hydrological_modules.snow_frost import *
 from hydrological_modules.soil import *
 from hydrological_modules.landcoverType import *
+from hydrological_modules.evaporation import *
 from hydrological_modules.groundwater import *
 from hydrological_modules.waterdemand import *
 from hydrological_modules.capillarRise import *
+from hydrological_modules.interception import *
+from hydrological_modules.routing import *
+from hydrological_modules.lakes_reservoirs import *
 
 """
 from hydrological_modules.leafarea import *
@@ -92,9 +96,13 @@ class CWATModel_ini(DynamicModel):
         self.snowfrost_module = snow(self)
         self.soil_module = soil(self)
         self.landcoverType_module = landcoverType(self)
+        self.evaporation_module = evaporation(self)
         self.groundwater_module = groundwater(self)
         self.waterdemand_module = waterdemand(self)
         self.capillarRise_module = capillarRise(self)
+        self.interception_module = interception(self)
+        self.routing_module = routing(self)
+        self.lakes_reservoirs_module = lakes_reservoirs(self)
         """
         self.landusechange_module = landusechange(self)
         self.leafarea_module = leafarea(self)
@@ -132,6 +140,9 @@ class CWATModel_ini(DynamicModel):
         self.landcoverType_module.initial()
         self.groundwater_module.initial()
         self.waterdemand_module.initial()
+
+        self.routing_module.initial()
+        self.lakes_reservoirs_module.initial()
 
         """
         # include output of tss and maps

@@ -252,10 +252,9 @@ class landcoverType(object):
         for coverType in self.var.coverTypes:
             #print coverNo,coverType
 
-            self.var.soil_module.dynamic_PotET(coverType, coverNo)
-
-            self.var.soil_module.dynamic_Interception(coverType, coverNo)
-            self.var.soil_module.dynamic_Soil(coverType, coverNo)
+            self.var.evaporation_module.dynamic(coverType, coverNo)
+            self.var.interception_module.dynamic(coverType, coverNo)
+            self.var.soil_module.dynamic(coverType, coverNo)
             coverNo += 1
 
         # aggregated variables by fraction of land cover
