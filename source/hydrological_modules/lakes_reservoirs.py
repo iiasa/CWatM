@@ -41,7 +41,7 @@ class lakes_reservoirs(object):
             self.var.minWeirWidth = loadmap('minWeirWidth')
 
 
-		    # initial conditions
+            # initial conditions
 
             # lake and reservoir storages = waterBodyStorage (m3)
             # - values are given for the entire lake / reservoir cells
@@ -56,7 +56,7 @@ class lakes_reservoirs(object):
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
-    def getParameterFiles(self, currTimeStep):
+    def getParameterFiles(self):
 
         #           self.var.cellArea    self.var..Ldd self.var.cellLength    ,self.var.cellSize
         # parameters for Water Bodies: fracWat
@@ -73,113 +73,128 @@ class lakes_reservoirs(object):
         #    fracWat = fraction of surface water bodies
         self.var.fracWat = globals.inZero.copy()
 
-        if self.var.includeWaterBodies == "True":
+        self.var.waterBodyIds = globals.inZero.astype(np.int32)
+        self.var.waterBodyOut = globals.inZero.astype(np.bool8)
+        self.var.waterBodyArea = globals.inZero.copy()  # waterBody surface areas
+
+
+        #self.var.waterBodyOut = pcr.boolean(0)  # waterBody outlets
+        #self.var.waterBodyArea = pcr.scalar(0.)  # waterBody surface areas
+        # d.astype(np.int32) , d.astype(np.bool8)
+
+
+        if option['includeWaterBodies']:
+            waterBodyIdsPcr = nominal(0)
+            waterBodyOut = boolean(0)
             self.var.fracWat = readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly", value= 'fracWaterInp')
             self.var.fracWat = np.maximum(0.0, self.var.fracWat)
             self.var.fracWat = np.minimum(1.0, self.var.fracWat)
 
-        self.var.waterBodyIds = globals.inZero.copy()  # waterBody ids
-        self.var.waterBodyOut = globals.inZero.copy()  # waterBody outlets
-        self.var.waterBodyArea = globals.inZero.copy()  # waterBody surface areas
-        #self.var.waterBodyOut = pcr.boolean(0)  # waterBody outlets
-        #self.var.waterBodyArea = pcr.scalar(0.)  # waterBody surface areas
 
-        if self.var.includeLakes == "True" or self.var.includeReservoirs == "True":
-            # water body ids
-            self.var.waterBodyIds = readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly",value='waterBodyIds')
-            ##self.var.waterBodyIds = np.where( self.var.waterBodyIds > 0., pcr.nominal(self.var.waterBodyIds))
 
-            # water body outlets:
-            wbCatchment = catchmenttotal(pcr.scalar(1), self.var.Ldd)
-            # = outlet ids
-            self.var.waterBodyOut = np.where(wbCatchment == pcr.areamaximum(wbCatchment, self.var.waterBodyIds), self.var.waterBodyIds)
-            self.var.waterBodyOut = np.where(pcr.scalar(self.var.waterBodyIds) > 0., self.var.waterBodyOut)
+            if self.var.includeLakes == "True" or self.var.includeReservoirs == "True":
+                # water body ids
+                self.var.waterBodyIds = readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly",value='waterBodyIds')
+                waterBodyIdsPcr = nominal(decompress(self.var.waterBodyIds))
+                ##self.var.waterBodyIds = np.where( self.var.waterBodyIds > 0., pcr.nominal(self.var.waterBodyIds))
 
-            # correcting water body ids
-            self.var.waterBodyIds = np.where( pcr.scalar(self.var.waterBodyIds) > 0., pcr.subcatchment(ldd, self.var.waterBodyOut))
 
-            # boolean map for water body outlets:
-            self.var.waterBodyOut = np.where( pcr.scalar(self.var.waterBodyOut) > 0., pcr.boolean(1))
+                # Pcraster
+                # water body outlets:
+                wbCatchment = catchmenttotal(scalar(1), self.var.Ldd)
+                # = outlet ids
+                waterBodyOutPcr = ifthen(wbCatchment == areamaximum(wbCatchment, waterBodyIdsPcr), waterBodyIdsPcr)
+                waterBodyOutPcr = ifthenelse(scalar(waterBodyIdsPcr) > 0, waterBodyOutPcr, 0.0)
 
-            # reservoir surface area (m2):
-            if self.var.useNetCDF:
+                # correcting water body ids
+                waterBodyIdsPcr = ifthen( scalar(waterBodyIdsPcr) > 0., subcatchment(self.var.Ldd, waterBodyOutPcr))
+
+                # boolean map for water body outlets:
+                waterBodyOutPcr = ifthen( pcr.scalar(waterBodyOutPcr) > 0., pcr.boolean(1))
+
+                self.var.waterBodyIds = compressArray(waterBodyIdsPcr)
+                self.var.waterBodyOut = compressArray(waterBodyOutPcr)
+
+
+
+                # reservoir surface area (m2):
                 resSfArea = 1000. * 1000. * readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly", value='resSfAreaInp')
 
-            resSfArea = pcr.areaaverage(resSfArea, self.var.waterBodyIds)
-            resSfArea = pcr.cover(resSfArea, 0.)
+                resSfArea = npareaaverage(resSfArea, self.var.waterBodyIds)
 
-            # water body surface area (m2): (lakes and reservoirs)
-            self.var.waterBodyArea = np.maximum(pcr.areatotal(pcr.cover( self.var.fracWat * self.var.cellArea, 0.0), self.var.waterBodyIds),
-                                                pcr.areaaverage( pcr.cover(resSfArea, 0.0), self.var.waterBodyIds))
-            self.var.waterBodyArea = np.where(self.var.waterBodyArea > 0., self.var.waterBodyArea)
 
-            # correcting water body ids and outlets (excluding all water bodies with surfaceArea = 0)
-            self.var.waterBodyIds = np.where(self.var.waterBodyArea > 0.,self.var.waterBodyIds)
-            self.var.waterBodyOut = np.where(pcr.boolean(self.var.waterBodyIds), self.var.waterBodyOut)
+                # water body surface area (m2): (lakes and reservoirs)
+                self.var.waterBodyArea = np.maximum(npareatotal(self.var.fracWat * self.var.cellArea, self.var.waterBodyIds),
+                                        npareaaverage( resSfArea, self.var.waterBodyIds))
+                self.var.waterBodyArea = np.where(self.var.waterBodyArea > 0., self.var.waterBodyArea)
 
-        # water body types:
-        # - 2 = reservoirs (regulated discharge)
-        # - 1 = lakes (weirFormula)
-        # - 0 = non lakes or reservoirs (e.g. wetland)
-        self.var.waterBodyTyp = pcr.nominal(0)
+                # correcting water body ids and outlets (excluding all water bodies with surfaceArea = 0)
+                self.var.waterBodyIds = np.where(self.var.waterBodyArea > 0.,self.var.waterBodyIds)
+                self.var.waterBodyOut = np.where(self.var.waterBodyIds > 0, self.var.waterBodyOut)
 
-        if self.var.includeLakes == "True" or self.var.includeReservoirs == "True":
-            self.var.waterBodyTyp = readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly", value='waterBodyTyp')
+            # water body types:
+            # - 2 = reservoirs (regulated discharge)
+            # - 1 = lakes (weirFormula)
+            # - 0 = non lakes or reservoirs (e.g. wetland)
+            self.var.waterBodyTyp = pcr.nominal(0)
 
-            self.var.waterBodyTyp = np.where( pcr.scalar(self.var.waterBodyTyp) > 0, pcr.nominal(self.var.waterBodyTyp))
-            self.var.waterBodyTyp = np.where( pcr.scalar(self.var.waterBodyIds) > 0, pcr.nominal(self.var.waterBodyTyp))
-            self.var.waterBodyTyp = pcr.areamajority(self.var.waterBodyTyp, self.var.waterBodyIds)
-            self.var.waterBodyTyp = np.where( pcr.scalar(self.var.waterBodyTyp) > 0, pcr.nominal(self.var.waterBodyTyp))
-            self.var.waterBodyTyp = np.where(pcr.boolean(self.var.waterBodyIds), self.var.waterBodyTyp)
+            if self.var.includeLakes == "True" or self.var.includeReservoirs == "True":
+                self.var.waterBodyTyp = readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly", value='waterBodyTyp')
 
-            # correcting water body ids and outlets:
-            self.var.waterBodyIds = np.where(pcr.boolean(self.var.waterBodyTyp), self.var.waterBodyIds)
-            self.var.waterBodyOut = np.where(pcr.boolean(self.var.waterBodyIds), self.var.waterBodyOut)
+                self.var.waterBodyTyp = np.where( pcr.scalar(self.var.waterBodyTyp) > 0, pcr.nominal(self.var.waterBodyTyp))
+                self.var.waterBodyTyp = np.where( pcr.scalar(self.var.waterBodyIds) > 0, pcr.nominal(self.var.waterBodyTyp))
+                self.var.waterBodyTyp = pcr.areamajority(self.var.waterBodyTyp, self.var.waterBodyIds)
+                self.var.waterBodyTyp = np.where( pcr.scalar(self.var.waterBodyTyp) > 0, pcr.nominal(self.var.waterBodyTyp))
+                self.var.waterBodyTyp = np.where(pcr.boolean(self.var.waterBodyIds), self.var.waterBodyTyp)
 
-        # correcting water bodies attributes if reservoirs are ignored (for natural runs):
-        if self.var.includeLakes == "True" and self.var.includeReservoirs == "False":
-            # correcting fracWat
-            reservoirExcluded = pcr.cover( np.where(pcr.scalar(self.var.waterBodyTyp) == 2., pcr.boolean(1)), pcr.boolean(0))
-            maxWaterBodyAreaExcluded = np.where(reservoirExcluded, self.var.waterBodyArea / pcr.areatotal( \
+                # correcting water body ids and outlets:
+                self.var.waterBodyIds = np.where(pcr.boolean(self.var.waterBodyTyp), self.var.waterBodyIds)
+                self.var.waterBodyOut = np.where(pcr.boolean(self.var.waterBodyIds), self.var.waterBodyOut)
+
+            # correcting water bodies attributes if reservoirs are ignored (for natural runs):
+            if self.var.includeLakes == "True" and self.var.includeReservoirs == "False":
+                # correcting fracWat
+                reservoirExcluded = pcr.cover( np.where(pcr.scalar(self.var.waterBodyTyp) == 2., pcr.boolean(1)), pcr.boolean(0))
+                maxWaterBodyAreaExcluded = np.where(reservoirExcluded, self.var.waterBodyArea / pcr.areatotal( \
                                                       pcr.scalar(reservoirExcluded), self.var.waterBodyIds))
-            maxfractionWaterExcluded = pcr.cover( maxWaterBodyAreaExcluded / self.var.cellArea, 0.0)
-            maxfractionWaterExcluded = np.minimum(1.0, maxfractionWaterExcluded)
-            maxfractionWaterExcluded = np.minimum(self.var.fracWat, maxfractionWaterExcluded)
+                maxfractionWaterExcluded = pcr.cover( maxWaterBodyAreaExcluded / self.var.cellArea, 0.0)
+                maxfractionWaterExcluded = np.minimum(1.0, maxfractionWaterExcluded)
+                maxfractionWaterExcluded = np.minimum(self.var.fracWat, maxfractionWaterExcluded)
 
-            self.var.fracWat = self.var.fracWat - maxfractionWaterExcluded
-            self.var.fracWat = np.maximum(0., self.var.fracWat)
-            self.var.fracWat = np.minimum(1., self.var.fracWat)
+                self.var.fracWat = self.var.fracWat - maxfractionWaterExcluded
+                self.var.fracWat = np.maximum(0., self.var.fracWat)
+                self.var.fracWat = np.minimum(1., self.var.fracWat)
 
-            self.var.waterBodyArea = np.where(pcr.scalar(self.var.waterBodyTyp) < 2.,self.var.waterBodyArea)
-            self.var.waterBodyTyp = np.where(pcr.scalar(self.var.waterBodyTyp) < 2., self.var.waterBodyTyp)
-            self.var.waterBodyIds = np.where(pcr.scalar(self.var.waterBodyTyp) > 0., self.var.waterBodyIds)
-            self.var.waterBodyOut = np.where(pcr.scalar(self.var.waterBodyIds) > 0., self.var.waterBodyOut)
-
-        # reservoir maximum capacity (m3):
-        self.var.resMaxCap = pcr.scalar(0.0)
-        self.var.waterBodyCap = pcr.scalar(0.0)
-
-        if self.var.includeReservoirs == "True":
+                self.var.waterBodyArea = np.where(pcr.scalar(self.var.waterBodyTyp) < 2.,self.var.waterBodyArea)
+                self.var.waterBodyTyp = np.where(pcr.scalar(self.var.waterBodyTyp) < 2., self.var.waterBodyTyp)
+                self.var.waterBodyIds = np.where(pcr.scalar(self.var.waterBodyTyp) > 0., self.var.waterBodyIds)
+                self.var.waterBodyOut = np.where(pcr.scalar(self.var.waterBodyIds) > 0., self.var.waterBodyOut)
 
             # reservoir maximum capacity (m3):
-            self.var.resMaxCap = 1000. * 1000. * readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly", value='resMaxCapInp')
-            self.var.resMaxCap = np.where(self.var.resMaxCap > 0, self.var.resMaxCap)
-            self.var.resMaxCap = pcr.areaaverage(self.var.resMaxCap, self.var.waterBodyIds)
+            self.var.resMaxCap = pcr.scalar(0.0)
+            self.var.waterBodyCap = pcr.scalar(0.0)
 
-            # water body capacity (m3): (lakes and reservoirs)
-            # Note: Most of lakes have capacities > 0.
-            self.var.waterBodyCap = pcr.cover(self.var.resMaxCap, 0.0)
-            self.var.waterBodyCap = np.where(pcr.boolean(self.var.waterBodyIds), self.var.waterBodyCap)
+            if self.var.includeReservoirs == "True":
 
-            # correcting water body types:
-            self.var.waterBodyTyp = np.where(self.var.waterBodyCap > 0., self.var.waterBodyTyp, \
+                # reservoir maximum capacity (m3):
+                self.var.resMaxCap = 1000. * 1000. * readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly", value='resMaxCapInp')
+                self.var.resMaxCap = np.where(self.var.resMaxCap > 0, self.var.resMaxCap)
+                self.var.resMaxCap = pcr.areaaverage(self.var.resMaxCap, self.var.waterBodyIds)
+
+                # water body capacity (m3): (lakes and reservoirs)
+                # Note: Most of lakes have capacities > 0.
+                self.var.waterBodyCap = pcr.cover(self.var.resMaxCap, 0.0)
+                self.var.waterBodyCap = np.where(pcr.boolean(self.var.waterBodyIds), self.var.waterBodyCap)
+
+                # correcting water body types:
+                self.var.waterBodyTyp = np.where(self.var.waterBodyCap > 0., self.var.waterBodyTyp, \
                         np.where(pcr.scalar(self.var.waterBodyTyp) == 2, pcr.nominal(1), self.var.waterBodyTyp))
-            self.var.waterBodyTyp = np.where(pcr.scalar(self.var.waterBodyTyp) > 0., self.var.waterBodyTyp)
+                self.var.waterBodyTyp = np.where(pcr.scalar(self.var.waterBodyTyp) > 0., self.var.waterBodyTyp)
 
-            # final corrections:
-            self.var.waterBodyTyp = np.where(self.var.waterBodyArea > 0., self.var.waterBodyTyp)
-            self.var.waterBodyIds = np.where(pcr.scalar(self.var.waterBodyTyp) > 0., self.var.waterBodyIds)
-            self.var.waterBodyOut = np.where(pcr.scalar(self.var.waterBodyIds) > 0., self.var.waterBodyOut)
+                # final corrections:
+                self.var.waterBodyTyp = np.where(self.var.waterBodyArea > 0., self.var.waterBodyTyp)
+                self.var.waterBodyIds = np.where(pcr.scalar(self.var.waterBodyTyp) > 0., self.var.waterBodyIds)
+                self.var.waterBodyOut = np.where(pcr.scalar(self.var.waterBodyIds) > 0., self.var.waterBodyOut)
 
         # For each new reservoir (introduced at the beginning of the year)
         # initiating storage, average inflow and outflow:

@@ -102,7 +102,7 @@ class waterdemand(object):
 
         # ------------------------------------------
         # non irrigation water demand
-        nonIrrGrossDemand = self.var.potentialNonIrrGrossWaterDemand
+        self.var.nonIrrGrossDemand = self.var.potentialNonIrrGrossWaterDemand
 
         # irrigation water demand for paddy and non-paddy (m)
         self.var.irrGrossDemand = 0.0
@@ -121,7 +121,7 @@ class waterdemand(object):
             self.var.irrGrossDemand = np.where(self.var.irrGrossDemand > self.var.InvCellArea, self.var.irrGrossDemand, 0)  # ignore demand if less than 1 m3
 
         # totalGrossDemand (m): total maximum (potential) water demand: irrigation and non irrigation
-        totalGrossDemand = nonIrrGrossDemand + self.var.irrGrossDemand
+        totalGrossDemand = self.var.nonIrrGrossDemand + self.var.irrGrossDemand
         self.var.totalPotentialGrossDemand = totalGrossDemand
 
         # surface water abstraction that can be extracted to fulfil totalGrossDemand

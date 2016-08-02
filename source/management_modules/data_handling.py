@@ -12,6 +12,7 @@ import os
 import numpy as np
 import globals
 from management_modules.checks import *
+from management_modules.replace_pcr import *
 from messages import *
 
 from pcraster import *
