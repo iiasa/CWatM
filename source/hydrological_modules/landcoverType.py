@@ -265,7 +265,7 @@ class landcoverType(object):
         self.var.landcoverSum = [ 'interceptStor', 'topWaterLayer','interflow', 'storUpp000005', 'storUpp005030', 'storLow030150',
                          'directRunoff', 'totalPotET', 'potBareSoilEvap', 'potTranspiration', 'availWaterInfiltration',
                          'interceptEvap', 'soilWaterStorage', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTranspiTotal', 'netPercUpp000005',
-                         'netPercUpp005030','gwRecharge','actualET','interflowTotal']
+                         'netPercUpp005030','gwRecharge','actualET','interflowTotal','topWaterLayer']
         for variable in self.var.landcoverSum:
             vars(self.var)["sum_"+variable] = globals.inZero.copy()
 
@@ -273,6 +273,8 @@ class landcoverType(object):
             for No in xrange(4):
                 vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
+        self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_topWaterLayer + \
+                self.var.sum_storUpp000005 + self.var.sum_storUpp005030 + self.var.sum_storLow030150
 
         #a = decompress(self.var.sumsum_Precipitation)
         #b = cellvalue(a,81,379)

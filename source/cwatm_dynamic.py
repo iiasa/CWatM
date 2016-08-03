@@ -88,15 +88,15 @@ class CWATModel_dyn(DynamicModel):
         runoff = self.baseflow + self.sum_landSurfaceRunoff
         self.sumsum_Runoff += runoff
 
-        print self.sum_directRunoff,  self.sum_interflowTotal, self.sum_landSurfaceRunoff, self.baseflow, runoff
-        print self.sumsum_Precipitation, self.sumsum_Runoff
+        #print self.sum_directRunoff,  self.sum_interflowTotal, self.sum_landSurfaceRunoff, self.baseflow, runoff
+        #print self.sumsum_Precipitation, self.sumsum_Runoff
 
 
-        #report(decompress(self.var.sum_potTranspiration), "c:\work\output/trans.map")
-        #report(decompress(self.var.directRunoff[3 ]), "c:\work\output\dir.map")
-        report(decompress(runoff), "c:\work\output\dirsum.map")
-        report(decompress(self.sumsum_Precipitation), "c:\work\output\prsum.map")
-        #report(decompress(runoff), "c:\work\output/runoff.map")
+          #report(decompress(self.var.sum_potTranspiration), "c:\work\output/trans.map")
+          #r eport(decompress(self.var.directRunoff[3 ]), "c:\work\output\dir.map")
+        #report(decompress(runoff), "c:\work\output\dirsum.map")
+        #report(decompress(self.sumsum_Precipitation), "c:\work\output\prsum.map")
+           #report(decompress(runoff), "c:\work\output/runoff.map")
 
 
         """

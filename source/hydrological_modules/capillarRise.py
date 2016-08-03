@@ -40,7 +40,7 @@ class capillarRise(object):
         dzGroundwater = self.var.storGroundwater / self.var.specificYield + self.var.maxGWCapRise
 
         if option['includeWaterBodies']:
-            self.var.fractionWater = readnetcdf2(binding['self.var.waterbody_file'],self.var.CalendarDate,useDaily='yearly',value='fracWaterIn')
+            self.var.fractionWater = readnetcdf2(binding['waterBodyInputNC'],self.var.CalendarDate,useDaily='yearly',value='fracWaterInp')
 
         CRFRAC = np.minimum(1.0,  1.0 -(self.var.dzRel0100 - dzGroundwater)*0.1 /np.maximum(1e-3,self.var.dzRel0100-self.var.dzRel0090))
         CRFRAC = np.where(dzGroundwater < self.var.dzRel0090, 0.9 - (self.var.dzRel0090 - dzGroundwater) * 0.1 / np.maximum(1e-3, self.var.dzRel0090 - self.var.dzRel0080), CRFRAC)

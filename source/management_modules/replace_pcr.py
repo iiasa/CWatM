@@ -30,18 +30,18 @@ def getValDivZero2(x,y,y_lim,z_def= 0.0):
 
 
 def npareatotal(values, areaclass):
-    i = 1
-    return np.take(np.bincount(areaclass,weights=values),areaclass)
+    res = np.take(np.bincount(areaclass,weights=values),areaclass)
+    return res
 	
 
 def npareaaverage(values, areaclass):
-    i = 1
-    return np.take(np.bincount(areaclass,weights=values)/ np.bincount(areaclass) ,areaclass)
+    res = np.take(np.bincount(areaclass,weights=values)/ np.bincount(areaclass) ,areaclass)
+    return res
 
 def npareamaximum(values, areaclass):
-    i = 1
     valueMax = np.zeros(areaclass.max() + 1)
     np.maximum.at(valueMax, areaclass, values)
-    return np.take(valueMax ,areaclass)
+    res = np.take(valueMax ,areaclass)
+    return res
 	
   

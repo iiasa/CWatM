@@ -30,10 +30,15 @@ class routing(object):
         """ initial part of the routing module
         Tdo: might be necessary to cover all variables = put 0 instead of missing value
         """
+
+
+        #self.var.Ldd = loadmap('Ldd',pcr=True,lddflag=True)
+
+
+        # TODO change this back!!!!!!!!!!!!!!!!!!
         self.var.Ldd = lddmask(loadmap('Ldd',pcr=True,lddflag=True), self.var.MaskMap)
         # Cut ldd to size of MaskMap
         # Prevents 'unsound' ldd if MaskMap covers sub-area of ldd
-
         self.var.Ldd = lddrepair(self.var.Ldd)
 
         # self.var.cellArea or self.var.cellAreaPcr as pcraster map
@@ -49,9 +54,12 @@ class routing(object):
             self.var.cellLength = self.var.cellsize
         self.var.cellLengthPcr = decompress(self.var.cellLength)
 
+        # maximum memory time-length of AvgDischarge (long term)
+        self.var.maxTimestepsToAvgDischargeShort = loadmap('maxTimestepsToAvgDischargeShorTerm')
+        # maximum memory time-length of AvgDischarge (long term)
+        self.var.maxTimestepsToAvgDischargeLong = loadmap('maxTimestepsToAvgDischargeLongTerm')
 
-
-
+        ## if self.method == "accuTravelTime":
         self.var.gradient = loadmap('gradient')
         # the channel gradient must be >= minGradient
         self.var.gradient = np.maximum(0.000005,self.var.gradient)
@@ -86,6 +94,7 @@ class routing(object):
         self.var.readAvlChannelStorage = loadmap('readAvlChannelStorageIni')
         self.var.timestepsToAvgDischarge = loadmap('timestepsToAvgDischargeIni')
         self.var.avgDischarge = loadmap('avgChannelDischargeIni')    # in m3/s
+        self.var.m2tDischarge = loadmap('m2tChannelDischargeIni')
         self.var.avgBaseflow = loadmap('avgBaseflowIni')
         self.var.riverbedExchange = loadmap('riverbedExchangeIni')
 
@@ -135,9 +144,11 @@ class routing(object):
         # ---------------------------------------------------------------------------------
 
 
-        def accuTravelTime(self, currTimeStep):
+        def accuTravelTime():
 
             usedLDD = self.var.Ldd
+
+
 
             if option['includeWaterBodies']:
 
@@ -146,11 +157,10 @@ class routing(object):
                 self.var.channelStorage -= storageAtLakeAndReservoirs
 
                 # update waterBodyStorage (inflow, storage and outflow)
-                self.var.WaterBodies.update(storageAtLakeAndReservoirs, \
-                                    self.var.timestepsToAvgDischarge, \
-                                    self.var.maxTimestepsToAvgDischargeShort, \
-                                    self.var.maxTimestepsToAvgDischargeLong, \
-                                    currTimeStep)
+                self.var.lakes_reservoirs_module.dynamic(storageAtLakeAndReservoirs)
+                    #    self.var.timestepsToAvgDischarge, self.var.maxTimestepsToAvgDischargeShort, self.var.maxTimestepsToAvgDischargeLong)
+
+
 
                 # transfer outflow from lakes and/or reservoirs to channelStorages    # unit: m3/day
                 waterBodyOutflow = np.where( self.var.waterBodyOut == True,self.var.waterBodyOutflow, 0.0)
@@ -170,6 +180,9 @@ class routing(object):
                 # TODO: Move waterBodyOutflow according to water body discharge (velocity)
                 self.var.channelStorage += waterBodyOutflow
 
+            else:
+                self.var.waterBodyStorage = globals.inZero.copy()
+
                 # end waterbody if includeWaterBodies = True
 
 
@@ -177,18 +190,24 @@ class routing(object):
             # convert with decompress to pcraster format
             channelStorageForAccuTravelTime = decompress(self.var.channelStorage.copy())
             #
-            characteristicDistanceForAccuTravelTime = self.var.characteristicDistance, 0.001 * self.var.cellsize
+            characteristicDistanceForAccuTravelTime = self.var.characteristicDistance.copy()   # or  0.001 * self.var.cellsize if nan
             characteristicDistanceForAccuTravelTime = decompress( np.maximum(0.001 * self.var.cellsize, self.var.characteristicDistance))
+
+            hh1 = compressArray(characteristicDistanceForAccuTravelTime)[25989]
+            hh2 = compressArray(channelStorageForAccuTravelTime)[25989]
+            hh3 = compressArray(usedLDD)[25989]
 
             # self.var.Q = channel discharge (m3/day)
             QPcr = accutraveltimeflux(usedLDD, channelStorageForAccuTravelTime, characteristicDistanceForAccuTravelTime)
             # updating channelStorage (after routing)
             channelStoragePcr = accutraveltimestate(usedLDD, channelStorageForAccuTravelTime, characteristicDistanceForAccuTravelTime)
 
-            self.var.Q = cover(self.var.Q, 0.0)
+
             # from pcraster -> numpy
             self.var.Q = compressArray(QPcr)
+            self.var.Q[np.isnan(self.var.Q)] = 0
             self.var.channelStorage = compressArray(channelStoragePcr)
+            self.var.channelStorage[np.isnan(self.var.channelStorage)] = 0
             # for very small velocity (i.e. characteristicDistanceForAccuTravelTime), discharge can be missing value.
             # see: http://sourceforge.net/p/pcraster/bugs-and-feature-requests/543/
             #      http://karssenberg.geo.uu.nl/tt/TravelTimeSpecification.htm
@@ -196,9 +215,9 @@ class routing(object):
 
 
             # after routing, return waterBodyStorage to channelStorage
-
-            waterBodyStorageTotal = np.where(self.var.waterBodyIds > 0., npareaaverage( self.var.waterBodyStorage,self.var.waterBodyIds) + \
-                           npareatotal(self.var.channelStorage,self.var.waterBodyIds))
+            h1 = npareaaverage(self.var.waterBodyStorage,self.var.waterBodyIds)
+            h2 = npareatotal(  self.var.channelStorage,  self.var.waterBodyIds)
+            waterBodyStorageTotal = np.where(self.var.waterBodyIds > 0., h1 + h2, 0.)
 
             waterBodyStoragePerCell = waterBodyStorageTotal * self.var.cellArea / \
                                       npareatotal(self.var.cellArea, self.var.waterBodyIds)
@@ -210,7 +229,6 @@ class routing(object):
             # channel discharge (m3/s): current:
             self.var.discharge = self.var.Q / self.var.DtSec
             self.var.discharge = np.maximum(0., self.var.discharge)  # reported channel discharge cannot be negative
-            self.var.discharge = np.where(self.var.landmask, self.var.discharge)
 
             # discharge at channel and lake/reservoir outlets (m3/s)
             # ~ self.var.disChanWaterBody = np.where(self.var.landmask,\
@@ -231,7 +249,7 @@ class routing(object):
 # ---------------------------------------------------------------------------------
 
         # runoff from landSurface cells (unit: m)
-        self.var.runoff = self.var.landSurfaceRunoff + self.var.baseflow
+        self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow
 
         # update channelStorage (unit: m3) after runoff
         self.var.channelStorage += self.var.runoff * self.var.cellArea
@@ -264,23 +282,28 @@ class routing(object):
         #  self.var.CalendarDay
         if (self.var.currentTimeStep() == 1) or (int(self.var.CalendarDate.strftime('%d')) ==1):
         #if (currTimeStep.day == 1) or (currTimeStep.timeStepPCR == 1):
-            waterKC = readnetcdf2(self.var.fileCropKC_File ,self.var.CalendarDate,useDaily='month',value='kc')
+            self.var.waterKC = readnetcdf2(self.var.fileCropKC_File ,self.var.CalendarDate,useDaily='month',value='kc')
 
         # evaporation from water bodies (m3), limited to available channelStorage
         volLocEvapWaterBody = np.minimum(np.maximum(0.0,self.var.channelStorage),
                               np.maximum(0.0, (self.var.waterKC * self.var.ETRef * self.var.dynamicFracWat -\
-                              self.var.actualET)* self.var.cellArea))
+                              self.var.sum_actualET)* self.var.cellArea))
 
 
 
 
 
         # update channelStorage (m3) after evaporation from water bodies
-        self.channelStorage -= volLocEvapWaterBody
+        self.var.channelStorage -= volLocEvapWaterBody
 
         # local runoff/change (m) on surface water bodies in meter:
-        self.localQW =  volLocEvapWaterBody*-1. / self.cellArea         # Note that precipitation has been calculated/included in the landSurface module.
-        self.localQW =  np.where(self.landmask, self.localQW)
+        # Note that precipitation has been calculated/included in the landSurface module.
+        self.var.localQW =  volLocEvapWaterBody* self.var.InvCellArea
+
+
+
+
+
 
         # riverbed infiltration (m3):
         # - current implementation based on Inge's principle (later, will be based on groundater head (MODFLOW) and can be negative)
@@ -289,118 +312,110 @@ class routing(object):
         # - limited to fracWat
         # - limited to available channelStorage
         # - this infiltration will be handed to groundwater in the next time step
-        riverbedConductivity  = groundwater.kSatAquifer
-        self.riverbedExchange = np.maximum(0.0,\
-                                np.minimum(self.channelStorage,\
-                                np.whereelse(groundwater.baseflow > 0.0, \
-                                np.whereelse(groundwater.nonFossilGroundwaterAbs > groundwater.baseflow, \
-                                riverbedConductivity * self.dynamicFracWat * self.cellArea, \
+        riverbedConductivity  = self.var.kSatAquifer
+        self.var.riverbedExchange = np.maximum(0.0,  np.minimum(self.var.channelStorage,\
+                                np.where(self.var.baseflow > 0.0, \
+                                np.where(self.var.nonFossilGroundwaterAbs > self.var.baseflow, \
+                                riverbedConductivity * self.var.dynamicFracWat * self.var.cellArea, \
                                 0.0), 0.0)))
-        self.riverbedExchange = pcr.cover(self.riverbedExchange, 0.0)
-        factor = 0.05 # to avoid flip flop
-        self.riverbedExchange = np.minimum(self.riverbedExchange, (1.0-factor)*self.channelStorage)
-        self.riverbedExchange = pcr.cover(self.riverbedExchange, 0.0)
-        self.riverbedExchange = np.where(self.landmask, self.riverbedExchange)
+
+        # to avoid flip flop
+        factor = 0.05
+        self.var.riverbedExchange = np.minimum(self.var.riverbedExchange, (1.0-factor)*self.var.channelStorage)
 
         # update channelStorage (m3) after riverbedExchange (m3)
-        self.channelStorage  -= self.riverbedExchange
+        self.var.channelStorage  -= self.var.riverbedExchange
 
         # make sure that channelStorage >= 0
-        self.channelStorage   = np.maximum(0.0, self.channelStorage)
-
-        if self.debugWaterBalance == 'True':\
-           vos.waterBalanceCheck([self.runoff,\
-                                  self.nonIrrReturnFlow,\
-                                  self.localQW],\
-                                 [landSurface.actSurfaceWaterAbstract,self.riverbedExchange/self.cellArea],\
-                                 [           preStorage/self.cellArea],\
-                                 [  self.channelStorage/self.cellArea],\
-                                   'channelStorage before routing',\
-                                  True,\
-                                  currTimeStep.fulldate,threshold=5e-3)
+        self.var.channelStorage   = np.maximum(0.0, self.var.channelStorage)
 
         # updating timesteps to calculate avgDischarge, avgInflow and avgOutflow
-        self.timestepsToAvgDischarge += 1.
+        self.var.timestepsToAvgDischarge += 1.
 
-        if self.method == "accuTravelTime":
-            self.accuTravelTime(currTimeStep)                           # output:
+        ##if self.var.method == "accuTravelTime":
+        # self.var.currentTimeStep()
+        #self.var.accuTravelTime(currTimeStep)
+        accuTravelTime()
 
         # water height (m) = channelStorage / cellArea
-        self.waterHeight = self.channelStorage / self.cellArea
-
-        # total water storage
-        self.waterHeight = self.channelStorage / self.cellArea
+        self.var.waterHeight = self.var.channelStorage / self.var.cellArea
 
         # total water storage thickness (m) for the entire column
-        # (including interception, snow, soil and groundwater)
-        self.totalWaterStorageThickness = np.where(self.landmask,\
-                                          self.waterHeight + \
-                                          landSurface.totalSto + \
-                                          groundwater.storGroundwater)  # unit: m
+        # (including interception, snow, soil and groundwater) # unit: m
+        self.var.totalWaterStorageThickness = self.var.waterHeight + self.var.totalSto +  self.var.storGroundwater
 
 
         # total water storage thickness (m) for the entire column
-        # (including interception, snow, soil and groundwater)
-        self.totalWaterStorageVolume = self.totalWaterStorageThickness *\
-                                       self.cellArea                    # unit: m3
+        # (including interception, snow, soil and groundwater) # unit: m3
+        self.var.totalWaterStorageVolume = self.var.totalWaterStorageThickness * self.var.cellArea
 
         # Calculating avgDischarge
         #
-        # average and standard deviation of long term discharge
-        #~ self.avgDischarge = (self.avgDischarge  * \
-                            #~ (np.minimum(self.maxTimestepsToAvgDischargeLong,
-                                     #~ self.timestepsToAvgDischarge)- 1.) + \
-                             #~ self.discharge * 1.) / \
-                            #~ (np.minimum(self.maxTimestepsToAvgDischargeLong,
-                                     #~ self.timestepsToAvgDischarge))             # Edwin's old formula.
+        # average and standard deviation of long term discharge  # Edwin's old formula.
+        #~ self.var.avgDischarge = (self.var.avgDischarge  * (np.minimum(self.var.maxTimestepsToAvgDischargeLong,
+        #~             self.var.timestepsToAvgDischarge)- 1.) + self.var.discharge * 1.) / (np.minimum(self.var.maxTimestepsToAvgDischargeLong,
+        #~             self.var.timestepsToAvgDischarge))
         #
-        dishargeUsed      = np.maximum(0.0, self.discharge)
-        dishargeUsed      = np.maximum(dishargeUsed, self.disChanWaterBody)
+        dischargeUsed      = np.maximum(0.0, self.var.discharge)
+        dischargeUsed      = np.maximum(dischargeUsed, self.var.disChanWaterBody)
         #
-        deltaAnoDischarge = dishargeUsed - self.avgDischarge
-        self.avgDischarge = self.avgDischarge +\
-                            deltaAnoDischarge/\
-                            np.minimum(self.maxTimestepsToAvgDischargeLong, self.timestepsToAvgDischarge)
-        self.avgDischarge = np.maximum(0.0, self.avgDischarge)
-        self.m2tDischarge = self.m2tDischarge + pcr.abs(deltaAnoDischarge*(self.discharge - self.avgDischarge))
-        self.varDischarge = self.m2tDischarge / \
-                            np.maximum(1.,\
-                            np.minimum(self.maxTimestepsToAvgDischargeLong, self.timestepsToAvgDischarge)-1.)
-                          # see: online algorithm on http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-        self.stdDischarge = np.maximum(self.varDischarge**0.5, 0.0)
+        deltaAnoDischarge = dischargeUsed - self.var.avgDischarge
+        self.var.avgDischarge = self.var.avgDischarge + deltaAnoDischarge / \
+                            np.minimum(self.var.maxTimestepsToAvgDischargeLong, self.var.timestepsToAvgDischarge)
+        self.var.avgDischarge = np.maximum(0.0, self.var.avgDischarge)
+        self.var.m2tDischarge = self.var.m2tDischarge + np.abs(deltaAnoDischarge*(self.var.discharge - self.var.avgDischarge))
+
+        # see: algorithm:http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+        self.var.varDischarge = self.var.m2tDischarge / np.maximum(1.,\
+                            np.minimum(self.var.maxTimestepsToAvgDischargeLong, self.var.timestepsToAvgDischarge)-1.)
+
+        self.var.stdDischarge = np.maximum(self.var.varDischarge**0.5, 0.0)
 
         # update available channelStorage that can be extracted:
         # principle:
         # - during dry period, only limited water may be extracted.
         # - during non dry period, entire channel storage may be extracted.
-        minDischargeForEnvironmentalFlow = np.maximum(0., self.avgDischarge - 3.*self.stdDischarge)
-        factor = 0.05 # to avoid flip flop
-        minDischargeForEnvironmentalFlow = np.maximum(factor*self.avgDischarge, minDischargeForEnvironmentalFlow)
-        self.readAvlChannelStorage = np.maximum(factor*self.channelStorage,\
-                                     np.maximum(0.00,\
-                                     np.whereelse(self.discharge > minDischargeForEnvironmentalFlow,\
-                                     self.channelStorage,\
-                                     self.channelStorage*\
-                                   vos.getValDivZero(self.discharge, minDischargeForEnvironmentalFlow, vos.smallNumber))))
-        self.readAvlChannelStorage = np.minimum(self.readAvlChannelStorage, (1.0-factor)*self.channelStorage)
-        #
-        # to avoid small values and to avoid surface water abstractions from dry channels
-        tresholdChannelStorage = 0.0005*self.cellArea  # 0.5 mm
-        self.readAvlChannelStorage = np.whereelse(self.readAvlChannelStorage > tresholdChannelStorage, self.readAvlChannelStorage, pcr.scalar(0.0))
-        self.readAvlChannelStorage = pcr.cover(self.readAvlChannelStorage, 0.0)
+
+        minDischargeForEnvironmentalFlow = np.maximum(0., self.var.avgDischarge - 3.*self.var.stdDischarge)
+
+        # to avoid flip flop
+        factor = 0.05
+        minDischargeForEnvironmentalFlow = np.maximum(factor*self.var.avgDischarge, minDischargeForEnvironmentalFlow)
+        h1 = getValDivZero(self.var.discharge, minDischargeForEnvironmentalFlow, 1e-39)
+        h2 = np.maximum(0.00,np.where(self.var.discharge > minDischargeForEnvironmentalFlow,\
+                                     self.var.channelStorage, self.var.channelStorage* h1))
+        self.var.readAvlChannelStorage = np.maximum(factor*self.var.channelStorage, h2)
+
+        self.var.readAvlChannelStorage = np.minimum(self.var.readAvlChannelStorage, (1.0-factor) * self.var.channelStorage)
+
+        # to avoid small values and to avoid surface water abstractions from dry channels # 0.5 mm
+        tresholdChannelStorage = 0.0005 * self.var.cellArea
+        self.var.readAvlChannelStorage = np.where(self.var.readAvlChannelStorage > tresholdChannelStorage, self.var.readAvlChannelStorage, 0.)
+
 
         # average baseflow (m3/s)
-        # - avgDischarge and avgBaseflow used as proxies for partitioning groundwater and surface water abstractions
-        #
-        baseflowM3PerSec = groundwater.baseflow * self.cellArea / vos.secondsPerDay()
-        deltaAnoBaseflow = baseflowM3PerSec - self.avgBaseflow
-        self.avgBaseflow = self.avgBaseflow +\
-                           deltaAnoBaseflow/\
-                           np.minimum(self.maxTimestepsToAvgDischargeLong, self.timestepsToAvgDischarge)
-        self.avgBaseflow = np.maximum(0.0, self.avgBaseflow)
+        # avgDischarge and avgBaseflow used as proxies for partitioning groundwater and surface water abstractions
+        baseflowM3PerSec = self.var.baseflow * self.var.cellArea / self.var.DtSec
+        deltaAnoBaseflow = baseflowM3PerSec - self.var.avgBaseflow
+        self.var.avgBaseflow = self.var.avgBaseflow + deltaAnoBaseflow / \
+                           np.minimum(self.var.maxTimestepsToAvgDischargeLong, self.var.timestepsToAvgDischarge)
+        self.var.avgBaseflow = np.maximum(0.0, self.var.avgBaseflow)
+        report(decompress(self.var.discharge), "C:\work\output/q1.map")
+        print "discharge", self.var.discharge[25989],self.var.discharge[23765]
 
 
 
+
+        """
+        a = readmap("C:\work\output/q_pcr")
+        b = nominal(a*100)
+        c = ifthenelse(b == 105779, scalar(9999), scalar(0))
+        report(c,"C:\work\output/t3.map")
+        d = compressArray(c)
+        np.where(d == 9999)   #23765
+        e = pcr2numpy(c, 0).astype(np.float64)
+        np.where(e > 9000)   # 75, 371  -> 76, 372
+        """
 
 
 
