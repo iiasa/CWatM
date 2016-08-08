@@ -74,6 +74,13 @@ class ExtParser(ConfigParser.SafeConfigParser):
 
 def parse_configuration(settingsFileName):
 
+    def splitout(varin, check):
+        out = map(str.strip, varin.split(','))
+        if out[0] == "": out[0]="None"
+        if out[0] != "None": check = True
+        return out, check
+
+
     #config = ConfigParser.ConfigParser()
     config = ExtParser()
     config.optionxform = str
@@ -82,11 +89,30 @@ def parse_configuration(settingsFileName):
     for sec in config.sections():
         #print sec
         options = config.options(sec)
+        check_section = False
         for opt in options:
             if sec=="OPTIONS":
                 option[opt] = config.getboolean(sec, opt)
             else:
-                binding[opt] = config.get(sec, opt)
+                # Check if config line = output line
+                if opt.lower()[0:4] == "out_":
+                    index = sec.lower()+"_"+opt.lower()
+
+                    if opt.lower()[-4:] =="_dir":
+                        outDir[sec] = config.get(sec, opt)
+                    else:
+                        # split into timeseries and maps
+                        if opt.lower()[4:8] == "tss_":
+                            outTss[index],check_section = splitout(config.get(sec, opt),check_section)
+                        else:
+                            outMap[index],check_section = splitout(config.get(sec, opt),check_section)
+
+                else:
+                    # binding: all the parameters which are not output or option are collected
+                    binding[opt] = config.get(sec, opt)
+        if check_section:
+            k =1
+            outsection.append(sec)
 
     outputDir.append(binding["PathOut"])
      # Output directory is stored in a separat global array

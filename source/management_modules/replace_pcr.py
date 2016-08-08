@@ -11,14 +11,6 @@
 import numpy as np
 
 
-# -----------------------------------------
-def getValDivZero2(x,y,y_lim,z_def= 0.0):
-  #-returns the result of a division that possibly involves a zero
-  # denominator; in which case, a default value is substituted:
-  # x/y= z in case y > y_lim,
-  # x/y= z_def in case y <= y_lim, where y_lim -> 0.
-  # z_def is set to zero if not otherwise specified
-  return np.where(y > y_lim,x / np.maximum(y_lim,y),z_def)
   
 # ------------------------ all this area commands
 #              np.take(np.bincount(AreaID,weights=Values),AreaID)     #     areasum
@@ -30,18 +22,93 @@ def getValDivZero2(x,y,y_lim,z_def= 0.0):
 
 
 def npareatotal(values, areaclass):
-    res = np.take(np.bincount(areaclass,weights=values),areaclass)
-    return res
-	
+    return np.take(np.bincount(areaclass,weights=values),areaclass)
+
 
 def npareaaverage(values, areaclass):
-    res = np.take(np.bincount(areaclass,weights=values)/ np.bincount(areaclass) ,areaclass)
-    return res
+    return np.take(np.bincount(areaclass,weights=values)/ np.bincount(areaclass) ,areaclass)
+
 
 def npareamaximum(values, areaclass):
     valueMax = np.zeros(areaclass.max() + 1)
     np.maximum.at(valueMax, areaclass, values)
-    res = np.take(valueMax ,areaclass)
+    return np.take(valueMax ,areaclass)
+
+
+def npareamajority(values, areaclass):
+    uni,ind = np.unique(areaclass,return_inverse=True)
+    return np.array([np.argmax(np.bincount(values[areaclass == group])) for group in uni])[ind]
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+def wrapper(func, *args, **kwargs):
+     def wrapped():
+         return func(*args, **kwargs)
+     return wrapped
+
+def f1(id,v):
+    uni,ind = np.unique(id,return_inverse=True)
+    v5 = np.array([np.argmax(np.bincount(v[id == group])) for group in uni])
+    return v5[ind]
+
+def f2(id,v):
+    v1 = v.copy()
+    for group in uni:
+        v1[id == group] = np.argmax(np.bincount(v[id == group]))
+    return v1
+
+def f3(areaclass, values):
+    res = np.take(np.bincount(areaclass,weights=values)/ np.bincount(areaclass) ,areaclass)
     return res
-	
-  
+id = np.array([1,1,1,2,1,3,2,2,3,3])
+v =  np.array([5,5,6,4,3,2,6,6,1,2])
+#
+uni = np.unique(id)
+sums = []
+
+v1 = v.copy()
+for group in uni:
+    v1[id == group] = np.argmax(np.bincount(v[id == group]))
+print id
+print v
+print v1
+print "------"
+
+uni,ind = np.unique(id,return_inverse=True)
+v3 = np.array([np.argmax(np.bincount(v[id == group])) for group in uni])
+print v3[ind]
+
+print "++++++++++++++"
+id = np.random.randint(100, size=10000)+1
+v = np.random.randint(10000, size=10000)
+
+print "loop"
+wrapped = wrapper(f2, id,v)
+print wrapped()
+print timeit.timeit(wrapped, number = 100)
+
+print "enum"
+wrapped = wrapper(f1, id,v)
+
+print wrapped()
+print timeit.timeit(wrapped, number = 100)
+
+
+
+print "avg"
+wrapped = wrapper(f3, id,v)
+print wrapped()
+print timeit.timeit(wrapped, number = 100)
+
+
+"""

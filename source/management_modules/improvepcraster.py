@@ -20,6 +20,45 @@ from pcraster.framework import *
 from globals import *
 
 
+def Calendar(input):
+    """
+    get the date from CalendarDayStart in the settings xml
+    """
+    try:
+        date = float(input)
+    except ValueError:
+        d = input.replace('.', '/')
+        d = d.replace('-', '/')
+        year = d.split('/')[-1:]
+        if len(year[0]) == 4:
+            formatstr = "%d/%m/%Y"
+        else:
+            formatstr = "%d/%m/%y"
+        if len(year[0]) == 1:
+            d = d.replace('/', '.', 1)
+            d = d.replace('/', '/0')
+            d = d.replace('.', '/')
+            print d
+        date = datetime.datetime.strptime(d, formatstr)
+        # value=str(int(date.strftime("%j")))
+    return date
+
+def datetoInt(dateIn, both=False):
+    date1 = Calendar(dateIn)
+    begin = Calendar(binding['CalendarDayStart'])
+
+    if type(date1) is datetime.datetime:
+        str1 = date1.strftime("%d/%m/%Y")
+        int1 = (date1 - begin).days + 1
+    else:
+        int1 = int(date1)
+        str1 = str(date1)
+    if both:
+        return int1, str1
+    else:
+        return int1
+
+
 class DynamicFramework(DynamicFramework):
     """
     Framework class for dynamic models.
@@ -79,11 +118,14 @@ class DynamicFramework(DynamicFramework):
             sys.stdout.flush()
 
 
-class TimeoutputTimeseries(TimeoutputTimeseries):
+class TimeoutputTimeseries2(TimeoutputTimeseries):
     """
     Class to create pcrcalc timeoutput style timeseries
     Updated py improvepcraster.py
     """
+
+
+
     def _writeFileHeader(self, outputFilename):
         """
         writes header part of tss file
@@ -123,30 +165,70 @@ class TimeoutputTimeseries(TimeoutputTimeseries):
 
         return filename
 
-    def _writeTssFile(self):
+    def sample2(self, expression, when, lastwrite=False):
+        """
+        Sampling the current values of 'expression' at the given locations for the current timestep
+        """
+        if when[-1]==True:
+          arrayRowPos = self._userModel.currentTimeStep() - self._userModel.firstTimeStep()
+
+        # if isinstance(expression, float):
+        #  expression = pcraster.scalar(expression)
+
+          try:
+            # store the data type for tss file header
+            if self._spatialDatatype == None:
+                self._spatialDatatype = str(expression.dataType())
+          except AttributeError, e:
+            datatype, sep, tail = str(e).partition(" ")
+            msg = "Argument must be a PCRaster map, type %s given. If necessary use data conversion functions like scalar()" % (
+            datatype)
+            raise AttributeError(msg)
+
+          if self._spatialIdGiven:
+            #if expression.dataType() == pcraster.Scalar or expression.dataType() == pcraster.Directional:
+            #    tmp = pcraster.areaaverage(pcraster.spatial(expression), pcraster.spatial(self._spatialId))
+            #else:
+            #    tmp = pcraster.areamajority(pcraster.spatial(expression), pcraster.spatial(self._spatialId))
+
+            col = 0
+            for cellIndex in self._sampleAddresses:
+                #value, valid = pcraster.cellvalue(tmp, cellIndex)
+                value, valid = pcraster.cellvalue(pcraster.spatial(expression), cellIndex)
+                if not valid:
+                    value = Decimal("NaN")
+
+                self._sampleValues[arrayRowPos][col] = value
+                col += 1
+          else:
+            #if expression.dataType() == pcraster.Scalar or expression.dataType() == pcraster.Directional:
+            #    tmp = pcraster.maptotal(pcraster.spatial(expression)) \
+            #          / pcraster.maptotal(pcraster.scalar(pcraster.defined(pcraster.spatial(expression))))
+            #else:
+            #    tmp = pcraster.mapmaximum(pcraster.maptotal(pcraster.areamajority(pcraster.spatial(expression), \
+            #                    pcraster.spatial( pcraster.nominal(1)))))
+
+            value, valid = pcraster.cellvalue(pcraster.spatial(expression), 1)
+            if not valid:
+                value = Decimal("NaN")
+
+            self._sampleValues[arrayRowPos] = value
+
+        if self._userModel.currentTimeStep() == self._userModel.nrTimeSteps():
+            self._writeTssFile(when)
+
+    def _writeTssFile(self,when):
         """
         writing timeseries to disk
         """
         #
         outputFilename =  self._configureOutputFilename(self._outputFilename)
-        a= option['EnKF']
-        outputFile = None
-        if option['EnKF']:
-            if os.path.exists(outputFilename) == False:
-               if self._writeHeader == True:
-                  self._writeFileHeader(outputFilename)
-                  outputFile = open(outputFilename, "a")
-               else:
-                  outputFile = open(outputFilename, "w")
-            else:
-                outputFile = open(outputFilename, "a")
-        else:
-            if self._writeHeader == True:
-                  self._writeFileHeader(outputFilename)
-                  outputFile = open(outputFilename, "a")
-            else:
-                  outputFile = open(outputFilename, "w")
 
+        if self._writeHeader == True:
+             self._writeFileHeader(outputFilename)
+             outputFile = open(outputFilename, "a")
+        else:
+             outputFile = open(outputFilename, "w")
 
         assert outputFile
 
@@ -154,6 +236,7 @@ class TimeoutputTimeseries(TimeoutputTimeseries):
         end = self._userModel.nrTimeSteps() + 1
 
         for timestep in range(start, end):
+          if when[timestep-1]:
             row = ""
             row += " %8g" % timestep
             if self._spatialIdGiven:

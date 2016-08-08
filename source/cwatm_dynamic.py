@@ -81,6 +81,12 @@ class CWATModel_dyn(DynamicModel):
         self.routing_module.dynamic()
 
 
+
+        self.output_module.dynamic()
+
+
+
+
         self.sumsum_directRunoff +=  self.sum_directRunoff
         self.sumsum_Runoff += self.sum_directRunoff
         self.sumsum_Precipitation += self.Precipitation

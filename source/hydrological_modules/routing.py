@@ -10,8 +10,6 @@
 
 from management_modules.data_handling import *
 
-
-
 class routing(object):
 
     """
@@ -154,7 +152,8 @@ class routing(object):
 
                 # at cells where lakes and/or reservoirs defined, move channelStorage to waterBodyStorage  # unit: m3
                 storageAtLakeAndReservoirs = np.where(self.var.waterBodyIds > 0., self.var.channelStorage,0.0)
-                self.var.channelStorage -= storageAtLakeAndReservoirs
+# TODO storage out
+#                self.var.channelStorage -= storageAtLakeAndReservoirs
 
                 # update waterBodyStorage (inflow, storage and outflow)
                 self.var.lakes_reservoirs_module.dynamic(storageAtLakeAndReservoirs)
@@ -163,22 +162,26 @@ class routing(object):
 
 
                 # transfer outflow from lakes and/or reservoirs to channelStorages    # unit: m3/day
-                waterBodyOutflow = np.where( self.var.waterBodyOut == True,self.var.waterBodyOutflow, 0.0)
+                waterBodyOutflowC = np.where( self.var.waterBodyOutC == True,self.var.waterBodyOutflowC, 0.0)
 
                 # distribute outflow to water body storage
                 #waterBodyOutflow = pcr.areaaverage(waterBodyOutflow, self.var.WaterBodies.waterBodyIds)
                 #waterBodyOutflow = np.take(np.bincount(self.var.waterBodyIds,waterBodyOutflow) / np.bincount(self.var.waterBodyIds)  , self.var.waterBodyIds)
-                waterBodyOutflow = npareaaverage(waterBodyOutflow,self.var.waterBodyIds)
-                waterBodyOutflow = np.where( self.var.waterBodyIds > 0., waterBodyOutflow, 0.0)  # unit: m3/day
+                waterBodyOutflowC = npareaaverage(waterBodyOutflowC,self.var.waterBodyIdsC)
+                waterBodyOutflowC = np.where( self.var.waterBodyIdsC > 0., waterBodyOutflowC, 0.0)  # unit: m3/day
 
 
                 # obtain water body storages (for reporting) #m3
-                self.var.waterBodyStorage = np.where(self.var.waterBodyIds > 0., self.var.waterBodyStorage, 0.0)
+                self.var.waterBodyStorageC = np.where(self.var.waterBodyIdsC > 0., self.var.waterBodyStorageC, 0.0)
                 # as well as outflows from water bodies (for reporting) # m3/s
-                self.var.waterBodyOutDisc = np.where( self.var.waterBodyIds > 0., self.var.waterBodyOutflow, 0.0) / self.var.DtSec
+                #self.var.waterBodyOutDiscC = np.where( self.var.waterBodyIdsC > 0., self.var.waterBodyOutflowC, 0.0) / self.var.DtSec
 
                 # TODO: Move waterBodyOutflow according to water body discharge (velocity)
-                self.var.channelStorage += waterBodyOutflow
+                waterBodyOutflow = globals.inZero.copy()
+                np.put(waterBodyOutflow, self.var.waterBodyIndexC, waterBodyOutflowC)
+
+## Todo move  reslakes out in in
+#                self.var.channelStorage += waterBodyOutflow
 
             else:
                 self.var.waterBodyStorage = globals.inZero.copy()
@@ -193,9 +196,9 @@ class routing(object):
             characteristicDistanceForAccuTravelTime = self.var.characteristicDistance.copy()   # or  0.001 * self.var.cellsize if nan
             characteristicDistanceForAccuTravelTime = decompress( np.maximum(0.001 * self.var.cellsize, self.var.characteristicDistance))
 
-            hh1 = compressArray(characteristicDistanceForAccuTravelTime)[25989]
-            hh2 = compressArray(channelStorageForAccuTravelTime)[25989]
-            hh3 = compressArray(usedLDD)[25989]
+           # hh1 = compressArray(characteristicDistanceForAccuTravelTime)[25989]
+           # hh2 = compressArray(channelStorageForAccuTravelTime)[25989]
+           # hh3 = compressArray(usedLDD)[25989]
 
             # self.var.Q = channel discharge (m3/day)
             QPcr = accutraveltimeflux(usedLDD, channelStorageForAccuTravelTime, characteristicDistanceForAccuTravelTime)
@@ -212,32 +215,55 @@ class routing(object):
             # see: http://sourceforge.net/p/pcraster/bugs-and-feature-requests/543/
             #      http://karssenberg.geo.uu.nl/tt/TravelTimeSpecification.htm
 
-
-
-            # after routing, return waterBodyStorage to channelStorage
-            h1 = npareaaverage(self.var.waterBodyStorage,self.var.waterBodyIds)
-            h2 = npareatotal(  self.var.channelStorage,  self.var.waterBodyIds)
-            waterBodyStorageTotal = np.where(self.var.waterBodyIds > 0., h1 + h2, 0.)
-
-            waterBodyStoragePerCell = waterBodyStorageTotal * self.var.cellArea / \
-                                      npareatotal(self.var.cellArea, self.var.waterBodyIds)
-
-            # unit: m3
-            waterBodyStoragePerCell = np.where(self.var.waterBodyIds > 0.,waterBodyStoragePerCell, self.var.channelStorage)
-            #self.var.channelStorage = pcr.cover(waterBodyStoragePerCell, self.var.channelStorage)
-
             # channel discharge (m3/s): current:
             self.var.discharge = self.var.Q / self.var.DtSec
             self.var.discharge = np.maximum(0., self.var.discharge)  # reported channel discharge cannot be negative
+
+
+            channelStorageC = np.compress(self.var.compressID, self.var.channelStorage)
+            dischargeC = np.compress(self.var.compressID, self.var.discharge)
+
+            # after routing, return waterBodyStorage to channelStorage
+            h1 = npareaaverage(self.var.waterBodyStorageC,self.var.waterBodyIdsC)
+            h2 = npareatotal(  channelStorageC,  self.var.waterBodyIdsC)
+            waterBodyStorageTotal = np.where(self.var.waterBodyIdsC > 0., h1 + h2, 0.)
+
+            waterBodyStoragePerCell = waterBodyStorageTotal * self.var.cellAreaC / \
+                                      npareatotal(self.var.cellAreaC, self.var.waterBodyIdsC)
+
+            # unit: m3
+            waterBodyStoragePerCell = np.where(self.var.waterBodyIdsC > 0.,waterBodyStoragePerCell, channelStorageC)
+            #self.var.channelStorage = pcr.cover(waterBodyStoragePerCell, self.var.channelStorage)
+
+            waterBodyStoragePerCellAll = globals.inZero.copy()
+            np.put(waterBodyStoragePerCellAll, self.var.waterBodyIndexC, waterBodyStoragePerCell)
+            # unit: m3
+# TODO update storage
+ #           self.var.channelStorage = np.where(waterBodyStoragePerCellAll > 0, waterBodyStoragePerCellAll, self.var.channelStorage)  #
+
 
             # discharge at channel and lake/reservoir outlets (m3/s)
             # ~ self.var.disChanWaterBody = np.where(self.var.landmask,\
             # ~ pcr.cover( self.var.waterBodyOutDisc,\
             # ~ self.var.discharge))                  # TODO: FIX THIS, discharge at water bodies is too high. (self.var.waterBodyOutDisc)
             #
-            self.var.disChanWaterBody = np.where(self.var.waterBodyIds > 0., npareamaximum(self.var.discharge, self.var.waterBodyIds), self.var.discharge )
+
+
+            disChanWaterBody = np.where(self.var.waterBodyIdsC > 0., npareamaximum(dischargeC, self.var.waterBodyIdsC), dischargeC )
+            self.var.disChanWaterBody =  globals.inZero.copy()
+            np.put(self.var.disChanWaterBody, self.var.waterBodyIndexC, disChanWaterBody)
+
             # reported channel discharge cannot be negative
+# TODO
+            #self.var.disChanWaterBody = np.where(self.var.disChanWaterBody > 0, self.var.disChanWaterBody, self.var.discharge )
+            self.var.disChanWaterBody = self.var.discharge
+
+
+
             self.var.disChanWaterBody = np.maximum(0., self.var.disChanWaterBody)
+
+            report (decompress(waterBodyOutflow),"C:\work\output/wboutput1.map")
+            i= 1
 
 
 
@@ -280,7 +306,7 @@ class routing(object):
         #   then, we add more evaporation
 
         #  self.var.CalendarDay
-        if (self.var.currentTimeStep() == 1) or (int(self.var.CalendarDate.strftime('%d')) ==1):
+        if (self.var.TimeSinceStart == 1) or (int(self.var.CalendarDate.strftime('%d')) ==1):
         #if (currTimeStep.day == 1) or (currTimeStep.timeStepPCR == 1):
             self.var.waterKC = readnetcdf2(self.var.fileCropKC_File ,self.var.CalendarDate,useDaily='month',value='kc')
 
@@ -400,8 +426,11 @@ class routing(object):
         self.var.avgBaseflow = self.var.avgBaseflow + deltaAnoBaseflow / \
                            np.minimum(self.var.maxTimestepsToAvgDischargeLong, self.var.timestepsToAvgDischarge)
         self.var.avgBaseflow = np.maximum(0.0, self.var.avgBaseflow)
+
+
         report(decompress(self.var.discharge), "C:\work\output/q1.map")
-        print "discharge", self.var.discharge[25989],self.var.discharge[23765]
+
+     #   print "discharge", self.var.discharge[25989],self.var.discharge[23765]
 
 
 

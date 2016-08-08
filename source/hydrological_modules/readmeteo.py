@@ -38,7 +38,7 @@ class readmeteo(object):
         self.var.Precipitation = readnetcdf2(binding['PrecipitationMaps'],date) * self.var.DtDay * self.var.con_precipitation
 
         #TODO PB
-        #self.var.Precipitation = self.var.Precipitation * 0 + 0.2
+        ##self.var.Precipitation = self.var.Precipitation * 0 + 0.2
 
         # precipitation (conversion to [mm] per time step)
         self.var.Tavg = readnetcdf2(binding['TavgMaps'], date)

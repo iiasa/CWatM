@@ -56,6 +56,7 @@ from hydrological_modules.structures import *
 from pcraster import*
 from pcraster.framework import *
 from management_modules.data_handling import *
+from management_modules.output import *
 
 
 
@@ -88,8 +89,11 @@ class CWATModel_ini(DynamicModel):
             metaNetCDF()
 
         # ----------------------------------------
+        # include output of tss and maps
+        self.output_module = outputTssMap(self)
 
         # include all the hydrological modules
+
         self.misc_module = miscInitial(self)
         self.readmeteo_module = readmeteo(self)
         self.inflow_module = inflow(self)
@@ -103,6 +107,10 @@ class CWATModel_ini(DynamicModel):
         self.interception_module = interception(self)
         self.routing_module = routing(self)
         self.lakes_reservoirs_module = lakes_reservoirs(self)
+
+        # include output of tss and maps
+        self.output_module = outputTssMap(self)
+
         """
         self.landusechange_module = landusechange(self)
         self.leafarea_module = leafarea(self)
@@ -131,7 +139,8 @@ class CWATModel_ini(DynamicModel):
         # --------------------------------------
 
         """
-		
+
+
         # run intial misc to get all global variables
         self.misc_module.initial()
         self.inflow_module.initial()
@@ -143,6 +152,8 @@ class CWATModel_ini(DynamicModel):
 
         self.routing_module.initial()
         self.lakes_reservoirs_module.initial()
+
+        self.output_module.initial()
 
         """
         # include output of tss and maps

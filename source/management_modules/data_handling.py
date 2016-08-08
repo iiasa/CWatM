@@ -9,6 +9,7 @@
 # -------------------------------------------------------------------------
 
 import os
+import calendar
 import numpy as np
 import globals
 from management_modules.checks import *
@@ -500,7 +501,46 @@ def checkifDate(start,end):
         raise CWATMError(msg)
     modelSteps.append(intStart)
     modelSteps.append(intEnd)
+
+    if type(Calendar(binding['StepStart'])) is datetime.datetime:
+        end_date = Calendar(binding['StepStart']) + datetime.timedelta(days=modelSteps[1])
+    else:
+        end_date = begin + datetime.timedelta(days=modelSteps[1])
+
+    modelSteps.append(end_date)
     return
+
+
+def datecheck( date, step):
+    print date
+    yearend = False
+    if date.day == calendar.monthrange(date.year, date.month)[1]:
+        monthend = True
+        if date.month == 12:
+            yearend = True
+    else:
+        monthend = False
+    doy = date.strftime('%j')
+
+    laststep = False
+    if step == modelSteps[1]:
+      laststep=True
+
+    datelastmonth = datetime.datetime(year=modelSteps[2].year, month= modelSteps[2].month, day=1) - datetime.timedelta(days=1)
+    datelastyear = datetime.datetime(year=modelSteps[2].year, month= 1, day=1) - datetime.timedelta(days=1)
+
+    laststepmonthend = False
+    laststepyearend = False
+    if date == datelastmonth:
+        laststepmonthend = True
+    if date == datelastyear:
+        laststepyearend = True
+
+    #start = self._userModel.firstTimeStep()
+    #end = self._userModel.nrTimeSteps()
+
+
+    return monthend, yearend, laststepmonthend, laststepyearend, laststep
 
 
 # -----------------------------------------
@@ -511,3 +551,17 @@ def getValDivZero(x,y,y_lim,z_def= 0.0):
   # x/y= z_def in case y <= y_lim, where y_lim -> 0.
   # z_def is set to zero if not otherwise specified
   return np.where(y > y_lim,x / np.maximum(y_lim,y),z_def)
+
+
+
+
+
+
+def cc(self,h):
+    res = globals.inZero.copy()
+    np.put(res, self.var.waterBodyIndexC, h)
+    return res
+def ccp(self,h):
+    res = globals.inZero.copy()
+    np.put(res, self.var.waterBodyIndexC, h)
+    report(decompress(res), "c:\work\output/h1.map")

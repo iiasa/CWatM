@@ -23,6 +23,16 @@ timestepInit =[]
 binding = {}
 option = {}
 
+# Output variables
+global outDir, outsection, outputTyp
+global outMap, outTss
+outDir = {}
+outMap = {}
+outTss = {}
+outsection = []
+outputTypMap = ['daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend']
+outputTypTss = ['daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend']
+
 reportTimeSerieAct = {}
 reportMapsAll = {}
 reportMapsSteps = {}
