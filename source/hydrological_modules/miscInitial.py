@@ -102,14 +102,7 @@ class miscInitial(object):
 
         self.var.twothird = 2.0 / 3.0
 
-        # ************************************************************
-        # ***** Some additional stuff
-        # ************************************************************
 
-        self.var.CalendarDayStart = Calendar(binding['CalendarDayStart'])
-        try:
-           timestepInit.append(binding["timestepInit"])
-        except: pass
 
 
 

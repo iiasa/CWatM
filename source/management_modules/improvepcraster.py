@@ -18,45 +18,7 @@ from pcraster import*
 from pcraster.framework import *
 
 from globals import *
-
-
-def Calendar(input):
-    """
-    get the date from CalendarDayStart in the settings xml
-    """
-    try:
-        date = float(input)
-    except ValueError:
-        d = input.replace('.', '/')
-        d = d.replace('-', '/')
-        year = d.split('/')[-1:]
-        if len(year[0]) == 4:
-            formatstr = "%d/%m/%Y"
-        else:
-            formatstr = "%d/%m/%y"
-        if len(year[0]) == 1:
-            d = d.replace('/', '.', 1)
-            d = d.replace('/', '/0')
-            d = d.replace('.', '/')
-            print d
-        date = datetime.datetime.strptime(d, formatstr)
-        # value=str(int(date.strftime("%j")))
-    return date
-
-def datetoInt(dateIn, both=False):
-    date1 = Calendar(dateIn)
-    begin = Calendar(binding['CalendarDayStart'])
-
-    if type(date1) is datetime.datetime:
-        str1 = date1.strftime("%d/%m/%Y")
-        int1 = (date1 - begin).days + 1
-    else:
-        int1 = int(date1)
-        str1 = str(date1)
-    if both:
-        return int1, str1
-    else:
-        return int1
+from management_modules.timestep import *
 
 
 class DynamicFramework(DynamicFramework):
@@ -233,10 +195,10 @@ class TimeoutputTimeseries2(TimeoutputTimeseries):
         assert outputFile
 
         start = self._userModel.firstTimeStep()
-        end = self._userModel.nrTimeSteps() + 1
+        end = self._userModel.nrTimeSteps()+1
 
         for timestep in range(start, end):
-          if when[timestep-1]:
+          if when[timestep-start]:
             row = ""
             row += " %8g" % timestep
             if self._spatialIdGiven:

@@ -23,6 +23,10 @@ timestepInit =[]
 binding = {}
 option = {}
 
+#date variable
+global dateVar
+dateVar = {}
+
 # Output variables
 global outDir, outsection, outputTyp
 global outMap, outTss

@@ -13,8 +13,9 @@ import calendar
 import numpy as np
 import globals
 from management_modules.checks import *
+from management_modules.timestep import *
 from management_modules.replace_pcr import *
-from messages import *
+from management_modules.messages import *
 
 from pcraster import *
 from pcraster.framework import *
@@ -578,93 +579,9 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
     return flag
 
 
-
-# -----------------------------------------------------------------------
-# Calendar routines
-# -----------------------------------------------------------------------
-
-def Calendar(input):
-    """
-    get the date from CalendarDayStart in the settings xml
-    """
-    try:
-        date = float(input)
-    except ValueError:
-        d = input.replace('.', '/')
-        d = d.replace('-', '/')
-        year = d.split('/')[-1:]
-        if len(year[0]) == 4:
-            formatstr = "%d/%m/%Y"
-        else:
-            formatstr = "%d/%m/%y"
-        if len(year[0]) == 1:
-            d = d.replace('/', '.', 1)
-            d = d.replace('/', '/0')
-            d = d.replace('.', '/')
-            print d
-        date = datetime.datetime.strptime(d, formatstr)
-        # value=str(int(date.strftime("%j")))
-    return date
-
-def checkifDate(start,end):
-
-    begin = Calendar(binding['CalendarDayStart'])
-
-    intStart,strStart = datetoInt(binding[start],True)
-    intEnd,strEnd = datetoInt(binding[end],True)
-
-    # test if start and end > begin
-    if (intStart<0) or (intEnd<0) or ((intEnd-intStart)<0):
-        strBegin = begin.strftime("%d/%m/%Y")
-        msg="Start Date: "+strStart+" and/or end date: "+ strEnd + " are wrong!\n or smaller than the first time step date: "+strBegin
-        raise CWATMError(msg)
-    modelSteps.append(intStart)
-    modelSteps.append(intEnd)
-
-    if type(Calendar(binding['StepStart'])) is datetime.datetime:
-        end_date = Calendar(binding['StepStart']) + datetime.timedelta(days=modelSteps[1])
-    else:
-        end_date = begin + datetime.timedelta(days=modelSteps[1])
-
-    modelSteps.append(end_date)
-    return
-
-
-def datecheck( date, step):
-    print date
-    yearend = False
-    if date.day == calendar.monthrange(date.year, date.month)[1]:
-        monthend = True
-        if date.month == 12:
-            yearend = True
-    else:
-        monthend = False
-    doy = date.strftime('%j')
-
-    laststep = False
-    if step == modelSteps[1]:
-      laststep=True
-
-    datelastmonth = datetime.datetime(year=modelSteps[2].year, month= modelSteps[2].month, day=1) - datetime.timedelta(days=1)
-    datelastyear = datetime.datetime(year=modelSteps[2].year, month= 1, day=1) - datetime.timedelta(days=1)
-
-    laststepmonthend = False
-    laststepyearend = False
-    if date == datelastmonth:
-        laststepmonthend = True
-    if date == datelastyear:
-        laststepyearend = True
-
-    #start = self._userModel.firstTimeStep()
-    #end = self._userModel.nrTimeSteps()
-
-    nrdays = modelSteps[1] - modelSteps[0] + 1
-
-
-    return monthend, yearend, laststepmonthend, laststepyearend, laststep, nrdays
-
-
-# -----------------------------------------
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------
 def getValDivZero(x,y,y_lim,z_def= 0.0):
   #-returns the result of a division that possibly involves a zero
   # denominator; in which case, a default value is substituted:
@@ -675,14 +592,3 @@ def getValDivZero(x,y,y_lim,z_def= 0.0):
 
 
 
-
-
-
-def cc(self,h):
-    res = globals.inZero.copy()
-    np.put(res, self.var.waterBodyIndexC, h)
-    return res
-def ccp(self,h):
-    res = globals.inZero.copy()
-    np.put(res, self.var.waterBodyIndexC, h)
-    report(decompress(res), "c:\work\output/h1.map")

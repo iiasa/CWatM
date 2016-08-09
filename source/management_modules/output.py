@@ -80,6 +80,7 @@ class outputTssMap(object):
                         info.append(var)
                         info.append(False)
                         out[key][i] = info
+                        i +=1
 
 
         # ------------------------------------------------------------------------------
@@ -143,7 +144,7 @@ class outputTssMap(object):
         # self.var.Tss['DisTS'].sample(xxx)
         # self.report(self.Precipitation,binding['TaMaps'])
 
-        monthend, yearend, laststepmonthend, laststepyearend, laststep, nrdays = datecheck(self.var.CalendarDate,
+        monthend, yearend, laststepmonthend, laststepyearend, laststep = datecheck(self.var.CalendarDate,
                                                                                            self.var.TimeSinceStart)
 
         self.var.everymonth.append(monthend)
@@ -170,7 +171,7 @@ class outputTssMap(object):
 
                         if map[-5:] == "daily":
                             # writenetcdf(netfile, varname, varunits, inputmap, timeStamp, posCnt, flag, flagTime=True):
-                            outMap[map][i][2] = writenetcdf(netfile, varname, "undefined", eval(inputmap), self.var.CalendarDate,self.var.TimeSinceStart, flag, True, nrdays)
+                            outMap[map][i][2] = writenetcdf(netfile, varname, "undefined", eval(inputmap), self.var.CalendarDate,self.var.TimeSinceStart, flag, True, dateVar['diffdays'])
 
                         nr = (self.var.everymonth).count(True)
                         if map[-8:] == "monthend":

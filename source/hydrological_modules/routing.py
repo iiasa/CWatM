@@ -292,7 +292,7 @@ class routing(object):
 
         # waterBodies: get parameters at the beginning of the year or simulation
         #if (currTimeStep.doy == 1) or (currTimeStep.timeStepPCR == 1):
-        if (self.var.currentTimeStep() == 1) or (int(self.var.CalendarDate.strftime('%j')) == 1):   # check if first day 0of the year
+        if (self.var.TimeSinceStart == 1) or (int(self.var.CalendarDate.strftime('%j')) == 1):   # check if first day 0of the year
             #self.var.lakes_reservoir_module.getParameterFiles(currTimeStep,self.var.cellArea,self.var.LddMap,self.var.cellLengthFD,self.var.cellSize)
             self.var.lakes_reservoirs_module.getParameterFiles()
 

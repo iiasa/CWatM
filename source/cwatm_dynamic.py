@@ -31,10 +31,21 @@ class CWATModel_dyn(DynamicModel):
         """ Dynamic part of LISFLOOD
             calls the dynamic part of the hydrological modules
         """
-        del timeMes[:]
-        timemeasure("Start dynamic")
-        self.CalendarDate = self.CalendarDayStart + datetime.timedelta(days=(self.currentTimeStep()-1) * self.DtDay)
+
+
+        self.CalendarDate = dateVar['dateStart'] + datetime.timedelta(days=(self.currentTimeStep()-1) * self.DtDay)
         self.CalendarDay = int(self.CalendarDate.strftime("%j"))
+        dateVar['currDate'] = dateVar['dateStart'] + datetime.timedelta(days=dateVar['curr'])
+        dateVar['doy'] = dateVar['currDate'].strftime('%j')
+
+        dateVar['laststep'] = False
+        if (dateVar['intStart'] + dateVar['curr']) == dateVar['intEnd']: dateVar['laststep'] = True
+        dateVar['curr'] += 1
+
+
+        #correct method to calculate the day of the year
+
+
         #correct method to calculate the day of the year
 
         i = self.currentTimeStep()
@@ -43,6 +54,11 @@ class CWATModel_dyn(DynamicModel):
           # set back to 0,0,0,0,0,0 if new Monte Carlo run
 
         self.TimeSinceStart = self.currentTimeStep() - self.firstTimeStep() + 1
+
+
+        del timeMes[:]
+        timemeasure("Start dynamic")
+
 
         if Flags['loud']:
             print "%-6i %10s" %(self.currentTimeStep(),self.CalendarDate.strftime("%d/%m/%Y")) ,
