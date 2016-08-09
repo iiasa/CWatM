@@ -306,26 +306,13 @@ def metaNetCDF():
     """
 
     try:
-        # using ncdftemplate
-        filename = os.path.splitext(binding['netCDFtemplate'])[0] + '.nc'
-        nf1 = Dataset(filename, 'r')
-        for var in nf1.variables:
-           metadataNCDF[var] = nf1.variables[var].__dict__
-        nf1.close()
-        return
-
-    except:
-        pass
-    try:
-        # if no template .nc is give the e.nc file is used
-        filename = os.path.splitext(binding['E0Maps'])[0] + '.nc'
-        nf1 = Dataset(filename, 'r')
+        nf1 = Dataset(binding['PrecipitationMaps'], 'r')
         for var in nf1.variables:
            metadataNCDF[var] = nf1.variables[var].__dict__
         nf1.close()
     except:
         msg = "Trying to get metadata from netcdf \n"
-        raise CWATMFileError(filename,msg)
+        raise CWATMFileError(binding['PrecipitationMaps'],msg)
 
 
 def mapattrNetCDF(name):
@@ -460,6 +447,138 @@ def readnetcdfWithoutTime(name, value="None"):
 
 
 
+#def writenet(flag, inputmap, netfile, timestep, value_standard_name, value_long_name, value_unit, fillval, startdate, flagTime=True):
+def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagTime, nrdays=None):
+    """
+    write a netcdf stack
+    """
+
+    row = np.abs(cutmap[3] - cutmap[2])
+    col = np.abs(cutmap[1] - cutmap[0])
+
+    if flag == False:
+        nf1 = Dataset(netfile, 'w', format='NETCDF4')
+
+        # general Attributes
+        nf1.settingsfile = os.path.realpath(sys.argv[1])
+        nf1.date_created = xtime.ctime(xtime.time())
+        nf1.Source_Software = 'CWATM Python'
+        nf1.institution = binding ["institution"]
+        nf1.title = binding ["title"]
+        nf1.source = 'CWATM output maps'
+        nf1.Conventions = 'CF-1.6'
+
+
+        # Dimension
+        if 'x' in metadataNCDF.keys():
+            lon = nf1.createDimension('x', col)  # x 1000
+            longitude = nf1.createVariable('x', 'f8', ('x',))
+            for i in metadataNCDF['x']:
+                exec('%s="%s"') % ("longitude." + i, metadataNCDF['x'][i])
+        if 'lon' in metadataNCDF.keys():
+            lon = nf1.createDimension('lon', col)
+            longitude = nf1.createVariable('lon', 'f8', ('lon',))
+            for i in metadataNCDF['lon']:
+                exec('%s="%s"') % ("longitude." + i, metadataNCDF['lon'][i])
+        if 'y' in metadataNCDF.keys():
+            lat = nf1.createDimension('y', row)  # x 950
+            latitude = nf1.createVariable('y', 'f8', ('y'))
+            for i in metadataNCDF['y']:
+                exec('%s="%s"') % ("latitude." + i, metadataNCDF['y'][i])
+        if 'lat' in metadataNCDF.keys():
+            lat = nf1.createDimension('lat', row)  # x 950
+            latitude = nf1.createVariable('lat', 'f8', ('lat'))
+            for i in metadataNCDF['lat']:
+                exec('%s="%s"') % ("latitude." + i, metadataNCDF['lat'][i])
+
+        # projection
+        if 'laea' in metadataNCDF.keys():
+            proj = nf1.createVariable('laea', 'i4')
+            for i in metadataNCDF['laea']:
+                exec('%s="%s"') % ("proj." + i, metadataNCDF['laea'][i])
+        if 'lambert_azimuthal_equal_area' in metadataNCDF.keys():
+            proj = nf1.createVariable('lambert_azimuthal_equal_area', 'i4')
+            for i in metadataNCDF['lambert_azimuthal_equal_area']:
+                exec('%s="%s"') % (
+                    "proj." + i, metadataNCDF['lambert_azimuthal_equal_area'][i])
+
+
+        # Fill variables
+        cell = round(pcraster.clone().cellSize(),5)
+        xl = round((pcraster.clone().west() + cell / 2),5)
+        xr = round((xl + col * cell),5)
+        yu = round((pcraster.clone().north() - cell / 2),5)
+        yd = round((yu - row * cell),5)
+        #lats = np.arange(yu, yd, -cell)
+        #lons = np.arange(xl, xr, cell)
+        lats = np.linspace(yu, yd, row, endpoint=False)
+        lons = np.linspace(xl, xr, col, endpoint=False)
+
+        latitude[:] = lats
+        longitude[:] = lons
+
+        if flagTime:
+            nf1.createDimension('time', nrdays)
+            time = nf1.createVariable('time', 'f8', ('time'))
+            time.standard_name = 'time'
+            time.units = 'Days since 1901-01-01'
+            time.calendar = 'standard'
+
+
+            if 'x' in metadataNCDF.keys():
+               value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True,fill_value=1e20)
+            if 'lon' in metadataNCDF.keys():
+               value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20)
+        else:
+          if 'x' in metadataNCDF.keys():
+              value = nf1.createVariable(varname, 'f4', ('y', 'x'), zlib=True,fill_value=1e20)
+          if 'lon' in metadataNCDF.keys():
+              # for world lat/lon coordinates
+              value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
+
+
+        value.standard_name= varname
+        value.long_name= varname
+        value.units= varunits
+
+        for var in metadataNCDF.keys():
+            if "esri_pe_string" in metadataNCDF[var].keys():
+                value.esri_pe_string = metadataNCDF[var]['esri_pe_string']
+
+
+
+    else:
+        nf1 = Dataset(netfile, 'a')
+
+    if flagTime:
+        date_time = nf1.variables['time']
+        nf1.variables['time'][posCnt-1] = date2num(timeStamp, date_time.units, date_time.calendar)
+
+
+
+    mapnp = maskinfo['maskall'].copy()
+    mapnp[~maskinfo['maskflat']] = inputmap[:]
+    #mapnp = mapnp.reshape(maskinfo['shape']).data
+    mapnp = mapnp.reshape(maskinfo['shape'])
+
+    #date_time[posCnt] = date2num(timeStamp, date_time.units, date_time.calendar)
+
+
+    if flagTime:
+        #nf1.variables[prefix][flag, :, :] = mapnp
+        nf1.variables[varname][posCnt -1, :, :] = (mapnp)
+    else:
+        # without timeflag
+        #nf1.variables[prefix][:, :] = mapnp
+        nf1.variables[varname][:, :] = (mapnp)
+
+    nf1.close()
+    flag = True
+
+    return flag
+
+
+
 # -----------------------------------------------------------------------
 # Calendar routines
 # -----------------------------------------------------------------------
@@ -539,8 +658,10 @@ def datecheck( date, step):
     #start = self._userModel.firstTimeStep()
     #end = self._userModel.nrTimeSteps()
 
+    nrdays = modelSteps[1] - modelSteps[0] + 1
 
-    return monthend, yearend, laststepmonthend, laststepyearend, laststep
+
+    return monthend, yearend, laststepmonthend, laststepyearend, laststep, nrdays
 
 
 # -----------------------------------------

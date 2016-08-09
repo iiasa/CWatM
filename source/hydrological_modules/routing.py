@@ -262,7 +262,7 @@ class routing(object):
 
             self.var.disChanWaterBody = np.maximum(0., self.var.disChanWaterBody)
 
-            report (decompress(waterBodyOutflow),"C:\work\output/wboutput1.map")
+            #report (decompress(waterBodyOutflow),"C:\work\output/wboutput1.map")
             i= 1
 
 
@@ -428,7 +428,7 @@ class routing(object):
         self.var.avgBaseflow = np.maximum(0.0, self.var.avgBaseflow)
 
 
-        report(decompress(self.var.discharge), "C:\work\output/q1.map")
+        #report(decompress(self.var.discharge), "C:\work\output/q1.map")
 
      #   print "discharge", self.var.discharge[25989],self.var.discharge[23765]
 

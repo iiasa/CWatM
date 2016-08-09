@@ -133,7 +133,7 @@ class TimeoutputTimeseries2(TimeoutputTimeseries):
         outputFile = open(outputFilename, "w")
         # header
         #outputFile.write("timeseries " + self._spatialDatatype.lower() + "\n")
-        outputFile.write("timeseries " + self._spatialDatatype.lower() + " settingsfile: "+os.path.realpath(sys.argv[1])+" date: " + xtime.ctime(xtime.time())+ "\n")
+        outputFile.write("timeseries " + " settingsfile: "+os.path.realpath(sys.argv[1])+" date: " + xtime.ctime(xtime.time())+ "\n")
         sys.argv[1]
         outputFile.write(str(self._maxId + 1) + "\n")
         outputFile.write("timestep\n")

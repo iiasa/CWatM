@@ -96,6 +96,9 @@ class outputTssMap(object):
         # ------------------------------------------------------------------------------
 
         if option['reportMap']:
+            # load netcdf metadata from precipitation
+            metaNetCDF()
+
             # loop through all the section with output variables
             for sec in outsection:
                 # daily output, monthly total monthly average,
@@ -130,7 +133,7 @@ class outputTssMap(object):
         # ************************************************************
         # ***** WRITING RESULTS: TIME SERIES *************************
         # ************************************************************
-        monthend, yearend, laststepmonthend, laststepyearend, doy = datecheck(self.var.CalendarDate,self.var.TimeSinceStart)
+        monthend, yearend, laststepmonthend, laststepyearend, laststep, nrdays = datecheck(self.var.CalendarDate,self.var.TimeSinceStart)
         self.var.everymonth.append(monthend)
         self.var.everyyear.append(yearend)
         self.var.everyday.append(True)
@@ -142,7 +145,8 @@ class outputTssMap(object):
             #print " %10.2f" % self.var.Tss["DisTS"].firstout(decompress(self.var.ChanQAvg))
             print " %10.2f" % outTss['routing_out_tss_daily'][0][0].firstout(decompress(self.var.discharge))
 
-        for tss in outTss.keys():
+        if option['reportTss']:
+          for tss in outTss.keys():
             for i in xrange(outTss[tss].__len__()):
             # loop for each variable in a section
                 if outTss[tss][i] != "None":
@@ -165,6 +169,28 @@ class outputTssMap(object):
                     if tss[-9:] == "annualend":
                         # reporting at the end of the month:
                         outTss[tss][i][0].sample2( decompress(eval(what)), self.var.everyyear, laststepyearend)
+
+
+        # ************************************************************
+        # ***** WRITING RESULTS: MAPS   ******************************
+        # ************************************************************
+
+        print '----------------#'
+        if option['reportMap']:
+            for map in outMap.keys():
+                for i in xrange(outMap[map].__len__()):
+                    if map[-5:] == "daily":
+                        print map, i, outMap[map][i]
+                        netfile = outMap[map][i][0]
+                        flag = outMap[map][i][2]
+                        varname = outMap[map][i][1]
+                        inputmap = 'self.var.'+ varname
+
+                        # writenetcdf(netfile, varname, varunits, inputmap, timeStamp, posCnt, flag, flagTime=True):
+                        outMap[map][i][2] = writenetcdf(netfile, varname, "undefined", eval(inputmap), self.var.CalendarDate,self.var.TimeSinceStart, flag, True, nrdays)
+                        i = 1
+
+
 
 
 
