@@ -292,7 +292,7 @@ class routing(object):
 
         # waterBodies: get parameters at the beginning of the year or simulation
         #if (currTimeStep.doy == 1) or (currTimeStep.timeStepPCR == 1):
-        if (self.var.TimeSinceStart == 1) or (int(self.var.CalendarDate.strftime('%j')) == 1):   # check if first day 0of the year
+        if dateVar['newStart'] or dateVar['newYear']:   # check if first day  of the year
             #self.var.lakes_reservoir_module.getParameterFiles(currTimeStep,self.var.cellArea,self.var.LddMap,self.var.cellLengthFD,self.var.cellSize)
             self.var.lakes_reservoirs_module.getParameterFiles()
 
@@ -305,10 +305,9 @@ class routing(object):
         # - if landSurface.actualET < waterKC * meteo.referencePotET * self.var.fracWat
         #   then, we add more evaporation
 
-        #  self.var.CalendarDay
-        if (self.var.TimeSinceStart == 1) or (int(self.var.CalendarDate.strftime('%d')) ==1):
+        if dateVar['newStart'] or dateVar['newMonth']:  #Monthly!
         #if (currTimeStep.day == 1) or (currTimeStep.timeStepPCR == 1):
-            self.var.waterKC = readnetcdf2(self.var.fileCropKC_File ,self.var.CalendarDate,useDaily='month',value='kc')
+            self.var.waterKC = readnetcdf2(self.var.fileCropKC_File ,dateVar['currDate'],useDaily='month',value='kc')
 
         # evaporation from water bodies (m3), limited to available channelStorage
         volLocEvapWaterBody = np.minimum(np.maximum(0.0,self.var.channelStorage),

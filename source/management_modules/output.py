@@ -99,9 +99,7 @@ class outputTssMap(object):
 
         # self.var.Tss[tss] = TimeoutputTimeseries(binding[tss], self.var, outpoints, noHeader=Flags['noheader'])
 
-        self.var.everyday = []
-        self.var.everymonth=[]
-        self.var.everyyear=[]
+
 
 
 
@@ -144,25 +142,19 @@ class outputTssMap(object):
         # self.var.Tss['DisTS'].sample(xxx)
         # self.report(self.Precipitation,binding['TaMaps'])
 
-        monthend, yearend, laststepmonthend, laststepyearend, laststep = datecheck(self.var.CalendarDate,
-                                                                                           self.var.TimeSinceStart)
 
-        self.var.everymonth.append(monthend)
-        self.var.everyyear.append(yearend)
-        self.var.everyday.append(True)
 
 
         # ************************************************************
         # ***** WRITING RESULTS: MAPS   ******************************
         # ************************************************************
 
-        print '----------------#'
+        # print '----------------#'
         if option['reportMap']:
             for map in outMap.keys():
                 for i in xrange(outMap[map].__len__()):
                     if outMap[map][i] != "None":
 
-                        print map, i, outMap[map][i]
                         netfile = outMap[map][i][0]
                         flag = outMap[map][i][2]
                         # flag to create netcdf or to write
@@ -171,81 +163,78 @@ class outputTssMap(object):
 
                         if map[-5:] == "daily":
                             # writenetcdf(netfile, varname, varunits, inputmap, timeStamp, posCnt, flag, flagTime=True):
-                            outMap[map][i][2] = writenetcdf(netfile, varname, "undefined", eval(inputmap), self.var.CalendarDate,self.var.TimeSinceStart, flag, True, dateVar['diffdays'])
+                            outMap[map][i][2] = writenetcdf(netfile, varname, "undefined", eval(inputmap),  dateVar['currDate'],dateVar['curr'], flag, True, dateVar['diffdays'])
 
-                        nr = (self.var.everymonth).count(True)
+
                         if map[-8:] == "monthend":
-                                if self.var.everymonth[self.var.TimeSinceStart - 1]:
-                                    if self.var.TimeSinceStart==30:
-                                        kk =1
-                                    outMap[map][i][2] = writenetcdf(netfile, varname+ "_monthend", "undefined", eval(inputmap), self.var.CalendarDate, nr, flag,True)
+                                if dateVar['checked'][dateVar['curr'] - 1]>0:
+                                    outMap[map][i][2] = writenetcdf(netfile, varname+ "_monthend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currMonth'], flag,True,dateVar['diffMonth'])
                         if (map[-8:] == "monthtot") or (map[-8:] == "monthavg"):
                                 vars(self.var)[varname + "_monthtot"] += vars(self.var)[varname]
-                                if self.var.everymonth[self.var.TimeSinceStart - 1]:
+                                if dateVar['checked'][dateVar['curr'] - 1]>0:
                                     if (map[-8:] == "monthtot"):
-                                        outMap[map][i][2] = writenetcdf(netfile, varname+"monthtot", "undefined", eval(inputmap+ "_monthtot"),self.var.CalendarDate, nr, flag, True)
+                                        outMap[map][i][2] = writenetcdf(netfile, varname+"monthtot", "undefined", eval(inputmap+ "_monthtot"), dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
                                     if (map[-8:] == "monthavg"):
                                         avgmap = vars(self.var)[varname + "_monthtot"] / 30
-                                        outMap[map][i][2] = writenetcdf(netfile, varname+"monthavg", "undefined", avgmap,self.var.CalendarDate, nr, flag, True)
+                                        outMap[map][i][2] = writenetcdf(netfile, varname+"monthavg", "undefined", avgmap,dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
                                     vars(self.var)[varname+"monthtot"] = 0
 
-                        nr = (self.var.everyyear).count(True)
+
                         if map[-9:] == "annualend":
-                                if self.var.everyyear[self.var.TimeSinceStart - 1]:
-                                    outMap[map][i][2] = writenetcdf(netfile, varname+"_annualend", "undefined", eval(inputmap), self.var.CalendarDate, nr, flag,True)
+                                if dateVar['checked'][dateVar['curr'] - 1]==2:
+                                    outMap[map][i][2] = writenetcdf(netfile, varname+"_annualend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currYear'], flag,True,dateVar['diffYear'])
                         if (map[-9:] == "annualtot") or (map[-9:] == "annualavg"):
                                 vars(self.var)[varname + "_annualtot"] += vars(self.var)[varname]
-                                if self.var.everyyear[self.var.TimeSinceStart - 1]:
+                                if dateVar['checked'][dateVar['curr'] - 1]==2:
                                     if (map[-9:] == "annualtot"):
-                                        outMap[map][i][2] = writenetcdf(netfile, varname+"annualtot", "undefined", eval(inputmap+ "_annualtot"),self.var.CalendarDate, nr, flag, True)
+                                        outMap[map][i][2] = writenetcdf(netfile, varname+"annualtot", "undefined", eval(inputmap+ "_annualtot"), dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
                                     if (map[-9:] == "annualavg"):
                                         avgmap = vars(self.var)[varname + "_monthtot"] / 365
-                                        outMap[map][i][2] = writenetcdf(netfile, varname+"annualavg", "undefined", avgmap,self.var.CalendarDate, nr, flag, True)
+                                        outMap[map][i][2] = writenetcdf(netfile, varname+"annualavg", "undefined", avgmap, dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
                                     vars(self.var)[varname+"annualtot"] = 0
 
 
 
-            # ************************************************************
-            # ***** WRITING RESULTS: TIME SERIES *************************
-            # ************************************************************
+        # ************************************************************
+        # ***** WRITING RESULTS: TIME SERIES *************************
+        # ************************************************************
+
+        if Flags['loud'] and option['reportTss']:
+            # print the discharge of the first output map loc
+            # print " %10.2f"  %cellvalue(maptotal(decompress(eval('self.var.' + reportTimeSerieAct["DisTS"]['outputVar'][0]))),1,1)[0]
+            # print " %10.2f" % self.var.Tss["DisTS"].firstout(decompress(self.var.ChanQAvg))
+            print " %10.2f" % outTss['routing_out_tss_daily'][0][0].firstout(decompress(self.var.discharge))
+
+        if option['reportTss']:
+            for tss in outTss.keys():
+                for i in xrange(outTss[tss].__len__()):
+                    # loop for each variable in a section
+                    if outTss[tss][i] != "None":
+                        what = 'self.var.' + outTss[tss][i][1]
+                        if tss[-5:] == "daily":
+                            # what = 'self.var.' + reportTimeSerieAct[tss]['outputVar'][0]
+                            # how = reportTimeSerieAct[outTss[tss][0][0]]['operation'][0]
+                            # if how == 'mapmaximum':
+                            # changed = compressArray(mapmaximum(decompress(eval(what))))
+                            # what = 'changed'
+                            # if how == 'total':
+                            # changed = compressArray(catchmenttotal(decompress(eval(what)) * self.var.PixelAreaPcr,self.var.Ldd) * self.var.InvUpArea)
+                            # what = 'changed'
+                            # print i, outTss[tss][i][1], what
+                            outTss[tss][i][0].sample2(decompress(eval(what)), 0 )
+
+                        if tss[-8:] == "monthend":
+                            # reporting at the end of the month:
+                            outTss[tss][i][0].sample2(decompress(eval(what)),1)
+                        if tss[-8:] == "monthtot":
+                            # reporting at the end of the month:
+                            outTss[tss][i][0].sample2(decompress(eval(what+ "_monthtot")), 1)
 
 
-            if option['loud']:
-                # print the discharge of the first output map loc
-                # print " %10.2f"  %cellvalue(maptotal(decompress(eval('self.var.' + reportTimeSerieAct["DisTS"]['outputVar'][0]))),1,1)[0]
-                # print " %10.2f" % self.var.Tss["DisTS"].firstout(decompress(self.var.ChanQAvg))
-                print " %10.2f" % outTss['routing_out_tss_daily'][0][0].firstout(decompress(self.var.discharge))
 
-            if option['reportTss']:
-                for tss in outTss.keys():
-                    for i in xrange(outTss[tss].__len__()):
-                        # loop for each variable in a section
-                        if outTss[tss][i] != "None":
-                            what = 'self.var.' + outTss[tss][i][1]
-                            if tss[-5:] == "daily":
-                                # what = 'self.var.' + reportTimeSerieAct[tss]['outputVar'][0]
-                                # how = reportTimeSerieAct[outTss[tss][0][0]]['operation'][0]
-                                # if how == 'mapmaximum':
-                                # changed = compressArray(mapmaximum(decompress(eval(what))))
-                                # what = 'changed'
-                                # if how == 'total':
-                                # changed = compressArray(catchmenttotal(decompress(eval(what)) * self.var.PixelAreaPcr,self.var.Ldd) * self.var.InvUpArea)
-                                # what = 'changed'
-                                # print i, outTss[tss][i][1], what
-                                outTss[tss][i][0].sample2(decompress(eval(what)), self.var.everyday)
-
-                            if tss[-8:] == "monthend":
-                                # reporting at the end of the month:
-                                outTss[tss][i][0].sample2(decompress(eval(what)), self.var.everymonth, laststepmonthend)
-                            if tss[-8:] == "monthtot":
-                                # reporting at the end of the month:
-                                outTss[tss][i][0].sample2(decompress(eval(what+ "_monthtot")), self.var.everymonth, laststepmonthend)
-
-
-
-                            if tss[-9:] == "annualend":
-                                # reporting at the end of the month:
-                                outTss[tss][i][0].sample2(decompress(eval(what)), self.var.everyyear, laststepyearend)
+                        if tss[-9:] == "annualend":
+                            # reporting at the end of the month:
+                            outTss[tss][i][0].sample2(decompress(eval(what)), 2)
 
 
 

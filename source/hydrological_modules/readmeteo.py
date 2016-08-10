@@ -33,20 +33,19 @@ class readmeteo(object):
         # ************************************************************
         # ***** READ METEOROLOGICAL DATA *****************************
         # ************************************************************
-        #self.var.currentTimeStep()
-        date = self.var.CalendarDate
-        self.var.Precipitation = readnetcdf2(binding['PrecipitationMaps'],date) * self.var.DtDay * self.var.con_precipitation
+
+        self.var.Precipitation = readnetcdf2(binding['PrecipitationMaps'],dateVar['currDate']) * self.var.DtDay * self.var.con_precipitation
 
         #TODO PB
         ##self.var.Precipitation = self.var.Precipitation * 0 + 0.2
 
         # precipitation (conversion to [mm] per time step)
-        self.var.Tavg = readnetcdf2(binding['TavgMaps'], date)
+        self.var.Tavg = readnetcdf2(binding['TavgMaps'], dateVar['currDate'])
         # average DAILY temperature (even if you are running the model
         # on say an hourly time step) [degrees C]
-        self.var.ETRef = readnetcdf2(binding['ETMaps'], date) * self.var.DtDay * self.var.con_e
+        self.var.ETRef = readnetcdf2(binding['ETMaps'], dateVar['currDate']) * self.var.DtDay * self.var.con_e
         # daily reference evaporation (conversion to [mm] per time step)
-        self.var.EWRef = readnetcdf2(binding['E0Maps'], date) * self.var.DtDay * self.var.con_e
+        self.var.EWRef = readnetcdf2(binding['E0Maps'], dateVar['currDate']) * self.var.DtDay * self.var.con_e
         # potential evaporation rate from water surface (conversion to [mm] per time step)
 
 

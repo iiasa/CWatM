@@ -32,7 +32,7 @@ class evaporation(object):
         """
 
         # get crop coefficient:
-        self.var.cropKC = readnetcdf2(binding[coverType + '_cropCoefficientNC'], self.var.CalendarDay, "DOY")
+        self.var.cropKC = readnetcdf2(binding[coverType + '_cropCoefficientNC'], dateVar['doy'], "DOY")
         self.var.cropKC = np.maximum(self.var.cropKC, self.var.minCropKC[No])
 
         # calculate potential ET:

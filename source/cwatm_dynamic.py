@@ -32,28 +32,10 @@ class CWATModel_dyn(DynamicModel):
             calls the dynamic part of the hydrological modules
         """
 
+        #self.CalendarDate = dateVar['dateStart'] + datetime.timedelta(days=dateVar['curr'])
+        #self.CalendarDay = int(self.CalendarDate.strftime("%j"))
+        timestep_dynamic()
 
-        self.CalendarDate = dateVar['dateStart'] + datetime.timedelta(days=(self.currentTimeStep()-1) * self.DtDay)
-        self.CalendarDay = int(self.CalendarDate.strftime("%j"))
-        dateVar['currDate'] = dateVar['dateStart'] + datetime.timedelta(days=dateVar['curr'])
-        dateVar['doy'] = dateVar['currDate'].strftime('%j')
-
-        dateVar['laststep'] = False
-        if (dateVar['intStart'] + dateVar['curr']) == dateVar['intEnd']: dateVar['laststep'] = True
-        dateVar['curr'] += 1
-
-
-        #correct method to calculate the day of the year
-
-
-        #correct method to calculate the day of the year
-
-        i = self.currentTimeStep()
-#        if i==1:    globals.cdfFlag = [0, 0, 0, 0 ,0 ,0,0]
-          # flag for netcdf output for all, steps and end
-          # set back to 0,0,0,0,0,0 if new Monte Carlo run
-
-        self.TimeSinceStart = self.currentTimeStep() - self.firstTimeStep() + 1
 
 
         del timeMes[:]
@@ -61,13 +43,13 @@ class CWATModel_dyn(DynamicModel):
 
 
         if Flags['loud']:
-            print "%-6i %10s" %(self.currentTimeStep(),self.CalendarDate.strftime("%d/%m/%Y")) ,
+            print "%-6i %10s" %(dateVar['currStart'],dateVar['currDatestr']),
         else:
             if not(Flags['check']):
                 if (Flags['quiet']) and (not(Flags['veryquiet'])):
                     sys.stdout.write(".")
                 if (not(Flags['quiet'])) and (not(Flags['veryquiet'])):
-                    sys.stdout.write("\r%d" % i)
+                    sys.stdout.write("\r%d" % dateVar['currStart'])
                     sys.stdout.flush()
         print
 
@@ -89,17 +71,32 @@ class CWATModel_dyn(DynamicModel):
 
         self.landcoverType_module.dynamic_fracIrrigation()
         self.capillarRise_module.dynamic()
-        self.waterdemand_module.dynamic()
+        timemeasure("Soil 1.Part")  # 3. timing
 
+        # *********  WATER Demand   *************************
+        self.waterdemand_module.dynamic()
+        timemeasure("Water demand")  # 4. timing
+
+        # *********  Soil splitted in different land cover fractions *************
         self.landcoverType_module.dynamic()
+        timemeasure("Soil main")  # 5. timing
+
         self.groundwater_module.dynamic()
+        timemeasure("Groundwater")  # 6. timing
 
         self.routing_module.dynamic()
-
+        timemeasure("Routing")  # 7. timing
 
 
         self.output_module.dynamic()
+        timemeasure("Output")  # 7. timing
 
+
+
+        for i in xrange(len(timeMes)):
+            if self.currentTimeStep() == self.firstTimeStep():
+                timeMesSum.append(timeMes[i] - timeMes[0])
+            else: timeMesSum[i] += timeMes[i] - timeMes[0]
 
 
 

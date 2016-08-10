@@ -85,7 +85,7 @@ class lakes_reservoirs(object):
         #if option['includeWaterBodies']:
             #waterBodyIdsPcr = nominal(0)
             #waterBodyOutPcr = boolean(0)
-        self.var.fracWat = readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly", value= 'fracWaterInp')
+        self.var.fracWat = readnetcdf2(self.var.waterbody_file, dateVar['currDate'], "yearly", value= 'fracWaterInp')
         self.var.fracWat = np.maximum(0.0, self.var.fracWat)
         self.var.fracWat = np.minimum(1.0, self.var.fracWat)
 
@@ -93,7 +93,7 @@ class lakes_reservoirs(object):
 
         if self.var.includeLakes == "True" or self.var.includeReservoirs == "True":
             # water body ids
-            self.var.waterBodyIds = readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly",value='waterBodyIds')
+            self.var.waterBodyIds = readnetcdf2(self.var.waterbody_file, dateVar['currDate'], "yearly",value='waterBodyIds')
             #Adding 1 to make sure that no waterbody has ID = 0
             # missing value for pcraster
             self.var.waterBodyIds[self.var.waterBodyIds==0] = -9999
@@ -144,7 +144,7 @@ class lakes_reservoirs(object):
 
 
             # reservoir surface area (m2):
-            resSfArea = 1000. * 1000. * readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly", value='resSfAreaInp')
+            resSfArea = 1000. * 1000. * readnetcdf2(self.var.waterbody_file, dateVar['currDate'], "yearly", value='resSfAreaInp')
             resSfAreaC = np.compress(self.var.compressID, resSfArea)
             resSfAreaC = npareaaverage(resSfAreaC, self.var.waterBodyIdsC)
 
@@ -167,7 +167,7 @@ class lakes_reservoirs(object):
         # - 0 = non lakes or reservoirs (e.g. wetland)
 
         if self.var.includeLakes == "True" or self.var.includeReservoirs == "True":
-            waterBodyTyp = readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly", value='waterBodyTyp')
+            waterBodyTyp = readnetcdf2(self.var.waterbody_file, dateVar['currDate'], "yearly", value='waterBodyTyp')
             self.var.waterBodyTypC = np.compress(self.var.compressID, waterBodyTyp)
 
             self.var.waterBodyTypC = np.where( self.var.waterBodyIdsC > 0, self.var.waterBodyTypC.astype(np.int32), 0)
@@ -211,7 +211,7 @@ class lakes_reservoirs(object):
         if self.var.includeReservoirs == "True":
 
             # reservoir maximum capacity (m3):
-            resMaxCap = 1000. * 1000. * readnetcdf2(self.var.waterbody_file, self.var.CalendarDate, "yearly", value='resMaxCapInp')
+            resMaxCap = 1000. * 1000. * readnetcdf2(self.var.waterbody_file, dateVar['currDate'], "yearly", value='resMaxCapInp')
             self.var.resMaxCapC = np.compress(self.var.compressID, resMaxCap)
 
             self.var.resMaxCapC = np.where(self.var.resMaxCapC > 0, self.var.resMaxCapC, 0.)

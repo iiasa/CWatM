@@ -519,7 +519,8 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
         longitude[:] = lons
 
         if flagTime:
-            nf1.createDimension('time', nrdays)
+            nf1.createDimension('time', None)
+            #nf1.createDimension('time', nrdays)
             time = nf1.createVariable('time', 'f8', ('time'))
             time.standard_name = 'time'
             time.units = 'Days since 1901-01-01'

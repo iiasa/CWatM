@@ -207,12 +207,11 @@ class landcoverType(object):
 
         if option['includeIrrigation'] and option['dynamicIrrigationArea']:
         # if first day of the year or first day of run
-            if (self.var.currentTimeStep() == 1) or (int(self.var.CalendarDate.strftime('%j')) ==1):
-               date = self.var.CalendarDate
-               i = self.var.currentTimeStep()
+            if dateVar['newStart'] or  dateVar['newYear']:
+
                # updating fracVegCover of landCover (for historical irrigation areas, done at yearly basis)
                # read historical irrigation areas
-               self.var.irrigationArea = 10000.0 *readnetcdf2(binding['historicalIrrigationArea'], self.var.CalendarDate, "yearly")
+               self.var.irrigationArea = 10000.0 *readnetcdf2(binding['historicalIrrigationArea'], dateVar['currDate'], "yearly")
 
                # area of irrigation is limited by cellArea
                self.var.irrigationArea = np.maximum(self.var.irrigationArea, 0.0)
@@ -247,7 +246,7 @@ class landcoverType(object):
 
 
         coverNo = 0
-        print "soil"
+        #print "soil"
         # update soil (loop per each land cover type):
         for coverType in self.var.coverTypes:
             #print coverNo,coverType

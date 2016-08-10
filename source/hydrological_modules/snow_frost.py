@@ -88,17 +88,17 @@ class snow(object):
         """ dynamic part of the snow module
         """
 
-        SeasSnowMeltCoef = self.var.SnowSeason * np.sin(math.radians((self.var.CalendarDay - 81)
+        SeasSnowMeltCoef = self.var.SnowSeason * np.sin(math.radians((dateVar['doy'] - 81)
                                 * self.var.SnowDayDegrees)) + self.var.SnowMeltCoef
 
-        # SeasSnowMeltCoef = SnowSeason * sin((CalendarDay-81)* SnowDayDegrees) + SnowMeltCoef;
+        # SeasSnowMeltCoef = SnowSeason * sin((dateVar['doy']-81)* SnowDayDegrees) + SnowMeltCoef;
 
         # sinus shaped function between the
         # annual minimum (December 21st) and annual maximum (June 21st)
-        # SummerSeason = ifthenelse(self.var.CalendarDay > 165,np.sin((self.var.CalendarDay-165)* self.var.IceDayDegrees ),scalar(0.0))
-        # SummerSeason = ifthenelse(self.var.CalendarDay > 259,0.0,SummerSeason)
-        if (self.var.CalendarDay > 165) and (self.var.CalendarDay < 260):
-            SummerSeason = np.sin(math.radians((self.var.CalendarDay - 165) * self.var.IceDayDegrees))
+        # SummerSeason = ifthenelse(dateVar['doy'] > 165,np.sin((dateVar['doy']-165)* self.var.IceDayDegrees ),scalar(0.0))
+        # SummerSeason = ifthenelse(dateVar['doy'] > 259,0.0,SummerSeason)
+        if (dateVar['doy'] > 165) and (dateVar['doy'] < 260):
+            SummerSeason = np.sin(math.radians((dateVar['doy'] - 165) * self.var.IceDayDegrees))
         else:
             SummerSeason = 0.0
 

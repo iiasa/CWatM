@@ -47,11 +47,11 @@ class waterdemand(object):
         # obtainNonIrrWaterDemand landsurface 487
 
         # domestic water demand
-        self.var.domesticGrossDemand = readnetcdf2(binding['domesticWaterDemandFile'], self.var.CalendarDate, "monthly", value="domesticGrossDemand")
-        self.var.domesticNettoDemand = readnetcdf2(binding['domesticWaterDemandFile'], self.var.CalendarDate, "monthly", value="domesticNettoDemand")
+        self.var.domesticGrossDemand = readnetcdf2(binding['domesticWaterDemandFile'], dateVar['currDate'], "monthly", value="domesticGrossDemand")
+        self.var.domesticNettoDemand = readnetcdf2(binding['domesticWaterDemandFile'], dateVar['currDate'], "monthly", value="domesticNettoDemand")
         # industry water demand
-        self.var.industryGrossDemand = readnetcdf2(binding['industryWaterDemandFile'], self.var.CalendarDate, "yearly", value="industryGrossDemand")
-        self.var.industryNettoDemand = readnetcdf2(binding['industryWaterDemandFile'], self.var.CalendarDate, "yearly", value="industryNettoDemand")
+        self.var.industryGrossDemand = readnetcdf2(binding['industryWaterDemandFile'], dateVar['currDate'], "yearly", value="industryGrossDemand")
+        self.var.industryNettoDemand = readnetcdf2(binding['industryWaterDemandFile'], dateVar['currDate'], "yearly", value="industryNettoDemand")
 
         # avoid small values (less than 1 m3):
         self.var.domesticGrossDemand = np.where(self.var.domesticGrossDemand > self.var.InvCellArea, self.var.domesticGrossDemand, 0.0)

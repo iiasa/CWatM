@@ -30,8 +30,8 @@ class interception(object):
     def dynamic(self,coverType, No):
 
         if not coverType.startswith("irr"):
-            interceptCap  = readnetcdf2(binding[coverType + '_interceptCapNC'], self.var.CalendarDay, "DOY")
-            coverFraction = readnetcdf2(binding[coverType + '_coverFractionNC'], self.var.CalendarDay, "DOY")
+            interceptCap  = readnetcdf2(binding[coverType + '_interceptCapNC'], dateVar['doy'], "DOY")
+            coverFraction = readnetcdf2(binding[coverType + '_coverFractionNC'], dateVar['doy'], "DOY")
             interceptCap = coverFraction * interceptCap
             interceptCap = np.maximum(interceptCap, self.var.minInterceptCap[No])
         else:

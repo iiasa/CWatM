@@ -58,13 +58,13 @@ def Calendar(input):
     return date
 
 
-def datetoInt(dateIn,both=False):
+def datetoInt(dateIn,begin,both=False):
 
     date1 = Calendar(dateIn)
 
     if type(date1) is datetime.datetime:
          str1 = date1.strftime("%d/%m/%Y")
-         int1 = 1
+         int1 = (date1 - begin).days + 1
     else:
         int1 = int(date1)
         str1 = str(date1)
@@ -83,8 +83,8 @@ def checkifDate(start,end):
     else:
         begin = begin + datetime.timedelta(days=startdate-1)
 
-    dateVar['intStart'],strStart = datetoInt(binding[start],True)
-    dateVar['intEnd'],strEnd = datetoInt(binding[end],True)
+    dateVar['intStart'],strStart = datetoInt(binding[start],begin,True)
+    dateVar['intEnd'],strEnd = datetoInt(binding[end],begin,True)
 
     # test if start and end > begin
     if (dateVar['intStart']<0) or (dateVar['intEnd']<0) or ((dateVar['intEnd']-dateVar['intStart'])<0):
@@ -100,68 +100,47 @@ def checkifDate(start,end):
     dateVar['datelastmonth'] = datetime.datetime(year=dateVar['dateEnd'].year, month= dateVar['dateEnd'].month, day=1) - datetime.timedelta(days=1)
     dateVar['datelastyear'] = datetime.datetime(year=dateVar['dateEnd'].year, month= 1, day=1) - datetime.timedelta(days=1)
 
-    dateVar['checkend'] = []
-    dates = np.arange(dateVar['dateStart'], dateVar['dateEnd'], datetime.timedelta(days = 1)).astype(datetime.datetime)
+    dateVar['checked'] = []
+    dates = np.arange(dateVar['dateStart'], dateVar['dateEnd']+ datetime.timedelta(days=1), datetime.timedelta(days = 1)).astype(datetime.datetime)
     for d in dates:
         if d.day == calendar.monthrange(d.year, d.month)[1]:
             if d.month == 12:
-                dateVar['checkend'].append(2)
+                dateVar['checked'].append(2)
             else:
-                dateVar['checkend'].append(1)
+                dateVar['checked'].append(1)
         else:
-            dateVar['checkend'].append(0)
+            dateVar['checked'].append(0)
+
+    dateVar['diffMonth'] = dateVar['checked'].count(1) + dateVar['checked'].count(2)
+    dateVar['diffYear'] = dateVar['checked'].count(2)
+    i=1
 
 
 
+def timestep_dynamic():
+    """
+    Dynamic part of setting the date
+    Current date is increasing, checking if beginning of month, year,
+    """
+
+    dateVar['currDate'] = dateVar['dateStart'] + datetime.timedelta(days=dateVar['curr'])
+    dateVar['currDatestr'] = dateVar['currDate'].strftime("%d/%m/%Y")
+    dateVar['doy'] = int(dateVar['currDate'].strftime('%j'))
+
+    dateVar['laststep'] = False
+    if (dateVar['intStart'] + dateVar['curr']) == dateVar['intEnd']: dateVar['laststep'] = True
+
+    dateVar['currStart'] = dateVar['intStart'] + dateVar['curr']
+    dateVar['curr'] += 1
+    dateVar['currMonth'] = dateVar['checked'][:dateVar['curr']].count(1) + dateVar['checked'][:dateVar['curr']].count(2)
+    dateVar['currYear'] = dateVar['checked'][:dateVar['curr']].count(2)
+
+    dateVar['newStart'] = dateVar['curr'] == 1
+    dateVar['newMonth'] = dateVar['currDate'].day == 1
+    dateVar['newYear'] = (dateVar['currDate'].day == 1) and (dateVar['currDate'].month == 1)
 
 
 
-    return
-
-
-
-
-
-
-
-
-
-
-
-
-
-def datecheck( date, step):
-    print date
-    yearend = False
-    if date.day == calendar.monthrange(date.year, date.month)[1]:
-        monthend = True
-        if date.month == 12:
-            yearend = True
-    else:
-        monthend = False
-    doy = date.strftime('%j')
-
-    laststep = False
-    if step == dateVar['intEnd']:
-      laststep=True
-
-    datelastmonth = datetime.datetime(year=dateVar['dateEnd'].year, month= dateVar['dateEnd'].month, day=1) - datetime.timedelta(days=1)
-    datelastyear = datetime.datetime(year=dateVar['dateEnd'].year, month= 1, day=1) - datetime.timedelta(days=1)
-
-    laststepmonthend = False
-    laststepyearend = False
-    if date == datelastmonth:
-        laststepmonthend = True
-    if date == datelastyear:
-        laststepyearend = True
-
-    #start = self._userModel.firstTimeStep()
-    #end = self._userModel.nrTimeSteps()
-
-    dateVar['doy'] = date.strftime('%j')
-
-
-    return monthend, yearend, laststepmonthend, laststepyearend, laststep
 
 
 

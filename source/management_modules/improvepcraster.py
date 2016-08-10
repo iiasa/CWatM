@@ -127,11 +127,12 @@ class TimeoutputTimeseries2(TimeoutputTimeseries):
 
         return filename
 
-    def sample2(self, expression, when, lastwrite=False):
+    def sample2(self, expression, daymonthyear):
         """
         Sampling the current values of 'expression' at the given locations for the current timestep
         """
-        if when[-1]==True:
+        if dateVar['checked'][dateVar['curr']-1] >= daymonthyear:
+          # using a list with is 1 for monthend and 2 for year end to check for execution
           arrayRowPos = self._userModel.currentTimeStep() - self._userModel.firstTimeStep()
 
         # if isinstance(expression, float):
@@ -176,10 +177,10 @@ class TimeoutputTimeseries2(TimeoutputTimeseries):
 
             self._sampleValues[arrayRowPos] = value
 
-        if self._userModel.currentTimeStep() == self._userModel.nrTimeSteps():
-            self._writeTssFile(when)
+        if dateVar['laststep']:
+            self._writeTssFile(daymonthyear)
 
-    def _writeTssFile(self,when):
+    def _writeTssFile(self,daymonthyear):
         """
         writing timeseries to disk
         """
@@ -194,23 +195,21 @@ class TimeoutputTimeseries2(TimeoutputTimeseries):
 
         assert outputFile
 
-        start = self._userModel.firstTimeStep()
-        end = self._userModel.nrTimeSteps()+1
 
-        for timestep in range(start, end):
-          if when[timestep-start]:
+        for timestep in range(dateVar['intStart'], dateVar['intEnd']+1):
+          if dateVar['checked'][timestep-dateVar['intStart']] >= daymonthyear:
             row = ""
             row += " %8g" % timestep
             if self._spatialIdGiven:
                 for cellId in range(0, self._maxId):
-                    value = self._sampleValues[timestep - start][cellId]
+                    value = self._sampleValues[timestep - dateVar['intStart']][cellId]
                     if isinstance(value, Decimal):
                         row += "           1e31"
                     else:
                         row += " %14g" % (value)
                 row += "\n"
             else:
-                value = self._sampleValues[timestep - start]
+                value = self._sampleValues[timestep - dateVar['intStart']]
                 if isinstance(value, Decimal):
                     row += "           1e31"
                 else:
@@ -253,8 +252,8 @@ class TimeoutputTimeseries2(TimeoutputTimeseries):
         #    nrRows = int(binding['StepEnd']) - int(binding['StepStart']) - self._userModel.firstTimeStep() + 2
         #else: nrRows = int(binding['StepEnd']) - int(binding['StepStart']) - self._userModel.firstTimeStep() + 2
         if noHeader:
-            nrRows = datetoInt(binding['StepEnd']) - datetoInt(binding['StepStart']) - self._userModel.firstTimeStep() + 2
-        else: nrRows = datetoInt(binding['StepEnd']) - datetoInt(binding['StepStart']) - self._userModel.firstTimeStep() + 2
+            nrRows = datetoInt(binding['StepEnd'],dateVar['dateStart']) - datetoInt(binding['StepStart'],dateVar['dateStart']) - self._userModel.firstTimeStep() + 2
+        else: nrRows = datetoInt(binding['StepEnd'],dateVar['dateStart']) - datetoInt(binding['StepStart'],dateVar['dateStart']) - self._userModel.firstTimeStep() + 2
 
 
 
@@ -267,6 +266,7 @@ class TimeoutputTimeseries2(TimeoutputTimeseries):
                 pcraster.Nominal, pcraster.Ordinal, pcraster.Boolean]
             if self._spatialId.dataType() not in _allowdDataTypes:
                 #raise Exception(
+
                 #    "idMap must be of type Nominal, Ordinal or Boolean")
                 # changed into creating a nominal map instead of bailing out
                 self._spatialId = pcraster.nominal(self._spatialId)
