@@ -131,7 +131,7 @@ class TimeoutputTimeseries2(TimeoutputTimeseries):
         """
         Sampling the current values of 'expression' at the given locations for the current timestep
         """
-        if dateVar['checked'][dateVar['curr']-1] >= daymonthyear:
+        if dateVar['checked'][dateVar['currwrite']-1] >= daymonthyear:
           # using a list with is 1 for monthend and 2 for year end to check for execution
           arrayRowPos = self._userModel.currentTimeStep() - self._userModel.firstTimeStep()
 
@@ -196,8 +196,8 @@ class TimeoutputTimeseries2(TimeoutputTimeseries):
         assert outputFile
 
 
-        for timestep in range(dateVar['intStart'], dateVar['intEnd']+1):
-          if dateVar['checked'][timestep-dateVar['intStart']] >= daymonthyear:
+        for timestep in range(dateVar['intSpin'], dateVar['intEnd']+1):
+          if dateVar['checked'][timestep-dateVar['intSpin']] >= daymonthyear:
             row = ""
             row += " %8g" % timestep
             if self._spatialIdGiven:

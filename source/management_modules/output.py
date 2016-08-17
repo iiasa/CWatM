@@ -150,7 +150,7 @@ class outputTssMap(object):
         # ************************************************************
 
         # print '----------------#'
-        if option['reportMap']:
+        if option['reportMap'] and dateVar['curr'] >= dateVar['intSpin']  :
             for map in outMap.keys():
                 for i in xrange(outMap[map].__len__()):
                     if outMap[map][i] != "None":
@@ -163,15 +163,15 @@ class outputTssMap(object):
 
                         if map[-5:] == "daily":
                             # writenetcdf(netfile, varname, varunits, inputmap, timeStamp, posCnt, flag, flagTime=True):
-                            outMap[map][i][2] = writenetcdf(netfile, varname, "undefined", eval(inputmap),  dateVar['currDate'],dateVar['curr'], flag, True, dateVar['diffdays'])
+                            outMap[map][i][2] = writenetcdf(netfile, varname, "undefined", eval(inputmap),  dateVar['currDate'],dateVar['currwrite'], flag, True, dateVar['diffdays'])
 
 
                         if map[-8:] == "monthend":
-                                if dateVar['checked'][dateVar['curr'] - 1]>0:
+                                if dateVar['checked'][dateVar['currwrite'] - 1]>0:
                                     outMap[map][i][2] = writenetcdf(netfile, varname+ "_monthend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currMonth'], flag,True,dateVar['diffMonth'])
                         if (map[-8:] == "monthtot") or (map[-8:] == "monthavg"):
                                 vars(self.var)[varname + "_monthtot"] += vars(self.var)[varname]
-                                if dateVar['checked'][dateVar['curr'] - 1]>0:
+                                if dateVar['checked'][dateVar['currwrite'] - 1]>0:
                                     if (map[-8:] == "monthtot"):
                                         outMap[map][i][2] = writenetcdf(netfile, varname+"monthtot", "undefined", eval(inputmap+ "_monthtot"), dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
                                     if (map[-8:] == "monthavg"):
@@ -181,11 +181,11 @@ class outputTssMap(object):
 
 
                         if map[-9:] == "annualend":
-                                if dateVar['checked'][dateVar['curr'] - 1]==2:
+                                if dateVar['checked'][dateVar['currwrite'] - 1]==2:
                                     outMap[map][i][2] = writenetcdf(netfile, varname+"_annualend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currYear'], flag,True,dateVar['diffYear'])
                         if (map[-9:] == "annualtot") or (map[-9:] == "annualavg"):
                                 vars(self.var)[varname + "_annualtot"] += vars(self.var)[varname]
-                                if dateVar['checked'][dateVar['curr'] - 1]==2:
+                                if dateVar['checked'][dateVar['currwrite'] - 1]==2:
                                     if (map[-9:] == "annualtot"):
                                         outMap[map][i][2] = writenetcdf(netfile, varname+"annualtot", "undefined", eval(inputmap+ "_annualtot"), dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
                                     if (map[-9:] == "annualavg"):

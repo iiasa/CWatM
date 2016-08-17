@@ -453,10 +453,11 @@ def getmeta(key,varname,alternative):
     get the meta data information for the netcdf output from the global
     variable metaNetcdfVar
     """
-    if key in metaNetcdfVar[varname]:
-        return metaNetcdfVar[varname][key]
-    else:
-        return alternative
+    ret = alternative
+    if varname in metaNetcdfVar:
+        if key in metaNetcdfVar[varname]:
+            ret = metaNetcdfVar[varname][key]
+    return ret
 
 
 
@@ -485,10 +486,12 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
 
         # put the additional genaral meta data information from the xml file into the netcdf file
         # infomation from the settingsfile comes first
-        for key in metaNetcdfVar[varname]:
-            if not (key in nf1.__dict__.keys()):
-                if not (key in ["unit", "long_name", "standard_name"]):
-                    nf1.__setattr__(key, metaNetcdfVar[varname][key])
+
+        if varname in metaNetcdfVar:
+            for key in metaNetcdfVar[varname]:
+                if not (key in nf1.__dict__.keys()):
+                    if not (key in ["unit", "long_name", "standard_name"]):
+                        nf1.__setattr__(key, metaNetcdfVar[varname][key])
 
 
 

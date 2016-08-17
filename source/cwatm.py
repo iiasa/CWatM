@@ -65,7 +65,7 @@ def CWATMexe():
     #os.chdir(outputDir[0])
     # this prevent from using relative path in settings!
 
-    checkifDate('StepStart','StepEnd')
+    checkifDate('StepStart','StepEnd','SpinUp')
     # checks if end date is later than start date and puts both in modelSteps
 
     #if option['InitCWATM']: print "INITIALISATION RUN"
