@@ -448,6 +448,20 @@ def readnetcdfWithoutTime(name, value="None"):
 
 
 
+def getmeta(key,varname,alternative):
+    """
+    get the meta data information for the netcdf output from the global
+    variable metaNetcdfVar
+    """
+    if key in metaNetcdfVar[varname]:
+        return metaNetcdfVar[varname][key]
+    else:
+        return alternative
+
+
+
+
+
 #def writenet(flag, inputmap, netfile, timestep, value_standard_name, value_long_name, value_unit, fillval, startdate, flagTime=True):
 def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagTime, nrdays=None):
     """
@@ -469,8 +483,17 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
         nf1.source = 'CWATM output maps'
         nf1.Conventions = 'CF-1.6'
 
+        # put the additional genaral meta data information from the xml file into the netcdf file
+        # infomation from the settingsfile comes first
+        for key in metaNetcdfVar[varname]:
+            if not (key in nf1.__dict__.keys()):
+                if not (key in ["unit", "long_name", "standard_name"]):
+                    nf1.__setattr__(key, metaNetcdfVar[varname][key])
 
-        # Dimension
+
+
+
+            # Dimension
         if 'x' in metadataNCDF.keys():
             lon = nf1.createDimension('x', col)  # x 1000
             longitude = nf1.createVariable('x', 'f8', ('x',))
@@ -539,9 +562,9 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
               value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
 
 
-        value.standard_name= varname
-        value.long_name= varname
-        value.units= varunits
+        value.standard_name= getmeta("standard_name",varname,varname)
+        value.long_name= getmeta("long_name",varname,varname)
+        value.units= getmeta("unit",varname,varunits)
 
         for var in metadataNCDF.keys():
             if "esri_pe_string" in metadataNCDF[var].keys():

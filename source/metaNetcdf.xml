@@ -1,0 +1,15 @@
+<CWATM>
+# METADATA for NETCDF OUTPUT DATA
+
+# varname: name of the variable in the CWAT code
+# unit: unit of the varibale
+# long name# standard name
+
+# Discharge maps 
+<metanetcdf varname="discharge" unit="m3/s"  standard_name="Discharge" long_name="Discharge in cubic meter per second"  title="1st Demo CWATM" author="PB" />
+
+# others
+<metanetcdf varname="soilmoisture" unit="mm"  standard_name="soil moisture" long_name="Soil moisture"  title ="1st Demo CWATM" author="PB" />
+
+
+</CWATM>

@@ -18,10 +18,12 @@ xmlstring=[]
 global binding, option, FlagName, Flags, ReportSteps, FilterSteps, EnsMembers, outputDir
 global MMaskMap, maskmapAttr, bigmapAttr, cutmap, metadataNCDF
 global timestepInit
+global metaNetcdfVar
 
 timestepInit =[]
 binding = {}
 option = {}
+metaNetcdfVar = {}
 
 #date variable
 global dateVar

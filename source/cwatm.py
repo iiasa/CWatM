@@ -51,10 +51,14 @@ class CWATModel(CWATModel_ini, CWATModel_dyn):
 def CWATMexe():
 
     parse_configuration(settings)
-    print option
-    print binding
+    #print option
+    #print binding
     # read all the possible option for modelling and for generating output
     # read the settings file with all information about the catchments(s)
+
+    # read the meta data information for netcdf outputfiles
+    read_metanetcdf(binding['metaNetcdfFile'])
+
 
     ### bindkey = sorted(binding.keys())
 

@@ -12,6 +12,8 @@ from management_modules.globals import *
 
 import ConfigParser
 import re
+import xml.dom.minidom
+from management_modules.messages import *
 
 import optparse
 import os
@@ -116,4 +118,38 @@ def parse_configuration(settingsFileName):
 
     outputDir.append(binding["PathOut"])
      # Output directory is stored in a separat global array
+
+
+def read_metanetcdf(metaxml):
+    """ read the metadata for netcdf output files
+    unit, long name, standard name and additional information
+
+    """
+
+    try:
+        f=open(metaxml)
+        f.close()
+    except:
+        msg = "Cannot find option file: " + metaxml
+        raise CWATMFileError(metaxml,msg)
+    try:
+        metaparse = xml.dom.minidom.parse(metaxml)
+    except:
+        msg = "Error using option file: " + metaxml
+        raise CWATMError(msg)
+
+    # running through all output variable
+    # if an output variable is not defined here the standard metadata is used
+    # unit = "undefined", standard name = long name = variable name
+    meta = metaparse.getElementsByTagName("CWATM")[0]
+
+    for metavar in meta.getElementsByTagName("metanetcdf"):
+        d = {}
+        for key in metavar.attributes.keys():
+            if key != 'varname':
+                d[key] = metavar.attributes[key].value
+        key = metavar.attributes['varname'].value
+        metaNetcdfVar[key] = d
+
+
 
