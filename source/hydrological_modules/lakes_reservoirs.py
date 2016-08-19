@@ -47,9 +47,9 @@ class lakes_reservoirs(object):
 
         # lake and reservoir storages = waterBodyStorage (m3)
         # - values are given for the entire lake / reservoir cells
-        self.var.waterBodyStorage = loadmap('waterBodyStorageIni') + globals.inZero
-        self.var.avgInflow = loadmap('avgInflowLakeReservIni') + globals.inZero
-        self.var.avgOutflow = loadmap('avgOutflowDischargeIni') + globals.inZero
+        self.var.waterBodyStorage = self.var.init_module.load_initial('waterBodyStorage') + globals.inZero
+        self.var.avgInflow = self.var.init_module.load_initial('avgInflowLakeReserv') + globals.inZero
+        self.var.avgOutflow = self.var.init_module.load_initial('avgOutflowDischarge') + globals.inZero
 
 
 

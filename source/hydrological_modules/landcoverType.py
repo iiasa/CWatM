@@ -99,13 +99,18 @@ class landcoverType(object):
             self.var.interceptCapNC_filename.append(coverType + "_interceptCapNC")
             self.var.coverFractionNC_filename.append(coverType + "_coverFractionNC")
 
+
+
+
             # init values
-            self.var.interceptStor.append(loadmap(coverType + "_interceptStorIni"))
-            self.var.topWaterLayer.append(loadmap(coverType + "_topWaterLayerIni"))
-            self.var.storUpp000005.append(loadmap(coverType + "_storUpp000005Ini"))
-            self.var.storUpp005030.append(loadmap(coverType + "_storUpp005030Ini"))
-            self.var.storLow030150.append(loadmap(coverType + "_storLow030150Ini"))
-            self.var.interflow.append(loadmap(coverType + "_interflowIni"))
+            self.var.interceptStor.append(self.var.init_module.load_initial(coverType + "_interceptStor"))
+            #self.var.topWaterLayer.append(self.var.init_module.load_initial(coverType + "_topWaterLayerIni"))
+            self.var.topWaterLayer.append(self.var.init_module.load_initial(coverType + "_topWaterLayer"))
+
+            self.var.storUpp000005.append(self.var.init_module.load_initial(coverType + "_storUpp000005"))
+            self.var.storUpp005030.append(self.var.init_module.load_initial(coverType + "_storUpp005030"))
+            self.var.storLow030150.append(self.var.init_module.load_initial(coverType + "_storLow030150"))
+            self.var.interflow.append(self.var.init_module.load_initial(coverType + "_interflow"))
 
             # summarize the following initial storages:
             self.var.sum_interceptStor += self.var.fracVegCover[i] * self.var.interceptStor[i]

@@ -10,6 +10,8 @@
 
 
 from hydrological_modules.miscInitial import *
+from hydrological_modules.initcondition import *
+
 from hydrological_modules.readmeteo import *
 from hydrological_modules.inflow import *
 from hydrological_modules.snow_frost import *
@@ -95,6 +97,8 @@ class CWATModel_ini(DynamicModel):
         # include all the hydrological modules
 
         self.misc_module = miscInitial(self)
+        self.init_module = initcondition(self)
+
         self.readmeteo_module = readmeteo(self)
         self.inflow_module = inflow(self)
         self.snowfrost_module = snow(self)
@@ -143,6 +147,8 @@ class CWATModel_ini(DynamicModel):
 
         # run intial misc to get all global variables
         self.misc_module.initial()
+        self.init_module.initial()
+
         self.inflow_module.initial()
         self.snowfrost_module.initial()
         self.soil_module.initial()

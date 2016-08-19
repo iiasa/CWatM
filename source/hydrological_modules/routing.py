@@ -88,18 +88,21 @@ class routing(object):
         # Initial conditions
 
         # channelStorage (m3) includes all storages at channels and water bodies (lakes & reservoirs)
-        self.var.channelStorage = loadmap('channelStorageIni')
-        self.var.readAvlChannelStorage = loadmap('readAvlChannelStorageIni')
-        self.var.timestepsToAvgDischarge = loadmap('timestepsToAvgDischargeIni')
-        self.var.avgDischarge = loadmap('avgChannelDischargeIni')    # in m3/s
-        self.var.m2tDischarge = loadmap('m2tChannelDischargeIni')
-        self.var.avgBaseflow = loadmap('avgBaseflowIni')
-        self.var.riverbedExchange = loadmap('riverbedExchangeIni')
+        #self.var.channelStorage = loadmap('channelStorageIni')
+        self.var.channelStorage = self.var.init_module.load_initial('channelStorage')
+        self.var.readAvlChannelStorage = self.var.init_module.load_initial('readAvlChannelStorage')
+        # make sure that timestepsToAvgDischarge is consistent (or the same) for the entire map: # as pcraster.mapmaximum
+        self.var.timestepsToAvgDischarge = np.amax(self.var.init_module.load_initial('timestepsToAvgDischarge'))
+        self.var.avgDischarge = self.var.init_module.load_initial('avgChannelDischarge')    # in m3/s
+        self.var.m2tDischarge = self.var.init_module.load_initial('m2tChannelDischarge')
+        self.var.avgBaseflow = self.var.init_module.load_initial('avgBaseflow')
+        self.var.riverbedExchange = self.var.init_module.load_initial('riverbedExchange')
+
+
 
         self.var.readAvlChannelStorage = np.minimum(self.var.readAvlChannelStorage, self.var.channelStorage)
 
-        # make sure that timestepsToAvgDischarge is consistent (or the same) for the entire map:
-        self.var.timestepsToAvgDischarge = np.amax(self.var.timestepsToAvgDischarge)   # as pcraster.mapmaximum
+
 
         i  = 1
  

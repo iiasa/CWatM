@@ -58,13 +58,15 @@ class snow(object):
         self.var.SnowMeltCoef = loadmap('SnowMeltCoef')
         self.var.TempMelt = loadmap('TempMelt')
 
-        SnowCoverAInit = loadmap('SnowCoverAInitValue')
-        SnowCoverBInit = loadmap('SnowCoverBInitValue')
-        SnowCoverCInit = loadmap('SnowCoverCInitValue')
-        self.var.SnowCoverS = [SnowCoverAInit, SnowCoverBInit, SnowCoverCInit]
+        #SnowCover1 = loadmap('SnowCover1Ini')
+        SnowCover1 = self.var.init_module.load_initial('SnowCover1')
+        SnowCover2 = self.var.init_module.load_initial('SnowCover2')
+        SnowCover3 = self.var.init_module.load_initial('SnowCover3')
+        #self.var.init_module.load_initial('SnowCover1')
+        self.var.SnowCoverS = [SnowCover1, SnowCover2, SnowCover3]
 
         # initial snow depth in elevation zones A, B, and C, respectively  [mm]
-        self.var.SnowCoverInit = (SnowCoverAInit + SnowCoverBInit + SnowCoverCInit) / 3
+        self.var.SnowCoverInit = (SnowCover1 + SnowCover2 + SnowCover3) / 3
         # Pixel-average initial snow cover: average of values in 3 elevation
         # zones
 
@@ -77,7 +79,11 @@ class snow(object):
         self.var.SnowWaterEquivalent = loadmap('SnowWaterEquivalent')
 
         # FrostIndexInit=ifthen(defined(self.var.MaskMap),scalar(loadmap('FrostIndexInitValue')))
-        self.var.FrostIndex = loadmap('FrostIndexInitValue')
+
+        #self.var.FrostIndex = loadmap('FrostIndexIni')
+        self.var.FrostIndex = self.var.init_module.load_initial('FrostIndex')
+
+
 
 
 

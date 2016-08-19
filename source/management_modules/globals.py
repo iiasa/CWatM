@@ -25,6 +25,12 @@ binding = {}
 option = {}
 metaNetcdfVar = {}
 
+# Initial conditions
+global initCondVar,initCondVarValue
+initCondVarValue = []
+initCondVar = []
+
+
 #date variable
 global dateVar
 dateVar = {}

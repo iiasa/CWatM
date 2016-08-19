@@ -447,6 +447,36 @@ def readnetcdfWithoutTime(name, value="None"):
 
 
 
+def readnetcdfInitial(name, value,default = 0.0):
+    """
+      load initial condition from netcdf format
+    """
+    filename =  os.path.normpath(name)
+    try:
+       nf1 = Dataset(filename, 'r')
+    except:
+        msg = "Netcdf Initial file: \n"
+        raise CWATMFileError(filename,msg)
+    if value in nf1.variables.keys():
+        try:
+            #mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
+            mapnp = (nf1.variables[value][:])
+            nf1.close()
+            mapC = compressArray(mapnp,pcr=False,name=filename)
+            return mapC
+        except:
+            nf1.close()
+            msg = "Initial value: " + value + " is has not the same shape as the mask map"
+            print CWATMError(msg)
+    else:
+        nf1.close()
+        msg = "Initial value: " + value + " is not included in: " + name + " - using default: " + str(default)
+        print CWATMWarning(msg)
+        return default
+
+
+
+
 
 def getmeta(key,varname,alternative):
     """
@@ -461,7 +491,7 @@ def getmeta(key,varname,alternative):
 
 
 
-
+# --------------------------------------------------------------------------------------------
 
 #def writenet(flag, inputmap, netfile, timestep, value_standard_name, value_long_name, value_unit, fillval, startdate, flagTime=True):
 def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagTime, nrdays=None):
@@ -604,6 +634,114 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
     flag = True
 
     return flag
+
+
+# --------------------------------------------------------------------------------------------
+
+
+def writeIniNetcdf(netfile,varlist, inputlist):
+    """
+    write variables to netcdf init file
+    """
+
+    row = np.abs(cutmap[3] - cutmap[2])
+    col = np.abs(cutmap[1] - cutmap[0])
+
+    nf1 = Dataset(netfile, 'w', format='NETCDF4')
+
+    # general Attributes
+    nf1.settingsfile = os.path.realpath(sys.argv[1])
+    nf1.date_created = xtime.ctime(xtime.time())
+    nf1.Source_Software = 'CWATM Python'
+    nf1.institution = binding ["institution"]
+    nf1.title = binding ["title"]
+    nf1.source = 'CWATM initial conditions maps'
+    nf1.Conventions = 'CF-1.6'
+
+    # put the additional genaral meta data information from the xml file into the netcdf file
+    # infomation from the settingsfile comes first
+
+    if "initcondition" in metaNetcdfVar:
+        for key in metaNetcdfVar["initcondition"]:
+            if not (key in nf1.__dict__.keys()):
+               if not (key in ["unit", "long_name", "standard_name"]):
+                   nf1.__setattr__(key, metaNetcdfVar["initcondition"][key])
+
+
+    # Dimension
+    if 'x' in metadataNCDF.keys():
+        lon = nf1.createDimension('x', col)  # x 1000
+        longitude = nf1.createVariable('x', 'f8', ('x',))
+        for i in metadataNCDF['x']:
+            exec('%s="%s"') % ("longitude." + i, metadataNCDF['x'][i])
+    if 'lon' in metadataNCDF.keys():
+        lon = nf1.createDimension('lon', col)
+        longitude = nf1.createVariable('lon', 'f8', ('lon',))
+        for i in metadataNCDF['lon']:
+            exec('%s="%s"') % ("longitude." + i, metadataNCDF['lon'][i])
+    if 'y' in metadataNCDF.keys():
+        lat = nf1.createDimension('y', row)  # x 950
+        latitude = nf1.createVariable('y', 'f8', ('y'))
+        for i in metadataNCDF['y']:
+            exec('%s="%s"') % ("latitude." + i, metadataNCDF['y'][i])
+    if 'lat' in metadataNCDF.keys():
+        lat = nf1.createDimension('lat', row)  # x 950
+        latitude = nf1.createVariable('lat', 'f8', ('lat'))
+        for i in metadataNCDF['lat']:
+            exec('%s="%s"') % ("latitude." + i, metadataNCDF['lat'][i])
+
+    # projection
+    if 'laea' in metadataNCDF.keys():
+        proj = nf1.createVariable('laea', 'i4')
+        for i in metadataNCDF['laea']:
+            exec('%s="%s"') % ("proj." + i, metadataNCDF['laea'][i])
+    if 'lambert_azimuthal_equal_area' in metadataNCDF.keys():
+        proj = nf1.createVariable('lambert_azimuthal_equal_area', 'i4')
+        for i in metadataNCDF['lambert_azimuthal_equal_area']:
+            exec('%s="%s"') % ("proj." + i, metadataNCDF['lambert_azimuthal_equal_area'][i])
+
+    # Fill variables
+    cell = round(pcraster.clone().cellSize(),5)
+    xl = round((pcraster.clone().west() + cell / 2),5)
+    xr = round((xl + col * cell),5)
+    yu = round((pcraster.clone().north() - cell / 2),5)
+    yd = round((yu - row * cell),5)
+    #lats = np.arange(yu, yd, -cell)
+    #lons = np.arange(xl, xr, cell)
+    lats = np.linspace(yu, yd, row, endpoint=False)
+    lons = np.linspace(xl, xr, col, endpoint=False)
+
+    latitude[:] = lats
+    longitude[:] = lons
+
+    i = 0
+    for varname in varlist:
+
+        if 'x' in metadataNCDF.keys():
+            value = nf1.createVariable(varname, 'f4', ('y', 'x'), zlib=True,fill_value=1e20)
+        if 'lon' in metadataNCDF.keys():
+            # for world lat/lon coordinates
+            value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
+
+        value.standard_name= getmeta("standard_name",varname,varname)
+        value.long_name= getmeta("long_name",varname,varname)
+        value.units= getmeta("unit",varname,"undefined")
+
+
+        # write values
+
+        mapnp = maskinfo['maskall'].copy()
+        mapnp[~maskinfo['maskflat']] = inputlist[i][:]
+        #mapnp = mapnp.reshape(maskinfo['shape']).data
+        mapnp = mapnp.reshape(maskinfo['shape'])
+
+        nf1.variables[varname][:, :] = (mapnp)
+        i += 1
+
+
+
+    nf1.close()
+
 
 
 # --------------------------------------------------------------------------------------------

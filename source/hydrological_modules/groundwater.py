@@ -42,7 +42,8 @@ class groundwater(object):
 
         # initial conditions
           #   def getICs(self,iniItems,iniConditions = None):
-        self.var.storGroundwater = loadmap('storGroundwater')
+        #self.var.storGroundwater = loadmap('storGroundwaterIni')
+        self.var.storGroundwater = self.var.init_module.load_initial('storGroundwater')
         self.var.storGroundwater = np.maximum(0.0, self.var.storGroundwater)
 
 # --------------------------------------------------------------------------
