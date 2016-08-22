@@ -56,6 +56,7 @@ class snow(object):
         self.var.TempSnow = loadmap('TempSnow')
         self.var.SnowFactor = loadmap('SnowFactor')
         self.var.SnowMeltCoef = loadmap('SnowMeltCoef')
+        self.var.IceMeltCoef = loadmap('IceMeltCoef')
         self.var.TempMelt = loadmap('TempMelt')
 
         #SnowCover1 = loadmap('SnowCover1Ini')
@@ -66,7 +67,9 @@ class snow(object):
         self.var.SnowCoverS = [SnowCover1, SnowCover2, SnowCover3]
 
         # initial snow depth in elevation zones A, B, and C, respectively  [mm]
-        self.var.SnowCoverInit = (SnowCover1 + SnowCover2 + SnowCover3) / 3
+        self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / 3
+
+
         # Pixel-average initial snow cover: average of values in 3 elevation
         # zones
 
@@ -93,6 +96,8 @@ class snow(object):
     def dynamic(self):
         """ dynamic part of the snow module
         """
+        if option['calcWaterBalance']:
+            prevState = self.var.SnowCover
 
         SeasSnowMeltCoef = self.var.SnowSeason * np.sin(math.radians((dateVar['doy'] - 81)
                                 * self.var.SnowDayDegrees)) + self.var.SnowMeltCoef
@@ -124,15 +129,18 @@ class snow(object):
             # snow precipitation (which is common)
             RainS = np.where(TavgS >= self.var.TempSnow, self.var.Precipitation, globals.inZero)
             # if it's snowing then no rain
+            # snowmelt coeff in m/deg C/day
             SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef * (1 + 0.01 * RainS) * self.var.DtDay
 
             if i < 2:
-                IceMeltS = self.var.Tavg * 7.0 * self.var.DtDay * SummerSeason
+                IceMeltS = self.var.Tavg * self.var.IceMeltCoef * self.var.DtDay * SummerSeason
                 # if i = 0 and 1 -> higher and middle zone
+                # Ice melt coeff in m/C/deg
             else:
-                IceMeltS = TavgS * 7.0 * self.var.DtDay * SummerSeason
+                IceMeltS = TavgS * self.var.IceMeltCoef * self.var.DtDay * SummerSeason
 
             SnowMeltS = np.maximum(np.minimum(SnowMeltS + IceMeltS, self.var.SnowCoverS[i]), globals.inZero)
+            # check if snow+ice not bigger than snowcover
             self.var.SnowCoverS[i] = self.var.SnowCoverS[i] + SnowS - SnowMeltS
             self.var.Snow += SnowS
             self.var.Rain += RainS
@@ -144,6 +152,14 @@ class snow(object):
         self.var.SnowMelt /= 3
         self.var.SnowCover /= 3
         # all in pixel [mm]
+
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Snow],  # In
+                [self.var.SnowMelt],  # Out
+                [prevState],   # prev storage
+                [self.var.SnowCover],
+                "Snow", False)
 
 
         #map = decompress( self.var.TotalPrecipitation)

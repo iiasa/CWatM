@@ -21,7 +21,7 @@ from globals import *
 from management_modules.timestep import *
 
 
-class DynamicFramework(DynamicFramework):
+class DynamicFramework2(DynamicFramework):
     """
     Framework class for dynamic models.
     `userModel`

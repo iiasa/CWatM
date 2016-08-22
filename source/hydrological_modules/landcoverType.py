@@ -46,7 +46,7 @@ class landcoverType(object):
                          'effSatAt50',  'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin','rootZoneWaterStorageRange',
                          'directRunoff','totalPotET','potBareSoilEvap','potTranspiration','availWaterInfiltration','interceptEvap','soilWaterStorage',
                          'infiltration','actBareSoilEvap','landSurfaceRunoff','actTranspiTotal','netPercUpp000005', 'netPercUpp005030',
-                         'gwRecharge','interflow','actualET','interflowTotal']
+                         'gwRecharge','interflow','actualET','interflowTotal','percLow030150']
         for variable in landcoverVars:
              vars(self.var)[variable] = [globals.inZero.copy(), globals.inZero.copy(), globals.inZero.copy(), globals.inZero.copy()]
 
@@ -54,7 +54,7 @@ class landcoverType(object):
         self.var.landcoverSum = [ 'interceptStor', 'topWaterLayer','interflow', 'storUpp000005', 'storUpp005030', 'storLow030150',
                          'directRunoff', 'totalPotET', 'potBareSoilEvap', 'potTranspiration', 'availWaterInfiltration',
                          'interceptEvap', 'soilWaterStorage', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTranspiTotal', 'netPercUpp000005',
-                         'netPercUpp005030','gwRecharge','actualET','interflowTotal']
+                         'netPercUpp005030','gwRecharge','actualET','interflowTotal','percLow030150']
         for variable in self.var.landcoverSum:
             vars(self.var)["sum_"+variable] = globals.inZero.copy()
 

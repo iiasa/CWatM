@@ -206,8 +206,8 @@ class soil(object):
             h4 = h2 ** h3
             h5 = np.where(Pn >= condition, 0.0, h4)
             """
-
-            directRunoff = np.maximum(0.0, Pn - (self.var.rootZoneWaterStorageCap + directRunoffReduction - soilWaterStorage) + \
+            with np.errstate(invalid='ignore', divide='ignore'):
+                directRunoff = np.maximum(0.0, Pn - (self.var.rootZoneWaterStorageCap + directRunoffReduction - soilWaterStorage) + \
                            np.where(Pn >= condition, 0.0, \
                            self.var.rootZoneWaterStorageRange[No] * (WFRACB - \
                            Pn / ((self.var.arnoBeta[No] + 1.) * self.var.rootZoneWaterStorageRange[No])) ** (self.var.arnoBeta[No] + 1.)))
@@ -409,7 +409,7 @@ class soil(object):
                     (self.var.storCapUpp005030 - self.var.storUpp005030[No]))
 
         # - percolation from storLow030150 to storGroundwater (m)
-        percLow030150 = np.minimum(kUnsatLow030150, np.sqrt(self.var.kUnsatAtFieldCapLow030150 * kUnsatLow030150))
+        self.var.percLow030150[No] = np.minimum(kUnsatLow030150, np.sqrt(self.var.kUnsatAtFieldCapLow030150 * kUnsatLow030150))
 
         # - capillary rise to storUpp000005 from storUpp005030 (m)
         capRiseUpp000005 = np.minimum(np.maximum(0., self.var.effSatAtFieldCapUpp000005 - \
@@ -429,7 +429,7 @@ class soil(object):
 
         # - interflow (m)
         percToInterflow = self.var.percolationImp * (percUpp005030 + capRiseLow030150 - \
-                    (percLow030150 + capRiseUpp005030))
+                    (self.var.percLow030150[No] + capRiseUpp005030))
         self.var.interflow[No] = np.maximum( self.var.interflowConcTime * percToInterflow + \
                     (1.0 - self.var.interflowConcTime) * self.var.interflow[No], 0.0)
 
@@ -456,11 +456,11 @@ class soil(object):
         percUpp005030 = ADJUST * percUpp005030
 
         # scale fluxes (for Low030150)
-        ADJUST = actTranspiLow030150 + percLow030150 + self.var.interflow[No]
+        ADJUST = actTranspiLow030150 + self.var.percLow030150[No] + self.var.interflow[No]
         with np.errstate(invalid='ignore', divide='ignore'):
             ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.storLow030150[No] + percUpp005030) / ADJUST), 0.)
         actTranspiLow030150 = ADJUST * actTranspiLow030150
-        percLow030150 = ADJUST * percLow030150
+        self.var.percLow030150[No] = ADJUST * self.var.percLow030150[No]
         self.var.interflow[No] = ADJUST * self.var.interflow[No]
 
         # capillary rise to storLow is limited to available storGroundwater
@@ -472,7 +472,7 @@ class soil(object):
         # capillary rise to storUpp005030 is limited to available storLow030150
         
         estimateStorLow030150BeforeCapRise = np.maximum(0, self.var.storLow030150[No] + percUpp005030 - \
-                (actTranspiLow030150 + percLow030150 + self.var.interflow[No]))
+                (actTranspiLow030150 + self.var.percLow030150[No] + self.var.interflow[No]))
         capRiseUpp005030 = np.minimum(estimateStorLow030150BeforeCapRise, capRiseUpp005030)
 
         # capillary rise to storUpp000005 is limited to available storUpp005030
@@ -491,7 +491,7 @@ class soil(object):
         # - percLow030150 - interflow - actTranspiLow030150 - capRiseUpp005030
         #
         self.var.storLow030150[No] = np.maximum(0., self.var.storLow030150[No] + percUpp005030 + capRiseLow030150 - \
-                    (percLow030150 + self.var.interflow[No] + actTranspiLow030150 + capRiseUpp005030))
+                    (self.var.percLow030150[No] + self.var.interflow[No] + actTranspiLow030150 + capRiseUpp005030))
         #
         # If necessary, reduce percolation input:
         percH = percUpp005030.copy()
@@ -572,7 +572,7 @@ class soil(object):
         self.var.netPercUpp005030[No] = percUpp005030 - capRiseUpp005030
 
         # groundwater recharge
-        self.var.gwRecharge[No] = percLow030150 - capRiseLow030150
+        self.var.gwRecharge[No] = self.var.percLow030150[No] - capRiseLow030150
 
         # landSurfaceRunoff (needed for routing)
         self.var.interflowTotal[No] = self.var.interflow[No] + interflowUpp005030

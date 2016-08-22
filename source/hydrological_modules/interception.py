@@ -37,6 +37,10 @@ class interception(object):
         else:
             interceptCap = self.var.minInterceptCap[No]
 
+        if option['calcWaterBalance']:
+            prevState = self.var.interceptStor[No]
+
+
         # throughfall = surplus above the interception storage threshold
         # throughfall = np.maximum(0.0, self.var.interceptStor[No] + self.var.Precipitation - interceptCap)
         # PB changed to Rain instead Pr, bceause snow is substracted later
@@ -49,9 +53,6 @@ class interception(object):
         self.var.interceptStor[No] = self.var.interceptStor[No] + self.var.Rain - throughfall
 
         self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + self.var.SnowMelt)
-
-
-
 
 
         # evaporation from intercepted water (based on potTranspiration)
@@ -68,3 +69,13 @@ class interception(object):
         # update actual evaporation (after interceptEvap)
         # interceptEvap is the first flux in ET
         self.var.actualET[No] = self.var.interceptEvap[No].copy()
+
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Rain,self.var.SnowMelt],  # In
+                [self.var.availWaterInfiltration[No],self.var.interceptEvap[No]],  # Out
+                [prevState],   # prev storage
+                [self.var.interceptStor[No]],
+                "Interception", True)
+
+

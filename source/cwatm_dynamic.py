@@ -51,7 +51,7 @@ class CWATModel_dyn(DynamicModel):
                 if (not(Flags['quiet'])) and (not(Flags['veryquiet'])):
                     sys.stdout.write("\r%d" % dateVar['currStart'])
                     sys.stdout.flush()
-        print
+            print
 
         # ************************************************************
         """ up to here it was fun, now the real stuff starts
@@ -87,12 +87,20 @@ class CWATModel_dyn(DynamicModel):
         self.routing_module.dynamic()
         timemeasure("Routing")  # 7. timing
 
+        self.routing_module.dynamic()
+        timemeasure("Routing")  # 7. timing
+
+        # *******  Calculate CUMULATIVE MASS BALANCE ERROR  **********
+        # self.waterbalance_module.dynamic()
+
+        # ------------------------------------------------------
+        # End of calculation -----------------------------------
+        # ------------------------------------------------------
 
         self.output_module.dynamic()
         timemeasure("Output")  # 7. timing
 
         self.init_module.dynamic()
-        timemeasure("WriteInitCond")  # 8. timing
 
         for i in xrange(len(timeMes)):
             if self.currentTimeStep() == self.firstTimeStep():

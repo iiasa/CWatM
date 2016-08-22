@@ -74,7 +74,7 @@ def CWATMexe():
         print"%-6s %10s %11s\n" %("Step","Date","Discharge"),
 
     CWATM = CWATModel()
-    stCWATM = DynamicFramework(CWATM, firstTimestep=dateVar["intStart"], lastTimeStep=dateVar["intEnd"])
+    stCWATM = DynamicFramework2(CWATM, firstTimestep=dateVar["intStart"], lastTimeStep=dateVar["intEnd"])
     stCWATM.rquiet = True
     stCWATM.rtrace = False
 
