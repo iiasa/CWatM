@@ -101,11 +101,11 @@ class CWATModel_ini(DynamicModel):
         self.soil_module.initial()
         self.landcoverType_module.initial()
         self.groundwater_module.initial()
-        self.waterdemand_module.initial()
 
         self.routing_module.initial()
         self.lakes_reservoirs_module.initial()
 
+        self.waterdemand_module.initial()
         self.waterbalance_module.initial()
         # calculate initial amount of water in the catchment
 

@@ -30,8 +30,6 @@ class landcoverType(object):
         """
         self.var.coverTypes= map(str.strip, binding["coverTypes"].split(","))
 
-
-
         landcoverPara = ['minTopWaterLayer','minCropKC','minInterceptCap','cropDeplFactor','fracVegCover','rootFraction1','rootFraction2',
                          'maxRootDepth', 'minSoilDepthFrac','maxSoilDepthFrac','interceptStor', 'topWaterLayer',
                          'storUpp000005', 'storUpp005030', 'storLow030150', 'interflow','arnoBeta',
@@ -46,7 +44,8 @@ class landcoverType(object):
                          'effSatAt50',  'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin','rootZoneWaterStorageRange',
                          'directRunoff','totalPotET','potBareSoilEvap','potTranspiration','availWaterInfiltration','interceptEvap','soilWaterStorage',
                          'infiltration','actBareSoilEvap','landSurfaceRunoff','actTranspiTotal','netPercUpp000005', 'netPercUpp005030',
-                         'gwRecharge','interflow','actualET','interflowTotal','percLow030150']
+                         'gwRecharge','interflow','actualET','interflowTotal','percLow030150','openWaterEvap','capRiseLow030150', 'irrGrossDemand',
+                         'interceptStor','topWaterLayer','storUpp000005','storUpp005030','storLow030150']
         for variable in landcoverVars:
              vars(self.var)[variable] = [globals.inZero.copy(), globals.inZero.copy(), globals.inZero.copy(), globals.inZero.copy()]
 
@@ -54,14 +53,23 @@ class landcoverType(object):
         self.var.landcoverSum = [ 'interceptStor', 'topWaterLayer','interflow', 'storUpp000005', 'storUpp005030', 'storLow030150',
                          'directRunoff', 'totalPotET', 'potBareSoilEvap', 'potTranspiration', 'availWaterInfiltration',
                          'interceptEvap', 'soilWaterStorage', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTranspiTotal', 'netPercUpp000005',
-                         'netPercUpp005030','gwRecharge','actualET','interflowTotal','percLow030150']
+                         'netPercUpp005030','gwRecharge','actualET','interflowTotal','percLow030150', 'topWaterLayer','capRiseLow030150', 'openWaterEvap','irrGrossDemand']
         for variable in self.var.landcoverSum:
             vars(self.var)["sum_"+variable] = globals.inZero.copy()
+        self.var.totalSoil = globals.inZero.copy()
+        self.var.totalET = globals.inZero.copy()
 
 
         i = 0
         for coverType in self.var.coverTypes:
-            self.var.fracVegCover.append(loadmap(coverType + "_fracVegCover"))
+            frac = np.around(loadmap(coverType + "_fracVegCover"),decimals=5)
+            #forest + grassland should be 1)
+            if coverType == "grassland":
+                frac = 1.0 - self.var.fracVegCover[0]
+            self.var.fracVegCover.append(frac)
+            #self.var.fracVegCover.append(loadmap(coverType + "_fracVegCover"))
+        self.var.fracForestOrig = self.var.fracVegCover[0]
+        self.var.fracGrasslandOrig = self.var.fracVegCover[1]
 
         #  rescales natural land cover fractions (make sure the total = 1)  #TODO
         # forest  = 0, grassland = 1, irrPaddy = 2 , irrnonpaddy = 3
@@ -75,6 +83,8 @@ class landcoverType(object):
         # fraction of what type of irrigation area
         self.var.irrTypeFracOverIrr[2] = self.var.fracVegCover[2] / np.maximum(1E-9,irrigatedAreaFrac)
         self.var.irrTypeFracOverIrr[3] = self.var.fracVegCover[3] / np.maximum(1E-9,irrigatedAreaFrac)
+
+
 
 
         i = 0
@@ -212,6 +222,8 @@ class landcoverType(object):
 
         if option['includeIrrigation'] and option['dynamicIrrigationArea']:
         # if first day of the year or first day of run
+
+
             if dateVar['newStart'] or  dateVar['newYear']:
 
                # updating fracVegCover of landCover (for historical irrigation areas, done at yearly basis)
@@ -235,12 +247,12 @@ class landcoverType(object):
                totalAreafrac = irrigatedAreaFrac + nonirrigatedAreaFrac
                # Correction of forest and grassland by irrigation part: #have to think if irrigation should go at the same pecentage from forest
                # BETTER adjust these maps before !!!
-               for i in xrange(0,3):
-                   self.var.fracVegCover[i] = self.var.fracVegCover[i]/totalAreafrac
-               #self.var.fracVegCover[0] = self.var.fracVegCover[0] * (1.0 - irrigatedAreaFrac)
-               #self.var.fracVegCover[1] = self.var.fracVegCover[1] * (1.0 - irrigatedAreaFrac)
-               i = 1
 
+               self.var.fracVegCover[0] = self.var.fracForestOrig * (1.0 - irrigatedAreaFrac)
+               self.var.fracVegCover[1] = self.var.fracGrasslandOrig * (1.0- irrigatedAreaFrac)
+
+               #for i in xrange(0,2):
+               #    self.var.fracVegCover[i] = self.var.fracVegCover[i]/totalAreafrac
 
 # --------------------------------------------------------------------------
 
@@ -250,54 +262,98 @@ class landcoverType(object):
         """
 
 
+        if option['calcWaterBalance']:
+            preTopWaterLayer = self.var.sum_topWaterLayer.copy()
+            preStorUpp000005 = self.var.sum_storUpp000005.copy()
+            preStorUpp005030 = self.var.sum_storUpp005030.copy()
+            preStorLow030150 = self.var.sum_storLow030150.copy()
+            preIntStor = self.var.sum_interceptStor.copy()
+
+            self.var.pretotalSoil = self.var.totalSoil.copy()
+
+
+
         coverNo = 0
-        #print "soil"
+
         # update soil (loop per each land cover type):
         for coverType in self.var.coverTypes:
             #print coverNo,coverType
+
 
             self.var.evaporation_module.dynamic(coverType, coverNo)
             self.var.interception_module.dynamic(coverType, coverNo)
             self.var.soil_module.dynamic(coverType, coverNo)
             coverNo += 1
 
+
         # aggregated variables by fraction of land cover
-        # Land surface module 725
-
-
-        # set aggregated storages to zero
-        self.var.landcoverSum = [ 'interceptStor', 'topWaterLayer','interflow', 'storUpp000005', 'storUpp005030', 'storLow030150',
-                         'directRunoff', 'totalPotET', 'potBareSoilEvap', 'potTranspiration', 'availWaterInfiltration',
-                         'interceptEvap', 'soilWaterStorage', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTranspiTotal', 'netPercUpp000005',
-                         'netPercUpp005030','gwRecharge','actualET','interflowTotal','topWaterLayer']
         for variable in self.var.landcoverSum:
-            vars(self.var)["sum_"+variable] = globals.inZero.copy()
-
-        for variable in self.var.landcoverSum:
+            vars(self.var)["sum_" + variable] = globals.inZero.copy()
             for No in xrange(4):
                 vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
+        self.var.totalSoil = self.var.sum_interceptStor + self.var.sum_topWaterLayer + \
+                            self.var.sum_storUpp000005 + self.var.sum_storUpp005030 + self.var.sum_storLow030150
         self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_topWaterLayer + \
                 self.var.sum_storUpp000005 + self.var.sum_storUpp005030 + self.var.sum_storLow030150
+        self.var.totalET = self.var.sum_actTranspiTotal + self.var.sum_actBareSoilEvap + self.var.sum_openWaterEvap + self.var.sum_interceptEvap
+
+
+###--------------------------------------------------------------------
+### DEBUG
+
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Rain,self.var.SnowMelt],  # In
+                [self.var.sum_availWaterInfiltration,self.var.sum_interceptEvap],  # Out
+                [preIntStor],   # prev storage
+                [self.var.sum_interceptStor],
+                "InterAll", False)
+
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.sum_availWaterInfiltration,self.var.sum_capRiseLow030150,self.var.sum_irrGrossDemand],                             # In  self.var.irrGrossDemand
+                [self.var.sum_directRunoff,self.var.sum_interflowTotal, self.var.sum_percLow030150, \
+                 self.var.sum_actTranspiTotal, \
+                 self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap],                                                                # Out
+                [preTopWaterLayer,preStorUpp000005,preStorUpp005030,preStorLow030150],                                       # prev storage
+                [self.var.sum_topWaterLayer,self.var.sum_storUpp000005,self.var.sum_storUpp005030,self.var.sum_storLow030150],
+                "Soil_sum", False)
+
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Rain,self.var.SnowMelt,self.var.sum_capRiseLow030150,self.var.sum_irrGrossDemand],                             # In  self.var.irrGrossDemand
+                [self.var.sum_directRunoff,self.var.sum_interflowTotal, self.var.sum_percLow030150, \
+                 self.var.sum_actTranspiTotal, \
+                 self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap, self.var.sum_interceptEvap],                                                                # Out
+                [preTopWaterLayer,preStorUpp000005,preStorUpp005030,preStorLow030150,preIntStor],                                       # prev storage
+                [self.var.sum_topWaterLayer,self.var.sum_storUpp000005,self.var.sum_storUpp005030,self.var.sum_storLow030150, self.var.sum_interceptStor],
+                "Soil_sum", False)
+
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation,self.var.sum_capRiseLow030150,self.var.sum_irrGrossDemand],                             # In
+                [self.var.sum_directRunoff,self.var.sum_interflowTotal, self.var.sum_percLow030150, \
+                 self.var.sum_actTranspiTotal, \
+                 self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap, self.var.sum_interceptEvap],                                                                # Out
+                [self.var.prevSnowCover, preTopWaterLayer,preStorUpp000005,preStorUpp005030,preStorLow030150,preIntStor],                                       # prev storage
+                [self.var.SnowCover, self.var.sum_topWaterLayer,self.var.sum_storUpp000005,self.var.sum_storUpp005030,self.var.sum_storLow030150, self.var.sum_interceptStor],
+                "Soil_All", False)
+
+
+
+
+
+
 
         #a = decompress(self.var.sumsum_Precipitation)
         #b = cellvalue(a,81,379)
         #print self.var.sum_directRunoff
-
-
         #report(decompress(self.var.sumsum_Precipitation), "c:\work\output\Prsum.map")
         #report(decompress(self.var.sumsum_gwRecharge), "c:\work\output\gwrsum.map")
 
-
-
-
-
-
-
-
-        # landcover UpdateLC 370
         """
-
+        # landcover UpdateLC 370
         getPotET(coverType,coverNo)
         self.interceptionUpdate(meteo, currTimeStep)  # calculate interception and update storage
             # snow already calculated

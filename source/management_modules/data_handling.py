@@ -188,7 +188,7 @@ def loadmap(name,pcr=False, lddflag=False):
         value = nf1.variables.items()[-1][0]  # get the last variable name
 
         if not timestepInit:
-            mapnp = nf1.variables[value][cut2:cut3, cut0:cut1]
+            mapnp = nf1.variables[value][cut2:cut3, cut0:cut1].astype(np.float64)
         else:
             if 'time' in nf1.variables:
                 timestepI = Calendar(timestepInit[0])
@@ -370,7 +370,7 @@ def readnetcdf(name, time):
 
     value = nf1.variables.items()[-1][0]  # get the last variable name
     mapnp = nf1.variables[value][
-        number, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
+        number, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
     nf1.close()
 
     mapC = compressArray(mapnp,pcr=False,name=filename)
@@ -417,7 +417,7 @@ def readnetcdf2(name, date, useDaily='daily', value='None'):
            idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
     if value == "None":
         value = nf1.variables.items()[-1][0]  # get the last variable name
-    mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
+    mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
     nf1.close()
 
     mapC = compressArray(mapnp,pcr=False,name=filename)
@@ -439,7 +439,7 @@ def readnetcdfWithoutTime(name, value="None"):
     if value == "None":
         value = nf1.variables.items()[-1][0]  # get the last variable name
 
-    mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
+    mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
     nf1.close()
 
     mapC = compressArray(mapnp,pcr=False,name=filename)
@@ -460,7 +460,7 @@ def readnetcdfInitial(name, value,default = 0.0):
     if value in nf1.variables.keys():
         try:
             #mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
-            mapnp = (nf1.variables[value][:])
+            mapnp = (nf1.variables[value][:].astype(np.float64))
             nf1.close()
             mapC = compressArray(mapnp,pcr=False,name=filename)
             return mapC

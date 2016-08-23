@@ -87,9 +87,6 @@ class CWATModel_dyn(DynamicModel):
         self.routing_module.dynamic()
         timemeasure("Routing")  # 7. timing
 
-        self.routing_module.dynamic()
-        timemeasure("Routing")  # 7. timing
-
         # *******  Calculate CUMULATIVE MASS BALANCE ERROR  **********
         # self.waterbalance_module.dynamic()
 
@@ -97,8 +94,11 @@ class CWATModel_dyn(DynamicModel):
         # End of calculation -----------------------------------
         # ------------------------------------------------------
 
+        self.waterbalance_module.checkWaterSoilGround()
+        timemeasure("Waterbalance")  # 8. timing
+
         self.output_module.dynamic()
-        timemeasure("Output")  # 7. timing
+        timemeasure("Output")  # 9. timing
 
         self.init_module.dynamic()
 

@@ -38,7 +38,7 @@ class interception(object):
             interceptCap = self.var.minInterceptCap[No]
 
         if option['calcWaterBalance']:
-            prevState = self.var.interceptStor[No]
+            prevState = self.var.interceptStor[No].copy()
 
 
         # throughfall = surplus above the interception storage threshold
@@ -76,6 +76,6 @@ class interception(object):
                 [self.var.availWaterInfiltration[No],self.var.interceptEvap[No]],  # Out
                 [prevState],   # prev storage
                 [self.var.interceptStor[No]],
-                "Interception", True)
+                "Interception", False)
 
 

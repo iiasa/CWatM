@@ -97,7 +97,7 @@ class snow(object):
         """ dynamic part of the snow module
         """
         if option['calcWaterBalance']:
-            prevState = self.var.SnowCover
+            self.var.prevSnowCover = self.var.SnowCover
 
         SeasSnowMeltCoef = self.var.SnowSeason * np.sin(math.radians((dateVar['doy'] - 81)
                                 * self.var.SnowDayDegrees)) + self.var.SnowMeltCoef
@@ -157,7 +157,7 @@ class snow(object):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Snow],  # In
                 [self.var.SnowMelt],  # Out
-                [prevState],   # prev storage
+                [self.var.prevSnowCover],   # prev storage
                 [self.var.SnowCover],
                 "Snow", False)
 

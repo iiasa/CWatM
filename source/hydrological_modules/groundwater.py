@@ -52,14 +52,15 @@ class groundwater(object):
         """ dynamic part of the groundwater module
         """
 
-       # if (self.var.currentTimeStep() == 50):
+
+        if option['calcWaterBalance']:
+            self.var.prestorGroundwater = self.var.storGroundwater.copy()
 
 
-        # if self.var.debugWaterBalance == str('True'): prestorGroundwater = self.var.storGroundwater
 
         # get riverbed infiltration from the previous time step (from routing)
-###        self.var.surfaceWaterInf = routing.riverbedExchange / routing.cellArea
-        self.var.surfaceWaterInf = globals.inZero.copy()
+        self.var.surfaceWaterInf = self.var.riverbedExchange * self.var.InvCellArea
+        #self.var.surfaceWaterInf = globals.inZero.copy()
         # to be replaced #TODO
 
         self.var.storGroundwater = self.var.storGroundwater + self.var.surfaceWaterInf
@@ -96,5 +97,14 @@ class groundwater(object):
         tresholdStorGroundwater = 0.00005  # 0.05 mm
         self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater,0.0)
         # self.var.readAvlStorGroundwater = pcr.cover(self.var.readAvlStorGroundwater, 0.0)
+
+
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.sum_gwRecharge, self.var.surfaceWaterInf],            # In
+                [self.var.baseflow,self.var.nonFossilGroundwaterAbs],           # Out
+                [self.var.prestorGroundwater],                                  # prev storage
+                [self.var.storGroundwater],
+                "Ground", False)
 
 

@@ -80,22 +80,72 @@ class waterbalance(object):
         #balance = endStorages
         minB = np.amin(balance)
         maxB = np.amax(balance)
+        maxBB = np.maximum(np.abs(minB),np.abs(maxB))
         #meanB = np.average(balance, axis=0)
-        meanB = 0.0
+        #meanB = 0.0
 
         if printTrue:
-            print "     %s %10.8f %10.8f %10.8f" % (processName, minB,maxB, meanB),
+            #print "     %s %10.8f " % (processName, maxBB),
+            print "     %s %10.8f %10.8f" % (processName, minB,maxB),
         j = 0
 
 # ----------------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------
 
+    def checkWaterSoilGround(self):
+        """ Check water balance of snow, vegetation, soil, groundwater
+        """
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation,self.var.sum_capRiseLow030150,self.var.sum_irrGrossDemand],    # In
+                [self.var.sum_directRunoff,self.var.sum_interflowTotal, self.var.sum_percLow030150,    # Out
+                 self.var.sum_actTranspiTotal,
+                 self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap, self.var.sum_interceptEvap],
+                [self.var.prevSnowCover, self.var.pretotalSoil],                                       # prev storage
+                [self.var.SnowCover, self.var.totalSoil],
+                "AllSoilWB", False)
 
-def dynamic(self):
-    """ dynamic part of the water balance module
-    """
-    if option['sumWaterBalance']:
-        i = 1
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation,self.var.sum_irrGrossDemand, self.var.surfaceWaterInf],    # In
+                [self.var.sum_directRunoff,self.var.sum_interflowTotal,                            # Out
+                 self.var.totalET,  self.var.nonFossilGroundwaterAbs,self.var.baseflow],
+                [self.var.prevSnowCover, self.var.pretotalSoil,self.var.prestorGroundwater],       # prev storage
+                [self.var.SnowCover, self.var.totalSoil,self.var.storGroundwater],
+                "Soil+G", False)
+
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation,self.var.sum_irrGrossDemand, self.var.nonIrrReturnFlow],    # In
+                [self.var.totalET,  self.var.nonFossilGroundwaterAbs, self.var.actSurfaceWaterAbstract, self.var.localQW],
+                [self.var.prevSnowCover, self.var.pretotalSoil,self.var.prestorGroundwater,self.var.prechannelStorage * self.var.InvCellArea],       # prev storage
+                [self.var.SnowCover, self.var.totalSoil,self.var.storGroundwater,self.var.channelStorageBefore * self.var.InvCellArea],
+                "S+G+Rout", True)
+
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation, self.var.surfaceWaterInf],    # In
+                [self.var.totalET,   self.var.localQW, self.var.riverbedExchange * self.var.InvCellArea],
+                [self.var.prevSnowCover, self.var.pretotalSoil,self.var.prestorGroundwater,self.var.prechannelStorage * self.var.InvCellArea],       # prev storage
+                [self.var.SnowCover, self.var.totalSoil,self.var.storGroundwater,self.var.channelStorageBefore * self.var.InvCellArea],
+                "S+G+Rout1", True)
+
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.runoff, self.var.nonIrrReturnFlow],  # In
+                [self.var.actSurfaceWaterAbstract, self.var.localQW, self.var.riverbedExchange * self.var.InvCellArea],           # Out
+                [self.var.prechannelStorage * self.var.InvCellArea],  # prev storage
+                [self.var.channelStorageBefore * self.var.InvCellArea],
+                "Routingxx", False)
+
+
+
+
+    def dynamic(self):
+        """ dynamic part of the water balance module
+        """
+        if option['sumWaterBalance']:
+            i = 1
 
         # sum up storage variables
         #for variable in self.var.sum_balanceStore:
@@ -103,5 +153,5 @@ def dynamic(self):
 
 
         # sum up fluxes variables
-        for variable in self.var.sum_balanceFlux:
-            vars(self.var)["sumup_" + variable] = vars(self.var)["sumup_" + variable] + vars(self.var)[variable]
+            for variable in self.var.sum_balanceFlux:
+                vars(self.var)["sumup_" + variable] = vars(self.var)["sumup_" + variable] + vars(self.var)[variable]

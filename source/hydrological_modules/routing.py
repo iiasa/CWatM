@@ -89,7 +89,7 @@ class routing(object):
 
         # channelStorage (m3) includes all storages at channels and water bodies (lakes & reservoirs)
         #self.var.channelStorage = loadmap('channelStorageIni')
-        self.var.channelStorage = self.var.init_module.load_initial('channelStorage')
+        self.var.channelStorage = self.var.init_module.load_initial('channelStorage') + globals.inZero.copy()
         self.var.readAvlChannelStorage = self.var.init_module.load_initial('readAvlChannelStorage')
         # make sure that timestepsToAvgDischarge is consistent (or the same) for the entire map: # as pcraster.mapmaximum
         self.var.timestepsToAvgDischarge = np.amax(self.var.init_module.load_initial('timestepsToAvgDischarge'))
@@ -276,6 +276,13 @@ class routing(object):
 # ---------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------
+        """
+        MAIN PART
+        """
+
+        if option['calcWaterBalance']:
+            self.var.prechannelStorage = self.var.channelStorage.copy()
+
 
         # runoff from landSurface cells (unit: m)
         self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow
@@ -328,11 +335,6 @@ class routing(object):
         # Note that precipitation has been calculated/included in the landSurface module.
         self.var.localQW =  volLocEvapWaterBody* self.var.InvCellArea
 
-
-
-
-
-
         # riverbed infiltration (m3):
         # - current implementation based on Inge's principle (later, will be based on groundater head (MODFLOW) and can be negative)
         # - happening only if 0.0 < baseflow < nonFossilGroundwaterAbs
@@ -357,12 +359,25 @@ class routing(object):
         # make sure that channelStorage >= 0
         self.var.channelStorage   = np.maximum(0.0, self.var.channelStorage)
 
+
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.runoff,self.var.nonIrrReturnFlow],            # In
+                [self.var.actSurfaceWaterAbstract,self.var.localQW, self.var.riverbedExchange*self.var.InvCellArea],           # Out
+                [self.var.prechannelStorage*self.var.InvCellArea],                                  # prev storage
+                [self.var.channelStorage*self.var.InvCellArea],
+                "Routing", False)
+        self.var.channelStorageBefore = self.var.channelStorage.copy()
+
         # updating timesteps to calculate avgDischarge, avgInflow and avgOutflow
         self.var.timestepsToAvgDischarge += 1.
 
         ##if self.var.method == "accuTravelTime":
         # self.var.currentTimeStep()
         #self.var.accuTravelTime(currTimeStep)
+        """
+        Routing with accuflux
+        """
         accuTravelTime()
 
         # water height (m) = channelStorage / cellArea
