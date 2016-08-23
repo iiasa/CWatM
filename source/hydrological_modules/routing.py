@@ -291,7 +291,7 @@ class routing(object):
         self.var.channelStorage += self.var.runoff * self.var.cellArea
 
         # update channelStorage (unit: m3) after actSurfaceWaterAbstraction
-        self.var.channelStorage -= self.var.actSurfaceWaterAbstract * self.var.cellArea
+        self.var.channelStorage -= self.var.sum_actSurfaceWaterAbstract * self.var.cellArea
 
         # return flow from (m) non irrigation water demand
         self.var.nonIrrReturnFlow = self.var.nonIrrReturnFlowFraction * self.var.nonIrrGrossDemand
@@ -363,7 +363,7 @@ class routing(object):
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.runoff,self.var.nonIrrReturnFlow],            # In
-                [self.var.actSurfaceWaterAbstract,self.var.localQW, self.var.riverbedExchange*self.var.InvCellArea],           # Out
+                [self.var.sum_actSurfaceWaterAbstract,self.var.localQW, self.var.riverbedExchange*self.var.InvCellArea],           # Out
                 [self.var.prechannelStorage*self.var.InvCellArea],                                  # prev storage
                 [self.var.channelStorage*self.var.InvCellArea],
                 "Routing", False)

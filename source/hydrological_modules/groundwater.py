@@ -72,17 +72,17 @@ class groundwater(object):
 ###        potGroundwaterAbstract = landSurface.potGroundwaterAbstract
 
         # non fossil gw abstraction to fulfil water demand
-        self.var.nonFossilGroundwaterAbs = np.maximum(0.0, np.minimum(self.var.storGroundwater, self.var.potGroundwaterAbstract))
+        self.var.nonFossilGroundwaterAbs = np.maximum(0.0, np.minimum(self.var.storGroundwater, self.var.sum_potGroundwaterAbstract))
 
         # unmetDemand (m), satisfied by fossil gwAbstractions (and/or desalinization or other sources)
-        self.var.unmetDemand = np.maximum(0.0, self.var.potGroundwaterAbstract - self.var.nonFossilGroundwaterAbs)
+        self.var.unmetDemand = np.maximum(0.0, self.var.sum_potGroundwaterAbstract - self.var.nonFossilGroundwaterAbs)
                 # (equal to zero if limitAbstraction = True)
 
         # fractions of water demand sources (to satisfy water demand):
         with np.errstate(invalid='ignore', divide='ignore'):
-            self.var.fracNonFossilGroundwater = np.where(self.var.totalPotentialGrossDemand > 0., self.var.nonFossilGroundwaterAbs / self.var.totalPotentialGrossDemand,0.0)
-            self.var.fracUnmetDemand = np.where(self.var.totalPotentialGrossDemand > 0., self.var.unmetDemand / self.var.totalPotentialGrossDemand, 0.0)
-            self.var.fracSurfaceWater = np.where(self.var.totalPotentialGrossDemand > 0., np.maximum(0.0, 1.0 - self.var.fracNonFossilGroundwater - self.var.fracUnmetDemand), 0.0)
+            self.var.fracNonFossilGroundwater = np.where(self.var.sum_totalPotentialGrossDemand > 0., self.var.nonFossilGroundwaterAbs / self.var.sum_totalPotentialGrossDemand,0.0)
+            self.var.fracUnmetDemand = np.where(self.var.sum_totalPotentialGrossDemand > 0., self.var.unmetDemand / self.var.sum_totalPotentialGrossDemand, 0.0)
+            self.var.fracSurfaceWater = np.where(self.var.sum_totalPotentialGrossDemand > 0., np.maximum(0.0, 1.0 - self.var.fracNonFossilGroundwater - self.var.fracUnmetDemand), 0.0)
 
         # update storGoundwater after self.var.nonFossilGroundwaterAbs
         self.var.storGroundwater = np.maximum(0., self.var.storGroundwater - self.var.nonFossilGroundwaterAbs)
@@ -106,5 +106,15 @@ class groundwater(object):
                 [self.var.prestorGroundwater],                                  # prev storage
                 [self.var.storGroundwater],
                 "Ground", False)
+
+
+
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.nonIrrGrossDemand,self.var.sum_irrGrossDemand],                                           # In
+                [self.var.nonFossilGroundwaterAbs,self.var.unmetDemand,self.var.sum_actSurfaceWaterAbstract, ],     # Out
+                [globals.inZero],
+                [globals.inZero],
+                "Waterdemand", False)
 
 
