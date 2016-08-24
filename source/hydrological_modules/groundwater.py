@@ -56,8 +56,6 @@ class groundwater(object):
         if option['calcWaterBalance']:
             self.var.prestorGroundwater = self.var.storGroundwater.copy()
 
-
-
         # get riverbed infiltration from the previous time step (from routing)
         self.var.surfaceWaterInf = self.var.riverbedExchange * self.var.InvCellArea
         #self.var.surfaceWaterInf = globals.inZero.copy()
@@ -69,8 +67,6 @@ class groundwater(object):
         self.var.storGroundwater = np.maximum(0., self.var.storGroundwater + self.var.sum_gwRecharge)
 
         # Current assumption: Groundwater is only abstracted to satisfy local demand.
-###        potGroundwaterAbstract = landSurface.potGroundwaterAbstract
-
         # non fossil gw abstraction to fulfil water demand
         self.var.nonFossilGroundwaterAbs = np.maximum(0.0, np.minimum(self.var.storGroundwater, self.var.sum_potGroundwaterAbstract))
 

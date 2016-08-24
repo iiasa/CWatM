@@ -124,27 +124,17 @@ class waterbalance(object):
 
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.nonIrrGrossDemand,self.var.sum_irrGrossDemand],                                           # In
-                [self.var.nonFossilGroundwaterAbs,self.var.unmetDemand,self.var.sum_actSurfaceWaterAbstract],     # Out
+                [self.var.sum_irrGrossDemand,self.var.nonIrrGrossDemand],                                           # In
+                [self.var.unmetDemand,self.var.nonFossilGroundwaterAbs, self.var.sum_actSurfaceWaterAbstract],     # Out
                 [globals.inZero],
                 [globals.inZero],
                 "Waterdemand", True)
 
-        if option['calcWaterBalance']:
-            # self.var.nonIrrReturnFlow
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation, self.var.surfaceWaterInf,
-                 self.var.sum_irrGrossDemand, self.var.nonIrrGrossDemand],                                      # In
-                [self.var.totalET, self.var.localQW, self.var.riverbedExchange * self.var.InvCellArea,
-                 self.var.nonFossilGroundwaterAbs,self.var.unmetDemand, self.var.sum_actSurfaceWaterAbstract],         # out
-                [self.var.prevSnowCover, self.var.pretotalSoil,self.var.prestorGroundwater,self.var.prechannelStorage * self.var.InvCellArea],       # prev storage
-                [self.var.SnowCover, self.var.totalSoil,self.var.storGroundwater,self.var.channelStorageBefore * self.var.InvCellArea],
-                "S+G+Rout", True)
 
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation, self.var.surfaceWaterInf],    # In
-                [self.var.totalET,   self.var.localQW, self.var.riverbedExchange * self.var.InvCellArea],
+                [self.var.Precipitation, self.var.surfaceWaterInf,self.var.sum_irrGrossDemand,self.var.nonIrrReturnFlow],    # In
+                [self.var.totalET,   self.var.localQW, self.var.riverbedExchange * self.var.InvCellArea, self.var.nonFossilGroundwaterAbs, self.var.sum_actSurfaceWaterAbstract],
                 [self.var.prevSnowCover, self.var.pretotalSoil,self.var.prestorGroundwater,self.var.prechannelStorage * self.var.InvCellArea],       # prev storage
                 [self.var.SnowCover, self.var.totalSoil,self.var.storGroundwater,self.var.channelStorageBefore * self.var.InvCellArea],
                 "S+G+Rout1", True)
