@@ -102,6 +102,18 @@ class routing(object):
 
         self.var.readAvlChannelStorage = np.minimum(self.var.readAvlChannelStorage, self.var.channelStorage)
 
+        if option['sumWaterBalance']:
+            self.var.catchment = loadmap('Catchment').astype(np.int)
+            self.var.catchmentNo = int(loadmap('CatchmentNo'))
+
+            lddnp = compressArray(self.var.Ldd)
+            self.var.outlets = np.where(lddnp ==5, self.var.catchment, 0)
+            #self.var.outlets = np.where(self.var.catchment > 5, self.var.outlets, False)
+            report(decompress(self.var.outlets), "C:/work/output/outlets.map")
+
+
+
+
 
 
         i  = 1
@@ -268,6 +280,40 @@ class routing(object):
             #report (decompress(waterBodyOutflow),"C:\work\output/wboutput1.map")
             i= 1
 
+        def accuTravelTimeWORes():
+
+
+            # channelStorage ROUTING:
+            # convert with decompress to pcraster format
+            channelStorageForAccuTravelTime = decompress(self.var.channelStorage.copy())
+            #
+            characteristicDistanceForAccuTravelTime = self.var.characteristicDistance.copy()  # or  0.001 * self.var.cellsize if nan
+            characteristicDistanceForAccuTravelTime = decompress(np.maximum(0.001 * self.var.cellsize, self.var.characteristicDistance))
+
+
+            # self.var.Q = channel discharge (m3/day)
+            QPcr = accutraveltimeflux(self.var.Ldd, channelStorageForAccuTravelTime,
+                                      characteristicDistanceForAccuTravelTime)
+            # updating channelStorage (after routing)
+            channelStoragePcr = accutraveltimestate(self.var.Ldd, channelStorageForAccuTravelTime,
+                                                    characteristicDistanceForAccuTravelTime)
+
+            # from pcraster -> numpy
+            self.var.Q = compressArray(QPcr)
+            self.var.Q[np.isnan(self.var.Q)] = 0
+            self.var.channelStorage = compressArray(channelStoragePcr)
+            self.var.channelStorage[np.isnan(self.var.channelStorage)] = 0
+            # for very small velocity (i.e. characteristicDistanceForAccuTravelTime), discharge can be missing value.
+            # see: http://sourceforge.net/p/pcraster/bugs-and-feature-requests/543/
+            #      http://karssenberg.geo.uu.nl/tt/TravelTimeSpecification.htm
+
+            # channel discharge (m3/s): current:
+            self.var.discharge = self.var.Q / self.var.DtSec
+            self.var.discharge = np.maximum(0., self.var.discharge)  # reported channel discharge cannot be negative
+
+            self.var.disChanWaterBody = self.var.discharge.copy()
+
+
 
 
 
@@ -369,16 +415,31 @@ class routing(object):
                 "Routing", False)
         self.var.channelStorageBefore = self.var.channelStorage.copy()
 
+
+
         # updating timesteps to calculate avgDischarge, avgInflow and avgOutflow
         self.var.timestepsToAvgDischarge += 1.
 
-        ##if self.var.method == "accuTravelTime":
-        # self.var.currentTimeStep()
-        #self.var.accuTravelTime(currTimeStep)
+
         """
         Routing with accuflux
         """
-        accuTravelTime()
+        #accuTravelTime()
+        accuTravelTimeWORes()
+
+        if option['sumWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheckSum(
+                [globals.inZero],                    # In
+                [globals.inZero],                    # Out
+                [self.var.channelStorageBefore],     # prev storage
+                [self.var.channelStorage],
+                "RoutingSum", True)
+
+
+
+
+
+
 
         # water height (m) = channelStorage / cellArea
         self.var.waterHeight = self.var.channelStorage / self.var.cellArea
@@ -399,8 +460,8 @@ class routing(object):
         #~             self.var.timestepsToAvgDischarge)- 1.) + self.var.discharge * 1.) / (np.minimum(self.var.maxTimestepsToAvgDischargeLong,
         #~             self.var.timestepsToAvgDischarge))
         #
-        dischargeUsed      = np.maximum(0.0, self.var.discharge)
-        dischargeUsed      = np.maximum(dischargeUsed, self.var.disChanWaterBody)
+
+        dischargeUsed      = np.maximum(self.var.discharge, self.var.disChanWaterBody)
         #
         deltaAnoDischarge = dischargeUsed - self.var.avgDischarge
         self.var.avgDischarge = self.var.avgDischarge + deltaAnoDischarge / \

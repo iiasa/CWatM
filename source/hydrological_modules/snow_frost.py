@@ -67,7 +67,7 @@ class snow(object):
         self.var.SnowCoverS = [SnowCover1, SnowCover2, SnowCover3]
 
         # initial snow depth in elevation zones A, B, and C, respectively  [mm]
-        self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / 3
+        self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / 3 + + globals.inZero
 
 
         # Pixel-average initial snow cover: average of values in 3 elevation
