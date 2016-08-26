@@ -33,7 +33,8 @@ class initcondition(object):
         # list all initiatial variables
 
         # Snow & Frost
-        for i in xrange(3):
+        number = int(loadmap('NumberSnowLayers'))
+        for i in xrange(number):
             initCondVar.append("SnowCover"+str(i+1))
             initCondVarValue.append("SnowCoverS["+str(i)+"]")
         initCondVar.append("FrostIndex")

@@ -112,7 +112,7 @@ class routing(object):
             self.var.outlets = np.where(lddnp ==5, self.var.catchment, 0)
             #self.var.outlets = np.where(self.var.catchment > 5, self.var.outlets, False)
 
-            report(decompress(self.var.outlets), "D:/work/output/outlets.map")
+            #report(decompress(self.var.outlets), "D:/work/output/outlets.map")
             # report(decompress(self.var.catchment), "D:\work\output/catch.map")
 
             self.var.catchmentsize = npareatotal(globals.inZero + 1., self.var.catchment)
@@ -166,15 +166,12 @@ class routing(object):
 
         def accuTravelTime():
 
-            usedLDD = self.var.Ldd
-
-
 
             if option['includeWaterBodies']:
 
                 # at cells where lakes and/or reservoirs defined, move channelStorage to waterBodyStorage  # unit: m3
                 storageAtLakeAndReservoirs = np.where(self.var.waterBodyIds > 0., self.var.channelStorage,0.0)
-                # TODO storage out
+                # storage out
                 self.var.channelStorage -= storageAtLakeAndReservoirs
 
                 # update waterBodyStorage (inflow, storage and outflow)
@@ -193,17 +190,18 @@ class routing(object):
                 # as well as outflows from water bodies (for reporting) # m3/s
                 #self.var.waterBodyOutDiscC = np.where( self.var.waterBodyIdsC > 0., self.var.waterBodyOutflowC, 0.0) / self.var.DtSec
 
-                # TODO: Move waterBodyOutflow according to water body discharge (velocity)
+                # Move waterBodyOutflow according to water body discharge (velocity)
                 waterBodyOutflow = globals.inZero.copy()
                 np.put(waterBodyOutflow, self.var.waterBodyIndexC, waterBodyOutflowC)
 
-                # Todo move  reslakes out in in
+                # move reslakes out in in
                 self.var.channelStorage += waterBodyOutflow
 
             else:
                 self.var.waterBodyStorage = globals.inZero.copy()
 
                 # end waterbody if includeWaterBodies = True
+
 
 
             # channelStorage ROUTING:
@@ -215,85 +213,14 @@ class routing(object):
 
            # hh1 = compressArray(characteristicDistanceForAccuTravelTime)[25989]
            # hh2 = compressArray(channelStorageForAccuTravelTime)[25989]
-           # hh3 = compressArray(usedLDD)[25989]
-
-            # self.var.Q = channel discharge (m3/day)
-            QPcr = accutraveltimeflux(usedLDD, channelStorageForAccuTravelTime, characteristicDistanceForAccuTravelTime)
-            # updating channelStorage (after routing)
-            channelStoragePcr = accutraveltimestate(usedLDD, channelStorageForAccuTravelTime, characteristicDistanceForAccuTravelTime)
-
-
-            # from pcraster -> numpy
-            self.var.Q = compressArray(QPcr)
-            self.var.Q[np.isnan(self.var.Q)] = 0
-            self.var.channelStorage = compressArray(channelStoragePcr)
-            self.var.channelStorage[np.isnan(self.var.channelStorage)] = 0
-            # for very small velocity (i.e. characteristicDistanceForAccuTravelTime), discharge can be missing value.
-            # see: http://sourceforge.net/p/pcraster/bugs-and-feature-requests/543/
-            #      http://karssenberg.geo.uu.nl/tt/TravelTimeSpecification.htm
-
-            # channel discharge (m3/s): current:
-            self.var.discharge = self.var.Q / self.var.DtSec
-            self.var.discharge = np.maximum(0., self.var.discharge)  # reported channel discharge cannot be negative
-
-
-            channelStorageC = np.compress(self.var.compressID, self.var.channelStorage)
-            dischargeC = np.compress(self.var.compressID, self.var.discharge)
-
-            # after routing, return waterBodyStorage to channelStorage
-            h1 = npareaaverage(self.var.waterBodyStorageC,self.var.waterBodyIdsC)
-            h2 = npareatotal(  channelStorageC,  self.var.waterBodyIdsC)
-            waterBodyStorageTotal = np.where(self.var.waterBodyIdsC > 0., h1 + h2, 0.)
-
-            waterBodyStoragePerCell = waterBodyStorageTotal * self.var.cellAreaC / \
-                                      npareatotal(self.var.cellAreaC, self.var.waterBodyIdsC)
-
-            # unit: m3
-            waterBodyStoragePerCell = np.where(self.var.waterBodyIdsC > 0.,waterBodyStoragePerCell, channelStorageC)
-            #self.var.channelStorage = pcr.cover(waterBodyStoragePerCell, self.var.channelStorage)
-
-            waterBodyStoragePerCellAll = globals.inZero.copy()
-            np.put(waterBodyStoragePerCellAll, self.var.waterBodyIndexC, waterBodyStoragePerCell)
-            # unit: m3
-            # TODO update storage
-            self.var.channelStorage = np.where(waterBodyStoragePerCellAll > 0, waterBodyStoragePerCellAll, self.var.channelStorage)  #
-
-
-            # discharge at channel and lake/reservoir outlets (m3/s)
-            # ~ self.var.disChanWaterBody = np.where(self.var.landmask,\
-            # ~ pcr.cover( self.var.waterBodyOutDisc,\
-            # ~ self.var.discharge))                  # TODO: FIX THIS, discharge at water bodies is too high. (self.var.waterBodyOutDisc)
-            #
-
-
-            disChanWaterBody = np.where(self.var.waterBodyIdsC > 0., npareamaximum(dischargeC, self.var.waterBodyIdsC), dischargeC )
-            self.var.disChanWaterBody =  globals.inZero.copy()
-            np.put(self.var.disChanWaterBody, self.var.waterBodyIndexC, disChanWaterBody)
-
-            # reported channel discharge cannot be negative
-            # TODO
-            self.var.disChanWaterBody = np.where(self.var.disChanWaterBody > 0, self.var.disChanWaterBody, self.var.discharge )
-
-            self.var.disChanWaterBody = np.maximum(0., self.var.disChanWaterBody)
-
-
-
-        def accuTravelTimeWORes():
-
-
-            # channelStorage ROUTING:
-            # convert with decompress to pcraster format
-            channelStorageForAccuTravelTime = decompress(self.var.channelStorage.copy())
-            #
-            characteristicDistanceForAccuTravelTime = self.var.characteristicDistance.copy()  # or  0.001 * self.var.cellsize if nan
-            characteristicDistanceForAccuTravelTime = decompress(np.maximum(0.001 * self.var.cellsize, self.var.characteristicDistance))
-
+           # hh3 = compressArray(self.var.Ldd)[25989]
 
             # self.var.Q = channel discharge (m3/day)
             QPcr = accutraveltimeflux(self.var.Ldd, channelStorageForAccuTravelTime, characteristicDistanceForAccuTravelTime)
             # updating channelStorage (after routing)
             channelStoragePcr = accutraveltimestate(self.var.Ldd, channelStorageForAccuTravelTime, characteristicDistanceForAccuTravelTime)
 
+
             # from pcraster -> numpy
             self.var.Q = compressArray(QPcr)
             self.var.Q[np.isnan(self.var.Q)] = 0
@@ -307,9 +234,45 @@ class routing(object):
             self.var.discharge = self.var.Q / self.var.DtSec
             self.var.discharge = np.maximum(0., self.var.discharge)  # reported channel discharge cannot be negative
 
-            self.var.disChanWaterBody = self.var.discharge.copy()
+
+            if option['includeWaterBodies']:
+                channelStorageC = np.compress(self.var.compressID, self.var.channelStorage)
+                dischargeC = np.compress(self.var.compressID, self.var.discharge)
+
+                # after routing, return waterBodyStorage to channelStorage
+                h1 = npareaaverage(self.var.waterBodyStorageC,self.var.waterBodyIdsC)
+                h2 = npareatotal(  channelStorageC,  self.var.waterBodyIdsC)
+                waterBodyStorageTotal = np.where(self.var.waterBodyIdsC > 0., h1 + h2, 0.)
+
+                waterBodyStoragePerCell = waterBodyStorageTotal * self.var.cellAreaC / \
+                                      npareatotal(self.var.cellAreaC, self.var.waterBodyIdsC)
+
+                # unit: m3
+                waterBodyStoragePerCell = np.where(self.var.waterBodyIdsC > 0.,waterBodyStoragePerCell, channelStorageC)
+
+                waterBodyStoragePerCellAll = globals.inZero.copy()
+                np.put(waterBodyStoragePerCellAll, self.var.waterBodyIndexC, waterBodyStoragePerCell)
+
+                # update storage
+                self.var.channelStorage = np.where(waterBodyStoragePerCellAll > 0, waterBodyStoragePerCellAll, self.var.channelStorage)  #
 
 
+                # discharge at channel and lake/reservoir outlets (m3/s)
+                # ~ self.var.disChanWaterBody = np.where(self.var.landmask,\
+                # ~ pcr.cover( self.var.waterBodyOutDisc,\
+                # ~ self.var.discharge))                  # TODO: FIX THIS, discharge at water bodies is too high. (self.var.waterBodyOutDisc)
+
+
+                disChanWaterBody = np.where(self.var.waterBodyIdsC > 0., npareamaximum(dischargeC, self.var.waterBodyIdsC), dischargeC )
+                self.var.disChanWaterBody =  globals.inZero.copy()
+                np.put(self.var.disChanWaterBody, self.var.waterBodyIndexC, disChanWaterBody)
+
+                # reported channel discharge cannot be negative
+                self.var.disChanWaterBody = np.where(self.var.disChanWaterBody > 0, self.var.disChanWaterBody, self.var.discharge )
+
+                self.var.disChanWaterBody = np.maximum(0., self.var.disChanWaterBody)
+            else:
+                self.var.disChanWaterBody = self.var.discharge.copy()
 
 
 
@@ -420,10 +383,6 @@ class routing(object):
         Routing with accuflux
         """
         accuTravelTime()
-        #accuTravelTimeWORes()
-
-
-
 
 
 

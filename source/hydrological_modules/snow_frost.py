@@ -37,17 +37,28 @@ class snow(object):
     def initial(self):
         """ initial part of the snow and frost module
         """
+        self.var.numberSnowLayersFloat = loadmap('NumberSnowLayers')    # default 3
+        self.var.numberSnowLayers = int(self.var.numberSnowLayersFloat)
+        self.var.glaciertransportZone = int(loadmap('GlacierTransportZone'))  # default 1 -> highest zone is transported to middle zone
+
+
         self.var.TotalPrecipitation = globals.inZero.copy()
-        self.var.DeltaTSnow = 0.9674 * loadmap('ElevationStD') * loadmap('TemperatureLapseRate')
 
         # Difference between (average) air temperature at average elevation of
         # pixel and centers of upper- and lower elevation zones [deg C]
         # ElevationStD:   Standard Deviation of the DEM from Bodis (2009)
         # 0.9674:    Quantile of the normal distribution: u(0,833)=0.9674
         #              to split the pixel in 3 equal parts.
+        # for different number of layers
+        #  Number: 2 ,3, 4, 5, 6, 7, ,8, 9, 10
+        #  Norm: 0.75 , 0.8333, 0.875 , 0.9 0.916667, 0.928571, 0.94444, 0.95
+        # from R: qnorm(1-0.5/number)
+        uNorm = [0.,0.,0.6744898,0.9674216, 1.150349, 1.281552, 1.382994, 1.465234,1.534121,1.593219, 1.644854]
+        self.var.DeltaTSnow =  uNorm[self.var.numberSnowLayers] * loadmap('ElevationStD') * loadmap('TemperatureLapseRate')
+        #self.var.DeltaTSnow = 0.9674 * loadmap('ElevationStD') * loadmap('TemperatureLapseRate')
+
         self.var.SnowDayDegrees = 0.9856
         # day of the year to degrees: 360/365.25 = 0.9856
-
         self.var.IceDayDegrees = 1.915
         # days of summer (15th June-15th Sept.) to degree: 180/(259-165)
         self.var.SnowSeason = loadmap('SnowSeasonAdj') * 0.5
@@ -59,15 +70,14 @@ class snow(object):
         self.var.IceMeltCoef = loadmap('IceMeltCoef')
         self.var.TempMelt = loadmap('TempMelt')
 
-        #SnowCover1 = loadmap('SnowCover1Ini')
-        SnowCover1 = self.var.init_module.load_initial('SnowCover1')
-        SnowCover2 = self.var.init_module.load_initial('SnowCover2')
-        SnowCover3 = self.var.init_module.load_initial('SnowCover3')
-        #self.var.init_module.load_initial('SnowCover1')
-        self.var.SnowCoverS = [SnowCover1, SnowCover2, SnowCover3]
+        # initialize snowcovers as many as snow layers -> read them as SnowCover1 , SnowCover2 ...
+        # SnowCover1 is the highest zone
+        self.var.SnowCoverS = []
+        for i in xrange(self.var.numberSnowLayers):
+            self.var.SnowCoverS.append(self.var.init_module.load_initial("SnowCover"+str(i+1)))
 
         # initial snow depth in elevation zones A, B, and C, respectively  [mm]
-        self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / 3 + + globals.inZero
+        self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / self.var.numberSnowLayersFloat + globals.inZero
 
 
         # Pixel-average initial snow cover: average of values in 3 elevation
@@ -106,8 +116,8 @@ class snow(object):
 
         # sinus shaped function between the
         # annual minimum (December 21st) and annual maximum (June 21st)
-        # SummerSeason = ifthenelse(dateVar['doy'] > 165,np.sin((dateVar['doy']-165)* self.var.IceDayDegrees ),scalar(0.0))
-        # SummerSeason = ifthenelse(dateVar['doy'] > 259,0.0,SummerSeason)
+        # TODO change this for the southern hemisspere
+
         if (dateVar['doy'] > 165) and (dateVar['doy'] < 260):
             SummerSeason = np.sin(math.radians((dateVar['doy'] - 165) * self.var.IceDayDegrees))
         else:
@@ -118,7 +128,7 @@ class snow(object):
         self.var.SnowMelt = globals.inZero.copy()
         self.var.SnowCover = globals.inZero.copy()
 
-        for i in xrange(3):
+        for i in xrange(self.var.numberSnowLayers):
             TavgS = self.var.Tavg + self.var.DeltaTSnow * (i - 1)
             # Temperature at center of each zone (temperature at zone B equals Tavg)
             # i=0 -> highest zone
@@ -132,7 +142,10 @@ class snow(object):
             # snowmelt coeff in m/deg C/day
             SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef * (1 + 0.01 * RainS) * self.var.DtDay
 
-            if i < 2:
+            # for which layer the ice melt is calcultated with the middle temp.
+            # for the others it is calculated with the corrected temp
+            # this is to mimic glacier transport to lower zones
+            if i <= self.var.glaciertransportZone:
                 IceMeltS = self.var.Tavg * self.var.IceMeltCoef * self.var.DtDay * SummerSeason
                 # if i = 0 and 1 -> higher and middle zone
                 # Ice melt coeff in m/C/deg
@@ -147,12 +160,14 @@ class snow(object):
             self.var.SnowMelt += SnowMeltS
             self.var.SnowCover += self.var.SnowCoverS[i]
 
-        self.var.Snow /= 3
-        self.var.Rain /= 3
-        self.var.SnowMelt /= 3
-        self.var.SnowCover /= 3
-        # all in pixel [mm]
+        self.var.Snow /= self.var.numberSnowLayersFloat
+        self.var.Rain /= self.var.numberSnowLayersFloat
+        self.var.SnowMelt /= self.var.numberSnowLayersFloat
+        self.var.SnowCover /= self.var.numberSnowLayersFloat
+        # all in pixel
 
+
+        # DEBUG Snow
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Snow],  # In

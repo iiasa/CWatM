@@ -58,8 +58,6 @@ class groundwater(object):
 
         # get riverbed infiltration from the previous time step (from routing)
         self.var.surfaceWaterInf = self.var.riverbedExchange * self.var.InvCellArea
-        #self.var.surfaceWaterInf = globals.inZero.copy()
-        # to be replaced #TODO
 
         self.var.storGroundwater = self.var.storGroundwater + self.var.surfaceWaterInf
 
