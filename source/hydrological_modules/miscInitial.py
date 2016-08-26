@@ -88,14 +88,13 @@ class miscInitial(object):
         # within the model,the smallest out of DtSecChannel and DtSec is used
 
         self.var.MMtoM = 0.001
-        # Multiplier to convert wate depths in mm to meters
+        # Multiplier to convert water depths in mm to meters
         self.var.MtoMM = 1000
-        # Multiplier to convert wate depths in meters to mm
-        self.var.MMtoM3 = 0.001 * self.var.cellArea
-        # self.var.MMtoM3=0.001*float(celllength())**2
-        # Multiplier to convert water depths in mm to cubic metres
-        self.var.M3toMM = 1 / self.var.MMtoM3
-        # Multiplier to convert from cubic metres to mm water slice
+        # Multiplier to convert water depths in meters to mm
+        self.var.MtoM3 = 1.0 * self.var.cellArea
+        # Multiplier to convert water depths in m to cubic metres
+        self.var.M3toM = 1 / self.var.MtoM3
+        # Multiplier to convert from cubic metres to m water slice
 
         self.var.con_precipitation = loadmap('precipitation_coversion')
         self.var.con_e = loadmap('evaporation_coversion')

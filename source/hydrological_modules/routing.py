@@ -88,7 +88,7 @@ class routing(object):
         # Initial conditions
 
         # channelStorage (m3) includes all storages at channels and water bodies (lakes & reservoirs)
-        #self.var.channelStorage = loadmap('channelStorageIni')
+
         self.var.channelStorage = self.var.init_module.load_initial('channelStorage') + globals.inZero.copy()
         self.var.readAvlChannelStorage = self.var.init_module.load_initial('readAvlChannelStorage')
         # make sure that timestepsToAvgDischarge is consistent (or the same) for the entire map: # as pcraster.mapmaximum
@@ -107,10 +107,17 @@ class routing(object):
             self.var.catchmentNo = int(loadmap('CatchmentNo'))
 
             lddnp = compressArray(self.var.Ldd)
+
+            # all last outflow points are marked
             self.var.outlets = np.where(lddnp ==5, self.var.catchment, 0)
             #self.var.outlets = np.where(self.var.catchment > 5, self.var.outlets, False)
-            report(decompress(self.var.outlets), "C:/work/output/outlets.map")
 
+            report(decompress(self.var.outlets), "D:/work/output/outlets.map")
+            # report(decompress(self.var.catchment), "D:\work\output/catch.map")
+
+            self.var.catchmentsize = npareatotal(globals.inZero + 1., self.var.catchment)
+
+            self.var.discharge = globals.inZero.copy()
 
 
 
@@ -167,21 +174,16 @@ class routing(object):
 
                 # at cells where lakes and/or reservoirs defined, move channelStorage to waterBodyStorage  # unit: m3
                 storageAtLakeAndReservoirs = np.where(self.var.waterBodyIds > 0., self.var.channelStorage,0.0)
-# TODO storage out
-#                self.var.channelStorage -= storageAtLakeAndReservoirs
+                # TODO storage out
+                self.var.channelStorage -= storageAtLakeAndReservoirs
 
                 # update waterBodyStorage (inflow, storage and outflow)
                 self.var.lakes_reservoirs_module.dynamic(storageAtLakeAndReservoirs)
-                    #    self.var.timestepsToAvgDischarge, self.var.maxTimestepsToAvgDischargeShort, self.var.maxTimestepsToAvgDischargeLong)
-
-
 
                 # transfer outflow from lakes and/or reservoirs to channelStorages    # unit: m3/day
-                waterBodyOutflowC = np.where( self.var.waterBodyOutC == True,self.var.waterBodyOutflowC, 0.0)
+                waterBodyOutflowC = np.where(    self.var.waterBodyOutC == True,self.var.waterBodyOutflowC, 0.0)
 
                 # distribute outflow to water body storage
-                #waterBodyOutflow = pcr.areaaverage(waterBodyOutflow, self.var.WaterBodies.waterBodyIds)
-                #waterBodyOutflow = np.take(np.bincount(self.var.waterBodyIds,waterBodyOutflow) / np.bincount(self.var.waterBodyIds)  , self.var.waterBodyIds)
                 waterBodyOutflowC = npareaaverage(waterBodyOutflowC,self.var.waterBodyIdsC)
                 waterBodyOutflowC = np.where( self.var.waterBodyIdsC > 0., waterBodyOutflowC, 0.0)  # unit: m3/day
 
@@ -195,8 +197,8 @@ class routing(object):
                 waterBodyOutflow = globals.inZero.copy()
                 np.put(waterBodyOutflow, self.var.waterBodyIndexC, waterBodyOutflowC)
 
-## Todo move  reslakes out in in
-#                self.var.channelStorage += waterBodyOutflow
+                # Todo move  reslakes out in in
+                self.var.channelStorage += waterBodyOutflow
 
             else:
                 self.var.waterBodyStorage = globals.inZero.copy()
@@ -253,8 +255,8 @@ class routing(object):
             waterBodyStoragePerCellAll = globals.inZero.copy()
             np.put(waterBodyStoragePerCellAll, self.var.waterBodyIndexC, waterBodyStoragePerCell)
             # unit: m3
-# TODO update storage
- #           self.var.channelStorage = np.where(waterBodyStoragePerCellAll > 0, waterBodyStoragePerCellAll, self.var.channelStorage)  #
+            # TODO update storage
+            self.var.channelStorage = np.where(waterBodyStoragePerCellAll > 0, waterBodyStoragePerCellAll, self.var.channelStorage)  #
 
 
             # discharge at channel and lake/reservoir outlets (m3/s)
@@ -269,16 +271,12 @@ class routing(object):
             np.put(self.var.disChanWaterBody, self.var.waterBodyIndexC, disChanWaterBody)
 
             # reported channel discharge cannot be negative
-# TODO
-            #self.var.disChanWaterBody = np.where(self.var.disChanWaterBody > 0, self.var.disChanWaterBody, self.var.discharge )
-            self.var.disChanWaterBody = self.var.discharge
-
-
+            # TODO
+            self.var.disChanWaterBody = np.where(self.var.disChanWaterBody > 0, self.var.disChanWaterBody, self.var.discharge )
 
             self.var.disChanWaterBody = np.maximum(0., self.var.disChanWaterBody)
 
-            #report (decompress(waterBodyOutflow),"C:\work\output/wboutput1.map")
-            i= 1
+
 
         def accuTravelTimeWORes():
 
@@ -292,11 +290,9 @@ class routing(object):
 
 
             # self.var.Q = channel discharge (m3/day)
-            QPcr = accutraveltimeflux(self.var.Ldd, channelStorageForAccuTravelTime,
-                                      characteristicDistanceForAccuTravelTime)
+            QPcr = accutraveltimeflux(self.var.Ldd, channelStorageForAccuTravelTime, characteristicDistanceForAccuTravelTime)
             # updating channelStorage (after routing)
-            channelStoragePcr = accutraveltimestate(self.var.Ldd, channelStorageForAccuTravelTime,
-                                                    characteristicDistanceForAccuTravelTime)
+            channelStoragePcr = accutraveltimestate(self.var.Ldd, channelStorageForAccuTravelTime, characteristicDistanceForAccuTravelTime)
 
             # from pcraster -> numpy
             self.var.Q = compressArray(QPcr)
@@ -408,11 +404,11 @@ class routing(object):
 
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.runoff,self.var.nonIrrReturnFlow],            # In
-                [self.var.sum_actSurfaceWaterAbstract,self.var.localQW, self.var.riverbedExchange*self.var.InvCellArea],           # Out
-                [self.var.prechannelStorage*self.var.InvCellArea],                                  # prev storage
-                [self.var.channelStorage*self.var.InvCellArea],
-                "Routing", False)
+                [self.var.runoff * self.var.cellArea,self.var.nonIrrReturnFlow * self.var.cellArea],            # In
+                [self.var.sum_actSurfaceWaterAbstract * self.var.cellArea,self.var.localQW * self.var.cellArea, self.var.riverbedExchange],           # Out
+                [self.var.prechannelStorage],                                  # prev storage
+                [self.var.channelStorage],
+                "Routing", True)
         self.var.channelStorageBefore = self.var.channelStorage.copy()
 
 
@@ -420,20 +416,11 @@ class routing(object):
         # updating timesteps to calculate avgDischarge, avgInflow and avgOutflow
         self.var.timestepsToAvgDischarge += 1.
 
-
         """
         Routing with accuflux
         """
-        #accuTravelTime()
-        accuTravelTimeWORes()
-
-        if option['sumWaterBalance']:
-            self.var.waterbalance_module.waterBalanceCheckSum(
-                [globals.inZero],                    # In
-                [globals.inZero],                    # Out
-                [self.var.channelStorageBefore],     # prev storage
-                [self.var.channelStorage],
-                "RoutingSum", True)
+        accuTravelTime()
+        #accuTravelTimeWORes()
 
 
 

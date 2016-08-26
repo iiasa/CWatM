@@ -68,9 +68,9 @@ class waterbalance(object):
         Returns the water balance for a list of input, output, and storage map files
         """
 
-        income =  globals.inZero.copy()
-        out = globals.inZero.copy()
-        store =  globals.inZero.copy()
+        income =  0
+        out = 0
+        store = 0
 
         for fluxIn in fluxesIn:   income += fluxIn
         for fluxOut in fluxesOut: out += fluxOut
@@ -112,12 +112,13 @@ class waterbalance(object):
         maxBB = np.maximum(np.abs(minB),np.abs(maxB))
         #meanB = np.average(balance, axis=0)
         #meanB = 0.0
-        no =650
+        no = self.var.catchmentNo
+
 
         if printTrue:
             #print "     %s %10.8f " % (processName, maxBB),
             #print "     %s %10.8f %10.8f" % (processName, minB,maxB),
-            print "     %s %10.8f %10.8f %10.8f %10.8f" % (processName, income[no], out[no], store[no], balance[no]),
+            print "     %s %10.8f" % (processName, balance[no]),
         j = 0
 
 
@@ -173,6 +174,14 @@ class waterbalance(object):
                 [self.var.SnowCover, self.var.totalSoil,self.var.storGroundwater,self.var.channelStorageBefore * self.var.InvCellArea],
                 "S+G+Rout1", False)
 
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation * self.var.cellArea, self.var.surfaceWaterInf * self.var.cellArea,self.var.sum_irrGrossDemand * self.var.cellArea,self.var.nonIrrReturnFlow * self.var.cellArea],    # In
+                [self.var.totalET  * self.var.cellArea,   self.var.localQW * self.var.cellArea, self.var.riverbedExchange, self.var.nonFossilGroundwaterAbs * self.var.cellArea, self.var.sum_actSurfaceWaterAbstract * self.var.cellArea],
+                [self.var.prevSnowCover * self.var.cellArea, self.var.pretotalSoil * self.var.cellArea,self.var.prestorGroundwater * self.var.cellArea,self.var.prechannelStorage],       # prev storage
+                [self.var.SnowCover * self.var.cellArea, self.var.totalSoil * self.var.cellArea,self.var.storGroundwater * self.var.cellArea,self.var.channelStorageBefore],
+                "S+G+Rout2", True)
+
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -194,6 +203,19 @@ class waterbalance(object):
                 [self.var.SnowCover, self.var.totalSoil,self.var.storGroundwater,self.var.channelStorageBefore * self.var.InvCellArea],
                 "S+G+Rout1Sum", True)
         """
+
+        if option['sumWaterBalance']:
+            # discharge at outlets of catchments
+            DisOut = self.var.discharge * self.var.DtSec
+            DisOut = np.where(self.var.outlets > 0, DisOut, 0.)
+
+            self.var.waterbalance_module.waterBalanceCheckSum(
+                [self.var.Precipitation * self.var.cellArea, self.var.surfaceWaterInf * self.var.cellArea,self.var.sum_irrGrossDemand * self.var.cellArea,self.var.nonIrrReturnFlow * self.var.cellArea],    # In
+                [self.var.totalET  * self.var.cellArea,   self.var.localQW  * self.var.cellArea, self.var.riverbedExchange, self.var.nonFossilGroundwaterAbs * self.var.cellArea, self.var.sum_actSurfaceWaterAbstract * self.var.cellArea, DisOut],
+                [self.var.prevSnowCover * self.var.cellArea, self.var.pretotalSoil * self.var.cellArea,self.var.prestorGroundwater * self.var.cellArea,self.var.prechannelStorage],       # prev storage
+                [self.var.SnowCover * self.var.cellArea, self.var.totalSoil * self.var.cellArea,self.var.storGroundwater * self.var.cellArea,self.var.channelStorage],
+                "S+G+Rout2Sum", True)
+
 
 
 

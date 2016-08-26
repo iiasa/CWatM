@@ -155,7 +155,7 @@ class lakes_reservoirs(object):
 
 
 
-            # Todo at the very end here corect ids, out, area
+            # Todo at the very end here correct ids, out, area
             #  correcting water body ids and outlets (excluding all water bodies with surfaceArea = 0)            #
             # correcting water body ids and outlets (excluding all water bodies with surfaceArea = 0)
 
@@ -297,11 +297,10 @@ class lakes_reservoirs(object):
         # --------------------------------------------------------------------------
         # --------------------------------------------------------------------------
 
-    def weirFormula(self, waterHeight, weirWidth):
-        # output: m3/s
+    def weirFormula(self, waterHeight, weirWidth):  # Unit: m3/s
+
         sillElev = 0.0
         weirCoef = 1.0
-        # m3/s
         weirFormula = (1.7 * weirCoef * np.maximum(0, waterHeight - sillElev) ** 1.5) * weirWidth
         return (weirFormula)
 
@@ -454,10 +453,12 @@ class lakes_reservoirs(object):
     def dynamic(self,storageAtLakeAndReservoirs, downstreamDemand = None, avgChannelDischarge = None):
         """ dynamic part of the lakes and reservoirs module
         """
-        i = 2
-        # self.var.currentTimeStep()
+
         #self.var.WaterBodies.dynamic(storageAtLakeAndReservoirs)
         #    self.var.timestepsToAvgDischarge, self.var.maxTimestepsToAvgDischargeShort, self.var.maxTimestepsToAvgDischargeLong)
+
+        if option['calcWaterBalance']:
+            self.var.prestorReservoirC = self.var.waterBodyStorageC.copy()
 
         # unit: m3/s
         storageAtLakeAndReservoirsC = np.compress(self.var.compressID, storageAtLakeAndReservoirs)
@@ -470,6 +471,16 @@ class lakes_reservoirs(object):
 
             # calculate outflow (and update storage)
             self.var.lakes_reservoirs_module.getWaterBodyOutflow(self.var.maxTimestepsToAvgDischargeLong, downstreamDemand, avgChannelDischarge)
+
+        if option['calcWaterBalance']:
+            # self.var.waterBodyAreaC
+            #np.put(self.var.waterBodyOut, self.var.waterBodyIndexC, self.var.waterBodyOutC)
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.inflowC],            # In
+                [self.var.waterBodyOutflowC],           # Out
+                [self.var.prestorReservoirC],                                  # prev storage
+                [ ],
+                "LakesRes", True)
 
 
 
