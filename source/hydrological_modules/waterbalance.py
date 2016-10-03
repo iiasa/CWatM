@@ -1,6 +1,6 @@
 # -------------------------------------------------------------------------
 # Name:        Water Balance module
-# Purpose:		1.) check if water balnace per time step is ok ( = 0)
+# Purpose:		1.) check if water balance per time step is ok ( = 0)
 #               2.) produce an annual overview - income, outcome storage 
 # Author:      PB
 #

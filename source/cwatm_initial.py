@@ -48,7 +48,7 @@ class CWATModel_ini(DynamicModel):
         """
         DynamicModel.__init__(self)
 
-        ## MaskMap: the maskmap is flexible e.g. col,row,x1,y1  or x1,x2,y1,y2
+        ## MakMap: the maskmap is flexible e.g. col,row,x1,y1  or x1,x2,y1,y2
         self.MaskMap = loadsetclone('MaskMap')
 
 
