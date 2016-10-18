@@ -39,6 +39,19 @@ class routing(object):
         # Prevents 'unsound' ldd if MaskMap covers sub-area of ldd
         self.var.Ldd = lddrepair(self.var.Ldd)
 
+
+        # upstream function in numpy
+        inAr = decompress(np.arange(maskinfo['mapC'][0],dtype="int32"))
+        lddC = compressArray(self.var.Ldd)
+        # giving a number to each non missing pixel as id
+        self.var.downstruct = (compressArray(downstream(self.var.Ldd,inAr))).astype("int32")
+        # each upstream pixel gets the id of the downstream pixel
+        self.var.downstruct[lddC==5] = maskinfo['mapC'][0]
+        # all pits gets a high number
+        #d3=np.bincount(self.var.downstruct, weights=loadmap('AvgDis'))[:-1]
+          # upstream function in numpy
+
+
         # self.var.cellArea or self.var.cellAreaPcr as pcraster map
         # self.var.cellLength or self.var.cellLengthPcr as pcraster map
         self.var.cellsize = clone().cellSize()
@@ -93,10 +106,10 @@ class routing(object):
         self.var.readAvlChannelStorage = self.var.init_module.load_initial('readAvlChannelStorage')
         # make sure that timestepsToAvgDischarge is consistent (or the same) for the entire map: # as pcraster.mapmaximum
         self.var.timestepsToAvgDischarge = np.amax(self.var.init_module.load_initial('timestepsToAvgDischarge'))
-        self.var.avgDischarge = self.var.init_module.load_initial('avgChannelDischarge')    # in m3/s
-        self.var.m2tDischarge = self.var.init_module.load_initial('m2tChannelDischarge')
-        self.var.avgBaseflow = self.var.init_module.load_initial('avgBaseflow')
-        self.var.riverbedExchange = self.var.init_module.load_initial('riverbedExchange')
+        self.var.avgDischarge = self.var.init_module.load_initial('avgChannelDischarge') + globals.inZero.copy()    # in m3/s
+        self.var.m2tDischarge = self.var.init_module.load_initial('m2tChannelDischarge') + globals.inZero.copy()
+        self.var.avgBaseflow = self.var.init_module.load_initial('avgBaseflow') + globals.inZero.copy()
+        self.var.riverbedExchange = self.var.init_module.load_initial('riverbedExchange') + globals.inZero.copy()
 
 
 
@@ -371,7 +384,7 @@ class routing(object):
                 [self.var.sum_actSurfaceWaterAbstract * self.var.cellArea,self.var.localQW * self.var.cellArea, self.var.riverbedExchange],           # Out
                 [self.var.prechannelStorage],                                  # prev storage
                 [self.var.channelStorage],
-                "Routing", True)
+                "Routing", False)
         self.var.channelStorageBefore = self.var.channelStorage.copy()
 
 

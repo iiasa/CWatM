@@ -31,9 +31,13 @@ class waterdemand(object):
         if option['includeWaterDemandDomInd']:
            #self.var.recessionCoeff = loadmap('recessionCoeff')
 
-           i = 1
            # TODO : add  zones at which water allocation (surface and groundwater allocation) is determined
            #  landSurface.py lines 317ff
+           if option['usingAllocSegments']:
+               self.var.allocSegments = loadmap('allocSegments').astype(np.int)
+               self.var.segmentArea = npareatotal(self.var.cellArea, self.var.allocSegments)
+
+        i = 1
 
 
 
@@ -73,36 +77,39 @@ class waterdemand(object):
         # Inge's principle: partitioning based on local average baseflow (m3/s) and upstream average discharge (m3/s)
 
         # estimates of fractions of groundwater and surface water abstractions
-        """
-        averageBaseflowInput = routing.avgBaseflow
-        averageUpstreamInput = pcr.upstream(routing.lddMap, routing.avgDischarge)
 
-        if self.var.usingAllocSegments:
-            averageBaseflowInput = np.maximum(0.0, pcr.ifthen(self.varlandmask, averageBaseflowInput))
-            averageUpstreamInput = np.maximum(0.0, pcr.ifthen(self.var.landmask, averageUpstreamInput))
-            averageBaseflowInput = pcr.cover(pcr.areaaverage(pcr.cover(averageBaseflowInput, 0.0), self.var.allocSegments), 0.0)
-            averageUpstreamInput = pcr.cover(pcr.areamaximum(pcr.cover(averageUpstreamInput, 0.0), self.var.allocSegments), 0.0)
+        averageBaseflowInput =  np.maximum(0.0,self.var.avgBaseflow)
+        averageUpstreamInput = np.bincount(self.var.downstruct, weights = self.var.avgDischarge)[:-1]
+        # this function replace the pcraster function upstream
+        # averageUpstreamInput = upstream(self.var.Ldd, decompress(self.var.avgDischarge))
 
-        else:
-             print("WARNING! Water demand can only be satisfied by local source.")
+        averageUpstreamInput = np.maximum(0.0, averageUpstreamInput)
 
-        swAbstractionFraction = np.maximum(0.0, np.minimum(1.0,averageUpstreamInput / np.maximum(1e-20,averageUpstreamInput + averageBaseflowInput)))
-        swAbstractionFraction = pcr.cover(swAbstractionFraction, 0.0)
-        swAbstractionFraction = pcr.roundup(swAbstractionFraction * 100.) / 100.
-        swAbstractionFraction = np.maximum(0.0, swAbstractionFraction)
-        swAbstractionFraction = np.minimum(1.0, swAbstractionFraction)
+        if option['usingAllocSegments']:
+        #if self.var.usingAllocSegments:
+            averageBaseflowInput = npareaaverage(averageBaseflowInput, self.var.allocSegments)
+            averageUpstreamInput = npareamaximum(averageUpstreamInput, self.var.allocSegments)
 
-        gwAbstractionFraction = 1.0 - swAbstractionFraction
-        """
-        self.var.swAbstractionFraction = 0.5
-        self.var.gwAbstractionFraction = 0.5
+        #else:
+        #     print("WARNING! Water demand can only be satisfied by local source.")
 
+        self.var.swAbstractionFraction = np.maximum(0.0, np.minimum(1.0,averageUpstreamInput / np.maximum(1e-20,averageUpstreamInput + averageBaseflowInput)))
+        self.var.swAbstractionFraction = np.minimum(1.0,np.maximum(0.0, self.var.swAbstractionFraction))
+        self.var.swAbstractionFraction[np.isnan(self.var.swAbstractionFraction)] = 0
+        self.var.swAbstractionFraction = np.round(self.var.swAbstractionFraction,2)
+
+        self.var.gwAbstractionFraction = 1.0 - self.var.swAbstractionFraction
+
+        #self.var.swAbstractionFraction = 0.5
+        #self.var.gwAbstractionFraction = 0.5
+
+        # report(decompress(self.var.discharge), "C:\work\output/q1.map")
 
     def dynamic_waterdemand(self,coverType, No):
 
         # ------------------------------------------
         # non irrigation water demand
-        self.var.nonIrrGrossDemand = self.var.potentialNonIrrGrossWaterDemand
+        self.var.nonIrrGrossDemand = self.var.potentialNonIrrGrossWaterDemand.copy()
 
         # irrigation water demand for paddy and non-paddy (m)
         self.var.irrGrossDemand[No] = 0.0
@@ -123,100 +130,67 @@ class waterdemand(object):
             self.var.irrGrossDemand[No] = np.where(self.var.irrGrossDemand[No] > self.var.InvCellArea, self.var.irrGrossDemand[No], 0)
 
         # totalGrossDemand (m): total maximum (potential) water demand: irrigation and non irrigation
-        self.var.totalPotentialGrossDemand[No] = self.var.nonIrrGrossDemand + self.var.irrGrossDemand[No]
-        i = 1
-
-
-#        self.var.totalPotentialGrossDemand[No] = globals.inZero.copy()
+        totalGrossDemand = self.var.nonIrrGrossDemand + self.var.irrGrossDemand[No]
+        self.var.totalPotentialGrossDemand[No] = totalGrossDemand .copy()
+        # self.var.totalPotentialGrossDemand[No] = globals.inZero.copy()
 
 
         # surface water abstraction that can be extracted to fulfil totalGrossDemand
         # - based on readAvlChannelStorage
         # - and swAbstractionFraction * totalPotGrossDemand
         #
-        """
-        if self.var.usingAllocSegments:  # using zone/segment at which supply network is defined
-
-            allocSegments = pcr.ifthen(self.var.landmask, allocSegments)
+        if option['usingAllocSegments']:
+            # using zone/segment at which supply network is defined
 
             # gross demand volume in each cell (unit: m3)
-            cellVolGrossDemand = totalGrossDemand * routing.cellArea
-
+            cellVolGrossDemand = totalGrossDemand * self.var.cellArea
             # total gross demand volume in each segment/zone (unit: m3)
-            segTtlGrossDemand = pcr.areatotal(pcr.cover(cellVolGrossDemand, 0), allocSegments)
+            segTtlGrossDemand = npareatotal(cellVolGrossDemand, self.var.allocSegments)
 
             # total available surface water volume in each segment/zone  (unit: m3)
-            segAvlSurfaceWater = pcr.areatotal(pcr.cover(routing.readAvlChannelStorage, 0), allocSegments)
+            segAvlSurfaceWater = npareatotal(self.var.readAvlChannelStorage, self.var.allocSegments)
 
             # total actual surface water abstraction volume in each segment/zone (unit: m3)
-            #
-            swAbstractionFraction = np.minimum(1.0, swAbstractionFraction)
-            #
             # scale (if available water is limited)
-            ADJUST = swAbstractionFraction * segTtlGrossDemand
-            ADJUST = np.where(ADJUST > 0.0, \
-                                    np.minimum(1.0, np.maximum(0.0, segAvlSurfaceWater) / ADJUST), 0.)
-            #
-            ADJUST = pcr.rounddown(ADJUST * 100.) / 100.
-            ADJUST = np.maximum(0.0, ADJUST)
-            ADJUST = np.minimum(1.0, ADJUST)
-            #
-            segActSurWaterAbs = ADJUST * swAbstractionFraction * segTtlGrossDemand  # unit: m3
+            ADJUST = self.var.swAbstractionFraction * segTtlGrossDemand
+            ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, segAvlSurfaceWater) / ADJUST), 0.)
+            segActSurWaterAbs = ADJUST * self.var.swAbstractionFraction * segTtlGrossDemand
 
             # actual surface water abstraction volume in each cell (unit: m3)
-            volActSurfaceWaterAbstract = np.where(segAvlSurfaceWater > 0.0, \
-                                                        routing.readAvlChannelStorage / \
-                                                        segAvlSurfaceWater, 0.0) * \
-                                         (segActSurWaterAbs)
-            volActSurfaceWaterAbstract = np.minimum(routing.readAvlChannelStorage, volActSurfaceWaterAbstract)  # unit: m3
+            volActSurfaceWaterAbstract = np.where(segAvlSurfaceWater > 0.0, self.var.readAvlChannelStorage / segAvlSurfaceWater, 0.0) * segActSurWaterAbs
+            volActSurfaceWaterAbstract = np.minimum(self.var.readAvlChannelStorage, volActSurfaceWaterAbstract)
             # avoid small values (to avoid rounding error)
             volActSurfaceWaterAbstract = np.where(volActSurfaceWaterAbstract > 1.0, volActSurfaceWaterAbstract, 0)
-            volActSurfaceWaterAbstract = pcr.cover(volActSurfaceWaterAbstract, 0.0)
 
             # actual surface water abstraction volume in meter (unit: m)
-            self.var.actSurfaceWaterAbstract = pcr.ifthen(self.var.landmask, volActSurfaceWaterAbstract) / \
-                                           routing.cellArea  # unit: m
-
+            self.var.actSurfaceWaterAbstract[No] = volActSurfaceWaterAbstract / self.var.cellArea
             # total actual surface water abstraction volume in each segment/zone (unit: m3) - recalculated to avoid rounding error
-            segActSurWaterAbs = pcr.areatotal(self.var.actSurfaceWaterAbstract * routing.cellArea,
-                                              allocSegments)  # unit: m3
+            segActSurWaterAbs = npareatotal(self.var.actSurfaceWaterAbstract[No] * self.var.cellArea, self.var.allocSegments)
 
             # allocation surface water abstraction volume to each cell (unit: m3)
-            self.var.volAllocSurfaceWaterAbstract = np.where(segTtlGrossDemand > 0.0,
-                                                               cellVolGrossDemand / segTtlGrossDemand, 0.0) * \
-                                                segActSurWaterAbs  # unit: m3
-            self.var.volAllocSurfaceWaterAbstract = pcr.cover(self.var.volAllocSurfaceWaterAbstract,
-                                                          0.0)  # TODO: Do we really have to cover?
-
+            volAllocSurfaceWaterAbstract = np.where(segTtlGrossDemand > 0.0, cellVolGrossDemand / segTtlGrossDemand, 0.0) * segActSurWaterAbs
             # allocation surface water abstraction in meter (unit: m)
-            self.var.allocSurfaceWaterAbstract = pcr.ifthen(self.var.landmask, self.var.volAllocSurfaceWaterAbstract) / \
-                                             routing.cellArea  # unit: m
+            self.var.allocSurfaceWaterAbstract[No] = volAllocSurfaceWaterAbstract / self.var.cellArea
 
-            if self.var.debugWaterBalance == str('True'):
-                abstraction = pcr.cover(pcr.areatotal(pcr.cover(self.var.actSurfaceWaterAbstract * routing.cellArea, 0.0),
-                                                      self.var.allocSegments) / self.var.segmentArea, 0.0)
-                allocation = pcr.cover(pcr.areatotal(pcr.cover(self.var.allocSurfaceWaterAbstract * routing.cellArea, 0.0),
-                                                     self.var.allocSegments) / self.var.segmentArea, 0.0)
+            if option['calcWaterBalance']:
+                abstraction = npareatotal(self.var.actSurfaceWaterAbstract *  self.var.cellArea,self.var.allocSegments) / self.var.segmentArea
+                allocation = npareatotal(self.var.allocSurfaceWaterAbstract * self.var.cellArea,self.var.allocSegments) / self.var.segmentArea
 
-                vos.waterBalanceCheck([abstraction], \
-                                      [allocation], \
-                                      [pcr.scalar(0.0)], \
-                                      [pcr.scalar(0.0)], \
-                                      'surface water allocation per zone/segment in land cover level (PS: Error here may be caused by rounding error.)', \
-                                      True, \
-                                      "", threshold=5e-3)
+                self.var.waterbalance_module.waterBalanceCheck(
+                    [abstraction],  # In
+                    [allocation],  # Out
+                    [globals.inZero],
+                    [globals.inZero],
+                    "surface water allocation per zone/segments", True)
+
 
         else:
-        """
-        # allocation has to be done!! TODO
+            # only local surface water abstraction is allowed (network is only within a cell) # unit: m
+            self.var.actSurfaceWaterAbstract[No] = np.minimum(self.var.readAvlChannelStorage * self.var.InvCellArea, self.var.swAbstractionFraction * self.var.totalPotentialGrossDemand[No])
+            self.var.allocSurfaceWaterAbstract[No] = self.var.actSurfaceWaterAbstract[No]
 
-        # only local surface water abstraction is allowed (network is only within a cell) # unit: m
-        self.var.actSurfaceWaterAbstract[No] = np.minimum(self.var.readAvlChannelStorage * self.var.InvCellArea, self.var.swAbstractionFraction * self.var.totalPotentialGrossDemand[No])
-        allocSurfaceWaterAbstract = self.var.actSurfaceWaterAbstract[No]
 
-        # end of else
-
-        self.var.potGroundwaterAbstract[No] = np.maximum(0.0, self.var.totalPotentialGrossDemand[No] - allocSurfaceWaterAbstract)  # unit: m
+        self.var.potGroundwaterAbstract[No] = np.maximum(0.0, self.var.totalPotentialGrossDemand[No] - self.var.allocSurfaceWaterAbstract[No])  # unit: m
 
 
         # if limitAbstraction == 'True'
@@ -226,41 +200,28 @@ class waterdemand(object):
 
         # variable to reduce/limit groundwater abstraction (> 0 if limitAbstraction = True)
         self.var.reducedGroundWaterAbstraction = 0.0
-        #
-        """
-        if self.var.limitAbstraction == 'True':
 
-            print ('Fossil groundwater abstractions are NOT allowed.')
+        if option['limitAbstraction']:
 
+            #print ('Fossil groundwater abstractions are NOT allowed.')
             # calculate renewableAvlWater (non-fossil groundwater and channel)
-            #
-            renewableAvlWater = groundwater.readAvlStorGroundwater + self.var.allocSurfaceWaterAbstract
+            renewableAvlWater = self.var.readAvlStorGroundwater + self.var.allocSurfaceWaterAbstract[No]
 
             # reducing nonIrrGrossDemand if renewableAvlWater < maxGrossDemand
-            #
-            self.var.nonIrrGrossDemand = \
-                np.where(totalGrossDemand > 0.0, \
-                               np.minimum(1.0, np.maximum(0.0, \
-                                                    vos.getValDivZero(renewableAvlWater, totalGrossDemand,
-                                                                      vos.smallNumber))) * self.var.nonIrrGrossDemand, 0.0)
-
+            with np.errstate(invalid='ignore', divide='ignore'):
+                h = np.where(totalGrossDemand > 0, renewableAvlWater/totalGrossDemand, 1e-20)
+            self.var.nonIrrGrossDemand = np.where(totalGrossDemand > 0.0, np.minimum(1.0, np.maximum(0.0, h)) * self.var.nonIrrGrossDemand, 0.0)
             # reducing irrGrossWaterDemand if maxGrossDemand < renewableAvlWater
-            #
-            self.var.irrGrossDemand = \
-                np.where(totalGrossDemand > 0.0, \
-                               np.minimum(1.0, np.maximum(0.0, \
-                                                    vos.getValDivZero(renewableAvlWater, totalGrossDemand,
-                                                                      vos.smallNumber))) * self.var.irrGrossDemand, 0.0)
+            self.var.irrGrossDemand[No] = np.where(totalGrossDemand > 0.0, np.minimum(1.0, np.maximum(0.0, h)) * self.var.irrGrossDemand[No], 0.0)
+
 
             # potential groundwater abstraction (must be equal to actual no fossil groundwater abstraction)
-            self.var.potGroundwaterAbstract = self.var.nonIrrGrossDemand + self.var.irrGrossDemand - self.var.allocSurfaceWaterAbstract
-
+            self.var.potGroundwaterAbstract[No] = self.var.nonIrrGrossDemand + self.var.irrGrossDemand[No] - self.var.allocSurfaceWaterAbstract[No]
             # variable to reduce/limit gw abstraction (to ensure that there are enough water for supplying nonIrrGrossDemand + irrGrossDemand)
-            self.var.reducedGroundWaterAbstraction = self.var.potGroundwaterAbstract
+#            self.var.reducedGroundWaterAbstraction[No] = self.var.potGroundwaterAbstract[No].copy()
 
-        else:
-            print ('Fossil groundwater abstractions are allowed.')
-        """
+        #else:
+        #    print ('Fossil groundwater abstractions are allowed.')
 
 
 

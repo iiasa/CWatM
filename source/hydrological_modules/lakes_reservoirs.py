@@ -480,7 +480,7 @@ class lakes_reservoirs(object):
                 [self.var.waterBodyOutflowC],           # Out
                 [self.var.prestorReservoirC],                                  # prev storage
                 [self.var.waterBodyStorageC],
-                "LakesRes", True)
+                "LakesRes", False)
 
 
 

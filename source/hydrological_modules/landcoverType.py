@@ -46,7 +46,7 @@ class landcoverType(object):
                          'infiltration','actBareSoilEvap','landSurfaceRunoff','actTranspiTotal','netPercUpp000005', 'netPercUpp005030',
                          'gwRecharge','interflow','actualET','interflowTotal','percLow030150','openWaterEvap','capRiseLow030150', 'irrGrossDemand',
                          'interceptStor','topWaterLayer','storUpp000005','storUpp005030','storLow030150',
-                         'totalPotentialGrossDemand','actSurfaceWaterAbstract','potGroundwaterAbstract']
+                         'totalPotentialGrossDemand','actSurfaceWaterAbstract','allocSurfaceWaterAbstract','potGroundwaterAbstract']
         for variable in landcoverVars:
              vars(self.var)[variable] = [globals.inZero.copy(), globals.inZero.copy(), globals.inZero.copy(), globals.inZero.copy()]
 
@@ -55,7 +55,7 @@ class landcoverType(object):
                          'directRunoff', 'totalPotET', 'potBareSoilEvap', 'potTranspiration', 'availWaterInfiltration',
                          'interceptEvap', 'soilWaterStorage', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTranspiTotal', 'netPercUpp000005',
                          'netPercUpp005030','gwRecharge','actualET','interflowTotal','percLow030150', 'topWaterLayer','capRiseLow030150', 'openWaterEvap',
-                         'irrGrossDemand','totalPotentialGrossDemand','actSurfaceWaterAbstract','potGroundwaterAbstract']
+                         'irrGrossDemand','totalPotentialGrossDemand','actSurfaceWaterAbstract','allocSurfaceWaterAbstract','potGroundwaterAbstract']
         for variable in self.var.landcoverSum:
             vars(self.var)["sum_"+variable] = globals.inZero.copy()
         self.var.totalSoil = globals.inZero.copy()

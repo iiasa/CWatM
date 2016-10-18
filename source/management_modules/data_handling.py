@@ -8,6 +8,8 @@
 # Copyright:   (c) PB 2016
 # -------------------------------------------------------------------------
 
+
+
 import os
 import calendar
 import numpy as np
@@ -20,6 +22,8 @@ from management_modules.messages import *
 from pcraster import *
 from pcraster.framework import *
 from netCDF4 import Dataset,num2date,date2num,date2index
+
+import warnings
 
 
 def valuecell(mask, coordx, coordstr):
@@ -211,6 +215,7 @@ def loadmap(name,pcr=False, lddflag=False):
 
         # if a map should be pcraster
         if pcr:
+            warnings.filterwarnings("ignore")
             # check if integer map (like outlets, lakes etc
             checkint=str(mapnp.dtype)
             if checkint=="int16" or checkint=="int32":
@@ -226,7 +231,7 @@ def loadmap(name,pcr=False, lddflag=False):
             # if the map is a ldd
             #if value.split('.')[0][:3] == 'ldd':
             if lddflag: map = ldd(nominal(map))
-
+            warnings.filterwarnings("default")
         else:
             mapC = compressArray(mapnp,pcr=False,name=filename)
         flagmap = True

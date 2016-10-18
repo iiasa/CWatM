@@ -46,6 +46,9 @@ class groundwater(object):
         self.var.storGroundwater = self.var.init_module.load_initial('storGroundwater')
         self.var.storGroundwater = np.maximum(0.0, self.var.storGroundwater) + globals.inZero
 
+        # for water demand to have some initial value
+        self.var.readAvlStorGroundwater = globals.inZero.copy()
+
 # --------------------------------------------------------------------------
 
     def dynamic(self):
