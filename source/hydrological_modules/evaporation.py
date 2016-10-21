@@ -31,12 +31,6 @@ class evaporation(object):
         # get crop coefficient
         # crop coefficient read for forest and grassland from file
 
-        ## bla: dummy variable
-        bla = 0
-        ## blabla: dummy class variable
-        # @f$\sqrt{(x_2 - x_1) ^ 2 + (y_2 - y_1) ^ 2} @f$
-        self.blabla = 0
-
         ## self.var.cropKC: crop coefficient read for forest and grassland from file
         self.var.cropKC = readnetcdf2(binding[coverType + '_cropCoefficientNC'], dateVar['doy'], "DOY")
         self.var.cropKC = np.maximum(self.var.cropKC, self.var.minCropKC[No])
@@ -50,7 +44,6 @@ class evaporation(object):
         ## potTranspiration: Transpiration for each land cover class
         self.var.potTranspiration[No] = self.var.cropKC * self.var.ETRef - self.var.potBareSoilEvap[No]
 
-        ##@var self.var.potBareSoilEvap
         # evaporation from bare soil for each land cover class
 
 

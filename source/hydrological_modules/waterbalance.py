@@ -68,58 +68,67 @@ class waterbalance(object):
         Returns the water balance for a list of input, output, and storage map files
         """
 
-        income =  0
-        out = 0
-        store = 0
-
-        for fluxIn in fluxesIn:   income += fluxIn
-        for fluxOut in fluxesOut: out += fluxOut
-        for preStorage in preStorages: store += preStorage
-        for endStorage in endStorages: store -= endStorage
-        balance =  income + store - out
-        #balance = endStorages
-        minB = np.amin(balance)
-        maxB = np.amax(balance)
-        maxBB = np.maximum(np.abs(minB),np.abs(maxB))
-        #meanB = np.average(balance, axis=0)
-        #meanB = 0.0
-
         if printTrue:
+            minB =0
+            maxB = 0
+            maxBB = 0
+            income =  0
+            out = 0
+            store = 0
+
+            for fluxIn in fluxesIn:   income += fluxIn
+            for fluxOut in fluxesOut: out += fluxOut
+            for preStorage in preStorages: store += preStorage
+            for endStorage in endStorages: store -= endStorage
+            balance =  income + store - out
+            #balance = endStorages
+            #if balance is not empty
+            if balance.size:
+                minB = np.amin(balance)
+                maxB = np.amax(balance)
+                maxBB = np.maximum(np.abs(minB),np.abs(maxB))
+            #meanB = np.average(balance, axis=0)
+            #meanB = 0.0
+
             #print "     %s %10.8f " % (processName, maxBB),
             print "     %s %10.8f %10.8f" % (processName, minB,maxB),
-        j = 0
+
 
 
     def waterBalanceCheckSum(self, fluxesIn, fluxesOut, preStorages, endStorages, processName, printTrue=False):
         """ dynamic part of the water balance module
         Returns the water balance for a list of input, output, and storage map files
         """
-
-        income =  0
-        out = 0
-        store =  0
-
-        for fluxIn in fluxesIn:
-            income = income + np.bincount(self.var.catchment,weights=fluxIn)
-        for fluxOut in fluxesOut: out = out + np.bincount(self.var.catchment,weights=fluxOut)
-        for preStorage in preStorages:
-            store = store + np.bincount(self.var.catchment,weights=preStorage)
-        for endStorage in endStorages: store = store - np.bincount(self.var.catchment,weights=endStorage)
-        balance =  income + store - out
-        #balance = endStorages
-        minB = np.amin(balance)
-        maxB = np.amax(balance)
-        maxBB = np.maximum(np.abs(minB),np.abs(maxB))
-        #meanB = np.average(balance, axis=0)
-        #meanB = 0.0
-        no = self.var.catchmentNo
-
-
         if printTrue:
+            minB =0
+            maxB = 0
+            maxBB = 0
+
+            income =  0
+            out = 0
+            store =  0
+
+            for fluxIn in fluxesIn:
+                income = income + np.bincount(self.var.catchment,weights=fluxIn)
+            for fluxOut in fluxesOut: out = out + np.bincount(self.var.catchment,weights=fluxOut)
+            for preStorage in preStorages:
+                store = store + np.bincount(self.var.catchment,weights=preStorage)
+            for endStorage in endStorages: store = store - np.bincount(self.var.catchment,weights=endStorage)
+            balance =  income + store - out
+            #balance = endStorages
+            if balance.size:
+                minB = np.amin(balance)
+                maxB = np.amax(balance)
+                maxBB = np.maximum(np.abs(minB),np.abs(maxB))
+                #meanB = np.average(balance, axis=0)
+                #meanB = 0.0
+            no = self.var.catchmentNo
+
+
             #print "     %s %10.8f " % (processName, maxBB),
             #print "     %s %10.8f %10.8f" % (processName, minB,maxB),
             print "     %s %10.8f" % (processName, balance[no]),
-        j = 0
+
 
 
 
@@ -132,13 +141,13 @@ class waterbalance(object):
         """
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation,self.var.sum_capRiseLow030150,self.var.sum_irrGrossDemand],    # In
-                [self.var.sum_directRunoff,self.var.sum_interflowTotal, self.var.sum_percLow030150,    # Out
-                 self.var.sum_actTranspiTotal,
+                [self.var.Precipitation,self.var.sum_capRiseFromGW,self.var.sum_irrGrossDemand],    # In
+                [self.var.sum_directRunoff,self.var.sum_interflowTotal, self.var.sum_percToGW,    # Out
+                 self.var.sum_actTransTotal,
                  self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap, self.var.sum_interceptEvap],
                 [self.var.prevSnowCover, self.var.pretotalSoil],                                       # prev storage
                 [self.var.SnowCover, self.var.totalSoil],
-                "AllSoilWB", False)
+                "AllSoilWB", True)
 
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
@@ -214,7 +223,7 @@ class waterbalance(object):
                 [self.var.totalET  * self.var.cellArea,   self.var.localQW  * self.var.cellArea, self.var.riverbedExchange, self.var.nonFossilGroundwaterAbs * self.var.cellArea, self.var.sum_actSurfaceWaterAbstract * self.var.cellArea, DisOut],
                 [self.var.prevSnowCover * self.var.cellArea, self.var.pretotalSoil * self.var.cellArea,self.var.prestorGroundwater * self.var.cellArea,self.var.prechannelStorage],       # prev storage
                 [self.var.SnowCover * self.var.cellArea, self.var.totalSoil * self.var.cellArea,self.var.storGroundwater * self.var.cellArea,self.var.channelStorage],
-                "S+G+Rout2Sum", True)
+                "S+G+Rout2Sum", False)
 
 
 

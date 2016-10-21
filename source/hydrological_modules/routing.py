@@ -180,7 +180,8 @@ class routing(object):
         def accuTravelTime():
 
 
-            if option['includeWaterBodies']:
+            if option['includeWaterBodies'] and self.var.waterBodyIdsC.size:
+                # check if waterbodies are included in the settings or if there are no waterbodies in the mask
 
                 # at cells where lakes and/or reservoirs defined, move channelStorage to waterBodyStorage  # unit: m3
                 storageAtLakeAndReservoirs = np.where(self.var.waterBodyIds > 0., self.var.channelStorage,0.0)
@@ -248,7 +249,9 @@ class routing(object):
             self.var.discharge = np.maximum(0., self.var.discharge)  # reported channel discharge cannot be negative
 
 
-            if option['includeWaterBodies']:
+            if option['includeWaterBodies'] and self.var.waterBodyIdsC.size:
+                # check if waterbodies are included in the settings or if there are no waterbodies in the mask
+
                 channelStorageC = np.compress(self.var.compressID, self.var.channelStorage)
                 dischargeC = np.compress(self.var.compressID, self.var.discharge)
 

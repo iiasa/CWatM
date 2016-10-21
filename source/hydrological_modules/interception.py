@@ -56,10 +56,8 @@ class interception(object):
         # PB changed to Rain instead Pr, bceause snow is substracted later
         # PB it is assuming that all interception storage is used the other time step
         throughfall = np.maximum(0.0, self.var.Rain + self.var.interceptStor[No] - interceptCap)
-
         ## update interception storage after throughfall
         self.var.interceptStor[No] = self.var.interceptStor[No] + self.var.Rain - throughfall
-
         ## availWaterInfiltration Available water for infiltration: throughfall + snow melt
         self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + self.var.SnowMelt)
 
