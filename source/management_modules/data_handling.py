@@ -390,7 +390,7 @@ def readnetcdf(name, time):
     return mapC
 
 
-def readnetcdf2(name, date, useDaily='daily', value='None'):
+def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False, zeros = 0.0):
     """
       load stack of maps 1 at each timestamp in netcdf format
     """
@@ -424,6 +424,10 @@ def readnetcdf2(name, date, useDaily='daily', value='None'):
         value = nf1.variables.items()[-1][0]  # get the last variable name
     mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
     nf1.close()
+
+    # add zero values to maps in order to supress missing values
+    if addZeros: mapnp[np.isnan(mapnp)] = zeros
+
 
     mapC = compressArray(mapnp,pcr=False,name=filename)
     return mapC

@@ -147,7 +147,7 @@ class waterbalance(object):
                  self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap, self.var.sum_interceptEvap],
                 [self.var.prevSnowCover, self.var.pretotalSoil],                                       # prev storage
                 [self.var.SnowCover, self.var.totalSoil],
-                "AllSoilWB", True)
+                "AllSoilWB", False)  #true
 
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
@@ -189,7 +189,7 @@ class waterbalance(object):
                 [self.var.totalET  * self.var.cellArea,   self.var.localQW * self.var.cellArea, self.var.riverbedExchange, self.var.nonFossilGroundwaterAbs * self.var.cellArea, self.var.sum_actSurfaceWaterAbstract * self.var.cellArea],
                 [self.var.prevSnowCover * self.var.cellArea, self.var.pretotalSoil * self.var.cellArea,self.var.prestorGroundwater * self.var.cellArea,self.var.prechannelStorage],       # prev storage
                 [self.var.SnowCover * self.var.cellArea, self.var.totalSoil * self.var.cellArea,self.var.storGroundwater * self.var.cellArea,self.var.channelStorageBefore],
-                "S+G+Rout2", True)
+                "S+G+Rout2", False)   # True
 
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

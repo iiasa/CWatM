@@ -6,7 +6,7 @@ from management_modules.data_handling import *
 
 class evaporation(object):
     """ @brief Evaporation module
-    @details Calculate potential and  actual evapotranspiration
+    @details Calculate actual evapotranspiration
     @author  PB
     @date  01/08/2016
     @copyright  PB 2016
@@ -16,12 +16,14 @@ class evaporation(object):
         """The constructor evaporation"""
         self.var = evaporation_variable
 
+
+
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
     def dynamic(self, coverType, No):
         """ Dynamic part of the soil module - potET
-        calculating potential Evaporation for each land cover class
+        calculating potential Evaporation for each land cover class with kc factor
         get crop coefficient, use potential ET, calculate potential bare soil evaporation and transpiration
         @param coverType (string) land cover type: forest, grassland ..
         @param No [int] Number of land cover type: forest = 0, grassland = 1 ...
@@ -29,6 +31,7 @@ class evaporation(object):
         """
 
         # get crop coefficient
+        # to get ETc from ET0 x kc factor  ((see http://www.fao.org/docrep/X0490E/x0490e04.htm#TopOfPage figure 4:)
         # crop coefficient read for forest and grassland from file
 
         ## self.var.cropKC: crop coefficient read for forest and grassland from file

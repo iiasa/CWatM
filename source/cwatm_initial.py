@@ -13,6 +13,7 @@ from hydrological_modules.miscInitial import *
 from hydrological_modules.initcondition import *
 
 from hydrological_modules.readmeteo import *
+from hydrological_modules.evaporationPot import *
 from hydrological_modules.inflow import *
 from hydrological_modules.snow_frost import *
 from hydrological_modules.soil import *
@@ -73,6 +74,7 @@ class CWATModel_ini(DynamicModel):
         self.waterbalance_module = waterbalance(self)
 
         self.readmeteo_module = readmeteo(self)
+        self.evaporationPot_module = evaporationPot(self)
         self.inflow_module = inflow(self)
         self.snowfrost_module = snow(self)
         self.soil_module = soil(self)
@@ -97,6 +99,7 @@ class CWATModel_ini(DynamicModel):
         self.init_module.initial()
 
         self.inflow_module.initial()
+        self.evaporationPot_module.initial()
         self.snowfrost_module.initial()
         self.soil_module.initial()
         self.landcoverType_module.initial()

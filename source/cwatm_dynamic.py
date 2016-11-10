@@ -59,33 +59,36 @@ class CWATModel_dyn(DynamicModel):
         self.readmeteo_module.dynamic()
         timemeasure("Read meteo") # 1. timing after read input maps
 
+        self.evaporationPot_module.dynamic()
+        timemeasure("ET pot") # 2. timing after read input maps
+
         #if Flags['check']: return  # if check than finish here
 
         """ Here it starts with hydrological modules:
         """
         # ***** RAIN AND SNOW *****************************************
         self.snowfrost_module.dynamic()
-        timemeasure("Snow")  # 2. timing
+        timemeasure("Snow")  # 3. timing
 
         # ***** READ land use fraction maps***************************
 
         self.landcoverType_module.dynamic_fracIrrigation()
         self.capillarRise_module.dynamic()
-        timemeasure("Soil 1.Part")  # 3. timing
+        timemeasure("Soil 1.Part")  # 4. timing
 
         # *********  WATER Demand   *************************
         self.waterdemand_module.dynamic()
-        timemeasure("Water demand")  # 4. timing
+        timemeasure("Water demand")  # 5. timing
 
         # *********  Soil splitted in different land cover fractions *************
         self.landcoverType_module.dynamic()
-        timemeasure("Soil main")  # 5. timing
+        timemeasure("Soil main")  # 6. timing
 
         self.groundwater_module.dynamic()
-        timemeasure("Groundwater")  # 6. timing
+        timemeasure("Groundwater")  # 7. timing
 
         self.routing_module.dynamic()
-        timemeasure("Routing")  # 7. timing
+        timemeasure("Routing")  # 8. timing
 
         # *******  Calculate CUMULATIVE MASS BALANCE ERROR  **********
         # self.waterbalance_module.dynamic()
@@ -95,10 +98,10 @@ class CWATModel_dyn(DynamicModel):
         # ------------------------------------------------------
 
         self.waterbalance_module.checkWaterSoilGround()
-        timemeasure("Waterbalance")  # 8. timing
+        timemeasure("Waterbalance")  # 9. timing
 
         self.output_module.dynamic()
-        timemeasure("Output")  # 9. timing
+        timemeasure("Output")  # 10. timing
 
         self.init_module.dynamic()
 

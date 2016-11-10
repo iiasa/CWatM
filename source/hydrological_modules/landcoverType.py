@@ -339,7 +339,7 @@ class landcoverType(object):
                  self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap],                                                                # Out
                 [preTopWaterLayer,preStor1,preStor2,preStor3],                                       # prev storage
                 [self.var.sum_topWaterLayer,self.var.sum_soilStor[0], self.var.sum_soilStor[1], self.var.sum_soilStor[2]],
-                "Soil_sum1", True)
+                "Soil_sum1", False)  #True
 
 
         if option['calcWaterBalance']:
@@ -360,7 +360,7 @@ class landcoverType(object):
                  self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap, self.var.sum_interceptEvap],                                                                # Out
                 [self.var.prevSnowCover, preTopWaterLayer,preStor1,preStor2,preStor3,preIntStor],                                       # prev storage
                 [self.var.SnowCover, self.var.sum_topWaterLayer,self.var.sum_soilStor[0], self.var.sum_soilStor[1], self.var.sum_soilStor[2], self.var.sum_interceptStor],
-                "Soil_All", True)
+                "Soil_All", False)  #True
         i = 1
 
 

@@ -5,6 +5,10 @@
 # unit: unit of the varibale
 # long name# standard name
 
+# Pot. Evaporation maps 
+<metanetcdf varname="ETRef" unit="m/day"  standard_name="pot_reference_ET" long_name="potential reference evapotranspiration rate"  title="1st Demo CWATM" author="PB" />
+<metanetcdf varname="EWRef" unit="m/day"  standard_name="pot_water_E" long_name="potential evaporation rate from water surface"  title="1st Demo CWATM" author="PB" />
+
 # Discharge maps 
 <metanetcdf varname="discharge" unit="m3/s"  standard_name="Discharge" long_name="Discharge in cubic meter per second"  title="1st Demo CWATM" author="PB" />
 
