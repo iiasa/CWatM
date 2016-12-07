@@ -28,8 +28,8 @@ from hydrological_modules.lakes_reservoirs import *
 from hydrological_modules.waterbalance import *
 
 # --------------------------------------------
-from pcraster import*
-from pcraster.framework import *
+#from pcraster import*
+#from pcraster.framework import *
 from management_modules.data_handling import *
 from management_modules.output import *
 

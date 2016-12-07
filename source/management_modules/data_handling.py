@@ -409,19 +409,23 @@ def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False, ze
     # date if used daily, monthly or yearly or day of year
     if useDaily == "DOY":  # day of year 1-366
         idx = date - 1
-    else:
-        if useDaily == "month":
-           idx = int(date.month) - 1
-        else:
-           if useDaily == "yearly":
-              date = datetime.datetime(date.year, int(1), int(1))
-           if useDaily == "monthly":
-              date = datetime.datetime(date.year, date.month, int(1))
-           # A netCDF time variable object  - time index (in the netCDF file)
-           nctime = nf1.variables['time']
-           idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
+    if useDaily == "10day":  # every 10 days
+        idx = date
+    if useDaily == "month":
+        idx = int(date.month) - 1
+    if useDaily == "yearly":
+        date = datetime.datetime(date.year, int(1), int(1))
+    if useDaily == "monthly":
+        date = datetime.datetime(date.year, date.month, int(1))
+
+    if useDaily in ["monthly","yearly","daily"]:
+        # A netCDF time variable object  - time index (in the netCDF file)
+        nctime = nf1.variables['time']
+        idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
+
     if value == "None":
         value = nf1.variables.items()[-1][0]  # get the last variable name
+
     mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
     nf1.close()
 

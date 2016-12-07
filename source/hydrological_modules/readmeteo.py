@@ -37,6 +37,7 @@ class readmeteo(object):
         ZeroKelvin = 0.0
         if option['TemperatureInKelvin']:
             # if temperature is in Kelvin -> conversion to deg C
+            # TODO in initial there could be a check if temperature > 200 -> automatic change to Kelvin
             ZeroKelvin = 273.15
 
 

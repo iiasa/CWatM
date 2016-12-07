@@ -25,8 +25,10 @@ __status__ = "Development"
 #  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-# to work with the new grid engine  - a workaround with pyexpat is needed
+# to work with some versions of Linux  - a workaround with pyexpat is needed
+from pyexpat import *
 import xml.dom.minidom
+
 from netCDF4 import Dataset
 from pcraster import *
 from pcraster.framework import *

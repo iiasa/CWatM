@@ -49,7 +49,7 @@ class landcoverType(object):
                          'gwRecharge','interflow','actualET','interflowTotal','openWaterEvap','irrGrossDemand',
                          'interceptStor','topWaterLayer',
                          'totalPotentialGrossDemand','actSurfaceWaterAbstract','allocSurfaceWaterAbstract','potGroundwaterAbstract',
-                         'percToGW','capRiseFromGW','netPercUpper','netPerc']
+                         'percToGW','capRiseFromGW','netPercUpper','netPerc','interceptCap','PrefFlow']
         # for 4 landcover types
         for variable in landcoverVars:  vars(self.var)[variable] = np.tile(globals.inZero,(4,1))
 
@@ -66,7 +66,7 @@ class landcoverType(object):
         self.var.landcoverSum = [ 'interceptStor', 'topWaterLayer','interflow',
                          'directRunoff', 'totalPotET', 'potBareSoilEvap', 'potTranspiration', 'availWaterInfiltration',
                          'interceptEvap', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTransTotal', 'gwRecharge',
-                         'actualET','interflowTotal', 'topWaterLayer', 'openWaterEvap','capRiseFromGW','percToGW',
+                         'actualET','interflowTotal', 'topWaterLayer', 'openWaterEvap','capRiseFromGW','percToGW',"PrefFlow",
                          'irrGrossDemand','totalPotentialGrossDemand','actSurfaceWaterAbstract','allocSurfaceWaterAbstract','potGroundwaterAbstract']
         for variable in self.var.landcoverSum: vars(self.var)["sum_"+variable] = globals.inZero.copy()
 
@@ -156,13 +156,10 @@ class landcoverType(object):
 
             # Improved Arno's scheme parameters:
             if self.var.arnoBeta[i] == 0:
-                self.var.arnoBeta[i] = np.minimum(10.0,
-                    np.maximum(0.001, (self.var.maxSoilDepthFrac[i] - 1.) / (1. - self.var.minSoilDepthFrac[i]) + self.var.orographyBeta - 0.01))
-            else:
-                self.var.arnoBeta[i] = np.minimum(1.0,np.maximum(0.001, self.arnoBeta))
+                self.var.arnoBeta[i] = (self.var.maxSoilDepthFrac[i] - 1.) / (1. - self.var.minSoilDepthFrac[i]) + self.var.orographyBeta - 0.01
+            self.var.arnoBeta[i] = np.minimum(10.0,np.maximum(0.001, self.var.arnoBeta[i]))
             # PB changed to max 1.0 #TODO
             #report(decompress(self.var.arnoBeta[i]), "C:\work\output\harno.map")
-
 
             self.var.rootZoneWaterStorageMin[i] = self.var.minSoilDepthFrac[i] * self.var.rootZoneWaterStorageCap
             self.var.rootZoneWaterStorageRange[i] = self.var.rootZoneWaterStorageCap - self.var.rootZoneWaterStorageMin[i]
@@ -335,7 +332,7 @@ class landcoverType(object):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.sum_availWaterInfiltration,self.var.sum_capRiseFromGW,self.var.sum_irrGrossDemand],                             # In  self.var.irrGrossDemand
                 [self.var.sum_directRunoff,self.var.sum_interflowTotal, self.var.sum_percToGW, \
-                 self.var.sum_actTransTotal, \
+                 self.var.sum_PrefFlow, self.var.sum_actTransTotal, \
                  self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap],                                                                # Out
                 [preTopWaterLayer,preStor1,preStor2,preStor3],                                       # prev storage
                 [self.var.sum_topWaterLayer,self.var.sum_soilStor[0], self.var.sum_soilStor[1], self.var.sum_soilStor[2]],
@@ -346,7 +343,7 @@ class landcoverType(object):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Rain,self.var.SnowMelt,self.var.sum_capRiseFromGW,self.var.sum_irrGrossDemand],                             # In  self.var.irrGrossDemand
                 [self.var.sum_directRunoff,self.var.sum_interflowTotal, self.var.sum_percToGW, \
-                 self.var.sum_actTransTotal, \
+                 self.var.sum_PrefFlow, self.var.sum_actTransTotal, \
                  self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap, self.var.sum_interceptEvap],                                                                # Out
                 [preTopWaterLayer,preStor1,preStor2,preStor3,preIntStor],                                       # prev storage
                 [self.var.sum_topWaterLayer,self.var.sum_soilStor[0], self.var.sum_soilStor[1], self.var.sum_soilStor[2], self.var.sum_interceptStor],
@@ -356,7 +353,7 @@ class landcoverType(object):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Precipitation,self.var.sum_capRiseFromGW,self.var.sum_irrGrossDemand],                             # In
                 [self.var.sum_directRunoff,self.var.sum_interflowTotal, self.var.sum_percToGW, \
-                 self.var.sum_actTransTotal, \
+                 self.var.sum_PrefFlow, self.var.sum_actTransTotal, \
                  self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap, self.var.sum_interceptEvap],                                                                # Out
                 [self.var.prevSnowCover, preTopWaterLayer,preStor1,preStor2,preStor3,preIntStor],                                       # prev storage
                 [self.var.SnowCover, self.var.sum_topWaterLayer,self.var.sum_soilStor[0], self.var.sum_soilStor[1], self.var.sum_soilStor[2], self.var.sum_interceptStor],

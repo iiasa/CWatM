@@ -89,6 +89,8 @@ def checkifDate(start,end,spinup):
 
     # spinup date = date from which maps are written
     if binding[spinup].lower() == "none":  spinup = start
+    else:
+        if int(binding[spinup]) == 0:  spinup = start
 
 
     dateVar['intStart'],strStart = datetoInt(binding[start],begin,True)
@@ -146,6 +148,7 @@ def timestep_dynamic():
     dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
     dateVar['currDatestr'] = dateVar['currDate'].strftime("%d/%m/%Y")
     dateVar['doy'] = int(dateVar['currDate'].strftime('%j'))
+    dateVar['10day'] = int((dateVar['doy']-1)/10)
 
     dateVar['laststep'] = False
     if (dateVar['intStart'] + dateVar['curr']) == dateVar['intEnd']: dateVar['laststep'] = True
@@ -164,6 +167,8 @@ def timestep_dynamic():
     dateVar['newStart'] = dateVar['curr'] == 1
     dateVar['newMonth'] = dateVar['currDate'].day == 1
     dateVar['newYear'] = (dateVar['currDate'].day == 1) and (dateVar['currDate'].month == 1)
+    dateVar['new10day'] = ((dateVar['doy'] - 1) / 10.0) == dateVar['10day']
+
 
 
 

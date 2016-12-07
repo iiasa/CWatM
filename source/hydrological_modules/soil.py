@@ -88,6 +88,8 @@ class soil(object):
                                      (self.var.slopeLength * (1. - self.var.effSatAtFieldCap[2]) * \
                                      (self.var.satVol[2] - self.var.resVol[2]))
 
+    # ------------ Preferential Flow constant ------------------------------------------
+        self.var.cPrefFlow = loadmap('preferentialFlowConstant')
 
     # ------------ SOIL DEPTH ----------------------------------------------------------
         # soil thickness and storage
@@ -101,7 +103,8 @@ class soil(object):
         for i in xrange(self.var.soilLayers):
             self.var.storCap[i] = self.var.soildepth[i] * (self.var.satVol[i] - self.var.resVol[i])
         self.var.rootZoneWaterStorageCap = np.sum(self.var.storCap,axis=0)
-        i=1
+        i = 1
+
 
 
 
@@ -112,76 +115,55 @@ class soil(object):
 
     def dynamic(self, coverType, No):
 
-        def improvedArnoScheme(No,kUnsat2, iniWaterStorage, inputNetLqWaterToSoil, directRunoffReduction="Default"):
-            # improvedArnoScheme(No, iniWaterStorage=self.var.soilWaterStorage[No], inputNetLqWaterToSoil=self.var.topWaterLayer[No])
-            # arnoBeta = BCF = b coefficient of soil water storage capacity distribution
-            #
-            # WMIN = root zone water storage capacity, minimum values
-            # WMAX = root zone water storage capacity, area-averaged values
+
+        def improvedArnoScheme(No, iniWaterStorage, WaterToSoil):
+            # arnoBeta = b coefficient of soil water storage capacity distribution
+            # WMIN = root zone water storage capacity, minimum values  (first 2 zones)
+            # WMAX = root zone water storage capacity
             # W	   = actual water storage in root zone
-            # WRANGE  = WMAX - WMIN
-            # DW      = WMAX-W
-            # WFRAC   = DW/WRANGE ; WFRAC capped at 1
+            # rootZoneWaterStorageRange = WMAX - WMIN
+            # DW      = WMAX - soilWaterStorage
             # WFRACB  = DW/WRANGE raised to the power (1/(b+1))
             # SATFRAC =	fractional saturated area
             # WACT    = actual water storage within rootzone
 
-            Pn = iniWaterStorage +inputNetLqWaterToSoil                            # Pn = W[TYPE]+Pn;
-            Pn = Pn - np.maximum(self.var.rootZoneWaterStorageMin[No], iniWaterStorage)    # Pn = Pn-max(WMIN[TYPE],W[TYPE]);
+            availWater = iniWaterStorage + WaterToSoil
+            availWater = availWater - np.maximum(self.var.rootZoneWaterStorageMin[No], iniWaterStorage)
+            soilWaterStorage = np.where(availWater < 0., self.var.rootZoneWaterStorageMin[No] + availWater,
+                                        np.maximum(iniWaterStorage, self.var.rootZoneWaterStorageMin[No]))
+            availWater = np.maximum(0., availWater)
 
-            soilWaterStorage = np.where(Pn < 0., self.var.rootZoneWaterStorageMin[No] + Pn, np.maximum(iniWaterStorage, self.var.rootZoneWaterStorageMin[No]))
-            # W[TYPE]= if(Pn<0,WMIN[TYPE]+Pn,max(W[TYPE],WMIN[TYPE]));
+            DW = np.maximum(0., self.var.rootZoneWaterStorageCap - soilWaterStorage)
+            WFRAC = np.minimum(1.0, DW / self.var.rootZoneWaterStorageRange[No])
+            WFRACB = WFRAC ** (1. / (1. + self.var.arnoBeta[No]))
 
-            Pn = np.maximum(0., Pn)  # Pn = max(0,Pn);
+            satAreaFrac = np.where(WFRACB > 0., 1. - WFRACB ** self.var.arnoBeta[No], 0.)
+            satAreaFrac = np.maximum(np.minimum(satAreaFrac, 1.0), 0.0)
 
-            DW = np.maximum(0., self.var.rootZoneWaterStorageCap - soilWaterStorage)  # DW = max(0,WMAX[TYPE]-W[TYPE]);
+            # if No == 1: print WFRAC[0], satAreaFrac[0]
+            # if directRunoffReduction == "Default":
+            #    directRunoffReduction = np.minimum(kUnsat2, np.sqrt(self.var.kUnsatAtFieldCap[2] * kUnsat2))
+            # In order to maintain full saturation and continuous groundwater recharge/percolation, the amount of directRunoff may be reduced.
 
-            WFRAC = np.minimum(1.0, DW / self.var.rootZoneWaterStorageRange[No])  # WFRAC = min(1,DW/WRANGE[TYPE]);
-            WFRACB = WFRAC ** (1. / (1. + self.var.arnoBeta[No]))  # WFRACB = WFRAC**(1/(1+BCF[TYPE]));
-
-            satAreaFrac = np.where(WFRACB > 0., 1. - WFRACB ** self.var.arnoBeta[No], 0.)  # SATFRAC_L = if(WFRACB>0,1-WFRACB**BCF[TYPE],0);
-            satAreaFrac = np.maximum(np.minimum(satAreaFrac, 1.0),0.0)
-
-            actualW = (self.var.arnoBeta[No] + 1) * self.var.rootZoneWaterStorageCap - \
-                       self.var.arnoBeta[No] * self.var.rootZoneWaterStorageMin[No] - \
-                      (self.var.arnoBeta[No] + 1) * self.var.rootZoneWaterStorageRange[No] * WFRACB
-            # WACT_L = (BCF[TYPE]+1)*WMAX[TYPE]- BCF[TYPE]*WMIN[TYPE]- (BCF[TYPE]+1)*WRANGE[TYPE]*WFRACB;
-
-
-            if directRunoffReduction == "Default":
-                directRunoffReduction = np.minimum(kUnsat2, np.sqrt(self.var.kUnsatAtFieldCap[2] * kUnsat2))
-                # In order to maintain full saturation and
-                # continuous groundwater recharge/percolation,
-                # the amount of directRunoff may be reduced.
-                # In this case, this reduction is estimated
-                # based on (for two layer case) percLow = np.minimum(KUnSatLow, pcr.sqrt(parameters.KUnSatFC2*KUnSatLow))
-
-            # directRunoff
+            # calculate directRunoff
             condition = (self.var.arnoBeta[No] + 1.) * self.var.rootZoneWaterStorageRange[No] * WFRACB
 
             """
-            h1= Pn - (self.var.rootZoneWaterStorageCap + directRunoffReduction - soilWaterStorage)
-            h2 = self.var.rootZoneWaterStorageRange[No] * (WFRACB - Pn /        ((self.var.arnoBeta[No] + 1.) * self.var.rootZoneWaterStorageRange[No]))
-
-            #self.rootZoneWaterStorageRange * (self.WFRACB - Pn / ((self.arnoBeta + 1.) * self.rootZoneWaterStorageRange))
-
+            h1= availWater - (self.var.rootZoneWaterStorageCap + directRunoffReduction - soilWaterStorage)
+            h2 = self.var.rootZoneWaterStorageRange[No] * (WFRACB - availWater /        ((self.var.arnoBeta[No] + 1.) * self.var.rootZoneWaterStorageRange[No]))
             h3 = (self.var.arnoBeta[No] + 1.)
             #report(decompress(self.var.arnoBeta[No]), "C:\work\output\h2.map")
             h4 = h2 ** h3
-            h5 = np.where(Pn >= condition, 0.0, h4)
+            h5 = np.where(availWater >= condition, 0.0, h4)
             """
             with np.errstate(invalid='ignore', divide='ignore'):
-                directRunoff = np.maximum(0.0, Pn - (self.var.rootZoneWaterStorageCap + directRunoffReduction - soilWaterStorage) + \
-                           np.where(Pn >= condition, 0.0, \
-                           self.var.rootZoneWaterStorageRange[No] * (WFRACB - \
-                           Pn / ((self.var.arnoBeta[No] + 1.) * self.var.rootZoneWaterStorageRange[No])) ** (self.var.arnoBeta[No] + 1.)))
-            #    Q1_L[TYPE]= max(0,Pn-(WMAX[TYPE]+P2_L[TYPE]-W[TYPE])+
-            #      if(Pn>=(BCF[TYPE]+1)*WRANGE[TYPE]*WFRACB, 0,
-            #      WRANGE[TYPE]*(WFRACB-Pn/((BCF[TYPE]+1)*WRANGE[TYPE]))**(BCF[TYPE]+1))); #*
+                directRunoff = np.maximum(0.0, availWater - (self.var.rootZoneWaterStorageCap - soilWaterStorage) + \
+                               np.where(availWater >= condition, 0.0, self.var.rootZoneWaterStorageRange[No] * (WFRACB - \
+                               availWater / ((self.var.arnoBeta[No] + 1.) * self.var.rootZoneWaterStorageRange[No])) ** (self.var.arnoBeta[No] + 1.)))
+
             return directRunoff, WFRACB, satAreaFrac
 
-
-#---------------------------------------------------------
+    #---------------------------------------------------------
 # ---------------------------------------------------------
         if option['calcWaterBalance']:
             preTopWaterLayer = self.var.topWaterLayer[No].copy()
@@ -257,24 +239,39 @@ class soil(object):
         #=========================================
         # run Arno Scheme
         # ========================================
-        self.var.directRunoff[No], WFRACB, satAreaFrac = improvedArnoScheme( No,kUnsat[2],
-                    iniWaterStorage=self.var.soilWaterStorage[No], inputNetLqWaterToSoil=self.var.topWaterLayer[No])
+        self.var.directRunoff[No], WFRACB, satAreaFrac = improvedArnoScheme( No, self.var.soilWaterStorage[No], self.var.topWaterLayer[No])
         self.var.directRunoff[No] = np.minimum(self.var.topWaterLayer[No], self.var.directRunoff[No])
 
-        # Yet, no directRunoff in the paddy field.
-        if coverType == 'irrPaddy': self.var.directRunoff[No] = 0.
-
-        # update topWaterLayer (above soil) after directRunoff
-        self.var.topWaterLayer[No] = self.var.topWaterLayer[No] - self.var.directRunoff[No]
-
+        # No directRunoff in the paddy field.
+        if coverType == 'irrPaddy':
+            self.var.directRunoff[No] = 0.
+            self.var.PrefFlow[No] = 0.
+        else:
+            # update topWaterLayer (above soil) after directRunoff
+            self.var.topWaterLayer[No] = self.var.topWaterLayer[No] - self.var.directRunoff[No]
+            # ---------------------------------------------------------
+            # calculate preferential flow
+            # flow that bypasses the soil matrix and drains directly to the groundwater (not for irrPaddy)
+            if option['preferentialFlow']:
+                self.var.PrefFlow[No] = self.var.topWaterLayer[No] * satAreaFrac ** self.var.cPrefFlow
+                self.var.PrefFlow[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, globals.inZero, self.var.PrefFlow[No])
+                self.var.topWaterLayer[No] = self.var.topWaterLayer[No] - self.var.PrefFlow[No]
+            else:
+                self.var.PrefFlow[No] = 0.
 
 
         # ---------------------------------------------------------
         # calculateInfiltration
         # infiltration, limited with KSat1 and available water in topWaterLayer
         self.var.infiltration[No] = np.minimum(self.var.topWaterLayer[No],self.var.kSat[0])
+
+        # When the soil is frozen (frostindex larger than threshold), infiltration = 0 and infiltration is put to direct runoff
+        self.var.directRunoff[No] = self.var.directRunoff[No] + np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, self.var.infiltration[No], globals.inZero)
         # update top water layer after infiltration
         self.var.topWaterLayer[No] = self.var.topWaterLayer[No] - self.var.infiltration[No]
+        self.var.infiltration[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, globals.inZero, self.var.infiltration[No])
+
+
 
         # ---------------------------------------------------------
         #estimateTranspirationAndBareSoilEvap
@@ -310,6 +307,11 @@ class soil(object):
                     self.var.potBareSoilEvap[No], self.var.kSat[0]) + \
                     (1. - satAreaFrac) * np.minimum(self.var.potBareSoilEvap[No], kUnsat[0])
 
+        # When the soil is frozen (frostindex larger than threshold), relActTranspiration = 0 and self.var.actBareSoilEvap[No] =0
+        relActTranspiration = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, globals.inZero, relActTranspiration )
+        self.var.actBareSoilEvap[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, globals.inZero,self.var.actBareSoilEvap[No])
+
+
         # no bare soil evaporation in the inundated paddy field
         if coverType == 'irrPaddy':
                     self.var.actBareSoilEvap[No] = np.where(self.var.topWaterLayer[No] > 0.0, 0.0, self.var.actBareSoilEvap[No])
@@ -324,17 +326,18 @@ class soil(object):
         perc[1] = np.where(effSat[1] > self.var.effSatAtFieldCap[1],
                 np.minimum(np.maximum(0., effSat[1] - self.var.effSatAtFieldCap[1]) * self.var.storCap[1], kThVert[1]), kThVert[1]) + \
                 np.maximum(0.,  perc[0] - (self.var.storCap[1] - self.var.soilStor[1][No]))
-        # - percolation from storLow030150 to storGroundwater (m)
+        # - percolation from soil to Groundwater (m)
         self.var.percToGW[No] = np.minimum(kUnsat[2], np.sqrt(self.var.kUnsatAtFieldCap[2] * kUnsat[2]))
+
 
 
         for j in xrange(self.var.soilLayers-1):
             capRise[j] = np.minimum(np.maximum(0., self.var.effSatAtFieldCap[j] - effSat[j]) * self.var.storCap[j], kThVert[j] * gradient[j])
+
         # - capillary rise to storLow030150 from storGroundwater (m)
         self.var.capRiseFromGW[No] = 0.5 * (satAreaFrac + self.var.capRiseFrac) * \
                     np.minimum((1. - effSat[2]) * np.sqrt(self.var.kSat[2] * \
                     kUnsat[2]), np.maximum(0.0, self.var.effSatAtFieldCap[2] - \
-
                     effSat[2]) * self.var.storCap[2])
 
         # - interflow (m)
@@ -343,10 +346,18 @@ class soil(object):
         self.var.interflow[No] = np.maximum( self.var.interflowConcTime * percToInterflow + \
                     (1.0 - self.var.interflowConcTime) * self.var.interflow[No], 0.0)
 
+
         # ---------------------------------------------------------------------------------------------
-        # estimateSoilFluxes(self, parameters, capRiseFrac):
-        # Given states, we estimate all fluxes.
-            # - percolation from first soil layer to second [0] -> [1] in [m]
+        # When the soil is frozen (frostindex larger than threshold), stop all fluxes
+        capRise[0] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, globals.inZero, capRise[0])
+        capRise[1] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, globals.inZero, capRise[1])
+        self.var.capRiseFromGW[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, globals.inZero, self.var.capRiseFromGW[No])
+        perc[0] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, globals.inZero, perc[0])
+        perc[1] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, globals.inZero, perc[1])
+        self.var.percToGW[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, globals.inZero, self.var.percToGW[No])
+        self.var.interflow[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, globals.inZero, self.var.interflow[No])
+
+
 
         # ---------------------------------------------------------------------------------------------
         # ---------------------------------------------------------------------------------------------
@@ -354,7 +365,6 @@ class soil(object):
         # scaleAllFluxes(self, parameters, groundwater):
         # re-scale all fluxes (based on available water).
         # ####################################################
-
 
         ADJUST = self.var.actBareSoilEvap[No] + actTrans[0] + perc[0]
         with np.errstate(invalid='ignore', divide='ignore'):
@@ -378,6 +388,8 @@ class soil(object):
         self.var.percToGW[No] = ADJUST * self.var.percToGW[No]
         self.var.interflow[No] = ADJUST * self.var.interflow[No]
 
+
+
         # capillary rise to storLow is limited to available storGroundwater
         # and also limited with reducedGroundWaterAbstraction
         self.var.capRiseFromGW[No] = np.maximum(0., np.minimum( \
@@ -388,6 +400,7 @@ class soil(object):
         # capillary rise to first layer is limited to available water in second layer
         capRise[0] = np.minimum(np.maximum(0, self.var.soilStor[1][No] + perc[0] - \
                 (actTrans[1] + perc[1])), capRise[0])
+
 
         # ---------------------------------------------------------------------------------------------
         # Give new states and make sure that no storage capacities will be exceeded.
@@ -412,7 +425,6 @@ class soil(object):
         self.var.soilStor[2][No] = np.minimum(self.var.soilStor[2][No], self.var.storCap[2])
 
         # update storage in layer 2 [1] after the following fluxes:
-
         self.var.soilStor[1][No] = np.maximum(0., self.var.soilStor[1][No] + perc[0] + capRise[1] - \
                     (perc[1] + actTrans[1] + capRise[0]))
         # If necessary, reduce percolation input:
@@ -464,7 +476,7 @@ class soil(object):
         self.var.netPercUpper[No] = perc[1] - capRise[1]
 
         # groundwater recharge
-        self.var.gwRecharge[No] = self.var.percToGW[No] - self.var.capRiseFromGW[No]
+        self.var.gwRecharge[No] = self.var.percToGW[No] - self.var.capRiseFromGW[No] + self.var.PrefFlow[No]
 
         # landSurfaceRunoff (needed for routing)
         self.var.interflowTotal[No] = self.var.interflow[No] + interflow1
@@ -474,9 +486,8 @@ class soil(object):
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.availWaterInfiltration[No],self.var.capRiseFromGW[No], self.var.irrGrossDemand[No]],                             # In
-                [self.var.directRunoff[No],self.var.interflowTotal[No], self.var.percToGW[No], \
-                 self.var.actTransTotal[No], \
-                 self.var.actBareSoilEvap[No],self.var.openWaterEvap[No]],                                                                # Out
+                [self.var.directRunoff[No],self.var.interflowTotal[No], self.var.percToGW[No], self.var.PrefFlow[No], \
+                 self.var.actTransTotal[No], self.var.actBareSoilEvap[No],self.var.openWaterEvap[No]],                                                                # Out
                 [preTopWaterLayer,preStor1,preStor2,preStor3],                                       # prev storage
                 [self.var.topWaterLayer[No],self.var.soilStor[0][No],self.var.soilStor[1][No],self.var.soilStor[2][No]],
                 "Soil_AllSoil", False)
