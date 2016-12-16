@@ -135,7 +135,8 @@ def checkifDate(start,end,spinup):
 
     dateVar['diffMonth'] = dateVar['checked'].count(1) + dateVar['checked'].count(2)
     dateVar['diffYear'] = dateVar['checked'].count(2)
-    i=1
+    dateVar['leapYear'] = 0
+
 
 
 
@@ -145,7 +146,22 @@ def timestep_dynamic():
     Current date is increasing, checking if beginning of month, year,
     """
 
+
+
+    #print "leap:", globals.leap_flag[0]
     dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
+
+
+    if dateVar['leapYear']>0:   # 365 days per year
+        if dateVar['currDate'].month==2 and dateVar['currDate'].day==29:
+             dateVar['curr'] += 1
+             dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
+    if dateVar['leapYear']==2:   # 360 days per year
+        if  dateVar['currDate'].month < 9 and dateVar['currDate'].day==31:
+             dateVar['curr'] += 1
+             dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
+
+
     dateVar['currDatestr'] = dateVar['currDate'].strftime("%d/%m/%Y")
     dateVar['doy'] = int(dateVar['currDate'].strftime('%j'))
     dateVar['10day'] = int((dateVar['doy']-1)/10)

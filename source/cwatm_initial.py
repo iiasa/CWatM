@@ -18,11 +18,13 @@ from hydrological_modules.inflow import *
 from hydrological_modules.snow_frost import *
 from hydrological_modules.soil import *
 from hydrological_modules.landcoverType import *
+from hydrological_modules.sealed_water import *
 from hydrological_modules.evaporation import *
 from hydrological_modules.groundwater import *
 from hydrological_modules.waterdemand import *
 from hydrological_modules.capillarRise import *
 from hydrological_modules.interception import *
+from hydrological_modules.runoff_concentration import *
 from hydrological_modules.routing import *
 from hydrological_modules.lakes_reservoirs import *
 from hydrological_modules.waterbalance import *
@@ -84,6 +86,8 @@ class CWATModel_ini(DynamicModel):
         self.waterdemand_module = waterdemand(self)
         self.capillarRise_module = capillarRise(self)
         self.interception_module = interception(self)
+        self.sealed_water_module = sealed_water(self)
+        self.runoff_concentration_module = runoff_concentration(self)
         self.routing_module = routing(self)
         self.lakes_reservoirs_module = lakes_reservoirs(self)
 
@@ -104,6 +108,7 @@ class CWATModel_ini(DynamicModel):
         self.soil_module.initial()
         self.landcoverType_module.initial()
         self.groundwater_module.initial()
+        self.runoff_concentration_module.initial()
 
         self.routing_module.initial()
         self.lakes_reservoirs_module.initial()

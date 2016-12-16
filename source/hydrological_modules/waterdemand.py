@@ -50,26 +50,38 @@ class waterdemand(object):
         # get NON-Irrigation GROSS water demand and its return flow fraction
         # obtainNonIrrWaterDemand landsurface 487
 
-        # domestic water demand
-        self.var.domesticGrossDemand = readnetcdf2(binding['domesticWaterDemandFile'], dateVar['currDate'], "monthly", value="domesticGrossDemand")
-        self.var.domesticNettoDemand = readnetcdf2(binding['domesticWaterDemandFile'], dateVar['currDate'], "monthly", value="domesticNettoDemand")
+
         # industry water demand
-        self.var.industryGrossDemand = readnetcdf2(binding['industryWaterDemandFile'], dateVar['currDate'], "yearly", value="industryGrossDemand")
-        self.var.industryNettoDemand = readnetcdf2(binding['industryWaterDemandFile'], dateVar['currDate'], "yearly", value="industryNettoDemand")
+        if dateVar['newStart'] or dateVar['newYear']:
+            self.var.industryGrossDemand = readnetcdf2(binding['industryWaterDemandFile'], dateVar['currDate'], "yearly", value="industryGrossDemand")
+            self.var.industryNettoDemand = readnetcdf2(binding['industryWaterDemandFile'], dateVar['currDate'], "yearly", value="industryNettoDemand")
+            self.var.industryGrossDemand = np.where(self.var.industryGrossDemand > self.var.InvCellArea, self.var.industryGrossDemand, 0.0)
+            self.var.industryNettoDemand = np.where(self.var.industryNettoDemand > self.var.InvCellArea, self.var.industryNettoDemand, 0.0)
 
-        # avoid small values (less than 1 m3):
-        self.var.domesticGrossDemand = np.where(self.var.domesticGrossDemand > self.var.InvCellArea, self.var.domesticGrossDemand, 0.0)
-        self.var.domesticNettoDemand = np.where(self.var.domesticNettoDemand > self.var.InvCellArea, self.var.domesticNettoDemand, 0.0)
-        self.var.industryGrossDemand = np.where(self.var.industryGrossDemand > self.var.InvCellArea, self.var.industryGrossDemand, 0.0)
-        self.var.industryNettoDemand = np.where(self.var.industryNettoDemand > self.var.InvCellArea, self.var.industryNettoDemand, 0.0)
+        # domestic water demand
+        if dateVar['newStart'] or dateVar['newMonth']:
+            self.var.domesticGrossDemand = readnetcdf2(binding['domesticWaterDemandFile'], dateVar['currDate'], "monthly", value="domesticGrossDemand")
+            self.var.domesticNettoDemand = readnetcdf2(binding['domesticWaterDemandFile'], dateVar['currDate'], "monthly", value="domesticNettoDemand")
+            # avoid small values (less than 1 m3):
+            self.var.domesticGrossDemand = np.where(self.var.domesticGrossDemand > self.var.InvCellArea, self.var.domesticGrossDemand, 0.0)
+            self.var.domesticNettoDemand = np.where(self.var.domesticNettoDemand > self.var.InvCellArea, self.var.domesticNettoDemand, 0.0)
 
-        # total (potential) non irrigation water demand
-        self.var.potentialNonIrrGrossWaterDemand = self.var.domesticGrossDemand + self.var.industryGrossDemand
-        self.var.potentialNonIrrNettoWaterDemand = np.minimum(self.var.potentialNonIrrGrossWaterDemand, self.var.domesticNettoDemand + self.var.industryNettoDemand)
+            # total (potential) non irrigation water demand
+            self.var.potentialNonIrrGrossWaterDemand = self.var.domesticGrossDemand + self.var.industryGrossDemand
+            self.var.potentialNonIrrNettoWaterDemand = np.minimum(self.var.potentialNonIrrGrossWaterDemand, self.var.domesticNettoDemand + self.var.industryNettoDemand)
 
-        # fraction of return flow from domestic and industrial water demand
-        self.var.nonIrrReturnFlowFraction = getValDivZero((self.var.potentialNonIrrGrossWaterDemand - self.var.potentialNonIrrNettoWaterDemand),\
+            # fraction of return flow from domestic and industrial water demand
+            self.var.nonIrrReturnFlowFraction = getValDivZero((self.var.potentialNonIrrGrossWaterDemand - self.var.potentialNonIrrNettoWaterDemand),\
                                      (self.var.potentialNonIrrGrossWaterDemand), 1E-39)
+        """
+        self.var.domesticGrossDemand = globals.inZero
+        self.var.domesticNettoDemand = globals.inZero
+        self.var.industryGrossDemand = globals.inZero
+        self.var.industryNettoDemand = globals.inZero
+        self.var.potentialNonIrrGrossWaterDemand = globals.inZero
+        self.var.potentialNonIrrNettoWaterDemand = globals.inZero
+        self.var.nonIrrReturnFlowFraction = 1e-39
+        """
 
         # ---------------------------------------------------------------------------------------
         # partitioningGroundSurfaceAbstraction  - landsurface 615
@@ -187,7 +199,7 @@ class waterdemand(object):
         else:
             # only local surface water abstraction is allowed (network is only within a cell) # unit: m
             self.var.actSurfaceWaterAbstract[No] = np.minimum(self.var.readAvlChannelStorage * self.var.InvCellArea, self.var.swAbstractionFraction * self.var.totalPotentialGrossDemand[No])
-            self.var.allocSurfaceWaterAbstract[No] = self.var.actSurfaceWaterAbstract[No]
+            self.var.allocSurfaceWaterAbstract[No] = self.var.actSurfaceWaterAbstract[No].copy()
 
 
         self.var.potGroundwaterAbstract[No] = np.maximum(0.0, self.var.totalPotentialGrossDemand[No] - self.var.allocSurfaceWaterAbstract[No])  # unit: m

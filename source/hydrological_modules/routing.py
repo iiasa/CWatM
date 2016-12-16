@@ -306,7 +306,7 @@ class routing(object):
 
 
         # runoff from landSurface cells (unit: m)
-        self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow
+        #self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow
 
         # update channelStorage (unit: m3) after runoff
         self.var.channelStorage += self.var.runoff * self.var.cellArea

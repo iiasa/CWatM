@@ -19,7 +19,7 @@ Structural improvements
    "Handling","Improve error handling","more messages for users if something goes wrong","1","."
    "Handling","Checks maps","include a pre-run, where input data are checked for plausibility","2","."
    "Handling","Load multiple netcd files","read meteo input netcdf from split files","2","."
-   "Coding","Soil variable names","change soil variable names","1","."
+
 
    
    
@@ -39,10 +39,10 @@ Model improvements
    "Snow","include more than 3 vertical layers (make it flexible)","2","X"
    "Runoff concentration","include a 1st routing to the edge of a grid cell","1","."
    "Include water & sealed land cover","include 2 more land cover types (water covered area, sealed area)","1","."
-   "Preferential flow","include preferential flow to soil layers","1", "."
+   "Preferential flow","include preferential flow to soil layers","1", "X"
    "soil depend on land cover","include hydropedo transfer function landcover -> soil","2","."
-   "Calculate Evaporation on PM","include Penman Monteith ET routine","1","."
-   "Reduce reading of time series maps","e.g. interception maps only 1 per month","2","."
+   "Calculate Evaporation on PM","include Penman Monteith ET routine","1","X"
+   "Reduce reading of time series maps","e.g. interception maps only 1 per month","2","X"
    "Kinematic wave","Add another way of routing","2","."
    "Improve lakes& reservoirs","Add another way of including lakes/reservoirs","2","."
    "Inflow points","add points where water can be added/substracted","1","."

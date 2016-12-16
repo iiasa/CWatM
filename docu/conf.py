@@ -19,7 +19,7 @@
 import os
 import sys
 
-sys.path.insert(0,"C:\CWATModel\CWatM\CWatM\source")
+sys.path.insert(0,"C:\work\CWatM\source")
 
 # -- General configuration ------------------------------------------------
 
@@ -29,9 +29,14 @@ sys.path.insert(0,"C:\CWATModel\CWatM\CWatM\source")
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
+
+# --------------------------------------------------------------------
+# put in extensions for source code documentation
+#    'sphinx.ext.autodoc',
+#	'sphinx.ext.inheritance_diagram',
+# --------------------------------------------------------------------
+
 extensions = [
-    'sphinx.ext.autodoc',
-	'sphinx.ext.inheritance_diagram',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',

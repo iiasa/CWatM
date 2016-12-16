@@ -480,7 +480,7 @@ class soil(object):
 
         # landSurfaceRunoff (needed for routing)
         self.var.interflowTotal[No] = self.var.interflow[No] + interflow1
-        self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflowTotal[No]
+        #self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflowTotal[No]
 
 
         if option['calcWaterBalance']:

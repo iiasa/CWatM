@@ -150,6 +150,7 @@ def loadsetclone(name):
 
     globals.inZero=np.zeros(maskinfo['mapC'])
 
+
     return map
 
 
@@ -421,7 +422,15 @@ def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False, ze
     if useDaily in ["monthly","yearly","daily"]:
         # A netCDF time variable object  - time index (in the netCDF file)
         nctime = nf1.variables['time']
-        idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
+
+        if nctime.calendar in ['noleap', '365_day']:
+            dateVar['leapYear'] = 1
+        if nctime.calendar in ['360_day']:
+            dateVar['leapYear'] = 2
+
+
+        #idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
+        idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
 
     if value == "None":
         value = nf1.variables.items()[-1][0]  # get the last variable name

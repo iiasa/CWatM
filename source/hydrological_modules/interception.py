@@ -38,7 +38,7 @@ class interception(object):
             No: Number of land cover type: forest = 0, grassland = 1 ...
         """
 
-        if not coverType.startswith("irr"):
+        if coverType in ['forest','grassland']:
             ## interceptCap Maximum interception read from file for forest and grassland land cover
             # for specific days of the year - repeated every year
             if dateVar['newStart'] or dateVar['new10day']:  # check if first day  of the year
@@ -54,6 +54,7 @@ class interception(object):
             prevState = self.var.interceptStor[No].copy()
 
 
+
         ## throughfall = surplus above the interception storage threshold
         # PB changed to Rain instead Pr, bceause snow is substracted later
         # PB it is assuming that all interception storage is used the other time step
@@ -63,14 +64,17 @@ class interception(object):
         ## availWaterInfiltration Available water for infiltration: throughfall + snow melt
         self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + self.var.SnowMelt)
 
+        if coverType in ['forest', 'grassland', 'irrPaddy', 'irrNonPaddy']:
 
+            #mult = getValDivZero(self.var.interceptStor[No], interceptCap, 1e39, 0.) ** 0.66666
+            with np.errstate(invalid='ignore', divide='ignore'):
+                mult = np.where(self.var.interceptCap[No] > 0, self.var.interceptStor[No]/self.var.interceptCap[No], 0.0)  ** self.var.twothird
+            ## interceptEvap evaporation from intercepted water (based on potTranspiration)
+            self.var.interceptEvap[No] = np.minimum(self.var.interceptStor[No], self.var.potTranspiration[No] * mult)
+            self.var.interceptEvap[No] = np.minimum(self.var.interceptEvap[No], self.var.potTranspiration[No])
 
-        #mult = getValDivZero(self.var.interceptStor[No], interceptCap, 1e39, 0.) ** 0.66666
-        with np.errstate(invalid='ignore', divide='ignore'):
-            mult = np.where(self.var.interceptCap[No] > 0, self.var.interceptStor[No]/self.var.interceptCap[No], 0.0)  ** self.var.twothird
-        ## interceptEvap evaporation from intercepted water (based on potTranspiration)
-        self.var.interceptEvap[No] = np.minimum(self.var.interceptStor[No], self.var.potTranspiration[No] * mult)
-        self.var.interceptEvap[No] = np.minimum(self.var.interceptEvap[No], self.var.potTranspiration[No])
+        if coverType in ['sealed']:
+            self.var.interceptEvap[No] = np.maximum(np.minimum(self.var.interceptStor[No], self.var.EWRef),globals.inZero)
 
         # update interception storage and potTranspiration
         self.var.interceptStor[No] = self.var.interceptStor[No] - self.var.interceptEvap[No]
@@ -82,10 +86,8 @@ class interception(object):
 
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Rain,self.var.SnowMelt],  # In
-                [self.var.availWaterInfiltration[No],self.var.interceptEvap[No]],  # Out
-                [prevState],   # prev storage
-                [self.var.interceptStor[No]],
-                "Interception", False)
-
-
+               [self.var.Rain, self.var.SnowMelt],  # In
+               [self.var.availWaterInfiltration[No], self.var.interceptEvap[No]],  # Out
+               [prevState],  # prev storage
+               [self.var.interceptStor[No]],
+               "Interception", False)

@@ -42,6 +42,7 @@ class CWATModel_dyn(DynamicModel):
         timemeasure("Start dynamic")
 
 
+
         if Flags['loud']:
             print "%-6i %10s" %(dateVar['currStart'],dateVar['currDatestr']),
         else:
@@ -87,8 +88,11 @@ class CWATModel_dyn(DynamicModel):
         self.groundwater_module.dynamic()
         timemeasure("Groundwater")  # 7. timing
 
+        self.runoff_concentration_module.dynamic()
+        timemeasure("Runoff conc.")  # 8. timing
+
         self.routing_module.dynamic()
-        timemeasure("Routing")  # 8. timing
+        timemeasure("Routing")  # 9. timing
 
         # *******  Calculate CUMULATIVE MASS BALANCE ERROR  **********
         # self.waterbalance_module.dynamic()
@@ -98,10 +102,10 @@ class CWATModel_dyn(DynamicModel):
         # ------------------------------------------------------
 
         self.waterbalance_module.checkWaterSoilGround()
-        timemeasure("Waterbalance")  # 9. timing
+        timemeasure("Waterbalance")  # 10. timing
 
         self.output_module.dynamic()
-        timemeasure("Output")  # 10. timing
+        timemeasure("Output")  # 11. timing
 
         self.init_module.dynamic()
 

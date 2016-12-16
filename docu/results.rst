@@ -5,6 +5,16 @@
 Demo of the model
 #####################
 
+Resolution
+==========
+| CWATM can be run globally at 0.5° or separately for any basin or any clipping of a global map. 
+| Depending on the data provided the model can also run for any other resolutions (e.g. 5 arcmin). 
+| Timestep is daily, output of maps, time series can be daily, monthly, yearly 
+
+
+Here some outputs of the global run on 0.5° are shown:
+
+   
 Demo 1 - NetCDF video   
 ======================
 

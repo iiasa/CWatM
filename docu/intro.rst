@@ -3,19 +3,10 @@
 Introduction
 #######################
 
-.. topic:: Overview
+Community Water Model - CWATM
+=============================
 
-    **Global climatic, hydro-socioeconomic modeling WAT/WFAS**
+With a growing population and economic development, it is expected that water demands will increase significantly in the future, especially in developing regions. At the same time, climate change is expected to alter spatial patterns of precipitation and temperature and will have regional to localized impacts on water availability. Thus, it is important to assess water demand, water supply and environmental needs over time to identify the populations and locations that will be most affected by these changes linked to water scarcity, droughts and floods. The Community Water Model will be designed for this purpose in that they include an accounting of how future water demands will evolve in response to socioeconomic change and how water availability will change in response to climate. 
 
-    WFaS is using a multi-model approach to assess possible futures.
-    We use three leading global hydrological models H08, WaterGAP and PCR-GLOBWB for estimating water demand and supply. 
-    This approach is used for a better understanding of the uncertainty and limitations of modeling. 
-    It provides a degree of confidence in the results an is in-line with the ISI-MIPS approach of multi-modeling 
-	
-    **Why a IIASA WAT hydrological model**
-	
-    Using results of models limits the possibility of tailoring the model to our needs i.e. linking to other IIASA groups (Globiom, Message, Epic, Economic GAMS) or parametrizing scenarios and solution options
-    Some problems are anyway only addressed in some model but not all (e.g. groundwater in PCR-GLOBWB)
-    The effort of fitting 3 models to solution/options is bigger than to develop a single model
+CWAT will represent one of the new key elements of the WAT program going forward and increasing the innovative niche of the work. We will use and develop the model to work at both global and regional (basin) level. The configuration of the model is open source and community-driven to promote our work amongst the wider water community and is flexible enough to introduce further planned developments such as water quality and hydro-economy. Our vision for the short to medium term work of the group is to introduce water quality (i.e., salinization in deltas and eutrophication associated with mega cities) into the community model and to consider how to include a qualitative/quantitative measure of transboundary river and groundwater governance into a scenario and modelling framework.
 
-	
