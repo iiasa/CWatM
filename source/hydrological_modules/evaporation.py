@@ -40,12 +40,12 @@ class evaporation(object):
 
         # calculate potential ET
         ##  self.var.totalPotET total potential evapotranspiration for a reference crop for a land cover class
-        self.var.totalPotET[No] = self.var.cropKC * self.var.ETRef
+        self.var.totalPotET[No] = self.var.cropCorrect  * self.var.cropKC * self.var.ETRef
 
         # calculate potential bare soil evaporation and transpiration
-        self.var.potBareSoilEvap[No] = self.var.minCropKC[No] * self.var.ETRef
+        self.var.potBareSoilEvap[No] = self.var.cropCorrect * self.var.minCropKC[No] * self.var.ETRef
         ## potTranspiration: Transpiration for each land cover class
-        self.var.potTranspiration[No] = self.var.cropKC * self.var.ETRef - self.var.potBareSoilEvap[No]
+        self.var.potTranspiration[No] = self.var.cropCorrect * self.var.cropKC * self.var.ETRef - self.var.potBareSoilEvap[No]
 
         # evaporation from bare soil for each land cover class
 

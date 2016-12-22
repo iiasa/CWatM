@@ -62,7 +62,7 @@ class snow(object):
         self.var.IceDayDegrees = 1.915
         # days of summer (15th June-15th Sept.) to degree: 180/(259-165)
         self.var.SnowSeason = loadmap('SnowSeasonAdj') * 0.5
-        # default value of range  of seasonal melt factor is set to 1
+        # default value of range  of seasonal melt factor is set to 0.001 m C-1 day-1
         # 0.5 x range of sinus function [-1,1]
         self.var.TempSnow = loadmap('TempSnow')
         self.var.SnowFactor = loadmap('SnowFactor')

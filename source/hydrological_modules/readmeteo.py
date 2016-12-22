@@ -42,7 +42,7 @@ class readmeteo(object):
 
 
 
-        self.var.Precipitation = readnetcdf2(binding['PrecipitationMaps'],dateVar['currDate']) * self.var.DtDay * self.var.con_precipitation
+        self.var.Precipitation = readnetcdf2(binding['PrecipitationMaps'],dateVar['currDate'],addZeros = True) * self.var.DtDay * self.var.con_precipitation
 
         #TODO PB
         ##self.var.Precipitation = self.var.Precipitation * 0 + 0.2
@@ -107,9 +107,9 @@ class readmeteo(object):
 
         # if pot evaporation is already precalulated
         else:
-            self.var.ETRef = readnetcdf2(binding['ETMaps'], dateVar['currDate']) * self.var.DtDay * self.var.con_e
+            self.var.ETRef = readnetcdf2(binding['ETMaps'], dateVar['currDate'], addZeros = True, cut = False) * self.var.DtDay * self.var.con_e
             # daily reference evaporation (conversion to [mm] per time step)
-            self.var.EWRef = readnetcdf2(binding['E0Maps'], dateVar['currDate']) * self.var.DtDay * self.var.con_e
+            self.var.EWRef = readnetcdf2(binding['E0Maps'], dateVar['currDate'], addZeros = True, cut = False) * self.var.DtDay * self.var.con_e
             # potential evaporation rate from water surface (conversion to [mm] per time step)
             # self.var.ESRef = (self.var.EWRef + self.var.ETRef)/2
             # potential evaporation rate from a bare soil surface (conversion # to [mm] per time step)

@@ -29,6 +29,10 @@ class groundwater(object):
         """ initial part of the groundwater module
         """
         self.var.recessionCoeff = loadmap('recessionCoeff')
+
+        # for CALIBRATION
+        self.var.recessionCoeff = self.var.recessionCoeff * loadmap('recessionCoeff_factor')
+
         self.var.specificYield = loadmap('specificYield')
         self.var.kSatAquifer = loadmap('kSatAquifer')
 

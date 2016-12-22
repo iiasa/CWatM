@@ -43,10 +43,18 @@ class initcondition(object):
         # soil / landcover
         i = 0
         self.var.coverTypes = map(str.strip, binding["coverTypes"].split(","))
+
+        #self.var.soilStor[1]
+
         for coverType in self.var.coverTypes:
-            for cond in ["interceptStor", "topWaterLayer","storUpp000005","storUpp005030","storLow030150","interflow"]:
-                initCondVar.append(coverType+"_"+ cond)
-                initCondVarValue.append(cond+"["+str(i)+"]")
+            if coverType in ['forest', 'grassland', 'irrPaddy', 'irrNonPaddy']:
+                for cond in ["interceptStor", "topWaterLayer","soilStor[0]","soilStor[1]","soilStor[2]","interflow"]:
+                    initCondVar.append(coverType+"_"+ cond)
+                    initCondVarValue.append(cond+"["+str(i)+"]")
+            if coverType in ['sealed']:
+                for cond in ["interceptStor"]:
+                    initCondVar.append(coverType+"_"+ cond)
+                    initCondVarValue.append(cond+"["+str(i)+"]")
             i += 1
         # groundwater
         initCondVar.append("storGroundwater")

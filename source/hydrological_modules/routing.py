@@ -468,7 +468,7 @@ class routing(object):
         self.var.avgBaseflow = np.maximum(0.0, self.var.avgBaseflow)
 
 
-        #report(decompress(self.var.discharge), "C:\work\output/q1.map")
+        #report(decompress(self.var.discharge), "C:\work\output2/q1.map")
 
      #   print "discharge", self.var.discharge[25989],self.var.discharge[23765]
 

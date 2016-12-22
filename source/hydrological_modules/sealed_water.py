@@ -1,0 +1,58 @@
+# -------------------------------------------------------------------------
+# Name:        Sealed_water module
+# Purpose:     runoff calculation for open water and sealed areas
+
+# Author:      PB
+#
+# Created:     12/12/2016
+# Copyright:   (c) PB 2016
+# -------------------------------------------------------------------------
+
+from management_modules.data_handling import *
+
+
+class sealed_water(object):
+
+    """@package
+    # ************************************************************
+    # ***** sealed and open water runoff**************************
+    # ************************************************************
+    """
+
+    def __init__(self, sealed_water_variable):
+        self.var = sealed_water_variable
+
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+
+ 
+
+    def dynamic(self,coverType, No):
+        """ Dynamic part of the sealed_water module
+        runoff calculation for open water and sealed areas
+
+        @param coverType land cover type: forest, grassland ..
+        @param No Number of land cover type: forest = 0, grassland = 1 ...
+        Args:
+            coverType: coverType land cover type: forest, grassland ..
+            No: Number of land cover type: forest = 0, grassland = 1 ...
+        """
+
+        if coverType == "water":
+            self.var.openWaterEvap[No] = np.minimum(self.var.EWRef, self.var.availWaterInfiltration[No])
+            self.var.directRunoff[No] = self.var.availWaterInfiltration[No] - self.var.openWaterEvap[No]
+
+        if coverType == "sealed":
+            self.var.directRunoff[No] = self.var.availWaterInfiltration[No].copy()
+
+
+        if option['calcWaterBalance'] and (No>3):
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.availWaterInfiltration[No] ],  # In
+                [self.var.directRunoff[No],  \
+                 self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
+                [globals.inZero],  # prev storage
+                [globals.inZero],
+                "NoSoil", False)
+
+

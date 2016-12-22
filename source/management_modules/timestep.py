@@ -88,10 +88,7 @@ def checkifDate(start,end,spinup):
 
 
     # spinup date = date from which maps are written
-    if binding[spinup].lower() == "none":  spinup = start
-    else:
-        if int(binding[spinup]) == 0:  spinup = start
-
+    if binding[spinup].lower() == "none" or binding[spinup] == "0":  spinup = start
 
     dateVar['intStart'],strStart = datetoInt(binding[start],begin,True)
     dateVar['intEnd'],strEnd = datetoInt(binding[end],begin,True)

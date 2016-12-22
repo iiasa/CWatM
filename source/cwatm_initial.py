@@ -59,7 +59,7 @@ class CWATModel_ini(DynamicModel):
         # and the modelling extent from the MaskMap
         # cutmap[] defines the MaskMap inside the precipitation map
         cutmap[0], cutmap[1], cutmap[2], cutmap[
-            3] = mapattrNetCDF(binding['E0Maps'])
+            3] = mapattrNetCDF(binding['PrecipitationMaps'])
         if option['writeNetcdfStack'] or option['writeNetcdf']:
             # if NetCDF is writen, the pr.nc is read to get the metadata
             # like projection

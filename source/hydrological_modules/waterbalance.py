@@ -92,6 +92,8 @@ class waterbalance(object):
 
             #print "     %s %10.8f " % (processName, maxBB),
             print "     %s %10.8f %10.8f" % (processName, minB,maxB),
+            if (minB < -0.00001) or (maxB > 0.00001):
+                i=11111
 
 
 
@@ -142,7 +144,7 @@ class waterbalance(object):
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Precipitation,self.var.sum_capRiseFromGW,self.var.sum_irrGrossDemand],    # In
-                [self.var.sum_directRunoff,self.var.sum_interflowTotal, self.var.sum_percToGW,    # Out
+                [self.var.sum_directRunoff,self.var.sum_interflow, self.var.sum_percToGW,    # Out
                  self.var.sum_PrefFlow,self.var.sum_actTransTotal,
                  self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap, self.var.sum_interceptEvap],
                 [self.var.prevSnowCover, self.var.pretotalSoil],                                       # prev storage
@@ -152,7 +154,7 @@ class waterbalance(object):
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Precipitation,self.var.sum_irrGrossDemand, self.var.surfaceWaterInf],    # In
-                [self.var.sum_directRunoff,self.var.sum_interflowTotal,                            # Out
+                [self.var.sum_directRunoff,self.var.sum_interflow,                            # Out
                  self.var.totalET,  self.var.nonFossilGroundwaterAbs,self.var.baseflow],
                 [self.var.prevSnowCover, self.var.pretotalSoil,self.var.prestorGroundwater],       # prev storage
                 [self.var.SnowCover, self.var.totalSoil,self.var.storGroundwater],
@@ -180,7 +182,7 @@ class waterbalance(object):
                 [self.var.totalET,   self.var.localQW, self.var.riverbedExchange * self.var.InvCellArea, self.var.nonFossilGroundwaterAbs, self.var.sum_actSurfaceWaterAbstract],
                 [self.var.prevSnowCover, self.var.pretotalSoil,self.var.prestorGroundwater,self.var.prechannelStorage * self.var.InvCellArea],       # prev storage
                 [self.var.SnowCover, self.var.totalSoil,self.var.storGroundwater,self.var.channelStorageBefore * self.var.InvCellArea],
-                "S+G+Rout1", False)
+                "S+G+Rout1",False)
 
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(

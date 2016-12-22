@@ -391,7 +391,7 @@ def readnetcdf(name, time):
     return mapC
 
 
-def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False, zeros = 0.0):
+def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False,cut = True, zeros = 0.0):
     """
       load stack of maps 1 at each timestamp in netcdf format
     """
@@ -425,17 +425,26 @@ def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False, ze
 
         if nctime.calendar in ['noleap', '365_day']:
             dateVar['leapYear'] = 1
-        if nctime.calendar in ['360_day']:
+            idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+        elif nctime.calendar in ['360_day']:
             dateVar['leapYear'] = 2
-
-
-        #idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
-        idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+            idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+        else:
+            idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
 
     if value == "None":
         value = nf1.variables.items()[-1][0]  # get the last variable name
 
-    mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
+    #mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
+    if cut:
+        mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
+    else:
+        mapnp = nf1.variables[value][idx].astype(np.float64)
+    try:
+        mapnp.mask.all()
+        mapnp = mapnp.data
+    except:
+        ii =1
     nf1.close()
 
     # add zero values to maps in order to supress missing values
