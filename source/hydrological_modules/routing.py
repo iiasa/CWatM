@@ -26,16 +26,10 @@ class routing(object):
 
     def initial(self):
         """ initial part of the routing module
-        Tdo: might be necessary to cover all variables = put 0 instead of missing value
         """
 
-
-        #self.var.Ldd = loadmap('Ldd',pcr=True,lddflag=True)
-
-
-        # TODO change this back!!!!!!!!!!!!!!!!!!
-        self.var.Ldd = lddmask(loadmap('Ldd',pcr=True,lddflag=True), self.var.MaskMap)
         # Cut ldd to size of MaskMap
+        self.var.Ldd = lddmask(loadmap('Ldd',pcr=True,lddflag=True), self.var.MaskMap)
         # Prevents 'unsound' ldd if MaskMap covers sub-area of ldd
         self.var.Ldd = lddrepair(self.var.Ldd)
 
@@ -48,8 +42,8 @@ class routing(object):
         # each upstream pixel gets the id of the downstream pixel
         self.var.downstruct[lddC==5] = maskinfo['mapC'][0]
         # all pits gets a high number
-        #d3=np.bincount(self.var.downstruct, weights=loadmap('AvgDis'))[:-1]
-          # upstream function in numpy
+        # d3=np.bincount(self.var.downstruct, weights=loadmap('AvgDis'))[:-1]
+        # upstream function in numpy
 
 
         # self.var.cellArea or self.var.cellAreaPcr as pcraster map
@@ -98,8 +92,7 @@ class routing(object):
             # unit: m
             self.var.dist2celllength = compressArray(channelLengthDownstream)
 
-        # Initial conditions
-
+        # ---------------------- Initial conditions -----------------------------
         # channelStorage (m3) includes all storages at channels and water bodies (lakes & reservoirs)
 
         self.var.channelStorage = self.var.init_module.load_initial('channelStorage') + globals.inZero.copy()
@@ -134,10 +127,6 @@ class routing(object):
 
 
 
-
-
-        i  = 1
- 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
@@ -160,7 +149,6 @@ class routing(object):
             # - discharge = the total amount of material flowing through the cell (m3/s)
             # - storage   = the amount of material which is deposited in the cell (m3)
 
-            #  meter/day
             characteristicDistance =  ((yMean * wMean) /  (wMean + 2 * yMean)) ** self.var.twothird * \
                 ((self.var.gradient) ** (0.5)) / self.var.manningsN * self.var.DtSec
 
@@ -193,7 +181,6 @@ class routing(object):
 
                 # transfer outflow from lakes and/or reservoirs to channelStorages    # unit: m3/day
                 waterBodyOutflowC = np.where(    self.var.waterBodyOutC == True,self.var.waterBodyOutflowC, 0.0)
-
                 # distribute outflow to water body storage
                 waterBodyOutflowC = npareaaverage(waterBodyOutflowC,self.var.waterBodyIdsC)
                 waterBodyOutflowC = np.where( self.var.waterBodyIdsC > 0., waterBodyOutflowC, 0.0)  # unit: m3/day
@@ -201,7 +188,7 @@ class routing(object):
 
                 # obtain water body storages (for reporting) #m3
                 self.var.waterBodyStorageC = np.where(self.var.waterBodyIdsC > 0., self.var.waterBodyStorageC, 0.0)
-                # as well as outflows from water bodies (for reporting) # m3/s
+                # outflows from water bodies (for reporting) # m3/s
                 #self.var.waterBodyOutDiscC = np.where( self.var.waterBodyIdsC > 0., self.var.waterBodyOutflowC, 0.0) / self.var.DtSec
 
                 # Move waterBodyOutflow according to water body discharge (velocity)
@@ -215,7 +202,6 @@ class routing(object):
                 self.var.waterBodyStorage = globals.inZero.copy()
 
                 # end waterbody if includeWaterBodies = True
-
 
 
             # channelStorage ROUTING:
@@ -274,18 +260,12 @@ class routing(object):
 
 
                 # discharge at channel and lake/reservoir outlets (m3/s)
-                # ~ self.var.disChanWaterBody = np.where(self.var.landmask,\
-                # ~ pcr.cover( self.var.waterBodyOutDisc,\
-                # ~ self.var.discharge))                  # TODO: FIX THIS, discharge at water bodies is too high. (self.var.waterBodyOutDisc)
-
-
                 disChanWaterBody = np.where(self.var.waterBodyIdsC > 0., npareamaximum(dischargeC, self.var.waterBodyIdsC), dischargeC )
                 self.var.disChanWaterBody =  globals.inZero.copy()
                 np.put(self.var.disChanWaterBody, self.var.waterBodyIndexC, disChanWaterBody)
 
                 # reported channel discharge cannot be negative
                 self.var.disChanWaterBody = np.where(self.var.disChanWaterBody > 0, self.var.disChanWaterBody, self.var.discharge )
-
                 self.var.disChanWaterBody = np.maximum(0., self.var.disChanWaterBody)
             else:
                 self.var.disChanWaterBody = self.var.discharge.copy()
@@ -300,13 +280,13 @@ class routing(object):
         """
         MAIN PART
         """
+        # if routing is not needed return
+        if not(option['includeRouting']):
+            return
 
         if option['calcWaterBalance']:
             self.var.prechannelStorage = self.var.channelStorage.copy()
 
-
-        # runoff from landSurface cells (unit: m)
-        #self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow
 
         # update channelStorage (unit: m3) after runoff
         self.var.channelStorage += self.var.runoff * self.var.cellArea
@@ -322,32 +302,29 @@ class routing(object):
         self.var.yMean, self.var.wMean, self.var.characteristicDistance = getRoutingParamAvgDischarge(self.var.avgDischarge,self.var.dist2celllength)
 
         # waterBodies: get parameters at the beginning of the year or simulation
-        #if (currTimeStep.doy == 1) or (currTimeStep.timeStepPCR == 1):
+        #if dateVar['newStart']:  # check if first day  of the year
         if dateVar['newStart'] or dateVar['newYear']:   # check if first day  of the year
-            #self.var.lakes_reservoir_module.getParameterFiles(currTimeStep,self.var.cellArea,self.var.LddMap,self.var.cellLengthFD,self.var.cellSize)
-            self.var.lakes_reservoirs_module.getParameterFiles()
+            if option['includeWaterBodies']:
+                self.var.lakes_reservoirs_module.getParameterFiles()
 
         # simulating water bodies fraction
         channelFraction = np.minimum(1.0, self.var.wMean * self.var.cellLength / self.var.cellArea)
-        self.var.dynamicFracWat = np.maximum(channelFraction, self.var.fractionWater)
+        self.var.dynamicFracWat = np.maximum(channelFraction, self.var.fracVegCover[5])
 
-        # (additional) evaporation from water bodies
-        # current principle:
-        # - if landSurface.actualET < waterKC * meteo.referencePotET * self.var.fracWat
-        #   then, we add more evaporation
+        #  evaporation from water bodies
 
         if dateVar['newStart'] or dateVar['newMonth']:  #Monthly!
-        #if (currTimeStep.day == 1) or (currTimeStep.timeStepPCR == 1):
             self.var.waterKC = readnetcdf2(self.var.fileCropKC_File ,dateVar['currDate'],useDaily='month',value='kc')
+            # correction by calibration
+            self.var.waterKC = self.var.waterKC * self.var.cropCorrect
 
         # evaporation from water bodies (m3), limited to available channelStorage
+        #volLocEvapWaterBody = np.minimum(np.maximum(0.0,self.var.channelStorage),
+        #                      np.maximum(0.0, (self.var.waterKC * self.var.ETRef * self.var.dynamicFracWat -\
+        #                      self.var.sum_actualET)* self.var.cellArea))
+
         volLocEvapWaterBody = np.minimum(np.maximum(0.0,self.var.channelStorage),
-                              np.maximum(0.0, (self.var.waterKC * self.var.ETRef * self.var.dynamicFracWat -\
-                              self.var.sum_actualET)* self.var.cellArea))
-
-
-
-
+                              np.maximum(0.0, (self.var.waterKC * self.var.EWRef * self.var.dynamicFracWat - self.var.openWaterEvap[5]) * self.var.cellArea))
 
         # update channelStorage (m3) after evaporation from water bodies
         self.var.channelStorage -= volLocEvapWaterBody
@@ -426,15 +403,13 @@ class routing(object):
         dischargeUsed      = np.maximum(self.var.discharge, self.var.disChanWaterBody)
         #
         deltaAnoDischarge = dischargeUsed - self.var.avgDischarge
-        self.var.avgDischarge = self.var.avgDischarge + deltaAnoDischarge / \
-                            np.minimum(self.var.maxTimestepsToAvgDischargeLong, self.var.timestepsToAvgDischarge)
+        self.var.avgDischarge = self.var.avgDischarge + deltaAnoDischarge / np.minimum(self.var.maxTimestepsToAvgDischargeLong, self.var.timestepsToAvgDischarge)
         self.var.avgDischarge = np.maximum(0.0, self.var.avgDischarge)
         self.var.m2tDischarge = self.var.m2tDischarge + np.abs(deltaAnoDischarge*(self.var.discharge - self.var.avgDischarge))
 
         # see: algorithm:http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
         self.var.varDischarge = self.var.m2tDischarge / np.maximum(1.,\
                             np.minimum(self.var.maxTimestepsToAvgDischargeLong, self.var.timestepsToAvgDischarge)-1.)
-
         self.var.stdDischarge = np.maximum(self.var.varDischarge**0.5, 0.0)
 
         # update available channelStorage that can be extracted:
@@ -469,10 +444,7 @@ class routing(object):
 
 
         #report(decompress(self.var.discharge), "C:\work\output2/q1.map")
-
      #   print "discharge", self.var.discharge[25989],self.var.discharge[23765]
-
-
 
 
         """

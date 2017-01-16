@@ -82,6 +82,7 @@ class landcoverType(object):
 
         # ----------------------------------------------------------
         # Load initial values and calculate basic soil parameters which are not changed in time
+        self.dynamic_fracIrrigation(init=True)
         i = 0
         for coverType in self.var.coverTypes:
             self.var.minInterceptCap.append(loadmap(coverType + "_minInterceptCap"))
@@ -205,41 +206,48 @@ class landcoverType(object):
         self.var.landcoverSumSum = ['directRunoff', 'totalPotET', 'potTranspiration', "Precipitation", 'ETRef','gwRecharge','Runoff']
         for variable in self.var.landcoverSumSum:
             vars(self.var)["sumsum_" + variable] = globals.inZero.copy()
+
+
+
         i=1
 
 
     # --------------------------------------------------------------------------
 
-    def dynamic_fracIrrigation(self):
+    def dynamic_fracIrrigation(self, init = False):
         """ dynamic part of the land cover type module
             calculating fraction of land cover
         """
 
-        if option['includeIrrigation'] and option['dynamicIrrigationArea']:
+        #if option['includeIrrigation'] and option['dynamicIrrigationArea']:
 
         # updating fracVegCover of landCover (for historical irrigation areas, done at yearly basis)
         # if first day of the year or first day of run
 
-            if dateVar['newStart'] or  dateVar['newYear']:
-                i = 0
-                for coverType in self.var.coverTypes:
-                    self.var.fracVegCover[i] = readnetcdf2(binding['fractionLandcover'], dateVar['currDate'], useDaily="yearly",  value= 'frac'+coverType)
-                    i += 1
-                # correction of grassland if sum is not 1.0
-                sum = np.sum(self.var.fracVegCover,axis=0)
-                self.var.fracVegCover[1] = self.var.fracVegCover[1] + 1.0 - sum
-                #sum = np.sum(self.var.fracVegCover, axis=0)
+        if init:
+            i = 0
+            for coverType in self.var.coverTypes:
+                self.var.fracVegCover[i] = readnetcdf2(binding['fractionLandcover'], dateVar['currDate'], useDaily="yearly",  value= 'frac'+coverType)
+                #report(decompress(self.var.fracVegCover[i]), "C:\work\output2/lc"+str(i)+".map")
+                i += 1
+
+            # correction of grassland if sum is not 1.0
+            sum = np.sum(self.var.fracVegCover,axis=0)
+            self.var.fracVegCover[1] = self.var.fracVegCover[1] + 1.0 - sum
+            # sum of landcover without water and sealed
+            self.var.sum_fracVegCover = np.sum(self.var.fracVegCover[0:4], axis=0)
 
 
-                #self.var.fracVegCover[0] = self.var.fracVegCover[0] + self.var.fracVegCover[4]
-                #self.var.fracVegCover[1] = self.var.fracVegCover[1] + self.var.fracVegCover[5]
-                #self.var.fracVegCover[0] = 1.0
-                #self.var.fracVegCover[1] = 0.0
-                #self.var.fracVegCover[2] = 0.0
-                #self.var.fracVegCover[3] = 0.0
-                #self.var.fracVegCover[4] = 0.0
-                #self.var.fracVegCover[5] = 0.0
-                #i = 111
+
+            #self.var.fracVegCover[0] = self.var.fracVegCover[0] + self.var.fracVegCover[4]
+            #self.var.fracVegCover[1] = self.var.fracVegCover[1] + self.var.fracVegCover[5]
+            #self.var.fracVegCover[0] = 1.0
+            #self.var.fracVegCover[1] = 0.0
+            #self.var.fracVegCover[2] = 0.0
+            #self.var.fracVegCover[3] = 0.0
+            #self.var.fracVegCover[4] = 0.0
+            #self.var.fracVegCover[5] = 0.0
+            i = 111
 
 
 # --------------------------------------------------------------------------
@@ -284,6 +292,9 @@ class landcoverType(object):
 
         #print "--", self.var.sum_directRunoff
 
+
+
+
         soilVars = ['soilStor']
         for variable in soilVars:
             for i in xrange(self.var.soilLayers):
@@ -301,8 +312,8 @@ class landcoverType(object):
         #print self.var.totalSoil,self.var.soilStor[0][1],self.var.soilStor[1][1], self.var.soilStor[2][1],
         i= 1
 
-###--------------------------------------------------------------------
-### DEBUG
+# --------------------------------------------------------------------
+
 
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(

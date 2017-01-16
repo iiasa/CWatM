@@ -39,10 +39,6 @@ class capillarRise(object):
         # approximate height of groundwater table and corresponding reach of cell under influence of capillary rise
         dzGroundwater = self.var.storGroundwater / self.var.specificYield + self.var.maxGWCapRise
 
-        if option['includeWaterBodies']:
-            if dateVar['newStart'] or dateVar['newYear']:
-                self.var.fractionWater = readnetcdf2(binding['waterBodyInputNC'], dateVar['currDate'],useDaily='yearly',value='fracWaterInp')
-
         CRFRAC = np.minimum(1.0,  1.0 -(self.var.dzRel0100 - dzGroundwater)*0.1 /np.maximum(1e-3,self.var.dzRel0100-self.var.dzRel0090))
         CRFRAC = np.where(dzGroundwater < self.var.dzRel0090, 0.9 - (self.var.dzRel0090 - dzGroundwater) * 0.1 / np.maximum(1e-3, self.var.dzRel0090 - self.var.dzRel0080), CRFRAC)
         CRFRAC = np.where(dzGroundwater < self.var.dzRel0080, 0.8 - (self.var.dzRel0080 - dzGroundwater) * 0.1 / np.maximum(1e-3, self.var.dzRel0080 - self.var.dzRel0070), CRFRAC)
@@ -55,8 +51,6 @@ class capillarRise(object):
         CRFRAC = np.where(dzGroundwater < self.var.dzRel0010, 0.1 - (self.var.dzRel0010 - dzGroundwater) * 0.1 / np.maximum(1e-3, self.var.dzRel0010 - self.var.dzRel0005), CRFRAC)
         CRFRAC = np.where(dzGroundwater < self.var.dzRel0005, 0.05 - (self.var.dzRel0005 - dzGroundwater) * 0.1 / np.maximum(1e-3, self.var.dzRel0005 - self.var.dzRel0001), CRFRAC)
         CRFRAC = np.where(dzGroundwater < self.var.dzRel0001, 0.01 - (self.var.dzRel0001 - dzGroundwater) * 0.1 / np.maximum(1e-3, self.var.dzRel0001), CRFRAC)
-        with np.errstate(invalid='ignore', divide='ignore'):
-            CRFRAC = np.where(self.var.fractionWater < 1.0,np.maximum(0.0,CRFRAC- self.var.fractionWater)/(1- self.var.fractionWater), 0.0)
         self.var.capRiseFrac = np.maximum(0.0,np.minimum(1.0,CRFRAC))
 
 

@@ -150,6 +150,7 @@ class outputTssMap(object):
         # ************************************************************
 
         # print '----------------#'
+        varname = None
         if option['reportMap'] and dateVar['curr'] >= dateVar['intSpin']  :
             for map in outMap.keys():
                 for i in xrange(outMap[map].__len__()):
@@ -167,17 +168,25 @@ class outputTssMap(object):
 
 
                         if map[-8:] == "monthend":
-                                if dateVar['checked'][dateVar['currwrite'] - 1]>0:
-                                    outMap[map][i][2] = writenetcdf(netfile, varname+ "_monthend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currMonth'], flag,True,dateVar['diffMonth'])
-                        if (map[-8:] == "monthtot") or (map[-8:] == "monthavg"):
-                                vars(self.var)[varname + "_monthtot"] += vars(self.var)[varname]
-                                if dateVar['checked'][dateVar['currwrite'] - 1]>0:
-                                    if (map[-8:] == "monthtot"):
-                                        outMap[map][i][2] = writenetcdf(netfile, varname+"monthtot", "undefined", eval(inputmap+ "_monthtot"), dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
-                                    if (map[-8:] == "monthavg"):
-                                        avgmap = vars(self.var)[varname + "_monthtot"] / 30
-                                        outMap[map][i][2] = writenetcdf(netfile, varname+"monthavg", "undefined", avgmap,dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
-                                    vars(self.var)[varname+"monthtot"] = 0
+                            if dateVar['checked'][dateVar['currwrite'] - 1]>0:
+                                outMap[map][i][2] = writenetcdf(netfile, varname+ "_monthend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currMonth'], flag,True,dateVar['diffMonth'])
+                        if (map[-8:] == "monthtot"):
+                            # sum up daily value to monthly values
+                            vars(self.var)[varname + "_monthtot"] += vars(self.var)[varname]
+                        if (map[-8:] == "monthavg"):
+                            vars(self.var)[varname + "_monthavg"] += vars(self.var)[varname]
+
+                        # if end of month is reached
+                        if dateVar['checked'][dateVar['currwrite'] - 1]>0:
+                            if (map[-8:] == "monthtot"):
+                                outMap[map][i][2] = writenetcdf(netfile, varname+"monthtot", "undefined", eval(inputmap+ "_monthtot"), dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
+                                #vars(self.var)[varname + "monthtot"] = 0
+                            if (map[-8:] == "monthavg"):
+                                days = calendar.monthrange(int(dateVar['currDate'].strftime('%Y')), int(dateVar['currDate'].strftime('%m')))[1]
+                                avgmap = vars(self.var)[varname + "_monthavg"] / days
+                                outMap[map][i][2] = writenetcdf(netfile, varname+"monthavg", "undefined", avgmap,dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
+                                #vars(self.var)[varname+"monthavg"] = 0
+
 
 
                         if map[-9:] == "annualend":
@@ -191,7 +200,7 @@ class outputTssMap(object):
                                     if (map[-9:] == "annualavg"):
                                         avgmap = vars(self.var)[varname + "_monthtot"] / 365
                                         outMap[map][i][2] = writenetcdf(netfile, varname+"annualavg", "undefined", avgmap, dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
-                                    vars(self.var)[varname+"annualtot"] = 0
+                                    #vars(self.var)[varname+"annualtot"] = 0
 
 
 
@@ -210,6 +219,7 @@ class outputTssMap(object):
                 for i in xrange(outTss[tss].__len__()):
                     # loop for each variable in a section
                     if outTss[tss][i] != "None":
+                        varname = outTss[tss][i][1]
                         what = 'self.var.' + outTss[tss][i][1]
                         if tss[-5:] == "daily":
                             # what = 'self.var.' + reportTimeSerieAct[tss]['outputVar'][0]
@@ -223,12 +233,28 @@ class outputTssMap(object):
                             # print i, outTss[tss][i][1], what
                             outTss[tss][i][0].sample2(decompress(eval(what)), 0 )
 
+
                         if tss[-8:] == "monthend":
                             # reporting at the end of the month:
                             outTss[tss][i][0].sample2(decompress(eval(what)),1)
-                        if tss[-8:] == "monthtot":
-                            # reporting at the end of the month:
-                            outTss[tss][i][0].sample2(decompress(eval(what+ "_monthtot")), 1)
+
+                        if (tss[-8:] == "monthtot"):
+                            # if  monthtot is not calculated it is done here
+                            if (varname + "_monthtotTss") in vars(self.var):
+                                vars(self.var)[varname + "_monthtotTss"] += vars(self.var)[varname]
+                            else:
+                                vars(self.var)[varname + "_monthtotTss"] = vars(self.var)[varname]
+                            outTss[tss][i][0].sample2(decompress(eval(what + "_monthtotTss")), 1)
+
+                        if (tss[-8:] == "monthavg"):
+                            if (varname + "_monthavgTss") in vars(self.var):
+                                vars(self.var)[varname + "_monthavgTss"] += vars(self.var)[varname]
+                            else:
+                                vars(self.var)[varname + "_monthavgTss"] = 0
+                                vars(self.var)[varname + "_monthavgTss"] += vars(self.var)[varname]
+                            avgmap = vars(self.var)[varname + "_monthavgTss"] /  dateVar['daysInMonth']
+                            outTss[tss][i][0].sample2(decompress(avgmap), 1)
+
 
 
 
@@ -236,9 +262,47 @@ class outputTssMap(object):
                             # reporting at the end of the month:
                             outTss[tss][i][0].sample2(decompress(eval(what)), 2)
 
+                        if (tss[-9:] == "annualtot"):
+                            # if  monthtot is not calculated it is done here
+                            if (varname + "_annualtotTss") in vars(self.var):
+                                vars(self.var)[varname + "_annualtotTss"] += vars(self.var)[varname]
+                            else:
+                                vars(self.var)[varname + "_annualtotTss"] = 0
+                                vars(self.var)[varname + "_annualtotTss"] += vars(self.var)[varname]
+                            outTss[tss][i][0].sample2(decompress(eval(what + "_annualtotTss")), 2)
+
+                        if (tss[-9:] == "annualavg"):
+                            if (varname + "_annualavgTss") in vars(self.var):
+                                vars(self.var)[varname + "_annualavgTss"] += vars(self.var)[varname]
+                            else:
+                                vars(self.var)[varname + "_annualavgTss"] = vars(self.var)[varname]
+                            avgmap = vars(self.var)[varname + "_annualavgTss"] /dateVar['daysInYear']
+                            outTss[tss][i][0].sample2(decompress(avgmap), 2)
 
 
 
 
+        # if end of month is reached all monthly storage is ste to 0
+        if not(varname is None):
 
+
+            if dateVar['checked'][dateVar['currwrite'] - 1] > 0:
+                if (varname + "_monthtot") in vars(self.var):
+                    vars(self.var)[varname + "_monthtot"] = 0
+                if (varname + "_monthavg") in vars(self.var):
+                    vars(self.var)[varname + "_monthavg"] = 0
+                if (varname + "_monthtotTss") in vars(self.var):
+                    vars(self.var)[varname + "_monthtotTss"] = 0
+                if (varname + "_monthavgTss") in vars(self.var):
+                    vars(self.var)[varname + "_monthavgTss"] = 0
+
+            if dateVar['checked'][dateVar['currwrite'] - 1] == 2:
+                if (varname + "_annualtot") in vars(self.var):
+                    vars(self.var)[varname + "_annualtot"] = 0
+                if (varname + "_annualavg") in vars(self.var):
+                    vars(self.var)[varname + "_annualavg"] = 0
+                if (varname + "_annualtotTss") in vars(self.var):
+                    vars(self.var)[varname + "_annualtotTss"] = 0
+                if (varname + "_annualavgTss") in vars(self.var):
+                    vars(self.var)[varname + "_annualavgTss"] = 0
 

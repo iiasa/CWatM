@@ -105,6 +105,7 @@ class soil(object):
         for i in xrange(self.var.soilLayers):
             self.var.storCap[i] = self.var.soildepth[i] * (self.var.satVol[i] - self.var.resVol[i])
         self.var.rootZoneWaterStorageCap = np.sum(self.var.storCap,axis=0)
+
         i = 1
 
 
@@ -175,6 +176,7 @@ class soil(object):
             preStor1 = self.var.soilStor[0][No].copy()
             preStor2 = self.var.soilStor[1][No].copy()
             preStor3 = self.var.soilStor[2][No].copy()
+
 
         effSat = np.tile(globals.inZero, (self.var.soilLayers, 1))
         matricSuction = np.tile(globals.inZero, (self.var.soilLayers, 1))
@@ -331,14 +333,14 @@ class soil(object):
         # - percolation from soil to Groundwater
         self.var.percToGW[No] = np.minimum(kUnsat[2], np.sqrt(self.var.kUnsatAtFieldCap[2] * kUnsat[2]))
 
-        if dateVar['curr'] == 100:
-            iii = 1
 
 
 
         # ---------------------------------------------------------------------------------------------
         # ---------------------------------------------------------------------------------------------
-        # Becuase percolation might be bigger than soil storage, a correction is needed
+        # Because percolation might be bigger than soil storage, a correction is needed
+
+
 
         outflux = self.var.actBareSoilEvap[No] + actTrans[0] + perc[0]
         with np.errstate(invalid='ignore', divide='ignore'):
@@ -361,6 +363,12 @@ class soil(object):
         actTrans[2] = ADJUST * actTrans[2]
         self.var.percToGW[No] = ADJUST * self.var.percToGW[No]
         self.var.interflow[No] = ADJUST * self.var.interflow[No]
+
+
+
+        if dateVar['curr'] >112:
+            iii =76
+
 
 
 
@@ -390,6 +398,8 @@ class soil(object):
         # ---------------------------------------------------------------------------------------------
         # Calculate interflow
         self.var.interflow[No] = self.var.percolationImp * (perc[1] + self.var.capRiseFromGW[No] - (self.var.percToGW[No] + capRise[1]))
+        self.var.interflow[No] = np.maximum(0.0, self.var.interflow[No])
+
 
 
         # ---------------------------------------------------------------------------------------------
@@ -463,11 +473,6 @@ class soil(object):
 
 
 
-
-
-
-
-
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.availWaterInfiltration[No],self.var.capRiseFromGW[No], self.var.irrGrossDemand[No]],                             # In
@@ -475,10 +480,7 @@ class soil(object):
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No],self.var.openWaterEvap[No]],                                                                # Out
                 [preTopWaterLayer,preStor1,preStor2,preStor3],                                       # prev storage
                 [self.var.topWaterLayer[No],self.var.soilStor[0][No],self.var.soilStor[1][No],self.var.soilStor[2][No]],
-                "Soil_1", True)
-
-
-
+                "Soil_1",False)
 
 
 

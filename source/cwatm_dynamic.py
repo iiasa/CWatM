@@ -52,7 +52,7 @@ class CWATModel_dyn(DynamicModel):
                 if (not(Flags['quiet'])) and (not(Flags['veryquiet'])):
                     sys.stdout.write("\r%d" % dateVar['currStart'])
                     sys.stdout.flush()
-            print
+                if (not (Flags['veryquiet'])): print
 
         # ************************************************************
         """ up to here it was fun, now the real stuff starts
@@ -73,7 +73,7 @@ class CWATModel_dyn(DynamicModel):
 
         # ***** READ land use fraction maps***************************
 
-        self.landcoverType_module.dynamic_fracIrrigation()
+        self.landcoverType_module.dynamic_fracIrrigation(init = dateVar['newYear'])
         self.capillarRise_module.dynamic()
         timemeasure("Soil 1.Part")  # 4. timing
 

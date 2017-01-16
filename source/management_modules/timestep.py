@@ -106,6 +106,7 @@ def checkifDate(start,end,spinup):
         msg="Spin Date: "+strSpin + " are wrong!\n or smaller/bigger than the first/last time step date: "+strBegin+ " - "+ strEnd
         raise CWATMError(msg)
 
+    dateVar['currDate'] = begin
     dateVar['dateBegin'] = begin
     dateVar['dateStart'] = begin + datetime.timedelta(days=dateVar['intSpin']-1)
     #dateVar['diffdays'] = dateVar['intEnd'] - dateVar['intStart'] + 1
@@ -181,6 +182,17 @@ def timestep_dynamic():
     dateVar['newMonth'] = dateVar['currDate'].day == 1
     dateVar['newYear'] = (dateVar['currDate'].day == 1) and (dateVar['currDate'].month == 1)
     dateVar['new10day'] = ((dateVar['doy'] - 1) / 10.0) == dateVar['10day']
+
+    dateVar['daysInMonth'] = float(calendar.monthrange(int(dateVar['currDate'].strftime('%Y')),int(dateVar['currDate'].strftime('%m')))[1])
+    dateVar['daysInYear'] = 365.0
+    if calendar.isleap(dateVar['currDate'].year): dateVar['daysInYear'] = 366.0
+    if dateVar['leapYear'] > 0:
+        dateVar['daysInYear'] = 365.0
+    if dateVar['leapYear'] == 2:
+        dateVar['daysInYear'] = 365.0
+        dateVar['daysInMonth'] = 30.0
+
+
 
 
 

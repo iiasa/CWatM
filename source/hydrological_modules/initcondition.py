@@ -117,9 +117,17 @@ class initcondition(object):
         # ***** WRITE INITIAL CONDITION  *****************************
         # ************************************************************
 
-        self.var.timestepsToAvgDischarge1 = self.var.timestepsToAvgDischarge + globals.inZero
+
 
         if self.var.saveInit and (dateVar['intInit'] == dateVar['curr']):
+
+            self.var.timestepsToAvgDischarge1 = self.var.timestepsToAvgDischarge + globals.inZero
+
+            self.var.avgOutflow = globals.inZero.copy()
+            np.put(self.var.avgOutflow, self.var.waterBodyIndexC, self.var.avgOutflowC)
+            self.var.avgInflow = globals.inZero.copy()
+            np.put(self.var.avgInflow, self.var.waterBodyIndexC, self.var.avgInflowC)
+
             saveFile = self.var.saveInitFile + "_" + dateVar['currDate'].strftime("%Y%m%d") +".nc"
             initVar=[]
             i = 0

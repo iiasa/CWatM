@@ -42,8 +42,14 @@ class sealed_water(object):
             self.var.openWaterEvap[No] = np.minimum(self.var.EWRef, self.var.availWaterInfiltration[No])
             self.var.directRunoff[No] = self.var.availWaterInfiltration[No] - self.var.openWaterEvap[No]
 
+            # open water evaporation is directly substracted from the river, lakes, reservoir
+            #self.var.directRunoff[No] = self.var.availWaterInfiltration[No].copy()
+            #self.var.openWaterEvap[No] = globals.inZero.copy()
+
         if coverType == "sealed":
             self.var.directRunoff[No] = self.var.availWaterInfiltration[No].copy()
+
+        self.var.waterdemand_module.dynamic_waterdemand(coverType, No)
 
 
         if option['calcWaterBalance'] and (No>3):
