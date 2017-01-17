@@ -79,8 +79,11 @@ class initcondition(object):
         self.var.saveInit = binding['save_initial'].lower() == "true"
         if self.var.saveInit:
             self.var.saveInitFile = binding['initSave']
-            dateVar['intInit'] = datetoInt(binding['StepInit'],dateVar['dateBegin'])
-
+            initdates = binding['StepInit'].split()
+            dateVar['intInit'] =[]
+            for d in initdates:
+                dateVar['intInit'].append(datetoInt(d, dateVar['dateBegin']))
+            #dateVar['intInit'] = datetoInt(binding['StepInit'],dateVar['dateBegin'])
 
         self.var.loadInit = binding['load_initial'].lower() == "true"
         if self.var.loadInit:
@@ -119,21 +122,23 @@ class initcondition(object):
 
 
 
-        if self.var.saveInit and (dateVar['intInit'] == dateVar['curr']):
+        if self.var.saveInit:
 
-            self.var.timestepsToAvgDischarge1 = self.var.timestepsToAvgDischarge + globals.inZero
+            if  dateVar['curr'] in dateVar['intInit']:
 
-            self.var.avgOutflow = globals.inZero.copy()
-            np.put(self.var.avgOutflow, self.var.waterBodyIndexC, self.var.avgOutflowC)
-            self.var.avgInflow = globals.inZero.copy()
-            np.put(self.var.avgInflow, self.var.waterBodyIndexC, self.var.avgInflowC)
+                self.var.timestepsToAvgDischarge1 = self.var.timestepsToAvgDischarge + globals.inZero
 
-            saveFile = self.var.saveInitFile + "_" + dateVar['currDate'].strftime("%Y%m%d") +".nc"
-            initVar=[]
-            i = 0
-            for var in initCondVar:
-                variabel = "self.var."+initCondVarValue[i]
-                initVar.append(eval(variabel))
-                i += 1
-            writeIniNetcdf(saveFile, initCondVar,initVar)
-            i =1
+                self.var.avgOutflow = globals.inZero.copy()
+                np.put(self.var.avgOutflow, self.var.waterBodyIndexC, self.var.avgOutflowC)
+                self.var.avgInflow = globals.inZero.copy()
+                np.put(self.var.avgInflow, self.var.waterBodyIndexC, self.var.avgInflowC)
+
+                saveFile = self.var.saveInitFile + "_" + dateVar['currDate'].strftime("%Y%m%d") +".nc"
+                initVar=[]
+                i = 0
+                for var in initCondVar:
+                    variabel = "self.var."+initCondVarValue[i]
+                    initVar.append(eval(variabel))
+                    i += 1
+                writeIniNetcdf(saveFile, initCondVar,initVar)
+                i =1
