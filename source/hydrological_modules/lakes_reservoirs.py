@@ -9,7 +9,12 @@
 # -------------------------------------------------------------------------
 
 from management_modules.data_handling import *
+from hydrological_modules.routing_reservoirs.routing_sub import *
+from hydrological_modules.lakes import *
 
+from management_modules.globals import *
+
+#from pcraster.framework import *
 
 class lakes_reservoirs(object):
 
@@ -21,6 +26,7 @@ class lakes_reservoirs(object):
 
     def __init__(self, lakes_reservoirs_variable):
         self.var = lakes_reservoirs_variable
+        self.lakes_module = lakes(self.var)
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
@@ -29,82 +35,197 @@ class lakes_reservoirs(object):
         """ initial part of the lakes + reservoirs module
 
         """
-        self.var.waterbody_file = binding['waterBodyInputNC']
-        self.var.includeLakes = "True"
-        self.var.includeReservoirs = "True"
 
+
+        # load reservoir parameters
         if option['includeWaterBodies']:
+
+            self.var.waterbody_file = binding['waterBodyInputNC']
+
             self.var.minResvrFrac = loadmap('minResvrFrac') + globals.inZero
             self.var.maxResvrFrac = loadmap('maxResvrFrac') + globals.inZero
             self.var.minWeirWidth = loadmap('minWeirWidth') + globals.inZero
 
 
-        # --------------- initial conditions ----------------------------
-        # lake and reservoir storages = waterBodyStorage (m3)
-        # - values are given for the entire lake / reservoir cells
-        self.var.waterBodyStorage = self.var.init_module.load_initial('waterBodyStorage') + globals.inZero
-        self.var.avgInflow = self.var.init_module.load_initial('avgInflowLakeReserv') + globals.inZero
-        self.var.avgOutflow = self.var.init_module.load_initial('avgOutflowDischarge') + globals.inZero
+            # --------------- initial conditions ----------------------------
+            # lake and reservoir storages = waterBodyStorage (m3)
+            # values are given for the entire lake / reservoir cells
+            self.var.waterBodyStorage = self.var.init_module.load_initial('waterBodyStorage') + globals.inZero
+            self.var.avgInflow = self.var.init_module.load_initial('avgInflowLakeReserv') + globals.inZero
+            self.var.avgOutflow = self.var.init_module.load_initial('avgOutflowDischarge') + globals.inZero
+
+
 
 
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
-    def getParameterFiles(self):
-
-        self.var.waterBodyIds = globals.inZero.copy()
-        self.var.waterBodyOut = globals.inZero.copy()
-        self.var.waterBodyTyp = globals.inZero.copy()
-        self.var.waterBodyArea = globals.inZero.copy()  # waterBody surface areas
-
-        self.var.fracWat = self.var.fracVegCover[5]
-
-        if self.var.includeLakes == "True" or self.var.includeReservoirs == "True":
-
-            # save results in big maps, because each year the reservoir/lakes maps are renewed
-            if not(dateVar['newStart']):
-                np.put(self.var.waterBodyStorage, self.var.waterBodyIndexC, self.var.waterBodyStorageC)
-                np.put(self.var.avgOutflow, self.var.waterBodyIndexC, self.var.avgOutflowC)
-                np.put(self.var.avgInflow, self.var.waterBodyIndexC, self.var.avgInflowC)
+    def initWaterbodies(self):
+        """
+        :return:
+        """
 
 
+        if option['includeWaterBodies']:
+            fracWat = self.var.fracVegCover[5]
 
-            self.var.waterBodyIds = readnetcdf2(self.var.waterbody_file, dateVar['currDate'], "yearly",value='waterBodyIds')
-            # adding missing value for pcraster
-            self.var.waterBodyIds[self.var.waterBodyIds==0] = -9999
-            waterBodyIdsPcr = decompress(self.var.waterBodyIds)
+            #self.var.waterBodyID = globals.inZero.copy()
+            #self.var.waterBodyOut = globals.inZero.copy()
+            #self.var.waterBodyTyp = globals.inZero.copy()
+            #self.var.waterBodyArea = globals.inZero.copy()
 
-            # Pcraster
-            # water body outlets:
-            # PB calculate for each lake/reservoir the outlet cell
-            # e.g. lake Victory has many waterBodyIds (with same id) but only 1 cell where the lakecatchment = max -> outlet
-            wbCatchment = catchmenttotal(scalar(1), self.var.Ldd)
-            waterBodyOutPcr = ifthen(wbCatchment == areamaximum(wbCatchment, nominal(waterBodyIdsPcr)), waterBodyIdsPcr)
+            # load lakes/reservoirs map with a single ID for each lake/reservoir
+            self.var.waterBodyID = readnetcdf2(self.var.waterbody_file, dateVar['currDate'], "yearly",value='waterBodyIds').astype(np.int64)
+            #self.var.waterBodyID = np.where(self.var.waterBodyID == 10352,self.var.waterBodyID,0)
+            """
+            self.var.waterBodyID = self.var.waterBodyID * 0
 
-            # check if water body has an ID
-            waterBodyOutPcr = ifthen(waterBodyIdsPcr > 0, waterBodyOutPcr)
-            # correcting water body ids for each outlet calculate subcatchment
-            waterBodyIdsPcr = ifthen(waterBodyIdsPcr > 0., subcatchment(self.var.Ldd, nominal(waterBodyOutPcr)))
-            # map for water body outlets:
-            waterBodyOutPcr = ifthenelse( waterBodyOutPcr > 0 ,scalar(1.0), scalar(0))
+            #self.var.waterBodyID[29] = 4
+            #self.var.waterBodyID[30] = 4
+            #self.var.waterBodyID[42] = 4
 
-            # PCraster to Numpy
-            self.var.waterBodyIds = compressArray(scalar(waterBodyIdsPcr))
-            self.var.waterBodyOut = compressArray(scalar(waterBodyOutPcr))
-            self.var.waterBodyIds[np.isnan(self.var.waterBodyIds)] = 0
-            self.var.waterBodyOut[np.isnan(self.var.waterBodyOut)] = 0
-            self.var.waterBodyIds = self.var.waterBodyIds.astype(np.int32)
-            self.var.waterBodyOut = self.var.waterBodyOut.astype(np.bool)
+            self.var.waterBodyID[50] = 1
 
+            self.var.waterBodyID[51] = 1
+            self.var.waterBodyID[57] = 1
+            self.var.waterBodyID[58] = 1
+            self.var.waterBodyID[59] = 1
+            self.var.waterBodyID[62] = 1
+            self.var.waterBodyID[63] = 1
+
+            self.var.waterBodyID[69] = 2
+            self.var.waterBodyID[70] = 2
+            self.var.waterBodyID[71] = 3
+            """
+
+            # calculate biggest outlet = biggest accumulation of ldd network
+            lakeResmax = npareamaximum(self.var.UpArea1, self.var.waterBodyID)
+            self.var.waterBodyOut = np.where(self.var.UpArea1 == lakeResmax,self.var.waterBodyID, 0)
+
+            report(decompress(self.var.waterBodyID), "C:\work\output3/ID0.map")
+            #report(decompress(self.var.waterBodyOut), "C:\work\output3/IDout0.map")
+
+
+            # dismiss water bodies that a not subcatchment of an outlet
+            sub = subcatchment1(self.var.dirUp, self.var.waterBodyOut,self.var.UpArea1)
+            self.var.waterBodyID = np.where(self.var.waterBodyID > 0, sub, 0)
+
+             #and again calculate outlets, because ID might have changed due to the operation before
+            lakeResmax = npareamaximum(self.var.UpArea1, self.var.waterBodyID)
+            self.var.waterBodyOut = np.where(self.var.UpArea1 == lakeResmax,self.var.waterBodyID, 0)
+
+
+            report(decompress( self.var.waterBodyID), "C:\work\output3/ID.map")
+            #self.var.waterBodyIndexC = np.nonzero(self.var.waterBodyIds)[0]
+
+
+            # change ldd: put pits in where lakes are:
+            self.var.ldd_LR = np.where( self.var.waterBodyID > 0, 5, self.var.lddCompress)
+            # create new ldd without lakes reservoirs
+            self.var.lddCompress_LR, dirshort_LR, self.var.dirUp_LR, self.var.dirupLen_LR, self.var.dirupID_LR, \
+                self.var.downstruct_LR, self.var.catchment_LR, self.var.dirDown_LR, self.var.lendirDown_LR = defLdd2(self.var.ldd_LR)
+
+            report(decompress(self.var.lddCompress_LR), "C:\work\output3/ldd_lr.map")
 
             # boolean map as mask map for compressing and decompressing
-            self.var.compressID = self.var.waterBodyIds > 0
-            self.var.waterBodyIndexC = np.nonzero(self.var.waterBodyIds)[0]
+            self.var.compress_LR = self.var.waterBodyOut > 0
+            self.var.decompress_LR = np.nonzero(self.var.waterBodyOut)[0]
+            self.var.waterBodyOutC = np.compress(self.var.compress_LR, self.var.waterBodyOut)
 
-            # compressed maps
-            self.var.waterBodyIdsC = np.compress(self.var.compressID, self.var.waterBodyIds.astype(np.int32))
-            self.var.waterBodyOutC = np.compress(self.var.compressID, self.var.waterBodyOut.astype(np.bool))
+
+
+            self.var.outflow = globals.inZero.copy()
+            self.var.outLake = globals.inZero.copy()
+
+
+
+
+
+            #self.var.UpArea1 = upstreamArea(self.var.dirDown_LR, dirshort_LR, globals.inZero + 1.0)
+            #self.var.UpArea = upstreamArea(self.var.dirDown, dirshort_LR, self.var.cellArea)
+            #d1 = downstream1(self.var.dirUp_LR, self.var.UpArea1)
+            #up1 = upstream1(self.var.downstruct_LR, self.var.UpArea1)
+
+
+
+            #ldd = pcraster.ldd(loadmap('Ldd',pcr=True))
+            #sub1 = subcatchment(ldd, nominal(decompress(self.var.waterBodyOut)))
+
+
+   # ------------------ End init ------------------------------------------------------------------------------------
+   # ----------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+    def dynamic_inloop(self, NoRoutingExecuted):
+
+
+        # ----------
+        # inflow lakes
+        # 1.  dis = upstream1(self.var.downstruct_LR, self.var.discharge)   # from river upstream
+        # 2.  runoff = npareatotal(self.var.waterBodyID, self.var.waterBodyID)  # from cell itself
+        # 3.                  # outflow from upstream lakes
+
+        # ----------
+        # outflow lakes res -> inflow ldd_LR
+        # 1. out = upstream1(self.var.downstruct, self.var.outflow)
+
+
+        # collect discharge from above waterbodies
+        dis_LR = upstream1(self.var.downstruct_LR, self.var.discharge)
+        # only where lakes are and unit convered to [m]
+        dis_LR = np.where(self.var.waterBodyID > 0, dis_LR, 0.) * self.var.DtSec
+
+        # sum up runoff and discharge on the lake
+        inflow = npareatotal(dis_LR + self.var.runoff * self.var.cellArea , self.var.waterBodyID)
+        # only once at the outlet
+        inflow = np.where(self.var.waterBodyOut > 0, inflow, 0.) / self.var.noRoutingSteps
+
+        # calculate total inflow into lakes and compress it to waterbodie outflow point
+        # inflow to lake is discharge from upstream network + runoff directly into lake + outflow from upstream lakes
+        inflowC = np.compress(self.var.compress_LR, inflow + self.var.outLake)
+
+        # ------------------------------------------------------------
+        # calculate outflow from lakes and reservoirs
+        outflowC = self.lakes_module.dynamic_inloop(1, inflowC)
+
+        #outflowC = self.var.storage_LR.copy()
+
+        # ------------------------------------------------------------
+
+
+        # decompress to normal maskarea size
+        np.put(self.var.outflow,self.var.decompress_LR,outflowC)
+        # shift outflow 1 cell downstream
+        out1 = upstream1(self.var.downstruct, self.var.outflow)
+
+        # everything with is not going to another lake is output to river network
+        outLdd = np.where(self.var.waterBodyID > 0, 0, out1)
+
+        # verything what i not goingt to the network is going to another lake
+        outLake1 = np.where(self.var.waterBodyID > 0, out1,0)
+        # sum up all inflow from other lakes
+        outLake1 = npareatotal(outLake1, self.var.waterBodyID)
+        # use only the value of the outflow point
+        self.var.outLake = np.where(self.var.waterBodyOut > 0, outLake1, 0.)
+
+        #report(decompress(runoff_LR), "C:\work\output3/run.map")
+
+
+        return outLdd
+
+
+
+
+
+
+
+        """
+
+
 
             fracWatC = np.compress(self.var.compressID > 0, self.var.fracVegCover[5])
             self.var.cellAreaC = np.compress(self.var.compressID, self.var.cellArea)
@@ -125,7 +246,6 @@ class lakes_reservoirs(object):
             # - 1 = lakes (weirFormula)
             # - 0 = non lakes or reservoirs (e.g. wetland)
             waterBodyTyp = readnetcdf2(self.var.waterbody_file, dateVar['currDate'], "yearly", value='waterBodyTyp')
-
             #waterBodyTyp = np.where(waterBodyTyp > 0., 1, waterBodyTyp)  # TODO change all to lakes for testing
 
             self.var.waterBodyTypC = np.compress(self.var.compressID, waterBodyTyp)
@@ -201,198 +321,8 @@ class lakes_reservoirs(object):
 
         i = 1
 
-
-
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-    def moveFromChannelToWaterBody(self, newStorageAtLakeAndReservoirs, timestepsToAvgDischarge, maxTimestepsToAvgDischargeShort):
-
-
-        # new lake and/or reservoir storages (m3)
-        newStorageAtLakeAndReservoirs = npareatotal(newStorageAtLakeAndReservoirs, self.var.waterBodyIdsC)
-
-        # inflow (m3/day)
-        self.var.inflowC = newStorageAtLakeAndReservoirs - self.var.waterBodyStorageC
-
-        # inflowInM3PerSec (m3/s)
-        inflowInM3PerSec = self.var.inflowC / self.var.DtSec
-
-        # updating average (short term) inflow (m3/s)
-        # - needed to constrain lake outflow:
-        deltaInflow = inflowInM3PerSec - self.var.avgInflowC
-        self.var.avgInflowC = self.var.avgInflowC + deltaInflow / \
-                 np.minimum(maxTimestepsToAvgDischargeShort, self.var.timestepsToAvgDischarge)
-        self.var.avgInflowC = np.maximum(0.0, self.var.avgInflowC)
-
-        # updating waterBodyStorage (m3)
-        self.var.waterBodyStorageC = newStorageAtLakeAndReservoirs.copy()
-
-        # --------------------------------------------------------------------------
-        # --------------------------------------------------------------------------
-
-    def weirFormula(self, waterHeight, weirWidth):  # Unit: m3/s
-
-        sillElev = 0.0
-        weirCoef = 1.0
-        weirFormula = (1.7 * weirCoef * np.maximum(0, waterHeight - sillElev) ** 1.5) * weirWidth
-        return (weirFormula)
-
-    # --------------------------------------------------------------------------
-    # --------------------------------------------------------------------------
-
-
-    def getLakeOutflow(self, avgChannelDischarge=None):
-
-        # waterHeight (m): temporary variable, a function of storage:
-        minWaterHeight = 0.000  # (m)
-        waterHeight = np.maximum(minWaterHeight,
-                                 (self.var.waterBodyStorageC - self.var.waterBodyCapC) / self.var.waterBodyAreaC)
-
-        # weirWidth (m) : estimated from avgOutflow (m3/s)
-        avgOutflowC = self.var.avgOutflowC
-
-        if avgChannelDischarge != None:
-            avgOutflowC = np.where(avgOutflowC > 0., avgOutflowC, avgChannelDischarge)
-            avgOutflowC = npareamaximum(avgOutflowC, self.var.waterBodyIds)
-        bankfullWidth = 4.8 * (avgOutflowC ** 0.5)
-        weirWidthUsed = bankfullWidth.copy()
-        weirWidthUsed = np.maximum(weirWidthUsed, self.var.minWeirWidthC)
-
-        # TODO: minWeirWidth based on the GRanD database
-        weirWidthUsed = np.where(self.var.waterBodyIdsC > 0., weirWidthUsed, 0.)
-
-        # lakeOutflow = weirFormula >= avgInflow <= waterBodyStorage  # m3/day
-        lakeOutflow = np.maximum(self.var.lakes_reservoirs_module.weirFormula(waterHeight, weirWidthUsed), self.var.avgInflowC) * self.var.DtSec
-        lakeOutflow = np.minimum(self.var.waterBodyStorageC, lakeOutflow)
-
-        # m3/day
-        return (lakeOutflow)
-
-    # --------------------------------------------------------------------------
-    # --------------------------------------------------------------------------
-
-    def getReservoirOutflow(self, avgChannelDischarge=None, downstreamDemand=None):
-
-        minWaterHeight = 0.000  # (m) Rens used 0.001 m
-        reservoirWaterHeight = np.maximum(minWaterHeight, (self.var.waterBodyStorageC) / self.var.waterBodyAreaC)
-
-        # avgOutflow (m3/s)
-        avgOutflowC = self.var.avgOutflowC
-        if avgChannelDischarge != None:
-            avgOutflowC = np.where(avgOutflowC > 0., avgOutflowC, avgChannelDischarge)
-            avgOutflowC = npareamaximum(avgOutflowC, self.var.waterBodyIdsC)
-
-
-        # calculate resvOutflow (based on reservoir storage and avgDischarge):
-        # - unit: m3/day (Note that avgDischarge is given in m3/s)
-        # - using reductionFactor in such a way that:
-        #   - if relativeCapacity < minResvrFrac : release is terminated
-        #   - if relativeCapacity > maxResvrFrac : longterm Average
-        reductionFactor = np.minimum(1., np.maximum(0., \
-                self.var.waterBodyStorageC - self.var.minResvrFracC * self.var.waterBodyCapC) / \
-                (self.var.maxResvrFracC - self.var.minResvrFracC) * self.var.waterBodyCapC)
-        # m3/day
-        resvOutflow = reductionFactor * avgOutflowC * self.var.DtSec
-
-        # maximum release <= average inflow (especially during dry condition) # m3/day
-        resvOutflow = np.maximum(0, np.minimum(resvOutflow, self.var.avgInflowC * self.var.DtSec))
-
-        # downstream demand (m3/day)
-        if downstreamDemand == None:
-            downstreamDemand = 0.0
-        else:
-            print("We still have to define downstreamDemand.")
-        # reduce demand if storage < lower limit
-        reductionFactor = getValDivZero(downstreamDemand, self.var.minResvrFracC * self.var.waterBodyCapC, 1e-39)
-        downstreamDemand = np.minimum(downstreamDemand, downstreamDemand * reductionFactor)
-        # resvOutflow > downstreamDemand # m3/day
-        resvOutflow = np.maximum(resvOutflow, downstreamDemand)
-
-        # additional release if storage > upper limit
-        ratioQBankfull = 2.3
-        estmStorage = np.maximum(0., self.var.waterBodyStorageC - resvOutflow)
-
-        a1 = np.maximum(0.0, estmStorage - self.var.maxResvrFracC * self.var.waterBodyCapC)
-        a2 = (1. - self.var.maxResvrFracC) * self.var.waterBodyCapC
-        with np.errstate(invalid='ignore', divide='ignore'):
-            a3 = np.where(a2 > 0,a1/a2, 0.0)
-        a4 =  np.maximum(0.0, ratioQBankfull * avgOutflowC * self.var.DtSec - resvOutflow)
-
-        floodOutflow = np.maximum(0.0, estmStorage - self.var.waterBodyCapC) + a3 * a4
-
-        floodOutflow = np.maximum(0.0,
-                                  np.minimum(floodOutflow, estmStorage - self.var.maxResvrFracC * self.var.waterBodyCapC))
-        resvOutflow = resvOutflow + floodOutflow
-
-        # maximum release if storage > upper limit
-        resvOutflow = np.where(self.var.waterBodyStorageC > self.var.maxResvrFracC * self.var.waterBodyCapC, \
-                               np.minimum(resvOutflow, np.maximum(0, self.var.waterBodyStorageC - \
-                               self.var.maxResvrFracC * self.var.waterBodyCapC)),resvOutflow)
-
-        return (resvOutflow)  # unit: m3/day
-
-    # --------------------------------------------------------------------------
-    # --------------------------------------------------------------------------
-
-    def getWaterBodyOutflow(self, maxTimestepsToAvgDischargeLong, downstreamDemand=None, avgChannelDischarge=None):
-
-        # outflow from water bodies with lake type (m3/day):
-        if self.var.includeLakes == "True":
-            lakeOutflow = self.var.lakes_reservoirs_module.getLakeOutflow(avgChannelDischarge)
-            self.var.waterBodyOutflowC = np.where(self.var.waterBodyTypC == 1, lakeOutflow, self.var.waterBodyOutflowC)
-
-            # outflow from water bodies with reservoir type (m3/day):
-        if self.var.includeReservoirs == "True":
-            reservoirOutflow = self.var.lakes_reservoirs_module.getReservoirOutflow(avgChannelDischarge)
-            self.var.waterBodyOutflowC = np.where(self.var.waterBodyTypC == 2, reservoirOutflow, self.var.waterBodyOutflowC)
-
-        # limit outflow to available storage # unit: m3/day
-        # to avoid flip flop
-        factor = 0.33
-        self.var.waterBodyOutflowC = np.minimum(self.var.waterBodyStorageC * factor, self.var.waterBodyOutflowC)
-        waterBodyOutflowInM3PerSec = self.var.waterBodyOutflowC / self.var.DtSec  # unit: m3/s
-
-        deltaOutflow = waterBodyOutflowInM3PerSec - self.var.avgOutflowC
-        self.var.avgOutflowC = self.var.avgOutflowC + deltaOutflow / \
-                      np.minimum(maxTimestepsToAvgDischargeLong, self.var.timestepsToAvgDischarge)
-        self.var.avgOutflowC = np.maximum(0.0, self.var.avgOutflowC)
-
-        # update waterBodyStorage (after outflow):
-        self.var.waterBodyStorageC = self.var.waterBodyStorageC - self.var.waterBodyOutflowC
-
-        # --------------------------------------------------------------------------
-
-
-
-
-    # --------------------------------------------------------------------------
-    # --------------------------------------------------------------------------
-    def dynamic(self,storageAtLakeAndReservoirs, downstreamDemand = None, avgChannelDischarge = None):
-        """ dynamic part of the lakes and reservoirs module
         """
 
 
-        if option['calcWaterBalance']:
-            self.var.prestorReservoirC = self.var.waterBodyStorageC.copy()
-
-        storageAtLakeAndReservoirsC = np.compress(self.var.compressID, storageAtLakeAndReservoirs)
-        self.var.waterBodyOutflowC = np.compress(self.var.compressID, globals.inZero)
-
-        if self.var.includeLakes == "True" or self.var.includeReservoirs == "True":
-            # obtain inflow (and update storage)
-            self.var.lakes_reservoirs_module.moveFromChannelToWaterBody(storageAtLakeAndReservoirsC, self.var.timestepsToAvgDischarge, self.var.maxTimestepsToAvgDischargeShort)
-            # calculate outflow (and update storage)
-            self.var.lakes_reservoirs_module.getWaterBodyOutflow(self.var.maxTimestepsToAvgDischargeLong, downstreamDemand, avgChannelDischarge)
-
-        if option['calcWaterBalance']:
-            #np.put(self.var.waterBodyOut, self.var.waterBodyIndexC, self.var.waterBodyOutC)
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.inflowC],            # In
-                [self.var.waterBodyOutflowC],  # Out
-                [self.var.prestorReservoirC],  # prev storage
-                [self.var.waterBodyStorageC],
-                "LakesRes", False)
-
-
-
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------

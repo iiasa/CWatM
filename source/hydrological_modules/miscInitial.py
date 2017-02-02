@@ -43,8 +43,9 @@ class miscInitial(object):
             # NOT needed only in routing
 
             # Area of pixel [m2]
-            self.var.cellAreaPcr = loadmap('CellArea',pcr=True)
-            self.var.cellArea = compressArray(self.var.cellAreaPcr)
+            #self.var.cellAreaPcr = loadmap('CellArea',pcr=True)
+            #self.var.cellArea = compressArray(self.var.cellAreaPcr)
+            self.var.cellArea = loadmap('CellArea')
 
         else:
             # Default behaviour: grid size is derived from location attributes of

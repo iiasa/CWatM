@@ -129,9 +129,17 @@ class initcondition(object):
                 self.var.timestepsToAvgDischarge1 = self.var.timestepsToAvgDischarge + globals.inZero
 
                 self.var.avgOutflow = globals.inZero.copy()
-                np.put(self.var.avgOutflow, self.var.waterBodyIndexC, self.var.avgOutflowC)
                 self.var.avgInflow = globals.inZero.copy()
-                np.put(self.var.avgInflow, self.var.waterBodyIndexC, self.var.avgInflowC)
+
+                if not(option['kinematic']):
+                    np.put(self.var.avgOutflow, self.var.waterBodyIndexC, self.var.avgOutflowC)
+                    np.put(self.var.avgInflow, self.var.waterBodyIndexC, self.var.avgInflowC)
+                else:
+                    self.var.readAvlChannelStorage = self.var.channelStorage
+                    self.var.avgDischarge = self.var.discharge
+                    self.var.m2tDischarge = globals.inZero.copy()
+                    self.var.avgBaseflow = globals.inZero.copy()
+                    self.var.waterBodyStorage = globals.inZero.copy()
 
                 saveFile = self.var.saveInitFile + "_" + dateVar['currDate'].strftime("%Y%m%d") +".nc"
                 initVar=[]

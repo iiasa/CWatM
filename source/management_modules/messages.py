@@ -14,8 +14,6 @@ import datetime
 import time as xtime
 import os
 
-#from pcraster import*
-#from pcraster.framework import *
 
 from globals import *
 

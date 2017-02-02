@@ -30,11 +30,11 @@ from pyexpat import *
 import xml.dom.minidom
 
 from netCDF4 import Dataset
-from pcraster import *
-from pcraster.framework import *
 
 from management_modules.configuration import *
 from management_modules.messages import *
+
+
 
 # ---------------------------
 

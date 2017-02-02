@@ -26,12 +26,14 @@ from hydrological_modules.capillarRise import *
 from hydrological_modules.interception import *
 from hydrological_modules.runoff_concentration import *
 from hydrological_modules.routing import *
-from hydrological_modules.lakes_reservoirs import *
 from hydrological_modules.waterbalance import *
 
+from hydrological_modules.routing_reservoirs.routing_kinematic import *
+from hydrological_modules.lakes_reservoirs import *
+from hydrological_modules.lakes import *
+
 # --------------------------------------------
-#from pcraster import*
-#from pcraster.framework import *
+
 from management_modules.data_handling import *
 from management_modules.output import *
 
@@ -89,7 +91,10 @@ class CWATModel_ini(DynamicModel):
         self.sealed_water_module = sealed_water(self)
         self.runoff_concentration_module = runoff_concentration(self)
         self.routing_module = routing(self)
+
+        self.routing_kinematic_module = routing_kinematic(self)
         self.lakes_reservoirs_module = lakes_reservoirs(self)
+        self.lakes_module = lakes(self)
 
         # include output of tss and maps
         self.output_module = outputTssMap(self)
@@ -110,8 +115,19 @@ class CWATModel_ini(DynamicModel):
         self.groundwater_module.initial()
         self.runoff_concentration_module.initial()
 
-        self.routing_module.initial()
-        self.lakes_reservoirs_module.initial()
+        if option['kinematic']:
+            self.routing_kinematic_module.initial()
+            if option['includeWaterBodies']:
+
+                self.lakes_reservoirs_module.initial()
+                self.lakes_reservoirs_module.initWaterbodies()
+                self.lakes_module.initial()
+        else:
+            self.routing_module.initial()
+            self.lakes_reservoirs_module.initial()
+
+
+
 
         self.waterdemand_module.initial()
         self.waterbalance_module.initial()

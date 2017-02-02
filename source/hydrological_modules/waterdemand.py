@@ -93,7 +93,7 @@ class waterdemand(object):
 
             averageBaseflowInput =  np.maximum(0.0,self.var.avgBaseflow)
             averageUpstreamInput = np.bincount(self.var.downstruct, weights = self.var.avgDischarge)[:-1]
-            # this function replace the pcraster function upstream
+            # this function replace the pc raster function upstream
             # averageUpstreamInput = upstream(self.var.Ldd, decompress(self.var.avgDischarge))
 
             averageUpstreamInput = np.maximum(0.0, averageUpstreamInput)

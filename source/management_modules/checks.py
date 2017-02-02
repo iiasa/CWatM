@@ -14,8 +14,6 @@ import datetime
 import time as xtime
 import os
 
-#from pcraster import*
-#from pcraster.framework import *
 
 from globals import *
 
@@ -35,6 +33,8 @@ def checkmap(name, value, map, flagmap, find):
     """
     s = [name, value]
     if flagmap:
+        iii = 1
+        """
         amap = scalar(defined(MMaskMap))
         try:
             smap = scalar(defined(map))
@@ -64,6 +64,7 @@ def checkmap(name, value, map, flagmap, find):
                 s.append('last_Map_used')
             else:
                 s.append('')
+        """
 
     else:
         s.append(0)

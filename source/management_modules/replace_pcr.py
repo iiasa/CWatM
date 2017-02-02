@@ -1,6 +1,6 @@
 # -------------------------------------------------------------------------
 # Name:        replace_pcr
-# Purpose:     Replace pcraster command with numpy array commands
+# Purpose:     Replace pc raster command with numpy array commands
 #
 # Author:      PB
 #

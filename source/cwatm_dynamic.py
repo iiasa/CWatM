@@ -9,12 +9,6 @@
 # -------------------------------------------------------------------------
 
 
-#from global_modules.add1 import *
-from pcraster import*
-from pcraster.framework import *
-
-
-
 from management_modules.data_handling import *
 from management_modules.improvepcraster import *
 from management_modules.messages import *
@@ -91,8 +85,14 @@ class CWATModel_dyn(DynamicModel):
         self.runoff_concentration_module.dynamic()
         timemeasure("Runoff conc.")  # 8. timing
 
-        self.routing_module.dynamic()
-        timemeasure("Routing")  # 9. timing
+        if option['kinematic']:
+            self.routing_kinematic_module.dynamic()
+            timemeasure("Routing_Kin")  # 9. timing
+        else:
+            self.routing_module.dynamic()
+            timemeasure("Routing")  # 9. timing
+
+
 
         # *******  Calculate CUMULATIVE MASS BALANCE ERROR  **********
         # self.waterbalance_module.dynamic()
@@ -246,7 +246,7 @@ class CWATModel_dyn(DynamicModel):
             #self.ChanM3 = self.ChanM3Kin + self.Chan2M3Kin - self.Chan2M3Start
                 # Total channel storage [cu m], equal to ChanM3Kin
                 # sum of both lines
-            #CrossSection2Area = pcraster.max(scalar(0.0), (self.Chan2M3Kin - self.Chan2M3Start) / self.ChanLength)
+            #CrossSection2Area = pc raster.max(scalar(0.0), (self.Chan2M3Kin - self.Chan2M3Start) / self.ChanLength)
 
         self.sumDis += self.sumDisDay
         self.ChanQAvg = self.sumDisDay/self.NoRoutSteps

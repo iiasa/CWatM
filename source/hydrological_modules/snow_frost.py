@@ -185,7 +185,7 @@ class snow(object):
 
         FrostIndexChangeRate = -(1 - self.var.Afrost) * self.var.FrostIndex - self.var.Tavg * \
             np.exp(-0.04 * self.var.Kfrost * self.var.SnowCover / self.var.SnowWaterEquivalent)
-        # FrostIndexChangeRate=self.var.AfrostIndex - self.var.Tavg*      pcraster.exp(self.var.Kfrost*self.var.SnowCover*self.var.InvSnowWaterEquivalent)
+        # FrostIndexChangeRate=self.var.AfrostIndex - self.var.Tavg*      pc raster.exp(self.var.Kfrost*self.var.SnowCover*self.var.InvSnowWaterEquivalent)
         # Rate of change of frost index (expressed as rate, [degree days/day])
         self.var.FrostIndex = np.maximum(self.var.FrostIndex + FrostIndexChangeRate * self.var.DtDay, 0)
         # frost index in soil [degree days] based on Molnau and Bissel (1983, A Continuous Frozen Ground Index for Flood

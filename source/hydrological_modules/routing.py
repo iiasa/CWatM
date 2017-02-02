@@ -35,7 +35,7 @@ class routing(object):
 
 
         # upstream function in numpy
-        inAr = decompress(np.arange(maskinfo['mapC'][0],dtype="int32"))
+        inAr = decompress(np.arange(maskinfo['mapC'][0],dtype="int64"))
         lddC = compressArray(self.var.Ldd)
         # giving a number to each non missing pixel as id
         self.var.downstruct = (compressArray(downstream(self.var.Ldd,inAr))).astype("int32")
@@ -46,8 +46,8 @@ class routing(object):
         # upstream function in numpy
 
 
-        # self.var.cellArea or self.var.cellAreaPcr as pcraster map
-        # self.var.cellLength or self.var.cellLengthPcr as pcraster map
+
+        # self.var.cellLength or self.var.cellLengthPcr as pc raster map
         self.var.cellsize = clone().cellSize()
 
         if option['gridSizeUserDefined']:
@@ -97,7 +97,7 @@ class routing(object):
 
         self.var.channelStorage = self.var.init_module.load_initial('channelStorage') + globals.inZero.copy()
         self.var.readAvlChannelStorage = self.var.init_module.load_initial('readAvlChannelStorage')
-        # make sure that timestepsToAvgDischarge is consistent (or the same) for the entire map: # as pcraster.mapmaximum
+        # make sure that timestepsToAvgDischarge is consistent (or the same) for the entire map: # as pc raster.mapmaximum
         self.var.timestepsToAvgDischarge = np.amax(self.var.init_module.load_initial('timestepsToAvgDischarge'))
         self.var.avgDischarge = self.var.init_module.load_initial('avgChannelDischarge') + globals.inZero.copy()    # in m3/s
         self.var.m2tDischarge = self.var.init_module.load_initial('m2tChannelDischarge') + globals.inZero.copy()
@@ -108,8 +108,9 @@ class routing(object):
 
         self.var.readAvlChannelStorage = np.minimum(self.var.readAvlChannelStorage, self.var.channelStorage)
 
+        self.var.catchment = loadmap('Catchment').astype(np.int)
         if option['sumWaterBalance']:
-            self.var.catchment = loadmap('Catchment').astype(np.int)
+
             self.var.catchmentNo = int(loadmap('CatchmentNo'))
 
             lddnp = compressArray(self.var.Ldd)
@@ -205,7 +206,7 @@ class routing(object):
 
 
             # channelStorage ROUTING:
-            # convert with decompress to pcraster format
+            # convert with decompress to pc raster format
             channelStorageForAccuTravelTime = decompress(self.var.channelStorage.copy())
             #
             characteristicDistanceForAccuTravelTime = self.var.characteristicDistance.copy()   # or  0.001 * self.var.cellsize if nan
@@ -221,13 +222,13 @@ class routing(object):
             channelStoragePcr = accutraveltimestate(self.var.Ldd, channelStorageForAccuTravelTime, characteristicDistanceForAccuTravelTime)
 
 
-            # from pcraster -> numpy
+            # from pc raster -> numpy
             self.var.Q = compressArray(QPcr)
             self.var.Q[np.isnan(self.var.Q)] = 0
             self.var.channelStorage = compressArray(channelStoragePcr)
             self.var.channelStorage[np.isnan(self.var.channelStorage)] = 0
             # for very small velocity (i.e. characteristicDistanceForAccuTravelTime), discharge can be missing value.
-            # see: http://sourceforge.net/p/pcraster/bugs-and-feature-requests/543/
+            # see: http://sourceforge.net/p/pc raster/bugs-and-feature-requests/543/
             #      http://karssenberg.geo.uu.nl/tt/TravelTimeSpecification.htm
 
             # channel discharge (m3/s): current:
