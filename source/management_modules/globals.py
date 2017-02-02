@@ -79,8 +79,8 @@ global dirDown
 dirDown = []
 
 path_global = os.path.dirname(__file__)
-#dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t4.dll")
-dll_routing = "C:/work2/test1/t4.dll"
+dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t4.dll")
+#dll_routing = "C:/work2/test1/t4.dll"
 lib2 = ctypes.cdll.LoadLibrary(dll_routing)
 
 # setup the return typs and argument types
