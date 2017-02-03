@@ -69,6 +69,7 @@ class CWATModel_ini(DynamicModel):
 
         # ----------------------------------------
         # include output of tss and maps
+
         self.output_module = outputTssMap(self)
 
         # include all the hydrological modules
@@ -98,7 +99,6 @@ class CWATModel_ini(DynamicModel):
 
         # include output of tss and maps
         self.output_module = outputTssMap(self)
-
 # ----------------------------------------------------------------
 
 
@@ -114,7 +114,6 @@ class CWATModel_ini(DynamicModel):
         self.landcoverType_module.initial()
         self.groundwater_module.initial()
         self.runoff_concentration_module.initial()
-
         if option['kinematic']:
             self.routing_kinematic_module.initial()
             if option['includeWaterBodies']:
@@ -134,6 +133,7 @@ class CWATModel_ini(DynamicModel):
         # calculate initial amount of water in the catchment
 
         self.output_module.initial()
+
 
 # ----------------------------------------------------------------
 

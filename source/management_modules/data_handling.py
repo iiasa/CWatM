@@ -70,6 +70,16 @@ def valuecell(mask, coordx, coordstr):
     return compressArray(null, pcr=False).astype(np.int64)
 
 
+def setmaskmapAttr(x,y,col,row,cell):
+    # Definition of cellsize, coordinates of the meteomaps and maskmap
+    #  need some love for error handling
+    maskmapAttr['x'] = x
+    maskmapAttr['y'] = y
+    maskmapAttr['col'] = col
+    maskmapAttr['row'] = row
+    maskmapAttr['cell'] = cell
+
+
 def loadsetclone(name):
     """
     load the maskmap and set as clone
@@ -82,8 +92,11 @@ def loadsetclone(name):
         # changed order of x, y i- in setclone y is first in CWATM
         # settings x is first
         # setclone row col cellsize xupleft yupleft
-        setclone(int(coord[1]), int(coord[0]), float(coord[2]), float(coord[3]), float(coord[4]))
+        # retancle: Number of Cols, Number of rows, cellsize, upper left corner X, upper left corner Y
+        if option['PCRaster']: setclone(int(coord[1]), int(coord[0]), float(coord[2]), float(coord[3]), float(coord[4]))
+
         mapnp = np.ones((int(coord[1]), int(coord[0])))
+        setmaskmapAttr(float(coord[3]),float(coord[4]), int(coord[0]),int(coord[1]),float(coord[2]))
         #mapnp[mapnp == 0] = 1
         #map = numpy2pcr(Boolean, mapnp, -9999)
 
@@ -97,11 +110,7 @@ def loadsetclone(name):
 
             # Definition of cellsize, coordinates of the meteomaps and maskmap
             # need some love for error handling
-            maskmapAttr['x'] = pcraster.clone().west()
-            maskmapAttr['y'] = pcraster.clone().north()
-            maskmapAttr['col'] = pcraster.clone().nrCols()
-            maskmapAttr['row'] = pcraster.clone().nrRows()
-            maskmapAttr['cell'] = pcraster.clone().cellSize()
+            setmaskmapAttr(pcraster.clone().west(), pcraster.clone().north(), pcraster.clone().nrCols(),pcraster.clone().nrRows(), pcraster.clone().cellSize())
 
 
         except:
@@ -123,11 +132,7 @@ def loadsetclone(name):
 
                 mapnp = np.array(nf1.variables[value][0:nrRows, 0:nrCols])
                 nf1.close()
-                maskmapAttr['x'] = x
-                maskmapAttr['y'] = y
-                maskmapAttr['col'] = nrCols
-                maskmapAttr['row'] = nrRows
-                maskmapAttr['cell'] = cellSize
+                setmaskmapAttr( x, y, nrCols, nrRows, cellSize)
 
                 # setclone  row col cellsize xupleft yupleft
                 if option['PCRaster']:
@@ -138,14 +143,11 @@ def loadsetclone(name):
             except:
                 # load geotiff
                 try:
+
                     filename = binding[name]
                     nf2 = gdal.Open(filename, GA_ReadOnly)
                     geotransform = nf2.GetGeoTransform()
-                    maskmapAttr['x'] = geotransform[0]
-                    maskmapAttr['y'] = geotransform[3]
-                    maskmapAttr['col'] = nf2.RasterXSize
-                    maskmapAttr['row'] = nf2.RasterYSize
-                    maskmapAttr['cell'] = geotransform[1]
+                    setmaskmapAttr( geotransform[0], geotransform[3], nf2.RasterXSize, nf2.RasterYSize, geotransform[1])
 
                     band = nf2.GetRasterBand(1)
                     bandtype = gdal.GetDataTypeName(band.DataType)
@@ -231,6 +233,7 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
     if not(load):   # read a netcdf  (single one not a stack)
         filename = os.path.splitext(value)[0] + '.nc'
          # get mapextend of netcdf map and calculate the cutting
+        cut0, cut1, cut2, cut3 = mapattrNetCDF(filename)
         try:
             cut0, cut1, cut2, cut3 = mapattrNetCDF(filename)
 

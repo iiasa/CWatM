@@ -191,6 +191,7 @@ class routing_kinematic(object):
             self.var.discharge = Qnew.copy()
 
 
+
         # -- end substeping ---------------------
 
         self.var.channelStorage = self.var.channelAlpha * self.var.chanLength * Qnew ** 0.6

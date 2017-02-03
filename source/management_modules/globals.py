@@ -15,6 +15,12 @@ import ctypes
 import numpy.ctypeslib as npct
 import numpy as np
 
+# for detecting on which system it is running
+import platform
+
+from management_modules.messages import *
+
+
 global maskinfo,zeromap,modelSteps,xmlstring
 maskinfo = {}
 modelSteps=[]
@@ -78,8 +84,25 @@ timeMesSum = []    # time measure of hydrological modules
 global dirDown
 dirDown = []
 
+platform = platform.uname()[0]
+python_bit = ctypes.sizeof(ctypes.c_voidp) * 8
+
+print "Running under platform: ", platform
+if python_bit  < 64:
+   msg = "The Python version used is not a 64 bit version! Python " + str(python_bit) + "bit"
+   raise CWATMError(msg)
+
 path_global = os.path.dirname(__file__)
-dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t4.dll")
+if platform == "Windows":
+    dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t4.dll")
+elif platform == "CYGWIN_NT-6.1":
+    # CYGWIN_NT-6.1 - compiled with cygwin
+    dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t4cyg.so")
+else:
+    print "Linux or something else\n"
+    # Linux?
+    dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t4_linux.so")
+
 #dll_routing = "C:/work2/test1/t4.dll"
 lib2 = ctypes.cdll.LoadLibrary(dll_routing)
 
@@ -98,6 +121,7 @@ lib2.ups.argtypes = [array_1d_int, array_1d_int, array_1d_double, ctypes.c_int]
 lib2.dirID.restype = None
 lib2.dirID.argtypes = [array_2d_int, array_2d_int, array_2d_int, ctypes.c_int,ctypes.c_int]
 
+#lib2.repairLdd1.argtypes = [ array_2d_int, ctypes.c_int,ctypes.c_int]
 lib2.repairLdd1.argtypes = [ array_2d_int, ctypes.c_int,ctypes.c_int]
 
 lib2.repairLdd2.restype = None

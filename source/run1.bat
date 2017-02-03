@@ -1,2 +1,2 @@
-python cwatm.py settings4WDFEI.ini -l -t
+python cwatm.py settings4WDFEI_Rhine2.ini -l
 pause
