@@ -14,26 +14,23 @@ from management_modules.data_handling import *
 class capillarRise(object):
 
     """
-    # ************************************************************
-    # ***** CAPPILAR RISE ****************************************
-    # ************************************************************
-	calculate cell fraction influenced by capillary rise
+    CAPPILAR RISE
+    calculate cell fraction influenced by capillary rise
     """
 
     def __init__(self, capillarRise_variable):
         self.var = capillarRise_variable
 
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
 
-    def initial(self):
-        """ initial part of the capillar Rise module
-        """
 # --------------------------------------------------------------------------
 
     def dynamic(self):
-        """ dynamic part of the capillar Rise module
-         calculate cell fraction influenced by capillary rise:
+        """
+        Dynamic part of the capillar Rise module
+        calculate cell fraction influenced by capillary rise
+        depending on appr. height of groundwater and relative elevation of grid cell
+
+        :return: capRiseFrac = cell fraction influenced by capillary rise
         """
 
         # approximate height of groundwater table and corresponding reach of cell under influence of capillary rise

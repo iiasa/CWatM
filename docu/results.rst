@@ -15,15 +15,37 @@ Resolution
 Here some outputs of the global run on 0.5° are shown:
 
    
-Demo 1 - NetCDF video   
+Demo 1 - NetCDF videos   
 ======================
 
-| Global discharge 
-| One year run example: 1/1/1991- 31/12/1992
+Global discharge 
+******************
+
+One year run example: 1/1/1991- 31/12/1992
 
 .. raw:: html 
 
-   <video controls src="_static/CWAT_global_1year.mp4"></video> 
+   <video controls src="_static/CWAT_global_1year.mp4" width="800"></video>
+
+
+Global potential evaporation [mm/day] 
+*************************************
+
+One year run example
+
+.. raw:: html 
+
+   <video controls src="_static/etr_glob_smaller.mp4" width="800"> </video>
+
+Global soil moisture [mm/mm]
+****************************
+
+One year run example
+
+.. raw:: html 
+
+   <video controls src="_static/sm_glob_smaller.mp4" width="800"></video>
+
 
 Demo 2 - NcView output   
 ======================   

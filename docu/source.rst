@@ -17,7 +17,7 @@
         # --------------------------------------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    cwatm
    cwatm_dynamic

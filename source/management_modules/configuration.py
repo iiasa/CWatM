@@ -26,13 +26,30 @@ import glob
 
 
 class ExtParser(ConfigParser.SafeConfigParser):
-     #implementing extended interpolation
-     def __init__(self, *args, **kwargs):
+    """
+    addition to the parser to replace placeholders
+
+    Example:
+        PathRoot = C:/work
+        MaskMap = $(BASICS:PathRoot)/data/areamaps/area.tif
+
+    """
+    #implementing extended interpolation
+    def __init__(self, *args, **kwargs):
          self.cur_depth = 0
          ConfigParser.SafeConfigParser.__init__(self, *args, **kwargs)
 
 
-     def get(self, section, option, raw=False, vars=None):
+    def get(self, section, option, raw=False, vars=None):
+         """
+         placeholder replacement
+
+         :param section:
+         :param option:
+         :param raw:
+         :param vars:
+         :return:
+         """
          r_opt = ConfigParser.SafeConfigParser.get(self, section, option, raw=True, vars=vars)
          if raw:
              return r_opt
@@ -75,15 +92,29 @@ class ExtParser(ConfigParser.SafeConfigParser):
 
 
 def parse_configuration(settingsFileName):
+    """
+    Parse settings file
+
+    :param settingsFileName: name of the settings file
+    :return: parameters in list: binding, options in list: option
+    """
 
     def splitout(varin, check):
+        """
+        split variable in several one, seperator = ,
+
+        :param varin:
+        :param check:
+        :return: list with sveral variables
+        """
+
         out = map(str.strip, varin.split(','))
         if out[0] == "": out[0]="None"
         if out[0] != "None": check = True
         return out, check
 
-
-    #config = ConfigParser.ConfigParser()
+    if not(os.path.isfile(settingsFileName)):
+        raise CWATMFileError(settingsFileName)
     config = ExtParser()
     config.optionxform = str
     config.sections()
@@ -121,9 +152,12 @@ def parse_configuration(settingsFileName):
 
 
 def read_metanetcdf(metaxml):
-    """ read the metadata for netcdf output files
+    """
+    Read the metadata for netcdf output files
     unit, long name, standard name and additional information
 
+    :param metaxml: file mit information for netcdf files (metadata)
+    :return: List with metadata information: metaNetcdfVar
     """
 
     try:

@@ -36,14 +36,34 @@ sys.path.insert(0,"C:\work\CWatM\source")
 #	'sphinx.ext.inheritance_diagram',
 # --------------------------------------------------------------------
 
+#     'sphinx.ext.imgmath',
+    #'sphinx.ext.viewcode',
+
 extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.imgmath',
+	'sphinx.ext.autodoc',
+	'sphinx.ext.napoleon',
+	'rst2pdf.pdfbuilder'
 ]
+
+
+
+# Napoleon settings
+napoleon_google_docstring = True
+napoleon_numpy_docstring = True
+napoleon_include_init_with_doc = False
+napoleon_include_private_with_doc = False
+napoleon_include_special_with_doc = False
+napoleon_use_admonition_for_examples = False
+napoleon_use_admonition_for_notes = False
+napoleon_use_admonition_for_references = False
+napoleon_use_ivar = True
+napoleon_use_param = True
+napoleon_use_rtype = True
+
 
 # 'sphinx.ext.imgmath'  instead of 'rst2pdf.pdfbuilder',
 
@@ -67,7 +87,7 @@ pdf_use_numbered_links = False
 pdf_fit_background_mode = 'scale'
 
 
-
+pdf_use_index = False
 
 
 
@@ -91,7 +111,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Community Water Model'
-copyright = u'2016, PB'
+copyright = u'2017, PB'
 author = u'PB'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -179,7 +199,7 @@ html_title = u'Community Water Model'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #
-html_short_title = 'CWATM'
+html_short_title = 'CWAT Model'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.

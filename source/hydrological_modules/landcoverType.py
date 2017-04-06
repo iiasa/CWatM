@@ -14,9 +14,11 @@ from management_modules.data_handling import *
 class landcoverType(object):
 
     """
-    # ************************************************************
-    # *****  LAND COVER TYPE *************************************
-    # ************************************************************
+    LAND COVER TYPE
+
+    runs the 6 land cover types through soil procedures
+    This routine calls the soil routine for each land cover type
+
     """
 
     def __init__(self, landcoverType_variable):
@@ -26,7 +28,18 @@ class landcoverType(object):
 # --------------------------------------------------------------------------
 
     def initial(self):
-        """ initial part of the land cover type module
+        """
+        Initial part of the land cover type module
+        Initialise the six land cover types
+
+        * Forest
+        * Grasland/non irrigated land
+        * Irrigation
+        * Paddy iirigation
+        * Sealed area
+        * Water covered area
+
+        And initialize the soil variables
         """
 
         self.var.coverTypes= map(str.strip, binding["coverTypes"].split(","))
@@ -35,14 +48,13 @@ class landcoverType(object):
         for variable in landcoverAll:  vars(self.var)[variable] = np.tile(globals.inZero, (6, 1))
 
         landcoverPara = ['minTopWaterLayer','minCropKC','minInterceptCap','cropDeplFactor','rootFraction1','rootFraction2',
-                         'maxRootDepth', 'minSoilDepthFrac','maxSoilDepthFrac','topWaterLayer',
-                         'interflow','arnoBeta',
+                         'maxRootDepth', 'topWaterLayer','minSoilDepthFrac',
+                         'interflow',
                          'cropCoefficientNC_filename', 'interceptCapNC_filename','coverFractionNC_filename',]
         # arrays stored as list not as numpy, because it can contain strings, single parameters or arrays
         # list is filled with append afterwards
         for variable in landcoverPara: vars(self.var)[variable] = []
 
-        # fraction of what type of irrigation area
         # fraction (m2) of a certain irrigation type over (only) total irrigation area ; will be assigned by the landSurface module
         # output variable per land cover class
         landcoverVars = ['irrTypeFracOverIrr','fractionArea','totAvlWater',
@@ -53,16 +65,16 @@ class landcoverType(object):
                          'topWaterLayer',
                          'totalPotentialGrossDemand','actSurfaceWaterAbstract','allocSurfaceWaterAbstract','potGroundwaterAbstract',
                          'percToGW','capRiseFromGW','netPercUpper','netPerc','PrefFlow']
-        # for 4 landcover types
+        # for 6 landcover types
         for variable in landcoverVars:  vars(self.var)[variable] = np.tile(globals.inZero,(6,1))
 
-
-
+        #for 4 landcover types with soil underneath
+        landcoverVarsSoil = ['arnoBeta']
+        for variable in landcoverVarsSoil:  vars(self.var)[variable] = np.tile(globals.inZero,(4,1))
 
         soilVars = ['adjRoot','perc','capRise', 'soilStor','rootDepth']
         # For 3 soil layers and 4 landcover types
         for variable in soilVars:  vars(self.var)[variable]= np.tile(globals.inZero,(self.var.soilLayers,4,1))
-
 
         # set aggregated storages to zero
         self.var.landcoverSum = [ 'interceptStor', 'topWaterLayer','interflow',
@@ -89,6 +101,7 @@ class landcoverType(object):
             # init values
             if coverType in ['forest', 'grassland', 'irrPaddy', 'irrNonPaddy','sealed']:
                 self.var.interceptStor[i] = self.var.init_module.load_initial(coverType + "_interceptStor")
+
             # summarize the following initial storages:
             self.var.sum_interceptStor += self.var.fracVegCover[i] * self.var.interceptStor[i]
             i += 1
@@ -96,10 +109,10 @@ class landcoverType(object):
         i = 0
         for coverType in self.var.coverTypes[:4]:
             # other paramater values
-            self.var.arnoBeta.append(loadmap(coverType + "_arnoBeta"))
             # b coefficient of soil water storage capacity distribution
             self.var.minTopWaterLayer.append(loadmap(coverType + "_minTopWaterLayer"))
             self.var.minCropKC.append(loadmap(coverType + "_minCropKC"))
+
             #self.var.minInterceptCap.append(loadmap(coverType + "_minInterceptCap"))
             self.var.cropDeplFactor.append(loadmap(coverType + "_cropDeplFactor"))
             # parameter values
@@ -108,18 +121,13 @@ class landcoverType(object):
             self.var.rootFraction2.append(loadmap(coverType + "_rootFraction2"))
             self.var.maxRootDepth.append(loadmap(coverType + "_maxRootDepth"))
             self.var.minSoilDepthFrac.append(loadmap(coverType + "_minSoilDepthFrac"))
-            self.var.maxSoilDepthFrac.append(loadmap(coverType + "_maxSoilDepthFrac"))
 
-            # --- Topography -----------------------------------------------------
-            self.var.orographyBeta = loadmap('orographyBeta')
-
-            # filenames
+            # store filenames
             self.var.cropCoefficientNC_filename.append(coverType + "_cropCoefficientNC")
             self.var.interceptCapNC_filename.append(coverType + "_interceptCapNC")
             self.var.coverFractionNC_filename.append(coverType + "_coverFractionNC")
 
             # init values
-            #self.var.interceptStor[i] = self.var.init_module.load_initial(coverType + "_interceptStor")
             self.var.topWaterLayer[i] = self.var.init_module.load_initial(coverType + "_topWaterLayer")
             self.var.interflow[i] = self.var.init_module.load_initial(coverType + "_interflow")
 
@@ -129,26 +137,28 @@ class landcoverType(object):
                 self.var.sum_soilStor[soilLayer] += self.var.fracVegCover[i] * self.var.soilStor[soilLayer][i]
 
             # summarize the following initial storages:
-            #self.var.sum_interceptStor += self.var.fracVegCover[i] * self.var.interceptStor[i]
             self.var.sum_topWaterLayer += self.var.fracVegCover[i] * self.var.topWaterLayer[i]
 
             for soilLayer in xrange(self.var.soilLayers):
                 self.var.sum_soilStor[soilLayer] = self.var.sum_soilStor[soilLayer] + self.var.soilStor[soilLayer][i] * self.var.fracVegCover[i]
 
 
-            # Improved Arno's scheme parameters:
-            if self.var.arnoBeta[i] == 0:
-                self.var.arnoBeta[i] = (self.var.maxSoilDepthFrac[i] - 1.) / (1. - self.var.minSoilDepthFrac[i]) + self.var.orographyBeta - 0.01
+            # Improved Arno's scheme parameters: Hageman and Gates 2003
+            # arnoBeta defines the shape of soil water capacity distribution curve as a function of  topographic variability
 
-            # for CALIBRATION
-            self.var.arnoBeta[i] = self.var.arnoBeta[i] * loadmap('arnoBeta_factor')
-            self.var.arnoBeta[i] = np.minimum(10.0,np.maximum(0.001, self.var.arnoBeta[i]))
+            #   self.var.arnoBeta[i] = (self.var.maxSoilDepthFrac[i] - 1.) / (1. - self.var.minSoilDepthFrac[i]) + self.var.orographyBeta - 0.01
+            self.var.arnoBeta[i] = self.var.arnoBetaOro + loadmap(coverType + "_arnoBeta")
+            self.var.arnoBeta[i] = np.minimum(1.2, np.maximum(0.01, self.var.arnoBeta[i]))
 
-            # PB changed to max 1.0 #TODO
-            #report(decompress(self.var.arnoBeta[i]), "C:\work\output\harno.map")
+
 
             self.var.rootZoneWaterStorageMin[i] = self.var.minSoilDepthFrac[i] * self.var.rootZoneWaterStorageCap
             self.var.rootZoneWaterStorageRange[i] = self.var.rootZoneWaterStorageCap - self.var.rootZoneWaterStorageMin[i]
+
+            # calculate rootdepth for each soillayer and each land cover class
+            self.var.rootDepth[0][i] = np.minimum(self.var.soildepth[0], self.var.maxRootDepth[i])
+            self.var.rootDepth[1][i] = np.minimum(self.var.soildepth[1], np.maximum(0., self.var.maxRootDepth[i] - self.var.soildepth[0]))
+            self.var.rootDepth[2][i] = np.minimum(self.var.soildepth[2], np.maximum(0., self.var.maxRootDepth[i] - self.var.soildepth[1]))
 
             # scaleRootFractions
             rootFrac = np.tile(globals.inZero,(self.var.soilLayers,1))
@@ -159,10 +169,6 @@ class landcoverType(object):
             for soilLayer in xrange(self.var.soilLayers):
                 self.var.adjRoot[soilLayer][i] = rootFrac[soilLayer] / rootFracSum
 
-           # calculate rootdepth for each soillayer and each land cover class
-            self.var.rootDepth[0][i] = np.minimum(self.var.soildepth[0], self.var.maxRootDepth[i])
-            self.var.rootDepth[1][i] = np.minimum(self.var.soildepth[1], np.maximum(0.,self.var.maxRootDepth[i] - self.var.soildepth[0]))
-            self.var.rootDepth[2][i] = np.minimum(self.var.soildepth[2], np.maximum(0., self.var.maxRootDepth[i] - self.var.soildepth[1]))
 
 
             # ------------------------------------------
@@ -208,15 +214,15 @@ class landcoverType(object):
             vars(self.var)["sumsum_" + variable] = globals.inZero.copy()
 
 
-
-        i=1
-
-
     # --------------------------------------------------------------------------
 
     def dynamic_fracIrrigation(self, init = False):
-        """ dynamic part of the land cover type module
-            calculating fraction of land cover
+        """
+        Dynamic part of the land cover type module
+        Calculating fraction of land cover
+
+        * loads the fraction of landcover for each year from netcdf maps
+        * calculate the fraction of 6 land cover types based on the maps
         """
 
         #if option['includeIrrigation'] and option['dynamicIrrigationArea']:
@@ -247,14 +253,22 @@ class landcoverType(object):
             #self.var.fracVegCover[3] = 0.0
             #self.var.fracVegCover[4] = 0.0
             #self.var.fracVegCover[5] = 0.0
-            i = 111
+            #i = 111
 
 
 # --------------------------------------------------------------------------
 
     def dynamic(self):
-        """ dynamic part of the land cover type module
-            calculating soil for each land cover class
+        """
+        Dynamic part of the land cover type module
+        Calculating soil for each of the 6  land cover class
+
+        * calls evaporation_module.dynamic
+        * calls interception_module.dynamic
+        * calls soil_module.dynamic
+        * calls sealed_water_module.dynamic
+
+        And sums every thing up depending on the land cover type fraction
         """
 
 
@@ -272,16 +286,23 @@ class landcoverType(object):
         for coverType in self.var.coverTypes:
             #print coverNo,coverType
 
+
             # calculate evaporation and transpiration for soil land cover types (not for sealed and water covered areas)
             if coverNo < 4:
                 self.var.evaporation_module.dynamic(coverType, coverNo)
+
             self.var.interception_module.dynamic(coverType, coverNo)
+
             if coverNo < 4:
                 self.var.soil_module.dynamic(coverType, coverNo)
             else:
                 self.var.sealed_water_module.dynamic(coverType, coverNo)
                 # calculate for openwater and sealed area
             coverNo += 1
+
+
+
+
 
 
         # aggregated variables by fraction of land cover
@@ -291,7 +312,6 @@ class landcoverType(object):
                 vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
         #print "--", self.var.sum_directRunoff
-
 
 
 

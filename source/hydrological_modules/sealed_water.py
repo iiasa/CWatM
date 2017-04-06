@@ -12,11 +12,10 @@ from management_modules.data_handling import *
 
 
 class sealed_water(object):
+    """
+    Sealed and open water runoff
 
-    """@package
-    # ************************************************************
-    # ***** sealed and open water runoff**************************
-    # ************************************************************
+    calculated runoff from impermeable surface (sealed) and into water bodies
     """
 
     def __init__(self, sealed_water_variable):
@@ -28,14 +27,13 @@ class sealed_water(object):
  
 
     def dynamic(self,coverType, No):
-        """ Dynamic part of the sealed_water module
+        """
+        Dynamic part of the sealed_water module
         runoff calculation for open water and sealed areas
 
-        @param coverType land cover type: forest, grassland ..
-        @param No Number of land cover type: forest = 0, grassland = 1 ...
-        Args:
-            coverType: coverType land cover type: forest, grassland ..
-            No: Number of land cover type: forest = 0, grassland = 1 ...
+        :param coverType: Land cover type: forest, grassland  ...
+        :param No: number of land cover type: forest = 0, grassland = 1 ...
+
         """
 
         if coverType == "water":

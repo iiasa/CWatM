@@ -12,12 +12,14 @@ from management_modules.data_handling import *
 from hydrological_modules.routing_reservoirs.routing_sub import *
 from hydrological_modules.lakes_reservoirs import *
 
+
+
 class routing_kinematic(object):
 
     """
-    # ************************************************************
-    # ***** ROUTING      *****************************************
-    # ************************************************************
+    ROUTING
+    routing using the kinematic wave
+
     """
 
     def __init__(self, routing_kinematic_variable):
@@ -29,7 +31,13 @@ class routing_kinematic(object):
 # --------------------------------------------------------------------------
 
     def initial(self):
-        """ initial part of the routing module
+        """
+        Initial part of the routing module
+
+        * load and create a river network
+        * calculate river network parameter e.g. river length, width, depth, gradient etc.
+        * calculate initial filling
+        * calculate manning's roughness coefficient
         """
 
         ldd = loadmap('Ldd')
@@ -64,6 +72,7 @@ class routing_kinematic(object):
         self.var.chanLength = loadmap('chanLength')
         # Channel bottom width [meters]
         self.var.chanWidth = loadmap('chanWidth')
+
         # Bankfull channel depth [meters]
         self.var.chanDepth = loadmap('chanDepth')
 
@@ -113,15 +122,19 @@ class routing_kinematic(object):
 
         # channel water volume [m3]
         # Initialise water volume in kinematic wave channels [m3]
-        self.var.channelStorage = self.var.totalCrossSectionArea * self.var.chanLength * 0.5
+        channelStorageIni = self.var.totalCrossSectionArea * self.var.chanLength * 0.2
+        self.var.channelStorage = self.var.init_module.load_initial("channelStorage", default = channelStorageIni)
 
         # Initialise discharge at kinematic wave pixels (note that InvBeta is
         # simply 1/beta, computational efficiency!)
         #self.var.chanQKin = np.where(self.var.channelAlpha > 0, (self.var.totalCrossSectionArea / self.var.channelAlpha) ** self.var.invbeta, 0.)
-        self.var.chanQKin = (self.var.channelStorage * self.var.invchanLength * self.var.invchannelAlpha) ** (self.var.invbeta)
+        dischargeIni = (self.var.channelStorage * self.var.invchanLength * self.var.invchannelAlpha) ** (self.var.invbeta)
+        self.var.discharge = self.var.init_module.load_initial("discharge", default=dischargeIni)
+        #self.var.chanQKin = chanQKinIni
 
-        self.var.riverbedExchange = globals.inZero.copy()
-        self.var.discharge = self.var.chanQKin.copy()
+        #self.var.riverbedExchange = globals.inZero.copy()
+        self.var.riverbedExchange = self.var.init_module.load_initial("riverbedExchange")
+        #self.var.discharge = self.var.chanQKin.copy()
 
         ii =1
 
@@ -130,18 +143,34 @@ class routing_kinematic(object):
 
         self.var.timestepsToAvgDischarge = globals.inZero.copy()
 
+        if option['sumWaterBalance']:
+            self.var.catchmentAll = loadmap('Catchment').astype(np.int)
+            self.var.catchmentNo = int(loadmap('CatchmentNo'))
+
+            lddnp = loadmap('Ldd')
+            # all last outflow points are marked
+            self.var.outlets = np.where(lddnp ==5, self.var.catchmentAll, 0)
+            ii =1
 
 
 
 
 
 
-# --------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
     def dynamic(self):
-        """ dynamic part of the routing module
         """
+        Dynamic part of the routing module
+
+        * calculate evaporation from channels
+        * calcualte riverbed exchange between riverbed and groundwater
+        * if option **waterbodies** is true, calculate retention from water bodies
+        * calculate sideflow -> inflow to river
+        * calcculate kinematic wave -> using C++ library for computational speed
+        """
+
         #   if option['PCRaster']: from pcraster.framework import *
 
 # ---------------------------------------------------------------------------------
@@ -154,9 +183,56 @@ class routing_kinematic(object):
 
         if option['calcWaterBalance']:
             self.var.prechannelStorage = self.var.channelStorage.copy()
+            #preRes = globals.inZero.copy()
+            #np.put(preRes,self.var.decompress_LR,self.var.reservoirStorageM3C)
+            #self.var.preRes = self.var.reservoirStorageM3C.copy()
+
+
 
 
         Qnew = globals.inZero.copy()
+
+        # Evaporation from open channel
+        # from big lakes/res and small lakes/res is calculated separately
+        channelFraction = np.minimum(1.0, self.var.chanWidth * self.var.chanLength / self.var.cellArea)
+
+        self.var.EvaAddM =  (self.var.EWRef - self.var.openWaterEvap[5]) * channelFraction * self.var.cellArea
+        self.var.EvaAddM = np.where((0.95 * self.var.channelStorage - self.var.EvaAddM) > 0.0, self.var.EvaAddM, 0.95 * self.var.channelStorage)
+
+
+
+        # riverbed infiltration (m3):
+        # - current implementation based on Inge's principle (later, will be based on groundater head (MODFLOW) and can be negative)
+        # - happening only if 0.0 < baseflow < nonFossilGroundwaterAbs
+        # - infiltration rate will be based on aquifer saturated conductivity
+        # - limited to fracWat
+        # - limited to available channelStorage
+        # - this infiltration will be handed to groundwater in the next time step
+
+        # used self.var.fracVegCover[5] instead of self.var.dynamicFracWat
+        self.var.riverbedExchange = np.maximum(0.0,  np.minimum(self.var.channelStorage,\
+                                np.where(self.var.baseflow > 0.0, \
+                                np.where(self.var.nonFossilGroundwaterAbs > self.var.baseflow, \
+                                self.var.kSatAquifer * self.var.fracVegCover[5] * self.var.cellArea, \
+                                0.0), 0.0)))
+        # to avoid flip flop
+        self.var.riverbedExchange = np.minimum(self.var.riverbedExchange, 0.95 * self.var.channelStorage)
+
+        if option['includeWaterBodies']:
+            # ------------------------------------------------------------
+            # evaporation from water bodies (m3), will be limited by available water in lakes and reservoirs
+            # calculate outflow from lakes and reservoirs
+            #eWaterBody = np.maximum(0.0, (self.var.EWRef) * self.var.lakeArea) / self.var.noRoutingSteps
+            eWaterBody = np.maximum(0.0, (self.var.EWRef - self.var.openWaterEvap[5]) * self.var.lakeArea) / self.var.noRoutingSteps
+            self.var.evapWaterBodyC = np.compress(self.var.compress_LR, eWaterBody)
+
+            self.var.EvaAddM = np.where(self.var.waterBodyID > 0, 0.,self.var.EvaAddM)
+            self.var.riverbedExchange = np.where(self.var.waterBodyID > 0, 0., self.var.riverbedExchange)
+        EvaAddM3Dt = self.var.EvaAddM / self.var.noRoutingSteps
+        riverbedExchangeDt = self.var.riverbedExchange / self.var.noRoutingSteps
+
+
+
 
         # ------------------------------------------------------
         # ***** SIDEFLOW **************************************
@@ -178,14 +254,24 @@ class routing_kinematic(object):
         for subrouting in xrange(self.var.noRoutingSteps):
 
             sideflowChanM3 = runoffM3.copy()
+            # minus evaporation from channels
+            sideflowChanM3 -= EvaAddM3Dt
+            # minus riverbed exchange
+            #sideflowChanM3 -= riverbedExchangeDt
+
             if option['includeWaterBodies']:
-                sideflowChanM3 += self.lakes_reservoirs_module.dynamic_inloop(subrouting)
+                lakesResOut = self.lakes_reservoirs_module.dynamic_inloop(subrouting)
+                sideflowChanM3 += lakesResOut
+
+
+
 
             #sideflowChan = sideflowChanM3 * self.var.invchanLength * self.var.InvDtSec
             sideflowChan = sideflowChanM3 * self.var.invchanLength * 1/ self.var.dtRouting
 
             if option['includeWaterBodies']:
                lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown_LR, self.var.dirupLen_LR, self.var.dirupID_LR, Qnew, self.var.channelAlpha, 0.6, self.var.dtRouting, self.var.chanLength, self.var.lendirDown_LR)
+
             else:
                lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown, self.var.dirupLen, self.var.dirupID, Qnew, self.var.channelAlpha, 0.6, self.var.dtRouting, self.var.chanLength, self.var.lendirDown)
             self.var.discharge = Qnew.copy()
@@ -195,79 +281,36 @@ class routing_kinematic(object):
         # -- end substeping ---------------------
 
         self.var.channelStorage = self.var.channelAlpha * self.var.chanLength * Qnew ** 0.6
-        ii =11
+
+
+        """
+        if option['calcWaterBalance']:
+            self.var.waterbalance_module.waterBalanceCheckSum(
+                [runoffM3, lakesResOut],            # In
+                [sideflowChanM3, EvaAddM3Dt],           # Out
+                [ ],                                  # prev storage
+                [],
+                "Routing1", True)
+
+        if option['calcWaterBalance']:
+            Res = globals.inZero.copy()
+            np.put(Res, self.var.decompress_LR, self.var.reservoirStorageM3C)
+            self.var.waterbalance_module.waterBalanceCheckSum(
+                [runoffM3,lakesResOut,eWaterBody],            # In
+                [sideflowChanM3, EvaAddM3Dt  ],           # Out
+                [preRes],                                  # prev storage
+                [Res],
+                "Routing2", False)
+        """
+
+        self.var.channelStorageBefore = self.var.channelStorage.copy()
+
 
         #if option['PCRaster']: report(decompress(self.var.discharge), "C:\work\output2/q1.map")
 
 
 
-        """
-        chanM3KinPcr = decompress(self.var.channelStorage)
-        for subrouting in xrange(self.var.noRoutingSteps):
-            chanM3KinPcr = kinwavestate(self.var.Ldd1, chanM3KinPcr, decompress(sideflowChan), self.var.channelAlphaPcr, self.var.beta, 1, self.var.dtRouting, self.var.chanLengthPcr)
 
-        self.var.channelStorage = compressArray(chanM3KinPcr)
-
-        # side flow consists of runoff (incl. groundwater), inflow from reservoirs (optional)
-        # and external inflow hydrographs (optional)
-        # ChanQKin in [cu m / s]
-        self.var.chanQKin = (self.var.channelStorage * self.var.invchanLength * self.var.invchannelAlpha) ** (self.var.invbeta)
-        self.var.discharge = np.maximum(self.var.chanQKin, 0)
-        """
-
-
-        """
-         # update channelStorage (unit: m3) after runoff
-         self.var.channelStorage += self.var.runoff * self.var.cellArea
-
-         # update channelStorage (unit: m3) after actSurfaceWaterAbstraction
-         self.var.channelStorage -= self.var.sum_actSurfaceWaterAbstract * self.var.cellArea
-
-         # return flow from (m) non irrigation water demand
-         self.var.nonIrrReturnFlow = self.var.nonIrrReturnFlowFraction * self.var.nonIrrGrossDemand
-         self.var.channelStorage  =  self.var.channelStorage + self.var.nonIrrReturnFlow * self.var.cellArea
-
-
-         # Runoff (surface runoff + flow out of Upper and Lower Zone), outflow from
-         # reservoirs and lakes and inflow from external hydrographs are added to the channel
-         # system (here in [cu m])
-         sideflowChanM3 = self.var.ToChanM3RunoffDt.copy()
-
-
-         if option['openwaterevapo']:
-             sideflowChanM3 -= self.var.EvaAddM3Dt
-         if option['wateruse']:
-             sideflowChanM3 -= self.var.WUseAddM3Dt
-         if option['inflow']:
-             sideflowChanM3 += self.var.QInDt
-         if option['TransLoss']:
-             sideflowChanM3 -= self.var.TransLossM3Dt
-
-         # SideflowChan=if(IsChannelKinematic, SideflowChanM3*InvChanLength*InvDtRouting);
-         # Sideflow expressed in [cu m /s / m channel length]
-         sideflowChan = sideflowChanM3 * self.var.invChanLength * self.var.invDtRouting
-         """
-
-
-        """
-        chanM3KinPcr = decompress(self.var.channelStorage)
-        chanM3KinPcr = kinwavestate(self.var.Ldd1, chanM3KinPcr, decompress(sideflowChan), self.var.channelAlphaPcr, self.var.beta, 1, self.var.dtRouting, self.var.chanLengthPcr)
-        #ChanM3KinPcr = kinwavestate(self.var.LddKinematic, ChanM3KinPcr, decompress(SideflowChan), self.var.ChannelAlpha, self.var.Beta, 1, self.var.DtRouting, self.var.ChanLength)
-        self.var.channelStorage = compressArray(chanM3KinPcr)
-
-
-        # side flow consists of runoff (incl. groundwater), inflow from reservoirs (optional)
-        # and external inflow hydrographs (optional)
-        # ChanQKin in [cu m / s]
-        self.var.chanQKin = (self.var.channelStorage * self.var.invchanLength * self.var.invchannelAlpha) ** (self.var.invbeta)
-
-        # self.var.ChanQKin=pc raster.max(self.var.ChanQKin,0)
-        self.var.discharge = np.maximum(self.var.chanQKin, 0)
-        # at single kin. ChanQ is the same
-        #self.var.sumDisDay += self.var.ChanQ
-        # Total channel storage [cu m], equal to ChanM3Kin
-        #  self.var.ChanQ = maxpcr(self.var.ChanQKin, null)
-        """
 
 
         """

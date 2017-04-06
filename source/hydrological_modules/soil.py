@@ -5,7 +5,7 @@
 # Author:      PB
 #
 # Created:     15/07/2016
-# Copyright:   (c) PB 2016
+# Copyright:   (c) PB 2016 based on PCRGLOBE, LISFLOOD, HBV
 # -------------------------------------------------------------------------
 
 from management_modules.data_handling import *
@@ -14,9 +14,8 @@ from management_modules.data_handling import *
 class soil(object):
 
     """
-    # ************************************************************
-    # ***** SOIL *****************************************
-    # ************************************************************
+    SOIL
+    Caclulation vertical transfer of water based on improved Arno scheme
     """
 
     def __init__(self, soil_variable):
@@ -26,15 +25,22 @@ class soil(object):
 # --------------------------------------------------------------------------
 
     def initial(self):
-        """ initial part of the soil module
-        Tdo: might be necessary to cover all variables = put 0 instead of missing value
+        """
+        Initial part of the soil module
+
+        * Initialize all the hydraulic properties of soil
+        * Set soil depth
+
+        Todo:
+            individual soil properties for each land cover type
+
         """
 
         self.var.soilLayers = 3
         # --- Topography -----------------------------------------------------
         #self.var.tanslope = loadmap('tanslope')
         #self.var.slopeLength = loadmap('slopeLength')
-        #self.var.orographyBeta = loadmap('orographyBeta')
+
 
         #self.var.tanslope = np.maximum(self.var.tanslope, 0.00001)
         # setting slope >= 0.00001 to prevent 0 value
@@ -97,16 +103,36 @@ class soil(object):
         for layer,property  in soilDepthLayer:
             vars(self.var)[layer] = np.tile(globals.inZero, (self.var.soilLayers, 1))
 
-        # first soil kayer = 5 cm
+        # first soil layer = 5 cm
         self.var.soildepth[0] = 0.05 + globals.inZero
-        # second souil layer minimum 5cm
-        self.var.soildepth[1] = np.minimum(0.05, loadmap('firstStorDepth') - self.var.soildepth[0])
-        self.var.soildepth[2] = loadmap('soildepth_factor') * loadmap('secondStorDepth')
+        # second soul layer minimum 5cm
+        self.var.soildepth[1] = np.maximum(0.05, loadmap('StorDepth1') - self.var.soildepth[0])
+
+        # soil depth[1] is inc/decr by a calibration factor
+        self.var.soildepth[1] =  self.var.soildepth[1] * loadmap('soildepth_factor')
+        self.var.soildepth[1] = np.maximum(0.05, self.var.soildepth[1])
+
+        # corrected by the calibration factor, total soil depth stays the same
+        self.var.soildepth[2] = loadmap('StorDepth2') + (1. - loadmap('soildepth_factor') * self.var.soildepth[1])
+        self.var.soildepth[2] = np.maximum(0.05, self.var.soildepth[2])
+
+
         for i in xrange(self.var.soilLayers):
             self.var.storCap[i] = self.var.soildepth[i] * (self.var.satVol[i] - self.var.resVol[i])
         self.var.rootZoneWaterStorageCap = np.sum(self.var.storCap,axis=0)
 
-        i = 1
+        # Improved Arno's scheme parameters: Hageman and Gates 2003
+        # arnoBeta defines the shape of soil water capacity distribution curve as a function of  topographic variability
+        # b = max( (oh - o0)/(oh + omax), 0.01)
+        # oh: the standard deviation of orography, o0: minimum std dev, omax: max std dev
+
+        self.var.arnoBetaOro = (self.var.ElevationStD - 10.0)/(self.var.ElevationStD + 1500.0)
+
+        # for CALIBRATION
+        self.var.arnoBetaOro = self.var.arnoBetaOro + loadmap('arnoBeta_add')
+        self.var.arnoBetaOro = np.minimum(1.2, np.maximum(0.01, self.var.arnoBetaOro))
+
+
 
 
 
@@ -117,17 +143,42 @@ class soil(object):
 # --------------------------------------------------------------------------
 
     def dynamic(self, coverType, No):
+        """
+        Dynamic part of the soil module
+        For each of the land cover classes the vertical water transport is simulated
+        Distribution of water holding capiacity in 3 soil layers based on saturation excess overland flow, preferential flow
+        Dependend on soil depth, soil hydraulic parameters
+
+        *Improved Arno Scheme*
+
+        References:
+             Hagemann, S. and L.D. Gates (2003), Improving a subgrid runoff parameterization scheme for climate models by the use of high resolution data derived from satellite observations. Climate Dynamics 21. 349-359
+
+         * arnoBeta: b coefficient of soil water storage capacity distribution
+         * WMIN: root zone water storage capacity, minimum values  (first 2 zones)
+         * WMAX: root zone water storage capacity
+         * W: actual water storage in root zone
+         * rootZoneWaterStorageRange: WMAX - WMIN
+         * DW: WMAX - soilWaterStorage
+         * WFRACB: DW/WRANGE raised to the power (1/(b+1))
+         * SATFRAC: fractional saturated area
+
+        :param coverType: Land cover type: forest, grassland  ...
+        :param No: number of land cover type: forest = 0, grassland = 1 ...
+        :return: All soil variables for 4 land cover types e.g. soil storage for 3 layers
+        """
 
         def improvedArnoScheme(No, WaterStorage, WaterToSoil):
-            # arnoBeta = b coefficient of soil water storage capacity distribution
-            # WMIN = root zone water storage capacity, minimum values  (first 2 zones)
-            # WMAX = root zone water storage capacity
-            # W	   = actual water storage in root zone
-            # rootZoneWaterStorageRange = WMAX - WMIN
-            # DW      = WMAX - soilWaterStorage
-            # WFRACB  = DW/WRANGE raised to the power (1/(b+1))
-            # SATFRAC =	fractional saturated area
-            # WACT    = actual water storage within rootzone
+            """
+
+            References:
+               Hagemann, S. and L.D. Gates (2003), Improving a subgrid runoff parameterization scheme for climate models by the use of high resolution data derived from satellite observations. Climate Dynamics 21. 349-359
+
+            :param No: number of land cover type
+            :param WaterStorage:
+            :param WaterToSoil:
+            :return: directRunoff, WFRACB, satAreaFrac
+            """
 
             availWater = WaterStorage + WaterToSoil
             availWater = availWater - np.maximum(self.var.rootZoneWaterStorageMin[No], WaterStorage)
@@ -142,11 +193,6 @@ class soil(object):
             satAreaFrac = np.maximum(np.minimum(satAreaFrac, 1.0), 0.0)
 
 
-            # if No == 1: print WFRAC[0], satAreaFrac[0]
-            # if directRunoffReduction == "Default":
-            #    directRunoffReduction = np.minimum(kUnsat2, np.sqrt(self.var.kUnsatAtFieldCap[2] * kUnsat2))
-            # In order to maintain full saturation and continuous groundwater recharge/percolation, the amount of directRunoff may be reduced.
-
             # calculate directRunoff
             condition = (self.var.arnoBeta[No] + 1.) * self.var.rootZoneWaterStorageRange[No] * WFRACB
 
@@ -158,6 +204,7 @@ class soil(object):
             h4 = h2 ** h3
             h5 = np.where(availWater >= condition, 0.0, h4)
             """
+
             with np.errstate(invalid='ignore', divide='ignore'):
                 directRunoff = np.maximum(0.0, availWater - (self.var.rootZoneWaterStorageCap - soilWaterStorage) + \
                                np.where(availWater >= condition, 0.0, self.var.rootZoneWaterStorageRange[No] * (WFRACB - \
@@ -297,7 +344,7 @@ class soil(object):
 
 
         # - relActTranspiration = fraction actual transpiration over potential transpiration
-        relActTranspiration = (self.var.rootZoneWaterStorageCap  + self.var.arnoBeta[No]*self.var.rootZoneWaterStorageRange[No]*(1.- \
+        relActTranspiration = (self.var.rootZoneWaterStorageCap  + self.var.arnoBeta[No] * self.var.rootZoneWaterStorageRange[No]*(1.- \
                     (1.+self.var.arnoBeta[No])/self.var.arnoBeta[No]* WFRACB)) / \
                     (self.var.rootZoneWaterStorageCap  + self.var.arnoBeta[No]*self.var.rootZoneWaterStorageRange[No]*(1.- WFRACB))
         relActTranspiration = (1.- satAreaFrac) / \
@@ -343,7 +390,7 @@ class soil(object):
 
 
         outflux = self.var.actBareSoilEvap[No] + actTrans[0] + perc[0]
-        with np.errstate(invalid='ignore', divide='ignore'):
+        with np.errstate(invalid='ignore', divide='ignore', over='ignore' ):
             correct = np.where(outflux > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.soilStor[0][No] + self.var.infiltration[No]) / outflux), 0.)
         self.var.actBareSoilEvap[No] = correct * self.var.actBareSoilEvap[No]
         actTrans[0] = correct * actTrans[0]
@@ -351,14 +398,14 @@ class soil(object):
 
         # scale fluxes for first layer [0]
         ADJUST = actTrans[1] + perc[1]
-        with np.errstate(invalid='ignore', divide='ignore'):
+        with np.errstate(invalid='ignore', divide='ignore', over='ignore'):
             ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.soilStor[1][No] + perc[0]) / ADJUST), 0.)
         actTrans[1] = ADJUST * actTrans[1]
         perc[1] = ADJUST * perc[1]
 
         # scale fluxes for third layer [2]
         ADJUST = actTrans[2] + self.var.percToGW[No] + self.var.interflow[No]
-        with np.errstate(invalid='ignore', divide='ignore'):
+        with np.errstate(invalid='ignore', divide='ignore', over='ignore'):
             ADJUST = np.where(ADJUST > 0.0, np.minimum(1.0, np.maximum(0.0, self.var.soilStor[2][No] + perc[1]) / ADJUST), 0.)
         actTrans[2] = ADJUST * actTrans[2]
         self.var.percToGW[No] = ADJUST * self.var.percToGW[No]

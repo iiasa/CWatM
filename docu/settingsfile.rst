@@ -1,116 +1,15 @@
 
 #######################
-Running the model
+Settings file
 #######################
 
 .. contents:: 
     :depth: 3
 
-Requirements
-============
-
-Requirements are a 64 bit `Python 2.7.x version <https://www.python.org/downloads/release/python-2712/>`_
-
-.. warning:: a 32 bit version is not able to handle the data requirements!
-
-and two external libraries are needed:
-
-* `Numpy <http://www.numpy.org>`_
-* `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
-
-
-**Windows**
-
-Both libraries can be installed with pip or
-downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
-
-Start the model
-===============
-
-.. warning:: The model needs a settings file as an argument. See: :ref:`rst_settingdoc` 
-
-**Windows**
-
-python <modelpath>/cwatm.py settingsfile flags
-
-example::
-
-   python cwatm.py settings1.ini
-   or with more information and an overview of computational runtime
-   python cwatm.py settings1.ini -l -t
-	
-.. warning:: If python is not set in the environment path, the full path of python has to be used
-.. note:: For Windows an executable will be provided in future - so no need for a python version to run it
-
-
-**Linux**
-
-<modelpath>/cwatm.py settingsfile flags
-
-example::
-
-    cwatm.py settings1.ini -l -t
-	
-
-
-
-Flags
-*****
-
-Flags can be used to change the runtime output on the screen
-
-example::
-
-    -q --quiet       output progression given as .
-    -v --veryquiet   no output progression is given
-    -l --loud        output progression given as time step, date and discharge
-    -c --check       input maps and stack maps are checked, output for each input map BUT no model run
-    -h --noheader    .tss file have no header and start immediately with the time series
-    -t --printtime   the computation time for hydrological modules are printed
-
-.. _rst_metadata:
-	
-NetCDF meta data
-****************
-
-The format for spatial data for input and output data is netCDF.
-For output data the basic information are given in the settingsfile  
-
-.. literalinclude:: _static/settings1.ini
-    :linenos:
-    :lineno-match:
-    :language: ini
-    :lines: 107-111	
-	
-For each output file the specific information about units, variable name, displayed variable name is given 
-in the metaNetcdf.xml. See: :ref:`rst_meta`
-
-
-
-Post processing
-===============================
-
-Output will be produced as netcdf maps, stack of maps (over time) and ASCII timeseries
-
-**Windows**
-
-for ASCII timeseries: notepad++ or textpad
-For netCDF: `Panoply <http://www.giss.nasa.gov/tools/panoply>`_
-
-**Linux**
-
-For netCDF: `ncview <http://meteora.ucsd.edu/~pierce/ncview_home_page.html>`_
-
-
-
-
-
-
 .. _rst_settingdoc:
 
 Settings file
 ===============
-
 
 The settings file is controlling the CWATM run
 
@@ -130,9 +29,23 @@ For example: If Temperature data are in unit ° Celsius ot Kelvin
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 17-43
+    :lines: 15-86
 
+	
+NetCDF meta data
+****************
 
+The format for spatial data for input and output data is netCDF.
+For output data the basic information are given in the settingsfile  
+
+.. literalinclude:: _static/settings1.ini
+    :linenos:
+    :lineno-match:
+    :language: ini
+    :lines: 102-105		
+	
+For each output file the specific information about units, variable name, displayed variable name is given 
+in the metaNetcdf.xml. See: :ref:`rst_metadata`
 	
 Path of data, output
 ********************
@@ -143,13 +56,7 @@ Path of data, output
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 44-48	
-.. literalinclude:: _static/settings1.ini
-    :linenos:
-    :lineno-match:
-    :language: ini
-    :lines: 87-94	
-
+    :lines: 88-100	
 
 	
 Defining the modeling area
@@ -163,7 +70,7 @@ The modeling area can be defined by:
 
 .. note:: 
 
-    The mask map can be a PCraster or a netCDF format
+    The mask map can be a .tif, PCraster or a netCDF format
 	| The coordinates have the format: Number of Cols, Number of rows, cellsize, upper left corner X, upper left corner Y 
 
 
@@ -171,11 +78,11 @@ The modeling area can be defined by:
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 50-73	
+    :lines: 108-128	
 
 
 Defining the time
-***************************
+*****************
 
 The start and end time have to be defined.
 Spin-up time is the time for warming up (results will be stored after the spin-up time)
@@ -193,7 +100,7 @@ Spin-up time is the time for warming up (results will be stored after the spin-u
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 74-85	
+    :lines: 130-141	
 
 
 Initial conditions
@@ -207,11 +114,11 @@ Initial conditions can be stored and be loaded in order to initialise a warm sta
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 97-106
+    :lines: 143-156
 
 	
 Initial conditions can be put directly into the settings file.
-Either as numbers or references to maps (PCraster or netCDF)
+Either as numbers or references to maps (.tif, PCraster or netCDF)
 
 .. warning:: The values here (if not set to NONE) will overwrite the initial conditions of the general initial condition netCDF file
 
@@ -219,7 +126,7 @@ Either as numbers or references to maps (PCraster or netCDF)
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 287-292
+    :lines: 330-332
 
 
 Output
@@ -263,7 +170,7 @@ As example output for precipitation, temperature and discharge is shown here::
    OUT_Dir = $(FILE_PATHS:PathOut)
    OUT_MAP_Daily = discharge
    OUT_MAP_MonthEnd = 
-   OUT_MAP_MonthTot = ] 
+   OUT_MAP_MonthTot =  
 
    OUT_TSS_Daily = discharge
    OUT_TSS_MonthEnd = discharge
@@ -282,7 +189,7 @@ Here the value definitions for [SNOW] is shown:
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 166-190
+    :lines: 283-317
 	
 .. note:: TemperatureLapseRate = 0.0065
      | for the variable TemperatureLapseRate the value of 0.0065 is set	
@@ -301,7 +208,29 @@ Variables can also be defined by spatial maps or map stacks
 	
 | ____________________________________________________________________________________________________________
 | 
-	
+
+Sections of information
+=======================
+
+* Snow
+* Frost
+* General information on land cover types
+* Soil
+* Information for each of the six land cover types
+	* Forest
+	* Grassland
+	* Paddy irrigated area
+	* Irrigated area
+	* Sealed area
+	* Water covered area
+* Interflow
+* Groundwater
+* Water demand
+* Runoff concentration
+* Routing
+* Lakes and reservoirs
+* Inflow
+
 	
 .. _rst_setting:	
 
@@ -311,21 +240,6 @@ Complete settings file
 Example of a settings file:
 
 .. literalinclude:: _static/settings1.ini
-
-
-
-
-
-.. _rst_meta:
-
-Output Meta NetCDF information
-===============================
-
-The metaNetcdf.xml includes information on the output netCDF files
-
-Example of a metaNetcdf.xml file:
-
-.. literalinclude:: _static/metaNetcdf.xml
 
 
 

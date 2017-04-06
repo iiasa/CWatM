@@ -45,7 +45,7 @@ hydrological_modules.snow_frost module
     :show-inheritance:
 	
 hydrological_modules.evaporationPot module
----------------------------------------
+------------------------------------------
 
 .. automodule:: hydrological_modules.evaporationPot
     :members:
@@ -93,6 +93,15 @@ hydrological_modules.soil module
     :undoc-members:
     :show-inheritance:
 
+hydrological_modules.sealed_water module
+----------------------------------------
+
+.. automodule:: hydrological_modules.sealed_water
+    :members:
+    :undoc-members:
+    :show-inheritance:	
+	
+	
 hydrological_modules.waterdemand module
 ---------------------------------------
 
@@ -110,17 +119,15 @@ hydrological_modules.groundwater module
 	:inherited-members:
     :show-inheritance:
 	
-hydrological_modules.routing module
------------------------------------
+hydrological_modules.runoff_concentration module
+------------------------------------------------
 
-.. inheritance-diagram:: hydrological_modules.routing
-   :parts: 1
-
-.. automodule:: hydrological_modules.routing
+.. automodule:: hydrological_modules.runoff_concentration
     :members:
     :undoc-members:
-    :show-inheritance:
-
+	:inherited-members:
+    :show-inheritance:	
+	
 hydrological_modules.lakes_reservoirs module
 --------------------------------------------
 
@@ -129,15 +136,34 @@ hydrological_modules.lakes_reservoirs module
     :undoc-members:
     :show-inheritance:
 	
+hydrological_modules.routing_reservoirs.routing_kinematic module
+----------------------------------------------------------------
+
+.. automodule:: hydrological_modules.routing_reservoirs.routing_kinematic
+    :members:
+    :undoc-members:
+	:inherited-members:
+    :show-inheritance:
+
+
+hydrological_modules.routing_reservoirs.routing_sub module
+----------------------------------------------------------
+
+.. automodule:: hydrological_modules.routing_reservoirs.routing_sub
+    :members:
+    :undoc-members:
+	:inherited-members:
+    :show-inheritance:
+
 hydrological_modules.waterbalance module
 ----------------------------------------
 
 .. automodule:: hydrological_modules.waterbalance
     :members:
     :undoc-members:
-    :show-inheritance:
+    :show-inheritance:	
 
-
+	
 Module contents
 ---------------
 

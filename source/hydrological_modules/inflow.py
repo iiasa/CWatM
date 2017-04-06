@@ -15,11 +15,15 @@ from management_modules.data_handling import *
 class inflow(object):
 
     """
-     # ************************************************************
-     # ***** READ INFLOW HYDROGRAPHS (OPTIONAL)****************
-     # ************************************************************
-     # If option "inflow" is set to 1 the inflow hydrograph code is used
-     # otherwise dummy code is used
+    READ INFLOW HYDROGRAPHS (OPTIONAL)
+    If option "inflow" is set to 1 the inflow hydrograph code is used otherwise dummy code is used
+
+    Warning:
+        Not included at moment
+
+    Todo:
+        has to be revamped
+        The  pcraster routine timeinputscalar has to be replaced by reading txt -> numpy
     """
 
     def __init__(self, inflow_variable):
@@ -28,11 +32,10 @@ class inflow(object):
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
     def initial(self):
-        """ initial part of the inflow module
         """
-        # ************************************************************
-        # ***** INFLOW INIT
-        # ************************************************************
+        Initial part of the inflow module
+        """
+
 
 
         if option['inflow']:
@@ -45,8 +48,9 @@ class inflow(object):
         # inflow substep amount
 
     def dynamic_init(self):
-        """ dynamic part of the inflow module
-            init inflow before sub step routing
+        """
+        Dynamic part of the inflow module
+        Init inflow before sub step routing
         """
 
         # ************************************************************
@@ -58,7 +62,8 @@ class inflow(object):
             # in order to calculate the amount of inlet flow in the routing loop
 
     def dynamic(self):
-        """ dynamic part of the inflow module
+        """
+        Dynamic part of the inflow module
         """
 
         if option['inflow']:
@@ -73,8 +78,10 @@ class inflow(object):
 
 
     def dynamic_inloop(self,NoRoutingExecuted):
-        """ dynamic part of the inflow routine
-           inside the sub time step routing routine
+        """
+
+        :param NoRoutingExecuted: actual number of routing substep
+        :return: self.var.QInDt - inflow in m3 per sub timestep
         """
 
         # ************************************************************

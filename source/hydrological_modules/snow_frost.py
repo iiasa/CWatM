@@ -14,18 +14,12 @@ from management_modules.data_handling import *
 class snow(object):
 
     """
-    # ************************************************************
-    # ***** RAIN AND SNOW *****************************************
-    # ************************************************************
+    RAIN AND SNOW
 
-    # Domain: snow calculations evaluated for center points of 3 sub-pixel
-    # snow zones A, B, and C, which each occupy one-third of the pixel surface
-    #
-    # Variables 'snow' and 'rain' at end of this module are the pixel-average snowfall and rain
-    #
-    # Zone A: lower third
-    # Zone B: center third
-    # Zone C: upper third
+    Domain: snow calculations evaluated for center points of up to 7 sub-pixel
+    snow zones 1 -7 which each occupy a part of the pixel surface
+
+    Variables *snow* and *rain* at end of this module are the pixel-average snowfall and rain
     """
 
     def __init__(self, snow_variable):
@@ -35,8 +29,13 @@ class snow(object):
 # --------------------------------------------------------------------------
 
     def initial(self):
-        """ initial part of the snow and frost module
         """
+        Initial part of the snow and frost module
+
+        * loads all the parameters for the day-degree approach for rain, snow and snowmelt
+        * loads the parameter for frost
+        """
+
         self.var.numberSnowLayersFloat = loadmap('NumberSnowLayers')    # default 3
         self.var.numberSnowLayers = int(self.var.numberSnowLayersFloat)
         self.var.glaciertransportZone = int(loadmap('GlacierTransportZone'))  # default 1 -> highest zone is transported to middle zone
@@ -54,7 +53,8 @@ class snow(object):
         #  Norm: 0.75 , 0.8333, 0.875 , 0.9 0.916667, 0.928571, 0.94444, 0.95
         # from R: qnorm(1-0.5/number)
         uNorm = [0.,0.,0.6744898,0.9674216, 1.150349, 1.281552, 1.382994, 1.465234,1.534121,1.593219, 1.644854]
-        self.var.DeltaTSnow =  uNorm[self.var.numberSnowLayers] * loadmap('ElevationStD') * loadmap('TemperatureLapseRate')
+        self.var.ElevationStD = loadmap('ElevationStD')
+        self.var.DeltaTSnow =  uNorm[self.var.numberSnowLayers] * self.var.ElevationStD * loadmap('TemperatureLapseRate')
         #self.var.DeltaTSnow = 0.9674 * loadmap('ElevationStD') * loadmap('TemperatureLapseRate')
 
         self.var.SnowDayDegrees = 0.9856
@@ -74,7 +74,7 @@ class snow(object):
         # SnowCover1 is the highest zone
         self.var.SnowCoverS = []
         for i in xrange(self.var.numberSnowLayers):
-            self.var.SnowCoverS.append(self.var.init_module.load_initial("SnowCover"+str(i+1)))
+            self.var.SnowCoverS.append(self.var.init_module.load_initial("SnowCover",number = i+1))
 
         # initial snow depth in elevation zones A, B, and C, respectively  [mm]
         self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / self.var.numberSnowLayersFloat + globals.inZero
@@ -104,7 +104,21 @@ class snow(object):
 # --------------------------------------------------------------------------
 
     def dynamic(self):
-        """ dynamic part of the snow module
+        """
+        Dynamic part of the snow module
+        Distinguish between rain/snow and calculates snow melt and glacier melt
+        The equation is a modification of:
+
+        References:
+            Speers, D.D., Versteeg, J.D. (1979) Runoff forecasting for reservoir operations - the pastand the future. In: Proceedings 52nd Western Snow Conference, 149-156
+
+        Frost index in soil [degree days] based on:
+
+        References:
+            Molnau and Bissel (1983, A Continuous Frozen Ground Index for Flood Forecasting. In: Maidment, Handbook of Hydrology, p. 7.28, 7.55)
+
+        Todo:
+            calculate sinus shape function for the southern hemisspere
         """
         if option['calcWaterBalance']:
             self.var.prevSnowCover = self.var.SnowCover

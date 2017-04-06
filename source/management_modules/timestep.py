@@ -22,6 +22,15 @@ from management_modules.messages import *
 
 
 def timemeasure(name,loops=0, update = False, sample = 1):
+    """
+    Measuring of the time for each subroutine
+
+    :param name: name of the subroutine
+    :param loops: if it it called several times this is added to the name
+    :param update:
+    :param sample:
+    :return: add a string to the time measure string: timeMesString
+    """
     timeMes.append(xtime.clock())
     if loops == 0:
         s = name
@@ -36,8 +45,13 @@ def timemeasure(name,loops=0, update = False, sample = 1):
 
 def Calendar(input):
     """
-    get the date from CalendarDayStart in the settings xml
+    Get the date from CalendarDayStart in the settings xml
+    Reformatting the date till it fits to datetime
+
+    :param input: string from the settingsfile should be somehow a date
+    :return: a datetime date
     """
+
     try:
         date = float(input)
     except ValueError:
@@ -59,6 +73,14 @@ def Calendar(input):
 
 
 def datetoInt(dateIn,begin,both=False):
+    """
+    Calculates the integer of a date from a reference date
+
+    :param dateIn: date
+    :param begin: reference date
+    :param both: if set to True both the int and the string of the date are returned
+    :return: interger value of a date, satarting from begin date
+    """
 
     date1 = Calendar(dateIn)
 
@@ -75,11 +97,18 @@ def datetoInt(dateIn,begin,both=False):
 
 
 def checkifDate(start,end,spinup):
+    """
+    Checks if start date is earlier than end date etc
+    And set some date variables
+
+    :param start: start date
+    :param end: end date
+    :param spinup: date till no output is generated = warming up time
+    :return: a list of date variable in: dateVar
+    """
 
     begin = Calendar(binding['CalendarDayStart'])
     startdate = Calendar(binding['StepStart'])
-
-
 
     if type(startdate) is datetime.datetime:
         begin = startdate
@@ -103,7 +132,7 @@ def checkifDate(start,end,spinup):
 
     if (dateVar['intSpin'] < dateVar['intStart']) or (dateVar['intSpin'] > dateVar['intEnd']):
         strBegin = begin.strftime("%d/%m/%Y")
-        msg="Spin Date: "+strSpin + " are wrong!\n or smaller/bigger than the first/last time step date: "+strBegin+ " - "+ strEnd
+        msg="Spin Date: "+strSpin + " is wrong!\n or smaller/bigger than the first/last time step date: "+strBegin+ " - "+ strEnd
         raise CWATMError(msg)
 
     dateVar['currDate'] = begin
@@ -141,7 +170,9 @@ def checkifDate(start,end,spinup):
 def timestep_dynamic():
     """
     Dynamic part of setting the date
-    Current date is increasing, checking if beginning of month, year,
+    Current date is increasing, checking if beginning of month, year
+
+    :return: a list of date variable in: dateVar
     """
 
 

@@ -11,7 +11,8 @@ class DynamicModel(dynamicBase.DynamicBase):
     self.silentModelOutput = False
 
   def initial(self):
-    print "Implement 'initial' method"
+    #print "Implement 'initial' method"
+	ii = 0
 
   def dynamic(self):
     print  "Implement 'dynamic' method"

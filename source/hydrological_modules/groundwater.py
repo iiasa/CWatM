@@ -12,11 +12,8 @@ from management_modules.data_handling import *
 
 
 class groundwater(object):
-
     """
-    # ************************************************************
-    # ***** GROUNDWATER   *****************************************
-    # ************************************************************
+    GROUNDWATER
     """
 
     def __init__(self, groundwater_variable):
@@ -26,8 +23,13 @@ class groundwater(object):
 # --------------------------------------------------------------------------
 
     def initial(self):
-        """ initial part of the groundwater module
         """
+        Initial part of the groundwater module
+
+        * load parameters from settings file
+        * initial groundwater storage
+        """
+
         self.var.recessionCoeff = loadmap('recessionCoeff')
 
         # for CALIBRATION
@@ -45,8 +47,6 @@ class groundwater(object):
         i = 1
 
         # initial conditions
-          #   def getICs(self,iniItems,iniConditions = None):
-        #self.var.storGroundwater = loadmap('storGroundwaterIni')
         self.var.storGroundwater = self.var.init_module.load_initial('storGroundwater')
         self.var.storGroundwater = np.maximum(0.0, self.var.storGroundwater) + globals.inZero
 
@@ -56,7 +56,9 @@ class groundwater(object):
 # --------------------------------------------------------------------------
 
     def dynamic(self):
-        """ dynamic part of the groundwater module
+        """
+        Dynamic part of the groundwater module
+        Calculate groundweater storage and baseflow
         """
 
 
@@ -65,7 +67,6 @@ class groundwater(object):
 
         # get riverbed infiltration from the previous time step (from routing)
         self.var.surfaceWaterInf = self.var.riverbedExchange * self.var.InvCellArea
-
         self.var.storGroundwater = self.var.storGroundwater + self.var.surfaceWaterInf
 
         # get net recharge (percolation-capRise) and update storage:

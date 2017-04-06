@@ -13,17 +13,20 @@ import xml.dom.minidom
 import datetime
 import time as xtime
 import os
-
+import sys
 
 from globals import *
 
 
 class CWATMError(Exception):
     """
-    the error handling class
+    The error handling class
     prints out an error
     """
     def __init__(self, msg):
+
+        # don't show the error code, lines etc.
+        sys.tracebacklimit = 0
         header = "\n\n ========================== CWATM ERROR =============================\n"
         try:
            self._msg = header + msg +"\n" +  sys.exc_info()[1].message
@@ -34,10 +37,13 @@ class CWATMError(Exception):
 
 class CWATMFileError(CWATMError):
     """
-    the error handling class
+    The error handling class
     prints out an error
+
     """
     def __init__(self, filename,msg=""):
+        # don't show the error code, lines etc.
+        sys.tracebacklimit = 0
         path,name = os.path.split(filename)
         if os.path.exists(path):
             text1 = "path: "+ path + " exists\nbut filename: "+name+ " does not\n"
@@ -55,6 +61,7 @@ class CWATMWarning(Warning):
     prints out an error
     """
     def __init__(self, msg):
+        sys.tracebacklimit = 0
         header = "\n\n ========================== CWATM Warning =============================\n"
         self._msg = header + msg
     def __str__(self):
@@ -63,10 +70,14 @@ class CWATMWarning(Warning):
 class CWATMRunInfo(Warning):
     """
     prints out an error
+
+    Warning
+        warning given with a header and a message from the subroutine
     """
+
     def __init__(self, outputDir, Steps = 1, ensMembers=1, Cores=1):
-        header = "\n ========================== CWATM Simulation Information and Setting =============================\n"
-        msg = "   The simulation output as specified in the settings file can be found in "+str(outputDir)+"\n"
+        header = "\nCWATM Simulation Information and Setting\n"
+        msg = "The simulation output as specified in the settings file: " + sys.argv[1] + " can be found in "+str(outputDir)+"\n"
         self._msg = header + msg
     def __str__(self):
         return self._msg

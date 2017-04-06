@@ -13,9 +13,9 @@ from management_modules.data_handling import *
 class readmeteo(object):
 
     """
-     # ************************************************************
-     # ***** READ METEOROLOGICAL DATA              ****************
-     # ************************************************************
+    READ METEOROLOGICAL DATA
+
+    reads all meteorological data from netcdf4 files
     """
 
     def __init__(self, readmeteo_variable):
@@ -26,13 +26,19 @@ class readmeteo(object):
 # --------------------------------------------------------------------------
 
     def dynamic(self):
-        """ dynamic part of the readmeteo module
-            read meteo input maps
+        """
+        Dynamic part of the readmeteo module
+        Read meteo input maps from netcdf files
+
+        Note:
+            If option *calc_evaporation* is False only precipitation, avg. temp., and 2 evaporation vlaues are read
+            Otherwise all the variable needed for Penman-Monteith
+
+        Note:
+            If option *TemperatureInKelvin* = True temperature is assumed to be Kelvin instead of Celsius!
+
         """
 
-        # ************************************************************
-        # ***** READ METEOROLOGICAL DATA *****************************
-        # ************************************************************
 
         ZeroKelvin = 0.0
         if option['TemperatureInKelvin']:

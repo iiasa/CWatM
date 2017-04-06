@@ -8,15 +8,12 @@ cwatm module
 .. inheritance-diagram:: cwatm
    :parts: 1
 
-.. Note:: blabla1
-
 .. inheritance-diagram:: cwatm_initial.CWATModel_ini
 
-.. Note:: blabla2
 
 .. inheritance-diagram:: hydrological_modules.groundwater.groundwater hydrological_modules.inflow.inflow
 
-.. Note:: End
+.. Note:: Base module: run with settings file e.g. python cwatm.py settings.ini
 
 
 .. automodule:: cwatm

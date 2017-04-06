@@ -15,7 +15,7 @@ Community Water Model
 
 :Copyright: IIASA WAT Program
 :Authors: :ref:`rst_developer`
-:Version: -1.1  
+:Version: 0.03  
 :Version Date: |today|
 
 **Content:**
@@ -25,12 +25,22 @@ Community Water Model
    :numbered: 1
    
    intro
+   license
    nexus
    community
-   settings
+   modeldesign
+   setup
+   runmodel
+   settingsfile
+   metadata
+   initialisation
+   postpro
    data
    results
    todo
+   updates
+   bugs
+   publication
    source
 
    

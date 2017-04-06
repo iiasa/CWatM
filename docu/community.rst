@@ -15,7 +15,7 @@ Community Model
 
    "Community driven","Open-source but lead by IIASA `GitHub repository <https://github.com/CWatM>`_"
    "Well documented","Documentation, automatic source code documentation `GitHub Docu <https://cwatm.github.io>`_"
-   "Easy handling","Use of a setting file with all necessary information for the user  :ref:`rst_setting` and  :ref:`rst_meta`"
+   "Easy handling","Use of a setting file with all necessary information for the user  :ref:`rst_setting` and  :ref:`rst_metadata`"
    "Multi-platform","Windows, Mac, Linux, Unix - to be used on different platforms (PC, clusters, super-computers)"
    "Modular","Processes in subprograms, easy to adapt to the requirements of options/ solutions `Modular structure <https://github.com/CWatM/CWatM/tree/branch2/source/hydrological_modules>`_"
 

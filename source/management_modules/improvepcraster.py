@@ -40,10 +40,6 @@ class DynamicFramework2(DynamicFramework):
     def run(self):
         """
         Run the dynamic user model.
-
-        .. todo::
-        This method depends on the filter frameworks concept. Shouldn't its run
-        method call _runSuspend()?
         """
         self._atStartOfScript()
         if(hasattr(self._userModel(), "resume")):
@@ -67,14 +63,19 @@ class DynamicFramework2(DynamicFramework):
 
 
 
+    # Adjusting the def _atStartOfTimeStep defined in DynamicFramework for a real quiet output
 
-    """Adjusting the def _atStartOfTimeStep defined in DynamicFramework
-       for a real quiet output
-    """
     rquiet = False
     rtrace = False
 
     def _atStartOfTimeStep(self, step):
+        """
+        Adjusting the def _atStartOfTimeStep defined in DynamicFramework
+        for a real quiet output
+
+        :param step:
+        :return:
+        """
         self._userModel()._setInTimeStep(True)
         if not self.rquiet:
             if not self.rtrace:

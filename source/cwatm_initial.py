@@ -25,12 +25,11 @@ from hydrological_modules.waterdemand import *
 from hydrological_modules.capillarRise import *
 from hydrological_modules.interception import *
 from hydrological_modules.runoff_concentration import *
-from hydrological_modules.routing import *
 from hydrological_modules.waterbalance import *
 
 from hydrological_modules.routing_reservoirs.routing_kinematic import *
 from hydrological_modules.lakes_reservoirs import *
-from hydrological_modules.lakes import *
+
 
 # --------------------------------------------
 
@@ -41,19 +40,23 @@ from management_modules.output import *
 
 class CWATModel_ini(DynamicModel):
 
-    """ CWATN initial part
-        this part is to initialize the variables
-        it will call the initial part of the hydrological modules
+    """
+    CWATN initial part
+    this part is to initialize the variables.
+    It will call the initial part of the hydrological modules
     """
 
     def __init__(self):
-        """ init part of the initial part
-            defines the mask map and the outlet points
-            initialization of the hydrological modules
         """
+        Init part of the initial part
+        defines the mask map and the outlet points
+        initialization of the hydrological modules
+        """
+
         DynamicModel.__init__(self)
 
         ## MakMap: the maskmap is flexible e.g. col,row,x1,y1  or x1,x2,y1,y2
+        # set the maskmap
         self.MaskMap = loadsetclone('MaskMap')
 
 
@@ -91,11 +94,10 @@ class CWATModel_ini(DynamicModel):
         self.interception_module = interception(self)
         self.sealed_water_module = sealed_water(self)
         self.runoff_concentration_module = runoff_concentration(self)
-        self.routing_module = routing(self)
 
         self.routing_kinematic_module = routing_kinematic(self)
         self.lakes_reservoirs_module = lakes_reservoirs(self)
-        self.lakes_module = lakes(self)
+
 
         # include output of tss and maps
         self.output_module = outputTssMap(self)
@@ -114,18 +116,12 @@ class CWATModel_ini(DynamicModel):
         self.landcoverType_module.initial()
         self.groundwater_module.initial()
         self.runoff_concentration_module.initial()
-        if option['kinematic']:
-            self.routing_kinematic_module.initial()
-            if option['includeWaterBodies']:
 
-                self.lakes_reservoirs_module.initial()
-                self.lakes_reservoirs_module.initWaterbodies()
-                self.lakes_module.initial()
-        else:
-            self.routing_module.initial()
-            self.lakes_reservoirs_module.initial()
-
-
+        self.routing_kinematic_module.initial()
+        if option['includeWaterBodies']:
+            self.lakes_reservoirs_module.initWaterbodies()
+            self.lakes_reservoirs_module.initial_lakes()
+            self.lakes_reservoirs_module.initial_reservoirs()
 
 
         self.waterdemand_module.initial()
@@ -135,22 +131,3 @@ class CWATModel_ini(DynamicModel):
         self.output_module.initial()
 
 
-# ----------------------------------------------------------------
-
-        """
-        # include output of tss and maps
-        self.output_module = outputTssMap(self)
-
-        MMaskMap = self.MaskMap
-        # for checking maps
-
-        self.ReportSteps = ReportSteps['rep']
-
-        self.waterbalance_module.initial()
-        # calculate initial amount of water in the catchment
-        """
-# ====== INITIAL ================================
-    def initial(self):
-        """ Initial part of LISFLOOD
-            calls the initial part of the hydrological modules
-        """

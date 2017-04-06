@@ -20,6 +20,12 @@ from globals import *
 
 
 def counted(fn):
+    """
+    count number of times a subroutine is called
+
+    :param fn:
+    :return:
+    """
     def wrapper(*args, **kwargs):
         wrapper.called+= 1
         return fn(*args, **kwargs)
@@ -29,8 +35,19 @@ def counted(fn):
 
 @counted
 def checkmap(name, value, map, flagmap, find):
-    """ check maps if the fit to the mask map
     """
+    check maps if the fit to the mask map
+    :param name:
+    :param value:
+    :param map:
+    :param flagmap:
+    :param find:
+    :return:
+
+    Todo:
+        still to improve, this is work in progress!
+    """
+
     s = [name, value]
     if flagmap:
         iii = 1

@@ -15,6 +15,11 @@ class miscInitial(object):
 
     """
     Miscellaneous repeatedly used expressions
+    Definition if cell area comes from regular grid e.g. 5x5km or from irregular lat/lon
+    Conversion factors between m3 and mm etc.
+
+    Note:
+        Only used in the initial phase.
     """
 
     def __init__(self, misc_variable):
@@ -24,7 +29,10 @@ class miscInitial(object):
 # --------------------------------------------------------------------------
 
     def initial(self):
-        """ initial part of the misc module
+        """
+        - grid area, length definition
+        - conversion factors
+        - conversion factors for precipitation and pot evaporation
         """
 
         if option['gridSizeUserDefined']:
@@ -93,11 +101,13 @@ class miscInitial(object):
         self.var.MtoMM = 1000
         # Multiplier to convert water depths in meters to mm
         self.var.MtoM3 = 1.0 * self.var.cellArea
+
         # Multiplier to convert water depths in m to cubic metres
         self.var.M3toM = 1 / self.var.MtoM3
         # Multiplier to convert from cubic metres to m water slice
 
         self.var.con_precipitation = loadmap('precipitation_coversion')
+
         self.var.con_e = loadmap('evaporation_coversion')
 
         self.var.twothird = 2.0 / 3.0

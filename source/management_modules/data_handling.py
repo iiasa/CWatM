@@ -37,9 +37,14 @@ import warnings
 
 def valuecell(mask, coordx, coordstr):
     """
-    to put a value into a pc raster map -> invert of cellvalue
-    map is converted into a numpy array first
+    to put a value into a pc raster map -> invert of cellvalue, map is converted into a numpy array first
+
+    :param mask: Mask map
+    :param coordx: x,y or lon/lat coordinate
+    :param coordstr: String of coordinates
+    :return:
     """
+
     coord = []
     for xy in coordx:
         try:
@@ -62,7 +67,8 @@ def valuecell(mask, coordx, coordstr):
             null[row, col] = i + 1
         else:
             msg = "Coordinates: " + str(coord[i * 2]) + ',' + str(
-                coord[i * 2 + 1]) + " to put value in is outside mask map - col,row: " + str(col) + ',' + str(row)
+                coord[i * 2 + 1]) + " of gauge is outside mask map - col,row: " + str(col) + ',' + str(row)
+            msg +="\nPlease have a look at the [MASK_OUTLET] section"
             raise CWATMError(msg)
 
     #map = numpy2pcr(Nominal, null, -9999)
@@ -71,8 +77,20 @@ def valuecell(mask, coordx, coordstr):
 
 
 def setmaskmapAttr(x,y,col,row,cell):
-    # Definition of cellsize, coordinates of the meteomaps and maskmap
-    #  need some love for error handling
+    """
+    Definition of cell size, coordinates of the meteo maps and maskmap
+
+    Todo
+        need some love for error handling
+
+    :param x: upper left corner x
+    :param y: upper left corner y
+    :param col: number of cols
+    :param row: number of rows
+    :param cell: cell size
+    :return:
+    """
+
     maskmapAttr['x'] = x
     maskmapAttr['y'] = y
     maskmapAttr['col'] = col
@@ -83,7 +101,10 @@ def setmaskmapAttr(x,y,col,row,cell):
 def loadsetclone(name):
     """
     load the maskmap and set as clone
+
+    :param name: name of mask map, can be a file or - row col cellsize xupleft yupleft -
     """
+
     if option['PCRaster']: from pcraster.framework import *
 
     filename = binding[name]
@@ -200,11 +221,18 @@ def loadsetclone(name):
 
     return mapC
 
-
 def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
     """
     load a static map either value or pc raster map or netcdf
+
+    :param name: name of map
+    :param pcr:  if pcr=True - pcraster map is given back
+    :param lddflag: if True the map is used as a ldd map
+    :param compress: if True the return map will be compressed
+    :param local: if True the map will be not cut
+    :return:  1D numpy array of map
     """
+
     value = binding[name]
     filename = value
     pcrmap = False
@@ -233,7 +261,7 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
     if not(load):   # read a netcdf  (single one not a stack)
         filename = os.path.splitext(value)[0] + '.nc'
          # get mapextend of netcdf map and calculate the cutting
-        cut0, cut1, cut2, cut3 = mapattrNetCDF(filename)
+        #cut0, cut1, cut2, cut3 = mapattrNetCDF(filename)
         try:
             cut0, cut1, cut2, cut3 = mapattrNetCDF(filename)
 
@@ -325,6 +353,15 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
 # -----------------------------------------------------------------------
 
 def compressArray(map, pcr=True, name="None"):
+    """
+    Compress 2D array with missing values to 1D array without missing values
+
+    :param map: in map
+    :param pcr: if True input map is used as pcraster map
+    :param name:
+    :return:
+    """
+
     if pcr:
         mapnp = pcr2numpy(map, np.nan).astype(np.float64)
         mapnp1 = np.ma.masked_array(mapnp, maskinfo['mask'])
@@ -340,6 +377,13 @@ def compressArray(map, pcr=True, name="None"):
     return mapC
 
 def decompress(map, pcr1 = True):
+    """
+    Decompress 1D array without missing values to 2D array with missing values
+
+    :param map: numpy 1D array as input
+    :param pcr1: if True map is used as pcraster map
+    :return: 2D map
+    """
 
     if option['PCRaster']: from pcraster.framework import *
 
@@ -396,6 +440,7 @@ def mapattrNetCDF(name):
     get the map attributes like col, row etc from a ntcdf map
     and define the rectangular of the mask map inside the netcdf map
     """
+
     filename = os.path.splitext(name)[0] + '.nc'
     try:
         nf1 = Dataset(filename, 'r')
@@ -429,6 +474,12 @@ def mapattrNetCDF(name):
 
 
 def mapattrTiff(nf2):
+    """
+    map attributes of a geotiff file
+
+    :param nf2:
+    :return:
+    """
 
     geotransform = nf2.GetGeoTransform()
     x1 = geotransform[0]
@@ -456,12 +507,14 @@ def mapattrTiff(nf2):
 
 def readnetcdf(name, time):
     """
-      load stack of maps 1 at each timestamp in netcdf format
+    load stack of maps 1 at each timestamp in netcdf format
+
+    :param name: name of the file
+    :param time: time stamp
+    :return:
     """
 
-    #filename = name + ".nc"
     filename =  os.path.splitext(name)[0] + '.nc'
-    # value = os.path.basename(name)
 
     number = time - 1
     try:
@@ -489,7 +542,16 @@ def readnetcdf(name, time):
 
 def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False,cut = True, zeros = 0.0):
     """
-      load stack of maps 1 at each timestamp in netcdf format
+    load stack of maps 1 at each timestamp in netcdf format
+
+    :param name: file name
+    :param date:
+    :param useDaily: if True daily values are used
+    :param value: if set the name of the parameter is defined
+    :param addZeros:
+    :param cut: if True the map is clipped to mask map
+    :param zeros: default value
+    :return:
     """
 
     #filename = name + ".nc"
@@ -546,6 +608,10 @@ def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False,cut
     # add zero values to maps in order to supress missing values
     if addZeros: mapnp[np.isnan(mapnp)] = zeros
 
+    if maskinfo['shapeflat'][0]<> mapnp.size:
+        msg = name + " has less or more valid pixels than the mask map \n"
+        msg += "if it is the ET maps, it might be from another run with different mask. Please look at the option: calc_evaporation"
+        raise CWATMWarning(msg)
 
     mapC = compressArray(mapnp,pcr=False,name=filename)
     return mapC
@@ -553,7 +619,7 @@ def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False,cut
 
 def readnetcdfWithoutTime(name, value="None"):
     """
-      load stack of maps in netcdf format
+    load stack of maps in netcdf format
     """
 
     filename =  os.path.normpath(name)
@@ -576,8 +642,9 @@ def readnetcdfWithoutTime(name, value="None"):
 
 def readnetcdfInitial(name, value,default = 0.0):
     """
-      load initial condition from netcdf format
+    load initial condition from netcdf format
     """
+
     filename =  os.path.normpath(name)
     try:
        nf1 = Dataset(filename, 'r')
@@ -610,6 +677,7 @@ def getmeta(key,varname,alternative):
     get the meta data information for the netcdf output from the global
     variable metaNetcdfVar
     """
+
     ret = alternative
     if varname in metaNetcdfVar:
         if key in metaNetcdfVar[varname]:
@@ -649,7 +717,6 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
                 if not (key in nf1.__dict__.keys()):
                     if not (key in ["unit", "long_name", "standard_name"]):
                         nf1.__setattr__(key, metaNetcdfVar[varname][key])
-
 
 
 
@@ -843,10 +910,10 @@ def writeIniNetcdf(netfile,varlist, inputlist):
     for varname in varlist:
 
         if 'x' in metadataNCDF.keys():
-            value = nf1.createVariable(varname, 'f4', ('y', 'x'), zlib=True,fill_value=1e20)
+            value = nf1.createVariable(varname, 'f8', ('y', 'x'), zlib=True,fill_value=1e20)
         if 'lon' in metadataNCDF.keys():
             # for world lat/lon coordinates
-            value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
+            value = nf1.createVariable(varname, 'f8', ('lat', 'lon'), zlib=True, fill_value=1e20)
 
         value.standard_name= getmeta("standard_name",varname,varname)
         value.long_name= getmeta("long_name",varname,varname)
@@ -873,12 +940,21 @@ def writeIniNetcdf(netfile,varlist, inputlist):
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
 def getValDivZero(x,y,y_lim,z_def= 0.0):
-  #-returns the result of a division that possibly involves a zero
-  # denominator; in which case, a default value is substituted:
-  # x/y= z in case y > y_lim,
-  # x/y= z_def in case y <= y_lim, where y_lim -> 0.
-  # z_def is set to zero if not otherwise specified
-  return np.where(y > y_lim,x / np.maximum(y_lim,y),z_def)
+    """
+    returns the result of a division that possibly involves a zero
+
+    :param x:
+    :param y: divisor
+    :param y_lim:
+    :param z_def:
+    :return:
+    """
+    #-returns the result of a division that possibly involves a zero
+    # denominator; in which case, a default value is substituted:
+    # x/y= z in case y > y_lim,
+    # x/y= z_def in case y <= y_lim, where y_lim -> 0.
+    # z_def is set to zero if not otherwise specified
+    return np.where(y > y_lim,x / np.maximum(y_lim,y),z_def)
 
 
 

@@ -14,9 +14,10 @@ from management_modules.data_handling import *
 class waterdemand(object):
 
     """
-    # ************************************************************
-    # ***** SOIL *****************************************
-    # ************************************************************
+    WATERDEMAND
+    calculating water demand
+    Industrial, domenstic based on precalculated maps
+    Agricultural water demand based on water need by plants
     """
 
     def __init__(self, waterdemand_variable):
@@ -26,7 +27,9 @@ class waterdemand(object):
 # --------------------------------------------------------------------------
 
     def initial(self):
-        """ initial part of the groundwater module
+        """
+        Initial part of the water demand module
+        Set the water allocation
         """
         if option['includeWaterDemandDomInd']:
            #self.var.recessionCoeff = loadmap('recessionCoeff')
@@ -45,11 +48,15 @@ class waterdemand(object):
 # --------------------------------------------------------------------------
 
     def dynamic(self):
-        """ dynamic part of the soil module
+        """
+        Dynamic part of the water demand module
+
+        * calculate the fraction of water from surface water vs. groundwater
+        * get non-Irrigation GROSS water demand and its return flow fraction
         """
 
-        # get NON-Irrigation GROSS water demand and its return flow fraction
-        # obtainNonIrrWaterDemand landsurface 487
+        #
+
 
         if option['includeWaterDemandDomInd']:
             # industry water demand
@@ -119,6 +126,13 @@ class waterdemand(object):
             # report(decompress(self.var.discharge), "C:\work\output/q1.map")
 
     def dynamic_waterdemand(self,coverType, No):
+        """
+        Dynamic part of water demand
+
+        :param coverType: Land cover type: forest, grassland  ...
+        :param No: number of land cover type: forest = 0, grassland = 1 ...
+
+        """
 
         # ------------------------------------------
         if option['includeWaterDemandDomInd']:

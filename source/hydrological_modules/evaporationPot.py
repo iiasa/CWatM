@@ -1,15 +1,29 @@
-## @package evaporationPot
-# Module documentation
+# -------------------------------------------------------------------------
+# Name:        POTENTIAL REFERENCE EVAPO(TRANSPI)RATION
+# Purpose:
+#
+# Author:      PB
+#
+# Created:     10/01/2017
+# Copyright:   (c) PB 2017
+# -------------------------------------------------------------------------
 
 from management_modules.data_handling import *
 
 
 class evaporationPot(object):
-    """ @brief EvaporationPot module
-    @details Calculate potential evapotranspiration from climate data
-    @author  PB
-    @date  10/11/2017
-    @copyright  PB 2017
+    """
+    POTENTIAL REFERENCE EVAPO(TRANSPI)RATION
+    Calculate potential evapotranspiration from climate data mainly based on FAO 56 and LISVAP
+    Based on Penman Monteith
+
+    References:
+        http://www.fao.org/docrep/X0490E/x0490e08.htm#penman%20monteith%20equation
+
+        http://www.fao.org/docrep/X0490E/x0490e06.htm  http://www.fao.org/docrep/X0490E/x0490e06.htm
+
+        https://ec.europa.eu/jrc/en/publication/eur-scientific-and-technical-research-reports/lisvap-evaporation-pre-processor-lisflood-water-balance-and-flood-simulation-model
+
     """
 
     def __init__(self, evaporationPot_variable):
@@ -19,8 +33,15 @@ class evaporationPot(object):
 
 
     def initial(self):
-        """ initial part of evaporation type module
         """
+        Initial part of evaporation type module
+        Load inictial parameters
+
+        Note:
+            Only run if *calc_evaporation* is True
+
+        """
+
         if option['calc_evaporation']:
             self.var.AlbedoCanopy = loadmap('AlbedoCanopy')
             self.var.AlbedoSoil = loadmap('AlbedoSoil')
@@ -34,18 +55,19 @@ class evaporationPot(object):
 # --------------------------------------------------------------------------
 
     def dynamic(self):
-        """ Dynamic part of the potential evaporation module
-        calculating potential Evaporation from climate data
-        mainly based on FAO 56
-        http://www.fao.org/docrep/X0490E/x0490e08.htm#penman%20monteith%20equation
-        http://www.fao.org/docrep/X0490E/x0490e06.htm  http://www.fao.org/docrep/X0490E/x0490e06.htm
-        and LISVAP
-        https://ec.europa.eu/jrc/en/publication/eur-scientific-and-technical-research-reports/lisvap-evaporation-pre-processor-lisflood-water-balance-and-flood-simulation-model
+        """
+        Dynamic part of the potential evaporation module
+        Based on Penman Monteith - FAO 56
+
+        Note:
+            Only run if *calc_evaporation* is True
+
+        Return:
+            ETRef - potential reference evapotranspiration rate [m/day]
+            EWRef - potential evaporation rate from water surface [m/day]
+
         """
 
-        # *******************************************************
-        # ***** POTENTIAL REFERENCE EVAPO(TRANSPI)RATION ********
-        # *******************************************************
 
         if option['calc_evaporation']:
 
@@ -132,5 +154,9 @@ class evaporationPot(object):
 
             self.var.sumETRef = self.var.sumETRef + self.var.ETRef*1000
 
-        #report(decompress(self.var.sumETRef), "C:\work\output2/sumetref.map")
+
+            if dateVar['curr'] ==32:
+             iii=1
+
+            #report(decompress(self.var.sumETRef), "C:\work\output2/sumetref.map")
 
