@@ -540,7 +540,7 @@ def readnetcdf(name, time):
     return mapC
 
 
-def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False,cut = True, zeros = 0.0):
+def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False,cut = True, zeros = 0.0,meteo = False):
     """
     load stack of maps 1 at each timestamp in netcdf format
 
@@ -565,6 +565,9 @@ def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False,cut
         raise CWATMFileError(filename,msg)
 
 
+    if value == "None":
+        value = nf1.variables.items()[-1][0]  # get the last variable name
+
     # date if used daily, monthly or yearly or day of year
     if useDaily == "DOY":  # day of year 1-366
         idx = date - 1
@@ -572,26 +575,33 @@ def readnetcdf2(name, date, useDaily='daily', value='None', addZeros = False,cut
         idx = date
     if useDaily == "month":
         idx = int(date.month) - 1
-    if useDaily == "yearly":
-        date = datetime.datetime(date.year, int(1), int(1))
-    if useDaily == "monthly":
-        date = datetime.datetime(date.year, date.month, int(1))
 
     if useDaily in ["monthly","yearly","daily"]:
-        # A netCDF time variable object  - time index (in the netCDF file)
-        nctime = nf1.variables['time']
 
-        if nctime.calendar in ['noleap', '365_day']:
-            dateVar['leapYear'] = 1
-            idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
-        elif nctime.calendar in ['360_day']:
-            dateVar['leapYear'] = 2
-            idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+        # DATE2INDEX TAKES A LONG TIME TO GET THE INDEX, THIS SHOULD BE A FASTER VERSION, ONCE THE FIRST INDEX IS COLLECTED
+        if (value in inputcounter) and (meteo):
+            inputcounter[value] += 1
+            idx = inputcounter[value]
         else:
-            idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
+            if useDaily == "yearly":
+                date = datetime.datetime(date.year, int(1), int(1))
+            if useDaily == "monthly":
+                date = datetime.datetime(date.year, date.month, int(1))
 
-    if value == "None":
-        value = nf1.variables.items()[-1][0]  # get the last variable name
+            # A netCDF time variable object  - time index (in the netCDF file)
+            nctime = nf1.variables['time']
+
+            if nctime.calendar in ['noleap', '365_day']:
+                dateVar['leapYear'] = 1
+                idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+            elif nctime.calendar in ['360_day']:
+                dateVar['leapYear'] = 2
+                idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+            else:
+                idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
+
+            if meteo: inputcounter[value] = idx
+
 
     #mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
     if cut:

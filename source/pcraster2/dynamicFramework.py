@@ -8,7 +8,7 @@ class DynamicFramework(frameworkBase.FrameworkBase):
   Framework class for dynamic models.
 
   `userModel`
-    Instance that models the :ref:`Dynamic Model Concept <dynamicModelConcept>`.
+    Instance that models the Dynamic Model Concept <dynamicModelConcept>
 
   `lastTimeStep`
     Last timestep to run.
@@ -74,7 +74,7 @@ class DynamicFramework(frameworkBase.FrameworkBase):
   def _testRequirements(self):
     """
     Test whether the user model models the
-    :ref:`Dynamic Model Concept <dynamicModelConcept>`.
+    Dynamic Model Concept <dynamicModelConcept>
     """
     if hasattr(self._userModel(), "_userModel"):
       msg = "The _userModel method is deprecated and obsolete"

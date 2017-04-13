@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 """
@@ -41,7 +43,6 @@ __status__ = "Development"
 # to work with some versions of Linux  - a workaround with pyexpat is needed
 from pyexpat import *
 import xml.dom.minidom
-
 from netCDF4 import Dataset
 
 from management_modules.configuration import *
@@ -62,6 +63,8 @@ class CWATModel(CWATModel_ini, CWATModel_dyn):
     * initial part takes care of all the non temporal initialiation procedures
 
     * dynamic part loops over time
+	
+	
     """
 
 # ==================================================
@@ -118,8 +121,8 @@ def CWATMexe():
     stCWATM.run()
 
 		# cProfile.run('stLisflood.run()')
-    # python -m cProfile -o  l1.pstats lisf1.py settingsNew3.xml
-    # gprof2dot -f pstats l1.pstats | dot -Tpng -o callgraph.png
+    # python -m cProfile -o  l1.pstats cwatm.py settings1.ini
+    # gprof2dot -f pstats l1.pstats | dot -T png -o callgraph.png
 
     if Flags['printtime']:
         print "\n\nTime profiling"

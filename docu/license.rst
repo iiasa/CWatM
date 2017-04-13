@@ -1,6 +1,6 @@
 
 ##########################
-License
+License and Conditions
 ##########################
 
 
@@ -10,12 +10,11 @@ GNU General public license
 *Version 3, 29 June 2007*
 
 
-Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
-Everyone is permitted to copy and distribute verbatim copies
-of this license document, but changing it is not allowed.
+| Copyright (C) 2007 Free Software Foundation, Inc. http://fsf.org
+| Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
 
 Preamble
-========
+--------
 
 The GNU General Public License is a free, copyleft license for
 software and other kinds of works.
@@ -80,10 +79,10 @@ modification follow.
 
 
 TERMS AND CONDITIONS
-====================
+--------------------
 
 0. Definitions
-**************
+^^^^^^^^^^^^^^
 
 "This License" refers to version 3 of the GNU General Public License.
 
@@ -124,7 +123,7 @@ menu, a prominent item in the list meets this criterion.
 
 
 1. Source Code
-**************
+^^^^^^^^^^^^^^
 
 The "source code" for a work means the preferred form of the work
 for making modifications to it.  "Object code" means any non-source
@@ -167,7 +166,7 @@ The Corresponding Source for a work in source code form is that
 same work.
 
 2. Basic Permissions
-********************
+^^^^^^^^^^^^^^^^^^^^
 
 All rights granted under this License are granted for the term of
 copyright on the Program, and are irrevocable provided the stated
@@ -193,7 +192,7 @@ the conditions stated below.  Sublicensing is not allowed; section 10
 makes it unnecessary.
 
 3. Protecting Users' Legal Rights From Anti-Circumvention Law
-*************************************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 No covered work shall be deemed part of an effective technological
@@ -211,7 +210,7 @@ users, your or third parties' legal rights to forbid circumvention of
 technological measures.
 
 4. Conveying Verbatim Copies
-****************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You may convey verbatim copies of the Program's source code as you
 receive it, in any medium, provided that you conspicuously and
@@ -225,7 +224,7 @@ You may charge any price or no price for each copy that you convey,
 and you may offer support or warranty protection for a fee.
 
 5. Conveying Modified Source Versions
-*************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You may convey a work based on the Program, or the modifications to
 produce it from the Program, in the form of source code under the
@@ -264,7 +263,7 @@ in an aggregate does not cause this License to apply to the other
 parts of the aggregate.
 
 6. Conveying Non-Source Forms
-*****************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You may convey a covered work in object code form under the terms
 of sections 4 and 5, provided that you also convey the
@@ -363,7 +362,7 @@ source code form), and must require no special password or key for
 unpacking, reading or copying.
 
 7. Additional Terms
-*******************
+^^^^^^^^^^^^^^^^^^^
 
 "Additional permissions" are terms that supplement the terms of this
 License by making exceptions from one or more of its conditions.
@@ -428,7 +427,7 @@ form of a separately written license, or stated as exceptions;
 the above requirements apply either way.
 
 8. Termination
-**************
+^^^^^^^^^^^^^^
 
 You may not propagate or modify a covered work except as expressly
 provided under this License.  Any attempt otherwise to propagate or
@@ -457,7 +456,7 @@ reinstated, you do not qualify to receive new licenses for the same
 material under section 10.
 
 9. Acceptance Not Required for Having Copies
-********************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You are not required to accept this License in order to receive or
 run a copy of the Program.  Ancillary propagation of a covered work
@@ -469,7 +468,7 @@ not accept this License.  Therefore, by modifying or propagating a
 covered work, you indicate your acceptance of this License to do so.
 
 10. Automatic Licensing of Downstream Recipients
-************************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Each time you convey a covered work, the recipient automatically
 receives a license from the original licensors, to run, modify and
@@ -495,7 +494,7 @@ any patent claim is infringed by making, using, selling, offering for
 sale, or importing the Program or any portion of it.
 
 11. Patents
-***********
+^^^^^^^^^^^
 
 A "contributor" is a copyright holder who authorizes use under this
 License of the Program or a work on which the Program is based.  The
@@ -511,7 +510,7 @@ purposes of this definition, "control" includes the right to grant
 patent sublicenses in a manner consistent with the requirements of
 this License.
 
-  Each contributor grants you a non-exclusive, worldwide, royalty-free
+Each contributor grants you a non-exclusive, worldwide, royalty-free
 patent license under the contributor's essential patent claims, to
 make, use, sell, offer for sale, import and otherwise run, modify and
 propagate the contents of its contributor version.
@@ -565,7 +564,7 @@ any implied license or other defenses to infringement that may
 otherwise be available to you under applicable patent law.
 
 12. No Surrender of Others' Freedom
-***********************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If conditions are imposed on you (whether by court order, agreement or
 otherwise) that contradict the conditions of this License, they do not
@@ -578,7 +577,7 @@ the Program, the only way you could satisfy both those terms and this
 License would be to refrain entirely from conveying the Program.
 
 13. Use with the GNU Affero General Public License
-**************************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Notwithstanding any other provision of this License, you have
 permission to link or combine any covered work with a work licensed
@@ -590,7 +589,7 @@ section 13, concerning interaction through a network will apply to the
 combination as such.
 
 14. Revised Versions of this License
-************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The Free Software Foundation may publish revised and/or new versions of
 the GNU General Public License from time to time.  Such new versions will
@@ -617,7 +616,7 @@ author or copyright holder as a result of your choosing to follow a
 later version.
 
 15. Disclaimer of Warranty
-**************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
 APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
@@ -629,7 +628,7 @@ IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
 ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
 
 16. Limitation of Liability
-***************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
 WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
@@ -642,7 +641,7 @@ EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
 SUCH DAMAGES.
 
 17. Interpretation of Sections 15 and 16
-****************************************
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If the disclaimer of warranty and limitation of liability provided
 above cannot be given local legal effect according to their terms,
@@ -652,3 +651,47 @@ Program, unless a warranty or assumption of liability accompanies a
 copy of the Program in return for a fee.
 
    
+
+Terms and Conditions of Use of the Community Water Model
+========================================================
+   
+Stipulations regarding the use of the Commumunity  Water Model (hereinafter *CWATM*) provided here by the International Institute for Applied System Analysis, Laxenburg, Austria (IIASA) are as follows:
+
+1. Copyright
+------------
+
+The owners of the copyright of CWATM are Peter Burek, Yoshihide Wada, Yusuke Satoh and Peter Greve (hereinafter the “Developer”) and IIASA.
+
+
+2. Reprints and quotations
+--------------------------
+
+In the event of the publication of a document or scientific paper using CWATM or its modified version, the following paper must be referenced:
+
+paper is still under work.
+
+At the moment refer to:
+
+Burek, P., Satoh, Y., Greve, P., Kahil, T. and Wada, Y. 2017: The Community Water Model (CWATM) / Development of a community driven global water model. Geophysical Research Abstracts. Vol. 19, EGU2017-9769
+
+3. Usage
+--------
+
+Usage is regulated by GNU General Public License V3 (see above)
+
+4. Final Remarks
+----------------
+
+We as developers belief that CWATM should be utilize to encourage ideas and to advance hydrological, environmental science and stimulate integration into other science disciplines.
+
+CWATM is based on existing knowledge of hydrology realized with Python and C++. Especially ideas from HBV, PCR-GLOBE, LISFLOOD, H08, Matsiro are used for inspiration.
+
+**Your support is more then welcome and highly appreciated**
+
+The developers of CWAT Model
+
+
+
+
+
+

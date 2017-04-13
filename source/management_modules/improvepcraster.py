@@ -29,7 +29,7 @@ class DynamicFramework2(DynamicFramework):
     """
     Framework class for dynamic models.
     `userModel`
-    Instance that models the :ref:`Dynamic Model Concept <dynamicModelConcept>`.
+    Instance that models the Dynamic Model Concept <dynamicModelConcept>.
     `lastTimeStep`   Last timestep to run.
     `firstTimestep`  Sets the starting timestep of the model (optional, default is 1).
     Updated by improvepcraster.py

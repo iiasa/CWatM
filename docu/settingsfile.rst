@@ -71,7 +71,7 @@ The modeling area can be defined by:
 .. note:: 
 
     The mask map can be a .tif, PCraster or a netCDF format
-	| The coordinates have the format: Number of Cols, Number of rows, cellsize, upper left corner X, upper left corner Y 
+    | The coordinates have the format: Number of Cols, Number of rows, cellsize, upper left corner X, upper left corner Y 
 
 
 .. literalinclude:: _static/settings1.ini
@@ -87,11 +87,7 @@ Defining the time
 The start and end time have to be defined.
 Spin-up time is the time for warming up (results will be stored after the spin-up time)
 
-
-.. note:: 
-
-    The time can be given as date: dd/mm/yyyy 
-	|or as relative date: number (but then CalendarDayStart has to be defined)
+.. note:: The time can be given as date: dd/mm/yyyy or as relative date: number (but then CalendarDayStart has to be defined)
 
 .. note:: Spin-up time can be given as date or number 
 	

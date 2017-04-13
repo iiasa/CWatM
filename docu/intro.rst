@@ -17,4 +17,3 @@ Our vision for the short to medium term work of the group is to introduce water 
 | `www.iiasa.ac.at/cwatm <http://www.iiasa.ac.at/cwatm>`_ 
 | wfas.info@iiasa.ac.at
 
-

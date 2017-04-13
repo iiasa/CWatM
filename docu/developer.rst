@@ -1,19 +1,22 @@
 
-.. _rst_developer:
-
-#######################################
-Peter Burek, Yuskuke Satoh, Peter Greve
-#######################################
+#########
+Developer
+#########
 
 Community Water Model
 ######################
 
+
+
 **Developer:**
 
-| Research Scholars, Water Program, IIASA
-| Peter Burek,
-| Yusuke Satoh,
-| Peter Greve
+Research Scholars, Water Program, IIASA
+
+.. _rst_developer:
+
+Peter Burek, Yusuke Satoh, Peter Greve
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 .. figure:: _static/developer.jpg
     :width: 700px

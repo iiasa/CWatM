@@ -20,6 +20,10 @@ class snow(object):
     snow zones 1 -7 which each occupy a part of the pixel surface
 
     Variables *snow* and *rain* at end of this module are the pixel-average snowfall and rain
+    
+    .. inheritance-diagram: snow
+	
+	
     """
 
     def __init__(self, snow_variable):
@@ -34,6 +38,25 @@ class snow(object):
 
         * loads all the parameters for the day-degree approach for rain, snow and snowmelt
         * loads the parameter for frost
+
+        .. inheritance-diagram: snow
+
+
+        .. inheritance-diagram: initial
+
+        test of math1
+
+        .. math::
+
+            n_{\mathrm{offset}} = \sum_{k=0}^{N-1} s_k n_k
+
+			
+        .. graphviz::
+
+            digraph foo {
+                "snow" -> "initial";
+            }
+
         """
 
         self.var.numberSnowLayersFloat = loadmap('NumberSnowLayers')    # default 3
@@ -211,4 +234,6 @@ class snow(object):
         # SnowWaterEquivalent taken as 0.100 (based on density of 100 kg/m3) (Handbook of Hydrology, p. 7.5)
         # Afrost, (daily decay coefficient) is taken as 0.97 (Handbook of Hydrology, p. 7.28)
         # Kfrost, (snow depth reduction coefficient) is taken as 0.57 [1/cm], (HH, p. 7.28)
+
+        ii =1
 

@@ -19,57 +19,60 @@ Data format
 Data storage structure
 ======================
 
+.. math::
+
+    n_{\mathrm{offset}} = \sum_{k=0}^{N-1} s_k n_k
 
 .. code-block:: rest
    
    project
    │-  README.txt
    │
-   └───areamaps
-   │   │-  globalarea,lobith, ...
+   └--areamaps
+   │   └- globalarea,lobith, ...
    │
-   └───landcover
-   │   └───forest
+   └--landcover
+   │   └---forest
    │   │   │-  CropCoefficientForest_10days
    │   │   │-  interceptcapForest10days
    │   │   │-  maxRootdepth, maxSoilDepthFrac, minSoilDepthFrac
-   │   │   │-  rootFraction1, rootFraction2
+   │   │   └-  rootFraction1, rootFraction2
    │   │
-   │   └───grassland (same var as forest)
+   │   └---grassland (same var as forest)
    │   │
-   │   └───irrNonPaddy (same var as forest)
+   │   └---irrNonPaddy (same var as forest)
    │   │
-   │   └───irrPaddy (same var as forest)
+   │   └---irrPaddy (same var as forest)
    │
    └───landsurface   
    │   │- fractionlandcover, global_clone
    │   │ 
-   │   └───albedo
-   │   │   │- albedo
+   │   └---albedo
+   │   │   └- albedo
    │   │ 
-   │   └───topo
-   │   │   │- dz_Rel_hydro1k, orographyBeta, tanslope
+   │   └---topo
+   │   │   └- dz_Rel_hydro1k, orographyBeta, tanslope
    │   │
-   │   └───soil
+   │   └---soil
    │   │   │- airEntry1,airEntry2,KSat1,KSat2,poreSizeBeta1, poreSizeBeta2
    │   │   │- resVolWC1, resVolWC2, satVolWC1, satVolWC2
    │   │   │- StorageDepth1, StorageDepth2, soilWaterStorageCap1, soilWaterStorageCap2
-   │   │   │- percolationImp 
+   │   │   └- percolationImp 
    │   │ 
-   │   └───waterDemand
-   │   │   │- domesticWaterDemand, industryWaterDemand3, irrigationArea, efficiency.nc
+   │   └---waterDemand
+   │       └- domesticWaterDemand, industryWaterDemand3, irrigationArea, efficiency.nc
    │
-   └───groundwater   
-   │   │- kSatAquifer, recessionCoeff, specificYield
+   └---groundwater   
+   │   └- kSatAquifer, recessionCoeff, specificYield
    │
-   └───routing   
+   └---routing   
        │- ldd, catchment, cellarea
-	   │
-       └───kinematic
-       │   │- chanbnkf, chanbw, changrad, chanleng, chanman
        │
-	   └───lakereservoirs
-           │- lakeResArea, lakeResDis,lakeResID, lakeResType, lakeResVolRes, lakeResYear
+       └---kinematic
+       │   └- chanbnkf, chanbw, changrad, chanleng, chanman
+       │
+       └---lakereservoirs
+           └- lakeResArea, lakeResDis,lakeResID, lakeResType, lakeResVolRes, lakeResYear
 
 
 

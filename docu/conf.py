@@ -35,20 +35,20 @@ sys.path.insert(0,"C:\work\CWatM\source")
 #    'sphinx.ext.autodoc',
 #	'sphinx.ext.inheritance_diagram',
 # --------------------------------------------------------------------
-
-#     'sphinx.ext.imgmath',
-    #'sphinx.ext.viewcode',
+#     'sphinx.ext.viewcode',
 
 extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-	'sphinx.ext.autodoc',
-	'sphinx.ext.napoleon',
-	'rst2pdf.pdfbuilder'
+    'sphinx.ext.autodoc',
+    'sphinx.ext.inheritance_diagram',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.imgmath',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.githubpages'
 ]
-
 
 
 # Napoleon settings
@@ -87,7 +87,7 @@ pdf_use_numbered_links = False
 pdf_fit_background_mode = 'scale'
 
 
-pdf_use_index = False
+
 
 
 
@@ -204,7 +204,7 @@ html_short_title = 'CWAT Model'
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-html_logo = '_static/CWATM.jpg'
+html_logo = '_static/CWATM1.jpg'
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32

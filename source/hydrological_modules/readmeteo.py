@@ -48,14 +48,14 @@ class readmeteo(object):
 
 
 
-        self.var.Precipitation = readnetcdf2(binding['PrecipitationMaps'],dateVar['currDate'],addZeros = True) * self.var.DtDay * self.var.con_precipitation
+        self.var.Precipitation = readnetcdf2(binding['PrecipitationMaps'],dateVar['currDate'],addZeros = True, meteo = True) * self.var.DtDay * self.var.con_precipitation
 
         #TODO PB
         ##self.var.Precipitation = self.var.Precipitation * 0 + 0.2
 
 
         # precipitation (conversion to [mm] per time step)
-        self.var.Tavg = readnetcdf2(binding['TavgMaps'], dateVar['currDate'], addZeros = True, zeros = ZeroKelvin)
+        self.var.Tavg = readnetcdf2(binding['TavgMaps'], dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
         # average DAILY temperature (even if you are running the model
         # on say an hourly time step) [degrees C]
 
@@ -70,21 +70,21 @@ class readmeteo(object):
         # -----------------------------------------------------------------------
         if option['calc_evaporation']:
 
-            self.var.TMin = readnetcdf2(binding['TminMaps'], dateVar['currDate'], addZeros = True, zeros = ZeroKelvin)
-            self.var.TMax = readnetcdf2(binding['TmaxMaps'], dateVar['currDate'], addZeros = True, zeros = ZeroKelvin)
-            self.var.Psurf = readnetcdf2(binding['PSurfMaps'], dateVar['currDate'], addZeros = True)
+            self.var.TMin = readnetcdf2(binding['TminMaps'], dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
+            self.var.TMax = readnetcdf2(binding['TmaxMaps'], dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
+            self.var.Psurf = readnetcdf2(binding['PSurfMaps'], dateVar['currDate'], addZeros = True, meteo = True)
                 # Instantaneous surface pressure[Pa]
-            self.var.Wind = readnetcdf2(binding['WindMaps'], dateVar['currDate'], addZeros = True)
+            self.var.Wind = readnetcdf2(binding['WindMaps'], dateVar['currDate'], addZeros = True, meteo = True)
                 # wind speed maps at 10m [m/s]
-            self.var.Rsds = readnetcdf2(binding['RSDSMaps'], dateVar['currDate'], addZeros = True)
+            self.var.Rsds = readnetcdf2(binding['RSDSMaps'], dateVar['currDate'], addZeros = True, meteo = True)
                 # radiation surface downwelling shortwave maps [W/m2]
-            self.var.Rsdl = readnetcdf2(binding['RSDLMaps'], dateVar['currDate'], addZeros = True)
+            self.var.Rsdl = readnetcdf2(binding['RSDLMaps'], dateVar['currDate'], addZeros = True, meteo = True)
                 # radiation surface downwelling longwave maps [W/m2]
             if eval(binding['useHuss']):
-                self.var.Qair = readnetcdf2(binding['QAirMaps'], dateVar['currDate'], addZeros = True)
+                self.var.Qair = readnetcdf2(binding['QAirMaps'], dateVar['currDate'], addZeros = True, meteo = True)
                 # 2 m istantaneous specific humidity[kg / kg]
             else:
-                self.var.Qair = readnetcdf2(binding['RhsMaps'], dateVar['currDate'], addZeros = True)
+                self.var.Qair = readnetcdf2(binding['RhsMaps'], dateVar['currDate'], addZeros = True, meteo = True)
                 #
 
 
@@ -113,9 +113,9 @@ class readmeteo(object):
 
         # if pot evaporation is already precalulated
         else:
-            self.var.ETRef = readnetcdf2(binding['ETMaps'], dateVar['currDate'], addZeros = True, cut = False) * self.var.DtDay * self.var.con_e
+            self.var.ETRef = readnetcdf2(binding['ETMaps'], dateVar['currDate'], addZeros = True, cut = False, meteo = True) * self.var.DtDay * self.var.con_e
             # daily reference evaporation (conversion to [m] per time step)
-            self.var.EWRef = readnetcdf2(binding['E0Maps'], dateVar['currDate'], addZeros = True, cut = False) * self.var.DtDay * self.var.con_e
+            self.var.EWRef = readnetcdf2(binding['E0Maps'], dateVar['currDate'], addZeros = True, cut = False, meteo = True) * self.var.DtDay * self.var.con_e
             # potential evaporation rate from water surface (conversion to [m] per time step)
             # self.var.ESRef = (self.var.EWRef + self.var.ETRef)/2
             # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)

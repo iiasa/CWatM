@@ -13,6 +13,7 @@ It provides a degree of confidence in the results an is in-line with the `ISI-MI
 
 .. image:: _static/Figure_1_WAT_2.png
     :width: 600px
+
 Figure 1: Potential population under severe water scarcity in 2050 - Middle of the Road Scenario - `WFAS fast-track analysis <http://www.iiasa.ac.at/web/scientificUpdate/2015/program/wat/WFaS-fast-track-analysis.html>`_ 
 
 
@@ -21,11 +22,12 @@ Nexus Integration - Water Energy Food Environment
 
 | In the framework of the `Integrated Solution project <http://www.iiasa.ac.at/web/home/research/researchProjects/Nexus_Solutions.html>`_ 
 | the Community Water Model (CWATM) will be coupled with the existing IIASA models `MESSAGE <http://www.iiasa.ac.at/web/home/research/modelsData/MESSAGE/MESSAGE.en.html>`_ and `GLOBIOM <http://www.globiom.org/>`_
-| in order to do enhanced water assessments and an improved analysis feedback on water, energy, food and environmental aspects 
+| in order to do enhanced water assessments and an improved analysis feedback on water, energy, food and environmental aspects  
 
 
 .. image:: _static/nexus.jpg
     :width: 600px
+
 Figure 2: IIASA model interactions
 
 

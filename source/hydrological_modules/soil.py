@@ -109,11 +109,12 @@ class soil(object):
         self.var.soildepth[1] = np.maximum(0.05, loadmap('StorDepth1') - self.var.soildepth[0])
 
         # soil depth[1] is inc/decr by a calibration factor
-        self.var.soildepth[1] =  self.var.soildepth[1] * loadmap('soildepth_factor')
-        self.var.soildepth[1] = np.maximum(0.05, self.var.soildepth[1])
+        #self.var.soildepth[1] =  self.var.soildepth[1] * loadmap('soildepth_factor')
+        #self.var.soildepth[1] = np.maximum(0.05, self.var.soildepth[1])
 
         # corrected by the calibration factor, total soil depth stays the same
-        self.var.soildepth[2] = loadmap('StorDepth2') + (1. - loadmap('soildepth_factor') * self.var.soildepth[1])
+        #self.var.soildepth[2] = loadmap('StorDepth2') + (1. - loadmap('soildepth_factor') * self.var.soildepth[1])
+        self.var.soildepth[2] = loadmap('StorDepth2') * loadmap('soildepth_factor')
         self.var.soildepth[2] = np.maximum(0.05, self.var.soildepth[2])
 
 

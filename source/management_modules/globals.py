@@ -34,11 +34,13 @@ global binding, option, FlagName, Flags, ReportSteps, FilterSteps, EnsMembers, o
 global MMaskMap, maskmapAttr, bigmapAttr, cutmap, metadataNCDF
 global timestepInit
 global metaNetcdfVar
+global inputcounter
 
 timestepInit =[]
 binding = {}
 option = {}
 metaNetcdfVar = {}
+inputcounter = {}
 
 # Initial conditions
 global initCondVar,initCondVarValue

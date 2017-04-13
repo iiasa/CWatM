@@ -1,21 +1,21 @@
-# -------------------------------------------------------------------------
-# Name:        Water Balance module
-# Purpose:		1.) check if water balance per time step is ok ( = 0)
-#               2.) produce an annual overview - income, outcome storage 
-# Author:      PB
+#-------------------------------------------------------------------------
+#Name:        Water Balance module
+#Purpose:
+#1.) check if water balance per time step is ok ( = 0)
+#2.) produce an annual overview - income, outcome storage
+#Author:      PB
 #
-# Created:     22/08/2016
-# Copyright:   (c) PB 2016
-# -------------------------------------------------------------------------
+#Created:     22/08/2016
+#Copyright:   (c) PB 2016
+#-------------------------------------------------------------------------
 
 from management_modules.data_handling import *
-
 
 class waterbalance(object):
     """
     WATER BALANCE
-
-	* check if water balnace per time step is ok ( = 0)
+    
+    * check if water balnace per time step is ok ( = 0)
     * produce an annual overview - income, outcome storage
     """
 

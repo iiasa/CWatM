@@ -25,7 +25,7 @@ Community Water Model
    :numbered: 1
    
    intro
-   license
+
    nexus
    community
    modeldesign
@@ -41,6 +41,8 @@ Community Water Model
    updates
    bugs
    publication
+   developer
+   license
    source
 
    
