@@ -1,5 +1,6 @@
 # CWatM
 Community Water Model
-1st April 2016
-https://github.com/CWatM/CWatM.git
+1st April 2017
+http://www.iiasa.ac.at/CWATM
+https://cwatm.github.io/
 IIASA 
