@@ -8,9 +8,11 @@
 # Copyright:   (c) burekpe 2016
 # -------------------------------------------------------------------------
 
+#from management_modules.improvepcraster import *
+from pcraster2.dynamicFramework import *
+from pcraster2.dynamicPCRasterBase import *
 
 from management_modules.data_handling import *
-from management_modules.improvepcraster import *
 from management_modules.messages import *
 
 

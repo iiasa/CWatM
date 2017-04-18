@@ -1,24 +1,32 @@
 # -*- coding: utf-8 -*-
-#import pcraster._pcraster as pcr
-import dynamicBase
 
 
 
-class DynamicModel(dynamicBase.DynamicBase):
+
+class DynamicModel(object):
 
   def __init__(self):
-    dynamicBase.DynamicBase.__init__(self)
-    self.silentModelOutput = False
 
+    self.silentModelOutput = False
+    self._d_nrTimeSteps = 0
+    self.currentStep = 0
+    self._d_firstTimeStep = 1
+    self.inTimeStep = False
+    self.inInitial = False
+    self.inDynamic = False
+
+	
+	
+	
+	
+	
   def initial(self):
     #print "Implement 'initial' method"
-	ii = 0
-
+    ii =1
+	
   def dynamic(self):
     print  "Implement 'dynamic' method"
 
-  def _silentModelOutput(self):
-    return self.silentModelOutput
 
   def timeSteps(self):
     """
@@ -47,63 +55,99 @@ class DynamicModel(dynamicBase.DynamicBase):
     assert self._d_firstTimeStep
     return self._d_firstTimeStep
 
-  def report(self,
-    variable,
-    name):
+  def setQuiet(self,
+    quiet=True):
     """
-    Storing map data to disk
-
-    `variable`
-      Variable containing the PCRaster map data
-
-    `name`
-      Name used as filename. Use a filename with less than eight
-      characters and without extension. File extension for dynamic models
-      is ".map" in the initial section and the 8.3 style format name in
-      the dynamic section. File extensions will be appended automatically.
+    Disables the progress display of timesteps.
     """
-    self._reportNew(variable, name)
+    self.silentModelOutput = quiet	
+	
+# -------------------------------------------
 
-  def readmap(self, name, style=1):
+	
+  def _silentModelOutput(self):
+    return self.silentModelOutput
+	
+
+  def _inDynamic(self):
+    return self.inDynamic
+
+  def _inInitial(self):
+    return self.inInitial
+
+
+  def _setInInitial(self, value):
+    assert isinstance(value, bool)
+    self.inInitial = value
+
+  def _setInDynamic(self, value):
+    assert isinstance(value, bool)
+    self.inDynamic = value
+
+  def _inTimeStep(self):
     """
-    Read map data from disk.
-
-    `name`
-      Name used as filename. Use filename with less than eight characters
-      and without extension. File extension for dynamic models is ".map"
-      in initial section and the 8.3 style format name in the dynamic
-      section. File extensions will be appended automatically.
-
-    .. todo::
-
-      `style` argument is not used.
+    Returns whether a time step is currently executing.
     """
-    return self._readmapNew(name)
+    #if hasattr(self._userModel(), "_d_inTimeStep"):
+    #  return self._userModel()._d_inTimeStep
+    #else:
+    #  return False
+    return self.inTimeStep
 
-  def _setNrTimeSteps(self, timeSteps):
+  def _setInTimeStep(self, value):
+    assert isinstance(value, bool)
+    self.inTimeStep = value	
+  
+  def _setFirstTimeStep(self, firstTimeStep):
+
+    if not isinstance(firstTimeStep, int):
+      msg = "first timestep argument (%s) of DynamicFramework must be of type int" % (type(firstTimeStep))
+      raise AttributeError(msg)
+
+    if firstTimeStep <= 0:
+      msg = "first timestep argument (%s) of DynamicFramework must be > 0" % (firstTimeStep)
+      raise AttributeError(msg)
+
+    if firstTimeStep > self.nrTimeSteps():
+      msg = "first timestep argument (%s) of DynamicFramework must be smaller than given last timestep (%s)" % (firstTimeStep, self.nrTimeSteps())
+      raise AttributeError(msg)
+
+    self._d_firstTimeStep = firstTimeStep
+	
+	
+	
+  def _setNrTimeSteps(self, TimeStep):
     """
-    Configure the number of time steps.
-
-    In addition to the setting the number of timesteps we need to pass
-    the value to the PCRaster runtime engine.
+    Set the number of time steps to run.
     """
-    dynamicBase.DynamicBase._setNrTimeSteps(self, timeSteps)
+    if not isinstance(TimeStep, int):
+      msg = "last timestep argument (%s) of DynamicFramework must be of type int" % (type(TimeStep))
+      raise AttributeError(msg)
 
-    # PB commented out was looking for setclone
-    #pcr._rte().setNrTimeSteps(timeSteps)
-    self._d_nrTimeSteps = timeSteps
+    if TimeStep <= 0:
+      msg = "last timestep argument (%s) of DynamicFramework must be > 0" % (TimeStep)
+      raise AttributeError(msg)
+
+    self._d_nrTimeSteps = TimeStep
+	
 
   def _setCurrentTimeStep(self,
     step):
     """
     Set the current time step.
-
-    In addition to the setting the current timestep within the framework,
-    we need to pass the value to the PCRaster runtime engine.
     """
-    dynamicBase.DynamicBase._setCurrentTimeStep(self, step)
+    if step <= 0:
+      msg = "Current timestep must be > 0"
+      raise AttributeError(msg)
 
-    # PB commented out was looking for setclone
-    #pcr._rte().setCurrentTimeStep(step)
+    if step > self.nrTimeSteps():
+      msg = "Current timestep must be <= %d (nrTimeSteps)"
+      raise AttributeError(msg)
+
     self.currentStep = step
+
+
+# ----------------------------------------	
+	
+	
 

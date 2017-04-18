@@ -19,10 +19,6 @@ Data format
 Data storage structure
 ======================
 
-.. math::
-
-    n_{\mathrm{offset}} = \sum_{k=0}^{N-1} s_k n_k
-
 .. code-block:: rest
    
    project
@@ -35,7 +31,7 @@ Data storage structure
    │   └---forest
    │   │   │-  CropCoefficientForest_10days
    │   │   │-  interceptcapForest10days
-   │   │   │-  maxRootdepth, maxSoilDepthFrac, minSoilDepthFrac
+   │   │   │-  maxRootdepth, minSoilDepthFrac
    │   │   └-  rootFraction1, rootFraction2
    │   │
    │   └---grassland (same var as forest)
@@ -51,7 +47,7 @@ Data storage structure
    │   │   └- albedo
    │   │ 
    │   └---topo
-   │   │   └- dz_Rel_hydro1k, orographyBeta, tanslope
+   │   │   └- dz_Rel_hydro1k, elvstd , tanslope
    │   │
    │   └---soil
    │   │   │- airEntry1,airEntry2,KSat1,KSat2,poreSizeBeta1, poreSizeBeta2
@@ -60,7 +56,7 @@ Data storage structure
    │   │   └- percolationImp 
    │   │ 
    │   └---waterDemand
-   │       └- domesticWaterDemand, industryWaterDemand3, irrigationArea, efficiency.nc
+   │       └- domesticWaterDemand, industryWaterDemand, irrigationArea, efficiency
    │
    └---groundwater   
    │   └- kSatAquifer, recessionCoeff, specificYield

@@ -102,7 +102,9 @@ def CWATMexe():
 
 
     CWATM = CWATModel()
-    stCWATM = DynamicFramework2(CWATM, firstTimestep=dateVar["intStart"], lastTimeStep=dateVar["intEnd"])
+    stCWATM = DynamicFramework(CWATM, firstTimestep=dateVar["intStart"], lastTimeStep=dateVar["intEnd"])
+    #stCWATM = DynamicFramework2(CWATM, firstTimestep=dateVar["intStart"], lastTimeStep=dateVar["intEnd"])
+
     stCWATM.rquiet = True
     stCWATM.rtrace = False
 
@@ -123,6 +125,7 @@ def CWATMexe():
 		# cProfile.run('stLisflood.run()')
     # python -m cProfile -o  l1.pstats cwatm.py settings1.ini
     # gprof2dot -f pstats l1.pstats | dot -T png -o callgraph.png
+    # pyreverse -AS -f ALL -o png cwatm.py -p Main
 
     if Flags['printtime']:
         print "\n\nTime profiling"
