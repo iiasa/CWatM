@@ -766,6 +766,8 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
 
         # Fill variables
         cell = round(maskmapAttr['cell'],5)
+        xl = round((maskmapAttr['x'] + cell / 2), 5)
+        xr = round((xl + col * cell), 5)
         yu = round((maskmapAttr['y'] - cell / 2),5)
         yd = round((yu - row * cell),5)
         #lats = np.arange(yu, yd, -cell)

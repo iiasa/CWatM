@@ -650,7 +650,8 @@ an absolute waiver of all civil liability in connection with the
 Program, unless a warranty or assumption of liability accompanies a
 copy of the Program in return for a fee.
 
-   
+
+.. _rst_terms:
 
 Terms and Conditions of Use of the Community Water Model
 ========================================================
@@ -660,7 +661,7 @@ Stipulations regarding the use of the Commumunity  Water Model (hereinafter *CWA
 1. Copyright
 ------------
 
-The owners of the copyright of CWATM are Peter Burek, Yoshihide Wada, Yusuke Satoh and Peter Greve (hereinafter the “Developer”) and IIASA.
+The owners of the copyright of CWATM are Peter Burek, Yoshihide Wada, Yusuke Satoh and Peter Greve (hereinafter the “Developer”) at IIASA.
 
 
 2. Reprints and quotations

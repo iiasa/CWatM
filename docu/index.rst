@@ -43,6 +43,7 @@ Community Water Model
    publication
    developer
    license
+   download
    source
 
    
