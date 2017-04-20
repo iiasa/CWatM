@@ -631,8 +631,8 @@ to attach them to the start of each source file to most effectively
 state the exclusion of warranty; and each file should have at least
 the "copyright" line and a pointer to where the full notice is found.
 
-    {one line to give the program's name and a brief idea of what it does.}
-    Copyright (C) {year}  {name of author}
+    CWATM models water supply, water demand and environmental needs at global and regional level. 
+    Copyright (C) 2017  Burek, Wada, Satoh, Greve
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -652,7 +652,7 @@ Also add information on how to contact you by electronic and paper mail.
   If the program does terminal interaction, make it output a short
 notice like this when it starts in an interactive mode:
 
-    {project}  Copyright (C) {year}  {fullname}
+    CWATM  Copyright (C) 2017  Community Water Model
     This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.
     This is free software, and you are welcome to redistribute it
     under certain conditions; type `show c' for details.
@@ -675,3 +675,37 @@ Public License instead of this License.  But first, please read
 
 
 Laxenburg Austria, 6/4/2017
+
+
+
+
+Terms and Conditions of Use of the Community Water Model
+
+   
+Stipulations regarding the use of the Commumunity  Water Model (hereinafter *CWATM*) provided here by the International Institute for Applied System Analysis, Laxenburg, Austria (IIASA) are as follows:
+
+1. Copyright
+The owners of the copyright of CWATM are Peter Burek, Yoshihide Wada, Yusuke Satoh and Peter Greve (hereinafter the “Developer”) at IIASA.
+
+
+2. Reprints and quotations
+In the event of the publication of a document or scientific paper using CWATM or its modified version, the following paper must be referenced:
+paper is still under work.
+At the moment refer to:
+Burek, P., Satoh, Y., Greve, P., Kahil, T. and Wada, Y. 2017: The Community Water Model (CWATM) / Development of a community driven global water model. Geophysical Research Abstracts. Vol. 19, EGU2017-9769
+
+3. Usage
+Usage is regulated by GNU General Public License V3 (see above)
+
+4. Final Remarks
+
+We as developers belief that CWATM should be utilize to encourage ideas and to advance hydrological, environmental science and stimulate integration into other science disciplines.
+CWATM is based on existing knowledge of hydrology realized with Python and C++. Especially ideas from HBV, PCR-GLOBE, LISFLOOD, H08, Matsiro are used for inspiration.
+Your support is more then welcome and highly appreciated
+
+The developers of CWAT Model, Laxenburg Austria, 6/4/2017
+
+
+
+
+

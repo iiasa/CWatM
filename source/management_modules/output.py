@@ -87,7 +87,9 @@ class outputTssMap(object):
                             msg = "Checking output file path \n"
                             raise CWATMFileError(outDir[sec], msg)
                         info.append(var)
-                        info.append(True)   # tss header
+                        if ismap: info.append(False)  # flag set False for initial writing if it is a map
+                        else: info.append(not(Flags['noheader']))  # flag set True for writing time series header
+
                         placeholder =[]
                         info.append(placeholder)
                         out[key][i] = info
@@ -147,6 +149,7 @@ class outputTssMap(object):
                 for type in outputTypMap:
                     # map or tss, section, type = daily, monthly ....
                     appendinfo(outMap,sec, "_out_map_",type, True)
+
 
 
         i = 1
