@@ -4,7 +4,9 @@ IIASA
 20th April 2017
 
 CWATM represents one of the new key elements of IIASA’s Water program to assess water supply, water demand and environmental needs at global and regional level. The hydrologic model is open source and flexible to link in different aspects of the water energy food nexus. CWATM will be a basis to develop a next-generation global hydro-economic modeling and will be coupled to the existing IIASA models like MESSAGE and GLOBIOM
+
 http://www.iiasa.ac.at/cwatm
+
 
 ## Model design and processes included
 
@@ -25,6 +27,7 @@ Our vision for the short to medium term work is to introduce water quality (e.g.
 ## Contact CWAT
 
 http://www.iiasa.ac.at/cwatm 
+
 wfas.info@iiasa.ac.at
 
 Our vision for the short to medium term work is to introduce water quality (e.g., salinization in deltas and eutrophication associated with mega cities) into CWATM and to consider qualitative and quantitative measures of transboundary river and groundwater governance into an integrated modelling framework.

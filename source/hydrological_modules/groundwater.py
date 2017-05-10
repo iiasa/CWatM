@@ -61,6 +61,7 @@ class groundwater(object):
         Calculate groundweater storage and baseflow
         """
 
+        #self.var.sum_gwRecharge = readnetcdf2("C:/work/output2/sum_gwRecharge_daily.nc", dateVar['currDate'], addZeros=True, cut = False )
 
         if option['calcWaterBalance']:
             self.var.prestorGroundwater = self.var.storGroundwater.copy()

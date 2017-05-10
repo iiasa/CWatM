@@ -154,10 +154,6 @@ class runoff_concentration(object):
                 flow_conc[lag] += fraction * flow * areaFraction
             return flow_conc
 
-
-
-
-
         self.var.sum_landSurfaceRunoff = globals.inZero.copy()
         self.var.sum_directRunoff = globals.inZero.copy()
 

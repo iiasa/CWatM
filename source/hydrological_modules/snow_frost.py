@@ -235,5 +235,4 @@ class snow(object):
         # Afrost, (daily decay coefficient) is taken as 0.97 (Handbook of Hydrology, p. 7.28)
         # Kfrost, (snow depth reduction coefficient) is taken as 0.57 [1/cm], (HH, p. 7.28)
 
-        ii =1
 

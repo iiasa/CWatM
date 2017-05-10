@@ -62,6 +62,7 @@ class CWATModel_dyn(DynamicModel):
         # ************************************************************
         """ up to here it was fun, now the real stuff starts
         """
+
         self.readmeteo_module.dynamic()
         timemeasure("Read meteo") # 1. timing after read input maps
 

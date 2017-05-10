@@ -47,7 +47,7 @@ class landcoverType(object):
                         'directRunoff', 'openWaterEvap']
         for variable in landcoverAll:  vars(self.var)[variable] = np.tile(globals.inZero, (6, 1))
 
-        landcoverPara = ['minTopWaterLayer','minCropKC','minInterceptCap','cropDeplFactor','rootFraction1','rootFraction2',
+        landcoverPara = ['minInterceptCap','cropDeplFactor','rootFraction1','rootFraction2',
                          'maxRootDepth', 'topWaterLayer','minSoilDepthFrac',
                          'interflow',
                          'cropCoefficientNC_filename', 'interceptCapNC_filename','coverFractionNC_filename',]
@@ -57,7 +57,7 @@ class landcoverType(object):
 
         # fraction (m2) of a certain irrigation type over (only) total irrigation area ; will be assigned by the landSurface module
         # output variable per land cover class
-        landcoverVars = ['irrTypeFracOverIrr','fractionArea','totAvlWater',
+        landcoverVars = ['irrTypeFracOverIrr','fractionArea','totAvlWater','cropKC',
                          'effSatAt50',  'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin','rootZoneWaterStorageRange',
                          'totalPotET','potBareSoilEvap','potTranspiration','soilWaterStorage',
                          'infiltration','actBareSoilEvap','landSurfaceRunoff','actTransTotal',
@@ -69,10 +69,10 @@ class landcoverType(object):
         for variable in landcoverVars:  vars(self.var)[variable] = np.tile(globals.inZero,(6,1))
 
         #for 4 landcover types with soil underneath
-        landcoverVarsSoil = ['arnoBeta']
+        landcoverVarsSoil = ['arnoBeta','rootZoneWaterStorageCap','rootZoneWaterStorageCap12']
         for variable in landcoverVarsSoil:  vars(self.var)[variable] = np.tile(globals.inZero,(4,1))
 
-        soilVars = ['adjRoot','perc','capRise', 'soilStor','rootDepth']
+        soilVars = ['adjRoot','perc','capRise', 'soilStor','rootDepth','storCap']
         # For 3 soil layers and 4 landcover types
         for variable in soilVars:  vars(self.var)[variable]= np.tile(globals.inZero,(self.var.soilLayers,4,1))
 
@@ -106,12 +106,17 @@ class landcoverType(object):
             self.var.sum_interceptStor += self.var.fracVegCover[i] * self.var.interceptStor[i]
             i += 1
 
+
+
+        self.var.minCropKC= loadmap('minCropKC')
+        self.var.minTopWaterLayer = loadmap("minTopWaterLayer")
+
         i = 0
         for coverType in self.var.coverTypes[:4]:
             # other paramater values
             # b coefficient of soil water storage capacity distribution
-            self.var.minTopWaterLayer.append(loadmap(coverType + "_minTopWaterLayer"))
-            self.var.minCropKC.append(loadmap(coverType + "_minCropKC"))
+            #self.var.minTopWaterLayer.append(loadmap(coverType + "_minTopWaterLayer"))
+            #self.var.minCropKC.append(loadmap(coverType + "_minCropKC"))
 
             #self.var.minInterceptCap.append(loadmap(coverType + "_minInterceptCap"))
             self.var.cropDeplFactor.append(loadmap(coverType + "_cropDeplFactor"))
@@ -145,29 +150,56 @@ class landcoverType(object):
 
             # Improved Arno's scheme parameters: Hageman and Gates 2003
             # arnoBeta defines the shape of soil water capacity distribution curve as a function of  topographic variability
+            # b = max( (oh - o0)/(oh + omax), 0.01)
+            # oh: the standard deviation of orography, o0: minimum std dev, omax: max std dev
 
-            #   self.var.arnoBeta[i] = (self.var.maxSoilDepthFrac[i] - 1.) / (1. - self.var.minSoilDepthFrac[i]) + self.var.orographyBeta - 0.01
+            self.var.arnoBetaOro = (self.var.ElevationStD - 10.0) / (self.var.ElevationStD + 1500.0)
+
+            # for CALIBRATION
+            self.var.arnoBetaOro = self.var.arnoBetaOro + loadmap('arnoBeta_add')
+            self.var.arnoBetaOro = np.minimum(1.2, np.maximum(0.01, self.var.arnoBetaOro))
+
             self.var.arnoBeta[i] = self.var.arnoBetaOro + loadmap(coverType + "_arnoBeta")
             self.var.arnoBeta[i] = np.minimum(1.2, np.maximum(0.01, self.var.arnoBeta[i]))
 
 
 
-            self.var.rootZoneWaterStorageMin[i] = self.var.minSoilDepthFrac[i] * self.var.rootZoneWaterStorageCap
-            self.var.rootZoneWaterStorageRange[i] = self.var.rootZoneWaterStorageCap - self.var.rootZoneWaterStorageMin[i]
 
             # calculate rootdepth for each soillayer and each land cover class
-            self.var.rootDepth[0][i] = np.minimum(self.var.soildepth[0], self.var.maxRootDepth[i])
-            self.var.rootDepth[1][i] = np.minimum(self.var.soildepth[1], np.maximum(0., self.var.maxRootDepth[i] - self.var.soildepth[0]))
-            self.var.rootDepth[2][i] = np.minimum(self.var.soildepth[2], np.maximum(0., self.var.maxRootDepth[i] - self.var.soildepth[1]))
+            #self.var.rootDepth[0][i] = np.minimum(self.var.soildepth[0], self.var.maxRootDepth[i])
+            self.var.rootDepth[0][i] = self.var.soildepth[0].copy()  # 0.05 m
+            # if land cover = forest
+            if coverType <>'grassland':
+                # soil layer 1 = root max of land cover  - first soil layer
+                h1 = np.maximum(self.var.soildepth[1], self.var.maxRootDepth[i] - self.var.soildepth[0])
+                self.var.rootDepth[1][i] = np.minimum(self.var.soildepth12 - 0.05, h1)
+                # soil layer is minimim 0.05 m
+                self.var.rootDepth[2][i] = np.maximum(0.05, self.var.soildepth12 - self.var.rootDepth[1][i])
+            else:
+                self.var.rootDepth[1][i] = self.var.soildepth[1].copy()
+                self.var.rootDepth[2][i] = self.var.soildepth[2].copy()
+
 
             # scaleRootFractions
             rootFrac = np.tile(globals.inZero,(self.var.soilLayers,1))
-            rootFrac[0] = 0.05/0.30 * self.var.rootFraction1[i]
-            rootFrac[1] = 0.25/0.30 * self.var.rootFraction1[i]
+            fractionroot12 = self.var.rootDepth[0][i] / (self.var.rootDepth[0][i] + self.var.rootDepth[1][i] )
+            rootFrac[0] = fractionroot12 * self.var.rootFraction1[i]
+            rootFrac[1] = (1 - fractionroot12) * self.var.rootFraction1[i]
             rootFrac[2] = self.var.rootFraction2[i]
             rootFracSum = np.sum(rootFrac,axis=0)
             for soilLayer in xrange(self.var.soilLayers):
                 self.var.adjRoot[soilLayer][i] = rootFrac[soilLayer] / rootFracSum
+
+
+
+
+            for j in xrange(self.var.soilLayers):
+                self.var.storCap[j][i] = self.var.rootDepth[j][i] * (self.var.satVol[j] - self.var.resVol[j])
+            self.var.rootZoneWaterStorageCap[i] = self.var.storCap[0][i] + self.var.storCap[1][i] + self.var.storCap[2][i]
+            self.var.rootZoneWaterStorageCap12[i] = self.var.storCap[0][i] + self.var.storCap[1][i]
+
+            self.var.rootZoneWaterStorageMin[i] = self.var.minSoilDepthFrac[i] * self.var.rootZoneWaterStorageCap[i]
+            self.var.rootZoneWaterStorageRange[i] = self.var.rootZoneWaterStorageCap[i] - self.var.rootZoneWaterStorageMin[i]
 
 
 
@@ -182,7 +214,7 @@ class landcoverType(object):
                      (self.var.satVol[j] - self.var.resVol[j]) * self.var.rootDepth[j][i]
 
             self.var.totAvlWater[i] = np.sum(h,axis=0)
-            self.var.totAvlWater[i] = np.minimum(self.var.totAvlWater[i], self.var.rootZoneWaterStorageCap)
+            self.var.totAvlWater[i] = np.minimum(self.var.totAvlWater[i], self.var.rootZoneWaterStorageCap[i])
 
             h0 = np.tile(globals.inZero, (self.var.soilLayers, 1))
             h1 = np.tile(globals.inZero, (self.var.soilLayers, 1))
@@ -193,7 +225,7 @@ class landcoverType(object):
             # calculateParametersAtHalfTranspiration(self, parameters):
             # average soil parameters at which actual transpiration is halved
             for j in xrange(self.var.soilLayers):
-                h0[j] = self.var.storCap[j] * self.var.adjRoot[j][i]
+                h0[j] = self.var.storCap[j][i] * self.var.adjRoot[j][i]
                 h1[j] = np.maximum(0., self.var.effSatAtFieldCap[j] - self.var.effSatAtWiltPoint[j]) * \
                      (self.var.satVol[j] - self.var.resVol[j]) * self.var.rootDepth[j][i]
                 h2[j] = h0[j] * (self.var.matricSuction50 / self.var.airEntry[j]) ** (-1. / self.var.poreSizeBeta[j])
@@ -201,7 +233,7 @@ class landcoverType(object):
 
             adjrootZoneWaterStorageCap = np.sum(h0 , axis=0)
             self.var.totAvlWater[i] = np.sum(h1,axis=0)
-            self.var.totAvlWater[i] = np.minimum(self.var.totAvlWater[i], self.var.rootZoneWaterStorageCap)
+            self.var.totAvlWater[i] = np.minimum(self.var.totAvlWater[i], self.var.rootZoneWaterStorageCap[i])
             self.var.effSatAt50[i] = np.sum(h2 / adjrootZoneWaterStorageCap , axis=0)
             self.var.effPoreSizeBetaAt50[i] = np.sum(h3 / adjrootZoneWaterStorageCap, axis=0)
 

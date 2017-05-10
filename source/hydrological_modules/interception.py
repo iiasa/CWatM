@@ -77,7 +77,7 @@ class interception(object):
 
         # update actual evaporation (after interceptEvap)
         # interceptEvap is the first flux in ET, soil evapo and transpiration are added later
-        self.var.actualET[No] = self.var.interceptEvap[No].copy()
+        self.var.actualET[No] = self.var.interceptEvap[No] + self.var.snowEvap
 
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(

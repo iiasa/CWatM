@@ -130,8 +130,8 @@ class evaporationPot(object):
 
             windpart = 900 * self.var.Wind / (self.var.Tavg + 273.16)
             denominator = Delta + Psycon *(1 + 0.34 * self.var.Wind)
-            numerator1 = Delta / denominator
-            numerator2 = Psycon / denominator
+            numerator1 = 2.0 * Delta / denominator
+            numerator2 = 2.0 * Psycon / denominator
 
             RNAN = RNA * numerator1
             #RNANSoil = RNASoil * numerator1
@@ -152,7 +152,7 @@ class evaporationPot(object):
 
             # -> here we are at ET0 (see http://www.fao.org/docrep/X0490E/x0490e04.htm#TopOfPage figure 4:)
 
-            self.var.sumETRef = self.var.sumETRef + self.var.ETRef*1000
+            #self.var.sumETRef = self.var.sumETRef + self.var.ETRef*1000
 
 
             if dateVar['curr'] ==32:

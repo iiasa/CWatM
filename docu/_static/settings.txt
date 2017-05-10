@@ -1,0 +1,30 @@
+[DEFAULT]
+Root = C:\work\CWATM\calibration
+ForcingStart = 1/1/2003
+ForcingEnd = 12/31/2010
+
+[ObservedData]
+Qtss = %(Root)s\observed_data\lobith2006.csv
+Column = lobith
+
+[Path]
+Templates = %(Root)s\templates
+SubCatchmentPath = %(Root)s\catchments
+ParamRanges = %(Root)s\ParamRanges.csv
+
+[Templates]
+ModelSettings = settings.ini
+RunModel = runpy.bat
+
+[Option]
+firstrun = True
+para_first = [0.0035, 1.0, 1.0, 3.0, 1.0, 1.0, 1.0, 1.0,0.5,1., 1.]
+# Snowmelt, crop KC, soil depth,pref. flow, arno beta, groundwater recession, runoff conc., routing, manning factor, normalStorageLimit, lakeAFactor,No of run
+bestrun = True
+
+[DEAP]
+maximize = True
+use_multiprocessing = 1
+ngen = 2
+mu = 16
+lambda_ = 16

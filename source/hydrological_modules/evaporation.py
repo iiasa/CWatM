@@ -43,22 +43,29 @@ class evaporation(object):
         # crop coefficient read for forest and grassland from file
 
         if dateVar['newStart'] or (dateVar['currDate'].day in [1,11,21]):
-            self.var.cropKC = readnetcdf2(binding[coverType + '_cropCoefficientNC'], dateVar['10day'], "10day")
-            self.var.cropKC = np.maximum(self.var.cropKC, self.var.minCropKC[No])
+            self.var.cropKC[No] = readnetcdf2(binding[coverType + '_cropCoefficientNC'], dateVar['10day'], "10day")
+            self.var.cropKC[No] = np.maximum(self.var.cropKC[No], self.var.minCropKC)
 
 
         # calculate potential ET
         ##  self.var.totalPotET total potential evapotranspiration for a reference crop for a land cover class
-        #self.var.totalPotET[No] = np.minimum(1.0, self.var.cropCorrect  * self.var.cropKC) * self.var.ETRef
-        self.var.totalPotET[No] = self.var.cropCorrect * self.var.cropKC * self.var.ETRef
+        #self.var.totalPotET[No] = np.minimum(1.0, self.var.cropCorrect  * self.var.cropKC[No]) * self.var.ETRef
+        self.var.totalPotET[No] = self.var.cropCorrect * self.var.cropKC[No] * self.var.ETRef
 
         # calculate potential bare soil evaporation and transpiration
-        #self.var.potBareSoilEvap[No] = np.minimum(1.0, self.var.cropCorrect * self.var.minCropKC[No]) * self.var.ETRef
-        self.var.potBareSoilEvap[No] = self.var.cropCorrect * self.var.minCropKC[No] * self.var.ETRef
+        #self.var.potBareSoilEvap[No] = np.minimum(1.0, self.var.cropCorrect * self.var.minCropKC) * self.var.ETRef
+        self.var.potBareSoilEvap = self.var.cropCorrect * self.var.minCropKC * self.var.ETRef
+
         ## potTranspiration: Transpiration for each land cover class
-        #self.var.potTranspiration[No] = np.minimum(1.0, self.var.cropCorrect * self.var.cropKC) * self.var.ETRef - self.var.potBareSoilEvap[No]
-        self.var.potTranspiration[No] = self.var.cropCorrect * self.var.cropKC * self.var.ETRef - self.var.potBareSoilEvap[No]
+        #self.var.potTranspiration[No] = np.minimum(1.0, self.var.cropCorrect * self.var.cropKC[No]) * self.var.ETRef - self.var.potBareSoilEvap[No]
+        self.var.potTranspiration[No] = self.var.cropCorrect * self.var.cropKC[No] * self.var.ETRef - self.var.potBareSoilEvap
+
+
 
         # evaporation from bare soil for each land cover class
 
 
+        # calculate snow evaporation
+        self.var.snowEvap = np.minimum(self.var.SnowMelt, self.var.potBareSoilEvap)
+        self.var.SnowMelt = self.var.SnowMelt - self.var.snowEvap
+        self.var.potBareSoilEvap = self.var.potBareSoilEvap - self.var.snowEvap
