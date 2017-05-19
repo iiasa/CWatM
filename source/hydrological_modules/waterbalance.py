@@ -30,7 +30,7 @@ class waterbalance(object):
         Initial part of the water balance module
         """
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             i = 1
             self.var.nonIrrReturnFlow = 0
             self.var.localQW = 0
@@ -38,7 +38,7 @@ class waterbalance(object):
 
         """ store the initial storage volume of snow, soil etc.
         """
-        if option['sumWaterBalance']:
+        if checkOption('sumWaterBalance'):
             # variables of storage
             self.var.sum_balanceStore = ['SnowCover','sum_interceptStor','sum_topWaterLayer']
 
@@ -153,8 +153,8 @@ class waterbalance(object):
         """
         Check water balance of snow, vegetation, soil, groundwater
         """
-
-        if option['calcWaterBalance']:
+        """
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Precipitation,self.var.sum_capRiseFromGW,self.var.sum_irrGrossDemand],    # In
                 [self.var.sum_directRunoff,self.var.sum_interflow, self.var.sum_percToGW,    # Out
@@ -203,12 +203,13 @@ class waterbalance(object):
                 [self.var.prevSnowCover * self.var.cellArea, self.var.pretotalSoil * self.var.cellArea,self.var.prestorGroundwater * self.var.cellArea,self.var.prechannelStorage],       # prev storage
                 [self.var.SnowCover * self.var.cellArea, self.var.totalSoil * self.var.cellArea,self.var.storGroundwater * self.var.cellArea,self.var.channelStorageBefore],
                 "S+G+Rout2", False)   # True
-
+        """
+        ii =1
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-        if option['sumWaterBalance']:
+        if checkOption('sumWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheckSum(
                 [self.var.sum_irrGrossDemand,self.var.nonIrrGrossDemand],                                           # In
                 [self.var.unmetDemand,self.var.nonFossilGroundwaterAbs, self.var.sum_actSurfaceWaterAbstract],     # Out
@@ -236,7 +237,7 @@ class waterbalance(object):
                 [self.var.SnowCover * self.var.cellArea, self.var.totalSoil * self.var.cellArea,self.var.storGroundwater * self.var.cellArea,self.var.channelStorage],
                 "S+G+Rout2Sum", False)
 
-        if option['budyko']:
+        if checkOption('budyko'):
 
 
             # in mm
@@ -278,7 +279,7 @@ class waterbalance(object):
         If option **sumWaterBalance** sum water balance for certain variables
         """
 
-        if option['sumWaterBalance']:
+        if checkOption('sumWaterBalance'):
             i = 1
 
         # sum up storage variables

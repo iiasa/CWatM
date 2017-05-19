@@ -50,7 +50,7 @@ class sealed_water(object):
         self.var.waterdemand_module.dynamic_waterdemand(coverType, No)
 
 
-        if option['calcWaterBalance'] and (No>3):
+        if checkOption('calcWaterBalance') and (No>3):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.availWaterInfiltration[No] ],  # In
                 [self.var.directRunoff[No],  \

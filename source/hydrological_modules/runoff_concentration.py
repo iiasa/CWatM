@@ -45,7 +45,7 @@ class runoff_concentration(object):
             only if option **includeRunoffConcentration** is TRUE
         """
 
-        if option['includeRunoffConcentration']:
+        if checkOption('includeRunoffConcentration'):
 
             # --- Topography -----------------------------------------------------
             tanslope = loadmap('tanslope')
@@ -62,7 +62,7 @@ class runoff_concentration(object):
 
 
 
-            self.var.coverTypes= map(str.strip, binding["coverTypes"].split(","))
+            self.var.coverTypes= map(str.strip, cbinding("coverTypes").split(","))
 
             #     /\   peak time for concentrated runoff
             #   /   \
@@ -157,7 +157,7 @@ class runoff_concentration(object):
         self.var.sum_landSurfaceRunoff = globals.inZero.copy()
         self.var.sum_directRunoff = globals.inZero.copy()
 
-        if not(option['includeRunoffConcentration']):
+        if not(checkOption('includeRunoffConcentration')):
 
 
             for No in xrange(6):

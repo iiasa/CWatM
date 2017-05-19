@@ -143,7 +143,7 @@ class routing_kinematic(object):
 
         self.var.timestepsToAvgDischarge = globals.inZero.copy()
 
-        if option['sumWaterBalance']:
+        if checkOption('sumWaterBalance'):
             self.var.catchmentAll = loadmap('Catchment').astype(np.int)
             self.var.catchmentNo = int(loadmap('CatchmentNo'))
 
@@ -178,10 +178,10 @@ class routing_kinematic(object):
 
 
         # if routing is not needed return
-        if not(option['includeRouting']):
+        if not(checkOption('includeRouting')):
             return
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.prechannelStorage = self.var.channelStorage.copy()
             #preRes = globals.inZero.copy()
             #np.put(preRes,self.var.decompress_LR,self.var.reservoirStorageM3C)
@@ -218,7 +218,7 @@ class routing_kinematic(object):
         # to avoid flip flop
         self.var.riverbedExchange = np.minimum(self.var.riverbedExchange, 0.95 * self.var.channelStorage)
 
-        if option['includeWaterBodies']:
+        if checkOption('includeWaterBodies'):
             # ------------------------------------------------------------
             # evaporation from water bodies (m3), will be limited by available water in lakes and reservoirs
             # calculate outflow from lakes and reservoirs
@@ -259,7 +259,7 @@ class routing_kinematic(object):
             # minus riverbed exchange
             #sideflowChanM3 -= riverbedExchangeDt
 
-            if option['includeWaterBodies']:
+            if checkOption('includeWaterBodies'):
                 lakesResOut = self.lakes_reservoirs_module.dynamic_inloop(subrouting)
                 sideflowChanM3 += lakesResOut
 
@@ -269,7 +269,7 @@ class routing_kinematic(object):
             #sideflowChan = sideflowChanM3 * self.var.invchanLength * self.var.InvDtSec
             sideflowChan = sideflowChanM3 * self.var.invchanLength * 1/ self.var.dtRouting
 
-            if option['includeWaterBodies']:
+            if checkOption('includeWaterBodies'):
                lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown_LR, self.var.dirupLen_LR, self.var.dirupID_LR, Qnew, self.var.channelAlpha, 0.6, self.var.dtRouting, self.var.chanLength, self.var.lendirDown_LR)
 
             else:
@@ -284,7 +284,7 @@ class routing_kinematic(object):
 
 
         """
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheckSum(
                 [runoffM3, lakesResOut],            # In
                 [sideflowChanM3, EvaAddM3Dt],           # Out
@@ -292,7 +292,7 @@ class routing_kinematic(object):
                 [],
                 "Routing1", True)
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             Res = globals.inZero.copy()
             np.put(Res, self.var.decompress_LR, self.var.reservoirStorageM3C)
             self.var.waterbalance_module.waterBalanceCheckSum(
@@ -306,7 +306,7 @@ class routing_kinematic(object):
         self.var.channelStorageBefore = self.var.channelStorage.copy()
 
 
-        #if option['PCRaster']: report(decompress(self.var.discharge), "C:\work\output2/q1.map")
+        #if checkOption('PCRaster'): report(decompress(self.var.discharge), "C:\work\output2/q1.map")
 
 
 

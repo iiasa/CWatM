@@ -38,7 +38,7 @@ class inflow(object):
 
 
 
-        if option['inflow']:
+        if checkOption('inflow'):
             self.var.InflowPoints = loadmap('InflowPoints')
             self.var.QInM3Old = np.where(self.var.InflowPoints>0,self.var.ChanQ * self.var.DtSec,0)
             # Initialising cumulative output variables
@@ -56,7 +56,7 @@ class inflow(object):
         # ************************************************************
         # ***** INLETS INIT
         # ************************************************************
-        if option['inflow']:
+        if checkOption('inflow'):
             self.var.QDelta = (self.var.QInM3 - self.var.QInM3Old) * self.var.InvNoRoutSteps
             # difference between old and new inlet flow  per sub step
             # in order to calculate the amount of inlet flow in the routing loop
@@ -66,8 +66,8 @@ class inflow(object):
         Dynamic part of the inflow module
         """
 
-        if option['inflow']:
-            QIn = timeinputscalar(binding['QInTS'], loadmap('InflowPoints',pcr=True))
+        if checkOption('inflow'):
+            QIn = timeinputscalar(cbinding('QInTS'), loadmap('InflowPoints',pcr=True))
             # Get inflow hydrograph at each inflow point [m3/s]
             QIn = compressArray(QIn)
             QIn[np.isnan(QIn)]=0
@@ -87,6 +87,6 @@ class inflow(object):
         # ************************************************************
         # ***** INLFLOW **********************************************
         # ************************************************************
-        if option['inflow']:
+        if checkOption('inflow'):
             self.var.QInDt = (self.var.QInM3Old + (NoRoutingExecuted + 1) * self.var.QDelta) * self.var.InvNoRoutSteps
             # flow from inlets per sub step

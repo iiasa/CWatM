@@ -42,7 +42,7 @@ class evaporationPot(object):
 
         """
 
-        if option['calc_evaporation']:
+        if checkOption('calc_evaporation'):
             self.var.AlbedoCanopy = loadmap('AlbedoCanopy')
             self.var.AlbedoSoil = loadmap('AlbedoSoil')
             self.var.AlbedoWater = loadmap('AlbedoWater')
@@ -69,7 +69,7 @@ class evaporationPot(object):
         """
 
 
-        if option['calc_evaporation']:
+        if checkOption('calc_evaporation'):
 
 
             ESatmin = 0.6108* np.exp((17.27 * self.var.TMin) / (self.var.TMin + 237.3))
@@ -79,7 +79,7 @@ class evaporationPot(object):
 
             # Fao 56 Page 36
             # calculate actual vapour pressure
-            if eval(binding['useHuss']):
+            if returnBool('useHuss'):
                 # if specific humidity calculate actual vapour pressure this way
                 EAct = (self.var.Psurf * self.var.Qair) / ((0.378 * self.var.Qair) + 0.622)
                 # http://www.eol.ucar.edu/projects/ceop/dm/documents/refdata_report/eqns.html
@@ -104,10 +104,10 @@ class evaporationPot(object):
             RLN = RNUp - self.var.Rsdl
             # RDL is stored on disk as W/m2 but converted in MJ/m2/s in readmeteo.py
 
-            if eval(binding['albedo']):
+            if returnBool('albedo'):
                 if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
-                    self.var.albedoLand = readnetcdf2(binding['albedoMaps'], dateVar['currDate'], useDaily='month',value='albedoLand')
-                    self.var.albedoOpenWater = readnetcdf2(binding['albedoMaps'], dateVar['currDate'], useDaily='month',value='albedoWater')
+                    self.var.albedoLand = readnetcdf2('albedoMaps', dateVar['currDate'], useDaily='month',value='albedoLand')
+                    self.var.albedoOpenWater = readnetcdf2('albedoMaps', dateVar['currDate'], useDaily='month',value='albedoWater')
                 RNA = np.maximum(((1 - self.var.albedoLand) * self.var.Rsds - RLN) / LatHeatVap, 0.0)
                 RNAWater = np.maximum(((1 - self.var.albedoOpenWater) * self.var.Rsds - RLN) / LatHeatVap, 0.0)
 
@@ -130,8 +130,8 @@ class evaporationPot(object):
 
             windpart = 900 * self.var.Wind / (self.var.Tavg + 273.16)
             denominator = Delta + Psycon *(1 + 0.34 * self.var.Wind)
-            numerator1 = 2.0 * Delta / denominator
-            numerator2 = 2.0 * Psycon / denominator
+            numerator1 = Delta / denominator
+            numerator2 = Psycon / denominator
 
             RNAN = RNA * numerator1
             #RNANSoil = RNASoil * numerator1

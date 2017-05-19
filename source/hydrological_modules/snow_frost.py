@@ -143,7 +143,7 @@ class snow(object):
         Todo:
             calculate sinus shape function for the southern hemisspere
         """
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.prevSnowCover = self.var.SnowCover
 
         SeasSnowMeltCoef = self.var.SnowSeason * np.sin(math.radians((dateVar['doy'] - 81)
@@ -205,7 +205,7 @@ class snow(object):
 
 
         # DEBUG Snow
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Snow],  # In
                 [self.var.SnowMelt],  # Out

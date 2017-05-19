@@ -1,5 +1,5 @@
 [DEFAULT]
-Root = C:\work\CWATM\calibration
+Root = C:/work/CWATM/calibration
 ForcingStart = 1/1/2003
 ForcingEnd = 12/31/2010
 
@@ -18,15 +18,15 @@ RunModel = runpy.bat
 
 [Option]
 firstrun = True
-para_first = [0.0035, 1.0, 1.0, 3.0, 1.0, 1.0, 1.0, 1.0,0.5,1., 1.]
-# Snowmelt, crop KC, soil depth,pref. flow, arno beta, groundwater recession, runoff conc., routing, manning factor, normalStorageLimit, lakeAFactor,No of run
+para_first = [0.0037, 1.4, 1.0, 4.0, 0.5, 3.0, 1.0, 1.0, 1.0,0.5,1., 1.]
+# Snowmelt, crop KC, soil depth,pref. flow, arno beta, interflow factor, groundwater recession, runoff conc., routing, manning factor, normalStorageLimit, lakeAFactor,No of run
 bestrun = True
 
 [DEAP]
 maximize = True
 use_multiprocessing = 1
-ngen = 2
-mu = 16
+ngen = 20
+mu = 32
 lambda_ = 16
 
 

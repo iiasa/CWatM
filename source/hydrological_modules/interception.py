@@ -39,12 +39,12 @@ class interception(object):
             ## interceptCap Maximum interception read from file for forest and grassland land cover
             # for specific days of the year - repeated every year
             if dateVar['newStart'] or dateVar['new10day']:  # check if first day  of the year
-                self.var.interceptCap[No]  = readnetcdf2(binding[coverType + '_interceptCapNC'], dateVar['10day'], "10day")
+                self.var.interceptCap[No]  = readnetcdf2(coverType + '_interceptCapNC', dateVar['10day'], "10day")
                 self.var.interceptCap[No] = np.maximum(self.var.interceptCap[No], self.var.minInterceptCap[No])
         else:
             self.var.interceptCap[No] = self.var.minInterceptCap[No]
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             prevState = self.var.interceptStor[No].copy()
 
 
@@ -79,7 +79,7 @@ class interception(object):
         # interceptEvap is the first flux in ET, soil evapo and transpiration are added later
         self.var.actualET[No] = self.var.interceptEvap[No] + self.var.snowEvap
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                [self.var.Rain, self.var.SnowMelt],  # In
                [self.var.availWaterInfiltration[No], self.var.interceptEvap[No]],  # Out

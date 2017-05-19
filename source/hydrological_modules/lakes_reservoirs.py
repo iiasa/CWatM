@@ -40,7 +40,7 @@ class lakes_reservoirs(object):
 
         """
 
-        if option['includeWaterBodies']:
+        if checkOption('includeWaterBodies'):
             fracWat = self.var.fracVegCover[5]
 
 
@@ -355,7 +355,7 @@ class lakes_reservoirs(object):
 
 
             """
-            if option['calcWaterBalance']:
+            if checkOption('calcWaterBalance'):
                 self.var.waterbalance_module.waterBalanceCheck(
                     [lakeIn * self.var.dtRouting],  # In
                     [lakeout *self.var.dtRouting,self.var.evapWaterBodyC]  ,  # Out  self.var.evapWaterBodyC
@@ -452,7 +452,7 @@ class lakes_reservoirs(object):
 
 
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             preRes = globals.inZero.copy()
             np.put(preRes,self.var.decompress_LR,self.var.reservoirStorageM3C)
             preLake = globals.inZero.copy()
@@ -522,7 +522,7 @@ class lakes_reservoirs(object):
         """
         #report(decompress(runoff_LR), "C:\work\output3/run.map")
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [inflowC ],            # In
                 [outflowC, self.var.evapWaterBodyC],           # Out
@@ -530,7 +530,7 @@ class lakes_reservoirs(object):
                 [self.var.reservoirStorageM3C],
                 "reservoir", False)
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             Res = globals.inZero.copy()
             np.put(Res, self.var.decompress_LR, self.var.reservoirStorageM3C)
             Lake = globals.inZero.copy()
@@ -546,7 +546,7 @@ class lakes_reservoirs(object):
                 [Res],
                 "reservoir1", False)
 
-            if option['calcWaterBalance']:
+            if checkOption('calcWaterBalance'):
                 self.var.waterbalance_module.waterBalanceCheckSum(
                     [inflow ],            # In
                     [outLdd,self.var.outLake,ee ],           # Out
@@ -554,7 +554,7 @@ class lakes_reservoirs(object):
                     [Res],
                     "reservoir2", False)
 
-            if option['calcWaterBalance']:
+            if checkOption('calcWaterBalance'):
                 self.var.waterbalance_module.waterBalanceCheckSum(
                     [inflow ],            # In
                     [outLdd,self.var.outLake,ee],           # Out
@@ -562,7 +562,7 @@ class lakes_reservoirs(object):
                     [],
                     "reservoir3", False)
 
-            if option['calcWaterBalance']:
+            if checkOption('calcWaterBalance'):
                 self.var.waterbalance_module.waterBalanceCheckSum(
                     [inflow ],            # In
                     [outLdd,self.var.outLake],           # Out

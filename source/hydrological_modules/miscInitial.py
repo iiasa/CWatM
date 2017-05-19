@@ -35,7 +35,7 @@ class miscInitial(object):
         - conversion factors for precipitation and pot evaporation
         """
 
-        if option['gridSizeUserDefined']:
+        if checkOption('gridSizeUserDefined'):
 
             # <lfoption name="gridSizeUserDefined" choice="1" default="0">
             # If option gridsizeUserDefined is activated, users can specify grid size properties

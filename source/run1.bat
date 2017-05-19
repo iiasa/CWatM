@@ -1,2 +1,2 @@
-python cwatm.py settings1.ini -l
+python cwatm.py settingsLVmswep.ini -l
 pause

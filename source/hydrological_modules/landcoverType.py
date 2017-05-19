@@ -42,7 +42,7 @@ class landcoverType(object):
         And initialize the soil variables
         """
 
-        self.var.coverTypes= map(str.strip, binding["coverTypes"].split(","))
+        self.var.coverTypes= map(str.strip, cbinding("coverTypes").split(","))
         landcoverAll = ['fracVegCover','interceptStor','interceptCap','availWaterInfiltration','interceptEvap',
                         'directRunoff', 'openWaterEvap']
         for variable in landcoverAll:  vars(self.var)[variable] = np.tile(globals.inZero, (6, 1))
@@ -59,34 +59,37 @@ class landcoverType(object):
         # output variable per land cover class
         landcoverVars = ['irrTypeFracOverIrr','fractionArea','totAvlWater','cropKC',
                          'effSatAt50',  'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin','rootZoneWaterStorageRange',
-                         'totalPotET','potBareSoilEvap','potTranspiration','soilWaterStorage',
+                         'totalPotET','potTranspiration','soilWaterStorage',
                          'infiltration','actBareSoilEvap','landSurfaceRunoff','actTransTotal',
                          'gwRecharge','interflow','actualET','irrGrossDemand',
                          'topWaterLayer',
                          'totalPotentialGrossDemand','actSurfaceWaterAbstract','allocSurfaceWaterAbstract','potGroundwaterAbstract',
-                         'percToGW','capRiseFromGW','netPercUpper','netPerc','PrefFlow']
+                         'percToGW','capRiseFromGW','netPercUpper','netPerc','prefFlow']
         # for 6 landcover types
         for variable in landcoverVars:  vars(self.var)[variable] = np.tile(globals.inZero,(6,1))
 
         #for 4 landcover types with soil underneath
-        landcoverVarsSoil = ['arnoBeta','rootZoneWaterStorageCap','rootZoneWaterStorageCap12']
+        landcoverVarsSoil = ['arnoBeta','rootZoneWaterStorageCap','rootZoneWaterStorageCap12','perc1to2','perc2to3','perc3toGW','theta1','theta2','theta3']
         for variable in landcoverVarsSoil:  vars(self.var)[variable] = np.tile(globals.inZero,(4,1))
 
-        soilVars = ['adjRoot','perc','capRise', 'soilStor','rootDepth','storCap']
+        soilVars = ['adjRoot','perc','capRise','rootDepth','storCap']
         # For 3 soil layers and 4 landcover types
         for variable in soilVars:  vars(self.var)[variable]= np.tile(globals.inZero,(self.var.soilLayers,4,1))
 
         # set aggregated storages to zero
         self.var.landcoverSum = [ 'interceptStor', 'topWaterLayer','interflow',
-                         'directRunoff', 'totalPotET', 'potBareSoilEvap', 'potTranspiration', 'availWaterInfiltration',
+                         'directRunoff', 'totalPotET', 'potTranspiration', 'availWaterInfiltration',
                          'interceptEvap', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTransTotal', 'gwRecharge',
-                         'actualET', 'topWaterLayer', 'openWaterEvap','capRiseFromGW','percToGW',"PrefFlow",
+                         'actualET', 'topWaterLayer', 'openWaterEvap','capRiseFromGW','percToGW',"prefFlow",
                          'irrGrossDemand','totalPotentialGrossDemand','actSurfaceWaterAbstract','allocSurfaceWaterAbstract','potGroundwaterAbstract']
         for variable in self.var.landcoverSum: vars(self.var)["sum_"+variable] = globals.inZero.copy()
 
         # for three soil layers
-        soilVars = ['soilStor']
-        for variable in soilVars: vars(self.var)["sum_" + variable] = np.tile(globals.inZero,(3,1))
+        soilVars = ['w1','w2','w3']
+        for variable in soilVars: vars(self.var)[variable] = np.tile(globals.inZero,(4,1))
+        for variable in soilVars: vars(self.var)["sum_" + variable] = globals.inZero.copy()
+
+
 
         self.var.totalSoil = globals.inZero.copy()
         self.var.totalET = globals.inZero.copy()
@@ -108,8 +111,19 @@ class landcoverType(object):
 
 
 
+
+
+
+
+
+
+
+
+
+
         self.var.minCropKC= loadmap('minCropKC')
         self.var.minTopWaterLayer = loadmap("minTopWaterLayer")
+        self.var.maxGWCapRise = loadmap("maxGWCapRise")
 
         i = 0
         for coverType in self.var.coverTypes[:4]:
@@ -119,7 +133,140 @@ class landcoverType(object):
             #self.var.minCropKC.append(loadmap(coverType + "_minCropKC"))
 
             #self.var.minInterceptCap.append(loadmap(coverType + "_minInterceptCap"))
-            self.var.cropDeplFactor.append(loadmap(coverType + "_cropDeplFactor"))
+            #self.var.cropDeplFactor.append(loadmap(coverType + "_cropDeplFactor"))
+            # parameter values
+
+            self.var.rootFraction1.append(loadmap(coverType + "_rootFraction1"))
+            self.var.rootFraction2.append(loadmap(coverType + "_rootFraction2"))
+            self.var.maxRootDepth.append(loadmap(coverType + "_maxRootDepth"))
+            i += 1
+
+
+        i = 0
+        for coverType in self.var.coverTypes[:4]:
+            # calculate rootdepth for each soillayer and each land cover class
+            # self.var.rootDepth[0][i] = np.minimum(self.var.soildepth[0], self.var.maxRootDepth[i])
+            self.var.rootDepth[0][i] = self.var.soildepth[0].copy()  # 0.05 m
+            # if land cover = forest
+            if coverType <> 'grassland':
+                # soil layer 1 = root max of land cover  - first soil layer
+                h1 = np.maximum(self.var.soildepth[1], self.var.maxRootDepth[i] - self.var.soildepth[0])
+                self.var.rootDepth[1][i] = np.minimum(self.var.soildepth12 - 0.05, h1)
+                # soil layer is minimim 0.05 m
+                self.var.rootDepth[2][i] = np.maximum(0.05, self.var.soildepth12 - self.var.rootDepth[1][i])
+            else:
+                self.var.rootDepth[1][i] = self.var.soildepth[1].copy()
+                self.var.rootDepth[2][i] = self.var.soildepth[2].copy()
+            i += 1
+
+
+
+        soilVars1 = ['KSat1','KSat2','KSat3','alpha1','alpha2','alpha3', 'lambda1','lambda2','lambda3','thetas1','thetas2','thetas3','thetar1','thetar2','thetar3']
+        for variable in soilVars1: vars(self.var)[variable] = []
+
+
+        i = 0
+        for coverType in self.var.coverTypes[:2]:
+            if i==0:
+                pre = coverType + "_"
+            else:
+                pre = ""
+            # ksat in cm/d-1 -> m/dm
+            self.var.KSat1.append((loadmap(pre + "KSat1"))/100)
+            self.var.KSat2.append((loadmap(pre + "KSat2"))/100)
+            self.var.KSat3.append((loadmap(pre + "KSat3"))/100)
+            self.var.alpha1.append((loadmap(pre + "alpha1")))
+            self.var.alpha2.append((loadmap(pre + "alpha2")))
+            self.var.alpha3.append((loadmap(pre + "alpha3")))
+            self.var.lambda1.append((loadmap(pre + "lambda1")))
+            self.var.lambda2.append((loadmap(pre + "lambda2")))
+            self.var.lambda3.append((loadmap(pre + "lambda3")))
+            self.var.thetas1.append((loadmap(pre + "thetas1")))
+            self.var.thetas2.append((loadmap(pre + "thetas2")))
+            self.var.thetas3.append((loadmap(pre + "thetas3")))
+            self.var.thetar1.append((loadmap(pre + "thetar1")))
+            self.var.thetar2.append((loadmap(pre + "thetar2")))
+            self.var.thetar3.append((loadmap(pre + "thetar3")))
+            i += 1
+
+
+
+        # Van Genuchten n and m coefficients
+        # GenuN1=Lambda+1
+        genuN1 = [x + 1 for x in self.var.lambda1]
+        genuN2 = [x + 1 for x in self.var.lambda2]
+        genuN3 = [x + 1 for x in self.var.lambda3]
+        # self.var.GenuM1=Lambda1/GenuN1
+        self.var.genuM1 = [x / y for x, y in zip(self.var.lambda1, genuN1)]
+        self.var.genuM2 = [x / y for x, y in zip(self.var.lambda2, genuN2)]
+        self.var.genuM3 = [x / y for x, y in zip(self.var.lambda3, genuN3)]
+        # self.var.GenuInvM1=1/self.var.GenuM1
+        self.var.genuInvM1 = [1 / x for x in self.var.genuM1]
+        self.var.genuInvM2 = [1 / x for x in self.var.genuM2]
+        self.var.genuInvM3 = [1 / x for x in self.var.genuM3]
+        # self.var.GenuInvN1=1/GenuN1
+        self.var.genuInvN1 = [1 / x for x in genuN1]
+        self.var.genuInvN2 = [1 / x for x in genuN2]
+        self.var.genuInvN3 = [1 / x for x in genuN3]
+        # InvAlpha1=1/Alpha1
+        self.var.invAlpha1 = [1 / x for x in self.var.alpha1]
+        self.var.invAlpha2 = [1 / x for x in self.var.alpha2]
+        self.var.invAlpha3 = [1 / x for x in self.var.alpha3]
+
+
+        soilVars2 = ['ws1','ws2','ws3','wres1','wres2','wres3','wrange1','wrange2','wrange3','wfc1','wfc2','wfc3','wwp1','wwp2','wwp3','kunSatFC12','kunSatFC23']
+        for variable in soilVars2: vars(self.var)[variable] = []
+
+        i = 0
+        for coverType in self.var.coverTypes[:4]:
+            j = 0
+            if coverType <> "forest": j = 1
+            self.var.ws1.append(self.var.thetas1[j] * self.var.rootDepth[0][i])
+            self.var.ws2.append(self.var.thetas2[j] * self.var.rootDepth[1][i])
+            self.var.ws3.append(self.var.thetas3[j] * self.var.rootDepth[2][i])
+
+            self.var.wres1.append(self.var.thetar1[j] * self.var.rootDepth[0][i])
+            self.var.wres2.append(self.var.thetar2[j] * self.var.rootDepth[1][i])
+            self.var.wres3.append(self.var.thetar3[j] * self.var.rootDepth[2][i])
+
+            self.var.wrange1.append(self.var.ws1[i] - self.var.wres1[i])
+            self.var.wrange2.append(self.var.ws2[i] - self.var.wres2[i])
+            self.var.wrange3.append(self.var.ws3[i] - self.var.wres3[i])
+
+            # Soil moisture at field capacity (pF2, 100 cm) [mm water slice]    # Mualem equation (van Genuchten, 1980)
+            self.var.wfc1.append(self.var.wres1[i] + self.var.wrange1[i] / ((1 + (self.var.alpha1[j] * 100) ** genuN1[j]) ** self.var.genuM1[j]))
+            self.var.wfc2.append(self.var.wres2[i] + self.var.wrange2[i] / ((1 + (self.var.alpha2[j] * 100) ** genuN2[j]) ** self.var.genuM2[j]))
+            self.var.wfc3.append(self.var.wres3[i] + self.var.wrange3[i] / ((1 + (self.var.alpha3[j] * 100) ** genuN3[j]) ** self.var.genuM3[j]))
+
+            # Soil moisture at wilting point (pF4.2, 10**4.2 cm) [mm water slice]    # Mualem equation (van Genuchten, 1980)
+            self.var.wwp1.append(self.var.wres1[i] + self.var.wrange1[i] / ((1 + (self.var.alpha1[j] * (10**4.2)) ** genuN1[j]) ** self.var.genuM1[j]))
+            self.var.wwp2.append(self.var.wres2[i] + self.var.wrange2[i] / ((1 + (self.var.alpha2[j] * (10**4.2)) ** genuN2[j]) ** self.var.genuM2[j]))
+            self.var.wwp3.append(self.var.wres3[i] + self.var.wrange3[i] / ((1 + (self.var.alpha3[j] * (10**4.2)) ** genuN3[j]) ** self.var.genuM3[j]))
+
+
+
+            satTerm1FC = np.maximum(0., self.var.wfc1[i] - self.var.wres1[i]) / self.var.wrange1[i]
+            satTerm2FC = np.maximum(0., self.var.wfc2[i] - self.var.wres2[i]) / self.var.wrange2[i]
+            satTerm3FC = np.maximum(0., self.var.wfc3[i] - self.var.wres3[i]) / self.var.wrange3[i]
+            kUnSat1FC = self.var.KSat1[j] * np.sqrt(satTerm1FC) * np.square(1 - (1 - satTerm1FC ** self.var.genuInvM1[j]) ** self.var.genuM1[j])
+            kUnSat2FC = self.var.KSat2[j] * np.sqrt(satTerm2FC) * np.square(1 - (1 - satTerm2FC ** self.var.genuInvM2[j]) ** self.var.genuM2[j])
+            self.var.kUnSat3FC = self.var.KSat3[j] * np.sqrt(satTerm3FC) * np.square(1 - (1 - satTerm3FC ** self.var.genuInvM3[j]) ** self.var.genuM3[j])
+            self.var.kunSatFC12.append(np.sqrt(kUnSat1FC * kUnSat2FC))
+            self.var.kunSatFC23.append(np.sqrt(kUnSat2FC * self.var.kUnSat3FC))
+
+            i += 1
+
+
+
+        i = 0
+        for coverType in self.var.coverTypes[:4]:
+            # other paramater values
+            # b coefficient of soil water storage capacity distribution
+            #self.var.minTopWaterLayer.append(loadmap(coverType + "_minTopWaterLayer"))
+            #self.var.minCropKC.append(loadmap(coverType + "_minCropKC"))
+
+            #self.var.minInterceptCap.append(loadmap(coverType + "_minInterceptCap"))
+            #self.var.cropDeplFactor.append(loadmap(coverType + "_cropDeplFactor"))
             # parameter values
 
             self.var.rootFraction1.append(loadmap(coverType + "_rootFraction1"))
@@ -132,9 +279,32 @@ class landcoverType(object):
             self.var.interceptCapNC_filename.append(coverType + "_interceptCapNC")
             self.var.coverFractionNC_filename.append(coverType + "_coverFractionNC")
 
+
+            # init values
+            #self.var.interflow[i] = self.var.init_module.load_initial(coverType + "_interflow")
+            self.var.w1[i] = self.var.init_module.load_initial(coverType + "_w1",default = self.var.wres1[i])
+            self.var.w2[i] = self.var.init_module.load_initial(coverType + "_w2",default = self.var.wres2[i])
+            self.var.w3[i] = self.var.init_module.load_initial(coverType + "_w3",default = self.var.wres3[i])
+
+            #self.var.sum_w1[0] += self.var.fracVegCover[i] * self.var.w1[i]
+            #self.var.sum_w2[1] += self.var.fracVegCover[i] * self.var.w2[i]
+            #self.var.sum_w3[2] += self.var.fracVegCover[i] * self.var.w3[i]
+
+
+
+
+
+
+
+
+
+            """
             # init values
             self.var.topWaterLayer[i] = self.var.init_module.load_initial(coverType + "_topWaterLayer")
             self.var.interflow[i] = self.var.init_module.load_initial(coverType + "_interflow")
+
+
+
 
             for soilLayer in xrange(self.var.soilLayers):
                 self.var.soilStor[soilLayer][i] = self.var.init_module.load_initial(coverType + "_soilStor[" +str(soilLayer)+"]")
@@ -146,6 +316,10 @@ class landcoverType(object):
 
             for soilLayer in xrange(self.var.soilLayers):
                 self.var.sum_soilStor[soilLayer] = self.var.sum_soilStor[soilLayer] + self.var.soilStor[soilLayer][i] * self.var.fracVegCover[i]
+
+            """
+
+
 
 
             # Improved Arno's scheme parameters: Hageman and Gates 2003
@@ -165,19 +339,6 @@ class landcoverType(object):
 
 
 
-            # calculate rootdepth for each soillayer and each land cover class
-            #self.var.rootDepth[0][i] = np.minimum(self.var.soildepth[0], self.var.maxRootDepth[i])
-            self.var.rootDepth[0][i] = self.var.soildepth[0].copy()  # 0.05 m
-            # if land cover = forest
-            if coverType <>'grassland':
-                # soil layer 1 = root max of land cover  - first soil layer
-                h1 = np.maximum(self.var.soildepth[1], self.var.maxRootDepth[i] - self.var.soildepth[0])
-                self.var.rootDepth[1][i] = np.minimum(self.var.soildepth12 - 0.05, h1)
-                # soil layer is minimim 0.05 m
-                self.var.rootDepth[2][i] = np.maximum(0.05, self.var.soildepth12 - self.var.rootDepth[1][i])
-            else:
-                self.var.rootDepth[1][i] = self.var.soildepth[1].copy()
-                self.var.rootDepth[2][i] = self.var.soildepth[2].copy()
 
 
             # scaleRootFractions
@@ -192,7 +353,7 @@ class landcoverType(object):
 
 
 
-
+            """
             for j in xrange(self.var.soilLayers):
                 self.var.storCap[j][i] = self.var.rootDepth[j][i] * (self.var.satVol[j] - self.var.resVol[j])
             self.var.rootZoneWaterStorageCap[i] = self.var.storCap[0][i] + self.var.storCap[1][i] + self.var.storCap[2][i]
@@ -200,44 +361,14 @@ class landcoverType(object):
 
             self.var.rootZoneWaterStorageMin[i] = self.var.minSoilDepthFrac[i] * self.var.rootZoneWaterStorageCap[i]
             self.var.rootZoneWaterStorageRange[i] = self.var.rootZoneWaterStorageCap[i] - self.var.rootZoneWaterStorageMin[i]
+            """
 
 
-
-            # ------------------------------------------
-            # calculateTotAvlWaterCapacityInRootZone
-            # total water capacity in the root zone (upper soil layers)
-            # Note: This is dependent on the land cover type.
-
-            h = np.tile(globals.inZero, (self.var.soilLayers, 1))
-            for j in xrange(self.var.soilLayers):
-                h[j] = np.maximum(0., self.var.effSatAtFieldCap[j] - self.var.effSatAtWiltPoint[j]) * \
-                     (self.var.satVol[j] - self.var.resVol[j]) * self.var.rootDepth[j][i]
-
-            self.var.totAvlWater[i] = np.sum(h,axis=0)
-            self.var.totAvlWater[i] = np.minimum(self.var.totAvlWater[i], self.var.rootZoneWaterStorageCap[i])
-
-            h0 = np.tile(globals.inZero, (self.var.soilLayers, 1))
-            h1 = np.tile(globals.inZero, (self.var.soilLayers, 1))
-            h2 = np.tile(globals.inZero, (self.var.soilLayers, 1))
-            h3 = np.tile(globals.inZero, (self.var.soilLayers, 1))
-            # calculateParametersAtHalfTranspiration(self, parameters):
-            # average soil parameters at which actual transpiration is halved
-            # calculateParametersAtHalfTranspiration(self, parameters):
-            # average soil parameters at which actual transpiration is halved
-            for j in xrange(self.var.soilLayers):
-                h0[j] = self.var.storCap[j][i] * self.var.adjRoot[j][i]
-                h1[j] = np.maximum(0., self.var.effSatAtFieldCap[j] - self.var.effSatAtWiltPoint[j]) * \
-                     (self.var.satVol[j] - self.var.resVol[j]) * self.var.rootDepth[j][i]
-                h2[j] = h0[j] * (self.var.matricSuction50 / self.var.airEntry[j]) ** (-1. / self.var.poreSizeBeta[j])
-                h3[j] = h0[j] * self.var.poreSizeBeta[j]
-
-            adjrootZoneWaterStorageCap = np.sum(h0 , axis=0)
-            self.var.totAvlWater[i] = np.sum(h1,axis=0)
-            self.var.totAvlWater[i] = np.minimum(self.var.totAvlWater[i], self.var.rootZoneWaterStorageCap[i])
-            self.var.effSatAt50[i] = np.sum(h2 / adjrootZoneWaterStorageCap , axis=0)
-            self.var.effPoreSizeBetaAt50[i] = np.sum(h3 / adjrootZoneWaterStorageCap, axis=0)
 
             i += 1
+
+
+
 
 
 
@@ -257,7 +388,7 @@ class landcoverType(object):
         * calculate the fraction of 6 land cover types based on the maps
         """
 
-        #if option['includeIrrigation'] and option['dynamicIrrigationArea']:
+        #if checkOption('includeIrrigation') and checkOption('dynamicIrrigationArea'):
 
         # updating fracVegCover of landCover (for historical irrigation areas, done at yearly basis)
         # if first day of the year or first day of run
@@ -265,7 +396,7 @@ class landcoverType(object):
         if init:
             i = 0
             for coverType in self.var.coverTypes:
-                self.var.fracVegCover[i] = readnetcdf2(binding['fractionLandcover'], dateVar['currDate'], useDaily="yearly",  value= 'frac'+coverType)
+                self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', dateVar['currDate'], useDaily="yearly",  value= 'frac'+coverType)
                 #report(decompress(self.var.fracVegCover[i]), "C:\work\output2/lc"+str(i)+".map")
                 i += 1
 
@@ -304,13 +435,13 @@ class landcoverType(object):
         """
 
 
-        if option['calcWaterBalance']:
-            preTopWaterLayer = self.var.sum_topWaterLayer.copy()
+        if checkOption('calcWaterBalance'):
+
             preIntStor = self.var.sum_interceptStor.copy()
-            preStor1 = self.var.sum_soilStor[0].copy()
-            preStor2 = self.var.sum_soilStor[1].copy()
-            preStor3 = self.var.sum_soilStor[2].copy()
-            self.var.pretotalSoil = self.var.totalSoil.copy()
+            preStor1 = self.var.sum_w1.copy()
+            preStor2 = self.var.sum_w2.copy()
+            preStor3 = self.var.sum_w3.copy()
+            #self.var.pretotalSoil = self.var.totalSoil.copy()
 
 
         coverNo = 0
@@ -329,6 +460,8 @@ class landcoverType(object):
                 self.var.soil_module.dynamic(coverType, coverNo)
             else:
                 self.var.sealed_water_module.dynamic(coverType, coverNo)
+                self.var.directRunoff[4] = 0.
+                self.var.directRunoff[5] = 0.
                 # calculate for openwater and sealed area
             coverNo += 1
 
@@ -347,18 +480,18 @@ class landcoverType(object):
 
 
 
-        soilVars = ['soilStor']
+        soilVars = ['w1','w2','w3']
         for variable in soilVars:
             for i in xrange(self.var.soilLayers):
-                vars(self.var)["sum_" + variable][i] = globals.inZero.copy()
+                vars(self.var)["sum_" + variable] = globals.inZero.copy()
                 for No in xrange(4):
-                    vars(self.var)["sum_" + variable][i] += self.var.fracVegCover[No] * vars(self.var)[variable][i][No]
+                    vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
 
-        self.var.totalSoil = self.var.sum_interceptStor + self.var.sum_topWaterLayer + \
-                             self.var.sum_soilStor[0] + self.var.sum_soilStor[1] + self.var.sum_soilStor[2]
-        self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_topWaterLayer + \
-                            self.var.sum_soilStor[0] + self.var.sum_soilStor[1] + self.var.sum_soilStor[2]
+        self.var.totalSoil = self.var.sum_interceptStor + \
+                             self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3
+        self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + \
+                            self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3
         self.var.totalET = self.var.sum_actTransTotal + self.var.sum_actBareSoilEvap + self.var.sum_openWaterEvap + self.var.sum_interceptEvap
 
         #print self.var.totalSoil,self.var.soilStor[0][1],self.var.soilStor[1][1], self.var.soilStor[2][1],
@@ -366,8 +499,8 @@ class landcoverType(object):
 
 # --------------------------------------------------------------------
 
-
-        if option['calcWaterBalance']:
+        """
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Rain,self.var.SnowMelt],  # In
                 [self.var.sum_availWaterInfiltration,self.var.sum_interceptEvap],  # Out
@@ -375,39 +508,39 @@ class landcoverType(object):
                 [self.var.sum_interceptStor],
                 "InterAll", False)
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.sum_availWaterInfiltration,self.var.sum_capRiseFromGW,self.var.sum_irrGrossDemand],                             # In  self.var.irrGrossDemand
                 [self.var.sum_directRunoff,self.var.sum_interflow, self.var.sum_percToGW, \
-                 self.var.sum_PrefFlow, self.var.sum_actTransTotal, \
+                 self.var.sum_prefFlow, self.var.sum_actTransTotal, \
                  self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap],                                                                # Out
                 [preTopWaterLayer,preStor1,preStor2,preStor3],                                       # prev storage
                 [self.var.sum_topWaterLayer,self.var.sum_soilStor[0], self.var.sum_soilStor[1], self.var.sum_soilStor[2]],
                 "Soil_sum1", False)  #True
 
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Rain,self.var.SnowMelt,self.var.sum_capRiseFromGW,self.var.sum_irrGrossDemand],                             # In  self.var.irrGrossDemand
                 [self.var.sum_directRunoff,self.var.sum_interflow, self.var.sum_percToGW, \
-                 self.var.sum_PrefFlow, self.var.sum_actTransTotal, \
+                 self.var.sum_prefFlow, self.var.sum_actTransTotal, \
                  self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap, self.var.sum_interceptEvap],                                                                # Out
                 [preTopWaterLayer,preStor1,preStor2,preStor3,preIntStor],                                       # prev storage
                 [self.var.sum_topWaterLayer,self.var.sum_soilStor[0], self.var.sum_soilStor[1], self.var.sum_soilStor[2], self.var.sum_interceptStor],
                 "Soil_sum2", False)
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Precipitation,self.var.sum_capRiseFromGW,self.var.sum_irrGrossDemand],                             # In
                 [self.var.sum_directRunoff,self.var.sum_interflow, self.var.sum_percToGW, \
-                 self.var.sum_PrefFlow, self.var.sum_actTransTotal, \
+                 self.var.sum_prefFlow, self.var.sum_actTransTotal, \
                  self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap, self.var.sum_interceptEvap],                                                                # Out
                 [self.var.prevSnowCover, preTopWaterLayer,preStor1,preStor2,preStor3,preIntStor],                                       # prev storage
                 [self.var.SnowCover, self.var.sum_topWaterLayer,self.var.sum_soilStor[0], self.var.sum_soilStor[1], self.var.sum_soilStor[2], self.var.sum_interceptStor],
                 "Soil_All", False)  #True
         i = 1
 
-
+        """
 
 
         #a = decompress(self.var.sumsum_Precipitation)

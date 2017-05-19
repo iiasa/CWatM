@@ -89,10 +89,7 @@ def CWATMexe():
     # read all the possible option for modelling and for generating output
     # read the settings file with all information about the catchments(s)
     # read the meta data information for netcdf outputfiles
-    read_metanetcdf(binding['metaNetcdfFile'])
-
-
-    ### bindkey = sorted(binding.keys())
+    read_metanetcdf(cbinding('metaNetcdfFile'), 'metaNetcdfFile')
 
     #os.chdir(outputDir[0])
     # this prevent from using relative path in settings!

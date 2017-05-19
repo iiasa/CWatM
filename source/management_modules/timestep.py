@@ -14,10 +14,24 @@ import calendar
 import datetime
 import time as xtime
 import numpy as np
+from management_modules.data_handling import *
 from management_modules.globals import *
 from management_modules.messages import *
 
+import difflib  # to check the closest word in settingsfile, if an error occurs
 
+
+def ctbinding(inBinding):
+    test = inBinding in binding
+    if test:
+        return binding[inBinding]
+    else:
+        closest = difflib.get_close_matches(inBinding, binding.keys())
+        if not closest: closest = ["- no match -"]
+        msg = "===== Timing in the section: [TIME-RELATED_CONSTANTS] is wrong! =====\n"
+        msg += "No key with the name: \"" + inBinding + "\" in the settings file: \"" + sys.argv[1] + "\"\n"
+        msg += "Closest key to the required one is: \""+ closest[0] + "\""
+        raise CWATMError(msg)
 
 
 
@@ -67,7 +81,12 @@ def Calendar(input):
             d = d.replace('/', '/0')
             d = d.replace('.', '/')
             print d
+
+        sys.tracebacklimit = 0
         date = datetime.datetime.strptime(d, formatstr)
+        sys.tracebacklimit = 1
+
+
         # value=str(int(date.strftime("%j")))
     return date
 
@@ -107,8 +126,8 @@ def checkifDate(start,end,spinup):
     :return: a list of date variable in: dateVar
     """
 
-    begin = Calendar(binding['CalendarDayStart'])
-    startdate = Calendar(binding['StepStart'])
+    begin = Calendar(ctbinding('CalendarDayStart'))
+    startdate = Calendar(ctbinding('StepStart'))
 
     if type(startdate) is datetime.datetime:
         begin = startdate
@@ -117,11 +136,11 @@ def checkifDate(start,end,spinup):
 
 
     # spinup date = date from which maps are written
-    if binding[spinup].lower() == "none" or binding[spinup] == "0":  spinup = start
+    if ctbinding(spinup).lower() == "none" or ctbinding(spinup) == "0":  spinup = start
 
-    dateVar['intStart'],strStart = datetoInt(binding[start],begin,True)
-    dateVar['intEnd'],strEnd = datetoInt(binding[end],begin,True)
-    dateVar['intSpin'], strSpin = datetoInt(binding[spinup], begin, True)
+    dateVar['intStart'],strStart = datetoInt(ctbinding(start),begin,True)
+    dateVar['intEnd'],strEnd = datetoInt(ctbinding(end),begin,True)
+    dateVar['intSpin'], strSpin = datetoInt(ctbinding(spinup), begin, True)
 
 
     # test if start and end > begin

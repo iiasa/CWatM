@@ -110,7 +110,7 @@ Initial conditions can be stored and be loaded in order to initialise a warm sta
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 143-156
+    :lines: 145-158
 
 	
 Initial conditions can be put directly into the settings file.
@@ -122,7 +122,7 @@ Either as numbers or references to maps (.tif, PCraster or netCDF)
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 330-332
+    :lines: 332-334
 
 
 Output

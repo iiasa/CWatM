@@ -64,8 +64,8 @@ class CWATModel_ini(DynamicModel):
         # and the modelling extent from the MaskMap
         # cutmap[] defines the MaskMap inside the precipitation map
         cutmap[0], cutmap[1], cutmap[2], cutmap[
-            3] = mapattrNetCDF(binding['PrecipitationMaps'])
-        if option['writeNetcdfStack'] or option['writeNetcdf']:
+            3] = mapattrNetCDF(cbinding('PrecipitationMaps'))
+        if checkOption('writeNetcdfStack') or checkOption('writeNetcdf'):
             # if NetCDF is writen, the pr.nc is read to get the metadata
             # like projection
             metaNetCDF()
@@ -118,7 +118,7 @@ class CWATModel_ini(DynamicModel):
         self.runoff_concentration_module.initial()
 
         self.routing_kinematic_module.initial()
-        if option['includeWaterBodies']:
+        if checkOption('includeWaterBodies'):
             self.lakes_reservoirs_module.initWaterbodies()
             self.lakes_reservoirs_module.initial_lakes()
             self.lakes_reservoirs_module.initial_reservoirs()

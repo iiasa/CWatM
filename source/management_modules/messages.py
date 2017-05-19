@@ -35,21 +35,24 @@ class CWATMError(Exception):
     def __str__(self):
         return self._msg
 
+
 class CWATMFileError(CWATMError):
     """
     The error handling class
     prints out an error
 
     """
-    def __init__(self, filename,msg=""):
+    def __init__(self, filename,msg="",sname = ""):
         # don't show the error code, lines etc.
         sys.tracebacklimit = 0
         path,name = os.path.split(filename)
         if os.path.exists(path):
-            text1 = "path: "+ path + " exists\nbut filename: "+name+ " does not\n"
+            text1 = "In  \"" + sname + "\"\n"
+            text1 += "path: "+ path + " exists\nbut filename: "+name+ " does not\n"
             text1 +="file name extension can be .nc4 or .nc\n"
         else:
-            text1 = "searching: "+filename
+            text1 = " In  \""+ sname +"\"\n"
+            text1 += "searching: \""+filename+"\""
             text1 += "\npath: "+ path + " does not exists\n"
 
         header = "\n\n ======================== CWATM FILE ERROR ===========================\n"

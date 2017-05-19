@@ -355,7 +355,7 @@ if __name__ == "__main__":
 									  'effstd_R':effstd[:,0],
 									  'effavg_R':effavg[:,0],
 									  })
-	front_history.to_csv(os.path.join(path_subcatch,"front_history.csv"),',',append=False)
+	front_history.to_csv(os.path.join(path_subcatch,"front_history.csv"),',')
 	# as numpy  numpy.asarray  ; numpy.savetxt("foo.csv", a, delimiter=","); a.tofile('foo.csv',sep=',',format='%10.5f')
 
 	# Compute overall efficiency scores from the objective function scores for the
@@ -379,7 +379,7 @@ if __name__ == "__main__":
 	pareto_front = pandas.DataFrame({'effover':effover[ind],'R':front[ind,0]})
 	for ii in range(len(ParamRanges)):
 		pareto_front["param_"+str(ii).zfill(2)+"_"+ParamRanges.index[ii]] = paramvals[ind,ii]
-	pareto_front.to_csv(os.path.join(path_subcatch,"pareto_front.csv"),',',append=False)
+	pareto_front.to_csv(os.path.join(path_subcatch,"pareto_front.csv"),',')
 
 	# Select the "best" parameter set and run Model for the entire forcing period
 	Parameters = paramvals[best,:]

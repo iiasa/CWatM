@@ -63,7 +63,7 @@ In the settings file the option: **load_initial** has to be set on **False**
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 143-150
+    :lines: 145-152
 
 And all the initial conditions is the different sections have to be set to NONE
 The values here (if not set to NONE) will overwrite the initial conditions of the general initial condition netCDF file
@@ -74,7 +74,7 @@ For example:
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 330-332
+    :lines: 332-334
 
 .. note:: It is possible to exclude the warming up period of your model run for further analysis of results by setting the **SpinUp** option
 
@@ -96,7 +96,7 @@ and one or more dates have to be specified in StepInit
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 152-156
+    :lines: 154-158
 
 
 	
@@ -124,7 +124,7 @@ And define the name of the netcdf4 file in **initLoad**
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 143-150
+    :lines: 145-152
 
 There is also the possibility to set single variables to a certain value (or map)
 

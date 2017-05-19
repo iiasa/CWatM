@@ -43,7 +43,7 @@ class evaporation(object):
         # crop coefficient read for forest and grassland from file
 
         if dateVar['newStart'] or (dateVar['currDate'].day in [1,11,21]):
-            self.var.cropKC[No] = readnetcdf2(binding[coverType + '_cropCoefficientNC'], dateVar['10day'], "10day")
+            self.var.cropKC[No] = readnetcdf2(coverType + '_cropCoefficientNC', dateVar['10day'], "10day")
             self.var.cropKC[No] = np.maximum(self.var.cropKC[No], self.var.minCropKC)
 
 

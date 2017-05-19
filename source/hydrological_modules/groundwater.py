@@ -33,7 +33,9 @@ class groundwater(object):
         self.var.recessionCoeff = loadmap('recessionCoeff')
 
         # for CALIBRATION
-        self.var.recessionCoeff = self.var.recessionCoeff * loadmap('recessionCoeff_factor')
+        self.var.recessionCoeff = 1 / self.var.recessionCoeff * loadmap('recessionCoeff_factor')
+        self.var.recessionCoeff = 1 / self.var.recessionCoeff
+
 
         self.var.specificYield = loadmap('specificYield')
         self.var.kSatAquifer = loadmap('kSatAquifer')
@@ -61,9 +63,9 @@ class groundwater(object):
         Calculate groundweater storage and baseflow
         """
 
-        #self.var.sum_gwRecharge = readnetcdf2("C:/work/output2/sum_gwRecharge_daily.nc", dateVar['currDate'], addZeros=True, cut = False )
+        #self.var.sum_gwRecharge = readnetcdf2("C:/work/output2/sum_gwRecharge_daily.nc", dateVar['currDate'], addZeros=True, cut = False, usefilename = True )
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.prestorGroundwater = self.var.storGroundwater.copy()
 
         # get riverbed infiltration from the previous time step (from routing)
@@ -102,7 +104,7 @@ class groundwater(object):
         # self.var.readAvlStorGroundwater = pcr.cover(self.var.readAvlStorGroundwater, 0.0)
 
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.sum_gwRecharge, self.var.surfaceWaterInf],            # In
                 [self.var.baseflow,self.var.nonFossilGroundwaterAbs],           # Out
@@ -112,7 +114,7 @@ class groundwater(object):
 
 
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.nonIrrGrossDemand,self.var.sum_irrGrossDemand],                                           # In
                 [self.var.nonFossilGroundwaterAbs,self.var.unmetDemand,self.var.sum_actSurfaceWaterAbstract, ],     # Out

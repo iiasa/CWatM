@@ -15,6 +15,7 @@ import sys
 import os
 import string
 import math
+import difflib  # to check the closest word in settingsfile, if an error occurs
 
 from hydrological_modules.routing_reservoirs.routing_sub import *
 
@@ -98,13 +99,11 @@ class outputTssMap(object):
 
         # ------------------------------------------------------------------------------
         # if a geotif is used it can be a local map or a global
-        try: localGauges = eval(binding['GaugesLocal'])
-        except: localGauges = False
-
+        localGauges = returnBool('GaugesLocal')
         where = "Gauges"
-        outpoints = binding[where]
+        outpoints = cbinding(where)
 
-        coord = binding[where].split()  # could be gauges, sites, lakeSites etc.
+        coord = cbinding(where).split()  # could be gauges, sites, lakeSites etc.
         if len(coord) % 2 == 0:
             outpoints = valuecell(self.var.MaskMap, coord, outpoints)
         else:
@@ -112,10 +111,13 @@ class outputTssMap(object):
                 #outpoints = loadmap(where, pcr=True)
                 outpoints = loadmap(where, local = localGauges).astype(np.int64)
             else:
-                msg = "Checking output points file path \n"
-                raise CWATMFileError(outpoints, msg)
+                if len(coord) == 1:
+                    msg = "Checking output-points file\n"
+                else:
+                    msg = "Coordinates are not pairs\n"
+                raise CWATMFileError(outpoints, msg, sname="Gauges")
 
-        # self.var.Tss[tss] = TimeoutputTimeseries(binding[tss], self.var, outpoints, noHeader=Flags['noheader'])
+        # self.var.Tss[tss] = TimeoutputTimeseries(cbinding(tss), self.var, outpoints, noHeader=Flags['noheader'])
         outpoints[outpoints < 0] = 0
         self.var.sampleAdresses = getlocOutpoints(outpoints)  # for key in sorted(mydict):
 
@@ -132,14 +134,14 @@ class outputTssMap(object):
 
 
         # ------------------------------------------------------------------------------
-        if option['reportTss']:
+        if checkOption('reportTss'):
             # loop through all the section with output variables
             for sec in outsection:
                 for type in outputTypTss:
                     appendinfo(outTss, sec, "_out_tss_",type, False)
 
 
-        if option['reportMap']:
+        if checkOption('reportMap'):
             # load netcdf metadata from precipitation
             metaNetCDF()
 
@@ -151,8 +153,15 @@ class outputTssMap(object):
                     appendinfo(outMap,sec, "_out_map_",type, True)
 
 
+        # check if timing of output is ok
+        ok =['daily','monthend','monthtot','monthavg','annualend','annualtot','annualavg']
+        for out in outTss.keys():
+            if not(out.split('_')[-1] in ok):
+                msg = "Output is not possible!\n"
+                msg += "\""+out +"\" is not one of these: daily, monthend, monthtot, monthavg, annualend, annualtot, annualavg"
+                raise CWATMError(msg)
 
-        i = 1
+
 
 
 
@@ -171,6 +180,19 @@ class outputTssMap(object):
             first = sorted(list(self.var.sampleAdresses))[0]
             value = map[self.var.sampleAdresses[first]]
             return value
+
+        def checkifvariableexists(name, vari, space):
+            """
+            Test if variable exists
+            :param what: variable to check if it exists in the variable space
+            :param space: variable space of self.var
+            """
+            if not (vari in space):
+                closest = difflib.get_close_matches(vari, space)
+                if not closest: closest = ["- no match -"]
+                msg = "Variable \"" + vari + "\" is not defined in \""+ name+"\"\n"
+                msg += "Closest variable to this name is: \"" + closest[0] + "\""
+                raise CWATMError(msg)
 
 
 
@@ -281,7 +303,7 @@ class outputTssMap(object):
 
         # xxx=catchmenttotal(self.var.SurfaceRunForest * self.var.PixelArea, self.var.Ldd) * self.var.InvUpArea
         # self.var.Tss['DisTS'].sample(xxx)
-        # self.report(self.Precipitation,binding['TaMaps'])
+        # self.report(self.Precipitation,cbinding('TaMaps'))
 
 
 
@@ -293,7 +315,7 @@ class outputTssMap(object):
         # print '----------------#'
         varname = None
         varnameCollect =[]
-        if option['reportMap'] and dateVar['curr'] >= dateVar['intSpin']  :
+        if checkOption('reportMap') and dateVar['curr'] >= dateVar['intSpin']  :
             for map in outMap.keys():
                 for i in xrange(outMap[map].__len__()):
                     if outMap[map][i] != "None":
@@ -302,6 +324,8 @@ class outputTssMap(object):
                         flag = outMap[map][i][2]
                         # flag to create netcdf or to write
                         varname = outMap[map][i][1]
+                        checkifvariableexists(map,varname, vars(self.var).keys())
+
                         varnameCollect.append(varname)
                         inputmap = 'self.var.' + varname
 
@@ -333,15 +357,19 @@ class outputTssMap(object):
 
 
                         if map[-9:] == "annualend":
-                                if dateVar['checked'][dateVar['currwrite'] - 1]==2:
-                                    outMap[map][i][2] = writenetcdf(netfile, varname+"_annualend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currYear'], flag,True,dateVar['diffYear'])
-                        if (map[-9:] == "annualtot") or (map[-9:] == "annualavg"):
-                                vars(self.var)[varname + "_annualtot"] += vars(self.var)[varname]
-                                if dateVar['checked'][dateVar['currwrite'] - 1]==2:
-                                    if (map[-9:] == "annualtot"):
-                                        outMap[map][i][2] = writenetcdf(netfile, varname+"annualtot", "undefined", eval(inputmap+ "_annualtot"), dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
-                                    if (map[-9:] == "annualavg"):
-                                        avgmap = vars(self.var)[varname + "_monthtot"] / 365
+                            if dateVar['checked'][dateVar['currwrite'] - 1]==2:
+                                outMap[map][i][2] = writenetcdf(netfile, varname+"_annualend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currYear'], flag,True,dateVar['diffYear'])
+                        if (map[-9:] == "annualtot"):
+                            vars(self.var)[varname + "_annualtot"] += vars(self.var)[varname]
+                        if (map[-9:] == "annualavg"):
+                            vars(self.var)[varname + "_annualavg"] += vars(self.var)[varname]
+
+                        if dateVar['checked'][dateVar['currwrite'] - 1]==2:
+                            if (map[-9:] == "annualtot"):
+                                    outMap[map][i][2] = writenetcdf(netfile, varname+"annualtot", "undefined", eval(inputmap+ "_annualtot"), dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
+                            if (map[-9:] == "annualavg"):
+                                        days = 366 if calendar.isleap(int(dateVar['currDate'].strftime('%Y'))) else 365
+                                        avgmap = vars(self.var)[varname + "_annualavg"] / days
                                         outMap[map][i][2] = writenetcdf(netfile, varname+"annualavg", "undefined", avgmap, dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
                                     #vars(self.var)[varname+"annualtot"] = 0
 
@@ -351,14 +379,14 @@ class outputTssMap(object):
         # ***** WRITING RESULTS: TIME SERIES *************************
         # ************************************************************
 
-        if Flags['loud'] and option['reportTss']:
+        if Flags['loud'] and checkOption('reportTss'):
             # print the discharge of the first output map loc
             # print " %10.2f"  %cellvalue(maptotal(decompress(eval('self.var.' + reportTimeSerieAct["DisTS"]['outputVar'][0]))),1,1)[0]
             # print " %10.2f" % self.var.Tss["DisTS"].firstout(decompress(self.var.ChanQAvg))
             #print " %10.2f" % outTss['routing_out_tss_daily'][0][0].firstout(decompress(self.var.discharge))
             print " %10.2f" % firstout(self.var.discharge)
 
-        if option['reportTss']:
+        if checkOption('reportTss'):
             for tss in outTss.keys():
                 for i in xrange(outTss[tss].__len__()):
                     # loop for each variable in a section
@@ -366,6 +394,9 @@ class outputTssMap(object):
                         varname = outTss[tss][i][1]
                         varnameCollect.append(varname)
                         what = 'self.var.' + outTss[tss][i][1]
+
+                        checkifvariableexists(tss,outTss[tss][i][1],vars(self.var).keys())
+
                         if tss[-5:] == "daily":
                             # what = 'self.var.' + reportTimeSerieAct[tss]['outputVar'][0]
                             # how = reportTimeSerieAct[outTss[tss][0][0]]['operation'][0]

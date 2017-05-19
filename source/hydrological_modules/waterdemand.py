@@ -31,11 +31,11 @@ class waterdemand(object):
         Initial part of the water demand module
         Set the water allocation
         """
-        if option['includeWaterDemandDomInd']:
+        if checkOption('includeWaterDemandDomInd'):
            #self.var.recessionCoeff = loadmap('recessionCoeff')
 
            # Add  zones at which water allocation (surface and groundwater allocation) is determined
-           if option['usingAllocSegments']:
+           if checkOption('usingAllocSegments'):
                self.var.allocSegments = loadmap('allocSegments').astype(np.int)
                self.var.segmentArea = npareatotal(self.var.cellArea, self.var.allocSegments)
         else:
@@ -58,18 +58,18 @@ class waterdemand(object):
         #
 
 
-        if option['includeWaterDemandDomInd']:
+        if checkOption('includeWaterDemandDomInd'):
             # industry water demand
             if dateVar['newStart'] or dateVar['newYear']:
-                self.var.industryGrossDemand = readnetcdf2(binding['industryWaterDemandFile'], dateVar['currDate'], "yearly", value="industryGrossDemand")
-                self.var.industryNettoDemand = readnetcdf2(binding['industryWaterDemandFile'], dateVar['currDate'], "yearly", value="industryNettoDemand")
+                self.var.industryGrossDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], "yearly", value="industryGrossDemand")
+                self.var.industryNettoDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], "yearly", value="industryNettoDemand")
                 self.var.industryGrossDemand = np.where(self.var.industryGrossDemand > self.var.InvCellArea, self.var.industryGrossDemand, 0.0)
                 self.var.industryNettoDemand = np.where(self.var.industryNettoDemand > self.var.InvCellArea, self.var.industryNettoDemand, 0.0)
 
             # domestic water demand
             if dateVar['newStart'] or dateVar['newMonth']:
-                self.var.domesticGrossDemand = readnetcdf2(binding['domesticWaterDemandFile'], dateVar['currDate'], "monthly", value="domesticGrossDemand")
-                self.var.domesticNettoDemand = readnetcdf2(binding['domesticWaterDemandFile'], dateVar['currDate'], "monthly", value="domesticNettoDemand")
+                self.var.domesticGrossDemand = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], "monthly", value="domesticGrossDemand")
+                self.var.domesticNettoDemand = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], "monthly", value="domesticNettoDemand")
                 # avoid small values (less than 1 m3):
                 self.var.domesticGrossDemand = np.where(self.var.domesticGrossDemand > self.var.InvCellArea, self.var.domesticGrossDemand, 0.0)
                 self.var.domesticNettoDemand = np.where(self.var.domesticNettoDemand > self.var.InvCellArea, self.var.domesticNettoDemand, 0.0)
@@ -105,7 +105,7 @@ class waterdemand(object):
 
             averageUpstreamInput = np.maximum(0.0, averageUpstreamInput)
 
-            if option['usingAllocSegments']:
+            if checkOption('usingAllocSegments'):
             #if self.var.usingAllocSegments:
                 averageBaseflowInput = npareaaverage(averageBaseflowInput, self.var.allocSegments)
                 averageUpstreamInput = npareamaximum(averageUpstreamInput, self.var.allocSegments)
@@ -135,7 +135,7 @@ class waterdemand(object):
         """
 
         # ------------------------------------------
-        if option['includeWaterDemandDomInd']:
+        if checkOption('includeWaterDemandDomInd'):
             # non irrigation water demand
             self.var.nonIrrGrossDemand = self.var.potentialNonIrrGrossWaterDemand.copy()
 
@@ -167,7 +167,7 @@ class waterdemand(object):
             # - based on readAvlChannelStorage
             # - and swAbstractionFraction * totalPotGrossDemand
             #
-            if option['usingAllocSegments']:
+            if checkOption('usingAllocSegments'):
                 # using zone/segment at which supply network is defined
 
                 # gross demand volume in each cell (unit: m3)
@@ -200,7 +200,7 @@ class waterdemand(object):
                 # allocation surface water abstraction in meter (unit: m)
                 self.var.allocSurfaceWaterAbstract[No] = volAllocSurfaceWaterAbstract / self.var.cellArea
 
-                if option['calcWaterBalance']:
+                if checkOption('calcWaterBalance'):
                     abstraction = npareatotal(self.var.actSurfaceWaterAbstract *  self.var.cellArea,self.var.allocSegments) / self.var.segmentArea
                     allocation = npareatotal(self.var.allocSurfaceWaterAbstract * self.var.cellArea,self.var.allocSegments) / self.var.segmentArea
 
@@ -233,7 +233,7 @@ class waterdemand(object):
             # variable to reduce/limit groundwater abstraction (> 0 if limitAbstraction = True)
             self.var.reducedGroundWaterAbstraction = 0.0
 
-            if option['limitAbstraction'] and (No < 4):
+            if checkOption('limitAbstraction') and (No < 4):
 
                 #print ('Fossil groundwater abstractions are NOT allowed.')
                 # calculate renewableAvlWater (non-fossil groundwater and channel)

@@ -23,6 +23,7 @@ import datetime
 import shutil
 import glob
 
+import difflib  # to check the closest word in settingsfile, if an error occurs
 
 
 class ExtParser(ConfigParser.SafeConfigParser):
@@ -31,7 +32,7 @@ class ExtParser(ConfigParser.SafeConfigParser):
 
     Example:
         PathRoot = C:/work
-        MaskMap = $(BASICS:PathRoot)/data/areamaps/area.tif
+        MaskMap = $(FILE_PATHS:PathRoot)/data/areamaps/area.tif
 
     """
     #implementing extended interpolation
@@ -50,7 +51,19 @@ class ExtParser(ConfigParser.SafeConfigParser):
          :param vars:
          :return:
          """
-         r_opt = ConfigParser.SafeConfigParser.get(self, section, option, raw=True, vars=vars)
+         sys.tracebacklimit = 0  # no long error message
+         try:
+            r_opt = ConfigParser.SafeConfigParser.get(self, section, option, raw=True, vars=vars)
+         except:
+             print section, option
+             closest = difflib.get_close_matches(option, binding.keys())
+             if not closest: closest = ["- no match -"]
+             #msg = "No key with the name: \"" + option +" in " + section + "\" in the settings file: \"" + sys.argv[1] + "\"\n"
+             msg = "Closest key to the required one is: \"" + closest[0] + "\""
+             raise CWATMError(msg)
+
+
+         sys.tracebacklimit = 1   # set error message back to default
          if raw:
              return r_opt
 
@@ -125,7 +138,13 @@ def parse_configuration(settingsFileName):
         check_section = False
         for opt in options:
             if sec=="OPTIONS":
-                option[opt] = config.getboolean(sec, opt)
+                try:
+                    option[opt] = config.getboolean(sec, opt)
+                except:
+                    msg = "Value in: \"" + sec +", " + opt + "\" is not True or False!"
+                    raise CWATMError(msg)
+
+
             else:
                 # Check if config line = output line
                 if opt.lower()[0:4] == "out_":
@@ -143,6 +162,7 @@ def parse_configuration(settingsFileName):
                 else:
                     # binding: all the parameters which are not output or option are collected
                     binding[opt] = config.get(sec, opt)
+
         if check_section:
             k =1
             outsection.append(sec)
@@ -151,7 +171,7 @@ def parse_configuration(settingsFileName):
      # Output directory is stored in a separat global array
 
 
-def read_metanetcdf(metaxml):
+def read_metanetcdf(metaxml,name):
     """
     Read the metadata for netcdf output files
     unit, long name, standard name and additional information
@@ -165,7 +185,7 @@ def read_metanetcdf(metaxml):
         f.close()
     except:
         msg = "Cannot find option file: " + metaxml
-        raise CWATMFileError(metaxml,msg)
+        raise CWATMFileError(metaxml,msg, sname = name)
     try:
         metaparse = xml.dom.minidom.parse(metaxml)
     except:
