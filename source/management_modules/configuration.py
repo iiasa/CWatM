@@ -51,7 +51,8 @@ class ExtParser(ConfigParser.SafeConfigParser):
          :param vars:
          :return:
          """
-         sys.tracebacklimit = 0  # no long error message
+         #h1 = sys.tracebacklimit
+         #sys.tracebacklimit = 0  # no long error message
          try:
             r_opt = ConfigParser.SafeConfigParser.get(self, section, option, raw=True, vars=vars)
          except:
@@ -63,7 +64,7 @@ class ExtParser(ConfigParser.SafeConfigParser):
              raise CWATMError(msg)
 
 
-         sys.tracebacklimit = 1   # set error message back to default
+         #sys.tracebacklimit = h1   # set error message back to default
          if raw:
              return r_opt
 

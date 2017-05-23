@@ -82,12 +82,14 @@ def Calendar(input):
             d = d.replace('.', '/')
             print d
 
-        sys.tracebacklimit = 0
-        date = datetime.datetime.strptime(d, formatstr)
-        sys.tracebacklimit = 1
+        try:
+            date = datetime.datetime.strptime(d, formatstr)
+        except:
+            msg = "Either date in StepStart is not a date or in SpinUp or StepEnd it is neither a number or a date!"
+            raise CWATMError(msg)
 
 
-        # value=str(int(date.strftime("%j")))
+
     return date
 
 
@@ -126,13 +128,15 @@ def checkifDate(start,end,spinup):
     :return: a list of date variable in: dateVar
     """
 
-    begin = Calendar(ctbinding('CalendarDayStart'))
+    #begin = Calendar(ctbinding('CalendarDayStart'))
     startdate = Calendar(ctbinding('StepStart'))
-
     if type(startdate) is datetime.datetime:
         begin = startdate
     else:
-        begin = begin + datetime.timedelta(days=startdate-1)
+        msg = "\"StepStart = " + ctbinding('StepStart') + "\"\n"
+        msg += "StepStart has to be a valid date!"
+        raise CWATMError(msg)
+
 
 
     # spinup date = date from which maps are written

@@ -222,14 +222,14 @@ class soil(object):
         soilWaterStorage =  self.var.w1[No] + self.var.w2[No]
         soilWaterStorageCap = self.var.ws1[No] + self.var.ws2[No]
         relSat = soilWaterStorage / soilWaterStorageCap
-        WFRACB = 1 - (1 - relSat) ** self.var.arnoBeta[No]
+        satAreaFrac = 1 - (1 - relSat) ** self.var.arnoBeta[No]
+        satAreaFrac = np.maximum(np.minimum(satAreaFrac, 1.0), 0.0)
 
         store = soilWaterStorageCap / (self.var.arnoBeta[No] + 1)
         potBeta = (self.var.arnoBeta[No] + 1) / self.var.arnoBeta[No]
-        potInf = store - store * (1 - (1 - WFRACB) ** potBeta)
+        potInf = store - store * (1 - (1 - satAreaFrac) ** potBeta)
 
-        satAreaFrac = np.where(WFRACB > 0., 1. - WFRACB ** self.var.arnoBeta[No], 0.)
-        satAreaFrac = np.maximum(np.minimum(satAreaFrac, 1.0), 0.0)
+
 
 
         # ------------------------------------------------------------------

@@ -18,13 +18,13 @@ RunModel = runpy.bat
 
 [Option]
 firstrun = True
-para_first = [0.0037, 1.4, 1.0, 4.0, 0.5, 3.0, 1.0, 1.0, 1.0,0.5,1., 1.]
+para_first = [0.0032, 1.31, 1.4, 5.5, 0.65, 2.8, 1.0, 1.3, 0.83,0.43,0.34, 1.]
 # Snowmelt, crop KC, soil depth,pref. flow, arno beta, interflow factor, groundwater recession, runoff conc., routing, manning factor, normalStorageLimit, lakeAFactor,No of run
 bestrun = True
 
 [DEAP]
 maximize = True
-use_multiprocessing = 1
+use_multiprocessing = 0
 ngen = 20
 mu = 32
 lambda_ = 16
@@ -32,5 +32,24 @@ lambda_ = 16
 
 
 
-
+SnowMeltCoef = 0.0032
+# Cropf factor correction  
+crop_correct =  1.31
+#Soil
+soildepth_factor = 1.4
+#Soil preferentialFlowConstant = 4.0, arnoBeta_add = 0.1
+preferentialFlowConstant = 5.5
+arnoBeta_add = 0.65
+# interflow part of recharge factor = 1.0
+factor_interflow = 2.8
+# groundwater recessionCoeff_factor = 1.0
+recessionCoeff_factor = 1.3
+# runoff concentration factor runoffConc_factor = 1.0
+runoffConc_factor = 1.0
+#Routing manningsN Factor to Manning's roughness = 1.0
+manningsN = 0.83
+# reservoir  normal storage limit (fraction of total storage, [-]) [0.15 - 0.85] default 0.5
+normalStorageLimit = 0.43
+# lake parameter - factor to alpha: parameter of of channel width and weir coefficient  [0.33 - 3.] dafault 1.
+lakeAFactor = 0.34
 

@@ -67,9 +67,26 @@ def valuecell(mask, coordx, coordstr):
         if col >= 0 and row >= 0 and col < maskmapAttr['col'] and row < maskmapAttr['row']:
             null[row, col] = i + 1
         else:
-            msg = "Coordinates: " + str(coord[i * 2]) + ',' + str(
-                coord[i * 2 + 1]) + " of gauge is outside mask map - col,row: " + str(col) + ',' + str(row)
-            msg +="\nPlease have a look at the [MASK_OUTLET] section"
+            x1 = maskmapAttr['x']
+            x2 = x1 + maskmapAttr['cell']* maskmapAttr['col']
+            y1 = maskmapAttr['y']
+            y2 = y1 - maskmapAttr['cell']* maskmapAttr['row']
+            box  = "%5s %5.1f\n" %("",y1)
+            box += "%5s ---------\n" % ("")
+            box += "%5s |       |\n" % ("")
+            box += "%5.1f |       |%5.1f     <-- Box of mask map\n" %(x1,x2)
+            box += "%5s |       |\n" % ("")
+            box += "%5s ---------\n" % ("")
+            box += "%5s %5.1f\n" % ("", y2)
+
+            #print box
+
+            print "%2s %-17s %10s %8s" % ("No", "Name", "time[s]", "%")
+
+            msg = "Coordinates: x = " + str(coord[i * 2]) + '  y = ' + str(
+                coord[i * 2 + 1]) + " of gauge is outside mask map\n\n"
+            msg += box
+            msg +="\nPlease have a look at \"MaskMap\" or \"Gauges\""
             raise CWATMError(msg)
 
     #map = numpy2pcr(Nominal, null, -9999)
@@ -419,6 +436,17 @@ def decompress(map, pcr1 = True):
 # NETCDF
 # -----------------------------------------------------------------------
 
+def getmeta(key,varname,alternative):
+    """
+    get the meta data information for the netcdf output from the global
+    variable metaNetcdfVar
+    """
+
+    ret = alternative
+    if varname in metaNetcdfVar:
+        if key in metaNetcdfVar[varname]:
+            ret = metaNetcdfVar[varname][key]
+    return ret
 
 
 def metaNetCDF():
@@ -506,39 +534,6 @@ def mapattrTiff(nf2):
 
 
 
-def readnetcdf(name, time):
-    """
-    load stack of maps 1 at each timestamp in netcdf format
-
-    :param name: name of the file
-    :param time: time stamp
-    :return:
-    """
-
-    filename =  os.path.splitext(name)[0] + '.nc'
-
-    number = time - 1
-    try:
-       nf1 = Dataset(filename, 'r')
-    except:
-        msg = "Netcdf map stacks: \n"
-        raise CWATMFileError(filename,msg)
-
-    value = nf1.variables.items()[-1][0]  # get the last variable name
-    mapnp = nf1.variables[value][
-        number, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
-    nf1.close()
-
-    mapC = compressArray(mapnp,pcr=False,name=filename)
-    #map = decompress(mapC)
-    #report(map, 'C:\work\output\out2.map')
-
-
-    timename = os.path.basename(name) + str(time)
-    if Flags['check']:
-       map = decompress(mapC)
-       checkmap(timename, filename, map, True, 1)
-    return mapC
 
 
 def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = False,cut = True, zeros = 0.0,meteo = False, usefilename = False):
@@ -674,8 +669,10 @@ def readnetcdfInitial(name, value,default = 0.0):
             mapC = compressArray(mapnp,pcr=False,name=filename)
             return mapC
         except:
-            nf1.close()
-            msg = "Initial value: " + value + " is has not the same shape as the mask map"
+            #nf1.close()
+            msg ="===== Problem reading initial data ====== \n"
+            msg += "Initial value: " + value + " is has not the same shape as the mask map\n"
+            msg += "Maybe put\"load_initial = False\""
             print CWATMError(msg)
     else:
         nf1.close()
@@ -687,23 +684,9 @@ def readnetcdfInitial(name, value,default = 0.0):
 
 
 
-def getmeta(key,varname,alternative):
-    """
-    get the meta data information for the netcdf output from the global
-    variable metaNetcdfVar
-    """
-
-    ret = alternative
-    if varname in metaNetcdfVar:
-        if key in metaNetcdfVar[varname]:
-            ret = metaNetcdfVar[varname][key]
-    return ret
-
-
 
 # --------------------------------------------------------------------------------------------
 
-#def writenet(flag, inputmap, netfile, timestep, value_standard_name, value_long_name, value_unit, fillval, startdate, flagTime=True):
 def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagTime, nrdays=None):
     """
     write a netcdf stack
@@ -796,7 +779,8 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
             if 'x' in metadataNCDF.keys():
                value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True,fill_value=1e20)
             if 'lon' in metadataNCDF.keys():
-               value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20)
+                #value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20)
+                value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20,chunksizes=(1,row,col))
         else:
           if 'x' in metadataNCDF.keys():
               value = nf1.createVariable(varname, 'f4', ('y', 'x'), zlib=True,fill_value=1e20)
@@ -978,10 +962,18 @@ def checkOption(inBinding):
     if test:
         return option[inBinding]
     else:
-        closest = difflib.get_close_matches(inBinding, option.keys())
+        closest = difflib.get_close_matches(inBinding, option.keys())[0]
+        with open(sys.argv[1]) as f:
+            i = 0
+            for line in f:
+                i +=1
+                if closest in line:
+                    lineclosest = "Line No. " + str(i) + ": "+ line
+
         if not closest: closest = ["- no match -"]
         msg = "No key with the name: \"" + inBinding + "\" in the settings file: \"" + sys.argv[1] + "\"\n"
-        msg += "Closest key to the required one is: \""+ closest[0] + "\""
+        msg += "Closest key to the required one is: \""+ closest + "\""
+        msg += lineclosest
         raise CWATMError(msg)
 
 def cbinding(inBinding):
@@ -989,10 +981,18 @@ def cbinding(inBinding):
     if test:
         return binding[inBinding]
     else:
-        closest = difflib.get_close_matches(inBinding, binding.keys())
+        closest = difflib.get_close_matches(inBinding, binding.keys())[0]
+        with open(sys.argv[1]) as f:
+            i = 0
+            for line in f:
+                i +=1
+                if closest in line:
+                    lineclosest = "Line No. " + str(i) + ": "+ line
+
         if not closest: closest = ["- no match -"]
         msg = "No key with the name: \"" + inBinding + "\" in the settings file: \"" + sys.argv[1] + "\"\n"
-        msg += "Closest key to the required one is: \""+ closest[0] + "\""
+        msg += "Closest key to the required one is: \""+ closest + "\"\n"
+        msg += lineclosest
         raise CWATMError(msg)
 
 
