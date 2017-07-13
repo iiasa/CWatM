@@ -468,12 +468,12 @@ def mapattrNetCDF(name):
     and define the rectangular of the mask map inside the netcdf map
     """
 
-    filename = os.path.splitext(name)[0] + '.nc'
+    #filename = os.path.splitext(name)[0] + '.nc'
     try:
-        nf1 = Dataset(filename, 'r')
+        nf1 = Dataset(name, 'r')
     except:
         msg = "Checking netcdf map \n"
-        raise CWATMFileError(filename,msg)
+        raise CWATMFileError(name,msg)
 
     x1 = round(nf1.variables.values()[0][0],5)
     x2 = round(nf1.variables.values()[0][1],5)
