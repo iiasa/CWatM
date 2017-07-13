@@ -10,7 +10,7 @@
 
 
 
-import os
+import os, glob
 import calendar
 import numpy as np
 import globals
@@ -26,13 +26,9 @@ from pcraster2.dynamicPCRasterBase import *
 
 #from pcraster.framework import *
 
-
-
 from netCDF4 import Dataset,num2date,date2num,date2index
-
 import gdal
 from gdalconst import *
-
 import warnings
 
 
@@ -455,7 +451,9 @@ def metaNetCDF():
     """
 
     try:
-        nf1 = Dataset(cbinding('PrecipitationMaps'), 'r')
+        name = cbinding('PrecipitationMaps')
+        name1 = glob.glob(os.path.normpath(name))[0]
+        nf1 = Dataset(name1, 'r')
         for var in nf1.variables:
            metadataNCDF[var] = nf1.variables[var].__dict__
         nf1.close()
@@ -532,6 +530,125 @@ def mapattrTiff(nf2):
     return (cut0, cut1, cut2, cut3)
 
 
+def multinetdf(meteomaps):
+    """
+
+    :param meteomaps: list of meteomaps to define start and end time
+    :return:
+    """
+
+    end = dateVar['dateEnd']
+
+    for maps in meteomaps:
+        name = cbinding(maps)
+        nameall = glob.glob(os.path.normpath(name))
+        nameall.sort()
+        meteolist = {}
+        startfile = 0
+
+        for filename in nameall:
+            try:
+                nf1 = Dataset(filename, 'r')
+            except:
+                msg = "Netcdf map stacks:" + filename +"\n"
+                raise CWATMFileError(filename, msg, sname=maps)
+            nctime = nf1.variables['time']
+
+
+            if nctime.calendar in ['noleap', '365_day']:
+                dateVar['leapYear'] = 1
+            if nctime.calendar in ['360_day']:
+                dateVar['leapYear'] = 2
+
+            datestart = num2date(nctime[0],units=nctime.units,calendar=nctime.calendar)
+            dateend = num2date(nctime[-1], units=nctime.units, calendar=nctime.calendar)
+            if startfile == 0: # search first file where dynamic run starts
+                start = dateVar['dateBegin']
+                if (dateend >= start) and (datestart <= start):  # if enddate of a file is bigger than the start of run
+                    startfile = 1
+                    indstart = (start - datestart).days
+                    indend = (dateend -datestart).days
+                    meteolist[startfile-1] = [filename,indstart,indend, start,dateend]
+                    inputcounter[maps] = indstart  # startindex of timestep 1
+                    start = dateend + datetime.timedelta(days=1)
+
+            else:
+                if (datestart >= start) and (datestart < end ):
+                    startfile += 1
+                    indstart = (start - datestart).days
+                    indend = (dateend -datestart).days
+                    meteolist[startfile - 1] = [filename, indstart,indend, start, dateend,]
+                    start = dateend + datetime.timedelta(days=1)
+            ii =1
+            nf1.close()
+        meteofiles[maps] =  meteolist
+        flagmeteo[maps] = 0
+
+    ii =1
+
+
+
+def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0):
+    """
+    load stack of maps 1 at each timestamp in netcdf format
+
+    :param name: file name
+    :param date:
+    :param value: if set the name of the parameter is defined
+    :param addZeros:
+    :param cut: if True the map is clipped to mask map
+    :param zeros: default value
+    :return:
+    """
+
+    meteoInfo = meteofiles[name][flagmeteo[name]]
+    idx = inputcounter[name]
+    filename =  os.path.normpath(meteoInfo[0])
+
+    try:
+       nf1 = Dataset(filename, 'r')
+    except:
+        msg = "Netcdf map stacks: \n"
+        raise CWATMFileError(filename,msg, sname = name)
+
+    if value == "None":
+        value = nf1.variables.items()[-1][0]  # get the last variable name
+
+    # check if mask = map size -> if yes do not cut the map
+    cutcheckmask = maskinfo['shape'][0] * maskinfo['shape'][1]
+    cutcheckmap = nf1.variables[value].shape[1] * nf1.variables[value].shape[2]
+    cutcheck = True
+    if cutcheckmask == cutcheckmap: cutcheck = False
+
+
+    if cutcheck:
+        mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
+    else:
+        mapnp = nf1.variables[value][idx].astype(np.float64)
+    try:
+        mapnp.mask.all()
+        mapnp = mapnp.data
+    except:
+        ii =1
+    nf1.close()
+
+    # add zero values to maps in order to supress missing values
+    if addZeros: mapnp[np.isnan(mapnp)] = zeros
+
+    if maskinfo['shapeflat'][0]<> mapnp.size:
+        msg = name + " has less or more valid pixels than the mask map \n"
+        msg += "if it is the ET maps, it might be from another run with different mask. Please look at the option: calc_evaporation"
+        raise CWATMWarning(msg)
+
+    mapC = compressArray(mapnp,pcr=False,name=filename)
+
+    # increase index and check if next file
+    inputcounter[name] += 1
+    if inputcounter[name] > meteoInfo[2]:
+        inputcounter[name] = 0
+        flagmeteo[name] += 1
+
+    return mapC
 
 
 
@@ -563,7 +680,6 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
     except:
         msg = "Netcdf map stacks: \n"
         raise CWATMFileError(filename,msg, sname = namebinding)
-
 
     if value == "None":
         value = nf1.variables.items()[-1][0]  # get the last variable name

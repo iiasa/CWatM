@@ -89,8 +89,9 @@ class soil(object):
         self.var.soildepth[2] = np.maximum(0.05, self.var.soildepth[2])
 
         # Calibration
-        self.var.soildepth[1] = self.var.soildepth[1] * loadmap('soildepth_factor')
-        self.var.soildepth[2] = self.var.soildepth[2] * loadmap('soildepth_factor')
+        soildepth_factor =  loadmap('soildepth_factor')
+        self.var.soildepth[1] = self.var.soildepth[1] * soildepth_factor
+        self.var.soildepth[2] = self.var.soildepth[2] * soildepth_factor
 
         self.var.soildepth12 = self.var.soildepth[1] + self.var.soildepth[2]
 

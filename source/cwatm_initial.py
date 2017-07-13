@@ -35,6 +35,7 @@ from hydrological_modules.lakes_reservoirs import *
 
 from management_modules.data_handling import *
 from management_modules.output import *
+import os, glob
 
 
 
@@ -63,8 +64,10 @@ class CWATModel_ini(DynamicModel):
         # get the extent of the maps from the precipitation input maps
         # and the modelling extent from the MaskMap
         # cutmap[] defines the MaskMap inside the precipitation map
-        cutmap[0], cutmap[1], cutmap[2], cutmap[
-            3] = mapattrNetCDF(cbinding('PrecipitationMaps'))
+        name = cbinding('PrecipitationMaps')
+        name1 = glob.glob(os.path.normpath(name))[0]
+
+        cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(name1)
         if checkOption('writeNetcdfStack') or checkOption('writeNetcdf'):
             # if NetCDF is writen, the pr.nc is read to get the metadata
             # like projection
@@ -108,6 +111,7 @@ class CWATModel_ini(DynamicModel):
         # run intial misc to get all global variables
         self.misc_module.initial()
         self.init_module.initial()
+        self.readmeteo_module.initial()
 
         self.inflow_module.initial()
         self.evaporationPot_module.initial()

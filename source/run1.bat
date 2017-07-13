@@ -1,2 +1,2 @@
-python cwatm.py settingsLVmswep.ini -l
+python cwatm.py settings_uganda2.ini -l
 pause

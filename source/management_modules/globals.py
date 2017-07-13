@@ -40,7 +40,10 @@ timestepInit =[]
 binding = {}
 option = {}
 metaNetcdfVar = {}
+
 inputcounter = {}
+flagmeteo ={}
+meteofiles = {}
 
 # Initial conditions
 global initCondVar,initCondVarValue
