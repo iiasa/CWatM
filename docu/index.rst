@@ -26,26 +26,16 @@ Community Water Model
    
    intro
 
-   nexus
-   community
    modeldesign
-   setup
-   runmodel
-   settingsfile
-   metadata
-   initialisation
-   postpro
-   data
-   results
-   todo
-   updates
-   bugs
    publication
-   developer
+   setup
+   results
+
+   todo
+   
+   data
    calibration
    license
-   download
-   source
 
    
 

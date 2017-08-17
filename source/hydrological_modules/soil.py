@@ -92,10 +92,10 @@ class soil(object):
         soildepth_factor =  loadmap('soildepth_factor')
         self.var.soildepth[1] = self.var.soildepth[1] * soildepth_factor
         self.var.soildepth[2] = self.var.soildepth[2] * soildepth_factor
-
         self.var.soildepth12 = self.var.soildepth[1] + self.var.soildepth[2]
 
         ii =1
+
 
 
 
@@ -121,6 +121,7 @@ class soil(object):
             preStor1 = self.var.w1[No].copy()
             preStor2 = self.var.w2[No].copy()
             preStor3 = self.var.w3[No].copy()
+            pretopwater = self.var.topwater
 
 
         # -----------------------------------------------------------
@@ -135,62 +136,103 @@ class soil(object):
         # # interceptEvap is the first flux in ET, soil evapo and transpiration are added later
         # self.var.actualET[No] = self.var.interceptEvap[No].copy()
 
+        if (dateVar['curr'] == 130) and (No==2):
+            ii=1
 
-        # -----------------------------------------------------------
-        # Calculate  water available for infiltration
-
-        self.var.availWaterInfiltration[No] = self.var.availWaterInfiltration[No] + self.var.irrGrossDemand[No]
+        availWaterInfiltration = self.var.availWaterInfiltration[No].copy()
+        availWaterInfiltration = availWaterInfiltration + self.var.irrGrossDemand[No]
         # availWaterInfiltration = water net from precipitation (- soil - interception - snow + snow melt) + water for irrigation
 
+
+
+
         if coverType == 'irrPaddy':
+            # depending on the crop calender -> here if cropKC > 0.75 paddies are flooded to 50mm (as set in settings file)
+
+            #if self.var.cropKC[No]>0.75:
+            #    ii = 1
+
+            self.var.topwater = np.where(self.var.cropKC[No] > 0.75, self.var.topwater + availWaterInfiltration, self.var.topwater)
+            # topwater is max 0.05
+            # self.var.topwater = np.minimum(self.var.topwater, 0.05)
+
+
             # open water evaporation from the paddy field  - using potential evaporation from open water
-            self.var.openWaterEvap[No] = np.minimum( np.maximum(0., self.var.availWaterInfiltration[No]), self.var.EWRef)
-            # available water is reduced by open water evap
-            self.var.availWaterInfiltration[No] = np.maximum(0.,self.var.availWaterInfiltration[No] - self.var.openWaterEvap[No])
-            h = self.var.potBareSoilEvap - self.var.openWaterEvap[No]
+            self.var.openWaterEvap[No] = np.minimum(np.maximum(0., self.var.topwater), self.var.EWRef)
+            self.var.topwater = self.var.topwater  - self.var.openWaterEvap[No]
+
+            # if paddies are flooded, avail water is calculated before: top + avail, otherwise it is calculated here
+            availWaterInfiltration = np.where(self.var.cropKC[No] > 0.75, self.var.topwater, self.var.topwater + availWaterInfiltration)
+
+            # open water can evaporate more than maximum bare soil + transpiration because it is calculated from open water pot evaporation
+            #h = self.var.potBareSoilEvap - self.var.openWaterEvap[No]
             self.var.potBareSoilEvap = np.maximum(0.,self.var.potBareSoilEvap - self.var.openWaterEvap[No])
-            # if open wate revaporation is bigger than bare soil, transpiration rate is reduced
-            self.var.potTranspiration[No] = np.where( h > 0, self.var.potTranspiration[No], np.maximum(0.,self.var.potTranspiration[No] + h))
+            # if open water revaporation is bigger than bare soil, transpiration rate is reduced
+            # self.var.potTranspiration[No] = np.where( h > 0, self.var.potTranspiration[No], np.maximum(0.,self.var.potTranspiration[No] + h))
 
         else:
             self.var.openWaterEvap[No] = 0.
 
 
 
+        if (dateVar['curr'] >= 0) and (No==3):
+            ii=1
 
         # ---------------------------------------------------------
         # calculate transpiration
         # ***** SOIL WATER STRESS ************************************
 
-        p = 1 / (0.76 + 1.5 * np.minimum(0.1 * (self.var.ETRef*1000.), 1.0)) - 0.10 * (5 - self.var.cropGroupNumber)
-        # soil water depletion fraction (easily available soil water)
-        # Van Diepen et al., 1988: WOFOST 6.0, p.87
-        # to avoid a strange behaviour of the p-formula's, ETRef is set to a maximum of
-        # 10 mm/day. Thus, p will range from 0.15 to 0.45 at ETRef eq 10 and
-        # CropGroupNumber 1-5
+        etpotMax = np.minimum(0.1 * (self.var.totalPotET[No] * 1000.), 1.0)
+        # to avoid a strange behaviour of the p-formula's, ETRef is set to a maximum of 10 mm/day.
 
+        if coverType == 'irrPaddy' or coverType == 'irrNonPaddy':
 
-        p = np.where(self.var.cropGroupNumber <= 2.5, p + (np.minimum(0.1 * (self.var.ETRef*1000.), 1.0) - 0.6) / (
-            self.var.cropGroupNumber * (self.var.cropGroupNumber + 3)), p)
-        # correction for crop groups 1 and 2 (Van Diepen et al, 1988)
-        p = np.maximum(np.minimum(p, 0.99999), 0.)
-        # p is between 0 and 1
+            p = 1 / (0.76 + 1.5 * etpotMax) - 0.4
+            # soil water depletion fraction (easily available soil water) # Van Diepen et al., 1988: WOFOST 6.0, p.87.
+            p = p + (etpotMax - 0.6) / 4
+            # correction for crop group 1  (Van Diepen et al, 1988) -> p between 0.14 - 0.77
+            # The crop group number is a indicator of adaptation to dry climate,
+            # e.g. olive groves are adapted to dry climate, therefore they can extract more water from drying out soil than e.g. rice.
+            # The crop group number of olive groves is 4 and of rice fields is 1
+            # for irrigation it is expected that the crop has a low adaptation to dry climate
+        else:
+
+            p = 1 / (0.76 + 1.5 * etpotMax) - 0.10 * (5 - self.var.cropGroupNumber)
+            # soil water depletion fraction (easily available soil water)
+            # Van Diepen et al., 1988: WOFOST 6.0, p.87
+            # to avoid a strange behaviour of the p-formula's, ETRef is set to a maximum of
+            # 10 mm/day. Thus, p will range from 0.15 to 0.45 at ETRef eq 10 and
+            # CropGroupNumber 1-5
+            p = np.where(self.var.cropGroupNumber <= 2.5, p + (etpotMax - 0.6) / (self.var.cropGroupNumber * (self.var.cropGroupNumber + 3)), p)
+            # correction for crop groups 1 and 2 (Van Diepen et al, 1988)
+
+        p = np.maximum(np.minimum(p, 1.0), 0.)
+        # p is between 0 and 1 => if p =1 wcrit = wwp, if p= 0 wcrit = wfc
+        # p is closer to 0 if evapo is bigger and cropgroup is smaller
 
         wCrit1 = ((1 - p) * (self.var.wfc1[No] - self.var.wwp1[No])) + self.var.wwp1[No]
         wCrit2 = ((1 - p) * (self.var.wfc2[No] - self.var.wwp2[No])) + self.var.wwp2[No]
         wCrit3 = ((1 - p) * (self.var.wfc3[No] - self.var.wwp3[No])) + self.var.wwp3[No]
 
         # Transpiration reduction factor (in case of water stress)
-        rws1 =  (self.var.w1[No] - self.var.wwp1[No]) / (wCrit1 - self.var.wwp1[No])
-        rws2 = (self.var.w2[No] - self.var.wwp2[No]) / (wCrit2 - self.var.wwp2[No])
-        rws3 = (self.var.w3[No] - self.var.wwp3[No]) / (wCrit3 - self.var.wwp3[No])
+
+
+        rws1 = divideValues((self.var.w1[No] - self.var.wwp1[No]),(wCrit1 - self.var.wwp1[No]), default = 1.)
+        rws2 = divideValues((self.var.w2[No] - self.var.wwp2[No]), (wCrit2 - self.var.wwp2[No]), default=1.)
+        rws3 = divideValues((self.var.w3[No] - self.var.wwp3[No]), (wCrit3 - self.var.wwp3[No]), default=1.)
+
+        #with np.errstate(invalid='ignore', divide='ignore'):
+        #rws1 = np.where((wCrit1 - self.var.wwp1[No]) > 0, (self.var.w1[No] - self.var.wwp1[No]) / (wCrit1 - self.var.wwp1[No]), 1.0)
+        #rws2 = np.where((wCrit2 - self.var.wwp2[No]) > 0, (self.var.w2[No] - self.var.wwp2[No]) / (wCrit2 - self.var.wwp2[No]), 1.0)
+        #rws3 = np.where((wCrit3 - self.var.wwp3[No]) > 0, (self.var.w3[No] - self.var.wwp3[No]) / (wCrit3 - self.var.wwp3[No]), 1.0)
+
         rws1 = np.maximum(np.minimum(1., rws1), 0.) * self.var.adjRoot[0][No]
         rws2 = np.maximum(np.minimum(1., rws2), 0.) * self.var.adjRoot[1][No]
         rws3 = np.maximum(np.minimum(1., rws3), 0.) * self.var.adjRoot[2][No]
-        sumrws = rws1 + rws2 + rws3
+        self.var.rws = rws1 + rws2 + rws3
 
 
-        TaMax = self.var.potTranspiration[No] * sumrws
+        TaMax = self.var.potTranspiration[No] * self.var.rws
         # transpiration is 0 when soil is frozen
         TaMax = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0., TaMax)
 
@@ -207,9 +249,10 @@ class soil(object):
         # Actual potential bare soil evaporation - upper layer
         self.var.actBareSoilEvap[No] = np.minimum(self.var.potBareSoilEvap,np.maximum(0.,self.var.w1[No] - self.var.wres1[No]))
         self.var.actBareSoilEvap[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0., self.var.actBareSoilEvap[No])
+
         # no bare soil evaporation in the inundated paddy field
         if coverType == 'irrPaddy':
-            self.var.actBareSoilEvap[No] = np.where(self.var.availWaterInfiltration[No] > 0.0, 0.0, self.var.actBareSoilEvap[No])
+            self.var.actBareSoilEvap[No] = np.where(self.var.topwater > 0., 0., self.var.actBareSoilEvap[No])
 
         self.var.w1[No] = self.var.w1[No] - self.var.actBareSoilEvap[No]
 
@@ -239,15 +282,23 @@ class soil(object):
         if coverType == 'irrPaddy' or not(checkOption('preferentialFlow')):
             self.var.prefFlow[No] = 0.
         else:
-            self.var.prefFlow[No] = self.var.availWaterInfiltration[No] * relSat ** self.var.cPrefFlow
+            self.var.prefFlow[No] = availWaterInfiltration * relSat ** self.var.cPrefFlow
             self.var.prefFlow[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0.0, self.var.prefFlow[No])
 
         # ---------------------------------------------------------
         # calculate infiltration
         # infiltration, limited with KSat1 and available water in topWaterLayer
-        self.var.infiltration[No] = np.minimum(potInf, self.var.availWaterInfiltration[No] - self.var.prefFlow[No])
+        self.var.infiltration[No] = np.minimum(potInf, availWaterInfiltration - self.var.prefFlow[No])
         self.var.infiltration[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0.0, self.var.infiltration[No])
-        self.var.directRunoff[No] = np.maximum(0.,self.var.availWaterInfiltration[No] - self.var.infiltration[No] - self.var.prefFlow[No])
+        self.var.directRunoff[No] = np.maximum(0.,availWaterInfiltration - self.var.infiltration[No] - self.var.prefFlow[No])
+
+        if coverType == 'irrPaddy':
+            self.var.topwater = np.maximum(0.,  self.var.topwater - self.var.infiltration[No])
+            # if paddy fields flooded only runoff if topwater > 0.05m
+            h = np.maximum(0., self.var.topwater- 0.05)
+            self.var.directRunoff[No] = np.where(self.var.cropKC[No] > 0.75, h, self.var.directRunoff[No])
+
+            self.var.topwater = np.maximum(0., self.var.topwater - self.var.directRunoff[No])
 
 
         # infiltration to soilayer 1 , if this is full it is send to soil layer 2
@@ -260,12 +311,12 @@ class soil(object):
         # to the water demand module  # could not be done before from landcoverType_module because readAvlWater is needed
 
         # for plants availailabe water
-        availWaterPlant1 = np.maximum(0., self.var.w1[No] - self.var.wwp1[No]) * self.var.rootDepth[0][No]
-        availWaterPlant2 = np.maximum(0., self.var.w2[No] - self.var.wwp2[No]) * self.var.rootDepth[1][No]
-        availWaterPlant3 = np.maximum(0., self.var.w3[No] - self.var.wwp3[No]) * self.var.rootDepth[2][No]
-        self.var.readAvlWater = availWaterPlant1 + availWaterPlant2 + availWaterPlant3
+        #availWaterPlant1 = np.maximum(0., self.var.w1[No] - self.var.wwp1[No]) * self.var.rootDepth[0][No]
+        #availWaterPlant2 = np.maximum(0., self.var.w2[No] - self.var.wwp2[No]) * self.var.rootDepth[1][No]
+        #availWaterPlant3 = np.maximum(0., self.var.w3[No] - self.var.wwp3[No]) * self.var.rootDepth[2][No]
+        #self.var.readAvlWater = availWaterPlant1 + availWaterPlant2 + availWaterPlant3
 
-        self.var.waterdemand_module.dynamic_waterdemand(coverType, No)
+
 
 
 
@@ -310,13 +361,13 @@ class soil(object):
         satTermFC3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No]) / (self.var.wfc3[No] - self.var.wres3[No])
         capRise1 = np.minimum(np.maximum(0., (1 - satTermFC1) * kUnSat2), self.var.kunSatFC12[No])
         capRise2 = np.minimum(np.maximum(0., (1 - satTermFC2) * kUnSat3), self.var.kunSatFC23[No])
-        capRiseGW = np.maximum(0., (1 - satTermFC3) * np.sqrt(self.var.KSat3[NoSoil] * kUnSat3))
-        capRiseGW = 0.5 * self.var.capRiseFrac * capRiseGW
-        capRiseGW = np.minimum(np.maximum(0., self.var.storGroundwater - self.var.reducedGroundWaterAbstraction), capRiseGW)
+        self.var.capRiseFromGW[No] = np.maximum(0., (1 - satTermFC3) * np.sqrt(self.var.KSat3[NoSoil] * kUnSat3))
+        self.var.capRiseFromGW[No] = 0.5 * self.var.capRiseFrac * self.var.capRiseFromGW[No]
+        self.var.capRiseFromGW[No] = np.minimum(np.maximum(0., self.var.storGroundwater), self.var.capRiseFromGW[No])
 
         self.var.w1[No] = self.var.w1[No] + capRise1
         self.var.w2[No] = self.var.w2[No] - capRise1 +  capRise2
-        self.var.w3[No] = self.var.w3[No] - capRise2 + capRiseGW
+        self.var.w3[No] = self.var.w3[No] - capRise2 + self.var.capRiseFromGW[No]
 
 
 
@@ -463,16 +514,20 @@ class soil(object):
 
         # total actual evaporation + transpiration
         self.var.actualET[No] = self.var.actualET[No] + self.var.actBareSoilEvap[No] + self.var.openWaterEvap[No] + self.var.actTransTotal[No]
+        #  actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water evaporation, therefore self.var.totalPotET[No] is adjusted
+        self.var.totalPotET[No] = np.maximum(self.var.totalPotET[No], self.var.actualET[No])
+
 
         # net percolation between upperSoilStores (positive indicating downward direction)
         #elf.var.netPerc[No] = perc[0] - capRise[0]
         #self.var.netPercUpper[No] = perc[1] - capRise[1]
 
         # groundwater recharge
-        #self.var.gwRecharge[No] = self.var.percToGW[No] - self.var.capRiseFromGW[No] + self.var.prefFlow[No]
-        toGWorInterflow = self.var.percToGW[No] + self.var.prefFlow[No] - capRiseGW
+        #self.var.gwRecharge[No] = self.var.perc3toGW[No] - self.var.capRiseFromGW[No] + self.var.prefFlow[No]
+        toGWorInterflow = self.var.perc3toGW[No] + self.var.prefFlow[No]
         self.var.interflow[No] = self.var.percolationImp * toGWorInterflow
-        self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow
+        self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow  - self.var.capRiseFromGW[No]
+
 
         # landSurfaceRunoff (needed for routing)
         #self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflowTotal[No]
@@ -484,38 +539,37 @@ class soil(object):
 
 
 
-
+        if (dateVar['curr'] == 130) and (No==2):
+            ii=1
 
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No], self.var.irrGrossDemand[No]],  # In
-                [self.var.directRunoff[No], self.var.interflow[No], self.var.perc3toGW[No], self.var.prefFlow[No], \
+                [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No],self.var.irrGrossDemand[No]],  # In  water demand included in availwater
+                [self.var.directRunoff[No],self.var.perc3toGW[No], self.var.prefFlow[No] ,  \
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
-                [ preStor1, preStor2, preStor3],  # prev storage
-                [self.var.w1[No], self.var.w2[No], self.var.w3[No]],
-                "Soil_1", False)
+                [ preStor1, preStor2, preStor3,pretopwater],  # prev storage
+                [self.var.w1[No], self.var.w2[No], self.var.w3[No],self.var.topwater],
+                "Soil_1 "+str(No), True)
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No],self.var.openWaterEvap[No]],  # In
-                [self.var.directRunoff[No], self.var.perc3toGW[No], self.var.prefFlow[No], \
+                [self.var.availWaterInfiltration[No], self.var.irrGrossDemand[No],self.var.openWaterEvap[No]],  # In
+                [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No],  \
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [ preStor1, preStor2, preStor3],  # prev storage
                 [self.var.w1[No], self.var.w2[No], self.var.w3[No]],
-                "Soil_1", True)
+                "Soil_2", False)
+            # openWaterEvap in because it is taken from availWater directly, out because it taken out immediatly. It is not a soil process indeed
 
-
-        """
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No], self.var.irrGrossDemand[No]],  # In
-                [self.var.directRunoff[No], self.var.interflow[No], self.var.percToGW[No], self.var.prefFlow[No], \
-                 self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
-                [preTopWaterLayer, preStor1, preStor2, preStor3],  # prev storage
-                [self.var.topWaterLayer[No], self.var.soilStor[0][No], self.var.soilStor[1][No], self.var.soilStor[2][No]],
+                [self.var.availWaterInfiltration[No], self.var.irrGrossDemand[No],self.var.snowEvap,self.var.interceptEvap[No]],  # In
+                [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No], \
+                 self.var.actualET[No]],  # Out
+                [preStor1, preStor2, preStor3],  # prev storage
+                [self.var.w1[No], self.var.w2[No], self.var.w3[No]],
                 "Soil_AllSoil", False)
-        """
         i = 1
 
 

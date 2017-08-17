@@ -26,6 +26,7 @@ from hydrological_modules.capillarRise import *
 from hydrological_modules.interception import *
 from hydrological_modules.runoff_concentration import *
 from hydrological_modules.waterbalance import *
+from hydrological_modules.environflow import *
 
 from hydrological_modules.routing_reservoirs.routing_kinematic import *
 from hydrological_modules.lakes_reservoirs import *
@@ -85,6 +86,9 @@ class CWATModel_ini(DynamicModel):
         self.waterbalance_module = waterbalance(self)
 
         self.readmeteo_module = readmeteo(self)
+        self.environflow_module = environflow(self)
+
+
         self.evaporationPot_module = evaporationPot(self)
         self.inflow_module = inflow(self)
         self.snowfrost_module = snow(self)
@@ -112,8 +116,8 @@ class CWATModel_ini(DynamicModel):
         self.misc_module.initial()
         self.init_module.initial()
         self.readmeteo_module.initial()
-
         self.inflow_module.initial()
+
         self.evaporationPot_module.initial()
         self.snowfrost_module.initial()
         self.soil_module.initial()
@@ -127,11 +131,10 @@ class CWATModel_ini(DynamicModel):
             self.lakes_reservoirs_module.initial_lakes()
             self.lakes_reservoirs_module.initial_reservoirs()
 
-
         self.waterdemand_module.initial()
         self.waterbalance_module.initial()
         # calculate initial amount of water in the catchment
 
         self.output_module.initial()
-
+        self.environflow_module.initial()
 

@@ -101,6 +101,8 @@ ParamRanges = pandas.read_csv(ParamRangesPath,sep=",",index_col=0)
 # Load observed streamflow
 streamflow_data = pandas.read_csv(Qtss_csv,sep=",", parse_dates=True, index_col=0)
 observed_streamflow = streamflow_data[Qtss_col]
+observed_streamflow[observed_streamflow<-9000]= np.nan
+
 
 # first standard parameter set
 # Snowmelt, crop KC, soil depth,pref. flow, arno beta, groundwater recession, runoff conc., routing, manning, No of run
@@ -178,28 +180,32 @@ def RunModel(Individual):
 	simulated_streamflow = pandas.read_table(Qsim_tss,sep=r"\s+",index_col=0,skiprows=4,header=None,skipinitialspace=True)
 	simulated_streamflow[1][simulated_streamflow[1]==1e31] = np.nan
 
-	#Qobs = observed_streamflow[Cal_Start:Cal_End].values+0.001
-	Qobs = observed_streamflow
-	Qsim = simulated_streamflow[1].values+0.001
+	if len(observed_streamflow) != len(simulated_streamflow[1]):
+		raise Exception("run_rand_id: " + str(
+			run_rand_id) + ": observed and simulated streamflow arrays have different number of elements (" + str(
+			len(observed_streamflow)) + " and " + str(len(simulated_streamflow[1])) + " elements, respectively)")
 
-	#Qsim = Qsim[Cal_Start_Step-1:Cal_End_Step+1]
-	if len(Qobs) != len(Qsim):
-		raise Exception("run_rand_id: "+str(run_rand_id)+": observed and simulated streamflow arrays have different number of elements ("+str(len(Qobs))+" and "+str(len(Qsim))+" elements, respectively)")
+	#Qobs = observed_streamflow[Cal_Start:Cal_End].values+0.001
+	#Qobs = observed_streamflow
+	q1 = simulated_streamflow[1].values+0.001
+	Qobs = observed_streamflow[~np.isnan(observed_streamflow)]
+	Qsim = q1[~np.isnan(observed_streamflow)]
 
 	# Compute objective function score
-	"""
+
 	KGE = HydroStats.KGE(s=Qsim,o=Qobs,warmup=WarmupDays)
 	print "   run_rand_id: "+str(run_rand_id)+", KGE: "+"{0:.3f}".format(KGE)
 	with open(os.path.join(path_subcatch,"runs_log.csv"), "a") as myfile:
 		myfile.write(str(run_rand_id)+","+str(KGE)+"\n")
 	return KGE, # If using just one objective function, put a comma at the end!!!
-    """
+	"""
 
 	NSE = HydroStats.NS(s=Qsim, o=Qobs, warmup=WarmupDays)
 	print "   run_rand_id: " + str(run_rand_id) + ", NSE: " + "{0:.3f}".format(NSE)
 	with open(os.path.join(path_subcatch, "runs_log.csv"), "a") as myfile:
 		myfile.write(str(run_rand_id) + "," + str(NSE) + "\n")
 	return NSE,  # If using just one objective function, put a comma at the end!!!
+	"""
 
 ########################################################################
 #   Perform calibration using the DEAP module
@@ -326,7 +332,7 @@ if __name__ == "__main__":
 			effmin[gen,ii] = np.amin([halloffame[x].fitness.values[ii] for x in range(len(halloffame))])
 			effavg[gen,ii] = np.average([halloffame[x].fitness.values[ii] for x in range(len(halloffame))])
 			effstd[gen,ii] = np.std([halloffame[x].fitness.values[ii] for x in range(len(halloffame))])
-		print ">> gen: "+str(gen)+", effmax_NSE: "+"{0:.3f}".format(effmax[gen,0])
+		print ">> gen: "+str(gen)+", effmax_KGE: "+"{0:.3f}".format(effmax[gen,0])
 
 		# Terminate the optimization after ngen generations
 		if gen >= ngen:
@@ -404,11 +410,11 @@ if __name__ == "__main__":
 		os.mkdir(directory_run)
 
 		#template_xml_new = template_xml_new.replace('%InitModel',"1")
-		f = open(os.path.join(directory_run,ModelSettings_template[:-4]+'-Run'+run_rand_id+'.xml'), "w")
+		f = open(os.path.join(directory_run,ModelSettings_template[:-4]+'-Run'+run_rand_id+'.ini'), "w")
 		f.write(template_xml_new)
 		f.close()
 		template_bat_new = template_bat
-		template_bat_new = template_bat_new.replace('%run',ModelSettings_template[:-4]+'-Run'+run_rand_id+'.xml')
+		template_bat_new = template_bat_new.replace('%run',ModelSettings_template[:-4]+'-Run'+run_rand_id+'.ini')
 
 		f = open(os.path.join(directory_run,RunModel_template[:-4]+run_rand_id+'.bat'), "w")
 		f.write(template_bat_new)

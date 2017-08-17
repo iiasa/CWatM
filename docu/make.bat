@@ -291,3 +291,5 @@ if  "%1" == "pdf" (
 
 
 :end
+copy /Y nature.css .\_build\html\_static/nature.css
+echo Finished

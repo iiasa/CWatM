@@ -203,7 +203,6 @@ class snow(object):
         self.var.SnowCover /= self.var.numberSnowLayersFloat
         # all in pixel
 
-
         # DEBUG Snow
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
@@ -212,7 +211,6 @@ class snow(object):
                 [self.var.prevSnowCover],   # prev storage
                 [self.var.SnowCover],
                 "Snow", False)
-
 
         #map = decompress( self.var.TotalPrecipitation)
         #report(map, 'C:\work\output\out3.map')

@@ -61,7 +61,6 @@ class readmeteo(object):
 
         """
 
-
         ZeroKelvin = 0.0
         if checkOption('TemperatureInKelvin'):
             # if temperature is in Kelvin -> conversion to deg C

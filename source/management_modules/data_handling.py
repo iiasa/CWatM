@@ -32,6 +32,8 @@ from gdalconst import *
 import warnings
 
 
+
+
 def valuecell(mask, coordx, coordstr):
     """
     to put a value into a pc raster map -> invert of cellvalue, map is converted into a numpy array first
@@ -119,7 +121,8 @@ def loadsetclone(name):
     :param name: name of mask map, can be a file or - row col cellsize xupleft yupleft -
     """
 
-    if checkOption('PCRaster'): from pcraster.framework import *
+    #if checkOption('PCRaster'): from pcraster.framework import *
+    if checkOption('PCRaster'): from pcraster.framework import pcraster
 
     filename = cbinding(name)
     coord = filename.split()
@@ -128,7 +131,7 @@ def loadsetclone(name):
         # settings x is first
         # setclone row col cellsize xupleft yupleft
         # retancle: Number of Cols, Number of rows, cellsize, upper left corner X, upper left corner Y
-        if checkOption('PCRaster'): setclone(int(coord[1]), int(coord[0]), float(coord[2]), float(coord[3]), float(coord[4]))
+        if checkOption('PCRaster'): pcraster.setclone(int(coord[1]), int(coord[0]), float(coord[2]), float(coord[3]), float(coord[4]))
 
         mapnp = np.ones((int(coord[1]), int(coord[0])))
         setmaskmapAttr(float(coord[3]),float(coord[4]), int(coord[0]),int(coord[1]),float(coord[2]))
@@ -138,10 +141,10 @@ def loadsetclone(name):
     elif len(coord) == 1:
         try:
             # try to read a pc raster map
-            setclone(filename)
-            map = boolean(readmap(filename))
+            pcraster.setclone(filename)
+            map =  pcraster.boolean( pcraster.readmap(filename))
             flagmap = True
-            mapnp = pcr2numpy(map,np.nan)
+            mapnp =  pcraster.pcr2numpy(map,np.nan)
 
             # Definition of cellsize, coordinates of the meteomaps and maskmap
             # need some love for error handling
@@ -154,11 +157,19 @@ def loadsetclone(name):
                 nf1 = Dataset(filename, 'r')
                 value = nf1.variables.items()[-1][0]  # get the last variable name
 
-                x1 = nf1.variables.values()[0][0]
-                x2 = nf1.variables.values()[0][1]
-                xlast = nf1.variables.values()[0][-1]
-                y1 = nf1.variables.values()[1][0]
-                ylast = nf1.variables.values()[1][-1]
+                #x1 = nf1.variables.values()[0][0]
+                #x2 = nf1.variables.values()[0][1]
+                #xlast = nf1.variables.values()[0][-1]
+                x1 = nf1.variables['lon'][0]
+                x2 = nf1.variables['lon'][1]
+                xlast = nf1.variables['lon'][-1]
+
+                y1 = nf1.variables['lat'][0]
+                ylast = nf1.variables['lat'][-1]
+                # swap to make y1 the biggest number
+                if y1 < ylast:
+                    y1, ylast = ylast, y1
+
                 cellSize = round(np.abs(x2 - x1), 4)
                 nrRows = int(0.5 + np.abs(ylast - y1) / cellSize + 1)
                 nrCols = int(0.5 + np.abs(xlast - x1) / cellSize + 1)
@@ -171,7 +182,7 @@ def loadsetclone(name):
 
                 # setclone  row col cellsize xupleft yupleft
                 if checkOption('PCRaster'):
-                    setclone(maskmapAttr['row'], maskmapAttr['col'], maskmapAttr['cell'], maskmapAttr['x'], maskmapAttr['y'])
+                    pcraster.setclone(maskmapAttr['row'], maskmapAttr['col'], maskmapAttr['cell'], maskmapAttr['x'], maskmapAttr['y'])
                     #map = numpy2pcr(Boolean, mapnp, 0)
                 flagmap = True
 
@@ -190,7 +201,7 @@ def loadsetclone(name):
                     mapnp[mapnp > 1] = 0
 
                     if checkOption('PCRaster'):
-                        setclone(maskmapAttr['row'], maskmapAttr['col'], maskmapAttr['cell'], maskmapAttr['x'], maskmapAttr['y'])
+                        pcraster.setclone(maskmapAttr['row'], maskmapAttr['col'], maskmapAttr['cell'], maskmapAttr['x'], maskmapAttr['y'])
                         #map = numpy2pcr(Boolean, mapnp, 0)
                     flagmap = True
 
@@ -378,7 +389,7 @@ def compressArray(map, pcr=True, name="None"):
 
     if pcr:
         mapnp = pcr2numpy(map, np.nan).astype(np.float64)
-        mapnp1 = np.ma.masked_array(mapnp, maskinfo['mask'])
+        mapnp1 = np.ma.masked_array(mapnp, mapnp1)
     else:
         mapnp1 = np.ma.masked_array(map, maskinfo['mask'])
     mapC = np.ma.compressed(mapnp1)
@@ -399,7 +410,8 @@ def decompress(map, pcr1 = True):
     :return: 2D map
     """
 
-    if checkOption('PCRaster'): from pcraster.framework import *
+    #if checkOption('PCRaster'): from pcraster.framework import *
+    if checkOption('PCRaster'): from pcraster.framework import pcraster
 
     # dmap=np.ma.masked_all(maskinfo['shapeflat'], dtype=map.dtype)
     dmap = maskinfo['maskall'].copy()
@@ -415,13 +427,13 @@ def decompress(map, pcr1 = True):
 
     if checkint == "int16" or checkint == "int32":
         dmap[dmap.mask] = -9999
-        map = numpy2pcr(Nominal, dmap, -9999)
+        map = pcraster.numpy2pcr(pcraster.Nominal, dmap, -9999)
     elif checkint == "int8":
         dmap[dmap < 0] = -9999
-        map = numpy2pcr(Nominal, dmap, -9999)
+        map = pcraster.numpy2pcr(pcraster.Nominal, dmap, -9999)
     else:
         dmap[dmap.mask] = -9999
-        map = numpy2pcr(Scalar, dmap, -9999)
+        map = pcraster.numpy2pcr(pcraster.Scalar, dmap, -9999)
 
     return map
 
@@ -475,11 +487,16 @@ def mapattrNetCDF(name):
         msg = "Checking netcdf map \n"
         raise CWATMFileError(name,msg)
 
-    x1 = round(nf1.variables.values()[0][0],5)
-    x2 = round(nf1.variables.values()[0][1],5)
+    #x1 = round(nf1.variables.values()[0][0],5)
+    x1 = round(nf1.variables['lon'][0], 5)
+    x2 = round(nf1.variables['lon'][1],5)
     #xlast = round(nf1.variables.values()[0][-1],5)
-    y1 = round(nf1.variables.values()[1][0],5)
-    #ylast = round(nf1.variables.values()[1][-1],5)
+    y1 = round(nf1.variables['lat'][0],5)
+    ylast = round(nf1.variables['lat'][-1],5)
+    # swap to make y1 the biggest number
+    if y1 < ylast:
+        y1, ylast = ylast, y1
+
     cellSize = round(np.abs(x2 - x1),5)
     #nrRows = int(0.5+np.abs(ylast - y1) / cellSize + 1)
     #nrCols = int(0.5+np.abs(xlast - x1) / cellSize + 1)
@@ -530,7 +547,7 @@ def mapattrTiff(nf2):
     return (cut0, cut1, cut2, cut3)
 
 
-def multinetdf(meteomaps):
+def multinetdf(meteomaps, startcheck = 'dateBegin'):
     """
 
     :param meteomaps: list of meteomaps to define start and end time
@@ -561,9 +578,12 @@ def multinetdf(meteomaps):
                 dateVar['leapYear'] = 2
 
             datestart = num2date(nctime[0],units=nctime.units,calendar=nctime.calendar)
+            # sometime daily records have a strange hour to start with -> it is changed to 0:00 to haqve the same record
+            datestart = datestart.replace(hour=0, minute=0)
             dateend = num2date(nctime[-1], units=nctime.units, calendar=nctime.calendar)
+            dateend = dateend.replace(hour=0, minute=0)
             if startfile == 0: # search first file where dynamic run starts
-                start = dateVar['dateBegin']
+                start = dateVar[startcheck]
                 if (dateend >= start) and (datestart <= start):  # if enddate of a file is bigger than the start of run
                     startfile = 1
                     indstart = (start - datestart).days
@@ -571,6 +591,7 @@ def multinetdf(meteomaps):
                     meteolist[startfile-1] = [filename,indstart,indend, start,dateend]
                     inputcounter[maps] = indstart  # startindex of timestep 1
                     start = dateend + datetime.timedelta(days=1)
+                    start = start.replace(hour=0, minute=0)
 
             else:
                 if (datestart >= start) and (datestart < end ):
@@ -579,6 +600,7 @@ def multinetdf(meteomaps):
                     indend = (dateend -datestart).days
                     meteolist[startfile - 1] = [filename, indstart,indend, start, dateend,]
                     start = dateend + datetime.timedelta(days=1)
+                    start = start.replace(hour=0, minute=0)
             ii =1
             nf1.close()
         meteofiles[maps] =  meteolist
@@ -601,9 +623,13 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0):
     :return:
     """
 
-    meteoInfo = meteofiles[name][flagmeteo[name]]
-    idx = inputcounter[name]
-    filename =  os.path.normpath(meteoInfo[0])
+    try:
+        meteoInfo = meteofiles[name][flagmeteo[name]]
+        idx = inputcounter[name]
+        filename =  os.path.normpath(meteoInfo[0])
+    except:
+        msg = "Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date.strftime("%d/%m/%Y") + ": \n"
+        raise CWATMError(msg)
 
     try:
        nf1 = Dataset(filename, 'r')
@@ -630,6 +656,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0):
         mapnp = mapnp.data
     except:
         ii =1
+
     nf1.close()
 
     # add zero values to maps in order to supress missing values
@@ -701,7 +728,7 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
         else:
             if useDaily == "yearly":
                 date = datetime.datetime(date.year, int(1), int(1))
-            if useDaily == "monthly":
+#             if useDaily == "monthly":
                 date = datetime.datetime(date.year, date.month, int(1))
 
             # A netCDF time variable object  - time index (in the netCDF file)
@@ -714,7 +741,8 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
                 dateVar['leapYear'] = 2
                 idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
             else:
-                idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
+                #idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
+                idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
 
             if meteo: inputcounter[value] = idx
 
@@ -1113,22 +1141,23 @@ def cbinding(inBinding):
 
 
 # --------------------------------------------------------------------------------------------
-def getValDivZero(x,y,y_lim,z_def= 0.0):
+
+def divideValues(x,y, default = 0.):
     """
     returns the result of a division that possibly involves a zero
 
     :param x:
     :param y: divisor
-    :param y_lim:
-    :param z_def:
+    :param default: return value if y =0
     :return:
     """
-    #-returns the result of a division that possibly involves a zero
-    # denominator; in which case, a default value is substituted:
-    # x/y= z in case y > y_lim,
-    # x/y= z_def in case y <= y_lim, where y_lim -> 0.
-    # z_def is set to zero if not otherwise specified
-    return np.where(y > y_lim,x / np.maximum(y_lim,y),z_def)
+    y1 = y.copy()
+    y1[y1 == 0.] = 1.0
+    z = x / y1
+    z[y == 0.] = default
 
+    #with np.errstate(invalid='ignore', divide='ignore'):
+    #    z = np.where(y > 0., x/y, default)
+    # have to solve this without err handler to get the error message back
 
-
+    return z

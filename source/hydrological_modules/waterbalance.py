@@ -92,9 +92,10 @@ class waterbalance(object):
             #meanB = 0.0
 
             #print "     %s %10.8f " % (processName, maxBB),
-            print "     %s %10.8f %10.8f" % (processName, minB,maxB),
-            if (minB < -0.00001) or (maxB > 0.00001):
-                i=11111
+            if maxBB > 0.0000000001:
+                print "     %s %10.8f %10.8f" % (processName, minB,maxB),
+                if (minB < -0.00001) or (maxB > 0.00001):
+                   i=11111
 
 
 
@@ -153,57 +154,68 @@ class waterbalance(object):
         """
         Check water balance of snow, vegetation, soil, groundwater
         """
-        """
+
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation,self.var.sum_capRiseFromGW,self.var.sum_irrGrossDemand],    # In
-                [self.var.sum_directRunoff,self.var.sum_interflow, self.var.sum_percToGW,    # Out
-                 self.var.sum_PrefFlow,self.var.sum_actTransTotal,
-                 self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap, self.var.sum_interceptEvap],
-                [self.var.prevSnowCover, self.var.pretotalSoil],                                       # prev storage
-                [self.var.SnowCover, self.var.totalSoil],
-                "AllSoilWB", False)  #true
+
 
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation,self.var.sum_irrGrossDemand, self.var.surfaceWaterInf],    # In
-                [self.var.sum_directRunoff,self.var.sum_interflow,                            # Out
-                 self.var.totalET,  self.var.nonFossilGroundwaterAbs,self.var.baseflow],
-                [self.var.prevSnowCover, self.var.pretotalSoil,self.var.prestorGroundwater],       # prev storage
-                [self.var.SnowCover, self.var.totalSoil,self.var.storGroundwater],
+                [self.var.Precipitation, self.var.act_irrGrossWithdrawal],
+                [self.var.sum_directRunoff, self.var.sum_interflow, self.var.sum_gwRecharge,self.var.totalET],  # Out
+                [self.var.pretotalSto],  # prev storage
+                [self.var.totalSto],
+                "Soil_all", True)
+
+
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation, self.var.act_irrGrossWithdrawal,self.var.sum_capRiseFromGW],
+                [self.var.sum_directRunoff, self.var.sum_perc3toGW, self.var.sum_prefFlow, \
+                 self.var.totalET],  # Out
+                [self.var.pretotalSto],  # prev storage
+                [self.var.totalSto],
+                "Soil_all1", True)
+
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation, self.var.sumIrrGrossDemand,self.var.surfaceWaterInf],
+                [self.var.sum_directRunoff, self.var.sum_interflow, self.var.nonFossilGroundwaterAbs,self.var.baseflow, \
+                 self.var.totalET],  # Out
+                [self.var.pretotalSto,self.var.prestorGroundwater],  # prev storage
+                [self.var.totalSto,self.var.storGroundwater],
                 "Soil+G", False)
 
+
+
+
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.runoff, self.var.nonIrrReturnFlow],  # In
-                [self.var.sum_actSurfaceWaterAbstract, self.var.localQW, self.var.riverbedExchange * self.var.InvCellArea],           # Out
-                [self.var.prechannelStorage * self.var.InvCellArea],  # prev storage
-                [self.var.channelStorageBefore * self.var.InvCellArea],
+                [self.var.runoff * self.var.cellArea],  # In
+                [self.var.EvaAddM],           # Out
+                [],  # prev storage
+                [],
                 "Routing", False)
 
 
-
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.sum_irrGrossDemand,self.var.nonIrrGrossDemand],                                           # In
-                [self.var.unmetDemand,self.var.nonFossilGroundwaterAbs, self.var.sum_actSurfaceWaterAbstract],     # Out
+                [self.var.sumIrrGrossDemand,self.var.nonIrrGrossDemand],                                           # In
+                [self.var.unmetDemand,self.var.nonFossilGroundwaterAbs, self.var.actSurfaceWaterAbstract],     # Out
                 [globals.inZero],
                 [globals.inZero],
                 "Waterdemand", False)
 
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation, self.var.surfaceWaterInf,self.var.sum_irrGrossDemand,self.var.nonIrrReturnFlow],    # In
-                [self.var.totalET,   self.var.localQW, self.var.riverbedExchange * self.var.InvCellArea, self.var.nonFossilGroundwaterAbs, self.var.sum_actSurfaceWaterAbstract],
-                [self.var.prevSnowCover, self.var.pretotalSoil,self.var.prestorGroundwater,self.var.prechannelStorage * self.var.InvCellArea],       # prev storage
-                [self.var.SnowCover, self.var.totalSoil,self.var.storGroundwater,self.var.channelStorageBefore * self.var.InvCellArea],
+                [self.var.Precipitation, self.var.surfaceWaterInf,self.var.sumIrrGrossDemand,self.var.nonIrrReturnFlow],    # In
+                [self.var.totalET,   self.var.localQW, self.var.riverbedExchange * self.var.InvCellArea, self.var.nonFossilGroundwaterAbs, self.var.actSurfaceWaterAbstract],
+                [self.var.pretotalSto,self.var.prestorGroundwater,self.var.prechannelStorage * self.var.InvCellArea],       # prev storage
+                [self.var.totalSto,self.var.storGroundwater,self.var.channelStorageBefore * self.var.InvCellArea],
                 "S+G+Rout1",False)
             #print self.var.channelStorageBefore[10],
             # print "%10.8f %10.8f %10.8f " % (income[10], out[10], store[10]),
 
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation * self.var.cellArea, self.var.surfaceWaterInf * self.var.cellArea,self.var.sum_irrGrossDemand * self.var.cellArea,self.var.nonIrrReturnFlow * self.var.cellArea],    # In
-                [self.var.totalET  * self.var.cellArea,   self.var.localQW * self.var.cellArea, self.var.riverbedExchange, self.var.nonFossilGroundwaterAbs * self.var.cellArea, self.var.sum_actSurfaceWaterAbstract * self.var.cellArea],
-                [self.var.prevSnowCover * self.var.cellArea, self.var.pretotalSoil * self.var.cellArea,self.var.prestorGroundwater * self.var.cellArea,self.var.prechannelStorage],       # prev storage
-                [self.var.SnowCover * self.var.cellArea, self.var.totalSoil * self.var.cellArea,self.var.storGroundwater * self.var.cellArea,self.var.channelStorageBefore],
+                [self.var.Precipitation * self.var.cellArea, self.var.surfaceWaterInf * self.var.cellArea,self.var.sumIrrGrossDemand * self.var.cellArea,self.var.nonIrrReturnFlow * self.var.cellArea],    # In
+                [self.var.totalET  * self.var.cellArea,   self.var.localQW * self.var.cellArea, self.var.riverbedExchange, self.var.nonFossilGroundwaterAbs * self.var.cellArea, self.var.actSurfaceWaterAbstract * self.var.cellArea],
+                [self.var.pretotalSto * self.var.cellArea,self.var.prestorGroundwater * self.var.cellArea,self.var.prechannelStorage],       # prev storage
+                [self.var.totalSto * self.var.cellArea,self.var.storGroundwater * self.var.cellArea,self.var.channelStorageBefore],
                 "S+G+Rout2", False)   # True
-        """
+
         ii =1
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -211,22 +223,23 @@ class waterbalance(object):
 
         if checkOption('sumWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheckSum(
-                [self.var.sum_irrGrossDemand,self.var.nonIrrGrossDemand],                                           # In
-                [self.var.unmetDemand,self.var.nonFossilGroundwaterAbs, self.var.sum_actSurfaceWaterAbstract],     # Out
+                [self.var.sumIrrGrossDemand,self.var.nonIrrGrossDemand],                                           # In
+                [self.var.unmetDemand,self.var.nonFossilGroundwaterAbs, self.var.actSurfaceWaterAbstract],     # Out
                 [globals.inZero],
                 [globals.inZero],
                 "WaterdemandSum", False)
 
 
             self.var.waterbalance_module.waterBalanceCheckSum(
-                [self.var.Precipitation, self.var.surfaceWaterInf,self.var.sum_irrGrossDemand,self.var.nonIrrReturnFlow],    # In
-                [self.var.totalET,   self.var.localQW, self.var.riverbedExchange * self.var.InvCellArea, self.var.nonFossilGroundwaterAbs, self.var.sum_actSurfaceWaterAbstract],
-                [self.var.prevSnowCover, self.var.pretotalSoil,self.var.prestorGroundwater,self.var.prechannelStorage * self.var.InvCellArea],       # prev storage
-                [self.var.SnowCover, self.var.totalSoil,self.var.storGroundwater,self.var.channelStorageBefore * self.var.InvCellArea],
+                [self.var.Precipitation, self.var.surfaceWaterInf,self.var.sumIrrGrossDemand,self.var.nonIrrReturnFlow],    # In
+                [self.var.totalET,   self.var.localQW, self.var.riverbedExchange * self.var.InvCellArea, self.var.nonFossilGroundwaterAbs, self.var.actSurfaceWaterAbstract],
+                [self.var.pretotalSto,self.var.prestorGroundwater,self.var.prechannelStorage * self.var.InvCellArea],       # prev storage
+                [self.var.totalSto,self.var.storGroundwater,self.var.channelStorageBefore * self.var.InvCellArea],
                 "S+G+Rout1Sum", False)
 
 
             # discharge at outlets of catchments
+            """
             DisOut = self.var.discharge * self.var.DtSec
             DisOut = np.where(self.var.outlets > 0, DisOut, 0.)
 
@@ -236,7 +249,9 @@ class waterbalance(object):
                 [self.var.prevSnowCover * self.var.cellArea, self.var.pretotalSoil * self.var.cellArea,self.var.prestorGroundwater * self.var.cellArea,self.var.prechannelStorage],       # prev storage
                 [self.var.SnowCover * self.var.cellArea, self.var.totalSoil * self.var.cellArea,self.var.storGroundwater * self.var.cellArea,self.var.channelStorage],
                 "S+G+Rout2Sum", False)
+            """
 
+        """
         if checkOption('budyko'):
 
 
@@ -251,8 +266,6 @@ class waterbalance(object):
                 self.var.sumP.append(1000 * npareatotal(self.var.Precipitation * self.var.cellArea, self.var.evalCatch[i]) / area)
                 self.var.sumETA.append(1000 * npareatotal((self.var.totalET) * self.var.cellArea, self.var.evalCatch[i]) / area)
 
-
-
             ##self.var.area = npareatotal(self.var.cellArea, self.var.catchment)
             ##self.var.sumETRef = 1000 * npareatotal(self.var.ETRef * self.var.cellArea, self.var.catchment)/self.var.area
             ##self.var.sumP = 1000 * npareatotal(self.var.Precipitation * self.var.cellArea, self.var.catchment) / self.var.area
@@ -264,12 +277,10 @@ class waterbalance(object):
             #self.var.sumAll = self.var.sumDelta1- self.var.sumDelta2
 
 
-
-
-
             #report(decompress(self.var.sumRunoff), "C:\work\output3/sumRun.map")
 
             ii= 1
+        """
 
 
 

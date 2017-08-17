@@ -54,6 +54,10 @@ class initcondition(object):
         i = 0
         self.var.coverTypes = map(str.strip, cbinding("coverTypes").split(","))
 
+        # soil paddy irrigation
+        initCondVar.append("topwater")
+        initCondVarValue.append("topwater")
+
         for coverType in self.var.coverTypes:
             if coverType in ['forest', 'grassland', 'irrPaddy', 'irrNonPaddy']:
                 for cond in ["interceptStor", "w1","w2","w3"]:
@@ -69,8 +73,6 @@ class initcondition(object):
         initCondVarValue.append("storGroundwater")
 
         # routing
-        #Var1 = ["channelStorage","readAvlChannelStorage","timestepsToAvgDischarge","avgChannelDischarge","m2tChannelDischarge","avgBaseflow","riverbedExchange"]
-        #Var2 = ["channelStorage","readAvlChannelStorage","timestepsToAvgDischarge1","avgDischarge","m2tDischarge","avgBaseflow","riverbedExchange"]
         Var1 = ["channelStorage", "discharge", "riverbedExchange"]
         Var2 = ["channelStorage", "discharge", "riverbedExchange"]
 
@@ -164,7 +166,6 @@ class initcondition(object):
             if  dateVar['curr'] in dateVar['intInit']:
 
 
-                #self.var.readAvlChannelStorage = self.var.channelStorage
                 #self.var.avgDischarge = self.var.discharge
                 #self.var.waterBodyStorage = globals.inZero.copy()
 

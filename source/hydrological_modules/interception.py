@@ -60,10 +60,7 @@ class interception(object):
         self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + self.var.SnowMelt)
 
         if coverType in ['forest', 'grassland', 'irrPaddy', 'irrNonPaddy']:
-
-            with np.errstate(invalid='ignore', divide='ignore'):
-                mult = np.where(self.var.interceptCap[No] > 0, self.var.interceptStor[No]/self.var.interceptCap[No], 0.0)  ** self.var.twothird
-
+            mult = divideValues(self.var.interceptStor[No],self.var.interceptCap[No]) ** self.var.twothird
             # interceptEvap evaporation from intercepted water (based on potTranspiration)
             self.var.interceptEvap[No] = np.minimum(self.var.interceptStor[No], self.var.potTranspiration[No] * mult)
 
@@ -77,7 +74,12 @@ class interception(object):
 
         # update actual evaporation (after interceptEvap)
         # interceptEvap is the first flux in ET, soil evapo and transpiration are added later
-        self.var.actualET[No] = self.var.interceptEvap[No] + self.var.snowEvap
+        self.var.actualET[No] = self.var.interceptEvap[No]  + self.var.snowEvap
+
+
+
+        if (dateVar['curr'] == 15):
+            ii=1
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
@@ -86,3 +88,4 @@ class interception(object):
                [prevState],  # prev storage
                [self.var.interceptStor[No]],
                "Interception", False)
+

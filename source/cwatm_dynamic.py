@@ -63,6 +63,13 @@ class CWATModel_dyn(DynamicModel):
         """ up to here it was fun, now the real stuff starts
         """
 
+        if checkOption('calc_environflow') and (returnBool('calc_ef_afterRun')  == False):
+            # if only the dis is used for calculation of EF
+            self.environflow_module.dynamic()
+            self.output_module.dynamic(ef = True)
+            sys.exit("done with Environmental Flow")
+
+
         self.readmeteo_module.dynamic()
         timemeasure("Read meteo") # 1. timing after read input maps
 
@@ -74,23 +81,22 @@ class CWATModel_dyn(DynamicModel):
         """ Here it starts with hydrological modules:
         """
 
+        # ***** INFLOW HYDROGRAPHS (OPTIONAL)****************
+        self.inflow_module.dynamic()
+
         # ***** RAIN AND SNOW *****************************************
         self.snowfrost_module.dynamic()
         timemeasure("Snow")  # 3. timing
 
         # ***** READ land use fraction maps***************************
 
-        self.landcoverType_module.dynamic_fracIrrigation(init = dateVar['newYear'])
+        self.landcoverType_module.dynamic_fracIrrigation(init = dateVar['newYear'], dynamic = self.dynamicLandcover)
         self.capillarRise_module.dynamic()
         timemeasure("Soil 1.Part")  # 4. timing
 
-        # *********  WATER Demand   *************************
-        self.waterdemand_module.dynamic()
-        timemeasure("Water demand")  # 5. timing
-
         # *********  Soil splitted in different land cover fractions *************
         self.landcoverType_module.dynamic()
-        timemeasure("Soil main")  # 6. timing
+        timemeasure("Soil main")  # 5. timing
 
         self.groundwater_module.dynamic()
         timemeasure("Groundwater")  # 7. timing
@@ -114,7 +120,8 @@ class CWATModel_dyn(DynamicModel):
         self.waterbalance_module.checkWaterSoilGround()
         timemeasure("Waterbalance")  # 10. timing
 
-
+        self.environflow_module.dynamic()
+        # in case environmental flow is calculated last
 
         self.output_module.dynamic()
         timemeasure("Output")  # 11. timing

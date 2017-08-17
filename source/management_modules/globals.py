@@ -62,8 +62,8 @@ outDir = {}
 outMap = {}
 outTss = {}
 outsection = []
-outputTypMap = ['daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend']
-outputTypTss = ['daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend']
+outputTypMap = ['daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend','totaltot','totalavg','once','12month']
+outputTypTss = ['daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend','totaltot','totalavg']
 
 reportTimeSerieAct = {}
 reportMapsAll = {}

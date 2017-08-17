@@ -1,11 +1,73 @@
 #####################
-TODO
+The Model Itself
 #####################
 
-Structural improvements
-=======================
 
-.. todo:: This has to be done. Importance: 1 to be changed first .. 3 to be changed later 
+.. contents:: 
+    :depth: 3
+
+
+Updates
+=======
+
+**Most recent updates on top**
+
+24/06/2017
+----------
+
+* added netcdf read module - now the netcdf does not need to be merged before - abilitity to read in a stack of netcdf files
+* added inflow to a catchment - inflow is given as text file
+
+
+25/05/2017
+----------
+
+* added new soil scheme based on Arno scheme 
+
+27/03/2017
+----------
+
+* included license term GNU V3 in cwatm.py and globals.py
+
+26/03/2017
+----------
+
+* added documentation for autodocu for a lot of subroutines
+
+
+
+
+
+
+
+
+
+
+
+
+Bug and bugfix report
+=====================
+
+This is the only and first source code without bugs
+Really!
+
+Hey really!!
+
+Ok some exceptions:
+-------------------
+
+
+
+
+
+TODO
+====
+
+Structural improvements
+-----------------------
+
+.. note::
+    This has to be done. Importance: 1 to be changed first .. 3 to be changed later 
 
 .. csv-table:: 
    :header: "Topic","TODO", "Description","Importance","DONE"
@@ -20,15 +82,9 @@ Structural improvements
    "Handling","Checks maps","include a pre-run, where input data are checked for plausibility","2","."
    "Handling","Load multiple netcd files","read meteo input netcdf from split files","2","."
 
-
-   
-   
-   
-   
-   
    
 Model improvements
-==================
+------------------
 
 
 .. csv-table:: 
@@ -45,7 +101,7 @@ Model improvements
    "Kinematic wave","Add C++ kinematic wave procedure","2","X"
    "soil depend on land cover","include hydropedo transfer function landcover -> soil","2","."
    "Improve lakes& reservoirs","Add another way of including lakes/reservoirs","2","X"
-   "Inflow points","add points where water can be added/substracted","1","."
+   "Inflow points","add points where water can be added/substracted","1","X"
    "Include Environmental flow","use environmental flow concept on the fly not only post-processing","2","."
    "Water allocation","include water demand <-> water supply functionality","2-3","."
    "Include EPIC approach","to be in line with ESM include the EPIC approach","3","."

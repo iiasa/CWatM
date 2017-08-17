@@ -1,7 +1,13 @@
 
-##########################
-License and Conditions
-##########################
+#####################
+Model download
+#####################
+
+
+.. contents:: 
+    :depth: 3
+
+
 
 
 GNU General public license
@@ -654,18 +660,18 @@ copy of the Program in return for a fee.
 .. _rst_terms:
 
 Terms and Conditions of Use of the Community Water Model
-========================================================
+--------------------------------------------------------
    
 Stipulations regarding the use of the Commumunity  Water Model (hereinafter *CWATM*) provided here by the International Institute for Applied System Analysis, Laxenburg, Austria (IIASA) are as follows:
 
 1. Copyright
-------------
+^^^^^^^^^^^^
 
 The owners of the copyright of CWATM are Peter Burek, Yoshihide Wada, Yusuke Satoh and Peter Greve (hereinafter the “Developer”) at IIASA.
 
 
 2. Reprints and quotations
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In the event of the publication of a document or scientific paper using CWATM or its modified version, the following paper must be referenced:
 
@@ -676,12 +682,12 @@ At the moment refer to:
 Burek, P., Satoh, Y., Greve, P., Kahil, T. and Wada, Y. 2017: The Community Water Model (CWATM) / Development of a community driven global water model. Geophysical Research Abstracts. Vol. 19, EGU2017-9769
 
 3. Usage
---------
+^^^^^^^^
 
 Usage is regulated by GNU General Public License V3 (see above)
 
 4. Final Remarks
-----------------
+^^^^^^^^^^^^^^^^
 
 We as developers belief that CWATM should be utilize to encourage ideas and to advance hydrological, environmental science and stimulate integration into other science disciplines.
 
@@ -692,7 +698,59 @@ CWATM is based on existing knowledge of hydrology realized with Python and C++. 
 The developers of CWAT Model
 
 
+Download
+========
 
+.. warning:: This is a pre-release alpha version! We will announce the "official" release. But for testing feel free to use it.
+
+
+Source code - Community Water Model 
+-----------------------------------
+
+| The source code of CWATM is freely available under the GNU General Public License. Please see its :ref:`rst_terms`
+| `Source code on Github repository of CWATM <https://github.com/CWatM/CWatM>`_ 
+
+Global dataset
+--------------
+
+| If you are interested in obtaining the gloabl data set, please send an email to wfas.info@iiasa.ac.at
+| We will give you access to our ftp server
+
+
+Contact CWATM
+-------------
+
+| `www.iiasa.ac.at/cwatm <http://www.iiasa.ac.at/cwatm>`_ 
+| wfas.info@iiasa.ac.at
+
+
+
+
+
+Source code
+===========
+
+    ::
+
+        ## -------------------------------------------------
+        ######## ##          ##  ####  ######  ##    ##
+        ##       ##          ## ##  ##   ##   ####  ####
+        ##        ##        ##  ##  ##   ##   ## #### ##
+        ##        ##   ##   ## ########  ##  ##   ##   ##
+        ##         ## #### ##  ##    ##  ##  ##        ##
+        ##         ####  #### ##      ## ## ##          ##
+        ##########  ##    ##  ##      ## ## ##          ##
+        # Community WATer Model
+        # --------------------------------------------------
+
+.. toctree::
+   :maxdepth: 3
+
+   cwatm
+   cwatm_dynamic
+   cwatm_initial
+   hydrological_modules
+   management_modules
 
 
 
