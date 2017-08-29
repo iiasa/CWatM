@@ -77,16 +77,11 @@ class groundwater(object):
         # unmetDemand (m), satisfied by fossil gwAbstractions (and/or desalinization or other sources)
         # (equal to zero if limitAbstraction = True)
 
-        # fractions of water demand sources (to satisfy water demand):
-        # self.var.fracNonFossilGroundwater = divideValues(self.var.nonFossilGroundwaterAbs, self.var.totalPotGrossDemand)
-        # self.var.fracUnmetDemand = divideValues(self.var.unmetDemand, self.var.totalPotGrossDemand)
-        # self.var.fracSurfaceWater = np.where(self.var.totalPotGrossDemand > 0., np.maximum(0.0, 1.0 - self.var.fracNonFossilGroundwater - self.var.fracUnmetDemand), 0.0)
-
 
 
         # get riverbed infiltration from the previous time step (from routing)
-        self.var.surfaceWaterInf = self.var.riverbedExchange * self.var.InvCellArea
-        self.var.storGroundwater = self.var.storGroundwater + self.var.surfaceWaterInf
+        #self.var.surfaceWaterInf = self.var.riverbedExchange * self.var.InvCellArea
+        #self.var.storGroundwater = self.var.storGroundwater + self.var.surfaceWaterInf
 
         # get net recharge (percolation-capRise) and update storage:
         self.var.storGroundwater = np.maximum(0., self.var.storGroundwater + self.var.sum_gwRecharge)

@@ -101,7 +101,6 @@ class miscInitial(object):
         self.var.MtoMM = 1000
         # Multiplier to convert water depths in meters to mm
         self.var.MtoM3 = 1.0 * self.var.cellArea
-
         # Multiplier to convert water depths in m to cubic metres
         self.var.M3toM = 1 / self.var.MtoM3
         # Multiplier to convert from cubic metres to m water slice

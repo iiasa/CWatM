@@ -953,6 +953,16 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
 
 
     mapnp = maskinfo['maskall'].copy()
+
+    # if inputmap is not an array give out errormessage
+    if not(hasattr(inputmap, '__len__')):
+        msg = "No values in: " + varname + " on date: " + timeStamp.strftime("%d/%m/%Y") +"\nCould not write: " + netfile
+        nf1.close()
+        print CWATMWarning(msg)
+        return False
+
+
+
     mapnp[~maskinfo['maskflat']] = inputmap[:]
     #mapnp = mapnp.reshape(maskinfo['shape']).data
     mapnp = mapnp.reshape(maskinfo['shape'])

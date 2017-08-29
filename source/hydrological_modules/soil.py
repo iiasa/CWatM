@@ -261,7 +261,6 @@ class soil(object):
 
         # Infiltration capacity
         #  ========================================
-
         # first 2 soil layers to estimate distribution between runoff and infiltration
         soilWaterStorage =  self.var.w1[No] + self.var.w2[No]
         soilWaterStorageCap = self.var.ws1[No] + self.var.ws2[No]

@@ -68,6 +68,13 @@ class initcondition(object):
                     initCondVar.append(coverType+"_"+ cond)
                     initCondVarValue.append(cond+"["+str(i)+"]")
             i += 1
+
+        # water demand
+        initCondVar.append("unmetDemandPaddy")
+        initCondVarValue.append("unmetDemandPaddy")
+        initCondVar.append("unmetDemandNonpaddy")
+        initCondVarValue.append("unmetDemandNonpaddy")
+
         # groundwater
         initCondVar.append("storGroundwater")
         initCondVarValue.append("storGroundwater")

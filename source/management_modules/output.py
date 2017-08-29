@@ -203,6 +203,13 @@ class outputTssMap(object):
             #if dateVar['checked'][dateVar['currwrite'] - 1] >= daymonthyear:
             # using a list with is 1 for monthend and 2 for year end to check for execution
             value = []
+
+            # if inputmap is not an array give out error message
+            if not (hasattr(map, '__len__')):
+                msg = "No values in: " + expression[1] + "\nCould not write: " + expression[0]
+                print CWATMWarning(msg)
+                return expression
+
             for key in sorted(self.var.sampleAdresses):
                 v = map[self.var.sampleAdresses[key]]
                 value.append(v)

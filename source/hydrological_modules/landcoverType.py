@@ -359,8 +359,8 @@ class landcoverType(object):
         # for irrigation of non paddy -> No =3
         totalWaterPlant1 = np.maximum(0., self.var.wfc1[3] - self.var.wwp1[3]) * self.var.rootDepth[0][3]
         totalWaterPlant2 = np.maximum(0., self.var.wfc2[3] - self.var.wwp2[3]) * self.var.rootDepth[1][3]
-        totalWaterPlant3 = np.maximum(0., self.var.wfc3[3] - self.var.wwp3[3]) * self.var.rootDepth[2][3]
-        self.var.totAvlWater = totalWaterPlant1 + totalWaterPlant2 + totalWaterPlant3
+        #totalWaterPlant3 = np.maximum(0., self.var.wfc3[3] - self.var.wwp3[3]) * self.var.rootDepth[2][3]
+        self.var.totAvlWater = totalWaterPlant1 + totalWaterPlant2 #+ totalWaterPlant3
         ii =1
 
 
@@ -397,6 +397,7 @@ class landcoverType(object):
 
             # for Xiaogang's agent model
             try:
+                ii =1
                 self.var.fracVegCover[2] = loadmap('paddyfraction')
                 self.var.fracVegCover[3] = loadmap('nonpaddyfraction')
 
@@ -406,9 +407,13 @@ class landcoverType(object):
 
             # correction of grassland if sum is not 1.0
             sum = np.sum(self.var.fracVegCover,axis=0)
-            self.var.fracVegCover[1] = self.var.fracVegCover[1] + 1.0 - sum
+            self.var.fracVegCover[1] = np.maximum(0.,self.var.fracVegCover[1] + 1.0 - sum)
+            sum = np.sum(self.var.fracVegCover, axis=0)
+            self.var.fracVegCover[0] = np.maximum(0., self.var.fracVegCover[0] + 1.0 - sum)
+            sum = np.sum(self.var.fracVegCover,axis=0)
+
             # sum of landcover without water and sealed
-            self.var.sum_fracVegCover = np.sum(self.var.fracVegCover[0:4], axis=0)
+            # self.var.sum_fracVegCover = np.sum(self.var.fracVegCover[0:4], axis=0)
 
             # if irrigation is off every fraction of paddy and non paddy irrigation is put to land dcover 'grassland'
             if not(checkOption('includeIrrigation')):
