@@ -43,7 +43,7 @@ class landcoverType(object):
         """
 
         # make land cover change from year to year or fix it to 1 year
-        if eval(binding['dynamicLandcover']):
+        if returnBool('dynamicLandcover'):
             self.var.dynamicLandcover = True
         else:
             self.var.dynamicLandcover = False
@@ -101,6 +101,7 @@ class landcoverType(object):
 
         # ----------------------------------------------------------
         # Load initial values and calculate basic soil parameters which are not changed in time
+
         self.dynamic_fracIrrigation(init=True, dynamic = True)
         i = 0
         for coverType in self.var.coverTypes:
@@ -112,16 +113,6 @@ class landcoverType(object):
             # summarize the following initial storages:
             self.var.sum_interceptStor += self.var.fracVegCover[i] * self.var.interceptStor[i]
             i += 1
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -396,13 +387,10 @@ class landcoverType(object):
 
 
             # for Xiaogang's agent model
-            try:
-                ii =1
+            test = "paddyfraction" in binding
+            if test:
                 self.var.fracVegCover[2] = loadmap('paddyfraction')
                 self.var.fracVegCover[3] = loadmap('nonpaddyfraction')
-
-            except:
-                ii = 1
 
 
             # correction of grassland if sum is not 1.0

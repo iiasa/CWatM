@@ -122,7 +122,7 @@ class routing_kinematic(object):
 
         # channel water volume [m3]
         # Initialise water volume in kinematic wave channels [m3]
-        channelStorageIni = self.var.totalCrossSectionArea * self.var.chanLength * 0.2
+        channelStorageIni = self.var.totalCrossSectionArea * self.var.chanLength * 0.1
         self.var.channelStorage = self.var.init_module.load_initial("channelStorage", default = channelStorageIni)
 
         # Initialise discharge at kinematic wave pixels (note that InvBeta is
@@ -205,8 +205,10 @@ class routing_kinematic(object):
         # put all the water area in which is not reflected in the lakes ,res
         channelFraction = np.maximum(self.var.fracVegCover[5], channelFraction)
 
+        EWRefact =  self.var.EWRef - self.var.openWaterEvap[5]
         # evaporation from channel minus the calculated evaporation from rainfall
-        self.var.EvaAddM =  (self.var.EWRef - self.var.openWaterEvap[5]) * channelFraction * self.var.cellArea
+        self.var.EvaAddM =  EWRefact * channelFraction * self.var.cellArea
+        #self.var.EvaAddM =  self.var.EWRef * channelFraction * self.var.cellArea
         #self.var.EvaAddM = self.var.EWRef * channelFraction * self.var.cellArea
         # restrict to 95% of channel storage -> something should stay in the river
         self.var.EvaAddM = np.where((0.95 * self.var.channelStorage - self.var.EvaAddM) > 0.0, self.var.EvaAddM, 0.95 * self.var.channelStorage)
@@ -232,17 +234,21 @@ class routing_kinematic(object):
         """
 
         if checkOption('includeWaterBodies'):
+            # add reservoirs depending on year
+
             # ------------------------------------------------------------
             # evaporation from water bodies (m3), will be limited by available water in lakes and reservoirs
             # calculate outflow from lakes and reservoirs
-            EWRefavg = npareatotal(self.var.EWRef , self.var.waterBodyID)
+            EWRefavg = npareaaverage(EWRefact, self.var.waterBodyID)
             eWaterBody = np.maximum(0.0, EWRefavg * self.var.lakeArea) / self.var.noRoutingSteps
-            #eWaterBody = np.maximum(0.0, (self.var.EWRef - self.var.openWaterEvap[5]) * self.var.lakeArea) / self.var.noRoutingSteps
+            #eWaterBody = np.maximum(0.0, EWRefact * self.var.lakeArea) / self.var.noRoutingSteps
 
-            self.var.evapWaterBodyC = self.var.lakeEvaFactor  * np.compress(self.var.compress_LR, eWaterBody)
-
-            self.var.EvaAddM = np.where(self.var.waterBodyID > 0, 0.,self.var.EvaAddM)
+            self.var.evapWaterBodyC = self.var.lakeEvaFactorC  * np.compress(self.var.compress_LR, eWaterBody)
+            
+            self.var.EvaAddM = np.where(self.var.waterBodyID > 0, (1-self.var.fracVegCover[5]) * self.var.EvaAddM, self.var.EvaAddM)
             self.var.riverbedExchange = np.where(self.var.waterBodyID > 0, 0., self.var.riverbedExchange)
+
+        #report(decompress(self.var.sumsum_Precipitation), "c:\work\output\Prsum.map")
 
         EvaAddM3Dt = self.var.EvaAddM / self.var.noRoutingSteps
 
@@ -317,6 +323,7 @@ class routing_kinematic(object):
         #self.var.channelStorageBefore = self.var.channelStorage.copy()
 
         self.var.channelStorage = self.var.channelAlpha * self.var.chanLength * Qnew ** 0.6
+
 
         if checkOption('inflow'):
              self.var.QInM3Old = self.var.inflowM3

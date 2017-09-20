@@ -243,7 +243,6 @@ def loadsetclone(name):
 
     globals.inZero=np.zeros(maskinfo['mapC'])
 
-
     return mapC
 
 def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
@@ -261,6 +260,7 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
     value = cbinding(name)
     filename = value
     pcrmap = False
+
 
     try:  # loading an integer or float but not a map
         mapC = float(value)
@@ -283,19 +283,26 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
            msg = value +" might be of a different size than clone size "
            raise CWATMError(msg)
 
+
+
     if not(load):   # read a netcdf  (single one not a stack)
         filename = os.path.splitext(value)[0] + '.nc'
          # get mapextend of netcdf map and calculate the cutting
         #cut0, cut1, cut2, cut3 = mapattrNetCDF(filename)
+
+
+
         try:
-            cut0, cut1, cut2, cut3 = mapattrNetCDF(filename)
+            cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check = False)
 
             # load netcdf map but only the rectangle needed
             nf1 = Dataset(filename, 'r')
             value = nf1.variables.items()[-1][0]  # get the last variable name
 
             if not timestepInit:
-                mapnp = nf1.variables[value][cut2:cut3, cut0:cut1].astype(np.float64)
+                with np.errstate(invalid='ignore'):
+                    # in order to ignore some invalid value comments
+                    mapnp = nf1.variables[value][cut2:cut3, cut0:cut1].astype(np.float64)
             else:
                 if 'time' in nf1.variables:
                     timestepI = Calendar(timestepInit[0])
@@ -314,6 +321,7 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
             nf1.close()
 
         except:
+
             filename = cbinding(name)
 
             try:
@@ -329,7 +337,11 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
 
         try:
             if any(maskinfo): mapnp.mask = maskinfo['mask']
-        except: ii=0
+        except:
+            ii=0
+
+
+
 
         # if a map should be pc raster
         if pcr:
@@ -368,6 +380,7 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
             if mapC.size >0:
                 map= decompress(mapC)
                 checkmap(name, filename, map, flagmap, 0)
+
 
     if pcr:  return map
     else: return mapC
@@ -474,18 +487,22 @@ def metaNetCDF():
         raise CWATMFileError(cbinding('PrecipitationMaps'),msg)
 
 
-def mapattrNetCDF(name):
+def mapattrNetCDF(name, check = True):
     """
     get the map attributes like col, row etc from a ntcdf map
     and define the rectangular of the mask map inside the netcdf map
     """
 
     #filename = os.path.splitext(name)[0] + '.nc'
-    try:
+    if check:
+        try:
+            nf1 = Dataset(name, 'r')
+        except:
+            msg = "Checking netcdf map \n"
+            raise CWATMFileError(name,msg)
+    else:
+        # if subroutine is called already from inside a try command
         nf1 = Dataset(name, 'r')
-    except:
-        msg = "Checking netcdf map \n"
-        raise CWATMFileError(name,msg)
 
     #x1 = round(nf1.variables.values()[0][0],5)
     x1 = round(nf1.variables['lon'][0], 5)
@@ -1135,15 +1152,22 @@ def cbinding(inBinding):
     if test:
         return binding[inBinding]
     else:
-        closest = difflib.get_close_matches(inBinding, binding.keys())[0]
-        with open(sys.argv[1]) as f:
-            i = 0
-            for line in f:
-                i +=1
-                if closest in line:
-                    lineclosest = "Line No. " + str(i) + ": "+ line
+        close = difflib.get_close_matches(inBinding, binding.keys())
+        if close:
+            closest = close[0]
 
-        if not closest: closest = ["- no match -"]
+            with open(sys.argv[1]) as f:
+                i = 0
+                for line in f:
+                    i +=1
+                    if closest in line:
+                        lineclosest = "Line No. " + str(i) + ": "+ line
+
+            if not closest: closest = "- no match -"
+        else:
+            closest = "- no match -"
+            lineclosest =""
+
         msg = "No key with the name: \"" + inBinding + "\" in the settings file: \"" + sys.argv[1] + "\"\n"
         msg += "Closest key to the required one is: \""+ closest + "\"\n"
         msg += lineclosest

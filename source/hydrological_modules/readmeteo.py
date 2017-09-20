@@ -32,7 +32,7 @@ class readmeteo(object):
 
         if checkOption('calc_evaporation'):
             meteomaps = ["PrecipitationMaps", "TavgMaps",'TminMaps','TmaxMaps','PSurfMaps','WindMaps','RSDSMaps','RSDLMaps']
-            if eval(binding['useHuss']):
+            if returnBool('useHuss'):
                 meteomaps.append('QAirMaps')
             else:
                 meteomaps.append('RhsMaps')
@@ -112,7 +112,7 @@ class readmeteo(object):
             #self.var.Rsdl = readnetcdf2('RSDLMaps', dateVar['currDate'], addZeros = True, meteo = True)
             self.var.Rsdl = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True)
                 # radiation surface downwelling longwave maps [W/m2]
-            if eval(binding['useHuss']):
+            if returnBool('useHuss'):
                 #self.var.Qair = readnetcdf2('QAirMaps', dateVar['currDate'], addZeros = True, meteo = True)
                 self.var.Qair = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True)
                 # 2 m istantaneous specific humidity[kg / kg]
@@ -153,7 +153,7 @@ class readmeteo(object):
             # in case ET_ref is cut to local area there is an optional flag in settings which checks this
             # if it is not sert the standart is used
             try:
-                if eval(binding['cutET']):
+                if returnBool('cutET'):
                     cutET = True
                 else: cutET = False
             except:

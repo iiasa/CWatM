@@ -37,11 +37,12 @@ class sealed_water(object):
         """
         if No > 3:
             if coverType == "water":
+                # bigger than 1.0 because of wind evaporation
                 mult = 1.0
             else:
                 mult = 0.2  # evaporation from open areas on sealed area estimated as 0.2 EWRef
 
-            self.var.openWaterEvap[No] = mult * np.minimum(self.var.EWRef, self.var.availWaterInfiltration[No])
+            self.var.openWaterEvap[No] =  np.minimum(mult * self.var.EWRef, self.var.availWaterInfiltration[No])
             self.var.directRunoff[No] = self.var.availWaterInfiltration[No] - self.var.openWaterEvap[No]
            # open water evaporation is directly substracted from the river, lakes, reservoir
 

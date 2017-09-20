@@ -83,6 +83,7 @@ class CWATModel_dyn(DynamicModel):
 
         # ***** INFLOW HYDROGRAPHS (OPTIONAL)****************
         self.inflow_module.dynamic()
+        self.lakes_reservoirs_module.dynamic()
 
         # ***** RAIN AND SNOW *****************************************
         self.snowfrost_module.dynamic()
@@ -98,14 +99,20 @@ class CWATModel_dyn(DynamicModel):
         self.landcoverType_module.dynamic()
         timemeasure("Soil main")  # 5. timing
 
+
+
         self.groundwater_module.dynamic()
         timemeasure("Groundwater")  # 7. timing
 
         self.runoff_concentration_module.dynamic()
         timemeasure("Runoff conc.")  # 8. timing
 
+        self.lakes_res_small_module.dynamic()
+        timemeasure("Small lakes")  # 9. timing
+
+
         self.routing_kinematic_module.dynamic()
-        timemeasure("Routing_Kin")  # 9. timing
+        timemeasure("Routing_Kin")  # 10. timing
 
 
 
@@ -118,13 +125,13 @@ class CWATModel_dyn(DynamicModel):
         # ------------------------------------------------------
 
         self.waterbalance_module.checkWaterSoilGround()
-        timemeasure("Waterbalance")  # 10. timing
+        timemeasure("Waterbalance")  # 11. timing
 
         self.environflow_module.dynamic()
         # in case environmental flow is calculated last
 
         self.output_module.dynamic()
-        timemeasure("Output")  # 11. timing
+        timemeasure("Output")  # 12. timing
 
         self.init_module.dynamic()
 

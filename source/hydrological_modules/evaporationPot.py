@@ -49,7 +49,9 @@ class evaporationPot(object):
 
             self.var.sumETRef = globals.inZero.copy()
 
+
         self.var.cropCorrect = loadmap('crop_correct')
+
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------

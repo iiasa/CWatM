@@ -283,9 +283,57 @@ class waterdemand(object):
                 # only local surface water abstraction is allowed (network is only within a cell)
                 self.var.actSurfaceWaterAbstract = np.minimum(self.var.readAvlChannelStorageM, potSurfaceAbstract)
                 # if surface water is not sufficient it is taken from groundwater
-                self.var.potGroundwaterAbstract = totalPotGrossDemand - self.var.actSurfaceWaterAbstract
-                # real surface water abstraction can be higher, because not all demand can be done from surface water
-                realswAbstractionFraction = divideValues(self.var.actSurfaceWaterAbstract, totalPotGrossDemand)
+
+
+                if checkOption('includeWaterBodies'):
+                    #self.var.potGroundwaterAbstract = totalPotGrossDemand - self.var.actSurfaceWaterAbstract
+                    #realswAbstractionFraction = divideValues(self.var.actSurfaceWaterAbstract, totalPotGrossDemand)
+
+                    remainNeed = potSurfaceAbstract - self.var.actSurfaceWaterAbstract
+
+
+                    # first from big Lakes and reservoirs, not as easy because big lakes cover several gridcells
+                    # collect all water deamnd from lake pixels of same id
+                    remainNeedBig = npareatotal(remainNeed, self.var.waterBodyID)
+                    remainNeedBigC = np.compress(self.var.compress_LR, remainNeedBig)
+
+                    # Storage of a big lake
+                    lakeResStorageC = np.where(self.var.waterBodyTypCTemp == 0, 0.,
+                                np.where(self.var.waterBodyTypCTemp == 1, self.var.lakeStorageM3C, self.var.reservoirStorageM3C)) / self.var.MtoM3C
+                    minlake =  np.maximum(0., lakeResStorageC - 0.99 *  lakeResStorageC)
+                    actbigLakeAbstC =  np.minimum(minlake , remainNeedBigC)
+                    # substract from both, because it is sorted by self.var.waterBodyTypCTemp
+                    self.var.lakeStorageM3C = self.var.lakeStorageM3C - actbigLakeAbstC * self.var.MtoM3C
+                    self.var.reservoirStorageM3C = self.var.reservoirStorageM3C - actbigLakeAbstC * self.var.MtoM3C
+                    bigLakesFactorC = divideValues(actbigLakeAbstC , remainNeedBigC)
+
+                    # and back to the big array
+                    bigLakesFactor = globals.inZero.copy()
+                    np.put(bigLakesFactor, self.var.decompress_LR, bigLakesFactorC)
+                    bigLakesFactorAllaroundlake = npareamaximum(bigLakesFactor, self.var.waterBodyID)
+                    # abstraction from big lakes is partioned to the users around the lake
+                    self.var.actbigLakeResAbst = remainNeed * bigLakesFactorAllaroundlake
+
+                    # remaining need is used from small lakes
+                    remainNeed1 = remainNeed  * (1 - bigLakesFactorAllaroundlake)
+                    minlake = np.maximum(0.,self.var.smalllakeStorageM3 - self.var.minsmalllakeStorageM3) * self.var.M3toM
+                    self.var.actsmallLakeResAbst = np.minimum(minlake, remainNeed1)
+                    #self.var.actLakeResAbst = np.minimum(0.5 * self.var.smalllakeStorageM3 * self.var.M3toM, remainNeed)
+                    # actsmallLakesres is substracted from small lakes storage
+                    self.var.smalllakeStorageM3 = self.var.smalllakeStorageM3 - self.var.actsmallLakeResAbst * self.var.MtoM3
+
+
+                    # remaining is taken from groundwater if possible
+                    remainNeed2 = potSurfaceAbstract - (self.var.actSurfaceWaterAbstract + self.var.actbigLakeResAbst + self.var.actsmallLakeResAbst)
+                    self.var.potGroundwaterAbstract = totalPotGrossDemand - (self.var.actSurfaceWaterAbstract + self.var.actsmallLakeResAbst)
+                    # real surface water abstraction can be lower, because not all demand can be done from surface water
+                    realswAbstractionFraction = divideValues(self.var.actSurfaceWaterAbstract + self.var.actsmallLakeResAbst, totalPotGrossDemand)
+                else:
+                    self.var.potGroundwaterAbstract = totalPotGrossDemand - self.var.actSurfaceWaterAbstract
+                    realswAbstractionFraction = divideValues(self.var.actSurfaceWaterAbstract, totalPotGrossDemand)
+
+
+
 
                 # calculate renewableAvlWater (non-fossil groundwater and channel) - environmental flow
                 self.var.renewableAvlWater = self.var.readAvlStorGroundwater + self.var.readAvlChannelStorageM

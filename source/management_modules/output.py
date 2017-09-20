@@ -440,6 +440,15 @@ class outputTssMap(object):
                                                                     dateVar['currDate'], dateVar['currwrite'],
                                                                     flag, False)
 
+                        if map[-8:] == "totalend":
+                            if dateVar['currDate'] == dateVar['dateEnd']:
+                                # at the end of simulation write this map
+                                vars(self.var)[varname + "_totalend"] = vars(self.var)[varname]
+                                outMap[map][i][2] = writenetcdf(netfile, varname + "_totalend","undefined",
+                                                                vars(self.var)[varname],
+                                                                dateVar['currDate'],
+                                                                dateVar['currwrite'],
+                                                                flag, False)
 
 
                                 # ************************************************************

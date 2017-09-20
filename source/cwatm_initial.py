@@ -25,6 +25,8 @@ from hydrological_modules.waterdemand import *
 from hydrological_modules.capillarRise import *
 from hydrological_modules.interception import *
 from hydrological_modules.runoff_concentration import *
+from hydrological_modules.lakes_res_small import *
+
 from hydrological_modules.waterbalance import *
 from hydrological_modules.environflow import *
 
@@ -79,6 +81,7 @@ class CWATModel_ini(DynamicModel):
 
         self.output_module = outputTssMap(self)
 
+
         # include all the hydrological modules
 
         self.misc_module = miscInitial(self)
@@ -101,6 +104,7 @@ class CWATModel_ini(DynamicModel):
         self.interception_module = interception(self)
         self.sealed_water_module = sealed_water(self)
         self.runoff_concentration_module = runoff_concentration(self)
+        self.lakes_res_small_module = lakes_res_small(self)
 
         self.routing_kinematic_module = routing_kinematic(self)
         self.lakes_reservoirs_module = lakes_reservoirs(self)
@@ -111,7 +115,6 @@ class CWATModel_ini(DynamicModel):
 # ----------------------------------------------------------------
 
 
-
         # run intial misc to get all global variables
         self.misc_module.initial()
         self.init_module.initial()
@@ -119,11 +122,14 @@ class CWATModel_ini(DynamicModel):
         self.inflow_module.initial()
 
         self.evaporationPot_module.initial()
+
         self.snowfrost_module.initial()
         self.soil_module.initial()
+
         self.landcoverType_module.initial()
         self.groundwater_module.initial()
         self.runoff_concentration_module.initial()
+        self.lakes_res_small_module.initial()
 
         self.routing_kinematic_module.initial()
         if checkOption('includeWaterBodies'):
@@ -131,10 +137,12 @@ class CWATModel_ini(DynamicModel):
             self.lakes_reservoirs_module.initial_lakes()
             self.lakes_reservoirs_module.initial_reservoirs()
 
+
         self.waterdemand_module.initial()
         self.waterbalance_module.initial()
         # calculate initial amount of water in the catchment
 
         self.output_module.initial()
         self.environflow_module.initial()
+
 

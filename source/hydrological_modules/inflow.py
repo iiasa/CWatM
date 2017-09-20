@@ -147,6 +147,7 @@ class inflow(object):
                 self.var.inflowM3[loc] = self.var.inflowTs[str(key)][index] * self.var.DtSec
                 # Convert to [m3] per time step
             self.var.totalQInM3 += self.var.inflowM3
+            ii =1
             # Map of total inflow from inflow hydrographs [m3]
 
 
