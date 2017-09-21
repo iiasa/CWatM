@@ -101,11 +101,14 @@ class runoff_concentration(object):
 
             max = np.where(self.var.tpeak_baseflow > max, self.var.tpeak_baseflow, max)
             self.var.maxtime_runoff_conc = int(np.ceil(2 * np.amax(max)))
+            max = 10
+            if self.var.maxtime_runoff_conc > 10: max = self.var.maxtime_runoff_conc
 
             # array with concentrated runoff
             #self.var.runoff_conc = np.tile(globals.inZero, (self.var.maxtime_runoff_conc, 1))
             self.var.runoff_conc = []
-            self.var.runoff_conc = np.tile(globals.inZero, (self.var.maxtime_runoff_conc, 1))
+            #self.var.runoff_conc = np.tile(globals.inZero, (self.var.maxtime_runoff_conc, 1))
+            self.var.runoff_conc = np.tile(globals.inZero,(max,1))
             for i in xrange(self.var.maxtime_runoff_conc):
                 self.var.runoff_conc[i] = self.var.init_module.load_initial("runoff_conc", number = i+1)
 

@@ -106,7 +106,7 @@ elif platform1 == "CYGWIN_NT-6.1":
     # CYGWIN_NT-6.1 - compiled with cygwin
     dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t5cyg.so")
 else:
-    print "Linux or something else\n"
+    print "Linux\n"
     # Linux?
     dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t5_linux.so")
 
