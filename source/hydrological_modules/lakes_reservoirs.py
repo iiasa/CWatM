@@ -12,8 +12,11 @@ from management_modules.data_handling import *
 from hydrological_modules.routing_reservoirs.routing_sub import *
 
 
+
 from management_modules.globals import *
-# from pcraster.framework import *
+#from pcraster.framework import *
+
+
 
 class lakes_reservoirs(object):
     """
@@ -46,9 +49,14 @@ class lakes_reservoirs(object):
             #self.var.waterBodyID = readnetcdf2(self.var.waterbody_file, dateVar['currDate'], "yearly",value='waterBodyIds').astype(np.int64)
             self.var.waterBodyID = loadmap('waterBodyID').astype(np.int64)
 
+            #self.var.waterBodyID = np.where(self.var.waterBodyID == 887, 0, self.var.waterBodyID)
+
             # calculate biggest outlet = biggest accumulation of ldd network
             lakeResmax = npareamaximum(self.var.UpArea1, self.var.waterBodyID)
             self.var.waterBodyOut = np.where(self.var.UpArea1 == lakeResmax,self.var.waterBodyID, 0)
+
+            #pcraster.report(nominal(decompress(self.var.waterBodyOut)), "C:\work\output3/out1.map")
+            #pcraster.report(decompress(self.var.UpArea1), "C:\work\output3/ups.map")
 
             # dismiss water bodies that a not subcatchment of an outlet
             sub = subcatchment1(self.var.dirUp, self.var.waterBodyOut,self.var.UpArea1)
@@ -519,6 +527,8 @@ class lakes_reservoirs(object):
         # only once at the outlet
         inflow = np.where(self.var.waterBodyOut > 0, inflow, 0.) / self.var.noRoutingSteps + self.var.outLake
 
+
+
         # calculate total inflow into lakes and compress it to waterbodie outflow point
         # inflow to lake is discharge from upstream network + runoff directly into lake + outflow from upstream lakes
         inflowC = np.compress(self.var.compress_LR, inflow)
@@ -532,26 +542,36 @@ class lakes_reservoirs(object):
         #outflowC = dynamic_inloop_lakes(inflowC,NoRoutingExecuted)        # only lakes
         #outflowC = dynamic_inloop_reservoirs(inflowC,NoRoutingExecuted)  # only reservoirs
         #outflowC = inflowC.copy() - self.var.evapWaterBodyC
+        #outflowC = inflowC.copy()
+
         # ------------------------------------------------------------
 
 
 
         # decompress to normal maskarea size
         np.put(self.var.outflow,self.var.decompress_LR,outflowC)
+        lakeOutflowDis = npareatotal(self.var.outflow, self.var.waterBodyID) / (self.var.DtSec / self.var.noRoutingSteps)
+
         # shift outflow 1 cell downstream
         out1 = upstream1(self.var.downstruct, self.var.outflow)
+
+
+        if (dateVar['curr'] == 100):
+            ii =1
 
 
         # everything with is not going to another lake is output to river network
         outLdd = np.where(self.var.waterBodyID > 0, 0, out1)
 
-        # verything what i not goingt to the network is going to another lake
+        # everything what is not going to the network is going to another lake
         outLake1 = np.where(self.var.waterBodyID > 0, out1,0)
         # sum up all inflow from other lakes
-        outLake1 = npareatotal(outLake1, self.var.waterBodyID)
+        outLakein = npareatotal(outLake1, self.var.waterBodyID)
         # use only the value of the outflow point
-        self.var.outLake = np.where(self.var.waterBodyOut > 0, outLake1, 0.)
+        self.var.outLake = np.where(self.var.waterBodyOut > 0, outLakein, 0.)
 
+        if (dateVar['curr'] == 100):
+            ii =1
 
 
         """
@@ -608,8 +628,7 @@ class lakes_reservoirs(object):
             """
 
 
-        return outLdd
-
+        return outLdd, lakeOutflowDis
 
 
 

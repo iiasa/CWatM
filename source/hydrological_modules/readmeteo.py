@@ -70,7 +70,7 @@ class readmeteo(object):
 
 
         #self.var.Precipitation = readnetcdf2('PrecipitationMaps',dateVar['currDate'],addZeros = True, meteo = True) * self.var.DtDay * self.var.con_precipitation
-        self.var.Precipitation = readmeteodata('PrecipitationMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin) * self.var.DtDay * self.var.con_precipitation
+        self.var.Precipitation = readmeteodata('PrecipitationMaps', dateVar['currDate'], addZeros=True) * self.var.DtDay * self.var.con_precipitation
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
 
         #TODO PB

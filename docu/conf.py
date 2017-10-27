@@ -33,9 +33,7 @@ sys.path.insert(0,"C:\work\CWatM\source")
 # --------------------------------------------------------------------
 # put in extensions for source code documentation
 #    'sphinx.ext.autodoc',
-#	'sphinx.ext.inheritance_diagram',
-# --------------------------------------------------------------------
-#     'sphinx.ext.viewcode',
+#    'sphinx.ext.viewcode',
 
 extensions = [
     'sphinx.ext.doctest',
@@ -64,6 +62,7 @@ napoleon_use_ivar = True
 napoleon_use_param = True
 napoleon_use_rtype = True
 
+math_number_all = False
 
 # 'sphinx.ext.imgmath'  instead of 'rst2pdf.pdfbuilder',
 

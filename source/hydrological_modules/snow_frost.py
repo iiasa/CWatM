@@ -9,8 +9,7 @@
 # -------------------------------------------------------------------------
 
 from management_modules.data_handling import *
-from scipy.stats import norm
-
+#from scipy.stats import norm
 
 
 class snow(object):
@@ -22,8 +21,26 @@ class snow(object):
     snow zones 1 -7 which each occupy a part of the pixel surface
 
     Variables *snow* and *rain* at end of this module are the pixel-average snowfall and rain
+
+
+    Inheritace: ``inheritance-diagram`` 
+
+
+    .. inheritance-diagram:: cwatm_initial.CWATModel_ini
+       :parts: 1
+
+
     
-    .. inheritance-diagram: snow
+    For example::
+
+       .. inheritance-diagram:: cwatm
+
+    produces 1:
+
+       .. inheritance-diagram:: hydrological_modules.snow_frost.snow
+
+
+       .. _extensions-literal:
 	
 	
     """
@@ -46,11 +63,19 @@ class snow(object):
 
         .. inheritance-diagram: initial
 
-        test of math1
 
-        .. math::
 
-            n_{\mathrm{offset}} = \sum_{k=0}^{N-1} s_k n_k
+        Since Pythagoras, we know that :math:`a^2 + b^2 = c^2`.
+
+        test of math2
+
+        .. math:: (a + b)^2 = a^2 + 2ab + b^2 \clubsuit
+              :label: test2
+
+        .. math:: e^{i\pi} + 1 = 0
+             :label: euler
+
+        Euler's identity, equation :eq:`euler`, was elected one of the most beautiful mathematical formulas.
 
 			
         .. graphviz::
@@ -58,6 +83,7 @@ class snow(object):
             digraph foo {
                 "snow" -> "initial";
             }
+
 
         """
 
@@ -78,9 +104,19 @@ class snow(object):
         #              to split the pixel in 3 equal parts.
         # for different number of layers
         #  Number: 2 ,3, 4, 5, 6, 7, ,8, 9, 10
-        divNo = 1./float(self.var.numberSnowLayers)
-        deltaNorm = np.linspace(divNo/2, 1-divNo/2, self.var.numberSnowLayers)
-        self.var.deltaInvNorm = norm.ppf(deltaNorm)
+        dn = {}
+        dn[1] = np.array([0])
+        dn[2] = np.array([-0.67448975,  0.67448975])
+        dn[3] = np.array([-0.96742157,  0.,  0.96742157])
+        dn[5] = np.array([-1.28155157, -0.52440051,  0.,  0.52440051,  1.28155157])
+        dn[7] = np.array([-1.46523379, -0.79163861, -0.36610636, 0., 0.36610636,0.79163861, 1.46523379])
+        dn[9] = np.array([-1.59321882, -0.96742157, -0.5894558 , -0.28221615,  0., 0.28221615,  0.5894558 ,  0.96742157,  1.59321882])
+        dn[10] = np.array([-1.64485363, -1.03643339, -0.67448975, -0.38532047, -0.12566135, 0.12566135,  0.38532047,  0.67448975,  1.03643339,  1.64485363])
+
+        #divNo = 1./float(self.var.numberSnowLayers)
+        #deltaNorm = np.linspace(divNo/2, 1-divNo/2, self.var.numberSnowLayers)
+        #self.var.deltaInvNorm = norm.ppf(deltaNorm)
+        self.var.deltaInvNorm = dn[self.var.numberSnowLayers]
 
 
         self.var.ElevationStD = loadmap('ElevationStD')
@@ -153,6 +189,14 @@ class snow(object):
 
         Todo:
             calculate sinus shape function for the southern hemisspere
+
+        test of math1
+
+        .. math::
+              a = \sqrt{2} 
+
+
+
         """
         if checkOption('calcWaterBalance'):
             self.var.prevSnowCover = self.var.SnowCover

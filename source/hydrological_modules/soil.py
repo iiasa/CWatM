@@ -153,9 +153,6 @@ class soil(object):
             #    ii = 1
 
             self.var.topwater = np.where(self.var.cropKC[No] > 0.75, self.var.topwater + availWaterInfiltration, self.var.topwater)
-            # topwater is max 0.05
-            # self.var.topwater = np.minimum(self.var.topwater, 0.05)
-
 
             # open water evaporation from the paddy field  - using potential evaporation from open water
             self.var.openWaterEvap[No] = np.minimum(np.maximum(0., self.var.topwater), self.var.EWRef)
@@ -294,7 +291,7 @@ class soil(object):
         if coverType == 'irrPaddy':
             self.var.topwater = np.maximum(0.,  self.var.topwater - self.var.infiltration[No])
             # if paddy fields flooded only runoff if topwater > 0.05m
-            h = np.maximum(0., self.var.topwater- 0.05)
+            h = np.maximum(0., self.var.topwater- self.var.maxtopwater)
             self.var.directRunoff[No] = np.where(self.var.cropKC[No] > 0.75, h, self.var.directRunoff[No])
 
             self.var.topwater = np.maximum(0., self.var.topwater - self.var.directRunoff[No])

@@ -142,7 +142,8 @@ class routing_kinematic(object):
         #    # to avoid small values and to avoid surface water abstractions from dry channels (>= 0.5mm)
         #    self.var.readAvlChannelStorage = np.where(self.var.readAvlChannelStorage < (0.0005 * self.var.cellArea),0.,self.var.readAvlChannelStorage)
 
-
+        # factor for evaporation from lakes, reservoirs and open channels
+        self.var.lakeEvaFactor = globals.inZero + loadmap('lakeEvaFactor')
         ii =1
 
         #self.var.channelAlphaPcr = decompress(self.var.channelAlpha)
@@ -203,13 +204,13 @@ class routing_kinematic(object):
         # from big lakes/res and small lakes/res is calculated separately
         channelFraction = np.minimum(1.0, self.var.chanWidth * self.var.chanLength / self.var.cellArea)
         # put all the water area in which is not reflected in the lakes ,res
-        channelFraction = np.maximum(self.var.fracVegCover[5], channelFraction)
+        #channelFraction = np.maximum(self.var.fracVegCover[5], channelFraction)
 
-        EWRefact =  self.var.EWRef - self.var.openWaterEvap[5]
+        EWRefact =  self.var.lakeEvaFactor * self.var.EWRef - self.var.openWaterEvap[5]
         # evaporation from channel minus the calculated evaporation from rainfall
-        self.var.EvaAddM =  EWRefact * channelFraction * self.var.cellArea
-        #self.var.EvaAddM =  self.var.EWRef * channelFraction * self.var.cellArea
+        self.var.EvaAddM = EWRefact * channelFraction * self.var.cellArea
         #self.var.EvaAddM = self.var.EWRef * channelFraction * self.var.cellArea
+
         # restrict to 95% of channel storage -> something should stay in the river
         self.var.EvaAddM = np.where((0.95 * self.var.channelStorage - self.var.EvaAddM) > 0.0, self.var.EvaAddM, 0.95 * self.var.channelStorage)
 
@@ -304,25 +305,32 @@ class routing_kinematic(object):
                 sideflowChanM3 += self.var.inflowDt
 
             if checkOption('includeWaterBodies'):
-                lakesResOut = self.lakes_reservoirs_module.dynamic_inloop(subrouting)
+                lakesResOut, lakeOutflowDis = self.lakes_reservoirs_module.dynamic_inloop(subrouting)
                 sideflowChanM3 += lakesResOut
 
             #sideflowChan = sideflowChanM3 * self.var.invchanLength * self.var.InvDtSec
             sideflowChan = sideflowChanM3 * self.var.invchanLength * 1/ self.var.dtRouting
 
             if checkOption('includeWaterBodies'):
-               lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown_LR, self.var.dirupLen_LR, self.var.dirupID_LR, Qnew, self.var.channelAlpha, 0.6, self.var.dtRouting, self.var.chanLength, self.var.lendirDown_LR)
+               lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown_LR, self.var.dirupLen_LR, self.var.dirupID_LR, Qnew, self.var.channelAlpha, self.var.beta, self.var.dtRouting, self.var.chanLength, self.var.lendirDown_LR)
 
             else:
-               lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown, self.var.dirupLen, self.var.dirupID, Qnew, self.var.channelAlpha, 0.6, self.var.dtRouting, self.var.chanLength, self.var.lendirDown)
+               lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown, self.var.dirupLen, self.var.dirupID, Qnew, self.var.channelAlpha, self.var.beta, self.var.dtRouting, self.var.chanLength, self.var.lendirDown)
             self.var.discharge = Qnew.copy()
-
 
 
         # -- end substeping ---------------------
         #self.var.channelStorageBefore = self.var.channelStorage.copy()
+        if checkOption('includeWaterBodies'):
+            # if there is a lake no discharge is calculated in the routing routine.
+            # therefore this is filled up with the discharge which goes outof the lake
+            # these outflow is used for the whole lake
+            self.var.discharge = np.where(self.var.waterBodyID > 0, lakeOutflowDis, self.var.discharge)
 
-        self.var.channelStorage = self.var.channelAlpha * self.var.chanLength * Qnew ** 0.6
+
+
+
+        self.var.channelStorage = self.var.channelAlpha * self.var.chanLength * Qnew ** self.var.beta
 
 
         if checkOption('inflow'):

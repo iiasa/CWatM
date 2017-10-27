@@ -1,2 +1,2 @@
-python C:\work\CWATM\source3/cwatm.py settings6.ini -l
+python C:\work\CWATM\source/cwatm.py settings_rhine.ini -l
 pause

@@ -12,6 +12,17 @@ Updates
 
 **Most recent updates on top**
 
+25/09/2017
+
+* bugfix on snow modul 
+* added additional evaporation from open water (transition loss in channels)
+
+20/08/2017
+----------
+
+* improved water demand modul
+* added small lakes and reservoirs
+
 24/06/2017
 ----------
 
@@ -102,6 +113,6 @@ Model improvements
    "soil depend on land cover","include hydropedo transfer function landcover -> soil","2","."
    "Improve lakes& reservoirs","Add another way of including lakes/reservoirs","2","X"
    "Inflow points","add points where water can be added/substracted","1","X"
-   "Include Environmental flow","use environmental flow concept on the fly not only post-processing","2","."
+   "Include Environmental flow","use environmental flow concept on the fly not only post-processing","2","X"
    "Water allocation","include water demand <-> water supply functionality","2-3","."
    "Include EPIC approach","to be in line with ESM include the EPIC approach","3","."

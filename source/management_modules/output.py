@@ -76,7 +76,7 @@ class outputTssMap(object):
                         if os.path.exists(outDir[sec]):
                             if ismap:
                                 info.append(os.path.join(outDir[sec], str(var) + "_" + type + ".nc"))
-                                vars(self.var)[var+"_"+type] = 0
+                                #vars(self.var)[var+"_"+type] = 0
                                 # creates a var to sum/ average the results e.g. self.var.Precipitation_monthtot
                             else:
                                 # TimeoutputTimeseries(binding[tss], self.var, outpoints, noHeader=Flags['noheader'])
@@ -93,6 +93,7 @@ class outputTssMap(object):
 
                         placeholder =[]
                         info.append(placeholder)
+                        if ismap: info.append(type)  # set type to create variable later on first timestep
                         out[key][i] = info
                         i +=1
 
@@ -353,6 +354,7 @@ class outputTssMap(object):
                         flag = outMap[map][i][2]
                         # flag to create netcdf or to write
                         varname = outMap[map][i][1]
+                        type = outMap[map][i][4]
 
                         # to use also variables with index from soil e.g. actualET[2]
                         if '[' in varname:
@@ -363,6 +365,11 @@ class outputTssMap(object):
 
                         varnameCollect.append(varname)
                         inputmap = 'self.var.' + varname
+
+                        # create variable after it is checked on the first timestep
+                        # creates a var to sum/ average the results e.g. self.var.Precipitation_monthtot
+                        if dateVar['curr'] == 1:
+                            vars(self.var)[varname+"_"+type] = 0
 
                         if map[-5:] == "daily":
                             outMap[map][i][2] = writenetcdf(netfile, varname, "undefined", eval(inputmap),  dateVar['currDate'],dateVar['currwrite'], flag, True, dateVar['diffdays'])

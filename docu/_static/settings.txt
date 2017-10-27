@@ -1,30 +1,44 @@
 [DEFAULT]
-Root = C:\work\CWATM\calibration
-ForcingStart = 1/1/2003
-ForcingEnd = 12/31/2010
+Root = /c/watmodel/CWATM
+RootPC = C:/watmodel/CWATM
+Rootbasin = calibration_rhine
+
+ForcingStart = 1/1/2000
+ForcingEnd = 31/12/2010
+timeperiod = daily
 
 [ObservedData]
-Qtss = %(Root)s\observed_data\lobith2006.csv
+Qtss = observed_data/lobith.csv
 Column = lobith
+Header = River: Rhine  station: Lobith
+
+[Validate]
+Qtss = observed_data/lobith_val.csv
+ValStart = 1/1/1990
+ValEnd = 31/12/1999
+
 
 [Path]
-Templates = %(Root)s\templates
-SubCatchmentPath = %(Root)s\catchments
-ParamRanges = %(Root)s\ParamRanges.csv
+Templates = templates
+SubCatchmentPath = catchments
+ParamRanges = ParamRanges.csv
 
 [Templates]
 ModelSettings = settings.ini
-RunModel = runpy.bat
+RunModel = runpy.sh
 
 [Option]
-firstrun = True
-para_first = [0.0035, 1.0, 1.0, 3.0, 1.0, 1.0, 1.0, 1.0,0.5,1., 1.]
-# Snowmelt, crop KC, soil depth,pref. flow, arno beta, groundwater recession, runoff conc., routing, manning factor, normalStorageLimit, lakeAFactor,No of run
+firstrun = False
+para_first = [0.0022, 1.72, 1.24, 7.07, 0.55, 1.92, 2.81, 0.74,1.34,0.35,2.04,1.0, 1.]
+# Snowmelt, crop KC, soil depth,pref. flow, arno beta, interflow factor, groundwater recession,
+# runoff conc., routing, manning factor, normalStorageLimit, lakeAFactor,lakeEvaFactor,No of run
 bestrun = True
 
 [DEAP]
 maximize = True
 use_multiprocessing = 1
-ngen = 2
-mu = 16
-lambda_ = 16
+ngen = 30
+mu = 256
+lambda_ = 32
+
+

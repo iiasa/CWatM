@@ -122,6 +122,7 @@ def loadsetclone(name):
     """
 
     #if checkOption('PCRaster'): from pcraster.framework import *
+    warnings.filterwarnings("ignore")
     if checkOption('PCRaster'): from pcraster.framework import pcraster
 
     filename = cbinding(name)
@@ -424,7 +425,8 @@ def decompress(map, pcr1 = True):
     """
 
     #if checkOption('PCRaster'): from pcraster.framework import *
-    if checkOption('PCRaster'): from pcraster.framework import pcraster
+    if checkOption('PCRaster'):
+        from pcraster.framework import pcraster
 
     # dmap=np.ma.masked_all(maskinfo['shapeflat'], dtype=map.dtype)
     dmap = maskinfo['maskall'].copy()
@@ -576,6 +578,8 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
     for maps in meteomaps:
         name = cbinding(maps)
         nameall = glob.glob(os.path.normpath(name))
+        if not nameall:
+            raise CWATMFileError(name, sname=maps)
         nameall.sort()
         meteolist = {}
         startfile = 0
@@ -685,6 +689,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0):
         raise CWATMWarning(msg)
 
     mapC = compressArray(mapnp,pcr=False,name=filename)
+    mapC[mapC > 1E10] = zeros
 
     # increase index and check if next file
     inputcounter[name] += 1
@@ -1096,7 +1101,8 @@ def writeIniNetcdf(netfile,varlist, inputlist):
         # write values
 
         mapnp = maskinfo['maskall'].copy()
-        mapnp[~maskinfo['maskflat']] = inputlist[i][:]
+        help = np.minimum(10e15,np.maximum(-9999., inputlist[i][:]))
+        mapnp[~maskinfo['maskflat']] = help
         #mapnp = mapnp.reshape(maskinfo['shape']).data
         mapnp = mapnp.reshape(maskinfo['shape'])
 

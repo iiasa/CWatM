@@ -1,0 +1,46 @@
+[DEFAULT]
+Root = /p/luc/watmodel/CWATM
+RootPC = P:/watmodel/CWATM
+Rootbasin = calibration/calibration_zambezi/lukulu_budyko
+
+ForcingStart = 1/1/1979
+ForcingEnd = 31/12/1990
+timeperiod = monthly
+# timeperiod = daily
+
+[ObservedData]
+P = observed_data/Precipitation_totaltot.txt
+ETP = observed_data/ETRef_totaltot.txt
+Qtss = observed_data/lukulu_1979month.csv
+Column = lukulu
+Header = Station: Lukulu / Zambezi
+
+
+[Validate]
+Qtss = observed_data/lukulu_val_month.csv
+ValStart = 1/1/1991
+ValEnd = 30/11/2004
+
+[Path]
+Templates = templates
+SubCatchmentPath = catchments
+ParamRanges = ParamRanges.csv
+
+[Templates]
+ModelSettings = settings.ini
+RunModel = runpy.sh
+
+[Option]
+firstrun = True
+para_first = [0.004, 2.5, 1.0, 6.0, 0.1, 1.0, 1.0, 1.0,1.0,0.5,1.0,1.0, 1.]
+# Snowmelt, crop KC, soil depth,pref. flow, arno beta, interflow factor, groundwater recession, runoff conc., routing, manning factor, normalStorageLimit, lakeAFactor,lakeEvaFactor,No of run
+bestrun = True
+
+[DEAP]
+maximize = False
+use_multiprocessing = 0
+ngen = 25
+mu = 256
+lambda_ = 32
+
+

@@ -27,6 +27,7 @@ management_modules.data_handling module
 .. automodule:: management_modules.data_handling
     :members:
     :undoc-members:
+    :inherited-members:
     :show-inheritance:
 
 management_modules.globals module
@@ -84,4 +85,5 @@ Module contents
 .. automodule:: management_modules
     :members:
     :undoc-members:
+    :inherited-members:
     :show-inheritance:

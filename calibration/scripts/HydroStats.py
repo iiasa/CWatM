@@ -35,7 +35,9 @@ Functions:
 # import required modules
 import numpy as np
 from random import randrange
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
+from scipy.optimize import fsolve
+from scipy.stats import gamma,kstest
 
 def filter_nan(s,o):
     """
@@ -286,3 +288,75 @@ def vr(s,o,warmup):
     o = o[warmup+1:]
     s,o = filter_nan(s,o)
     return 1 - abs((np.std(s) / np.mean(s)) / (np.std(o) / np.mean(o)) - 1)
+
+def budykoFunc(x, const = 2.6):
+    return 1 + x - (1 + x**const)**(1/const)
+
+def budykoDist(xp,yp,x):
+    return (xp-x)**2 + (yp-budykoFunc(x))**2
+
+
+def iter1(xp,yp,xmin,step):
+    dist0 = 9999999999999999.
+    for i in xrange(20):
+        x = xmin + i * step
+        dist = budykoDist(xp,yp,x)
+        if dist > dist0:
+            return x-2*step
+        dist0 = dist
+    return -9999
+
+def Budyko(x,y):
+    xx = x.as_matrix()
+    yy = y.as_matrix()
+    nr = xx.shape[1]
+    budyko = 0
+
+    for k in xrange(nr):  # through all the gauges
+	    
+		for i in xrange(len(x)):  # all the yearly values
+			xmin = np.minimum(0., xx[i][k])
+			for j in xrange(6):
+				step = 10**-j
+				xmin = iter1(xx[i][k],yy[i][k],xmin,step)
+			xmin = xmin + step
+			budyko += budykoDist(xx[i][k],yy[i][k],xmin)
+
+    return budyko
+
+def budw(x,y):
+    """
+	estimate w-value
+	x: ETP/Precipitation
+	y: ETA/Precipitation
+	 
+    """
+    xx = x.as_matrix()
+    yy = y.as_matrix()
+    nr = xx.shape[1]
+    ads_sum = 0
+
+    for k in xrange(nr):  # through all the gauges
+
+        for i in xrange(len(x)):
+            func = lambda omega: (1 + xx[i][k] - (1 + xx[i][k] ** omega) ** (1 / omega)) - yy[i][k]
+            sol[i] = fsolve(func, 2.6)
+
+    ads =  kstest(sol-1,'gamma',args=(4.54,0,0.37))
+    ads_sum += ads[0]
+    return ads_sum
+
+def budw1d(x,y):
+    """
+	estimate w-value (1D)
+	x: ETP/Precipitation
+	y: ETA/Precipitation
+    """
+    sol = np.zeros(shape=(len(x)))
+    func = lambda omega: (1 + x[i] - (1 + x[i] ** omega) ** (1 / omega)) - y[i]
+    for i in xrange(len(x)):
+        #func = lambda omega: (1 + x[i] - (1 + x[i] ** omega) ** (1 / omega)) - y[i]
+        sol[i] = fsolve(func, 2.6)
+
+    ads = kstest(sol - 1, 'gamma', args=(4.54, 0, 0.37))
+    return ads[0]

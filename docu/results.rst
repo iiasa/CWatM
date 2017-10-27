@@ -75,11 +75,11 @@ Discharge as monthly timeseries
 .. figure:: _static/demo3_timeserie.jpg
     :width: 500px
 
-Demo 5 - PcRaster Aguila output   
+Demo 5 - PCRaster Aguila output   
 ===============================	
 
 Discharge as timeseries
-Output from Aguila
+Output from `PCRaster Aquila <http://pcraster.geo.uu.nl/projects/developments/aguila/>`_
 
 .. figure:: _static/demo4_ts_aguila.jpg
     :width: 500px

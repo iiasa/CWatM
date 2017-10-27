@@ -4,7 +4,7 @@ Setup of the model
 #######################
 
 .. contents:: 
-    :depth: 3
+    :depth: 4
 
 Setup
 =====
@@ -22,7 +22,7 @@ Requirements are a 64 bit `Python 2.7.x version <https://www.python.org/download
 Libraries
 *********
 
-Three external libraries are needed:
+These external libraries are needed:
 
 * `Numpy <http://www.numpy.org>`_
 * `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
@@ -30,7 +30,7 @@ Three external libraries are needed:
 
 **Windows**
 
-Both libraries can be installed with pip or
+Three libraries can be installed with pip or
 downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
 
 
@@ -237,6 +237,8 @@ The settings file is controlling the CWATM run
     :language: ini
     :lines: 3-11
 
+Components of the settings file
+-------------------------------
 
 General flags
 *************
@@ -315,7 +317,7 @@ Spin-up time is the time for warming up (results will be stored after the spin-u
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 130-141	
+    :lines: 130-142	
 
 
 Initial conditions
@@ -344,17 +346,25 @@ Either as numbers or references to maps (.tif, PCraster or netCDF)
     :lines: 332-334
 
 
+
+.. _rst_outputone:
+
 Output
-***************************
+*******
+
+
 
 Output can be spatial/time as netCDF4 map stacks
   | and/or time series at specified points
 
+.. note:: For additional information see :ref:`rst_outputtwo`
+
 Output can be as maps and time series:
 
-* per day
-* total month, average month, end of month
-* total year, average year, end of year 
+* per day [Daily]
+* total month [MonthTot],  average month [MonthAvg], end of month [MonthEnd]
+* total year  [AnnualTot], average year [AnnualAvg], end of year [AnnualEnd]
+* total sum [TotalTot], total average [TotalAvg]
 
 For each of the following sections output can be defined for different variables:
 
@@ -366,7 +376,17 @@ For each of the following sections output can be defined for different variables
 * River routing
 * Lakes and reservoirs
 
-An output directory can be defined and for each sort of output the variable(s) can be set
+**Or** output can be defined in the section *[output]*
+
+An output directory can be defined and for each sort of output the variable(s) can be set:
+
+| *OUT_* defines that this variable(s) are output
+| *MAP_* or *TSS_* defines if it is a spatial map or a time series of point(s)
+| *Daily* or *MonthAvg* or .. is specifying the time
+| The variable is given after the equal sign e.g. * = discharge*
+| If more than one variable should be used for output, split with **,**
+| E.g. OUT_MAP_Daily = discharge -> daily spatial map of discharge
+
 As example output for precipitation, temperature and discharge is shown here::
 
    # OUTPUT maps and timeseries
@@ -377,21 +397,13 @@ As example output for precipitation, temperature and discharge is shown here::
    OUT_MAP_MonthAvg = 
 
    OUT_TSS_MonthTot = Precipitation, Tavg
-
-
-::
-   
-   # OUTPUT maps and timeseries
-   OUT_Dir = $(FILE_PATHS:PathOut)
-   OUT_MAP_Daily = discharge
-   OUT_MAP_MonthEnd = 
-   OUT_MAP_MonthTot =  
-
    OUT_TSS_Daily = discharge
    OUT_TSS_MonthEnd = discharge
    OUT_TSS_AnnualEnd = discharge
 
 .. note:: For each variable the meta data information can be defined in :ref:`rst_metadata`
+
+
 
 
 Reading information
@@ -467,11 +479,10 @@ Example of a settings file:
 NetCDF meta data
 ================
 
-
 .. _rst_metadata:
 	
 Output Meta NetCDF information
-===============================
+------------------------------
 
 The metaNetcdf.xml includes information on the output netCDF files
 e.g. description of the parameter, unit ..
@@ -482,16 +493,18 @@ Example of a metaNetcdf.xml file:
 
 
 Name and location of the NetCDF meta data file
-===============================================
+----------------------------------------------
 
 In the settings file the name and location of the metadata file is given.
 
+::
+   
+   #-------------------------------------------------------
+   [NETCDF_ATTRIBUTES]
+   institution = IIASA
+   title = Global Water Model - WATCH WDFEI
+   metaNetcdfFile = $(FILE_PATHS:PathRoot)/CWATM/source/metaNetcdf.xml
 
-.. literalinclude:: _static/settings1.ini
-    :linenos:
-    :lineno-match:
-    :language: ini
-    :lines: 107-111	
 
 .. _rst_meta:
 
@@ -564,16 +577,6 @@ In the settings file the option: **load_initial** has to be set on **False**
     :language: ini
     :lines: 145-152
 
-And all the initial conditions is the different sections have to be set to NONE
-The values here (if not set to NONE) will overwrite the initial conditions of the general initial condition netCDF file
-	
-For example:
-	
-.. literalinclude:: _static/settings1.ini
-    :linenos:
-    :lineno-match:
-    :language: ini
-    :lines: 332-334
 
 .. note:: It is possible to exclude the warming up period of your model run for further analysis of results by setting the **SpinUp** option
 
@@ -625,22 +628,6 @@ And define the name of the netcdf4 file in **initLoad**
     :language: ini
     :lines: 145-152
 
-There is also the possibility to set single variables to a certain value (or map)
-
-::
-
-    # INITIAL CONDITIONS (None either 0 or use init file)
-    FrostIndexIni = 56.0
-
-Or
-	
-::
-
-    # INITIAL CONDITIONS (None either 0 or use init file)
-    FrostIndexIni = ../frostIndex31122005.map
-
-This will *override* the value of an initial netcdf4 file.	
-
 
 
 .. _rst_initialcondition:
@@ -677,38 +664,107 @@ Initial conditions
    "11","Lakes and Reservoirs","Lake inflow","from HydroLakes database","1" 
    "","","Lake outflow","same as lake inflow","1" 
    "","","Lake&Res outflow to other lakes&res","same as lake inflow","1" 
-   "","","Lake Storage","based on inflow and lake area","1" 
-   "","","Reservoir Storage","0.5 * max. reservoir storage","1" 
+   "","","Lake storage","based on inflow and lake area","1" 
+   "","","Reservoir storage","0.5 * max. reservoir storage","1" 
+   "","","Small lake storage","based on inflow and lake area","1" 
+   "","","Small lake inflow","from HydroLakes database","1" 
+   "","","Small lake outflow","same as small lake inflow","1" 
+
+.. _rst_outputtwo:
+
    
-   
+Model Output
+============
 
+An advantage of **CWATM** is the full flexibility of the output variables.
 
-Post processing
-===============
-
-.. contents:: 
-    :depth: 3
+- All parameters and variables can be used for output as maps or time series.
+- Even if the model is run at daily timestep, output can be daily, monthly, annual, at the end of a run
+- all variables maps are stored as netcdf and the meta data information can be added
 
 Time depending and non depending output maps
 --------------------------------------------
 	
-Output maps will be produced as netcdf4 maps, stack of maps (over time) 
+| Output maps will be produced as spatial maps, stack of spatial maps (over time) 
+| Format: `netCDF4 <http://www.unidata.ucar.edu/software/netcdf/>`_
+
+The netCDF maps can be read with:
 
 **Windows**
 
-For netCDF: `Panoply <http://www.giss.nasa.gov/tools/panoply>`_
+- `Panoply <http://www.giss.nasa.gov/tools/panoply>`_
 
 **Linux**
 
-For netCDF: 
-`ncview <http://meteora.ucsd.edu/~pierce/ncview_home_page.html>`_
-`cdo https://www.unidata.ucar.edu/software/netcdf/workshops/2012/third_party/CDO.html>`_
-
-and a lot more
+- `ncview <http://meteora.ucsd.edu/~pierce/ncview_home_page.html>`_
+- `cdo <https://www.unidata.ucar.edu/software/netcdf/workshops/2012/third_party/CDO.html>`_
 
 
-Timeseries
-----------
+Or time series at specified points
+----------------------------------
 
-timeseries are procuded as ASCII files, which can be read with every text editor
+| Timeseries are procuded as ASCII files, which can be read with every text editor
+| or with `PCRaster Aquila <http://pcraster.geo.uu.nl/projects/developments/aguila/>`_
+
+| The specific point where timeseries are provided are defined in the settings file as *Gauges*:
+
+::
+   
+   # Station data
+   # either a map e.g. $(FILE_PATHS:PathRoot)/data/areamaps/area3.map
+   # or a location coordinates (X,Y) e.g. 5.75 52.25 9.25 49.75 )
+   # Lobith/Rhine
+   Gauges = 6.25 51.75
+   
+   # if .tif file for gauges, this is a flag if the file is global or local
+   # e.g. Gauges = $(FILE_PATHS:PathRoot)/data/areamaps/gaugesRhine.tif
+   GaugesLocal = True
+
+
+Output variables
+----------------
+
+Output can be every global defined variable in the model
+Variable are e.g. Precipitation, runoff, baseflow
+
+but also not so common variables as:
+
+- reservoirStorage (amount of water in the reservoirs in [m3])
+- nonIrrReturnFlowFraction (returnflow from domenstic and industrial water use [m3])
+- actualET[1] (actual evapotranspiration from grassland [m/day])
+- ...
+
+
+
+Daily, monthly - at the end or average
+--------------------------------------
+
+* per day
+* total month, average month, end of month
+* total year, average year, end of year 
+* total average, total at the end
+
+for example
+::
+   
+   [OUTPUT]
+   # OUTPUT maps and timeseries
+   OUT_Dir = $(FILE_PATHS:PathOut)
+   OUT_MAP_Daily = discharge, runoff
+   OUT_MAP_MonthAvg = Precipitation
+   OUT_MAP_TotalEnd = lakeStorage
+   OUT_MAP_TotalAvg = Tavg
+   
+   OUT_TSS_Daily = discharge
+   OUT_TSS_AnnualAvg = Precipitation
+
+  
+   
+.. note:: For each variable the meta data information can be defined in :ref:`rst_metadata`
+
+.. note:: For information how to adjust the output in the settings file see :ref:`rst_outputone`
+
+
+
+
 

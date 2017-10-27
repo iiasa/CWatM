@@ -25,7 +25,7 @@ hydrological_modules.inflow module
 .. automodule:: hydrological_modules.inflow
     :members:
     :undoc-members:
-	:inherited-members:
+    :inherited-members:
     :show-inheritance:
 	
 hydrological_modules.readmeteo module
@@ -35,6 +35,7 @@ hydrological_modules.readmeteo module
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 
 hydrological_modules.snow_frost module
 --------------------------------------
@@ -43,6 +44,7 @@ hydrological_modules.snow_frost module
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:
 	
 hydrological_modules.evaporationPot module
 ------------------------------------------
@@ -74,7 +76,7 @@ hydrological_modules.capillarRise module
 .. automodule:: hydrological_modules.capillarRise
     :members:
     :undoc-members:
-	:inherited-members:
+    :inherited-members:
     :show-inheritance:
 	
 hydrological_modules.interception module
@@ -116,7 +118,7 @@ hydrological_modules.groundwater module
 .. automodule:: hydrological_modules.groundwater
     :members:
     :undoc-members:
-	:inherited-members:
+    :inherited-members:
     :show-inheritance:
 	
 hydrological_modules.runoff_concentration module
@@ -125,13 +127,21 @@ hydrological_modules.runoff_concentration module
 .. automodule:: hydrological_modules.runoff_concentration
     :members:
     :undoc-members:
-	:inherited-members:
+    :inherited-members:
     :show-inheritance:	
 	
 hydrological_modules.lakes_reservoirs module
 --------------------------------------------
 
 .. automodule:: hydrological_modules.lakes_reservoirs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+hydrological_modules.lakes_res_small module
+--------------------------------------------
+
+.. automodule:: hydrological_modules.lakes_res_small
     :members:
     :undoc-members:
     :show-inheritance:
@@ -142,7 +152,7 @@ hydrological_modules.routing_reservoirs.routing_kinematic module
 .. automodule:: hydrological_modules.routing_reservoirs.routing_kinematic
     :members:
     :undoc-members:
-	:inherited-members:
+    :inherited-members:
     :show-inheritance:
 
 
@@ -152,7 +162,7 @@ hydrological_modules.routing_reservoirs.routing_sub module
 .. automodule:: hydrological_modules.routing_reservoirs.routing_sub
     :members:
     :undoc-members:
-	:inherited-members:
+    :inherited-members:
     :show-inheritance:
 
 hydrological_modules.waterbalance module
@@ -171,3 +181,4 @@ Module contents
     :members:
     :undoc-members:
     :show-inheritance:
+    :inherited-members:

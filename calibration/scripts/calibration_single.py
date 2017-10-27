@@ -39,6 +39,7 @@ import glob
 from subprocess import Popen, PIPE
 
 import ast
+from sys import platform
 
 ## Set global parameter
 global gen
@@ -55,14 +56,32 @@ iniFile = os.path.normpath(sys.argv[1])
 parser = SafeConfigParser()
 parser.read(iniFile)
 
-ForcingStart = datetime.datetime.strptime(parser.get('DEFAULT','ForcingStart'),"%m/%d/%Y")  # Start of forcing
+if platform == "win32":
+    root = parser.get('DEFAULT','RootPC')
+else:
+	root = parser.get('DEFAULT', 'Root')
+rootbasin = os.path.join(root,parser.get('DEFAULT', 'Rootbasin'))
+
+ForcingStart = datetime.datetime.strptime(parser.get('DEFAULT','ForcingStart'),"%d/%m/%Y")  # Start of forcing
+
+timeperiod = parser.get('DEFAULT','timeperiod')
+if timeperiod == "monthly":
+	monthly = 1
+	dischargetss = 'discharge_monthavg.tss'
+	frequen = 'MS'
+else:
+	monthly = 0
+	dischargetss = 'discharge_daily.tss'
+	frequen = 'd'
 
 
-ParamRangesPath = parser.get('Path','ParamRanges')
-SubCatchmentPath = parser.get('Path','SubCatchmentPath')
-Qtss_csv = parser.get('ObservedData', 'Qtss')
+
+ParamRangesPath = os.path.join(rootbasin,parser.get('Path','ParamRanges'))
+SubCatchmentPath = os.path.join(rootbasin,parser.get('Path','SubCatchmentPath'))
+Qtss_csv = os.path.join(rootbasin,parser.get('ObservedData', 'Qtss'))
 Qtss_col = parser.get('ObservedData', 'Column')
 
+modeltemplate = parser.get('Path','Templates')
 ModelSettings_template = parser.get('Templates','ModelSettings')
 RunModel_template = parser.get('Templates','RunModel')
 
@@ -87,10 +106,16 @@ bestrun = parser.getboolean('Option', 'bestrun')
 path_subcatch = os.path.join(SubCatchmentPath)
 
 # Load xml and .bat template files
-f = open(os.path.join('templates',RunModel_template),"r")
+runmodel = os.path.splitext(os.path.join(rootbasin,modeltemplate,RunModel_template))[0]
+if platform == "win32":
+	runmodel = runmodel +".bat"
+else:
+	runmodel = runmodel + ".sh"
+
+f = open(runmodel,"r")
 template_bat = f.read()
 f.close()
-f = open(os.path.join('templates',ModelSettings_template),"r")
+f = open(os.path.join(rootbasin,modeltemplate,ModelSettings_template),"r")
 template_xml = f.read()
 f.close()
 
@@ -112,7 +137,10 @@ if firstrun:
 	para_first2 = []
 	for ii in range(0, len(ParamRanges - 1)):
 		delta = float(ParamRanges.iloc[ii, 1]) - float(ParamRanges.iloc[ii, 0])
-		para_first2.append((para_first[ii] - float(ParamRanges.iloc[ii, 0]))/delta)
+		if delta == 0:
+			para_first2.append(0.)
+		else:
+			para_first2.append((para_first[ii] - float(ParamRanges.iloc[ii, 0])) / delta)
 
 ii = 1
 
@@ -143,6 +171,7 @@ def RunModel(Individual):
 	directory_run = os.path.join(path_subcatch, run_rand_id)
 
 	template_xml_new = template_xml
+	template_xml_new = template_xml_new.replace("%root", root)
 	for ii in range(0,len(ParamRanges)-1):
 		template_xml_new = template_xml_new.replace("%"+ParamRanges.index[ii],str(Parameters[ii]))
 	# replace output directory
@@ -158,14 +187,19 @@ def RunModel(Individual):
 
 	template_bat_new = template_bat
 	template_bat_new = template_bat_new.replace('%run',ModelSettings_template[:-4]+'-Run'+run_rand_id+'.ini')
-	f = open(os.path.join(directory_run,RunModel_template[:-4]+run_rand_id+'.bat'), "w")
+	runfile = os.path.join(directory_run,RunModel_template[:-4]+run_rand_id)
+	if platform == "win32":
+		runfile = runfile + ".bat"
+	else:
+		runfile = runfile + ".sh"
+	f = open(runfile, "w")
 	f.write(template_bat_new)
 	f.close()
 
 	currentdir = os.getcwd()
 	os.chdir(directory_run)
 
-	p = Popen(RunModel_template[:-4]+run_rand_id+'.bat', stdout=PIPE, stderr=PIPE, bufsize=16*1024*1024)
+	p = Popen(runfile, shell=True, stdout=PIPE, stderr=PIPE, bufsize=16*1024*1024)
 	output, errors = p.communicate()
 	f = open("log"+run_rand_id+".txt",'w')
 	content = "OUTPUT:\n"+output+"\nERRORS:\n"+errors
@@ -173,7 +207,9 @@ def RunModel(Individual):
 	f.close()
 
 	os.chdir(currentdir)
-	Qsim_tss = os.path.join(directory_run,'discharge_daily.tss')
+	Qsim_tss = os.path.join(directory_run,dischargetss)
+	
+	
 	if os.path.isfile(Qsim_tss)==False:
 		print "run_rand_id: "+str(run_rand_id)
 		raise Exception("No simulated streamflow found. Probably the model failed to start? Check the log files of the run!")
@@ -189,7 +225,13 @@ def RunModel(Individual):
 	#Qobs = observed_streamflow
 	q1 = simulated_streamflow[1].values+0.001
 	Qobs = observed_streamflow[~np.isnan(observed_streamflow)]
-	Qsim = q1[~np.isnan(observed_streamflow)]
+	#Qsim = q1[~np.isnan(observed_streamflow)]
+	Qsim1=[]
+	for i in xrange(observed_streamflow.shape[0]):
+		if not(np.isnan(observed_streamflow[i])):
+			Qsim1.append(q1[i])
+	Qsim = np.asarray(Qsim1)
+
 
 	# Compute objective function score
 
@@ -403,6 +445,7 @@ if __name__ == "__main__":
 		run_rand_id = str(gen).zfill(2) + "_best"
 		template_xml_new = template_xml
 		directory_run = os.path.join(path_subcatch, run_rand_id)
+		template_xml_new = template_xml_new.replace("%root", root)
 		for ii in range(0,len(ParamRanges)):
 			template_xml_new = template_xml_new.replace("%"+ParamRanges.index[ii],str(Parameters[ii]))
 		template_xml_new = template_xml_new.replace('%run_rand_id', directory_run)
@@ -416,13 +459,19 @@ if __name__ == "__main__":
 		template_bat_new = template_bat
 		template_bat_new = template_bat_new.replace('%run',ModelSettings_template[:-4]+'-Run'+run_rand_id+'.ini')
 
-		f = open(os.path.join(directory_run,RunModel_template[:-4]+run_rand_id+'.bat'), "w")
+		runfile = os.path.join(directory_run, RunModel_template[:-4] + run_rand_id)
+		if platform == "win32":
+			runfile = runfile + ".bat"
+		else:
+			runfile = runfile + ".sh"
+		f = open(runfile, "w")
 		f.write(template_bat_new)
 		f.close()
 
 		currentdir = os.getcwd()
 		os.chdir(directory_run)
-		p = Popen(RunModel_template[:-4]+run_rand_id+'.bat', stdout=PIPE, stderr=PIPE, bufsize=16*1024*1024)
+
+		p = Popen(runfile, shell=True, stdout=PIPE, stderr=PIPE, bufsize=16*1024*1024)
 		output, errors = p.communicate()
 		f = open("log"+run_rand_id+".txt",'w')
 		content = "OUTPUT:\n"+output+"\nERRORS:\n"+errors
@@ -430,14 +479,15 @@ if __name__ == "__main__":
 		f.close()
 		os.chdir(currentdir)
 
-		Qsim_tss = os.path.join(directory_run,'discharge_daily.tss')
+		Qsim_tss = os.path.join(directory_run,dischargetss)
+		
 		simulated_streamflow = pandas.read_table(Qsim_tss,sep=r"\s+",index_col=0,skiprows=4,header=None,skipinitialspace=True)
 		simulated_streamflow[1][simulated_streamflow[1]==1e31] = np.nan
 		Qsim = simulated_streamflow[1].values
 
 		# Save simulated streamflow to disk
 		print ">> Saving \"best\" simulated streamflow (streamflow_simulated_best.csv)"
-		Qsim = pandas.DataFrame(data=Qsim, index=pandas.date_range(ForcingStart, periods=len(Qsim), freq='d'))
+		Qsim = pandas.DataFrame(data=Qsim, index=pandas.date_range(ForcingStart, periods=len(Qsim), freq=frequen))
 		Qsim.to_csv(os.path.join(path_subcatch,"streamflow_simulated_best.csv"),',',header="")
 		try: os.remove(os.path.join(path_subcatch,"out",'streamflow_simulated_best.tss'))
 		except: pass

@@ -76,13 +76,8 @@ class waterdemand(object):
 
             # for Xiaogang's agent model
             self.var.alphaDepletion = 1.0
-            try:
+            if "alphaDepletion" in binding:
                 self.var.alphaDepletion = loadmap('alphaDepletion')
-            except:
-                self.var.alphaDepletion = 1.0
-
-
-
 
 
 
@@ -187,7 +182,8 @@ class waterdemand(object):
             No = 2
             self.var.irrGrossDemand[No] = 0.0
             # a function of cropKC (evaporation and transpiration) and available water see Wada et al. 2014 p. 19
-            self.var.irrGrossDemand[No] = np.where(self.var.cropKC[No] > 0.75, np.maximum(0.,( 0.05 - (self.var.topwater + self.var.availWaterInfiltration[No]))), 0.)
+            self.var.irrGrossDemand[No] = np.where(self.var.cropKC[No] > 0.75, np.maximum(0.,(self.var.alphaDepletion * self.var.maxtopwater - (self.var.topwater + self.var.availWaterInfiltration[
+                No]))), 0.)
             # ignore demand if less than 1 m3
             self.var.irrGrossDemand[No] = np.where(self.var.irrGrossDemand[No] > self.var.InvCellArea, self.var.irrGrossDemand[No], 0)
 

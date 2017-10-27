@@ -322,25 +322,13 @@ class landcoverType(object):
                 self.var.adjRoot[soilLayer][i] = rootFrac[soilLayer] / rootFracSum
 
 
-
-
-
-
-
-            """
-            for j in xrange(self.var.soilLayers):
-                self.var.storCap[j][i] = self.var.rootDepth[j][i] * (self.var.satVol[j] - self.var.resVol[j])
-            self.var.rootZoneWaterStorageCap[i] = self.var.storCap[0][i] + self.var.storCap[1][i] + self.var.storCap[2][i]
-            self.var.rootZoneWaterStorageCap12[i] = self.var.storCap[0][i] + self.var.storCap[1][i]
-
-            self.var.rootZoneWaterStorageMin[i] = self.var.minSoilDepthFrac[i] * self.var.rootZoneWaterStorageCap[i]
-            self.var.rootZoneWaterStorageRange[i] = self.var.rootZoneWaterStorageCap[i] - self.var.rootZoneWaterStorageMin[i]
-            """
-
-
-
             i += 1
 
+
+        # for maximum of topwater flooding (default = 0.05m)
+        self.var.maxtopwater = 0.05
+        if "irrPaddy_maxtopwater" in binding:
+            self.var.maxtopwater = loadmap('irrPaddy_maxtopwater')
 
 
         self.var.landcoverSumSum = ['directRunoff', 'totalPotET', 'potTranspiration', "Precipitation", 'ETRef','gwRecharge','Runoff']
@@ -387,8 +375,7 @@ class landcoverType(object):
 
 
             # for Xiaogang's agent model
-            test = "paddyfraction" in binding
-            if test:
+            if "paddyfraction" in binding:
                 self.var.fracVegCover[2] = loadmap('paddyfraction')
                 self.var.fracVegCover[3] = loadmap('nonpaddyfraction')
 

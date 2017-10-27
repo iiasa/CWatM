@@ -129,8 +129,8 @@ Using Penman-Montheith equations based on FAO 56
 Calculation of rain, snow, snowmelt
 ***********************************
 
-Using day-degree approach with up to 7 vertical layers
-Including snow- and glaciwer melt.
+Using day-degree approach with up to 10 vertical layers
+Including snow- and glacier melt.
 
 Land cover
 **********
