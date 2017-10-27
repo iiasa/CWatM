@@ -25,7 +25,10 @@ from hydrological_modules.waterdemand import *
 from hydrological_modules.capillarRise import *
 from hydrological_modules.interception import *
 from hydrological_modules.runoff_concentration import *
+from hydrological_modules.lakes_res_small import *
+
 from hydrological_modules.waterbalance import *
+from hydrological_modules.environflow import *
 
 from hydrological_modules.routing_reservoirs.routing_kinematic import *
 from hydrological_modules.lakes_reservoirs import *
@@ -35,6 +38,7 @@ from hydrological_modules.lakes_reservoirs import *
 
 from management_modules.data_handling import *
 from management_modules.output import *
+import os, glob
 
 
 
@@ -63,9 +67,14 @@ class CWATModel_ini(DynamicModel):
         # get the extent of the maps from the precipitation input maps
         # and the modelling extent from the MaskMap
         # cutmap[] defines the MaskMap inside the precipitation map
-        cutmap[0], cutmap[1], cutmap[2], cutmap[
-            3] = mapattrNetCDF(binding['PrecipitationMaps'])
-        if option['writeNetcdfStack'] or option['writeNetcdf']:
+        name = cbinding('PrecipitationMaps')
+        nameall = glob.glob(os.path.normpath(name))
+        if not nameall:
+            raise CWATMFileError(name, sname='PrecipitationMaps')
+        name1 = nameall[0]
+
+        cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(name1)
+        if checkOption('writeNetcdfStack') or checkOption('writeNetcdf'):
             # if NetCDF is writen, the pr.nc is read to get the metadata
             # like projection
             metaNetCDF()
@@ -75,6 +84,7 @@ class CWATModel_ini(DynamicModel):
 
         self.output_module = outputTssMap(self)
 
+
         # include all the hydrological modules
 
         self.misc_module = miscInitial(self)
@@ -82,6 +92,9 @@ class CWATModel_ini(DynamicModel):
         self.waterbalance_module = waterbalance(self)
 
         self.readmeteo_module = readmeteo(self)
+        self.environflow_module = environflow(self)
+
+
         self.evaporationPot_module = evaporationPot(self)
         self.inflow_module = inflow(self)
         self.snowfrost_module = snow(self)
@@ -94,6 +107,7 @@ class CWATModel_ini(DynamicModel):
         self.interception_module = interception(self)
         self.sealed_water_module = sealed_water(self)
         self.runoff_concentration_module = runoff_concentration(self)
+        self.lakes_res_small_module = lakes_res_small(self)
 
         self.routing_kinematic_module = routing_kinematic(self)
         self.lakes_reservoirs_module = lakes_reservoirs(self)
@@ -104,21 +118,24 @@ class CWATModel_ini(DynamicModel):
 # ----------------------------------------------------------------
 
 
-
         # run intial misc to get all global variables
         self.misc_module.initial()
         self.init_module.initial()
-
+        self.readmeteo_module.initial()
         self.inflow_module.initial()
+
         self.evaporationPot_module.initial()
+
         self.snowfrost_module.initial()
         self.soil_module.initial()
+
         self.landcoverType_module.initial()
         self.groundwater_module.initial()
         self.runoff_concentration_module.initial()
+        self.lakes_res_small_module.initial()
 
         self.routing_kinematic_module.initial()
-        if option['includeWaterBodies']:
+        if checkOption('includeWaterBodies'):
             self.lakes_reservoirs_module.initWaterbodies()
             self.lakes_reservoirs_module.initial_lakes()
             self.lakes_reservoirs_module.initial_reservoirs()
@@ -129,5 +146,6 @@ class CWATModel_ini(DynamicModel):
         # calculate initial amount of water in the catchment
 
         self.output_module.initial()
+        self.environflow_module.initial()
 
 

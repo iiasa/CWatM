@@ -39,12 +39,12 @@ class interception(object):
             ## interceptCap Maximum interception read from file for forest and grassland land cover
             # for specific days of the year - repeated every year
             if dateVar['newStart'] or dateVar['new10day']:  # check if first day  of the year
-                self.var.interceptCap[No]  = readnetcdf2(binding[coverType + '_interceptCapNC'], dateVar['10day'], "10day")
+                self.var.interceptCap[No]  = readnetcdf2(coverType + '_interceptCapNC', dateVar['10day'], "10day")
                 self.var.interceptCap[No] = np.maximum(self.var.interceptCap[No], self.var.minInterceptCap[No])
         else:
             self.var.interceptCap[No] = self.var.minInterceptCap[No]
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             prevState = self.var.interceptStor[No].copy()
 
 
@@ -60,10 +60,7 @@ class interception(object):
         self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + self.var.SnowMelt)
 
         if coverType in ['forest', 'grassland', 'irrPaddy', 'irrNonPaddy']:
-
-            with np.errstate(invalid='ignore', divide='ignore'):
-                mult = np.where(self.var.interceptCap[No] > 0, self.var.interceptStor[No]/self.var.interceptCap[No], 0.0)  ** self.var.twothird
-
+            mult = divideValues(self.var.interceptStor[No],self.var.interceptCap[No]) ** self.var.twothird
             # interceptEvap evaporation from intercepted water (based on potTranspiration)
             self.var.interceptEvap[No] = np.minimum(self.var.interceptStor[No], self.var.potTranspiration[No] * mult)
 
@@ -77,12 +74,18 @@ class interception(object):
 
         # update actual evaporation (after interceptEvap)
         # interceptEvap is the first flux in ET, soil evapo and transpiration are added later
-        self.var.actualET[No] = self.var.interceptEvap[No].copy()
+        self.var.actualET[No] = self.var.interceptEvap[No]  + self.var.snowEvap
 
-        if option['calcWaterBalance']:
+
+
+        if (dateVar['curr'] == 15):
+            ii=1
+
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                [self.var.Rain, self.var.SnowMelt],  # In
                [self.var.availWaterInfiltration[No], self.var.interceptEvap[No]],  # Out
                [prevState],  # prev storage
                [self.var.interceptStor[No]],
                "Interception", False)
+

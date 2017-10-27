@@ -30,7 +30,7 @@ class DynamicModel(object):
 
   def timeSteps(self):
     """
-    Return a list of time steps configured
+    Return a list of time steps
     """
     return range(self.firstTimeStep(), self.nrTimeSteps() + 1)
 

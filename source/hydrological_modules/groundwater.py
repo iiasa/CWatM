@@ -33,7 +33,9 @@ class groundwater(object):
         self.var.recessionCoeff = loadmap('recessionCoeff')
 
         # for CALIBRATION
-        self.var.recessionCoeff = self.var.recessionCoeff * loadmap('recessionCoeff_factor')
+        self.var.recessionCoeff = 1 / self.var.recessionCoeff * loadmap('recessionCoeff_factor')
+        self.var.recessionCoeff = 1 / self.var.recessionCoeff
+
 
         self.var.specificYield = loadmap('specificYield')
         self.var.kSatAquifer = loadmap('kSatAquifer')
@@ -51,7 +53,9 @@ class groundwater(object):
         self.var.storGroundwater = np.maximum(0.0, self.var.storGroundwater) + globals.inZero
 
         # for water demand to have some initial value
-        self.var.readAvlStorGroundwater = globals.inZero.copy()
+        tresholdStorGroundwater = 0.00005  # 0.05 mm
+        self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater,0.0)
+        ii =1
 
 # --------------------------------------------------------------------------
 
@@ -61,47 +65,40 @@ class groundwater(object):
         Calculate groundweater storage and baseflow
         """
 
+        #self.var.sum_gwRecharge = readnetcdf2("C:/work/output2/sum_gwRecharge_daily.nc", dateVar['currDate'], addZeros=True, cut = False, usefilename = True )
 
-        if option['calcWaterBalance']:
+        if checkOption('calcWaterBalance'):
             self.var.prestorGroundwater = self.var.storGroundwater.copy()
 
+        # WATER DEMAND
+        # update storGoundwater after self.var.nonFossilGroundwaterAbs
+        self.var.storGroundwater = np.maximum(0., self.var.storGroundwater - self.var.nonFossilGroundwaterAbs)
+        # PS: We assume only local groundwater abstraction can happen (only to satisfy water demand within a cell).
+        # unmetDemand (m), satisfied by fossil gwAbstractions (and/or desalinization or other sources)
+        # (equal to zero if limitAbstraction = True)
+
+
+
         # get riverbed infiltration from the previous time step (from routing)
-        self.var.surfaceWaterInf = self.var.riverbedExchange * self.var.InvCellArea
-        self.var.storGroundwater = self.var.storGroundwater + self.var.surfaceWaterInf
+        #self.var.surfaceWaterInf = self.var.riverbedExchange * self.var.InvCellArea
+        #self.var.storGroundwater = self.var.storGroundwater + self.var.surfaceWaterInf
 
         # get net recharge (percolation-capRise) and update storage:
         self.var.storGroundwater = np.maximum(0., self.var.storGroundwater + self.var.sum_gwRecharge)
 
-        # Current assumption: Groundwater is only abstracted to satisfy local demand.
-        # non fossil gw abstraction to fulfil water demand
-        self.var.nonFossilGroundwaterAbs = np.maximum(0.0, np.minimum(self.var.storGroundwater, self.var.sum_potGroundwaterAbstract))
-
-        # unmetDemand (m), satisfied by fossil gwAbstractions (and/or desalinization or other sources)
-        self.var.unmetDemand = np.maximum(0.0, self.var.sum_potGroundwaterAbstract - self.var.nonFossilGroundwaterAbs)
-                # (equal to zero if limitAbstraction = True)
-
-        # fractions of water demand sources (to satisfy water demand):
-        with np.errstate(invalid='ignore', divide='ignore'):
-            self.var.fracNonFossilGroundwater = np.where(self.var.sum_totalPotentialGrossDemand > 0., self.var.nonFossilGroundwaterAbs / self.var.sum_totalPotentialGrossDemand,0.0)
-            self.var.fracUnmetDemand = np.where(self.var.sum_totalPotentialGrossDemand > 0., self.var.unmetDemand / self.var.sum_totalPotentialGrossDemand, 0.0)
-            self.var.fracSurfaceWater = np.where(self.var.sum_totalPotentialGrossDemand > 0., np.maximum(0.0, 1.0 - self.var.fracNonFossilGroundwater - self.var.fracUnmetDemand), 0.0)
-
-        # update storGoundwater after self.var.nonFossilGroundwaterAbs
-        self.var.storGroundwater = np.maximum(0., self.var.storGroundwater - self.var.nonFossilGroundwaterAbs)
-        # PS: We assume only local groundwater abstraction can happen (only to satisfy water demand within a cell).
-
         # calculate baseflow and update storage:
         self.var.baseflow = np.maximum(0., np.minimum(self.var.storGroundwater, self.var.recessionCoeff * self.var.storGroundwater))
+
         self.var.storGroundwater = np.maximum(0., self.var.storGroundwater - self.var.baseflow)
         # PS: baseflow must be calculated at the end (to ensure the availability of storGroundwater to support nonFossilGroundwaterAbs)
 
         # to avoid small values and to avoid excessive abstractions from dry groundwater
         tresholdStorGroundwater = 0.00005  # 0.05 mm
         self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater,0.0)
-        # self.var.readAvlStorGroundwater = pcr.cover(self.var.readAvlStorGroundwater, 0.0)
 
 
-        if option['calcWaterBalance']:
+
+        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.sum_gwRecharge, self.var.surfaceWaterInf],            # In
                 [self.var.baseflow,self.var.nonFossilGroundwaterAbs],           # Out
@@ -111,12 +108,6 @@ class groundwater(object):
 
 
 
-        if option['calcWaterBalance']:
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.nonIrrGrossDemand,self.var.sum_irrGrossDemand],                                           # In
-                [self.var.nonFossilGroundwaterAbs,self.var.unmetDemand,self.var.sum_actSurfaceWaterAbstract, ],     # Out
-                [globals.inZero],
-                [globals.inZero],
-                "Waterdemand", False)
+        ii=1
 
 

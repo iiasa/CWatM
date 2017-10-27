@@ -44,7 +44,7 @@ class initcondition(object):
         initCondVar.append("FrostIndex")
         initCondVarValue.append("FrostIndex")
 
-        if option['includeRunoffConcentration']:
+        if checkOption('includeRunoffConcentration'):
             for i in xrange(10):
                 initCondVar.append("runoff_conc" + str(i + 1))
                 initCondVarValue.append("runoff_conc[" + str(i) + "]")
@@ -52,11 +52,15 @@ class initcondition(object):
 
         # soil / landcover
         i = 0
-        self.var.coverTypes = map(str.strip, binding["coverTypes"].split(","))
+        self.var.coverTypes = map(str.strip, cbinding("coverTypes").split(","))
+
+        # soil paddy irrigation
+        initCondVar.append("topwater")
+        initCondVarValue.append("topwater")
 
         for coverType in self.var.coverTypes:
             if coverType in ['forest', 'grassland', 'irrPaddy', 'irrNonPaddy']:
-                for cond in ["interceptStor", "topWaterLayer","soilStor[0]","soilStor[1]","soilStor[2]","interflow"]:
+                for cond in ["interceptStor", "w1","w2","w3"]:
                     initCondVar.append(coverType+"_"+ cond)
                     initCondVarValue.append(cond+"["+str(i)+"]")
             if coverType in ['sealed']:
@@ -64,13 +68,18 @@ class initcondition(object):
                     initCondVar.append(coverType+"_"+ cond)
                     initCondVarValue.append(cond+"["+str(i)+"]")
             i += 1
+
+        # water demand
+        initCondVar.append("unmetDemandPaddy")
+        initCondVarValue.append("unmetDemandPaddy")
+        initCondVar.append("unmetDemandNonpaddy")
+        initCondVarValue.append("unmetDemandNonpaddy")
+
         # groundwater
         initCondVar.append("storGroundwater")
         initCondVarValue.append("storGroundwater")
 
         # routing
-        #Var1 = ["channelStorage","readAvlChannelStorage","timestepsToAvgDischarge","avgChannelDischarge","m2tChannelDischarge","avgBaseflow","riverbedExchange"]
-        #Var2 = ["channelStorage","readAvlChannelStorage","timestepsToAvgDischarge1","avgDischarge","m2tDischarge","avgBaseflow","riverbedExchange"]
         Var1 = ["channelStorage", "discharge", "riverbedExchange"]
         Var2 = ["channelStorage", "discharge", "riverbedExchange"]
 
@@ -78,28 +87,37 @@ class initcondition(object):
         initCondVarValue.extend(Var2)
 
         # lakes & reservoirs
-        if option['includeWaterBodies']:
+        if checkOption('includeWaterBodies'):
             Var1 = ["lakeInflow", "lakeStorage","reservoirStorage","outLake","lakeOutflow"]
             Var2 = ["lakeInflow","lakeStorage","reservoirStorage","outLake","lakeOutflow"]
             initCondVar.extend(Var1)
             initCondVarValue.extend(Var2)
 
+        # lakes & reservoirs
+        if checkOption('includeWaterBodies'):
+            Var1 = ["smalllakeInflow","smalllakeStorage","smalllakeOutflow"]
+            Var2 = ["smalllakeInflowOld","smalllakeStorageM3","smalllakeOutflow"]
+            initCondVar.extend(Var1)
+            initCondVarValue.extend(Var2)
+
+
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-        self.var.saveInit = binding['save_initial'].lower() == "true"
+        self.var.saveInit = returnBool('save_initial')
+
         if self.var.saveInit:
-            self.var.saveInitFile = binding['initSave']
-            initdates = binding['StepInit'].split()
+            self.var.saveInitFile = cbinding('initSave')
+            initdates = cbinding('StepInit').split()
             dateVar['intInit'] =[]
             for d in initdates:
                 dateVar['intInit'].append(datetoInt(d, dateVar['dateBegin']))
-            #dateVar['intInit'] = datetoInt(binding['StepInit'],dateVar['dateBegin'])
 
-        self.var.loadInit = binding['load_initial'].lower() == "true"
+
+        self.var.loadInit = returnBool('load_initial')
         if self.var.loadInit:
-            self.var.initLoadFile = binding['initLoad']
+            self.var.initLoadFile = cbinding('initLoad')
 
 
 
@@ -121,6 +139,18 @@ class initcondition(object):
         :return: spatial map or value of initial condition
         """
 
+        if number != None:
+            name = name + str(number)
+
+        if self.var.loadInit:
+            return readnetcdfInitial(self.var.initLoadFile, name)
+        else:
+            return default
+
+        """
+        # removed this: FrostIndexIni = NONE
+        # it is load from file or set to default
+
         init = binding[name+'Ini']
         if init.lower() == "none":
             # in case of snow /runoff concentration use a number, because too many layers
@@ -130,11 +160,10 @@ class initcondition(object):
             if self.var.loadInit:
                 return readnetcdfInitial(self.var.initLoadFile, name)
             else:
-                #def1 = globals.inZero.copy()
                 return default
         else:
             return loadmap(name+'Ini')
-
+        """
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
@@ -152,7 +181,6 @@ class initcondition(object):
             if  dateVar['curr'] in dateVar['intInit']:
 
 
-                #self.var.readAvlChannelStorage = self.var.channelStorage
                 #self.var.avgDischarge = self.var.discharge
                 #self.var.waterBodyStorage = globals.inZero.copy()
 

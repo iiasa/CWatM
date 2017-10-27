@@ -40,7 +40,10 @@ timestepInit =[]
 binding = {}
 option = {}
 metaNetcdfVar = {}
+
 inputcounter = {}
+flagmeteo ={}
+meteofiles = {}
 
 # Initial conditions
 global initCondVar,initCondVarValue
@@ -59,8 +62,8 @@ outDir = {}
 outMap = {}
 outTss = {}
 outsection = []
-outputTypMap = ['daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend']
-outputTypTss = ['daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend']
+outputTypMap = ['daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend','totaltot','totalavg','totalend','once','12month']
+outputTypTss = ['daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend','totaltot','totalavg']
 
 reportTimeSerieAct = {}
 reportMapsAll = {}
@@ -103,8 +106,7 @@ elif platform1 == "CYGWIN_NT-6.1":
     # CYGWIN_NT-6.1 - compiled with cygwin
     dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t5cyg.so")
 else:
-    print "Linux or something else\n"
-    # Linux?
+    print "Linux\n"
     dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t5_linux.so")
 
 #dll_routing = "C:/work2/test1/t4.dll"

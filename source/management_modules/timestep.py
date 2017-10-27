@@ -14,10 +14,24 @@ import calendar
 import datetime
 import time as xtime
 import numpy as np
+from management_modules.data_handling import *
 from management_modules.globals import *
 from management_modules.messages import *
 
+import difflib  # to check the closest word in settingsfile, if an error occurs
 
+
+def ctbinding(inBinding):
+    test = inBinding in binding
+    if test:
+        return binding[inBinding]
+    else:
+        closest = difflib.get_close_matches(inBinding, binding.keys())
+        if not closest: closest = ["- no match -"]
+        msg = "===== Timing in the section: [TIME-RELATED_CONSTANTS] is wrong! =====\n"
+        msg += "No key with the name: \"" + inBinding + "\" in the settings file: \"" + sys.argv[1] + "\"\n"
+        msg += "Closest key to the required one is: \""+ closest[0] + "\""
+        raise CWATMError(msg)
 
 
 
@@ -67,8 +81,15 @@ def Calendar(input):
             d = d.replace('/', '/0')
             d = d.replace('.', '/')
             print d
-        date = datetime.datetime.strptime(d, formatstr)
-        # value=str(int(date.strftime("%j")))
+
+        try:
+            date = datetime.datetime.strptime(d, formatstr)
+        except:
+            msg = "Either date in StepStart is not a date or in SpinUp or StepEnd it is neither a number or a date!"
+            raise CWATMError(msg)
+
+
+
     return date
 
 
@@ -107,21 +128,23 @@ def checkifDate(start,end,spinup):
     :return: a list of date variable in: dateVar
     """
 
-    begin = Calendar(binding['CalendarDayStart'])
-    startdate = Calendar(binding['StepStart'])
-
+    #begin = Calendar(ctbinding('CalendarDayStart'))
+    startdate = Calendar(ctbinding('StepStart'))
     if type(startdate) is datetime.datetime:
         begin = startdate
     else:
-        begin = begin + datetime.timedelta(days=startdate-1)
+        msg = "\"StepStart = " + ctbinding('StepStart') + "\"\n"
+        msg += "StepStart has to be a valid date!"
+        raise CWATMError(msg)
+
 
 
     # spinup date = date from which maps are written
-    if binding[spinup].lower() == "none" or binding[spinup] == "0":  spinup = start
+    if ctbinding(spinup).lower() == "none" or ctbinding(spinup) == "0":  spinup = start
 
-    dateVar['intStart'],strStart = datetoInt(binding[start],begin,True)
-    dateVar['intEnd'],strEnd = datetoInt(binding[end],begin,True)
-    dateVar['intSpin'], strSpin = datetoInt(binding[spinup], begin, True)
+    dateVar['intStart'],strStart = datetoInt(ctbinding(start),begin,True)
+    dateVar['intEnd'],strEnd = datetoInt(ctbinding(end),begin,True)
+    dateVar['intSpin'], strSpin = datetoInt(ctbinding(spinup), begin, True)
 
 
     # test if start and end > begin

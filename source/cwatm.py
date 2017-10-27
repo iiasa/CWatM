@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 #  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -30,8 +30,8 @@ GNU General Public License for more details
 """
 
 __authors__ = "Peter Burek IIASA"
-__version__ = "Version: 0.99"
-__date__ = "16/05/2016"
+__version__ = "Version: 0.991"
+__date__ = "16/09/2017"
 __copyright__ = "Copyright 2016, IIASA"
 __maintainer__ = "Peter Burek"
 __status__ = "Development"
@@ -43,6 +43,7 @@ __status__ = "Development"
 # to work with some versions of Linux  - a workaround with pyexpat is needed
 from pyexpat import *
 import xml.dom.minidom
+import netCDF4
 from netCDF4 import Dataset
 
 from management_modules.configuration import *
@@ -89,10 +90,7 @@ def CWATMexe():
     # read all the possible option for modelling and for generating output
     # read the settings file with all information about the catchments(s)
     # read the meta data information for netcdf outputfiles
-    read_metanetcdf(binding['metaNetcdfFile'])
-
-
-    ### bindkey = sorted(binding.keys())
+    read_metanetcdf(cbinding('metaNetcdfFile'), 'metaNetcdfFile')
 
     #os.chdir(outputDir[0])
     # this prevent from using relative path in settings!

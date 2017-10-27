@@ -35,7 +35,7 @@ class miscInitial(object):
         - conversion factors for precipitation and pot evaporation
         """
 
-        if option['gridSizeUserDefined']:
+        if checkOption('gridSizeUserDefined'):
 
             # <lfoption name="gridSizeUserDefined" choice="1" default="0">
             # If option gridsizeUserDefined is activated, users can specify grid size properties
@@ -54,6 +54,7 @@ class miscInitial(object):
             #self.var.cellAreaPcr = loadmap('CellArea',pcr=True)
             #self.var.cellArea = compressArray(self.var.cellAreaPcr)
             self.var.cellArea = loadmap('CellArea')
+
 
         else:
             # Default behaviour: grid size is derived from location attributes of
@@ -101,7 +102,6 @@ class miscInitial(object):
         self.var.MtoMM = 1000
         # Multiplier to convert water depths in meters to mm
         self.var.MtoM3 = 1.0 * self.var.cellArea
-
         # Multiplier to convert water depths in m to cubic metres
         self.var.M3toM = 1 / self.var.MtoM3
         # Multiplier to convert from cubic metres to m water slice

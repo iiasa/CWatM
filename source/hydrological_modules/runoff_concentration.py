@@ -45,7 +45,7 @@ class runoff_concentration(object):
             only if option **includeRunoffConcentration** is TRUE
         """
 
-        if option['includeRunoffConcentration']:
+        if checkOption('includeRunoffConcentration'):
 
             # --- Topography -----------------------------------------------------
             tanslope = loadmap('tanslope')
@@ -62,7 +62,7 @@ class runoff_concentration(object):
 
 
 
-            self.var.coverTypes= map(str.strip, binding["coverTypes"].split(","))
+            self.var.coverTypes= map(str.strip, cbinding("coverTypes").split(","))
 
             #     /\   peak time for concentrated runoff
             #   /   \
@@ -101,11 +101,14 @@ class runoff_concentration(object):
 
             max = np.where(self.var.tpeak_baseflow > max, self.var.tpeak_baseflow, max)
             self.var.maxtime_runoff_conc = int(np.ceil(2 * np.amax(max)))
+            max = 10
+            if self.var.maxtime_runoff_conc > 10: max = self.var.maxtime_runoff_conc
 
             # array with concentrated runoff
             #self.var.runoff_conc = np.tile(globals.inZero, (self.var.maxtime_runoff_conc, 1))
             self.var.runoff_conc = []
-            self.var.runoff_conc = np.tile(globals.inZero, (self.var.maxtime_runoff_conc, 1))
+            #self.var.runoff_conc = np.tile(globals.inZero, (self.var.maxtime_runoff_conc, 1))
+            self.var.runoff_conc = np.tile(globals.inZero,(max,1))
             for i in xrange(self.var.maxtime_runoff_conc):
                 self.var.runoff_conc[i] = self.var.init_module.load_initial("runoff_conc", number = i+1)
 
@@ -154,18 +157,14 @@ class runoff_concentration(object):
                 flow_conc[lag] += fraction * flow * areaFraction
             return flow_conc
 
-
-
-
-
         self.var.sum_landSurfaceRunoff = globals.inZero.copy()
-        self.var.sum_directRunoff = globals.inZero.copy()
+        #self.var.sum_directRunoff = globals.inZero.copy()
 
-        if not(option['includeRunoffConcentration']):
+        if not(checkOption('includeRunoffConcentration')):
 
 
             for No in xrange(6):
-                self.var.sum_directRunoff += self.var.fracVegCover[No] * self.var.directRunoff[No]
+                #self.var.sum_directRunoff += self.var.fracVegCover[No] * self.var.directRunoff[No]
                 self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflow[No]
                 self.var.sum_landSurfaceRunoff += self.var.fracVegCover[No] * self.var.landSurfaceRunoff[No]
 
