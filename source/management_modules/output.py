@@ -368,7 +368,7 @@ class outputTssMap(object):
 
                         # create variable after it is checked on the first timestep
                         # creates a var to sum/ average the results e.g. self.var.Precipitation_monthtot
-                        if dateVar['curr'] == 1:
+                        if dateVar['curr'] == dateVar['intSpin']:
                             vars(self.var)[varname+"_"+type] = 0
 
                         if map[-5:] == "daily":
