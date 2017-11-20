@@ -337,8 +337,8 @@ class outputTssMap(object):
 
 
 
-
         # ************************************************************
+
         # ***** WRITING RESULTS: MAPS   ******************************
         # ************************************************************
 
@@ -404,7 +404,7 @@ class outputTssMap(object):
                                 outMap[map][i][2] = writenetcdf(netfile, varname+"monthtot", "undefined", eval(inputmap+ "_monthtot"), dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
                                 #vars(self.var)[varname + "monthtot"] = 0
                             if (map[-8:] == "monthavg"):
-                                days = calendar.monthrange(int(dateVar['currDate'].strftime('%Y')), int(dateVar['currDate'].strftime('%m')))[1]
+                                days = calendar.monthrange(dateVar['currDate'].year, dateVar['currDate'].month)[1]
                                 avgmap = vars(self.var)[varname + "_monthavg"] / days
                                 outMap[map][i][2] = writenetcdf(netfile, varname+"monthavg", "undefined", avgmap,dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
                                 #vars(self.var)[varname+"monthavg"] = 0
@@ -423,7 +423,7 @@ class outputTssMap(object):
                             if (map[-9:] == "annualtot"):
                                     outMap[map][i][2] = writenetcdf(netfile, varname+"annualtot", "undefined", eval(inputmap+ "_annualtot"), dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
                             if (map[-9:] == "annualavg"):
-                                        days = 366 if calendar.isleap(int(dateVar['currDate'].strftime('%Y'))) else 365
+                                        days = 366 if calendar.isleap(dateVar['currDate'].year) else 365
                                         avgmap = vars(self.var)[varname + "_annualavg"] / days
                                         outMap[map][i][2] = writenetcdf(netfile, varname+"annualavg", "undefined", avgmap, dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
                                     #vars(self.var)[varname+"annualtot"] = 0

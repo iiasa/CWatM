@@ -384,14 +384,15 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
 
 
     if pcr:  return map
-    else: return mapC
+    else:
+        return mapC
 
 
 # -----------------------------------------------------------------------
 # Compressing to 1-dimensional numpy array
 # -----------------------------------------------------------------------
 
-def compressArray(map, pcr=True, name="None"):
+def compressArray(map, pcr=True, name="None", zeros = 0.):
     """
     Compress 2D array with missing values to 1D array without missing values
 
@@ -413,6 +414,10 @@ def compressArray(map, pcr=True, name="None"):
             msg = name + " has less valid pixels than area or ldd \n"
             raise CWATMError(msg)
             # test if map has less valid pixel than area.map (or ldd)
+    # if a value is bigger or smaller than 1e20, -1e20 than the standard value is taken
+    mapC[mapC > 1.E20] = zeros
+    mapC[mapC < -1.E20] = zeros
+
     return mapC
 
 def decompress(map, pcr1 = True):
@@ -649,7 +654,8 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0):
         idx = inputcounter[name]
         filename =  os.path.normpath(meteoInfo[0])
     except:
-        msg = "Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date.strftime("%d/%m/%Y") + ": \n"
+        date1 = "%02d/%02d/%02d" % (date.day, date.month, date.year)
+        msg = "Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date1 + ": \n"
         raise CWATMError(msg)
 
     try:
@@ -688,8 +694,8 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0):
         msg += "if it is the ET maps, it might be from another run with different mask. Please look at the option: calc_evaporation"
         raise CWATMWarning(msg)
 
-    mapC = compressArray(mapnp,pcr=False,name=filename)
-    mapC[mapC > 1E10] = zeros
+    mapC = compressArray(mapnp,pcr=False,name=filename,zeros = zeros)
+
 
     # increase index and check if next file
     inputcounter[name] += 1
@@ -978,7 +984,8 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
 
     # if inputmap is not an array give out errormessage
     if not(hasattr(inputmap, '__len__')):
-        msg = "No values in: " + varname + " on date: " + timeStamp.strftime("%d/%m/%Y") +"\nCould not write: " + netfile
+        date1 = "%02d/%02d/%02d" % (timeStamp.day, timeStamp.month, timeStamp.year)
+        msg = "No values in: " + varname + " on date: " + date1 +"\nCould not write: " + netfile
         nf1.close()
         print CWATMWarning(msg)
         return False
