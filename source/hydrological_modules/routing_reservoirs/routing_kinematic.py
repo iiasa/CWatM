@@ -13,7 +13,6 @@ from hydrological_modules.routing_reservoirs.routing_sub import *
 from hydrological_modules.lakes_reservoirs import *
 
 
-
 class routing_kinematic(object):
 
     """
@@ -41,6 +40,8 @@ class routing_kinematic(object):
         """
 
         ldd = loadmap('Ldd')
+        # l1 = decompress(ldd)
+
         self.var.lddCompress, dirshort, self.var.dirUp, self.var.dirupLen, self.var.dirupID, self.var.downstruct, self.var.catchment, self.var.dirDown, self.var.lendirDown = defLdd2(ldd)
 
         #self.var.ups = upstreamArea(dirDown, dirshort, self.var.cellArea)
@@ -334,7 +335,7 @@ class routing_kinematic(object):
 
 
         if checkOption('inflow'):
-             self.var.QInM3Old = self.var.inflowM3
+             self.var.QInM3Old = self.var.inflowM3.copy()
 
 
         if checkOption('calcWaterBalance'):

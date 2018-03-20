@@ -20,6 +20,9 @@ from management_modules.messages import *
 
 import difflib  # to check the closest word in settingsfile, if an error occurs
 
+def date2str(date):
+    return "%02d/%02d/%02d" % (date.day, date.month, date.year)
+
 
 def ctbinding(inBinding):
     test = inBinding in binding
@@ -106,7 +109,10 @@ def datetoInt(dateIn,begin,both=False):
     date1 = Calendar(dateIn)
 
     if type(date1) is datetime.datetime:
-         str1 = date1.strftime("%d/%m/%Y")
+         #str1 = date1.strftime("%d/%m/%Y")
+         # to cope with dates before 1990
+         str1 = date2str(date1)
+
          int1 = (date1 - begin).days + 1
     else:
         int1 = int(date1)
@@ -149,12 +155,14 @@ def checkifDate(start,end,spinup):
 
     # test if start and end > begin
     if (dateVar['intStart']<0) or (dateVar['intEnd']<0) or ((dateVar['intEnd']-dateVar['intStart'])<0):
-        strBegin = begin.strftime("%d/%m/%Y")
+        #strBegin = begin.strftime("%d/%m/%Y")
+        strBegin = date2str(begin)
         msg="Start Date: "+strStart+" and/or end date: "+ strEnd + " are wrong!\n or smaller than the first time step date: "+strBegin
         raise CWATMError(msg)
 
     if (dateVar['intSpin'] < dateVar['intStart']) or (dateVar['intSpin'] > dateVar['intEnd']):
-        strBegin = begin.strftime("%d/%m/%Y")
+        #strBegin = begin.strftime("%d/%m/%Y")
+        strBegin = date2str(begin)
         msg="Spin Date: "+strSpin + " is wrong!\n or smaller/bigger than the first/last time step date: "+strBegin+ " - "+ strEnd
         raise CWATMError(msg)
 
@@ -214,8 +222,14 @@ def timestep_dynamic():
              dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
 
 
-    dateVar['currDatestr'] = dateVar['currDate'].strftime("%d/%m/%Y")
-    dateVar['doy'] = int(dateVar['currDate'].strftime('%j'))
+    #dateVar['currDatestr'] = dateVar['currDate'].strftime("%d/%m/%Y")
+    dateVar['currDatestr'] = date2str(dateVar['currDate'])
+
+    #dateVar['doy'] = int(dateVar['currDate'].strftime('%j'))
+    # replacing this because date less than 1900 is not used
+    firstdoy = datetime.datetime(dateVar['currDate'].year,1,1)
+    dateVar['doy'] = (dateVar['currDate'] - firstdoy).days + 1
+
     dateVar['10day'] = int((dateVar['doy']-1)/10)
 
     dateVar['laststep'] = False
@@ -237,7 +251,9 @@ def timestep_dynamic():
     dateVar['newYear'] = (dateVar['currDate'].day == 1) and (dateVar['currDate'].month == 1)
     dateVar['new10day'] = ((dateVar['doy'] - 1) / 10.0) == dateVar['10day']
 
-    dateVar['daysInMonth'] = float(calendar.monthrange(int(dateVar['currDate'].strftime('%Y')),int(dateVar['currDate'].strftime('%m')))[1])
+    #dateVar['daysInMonth'] = float(calendar.monthrange(int(dateVar['currDate'].strftime('%Y')),int(dateVar['currDate'].strftime('%m')))[1])
+    dateVar['daysInMonth'] = float(calendar.monthrange(dateVar['currDate'].year,dateVar['currDate'].month)[1])
+
     dateVar['daysInYear'] = 365.0
     if calendar.isleap(dateVar['currDate'].year): dateVar['daysInYear'] = 366.0
     if dateVar['leapYear'] > 0:

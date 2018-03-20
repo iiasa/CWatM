@@ -38,26 +38,29 @@ class waterdemand(object):
                self.var.allocSegments = loadmap('allocSegments').astype(np.int)
                self.var.segmentArea = npareatotal(self.var.cellArea, self.var.allocSegments)
 
+            # -------------------------------------------
             # partitioningGroundSurfaceAbstraction
             # partitioning abstraction sources: groundwater and surface water
             # partitioning based on local average baseflow (m3/s) and upstream average discharge (m3/s)
             # estimates of fractions of groundwater and surface water abstractions
+            swAbstractionFraction = loadmap('swAbstractionFrac')
 
-            averageBaseflowInput = loadmap('averageBaseflow')
-            averageDischargeInput = loadmap('averageDischarge')
+            if swAbstractionFraction < 0:
 
-            # convert baseflow from m to m3/s
-            if returnBool('baseflowInM'):
-                averageBaseflowInput = averageBaseflowInput * self.var.cellArea * self.var.InvDtSec
+                averageBaseflowInput = loadmap('averageBaseflow')
+                averageDischargeInput = loadmap('averageDischarge')
+                # convert baseflow from m to m3/s
+                if returnBool('baseflowInM'):
+                    averageBaseflowInput = averageBaseflowInput * self.var.cellArea * self.var.InvDtSec
 
-            if checkOption('usingAllocSegments'):
-                averageBaseflowInput = npareaaverage(averageBaseflowInput, self.var.allocSegments)
-                averageUpstreamInput = npareamaximum(averageDischargeInput, self.var.allocSegments)
+                if checkOption('usingAllocSegments'):
+                    averageBaseflowInput = npareaaverage(averageBaseflowInput, self.var.allocSegments)
+                    averageUpstreamInput = npareamaximum(averageDischargeInput, self.var.allocSegments)
 
-            swAbstractionFraction = np.maximum(0.0, np.minimum(1.0, averageDischargeInput / np.maximum(1e-20, averageDischargeInput + averageBaseflowInput)))
-            swAbstractionFraction = np.minimum(1.0, np.maximum(0.0, swAbstractionFraction))
-            # self.var.swAbstractionFraction[np.isnan(self.var.swAbstractionFraction)] = 0
-            # self.var.swAbstractionFraction = np.round(self.var.swAbstractionFraction,2)
+                swAbstractionFraction = np.maximum(0.0, np.minimum(1.0, averageDischargeInput / np.maximum(1e-20, averageDischargeInput + averageBaseflowInput)))
+                swAbstractionFraction = np.minimum(1.0, np.maximum(0.0, swAbstractionFraction))
+                # self.var.swAbstractionFraction[np.isnan(self.var.swAbstractionFraction)] = 0
+                # self.var.swAbstractionFraction = np.round(self.var.swAbstractionFraction,2)
 
 
             self.var.swAbstractionFraction = globals.inZero.copy()
@@ -67,11 +70,45 @@ class waterdemand(object):
                 self.var.swAbstractionFraction += self.var.fracVegCover[No]
             ii =1
 
+
+            # demand time monthly or yearly
+            self.var.domesticTime = 'monthly'
+            self.var.industryTime = 'yearly'
+            self.var.livestockTime = 'monthly'
+            if "domesticTimeMonthly" in binding:
+                if not(returnBool('domesticTimeMonthly')): self.var.domesticTime = 'yearly'
+                if returnBool('industryTimeMonthly'): self.var.industryTime = 'monthly'
+                if not(returnBool('livestockTimeMonthly')): self.var.livestockTime = 'yearly'
+
+            # variablenames
+            # name of the variable Withrawal = Gross, consumption = Netto
+            if "domesticWithdrawalvarname" in binding:
+                self.var.domWithdrawalVar = cbinding("domesticWithdrawalvarname")
+                self.var.domConsumptionVar = cbinding("domesticConsuptionvarname")
+                self.var.indWithdrawalVar = cbinding("industryWithdrawalvarname")
+                self.var.indConsumptionVar = cbinding("industryConsuptionvarname")
+                self.var.livVar = cbinding("livestockvarname")
+            else:
+                self.var.domWithdrawalVar = "domesticGrossDemand"
+                self.var.domConsumptionVar = "domesticNettoDemand"
+                self.var.indWithdrawalVar = "industryGrossDemand"
+                self.var.indConsumptionVar = "industryNettoDemand"
+                self.var.livVar = "livestockDemand"
+
+
+            self.var.uselivestock = False
+            if "uselivestock" in binding:
+                self.var.uselivestock = returnBool('uselivestock')
+
+
             # init unmetWaterDemand -> to calculate actual one the the unmet water demand from previous day is needed
             self.var.unmetDemandPaddy = self.var.init_module.load_initial('unmetDemandPaddy')
             self.var.unmetDemandNonpaddy = self.var.init_module.load_initial('unmetDemandNonpaddy')
             #self.var.unmetDemandPaddy = globals.inZero.copy()
             #self.var.unmetDemandNonpaddy = globals.inZero.copy()
+
+
+
 
 
             # for Xiaogang's agent model
@@ -148,24 +185,49 @@ class waterdemand(object):
             # ----------------------------------------------------
             # WATER DEMAND
 
+            # conversion from million m3 per month or year to m per day
+
+            #dateVar['daysInMonth']
+
             # industry water demand
-            if dateVar['newStart'] or dateVar['newYear']:
-                self.var.industryGrossDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], "yearly", value="industryGrossDemand")
-                self.var.industryNettoDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], "yearly", value="industryNettoDemand")
+            new = 'newYear'
+            conversion = self.var.conversionDemand
+            if self.var.industryTime == 'monthly':
+                new = 'newMonth'
+            else:
+                new = 'newYear'
+
+            if dateVar['newStart'] or dateVar[new]:
+                self.var.industryGrossDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], self.var.industryTime, value=self.var.indWithdrawalVar)
+                self.var.industryNettoDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], self.var.industryTime, value=self.var.indConsumptionVar)
                 self.var.industryGrossDemand = np.where(self.var.industryGrossDemand > self.var.InvCellArea, self.var.industryGrossDemand, 0.0)
                 self.var.industryNettoDemand = np.where(self.var.industryNettoDemand > self.var.InvCellArea, self.var.industryNettoDemand, 0.0)
 
             # domestic water demand
-            if dateVar['newStart'] or dateVar['newMonth']:
-                self.var.domesticGrossDemand = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], "monthly", value="domesticGrossDemand")
-                self.var.domesticNettoDemand = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], "monthly", value="domesticNettoDemand")
+            new = 'newYear'
+            if self.var.domesticTime == 'monthly': new = 'newMonth'
+            if dateVar['newStart'] or dateVar[new]:
+                self.var.domesticGrossDemand = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.domWithdrawalVar)
+                self.var.domesticNettoDemand = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.domConsumptionVar)
                 # avoid small values (less than 1 m3):
                 self.var.domesticGrossDemand = np.where(self.var.domesticGrossDemand > self.var.InvCellArea, self.var.domesticGrossDemand, 0.0)
                 self.var.domesticNettoDemand = np.where(self.var.domesticNettoDemand > self.var.InvCellArea, self.var.domesticNettoDemand, 0.0)
 
+                # livestock water demand
+            if self.var.uselivestock:
+                new = 'newYear'
+                if self.var.livestockTime == 'monthly': new = 'newMonth'
+                if dateVar['newStart'] or dateVar[new]:
+                    self.var.livestockDemand = readnetcdf2('livestockWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.livVar)
+            else:
+                self.var.livestockDemand = 0.
+
+
+
+            if dateVar['newStart'] or dateVar['newMonth']:
                 # total (potential) non irrigation water demand
-                self.var.nonIrrGrossDemand = self.var.domesticGrossDemand + self.var.industryGrossDemand
-                self.var.nonIrrNettoDemand = np.minimum(self.var.nonIrrGrossDemand, self.var.domesticNettoDemand + self.var.industryNettoDemand)
+                self.var.nonIrrGrossDemand = self.var.domesticGrossDemand + self.var.industryGrossDemand + self.var.livestockDemand
+                self.var.nonIrrNettoDemand = np.minimum(self.var.nonIrrGrossDemand, self.var.domesticNettoDemand + self.var.industryNettoDemand + self.var.livestockDemand)
 
                 # fraction of return flow from domestic and industrial water demand
                 self.var.nonIrrReturnFlowFraction = divideValues((self.var.nonIrrGrossDemand - self.var.nonIrrNettoDemand), self.var.nonIrrGrossDemand)
@@ -342,7 +404,7 @@ class waterdemand(object):
 
 
             # if limitAbstraction from groundwater is True
-            # - no fossil gwAbstraction and water demand may be reduced
+            # fossil gwAbstraction and water demand may be reduced
             # variable to reduce/limit groundwater abstraction (> 0 if limitAbstraction = True)
             if checkOption('limitAbstraction'):
 

@@ -57,10 +57,8 @@ def valuecell(mask, coordx, coordstr):
     null[null == 0] = -9999
 
     for i in xrange(int(len(coord) / 2)):
-        col = int(
-            (coord[i * 2] -  maskmapAttr['x']) / maskmapAttr['cell'])
-        row = int(
-            (maskmapAttr['y'] - coord[i * 2 + 1]) / maskmapAttr['cell'])
+        col = int((coord[i * 2] -  maskmapAttr['x']) * maskmapAttr['invcell'])
+        row = int((maskmapAttr['y'] - coord[i * 2 + 1]) * maskmapAttr['invcell'])
 
         if col >= 0 and row >= 0 and col < maskmapAttr['col'] and row < maskmapAttr['row']:
             null[row, col] = i + 1
@@ -112,6 +110,7 @@ def setmaskmapAttr(x,y,col,row,cell):
     maskmapAttr['col'] = col
     maskmapAttr['row'] = row
     maskmapAttr['cell'] = cell
+    maskmapAttr['invcell'] = round(1/cell,0)
 
 
 def loadsetclone(name):
@@ -171,9 +170,10 @@ def loadsetclone(name):
                 if y1 < ylast:
                     y1, ylast = ylast, y1
 
-                cellSize = round(np.abs(x2 - x1), 4)
-                nrRows = int(0.5 + np.abs(ylast - y1) / cellSize + 1)
-                nrCols = int(0.5 + np.abs(xlast - x1) / cellSize + 1)
+                cellSize = np.abs(x2 - x1)
+                invcell = round(1/cellSize)
+                nrRows = int(0.5 + np.abs(ylast - y1) * invcell + 1)
+                nrCols = int(0.5 + np.abs(xlast - x1) * invcell + 1)
                 x = x1 - cellSize / 2
                 y = y1 + cellSize / 2
 
@@ -246,7 +246,8 @@ def loadsetclone(name):
 
     return mapC
 
-def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
+
+def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = True):
     """
     load a static map either value or pc raster map or netcdf
 
@@ -294,6 +295,7 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
 
 
         try:
+
             cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check = False)
 
             # load netcdf map but only the rectangle needed
@@ -303,7 +305,10 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
             if not timestepInit:
                 with np.errstate(invalid='ignore'):
                     # in order to ignore some invalid value comments
-                    mapnp = nf1.variables[value][cut2:cut3, cut0:cut1].astype(np.float64)
+                    if cut:
+                        mapnp = nf1.variables[value][cut2:cut3, cut0:cut1].astype(np.float64)
+                    else:
+                        mapnp = nf1.variables[value][:]
             else:
                 if 'time' in nf1.variables:
                     timestepI = Calendar(timestepInit[0])
@@ -315,9 +320,15 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
                         msg = "time step " + str(int(timestepI)+1)+" not stored in "+ filename
                         raise CWATMError(msg)
                     itime = np.where(nf1.variables['time'][:] == timestepI)[0][0]
-                    mapnp = nf1.variables[value][itime,cut2:cut3, cut0:cut1]
+                    if cut:
+                        mapnp = nf1.variables[value][itime,cut2:cut3, cut0:cut1]
+                    else:
+                        mapnp = nf1.variables[value][itime][:]
                 else:
-                    mapnp = nf1.variables[value][cut2:cut3, cut0:cut1]
+                    if cut:
+                        mapnp = nf1.variables[value][cut2:cut3, cut0:cut1]
+                    else:
+                        mapnp = nf1.variables[value][:]
 
             nf1.close()
 
@@ -331,8 +342,10 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
                 mapnp = band.ReadAsArray(0, 0, nf2.RasterXSize, nf2.RasterYSize).astype(np.float64)
                 # if local no cut
                 if not(local):
-                    cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
-                    mapnp = mapnp[cut2:cut3, cut0:cut1]
+                    if cut:
+                        cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
+                        mapnp = mapnp[cut2:cut3, cut0:cut1]
+
             except:
                 raise CWATMFileError(filename,sname=name)
 
@@ -384,14 +397,15 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False):
 
 
     if pcr:  return map
-    else: return mapC
+    else:
+        return mapC
 
 
 # -----------------------------------------------------------------------
 # Compressing to 1-dimensional numpy array
 # -----------------------------------------------------------------------
 
-def compressArray(map, pcr=True, name="None"):
+def compressArray(map, pcr=True, name="None", zeros = 0.):
     """
     Compress 2D array with missing values to 1D array without missing values
 
@@ -413,6 +427,10 @@ def compressArray(map, pcr=True, name="None"):
             msg = name + " has less valid pixels than area or ldd \n"
             raise CWATMError(msg)
             # test if map has less valid pixel than area.map (or ldd)
+    # if a value is bigger or smaller than 1e20, -1e20 than the standard value is taken
+    mapC[mapC > 1.E20] = zeros
+    mapC[mapC < -1.E20] = zeros
+
     return mapC
 
 def decompress(map, pcr1 = True):
@@ -488,14 +506,14 @@ def metaNetCDF():
         msg = "Trying to get metadata from netcdf \n"
         raise CWATMFileError(cbinding('PrecipitationMaps'),msg)
 
-
-def mapattrNetCDF(name, check = True):
+def readCoordNetCDF(name,check = True):
     """
-    get the map attributes like col, row etc from a ntcdf map
-    and define the rectangular of the mask map inside the netcdf map
+    reads the map attributes col, row etc from a netcdf map
+    :param name: name of the netcdf file
+    :param check:  checking if netcdffile exists
+    :return:
     """
 
-    #filename = os.path.splitext(name)[0] + '.nc'
     if check:
         try:
             nf1 = Dataset(name, 'r')
@@ -507,33 +525,147 @@ def mapattrNetCDF(name, check = True):
         nf1 = Dataset(name, 'r')
 
     #x1 = round(nf1.variables.values()[0][0],5)
-    x1 = round(nf1.variables['lon'][0], 5)
-    x2 = round(nf1.variables['lon'][1],5)
+    x1 = round(nf1.variables['lon'][0], 6)
+    x2 = round(nf1.variables['lon'][1],6)
     #xlast = round(nf1.variables.values()[0][-1],5)
-    y1 = round(nf1.variables['lat'][0],5)
-    ylast = round(nf1.variables['lat'][-1],5)
+    y1 = round(nf1.variables['lat'][0],6)
+    ylast = round(nf1.variables['lat'][-1],6)
     # swap to make y1 the biggest number
     if y1 < ylast:
         y1, ylast = ylast, y1
 
-    cellSize = round(np.abs(x2 - x1),5)
+    cellSize = round(np.abs(x2 - x1),6)
     #nrRows = int(0.5+np.abs(ylast - y1) / cellSize + 1)
     #nrCols = int(0.5+np.abs(xlast - x1) / cellSize + 1)
     x = x1 - cellSize / 2
     y = y1 + cellSize / 2
     nf1.close()
 
-    cut0 = int(np.abs(maskmapAttr['x'] - x) / maskmapAttr['cell'])
-    cut1 = cut0 + maskmapAttr['col']
-    cut2 = int(np.abs(maskmapAttr['y'] - y) / maskmapAttr['cell'])
-    cut3 = cut2 + maskmapAttr['row']
+    return x,y,cellSize
 
-    if maskmapAttr['cell'] != cellSize:
+
+
+def mapattrNetCDF(name, check = True):
+    """
+    get the map attributes like col, row etc from a netcdf map
+    and define the rectangular of the mask map inside the netcdf map
+    """
+
+    if check:
+        try:
+            nf1 = Dataset(name, 'r')
+        except:
+            msg = "Checking netcdf map \n"
+            raise CWATMFileError(name,msg)
+    else:
+        # if subroutine is called already from inside a try command
+        nf1 = Dataset(name, 'r')
+
+    lon0 = nf1.variables['lon'][0]
+    lon1 = nf1.variables['lon'][1]
+    lat0 = nf1.variables['lat'][0]
+    lat0 = nf1.variables['lat'][0]
+    latlast = nf1.variables['lat'][-1]
+    nf1.close()
+    # swap to make lat0 the biggest number
+    if lat0 < latlast:
+        lat0, latlast = latlast, lat0
+
+    cell = np.abs(lon1 - lon0)
+    invcell = round(1.0 / cell, 0)
+    lon = lon0 - cell / 2
+    lat = lat0 + cell / 2
+
+    if maskmapAttr['invcell'] != invcell:
         msg = "Cell size different in maskmap: " + \
-            binding['MaskMap'] + " and: " + filename
+            binding['MaskMap'] + " and: " + name
         raise CWATMError(msg)
 
-    return (cut0, cut1, cut2, cut3)
+    xx = maskmapAttr['x']
+    yy = maskmapAttr['y']
+    cut0 = int(0.01 + np.abs(xx - lon) * invcell)
+    cut2 = int(0.01 + np.abs(yy - lat) * invcell)
+    #cut0 = int(0.1 + np.abs(maskmapAttr['x'] - lon) / maskmapAttr['cell'])
+    #cut2 = int(0.1 + np.abs(maskmapAttr['y'] - lat) / maskmapAttr['cell'])
+
+    cut1 = cut0 + maskmapAttr['col']
+    cut3 = cut2 + maskmapAttr['row']
+
+
+
+    return cut0, cut1, cut2, cut3
+
+def mapattrNetCDFMeteo(name, check = True):
+    """
+    get the map attributes like col, row etc from a netcdf map
+    and define the rectangular of the mask map inside the netcdf map
+    """
+
+    #x, y , cellSize = readCoordNetCDF(name, check)
+
+    if check:
+        try:
+            nf1 = Dataset(name, 'r')
+        except:
+            msg = "Checking netcdf map \n"
+            raise CWATMFileError(name,msg)
+    else:
+        # if subroutine is called already from inside a try command
+        nf1 = Dataset(name, 'r')
+
+    lon0 = nf1.variables['lon'][0]
+    lon1 = nf1.variables['lon'][1]
+    lat0 = nf1.variables['lat'][0]
+    lat0 = nf1.variables['lat'][0]
+    latlast = nf1.variables['lat'][-1]
+    nf1.close()
+    # swap to make lat0 the biggest number
+    if lat0 < latlast:
+        lat0, latlast = latlast, lat0
+
+    cell = np.abs(lon1 - lon0)
+    invcell = round(1.0 / cell, 0)
+    lon = lon0 - cell / 2
+    lat = lat0 + cell / 2
+
+    """
+    x, y , cellSize = readCoordNetCDF(name, check)
+    factor = cellSize / maskmapAttr['cell']
+    coladd = int(maskmapAttr['col']/factor + 1.999)
+    rowadd = int(maskmapAttr['row'] / factor + 1.999)
+    #col 16 row 13
+    """
+
+
+    # x0,xend, y0,yend - borders of fine resolution map
+    lon0 = maskmapAttr['x']
+    lat0 = maskmapAttr['y']
+    lonend = lon0 + maskmapAttr['col'] / maskmapAttr['invcell']
+    latend = lat0 - maskmapAttr['row'] / maskmapAttr['invcell']
+
+    # cut for 0.5 deg map based on finer resolution
+    cut0 = int(0.01 + np.abs(lon0 - lon) * invcell)
+    cut1 = int(0.01 + np.abs(lonend - lon) * invcell) + 1
+    cut2 = int(0.01 + np.abs(lat0 - lat) * invcell)
+    cut3 = int(0.01 + np.abs(latend - lat) * invcell) + 1
+    if cut1 > 720: cut1 = 720
+    if cut3 > 300: cut3 = 300
+
+
+    # lon and lat of coarse meteo dataset
+    lonCoarse = (cut0 * cell) + lon
+    latCoarse = lat - (cut2 * cell)
+
+
+    cut4 = int(0.01 + np.abs(lon0 - lonCoarse) * maskmapAttr['invcell'])
+    cut5 = cut4 + maskmapAttr['col']
+    cut6 = int(0.01 + np.abs(lat0 - latCoarse) * maskmapAttr['invcell'])
+    cut7 = cut6 + maskmapAttr['row']
+
+    #return [cut0, cut1, cut2, cut3], [cut4, cut5, cut6, cut7]
+    return cut0, cut1, cut2, cut3, cut4, cut5, cut6, cut7
+    #return (cut0, cut1, cut2, cut3)
+
 
 
 def mapattrTiff(nf2):
@@ -550,18 +682,22 @@ def mapattrTiff(nf2):
     maskmapAttr['col'] = nf2.RasterXSize
     maskmapAttr['row'] = nf2.RasterYSize
     cellSize = geotransform[1]
+    invcell = round(1/cellSize,0)
 
-    x = x1 - cellSize / 2
-    y = y1 + cellSize / 2
-    cut0 = int(np.abs(maskmapAttr['x'] - x) / maskmapAttr['cell'])
-    cut1 = cut0 + maskmapAttr['col']
-    cut2 = int(np.abs(maskmapAttr['y'] - y) / maskmapAttr['cell'])
-    cut3 = cut2 + maskmapAttr['row']
-
-    if maskmapAttr['cell'] != cellSize:
+    if maskmapAttr['invcell'] != invcell:
         msg = "Cell size different in maskmap: " + \
             binding['MaskMap'] + " and: " + filename
         raise CWATMError(msg)
+
+
+    x = x1 - cellSize / 2
+    y = y1 + cellSize / 2
+    cut0 = int(0.01 + np.abs(maskmapAttr['x'] - x) * invcell)
+    cut2 = int(0.01 + np.abs(maskmapAttr['y'] - y) * invcell)
+    cut1 = cut0 + maskmapAttr['col']
+    cut3 = cut2 + maskmapAttr['row']
+
+
 
     return (cut0, cut1, cut2, cut3)
 
@@ -631,7 +767,7 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
 
 
 
-def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0):
+def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapsscale = True):
     """
     load stack of maps 1 at each timestamp in netcdf format
 
@@ -649,7 +785,8 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0):
         idx = inputcounter[name]
         filename =  os.path.normpath(meteoInfo[0])
     except:
-        msg = "Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date.strftime("%d/%m/%Y") + ": \n"
+        date1 = "%02d/%02d/%02d" % (date.day, date.month, date.year)
+        msg = "Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date1 + ": \n"
         raise CWATMError(msg)
 
     try:
@@ -669,7 +806,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0):
 
 
     if cutcheck:
-        mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
+        mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]].astype(np.float64)
     else:
         mapnp = nf1.variables[value][idx].astype(np.float64)
     try:
@@ -683,13 +820,17 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0):
     # add zero values to maps in order to supress missing values
     if addZeros: mapnp[np.isnan(mapnp)] = zeros
 
-    if maskinfo['shapeflat'][0]<> mapnp.size:
-        msg = name + " has less or more valid pixels than the mask map \n"
-        msg += "if it is the ET maps, it might be from another run with different mask. Please look at the option: calc_evaporation"
-        raise CWATMWarning(msg)
 
-    mapC = compressArray(mapnp,pcr=False,name=filename)
-    mapC[mapC > 1E10] = zeros
+    if mapsscale:  # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
+        if maskinfo['shapeflat'][0]<> mapnp.size:
+            msg = name + " has less or more valid pixels than the mask map \n"
+            msg += "if it is the ET maps, it might be from another run with different mask. Please look at the option: calc_evaporation"
+            raise CWATMWarning(msg)
+
+        mapC = compressArray(mapnp,pcr=False,name=filename,zeros = zeros)
+    else: # if static map extend not equal meteo maps -> downscaling in readmeteo
+        mapC = mapnp
+
 
     # increase index and check if next file
     inputcounter[name] += 1
@@ -702,7 +843,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0):
 
 
 
-def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = False,cut = True, zeros = 0.0,meteo = False, usefilename = False):
+def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = False,cut = True, zeros = 0.0,meteo = False, usefilename = False, compress = True):
     """
     load stack of maps 1 at each timestamp in netcdf format
 
@@ -783,6 +924,8 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
 
     # add zero values to maps in order to supress missing values
     if addZeros: mapnp[np.isnan(mapnp)] = zeros
+    if not(compress):
+        return mapnp
 
     if maskinfo['shapeflat'][0]<> mapnp.size:
         msg = name + " has less or more valid pixels than the mask map \n"
@@ -919,18 +1062,16 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
 
 
         # Fill variables
-        cell = round(maskmapAttr['cell'],5)
-        xl = round((maskmapAttr['x'] + cell / 2), 5)
-        xr = round((xl + col * cell), 5)
-        yu = round((maskmapAttr['y'] - cell / 2),5)
-        yd = round((yu - row * cell),5)
-        #lats = np.arange(yu, yd, -cell)
-        #lons = np.arange(xl, xr, cell)
+        cell = maskmapAttr['cell']
+        xl = maskmapAttr['x']
+        xr = xl + col * cell
+        yu = maskmapAttr['y']
+        yd = yu - row * cell
         lats = np.linspace(yu, yd, row, endpoint=False)
         lons = np.linspace(xl, xr, col, endpoint=False)
 
-        latitude[:] = lats
-        longitude[:] = lons
+        latitude[:] = lats - cell / 2.0
+        longitude[:] = lons + cell /2.0
 
         if flagTime:
 
@@ -978,7 +1119,8 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
 
     # if inputmap is not an array give out errormessage
     if not(hasattr(inputmap, '__len__')):
-        msg = "No values in: " + varname + " on date: " + timeStamp.strftime("%d/%m/%Y") +"\nCould not write: " + netfile
+        date1 = "%02d/%02d/%02d" % (timeStamp.day, timeStamp.month, timeStamp.year)
+        msg = "No values in: " + varname + " on date: " + date1 +"\nCould not write: " + netfile
         nf1.close()
         print CWATMWarning(msg)
         return False
@@ -1071,18 +1213,17 @@ def writeIniNetcdf(netfile,varlist, inputlist):
             exec('%s="%s"') % ("proj." + i, metadataNCDF['lambert_azimuthal_equal_area'][i])
 
     # Fill variables
-    cell = round(maskmapAttr['cell'],5)
-    xl = round((maskmapAttr['x'] + cell / 2),5)
-    xr = round((xl + col * cell),5)
-    yu = round((maskmapAttr['y'] - cell / 2),5)
-    yd = round((yu - row * cell),5)
-    #lats = np.arange(yu, yd, -cell)
-    #lons = np.arange(xl, xr, cell)
+    cell = maskmapAttr['cell']
+    xl = maskmapAttr['x']
+    xr = xl + col * cell
+    yu = maskmapAttr['y']
+    yd = yu - row * cell
     lats = np.linspace(yu, yd, row, endpoint=False)
     lons = np.linspace(xl, xr, col, endpoint=False)
 
-    latitude[:] = lats
-    longitude[:] = lons
+    latitude[:] = lats - cell / 2.0
+    longitude[:] = lons + cell /2.0
+
 
     i = 0
     for varname in varlist:

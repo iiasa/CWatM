@@ -50,6 +50,7 @@ class lakes_reservoirs(object):
             self.var.waterBodyID = loadmap('waterBodyID').astype(np.int64)
 
             #self.var.waterBodyID = np.where(self.var.waterBodyID == 887, 0, self.var.waterBodyID)
+            #self.var.waterBodyID = np.where(self.var.waterBodyID == 15916, 0, self.var.waterBodyID) # Laropi Lake Victoria
 
             # calculate biggest outlet = biggest accumulation of ldd network
             lakeResmax = npareamaximum(self.var.UpArea1, self.var.waterBodyID)

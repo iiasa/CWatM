@@ -1,0 +1,2 @@
+This is the catchments folder
+All the calibration runs will be put in here

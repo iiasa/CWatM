@@ -141,10 +141,9 @@ class evaporationPot(object):
 
             EA = windpart * VapPressDef * numerator2
 
-            # Potential evapo(transpi)ration is calculated for three reference surfaces:
+            # Potential evapo(transpi)ration is calculated for two reference surfaces:
             # 1. Reference vegetation canopy
-            # 2. Bare soil surface
-            # 3. Open water surface
+            # 2. Open water surface
             self.var.ETRef = (RNAN + EA) * 0.001
             # potential reference evapotranspiration rate [m/day]  # from mm to m with 0.001
             #self.var.ESRef = RNANSoil + EA

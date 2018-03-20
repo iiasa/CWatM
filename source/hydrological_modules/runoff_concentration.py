@@ -72,7 +72,7 @@ class runoff_concentration(object):
 
             # Load run off concentration coefficient
 
-            # for calibartion a general runoff concentration factor is loaded
+            # for calibration a general runoff concentration factor is loaded
             runoffConc_factor = loadmap('runoffConc_factor')
 
             i = 0

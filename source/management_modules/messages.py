@@ -30,6 +30,7 @@ class CWATMError(Exception):
         header = "\n\n ========================== CWATM ERROR =============================\n"
         try:
            self._msg = header + msg +"\n" +  sys.exc_info()[1].message
+           print self._msg
         except:
            self._msg = header + msg +"\n"
     def __str__(self):
