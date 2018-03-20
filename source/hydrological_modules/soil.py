@@ -237,6 +237,12 @@ class soil(object):
         ta2 = np.maximum(np.minimum(TaMax * self.var.adjRoot[1][No], self.var.w2[No] - self.var.wwp2[No]), 0.0)
         ta3 = np.maximum(np.minimum(TaMax * self.var.adjRoot[2][No], self.var.w3[No] - self.var.wwp3[No]), 0.0)
 
+        if (dateVar['curr'] == 23) and (No==1):
+            ii=1
+            #print ('t', self.var.w1[No][0:3])
+
+
+
         self.var.w1[No] = self.var.w1[No] - ta1
         self.var.w2[No] = self.var.w2[No] - ta2
         self.var.w3[No] = self.var.w3[No] - ta3
@@ -262,7 +268,18 @@ class soil(object):
         soilWaterStorage =  self.var.w1[No] + self.var.w2[No]
         soilWaterStorageCap = self.var.ws1[No] + self.var.ws2[No]
         relSat = soilWaterStorage / soilWaterStorageCap
+
+        #if np.min(self.var.w1[No])< 0.:
+        #   ii =1
+
+        if (dateVar['curr'] == 23) and (No==1):
+            ii=1
+            #print (No, self.var.w1[No][0:3])
+
         satAreaFrac = 1 - (1 - relSat) ** self.var.arnoBeta[No]
+        # Fraction of pixel that is at saturation as a function of
+        # the ratio Theta1/ThetaS1. Distribution function taken from
+        # Zhao,1977, as cited in Todini, 1996 (JoH 175, 339-382)
         satAreaFrac = np.maximum(np.minimum(satAreaFrac, 1.0), 0.0)
 
         store = soilWaterStorageCap / (self.var.arnoBeta[No] + 1)
@@ -293,7 +310,6 @@ class soil(object):
             # if paddy fields flooded only runoff if topwater > 0.05m
             h = np.maximum(0., self.var.topwater- self.var.maxtopwater)
             self.var.directRunoff[No] = np.where(self.var.cropKC[No] > 0.75, h, self.var.directRunoff[No])
-
             self.var.topwater = np.maximum(0., self.var.topwater - self.var.directRunoff[No])
 
 
@@ -447,9 +463,9 @@ class soil(object):
                 kUnSat3 = self.var.KSat3[NoSoil] * np.sqrt(satTerm3) * np.square(1 - (1 - satTerm3 ** self.var.genuInvM3[NoSoil]) ** self.var.genuM3[NoSoil])
 
             # Flux from top- to subsoil
-            subperc1to2 =  np.minimum(kUnSat1 * DtSub, capLayer2)
-            subperc2to3 =  np.minimum(kUnSat2 * DtSub, capLayer3)
-            subperc3toGW = np.minimum(kUnSat3 * DtSub, availWater3)
+            subperc1to2 =  np.minimum(availWater1,np.minimum(kUnSat1 * DtSub, capLayer2))
+            subperc2to3 =  np.minimum(availWater2,np.minimum(kUnSat2 * DtSub, capLayer3))
+            subperc3toGW = np.minimum(availWater3,np.minimum(kUnSat3 * DtSub, availWater3))
 
             # Update water balance for all layers
             availWater1 = availWater1 - subperc1to2

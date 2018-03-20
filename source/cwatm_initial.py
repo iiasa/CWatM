@@ -67,13 +67,31 @@ class CWATModel_ini(DynamicModel):
         # get the extent of the maps from the precipitation input maps
         # and the modelling extent from the MaskMap
         # cutmap[] defines the MaskMap inside the precipitation map
+        try:  # read meteomapscale: if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
+            self.meteomapsscale = returnBool('meteomapssamescale')
+        except:
+            self.meteomapsscale = True
+
         name = cbinding('PrecipitationMaps')
         nameall = glob.glob(os.path.normpath(name))
         if not nameall:
             raise CWATMFileError(name, sname='PrecipitationMaps')
         name1 = nameall[0]
 
-        cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(name1)
+        if self.meteomapsscale:
+            cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(name1)
+            for i in range(4): cutmapFine[i] = cutmap[i]
+
+        else:
+            name2 = cbinding('Ldd')
+            name2 = os.path.splitext(name2)[0] + '.nc'
+            #cutmap[0], cutmap[1], cutmap[2], cutmap[3] =  mapattrNetCDF(name2)
+            cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(name2)
+
+            cutmapFine[0], cutmapFine[1],cutmapFine[2],cutmapFine[3],cutmapVfine[0], cutmapVfine[1],cutmapVfine[2],cutmapVfine[3]  = mapattrNetCDFMeteo(name1)
+            #cutmapFine, cutmapVfine = mapattrNetCDFMeteo(name1)
+
+
         if checkOption('writeNetcdfStack') or checkOption('writeNetcdf'):
             # if NetCDF is writen, the pr.nc is read to get the metadata
             # like projection

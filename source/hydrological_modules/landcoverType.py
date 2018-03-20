@@ -54,7 +54,7 @@ class landcoverType(object):
                         'directRunoff', 'openWaterEvap']
         for variable in landcoverAll:  vars(self.var)[variable] = np.tile(globals.inZero, (6, 1))
 
-        landcoverPara = ['minInterceptCap','cropDeplFactor','rootFraction1','rootFraction2',
+        landcoverPara = ['minInterceptCap','cropDeplFactor','rootFraction1',
                          'maxRootDepth', 'topWaterLayer','minSoilDepthFrac',
                          'interflow',
                          'cropCoefficientNC_filename', 'interceptCapNC_filename','coverFractionNC_filename',]
@@ -132,7 +132,7 @@ class landcoverType(object):
             # parameter values
 
             self.var.rootFraction1.append(loadmap(coverType + "_rootFraction1"))
-            self.var.rootFraction2.append(loadmap(coverType + "_rootFraction2"))
+            #self.var.rootFraction2.append(loadmap(coverType + "_rootFraction2"))
 
             soildepth_factor = loadmap('soildepth_factor')
             self.var.maxRootDepth.append(loadmap(coverType + "_maxRootDepth")* soildepth_factor)
@@ -268,9 +268,9 @@ class landcoverType(object):
             # parameter values
 
             self.var.rootFraction1.append(loadmap(coverType + "_rootFraction1"))
-            self.var.rootFraction2.append(loadmap(coverType + "_rootFraction2"))
+            #self.var.rootFraction2 = self.var.rootFraction1
             self.var.maxRootDepth.append(loadmap(coverType + "_maxRootDepth"))
-            self.var.minSoilDepthFrac.append(loadmap(coverType + "_minSoilDepthFrac"))
+            #self.var.minSoilDepthFrac.append(loadmap(coverType + "_minSoilDepthFrac"))
 
             # store filenames
             self.var.cropCoefficientNC_filename.append(coverType + "_cropCoefficientNC")
@@ -316,7 +316,7 @@ class landcoverType(object):
             fractionroot12 = self.var.rootDepth[0][i] / (self.var.rootDepth[0][i] + self.var.rootDepth[1][i] )
             rootFrac[0] = fractionroot12 * self.var.rootFraction1[i]
             rootFrac[1] = (1 - fractionroot12) * self.var.rootFraction1[i]
-            rootFrac[2] = self.var.rootFraction2[i]
+            rootFrac[2] = 1.0 - self.var.rootFraction1[i]
             rootFracSum = np.sum(rootFrac,axis=0)
             for soilLayer in xrange(self.var.soilLayers):
                 self.var.adjRoot[soilLayer][i] = rootFrac[soilLayer] / rootFracSum
@@ -501,7 +501,7 @@ class landcoverType(object):
 
 
         self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
-        self.var.totalET = self.var.sum_actTransTotal + self.var.sum_actBareSoilEvap + self.var.sum_openWaterEvap + self.var.sum_interceptEvap + self.var.snowEvap
+        #self.var.totalET = self.var.sum_actTransTotal + self.var.sum_actBareSoilEvap + self.var.sum_openWaterEvap + self.var.sum_interceptEvap + self.var.snowEvap
         self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
 
 
