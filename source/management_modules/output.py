@@ -372,10 +372,10 @@ class outputTssMap(object):
                             vars(self.var)[varname+"_"+type] = 0
 
                         if map[-5:] == "daily":
-                            outMap[map][i][2] = writenetcdf(netfile, varname, "undefined", eval(inputmap),  dateVar['currDate'],dateVar['currwrite'], flag, True, dateVar['diffdays'])
+                            outMap[map][i][2] = writenetcdf(netfile, varname,"", "undefined", eval(inputmap),  dateVar['currDate'],dateVar['currwrite'], flag, True, dateVar['diffdays'])
                         if map[-8:] == "monthend":
                             if dateVar['checked'][dateVar['currwrite'] - 1]>0:
-                                outMap[map][i][2] = writenetcdf(netfile, varname+ "_monthend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currMonth'], flag,True,dateVar['diffMonth'])
+                                outMap[map][i][2] = writenetcdf(netfile, varname, "_monthend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currMonth'], flag,True,dateVar['diffMonth'])
                         if (map[-8:] == "monthtot"):
                             # sum up daily value to monthly values
                             vars(self.var)[varname + "_monthtot"] += vars(self.var)[varname]
@@ -385,7 +385,7 @@ class outputTssMap(object):
                         if map[-4:] == "once":
                             if (returnBool('calc_ef_afterRun') == False) or (dateVar['currDate'] == dateVar['dateEnd']):
                                 # either load already calculated discharge or at the end of the simulation
-                                outMap[map][i][2] = writenetcdf(netfile, varname, "undefined", eval(inputmap),
+                                outMap[map][i][2] = writenetcdf(netfile, varname,"", "undefined", eval(inputmap),
                                                             dateVar['currDate'], dateVar['currwrite'], flag, False)
                         if map[-7:] == "12month":
                             if (returnBool('calc_ef_afterRun') == False) or (dateVar['currDate'] == dateVar['dateEnd']):
@@ -394,26 +394,27 @@ class outputTssMap(object):
                                 for j in xrange(12):
                                     in1 = inputmap  + '[' +str(j) + ']'
                                     date1 = datetime.datetime(dateVar['dateEnd'].year, j+1, 1, 0, 0)
-                                    outMap[map][i][2] = writenetcdf(netfile, varname, "undefined", eval(in1), date1, j+1, flag1, True,12)
+                                    outMap[map][i][2] = writenetcdf(netfile, varname,"", "undefined", eval(in1), date1, j+1, flag1, True,12)
                                     flag1 = True # now append to netcdf file
 
 
                         # if end of month is reached
                         if dateVar['checked'][dateVar['currwrite'] - 1]>0:
                             if (map[-8:] == "monthtot"):
-                                outMap[map][i][2] = writenetcdf(netfile, varname+"monthtot", "undefined", eval(inputmap+ "_monthtot"), dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
+                                outMap[map][i][2] = writenetcdf(netfile, varname,"_monthtot", "undefined", eval(inputmap+ "_monthtot"), dateVar['currDate'], dateVar['currMonth'], flag, True,
+                                                                dateVar['diffMonth'])
                                 #vars(self.var)[varname + "monthtot"] = 0
                             if (map[-8:] == "monthavg"):
                                 days = calendar.monthrange(dateVar['currDate'].year, dateVar['currDate'].month)[1]
                                 avgmap = vars(self.var)[varname + "_monthavg"] / days
-                                outMap[map][i][2] = writenetcdf(netfile, varname+"monthavg", "undefined", avgmap,dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
+                                outMap[map][i][2] = writenetcdf(netfile, varname,"_monthavg", "undefined", avgmap,dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
                                 #vars(self.var)[varname+"monthavg"] = 0
 
 
 
                         if map[-9:] == "annualend":
                             if dateVar['checked'][dateVar['currwrite'] - 1]==2:
-                                outMap[map][i][2] = writenetcdf(netfile, varname+"_annualend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currYear'], flag,True,dateVar['diffYear'])
+                                outMap[map][i][2] = writenetcdf(netfile, varname,"_annualend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currYear'], flag,True,dateVar['diffYear'])
                         if (map[-9:] == "annualtot"):
                             vars(self.var)[varname + "_annualtot"] += vars(self.var)[varname]
                         if (map[-9:] == "annualavg"):
@@ -421,11 +422,12 @@ class outputTssMap(object):
 
                         if dateVar['checked'][dateVar['currwrite'] - 1]==2:
                             if (map[-9:] == "annualtot"):
-                                    outMap[map][i][2] = writenetcdf(netfile, varname+"annualtot", "undefined", eval(inputmap+ "_annualtot"), dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
+                                    outMap[map][i][2] = writenetcdf(netfile, varname,"_annualtot", "undefined", eval(inputmap+ "_annualtot"), dateVar['currDate'], dateVar['currYear'], flag, True,
+                                                                    dateVar['diffYear'])
                             if (map[-9:] == "annualavg"):
                                         days = 366 if calendar.isleap(dateVar['currDate'].year) else 365
                                         avgmap = vars(self.var)[varname + "_annualavg"] / days
-                                        outMap[map][i][2] = writenetcdf(netfile, varname+"annualavg", "undefined", avgmap, dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
+                                        outMap[map][i][2] = writenetcdf(netfile, varname,"_annualavg", "undefined", avgmap, dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
                                     #vars(self.var)[varname+"annualtot"] = 0
 
 
@@ -434,7 +436,7 @@ class outputTssMap(object):
                                 vars(self.var)[varname + "_totaltot"] += vars(self.var)[varname]
                                 if dateVar['currDate'] == dateVar['dateEnd']:
                                     # at the end of simulation write this map
-                                    outMap[map][i][2] = writenetcdf(netfile, varname + "_totaltot", "undefined", eval(inputmap +  "_totaltot"),
+                                    outMap[map][i][2] = writenetcdf(netfile, varname,"_totaltot", "undefined", eval(inputmap +  "_totaltot"),
                                                                 dateVar['currDate'], dateVar['currwrite'], flag, False)
 
                         if map[-8:] == "totalavg":
@@ -442,7 +444,7 @@ class outputTssMap(object):
                                 vars(self.var)[varname + "_totalavg"] += vars(self.var)[varname]/ float(dateVar['diffdays'])
                                 if dateVar['currDate'] == dateVar['dateEnd']:
                                     # at the end of simulation write this map
-                                    outMap[map][i][2] = writenetcdf(netfile, varname + "_totalavg", "undefined",
+                                    outMap[map][i][2] = writenetcdf(netfile, varname,"_totalavg", "undefined",
                                                                     eval(inputmap + "_totalavg"),
                                                                     dateVar['currDate'], dateVar['currwrite'],
                                                                     flag, False)
@@ -451,8 +453,7 @@ class outputTssMap(object):
                             if dateVar['currDate'] == dateVar['dateEnd']:
                                 # at the end of simulation write this map
                                 vars(self.var)[varname + "_totalend"] = vars(self.var)[varname]
-                                outMap[map][i][2] = writenetcdf(netfile, varname + "_totalend","undefined",
-                                                                vars(self.var)[varname],
+                                outMap[map][i][2] = writenetcdf(netfile, varname,"_totalend","undefined", vars(self.var)[varname],
                                                                 dateVar['currDate'],
                                                                 dateVar['currwrite'],
                                                                 flag, False)

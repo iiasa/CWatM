@@ -72,11 +72,12 @@ class CWATModel_ini(DynamicModel):
         except:
             self.meteomapsscale = True
 
-        name = cbinding('PrecipitationMaps')
-        nameall = glob.glob(os.path.normpath(name))
-        if not nameall:
-            raise CWATMFileError(name, sname='PrecipitationMaps')
-        name1 = nameall[0]
+        name1 = cbinding('Ldd')
+        name1 = os.path.splitext(cbinding(('Ldd')))[0] + '.nc'
+        #nameall = glob.glob(os.path.normpath(name))
+        #if not nameall:
+        #    raise CWATMFileError(name, sname='PrecipitationMaps')
+        #name1 = nameall[0]
 
         if self.meteomapsscale:
             cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(name1)
