@@ -1,7 +1,7 @@
 # Community Water Model (CWATM)
 
 IIASA
-2rd April 2018
+3rd April 2018
 
 CWATM represents one of the new key elements of IIASA’s Water program to assess water supply, water demand and environmental needs at global and regional level. The hydrologic model is open source and flexible to link in different aspects of the water energy food nexus. CWATM will be a basis to develop a next-generation global hydro-economic modeling and will be coupled to the existing IIASA models like MESSAGE and GLOBIOM
 
