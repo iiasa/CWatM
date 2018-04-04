@@ -5,9 +5,22 @@
 # unit: unit of the varibale
 # long name# standard name
 
+# Time information
+<metanetcdf varname="_daily"     time=": daily"/>
+<metanetcdf varname="_monthavg"  time=": monthly average"/>
+<metanetcdf varname="_monthend"  time=": last value of the month"/>
+<metanetcdf varname="_monthtot"  time=": monthly sum"/>
+<metanetcdf varname="_annualavg" time=": annual average"/>
+<metanetcdf varname="_annualend" time=": last value of the year"/>
+<metanetcdf varname="_annualtot" time=": annual sum"/>
+<metanetcdf varname="_totalavg"  time=": average over the whole time period"/>
+<metanetcdf varname="_totaltot"  time=": sum the whole time period"/>
+<metanetcdf varname="_totalend"  time=": last value of the whole time period"/>
+
+
 # Evapotranspiration maps 
 <metanetcdf varname="ETRef" unit="m"  standard_name="Pot_reference_ET" long_name="Potential reference evapotranspiration rate"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="EWRef" unit="m"  standard_name="Ppot_water_evaporation" long_name="Potential evaporation rate from water surface"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="EWRef" unit="m"  standard_name="Pot_water_evaporation" long_name="Potential evaporation rate from water surface"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sum_actualET" unit="m"  standard_name="Actual_evapotranspiration" long_name="Actual Evapotranspiration"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sum_actualET" unit="m"  standard_name="Actual_evapotranspiration" long_name="Actual Evapotranspiration"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="potBareSoilEvap" unit="m"  standard_name="Evaporation_bare-soil" long_name="Evaporation from bare soil"  title="CWATM" author="IIASA WAT" />
@@ -16,10 +29,12 @@
 
 
 # Meteorological maps
+<metanetcdf varname="prec" unit="kg m-2 s-1"  standard_name="Precipitation" long_name="Precipitation"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="temperature" unit="K"  standard_name="avgTemperature" long_name="Average daily temperature in K"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Precipitation" unit="m"  standard_name="Precipitation" long_name="Precipitation"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="Tavg" unit="K"  standard_name="avgTemperature" long_name="Average daily temperature in K"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="TMin" unit="K"  standard_name="minTemperature" long_name="Minimal daily temperature in K"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="TMax" unit="K"  standard_name="maxTemperature" long_name="Maximal daily temperature in K"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="Tavg" unit="C"  standard_name="avgTemperature" long_name="Average daily temperature in deg. C"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="TMin" unit="C"  standard_name="minTemperature" long_name="Minimal daily temperature in deg. C"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="TMax" unit="C"  standard_name="maxTemperature" long_name="Maximal daily temperature in deg. C"  title="CWATM" author="IIASA WAT" />
 
 #Snow
 <metanetcdf varname="Snow" unit="m"  standard_name="Snow" long_name="Snow as part of precipitation"  title="CWATM" author="IIASA WAT" />

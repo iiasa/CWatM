@@ -55,8 +55,7 @@ class landcoverType(object):
         for variable in landcoverAll:  vars(self.var)[variable] = np.tile(globals.inZero, (6, 1))
 
         landcoverPara = ['minInterceptCap','cropDeplFactor','rootFraction1',
-                         'maxRootDepth', 'topWaterLayer','minSoilDepthFrac',
-                         'interflow',
+                         'maxRootDepth', 'topWaterLayer','interflow',
                          'cropCoefficientNC_filename', 'interceptCapNC_filename','coverFractionNC_filename',]
         # arrays stored as list not as numpy, because it can contain strings, single parameters or arrays
         # list is filled with append afterwards
@@ -270,7 +269,6 @@ class landcoverType(object):
             self.var.rootFraction1.append(loadmap(coverType + "_rootFraction1"))
             #self.var.rootFraction2 = self.var.rootFraction1
             self.var.maxRootDepth.append(loadmap(coverType + "_maxRootDepth"))
-            #self.var.minSoilDepthFrac.append(loadmap(coverType + "_minSoilDepthFrac"))
 
             # store filenames
             self.var.cropCoefficientNC_filename.append(coverType + "_cropCoefficientNC")

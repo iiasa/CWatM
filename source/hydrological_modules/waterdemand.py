@@ -191,11 +191,7 @@ class waterdemand(object):
 
             # industry water demand
             new = 'newYear'
-            conversion = self.var.conversionDemand
-            if self.var.industryTime == 'monthly':
-                new = 'newMonth'
-            else:
-                new = 'newYear'
+            if self.var.industryTime == 'monthly': new = 'newMonth'
 
             if dateVar['newStart'] or dateVar[new]:
                 self.var.industryGrossDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], self.var.industryTime, value=self.var.indWithdrawalVar)
@@ -219,19 +215,18 @@ class waterdemand(object):
                 if self.var.livestockTime == 'monthly': new = 'newMonth'
                 if dateVar['newStart'] or dateVar[new]:
                     self.var.livestockDemand = readnetcdf2('livestockWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.livVar)
+                # avoid small values (less than 1 m3):
+                self.var.livestockDemand = np.where(self.var.livestockDemand > self.var.InvCellArea, self.var.livestockDemand, 0.0)
             else:
                 self.var.livestockDemand = 0.
-
 
 
             if dateVar['newStart'] or dateVar['newMonth']:
                 # total (potential) non irrigation water demand
                 self.var.nonIrrGrossDemand = self.var.domesticGrossDemand + self.var.industryGrossDemand + self.var.livestockDemand
                 self.var.nonIrrNettoDemand = np.minimum(self.var.nonIrrGrossDemand, self.var.domesticNettoDemand + self.var.industryNettoDemand + self.var.livestockDemand)
-
                 # fraction of return flow from domestic and industrial water demand
                 self.var.nonIrrReturnFlowFraction = divideValues((self.var.nonIrrGrossDemand - self.var.nonIrrNettoDemand), self.var.nonIrrGrossDemand)
-
 
 
 
@@ -347,11 +342,12 @@ class waterdemand(object):
                     #self.var.potGroundwaterAbstract = totalPotGrossDemand - self.var.actSurfaceWaterAbstract
                     #realswAbstractionFraction = divideValues(self.var.actSurfaceWaterAbstract, totalPotGrossDemand)
 
+                    # water that is still needed from surface water
                     remainNeed = potSurfaceAbstract - self.var.actSurfaceWaterAbstract
 
 
-                    # first from big Lakes and reservoirs, not as easy because big lakes cover several gridcells
-                    # collect all water deamnd from lake pixels of same id
+                    # first from big Lakes and reservoirs, big lakes cover several gridcells
+                    # collect all water deamand from lake pixels of same id
                     remainNeedBig = npareatotal(remainNeed, self.var.waterBodyID)
                     remainNeedBigC = np.compress(self.var.compress_LR, remainNeedBig)
 
@@ -444,7 +440,7 @@ class waterdemand(object):
                 self.var.act_irrNonpaddyWithdrawal = self.var.fracVegCover[3] * self.var.irrGrossDemand[3]
                 self.var.act_irrPaddyWithdrawal = self.var.fracVegCover[2] * self.var.irrGrossDemand[2]
 
-            if (dateVar['curr'] == 116):
+            if (dateVar['curr'] == 1):
                 ii = 1
 
 

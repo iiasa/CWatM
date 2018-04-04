@@ -72,7 +72,9 @@ class CWATModel_ini(DynamicModel):
         except:
             self.meteomapsscale = True
 
+
         name = cbinding('PrecipitationMaps')
+        #name1 = os.path.splitext(cbinding(('Ldd')))[0] + '.nc'
         nameall = glob.glob(os.path.normpath(name))
         if not nameall:
             raise CWATMFileError(name, sname='PrecipitationMaps')

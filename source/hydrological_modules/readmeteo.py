@@ -194,14 +194,16 @@ class readmeteo(object):
             ZeroKelvin = 273.15
 
 
-
         #self.var.Precipitation = readnetcdf2('PrecipitationMaps',dateVar['currDate'],addZeros = True, meteo = True) * self.var.DtDay * self.var.con_precipitation
         self.var.Precipitation = readmeteodata('PrecipitationMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale) * self.var.DtDay * self.var.con_precipitation
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
+        #self.var.prec1 = self.var.Precipitation / self.var.con_precipitation
         #self.var.Precipitation = downscaling(self.var.Precipitation)
 
         #self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec  = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
         self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
+
+
 
         # precipitation (conversion to [mm] per time step)
 
@@ -212,6 +214,7 @@ class readmeteo(object):
         self.var.Tavg = readmeteodata('TavgMaps',dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.var.meteomapsscale)
         self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
 
+        #self.var.temperature = self.var.Tavg.copy()
         # average DAILY temperature (even if you are running the model
         # on say an hourly time step) [degrees C]
         if checkOption('TemperatureInKelvin'):

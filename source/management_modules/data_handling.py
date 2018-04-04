@@ -996,13 +996,16 @@ def readnetcdfInitial(name, value,default = 0.0):
 
 # --------------------------------------------------------------------------------------------
 
-def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagTime, nrdays=None):
+def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, flag,flagTime, nrdays=None):
     """
     write a netcdf stack
     """
 
     row = np.abs(cutmap[3] - cutmap[2])
     col = np.abs(cutmap[1] - cutmap[0])
+
+    # create real varname with variable name + time depending name e.g. discharge + monthavg
+    varname = prename + addname
 
     if flag == False:
         nf1 = Dataset(netfile, 'w', format='NETCDF4')
@@ -1018,12 +1021,11 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
 
         # put the additional genaral meta data information from the xml file into the netcdf file
         # infomation from the settingsfile comes first
-
-        if varname in metaNetcdfVar:
-            for key in metaNetcdfVar[varname]:
+        if prename in metaNetcdfVar:
+           for key in metaNetcdfVar[prename]:
                 if not (key in nf1.__dict__.keys()):
                     if not (key in ["unit", "long_name", "standard_name"]):
-                        nf1.__setattr__(key, metaNetcdfVar[varname][key])
+                        nf1.__setattr__(key, metaNetcdfVar[prename][key])
 
 
 
@@ -1095,10 +1097,11 @@ def writenetcdf(netfile,varname,varunits,inputmap, timeStamp, posCnt, flag,flagT
               # for world lat/lon coordinates
               value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
 
-
-        value.standard_name= getmeta("standard_name",varname,varname)
-        value.long_name= getmeta("long_name",varname,varname)
-        value.units= getmeta("unit",varname,varunits)
+        value.standard_name = getmeta("standard_name",prename,varname)
+        p1 = getmeta("long_name",prename,prename)
+        p2 = getmeta("time", addname, addname)
+        value.long_name = p1 + p2
+        value.units= getmeta("unit",prename,varunits)
 
         for var in metadataNCDF.keys():
             if "esri_pe_string" in metadataNCDF[var].keys():
