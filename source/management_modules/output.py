@@ -400,21 +400,25 @@ class outputTssMap(object):
 
                         # if end of month is reached
                         if dateVar['checked'][dateVar['currwrite'] - 1]>0:
+                            if (map[-8:] == "monthend"):
+                                outMap[map][i][2] = writenetcdf(netfile, varname,"_monthend", "undefined", eval(inputmap+ "_monthend"), dateVar['currDate'], dateVar['currMonth'], flag, True,
+                                                                dateVar['diffMonth'],dateunit="months")
                             if (map[-8:] == "monthtot"):
                                 outMap[map][i][2] = writenetcdf(netfile, varname,"_monthtot", "undefined", eval(inputmap+ "_monthtot"), dateVar['currDate'], dateVar['currMonth'], flag, True,
-                                                                dateVar['diffMonth'])
+                                                                dateVar['diffMonth'],dateunit="months")
                                 #vars(self.var)[varname + "monthtot"] = 0
                             if (map[-8:] == "monthavg"):
                                 days = calendar.monthrange(dateVar['currDate'].year, dateVar['currDate'].month)[1]
                                 avgmap = vars(self.var)[varname + "_monthavg"] / days
-                                outMap[map][i][2] = writenetcdf(netfile, varname,"_monthavg", "undefined", avgmap,dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'])
+                                outMap[map][i][2] = writenetcdf(netfile, varname,"_monthavg", "undefined", avgmap,dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'],dateunit="months")
                                 #vars(self.var)[varname+"monthavg"] = 0
 
 
 
                         if map[-9:] == "annualend":
                             if dateVar['checked'][dateVar['currwrite'] - 1]==2:
-                                outMap[map][i][2] = writenetcdf(netfile, varname,"_annualend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currYear'], flag,True,dateVar['diffYear'])
+                                outMap[map][i][2] = writenetcdf(netfile, varname,"_annualend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currYear'], flag,True,dateVar['diffYear'],
+                                                                dateunit="years")
                         if (map[-9:] == "annualtot"):
                             vars(self.var)[varname + "_annualtot"] += vars(self.var)[varname]
                         if (map[-9:] == "annualavg"):
@@ -423,11 +427,12 @@ class outputTssMap(object):
                         if dateVar['checked'][dateVar['currwrite'] - 1]==2:
                             if (map[-9:] == "annualtot"):
                                     outMap[map][i][2] = writenetcdf(netfile, varname,"_annualtot", "undefined", eval(inputmap+ "_annualtot"), dateVar['currDate'], dateVar['currYear'], flag, True,
-                                                                    dateVar['diffYear'])
+                                                                    dateVar['diffYear'], dateunit="years")
                             if (map[-9:] == "annualavg"):
                                         days = 366 if calendar.isleap(dateVar['currDate'].year) else 365
                                         avgmap = vars(self.var)[varname + "_annualavg"] / days
-                                        outMap[map][i][2] = writenetcdf(netfile, varname,"_annualavg", "undefined", avgmap, dateVar['currDate'], dateVar['currYear'], flag, True, dateVar['diffYear'])
+                                        outMap[map][i][2] = writenetcdf(netfile, varname,"_annualavg", "undefined", avgmap, dateVar['currDate'], dateVar['currYear'], flag, True,
+                                                                        dateVar['diffYear'],dateunit="years")
                                     #vars(self.var)[varname+"annualtot"] = 0
 
 

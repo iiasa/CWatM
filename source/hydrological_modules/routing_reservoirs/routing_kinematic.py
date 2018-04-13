@@ -264,7 +264,8 @@ class routing_kinematic(object):
         if checkOption('includeWaterDemand'):
              WDAddM3Dt = self.var.actSurfaceWaterAbstract.copy()
              #return flow from (m) non irrigation water demand
-             WDAddM3Dt = WDAddM3Dt - self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrGrossWithdrawal
+             #WDAddM3Dt = WDAddM3Dt - self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrGrossWithdrawal
+             WDAddM3Dt = WDAddM3Dt - self.var.returnFlow
              WDAddM3Dt = WDAddM3Dt * self.var.cellArea / self.var.noRoutingSteps
 
             #sideflowChanM3 -= self.var.sum_actSurfaceWaterAbstract * self.var.cellArea

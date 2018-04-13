@@ -140,7 +140,7 @@ class soil(object):
             ii=1
 
         availWaterInfiltration = self.var.availWaterInfiltration[No].copy()
-        availWaterInfiltration = availWaterInfiltration + self.var.irrGrossDemand[No]
+        availWaterInfiltration = availWaterInfiltration + self.var.irrNettoDemand[No]
         # availWaterInfiltration = water net from precipitation (- soil - interception - snow + snow melt) + water for irrigation
 
 

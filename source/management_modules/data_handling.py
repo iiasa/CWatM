@@ -27,6 +27,8 @@ from pcraster2.dynamicPCRasterBase import *
 #from pcraster.framework import *
 
 from netCDF4 import Dataset,num2date,date2num,date2index
+from netcdftime import utime
+
 import gdal
 from gdalconst import *
 import warnings
@@ -996,7 +998,8 @@ def readnetcdfInitial(name, value,default = 0.0):
 
 # --------------------------------------------------------------------------------------------
 
-def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, flag,flagTime, nrdays=None):
+
+def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, flag,flagTime, nrdays=None, dateunit="days"):
     """
     write a netcdf stack
     """
@@ -1081,7 +1084,9 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
             nf1.createDimension('time', nrdays)
             time = nf1.createVariable('time', 'f8', ('time'))
             time.standard_name = 'time'
-            time.units = 'Days since 1901-01-01'
+            if dateunit == "days": time.units = 'Days since 1901-01-01'
+            if dateunit == "months": time.units = 'Months since 1901-01-01'
+            if dateunit == "years": time.units = 'Years since 1901-01-01'
             time.calendar = 'standard'
 
 
@@ -1114,7 +1119,11 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
 
     if flagTime:
         date_time = nf1.variables['time']
-        nf1.variables['time'][posCnt-1] = date2num(timeStamp, date_time.units, date_time.calendar)
+        if dateunit == "days": nf1.variables['time'][posCnt-1] = date2num(timeStamp, date_time.units, date_time.calendar)
+        if dateunit == "months": nf1.variables['time'][posCnt - 1] = (timeStamp.year - 1901) * 12 + timeStamp.month - 1
+        if dateunit == "years":  nf1.variables['time'][posCnt - 1] = timeStamp.year - 1901
+
+        #nf1.variables['time'][posCnt - 1] = 60 + posCnt
 
 
 
