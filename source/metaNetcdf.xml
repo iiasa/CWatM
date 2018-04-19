@@ -30,7 +30,7 @@
 
 # Meteorological maps
 <metanetcdf varname="prec" unit="kg m-2 s-1"  standard_name="Precipitation" long_name="Precipitation"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="temperature" unit="K"  standard_name="avgTemperature" long_name="Average daily temperature in K"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="temp" unit="K"  standard_name="avgTemperature" long_name="Average daily temperature in K"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Precipitation" unit="m"  standard_name="Precipitation" long_name="Precipitation"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Tavg" unit="C"  standard_name="avgTemperature" long_name="Average daily temperature in deg. C"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="TMin" unit="C"  standard_name="minTemperature" long_name="Minimal daily temperature in deg. C"  title="CWATM" author="IIASA WAT" />

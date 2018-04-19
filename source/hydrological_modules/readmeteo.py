@@ -144,6 +144,9 @@ class readmeteo(object):
             :return:
 
             """
+            reso = maskmapAttr['reso_mask_meteo']
+            resoint = int(reso)
+
             if self.var.meteomapsscale:
                 if downscale == 0:
                     return input
@@ -151,30 +154,30 @@ class readmeteo(object):
                     return input, wc2, wc4
 
 
-            down3 = np.kron(input, np.ones((6, 6)))
+            down3 = np.kron(input, np.ones((resoint, resoint)))
             if downscale == 0:
-                down3 = np.kron(input, np.ones((6, 6)))
                 down2 = down3[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
                 input = compressArray(down2, pcr=False)
                 return input
             else:
                 if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
                     wc1 = readnetcdf2(downscaleName, dateVar['currDate'], useDaily='month', compress = False, cut = False)
-                    wc2 = wc1[cutmapFine[2]*6:cutmapFine[3]*6, cutmapFine[0]*6:cutmapFine[1]*6]
+                    wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]
+                    #wc2 = wc1[cutmapGlobal[2] * resoint:cutmapGlobal[3] * resoint, cutmapGlobal[0] * resoint:cutmapGlobal[1] * resoint]
                     rows = wc2.shape[0]
                     cols = wc2.shape[1]
-                    wc3 =  wc2.reshape(rows/6,6,cols/6,6)
+                    wc3 =  wc2.reshape(rows/resoint,resoint,cols/resoint,resoint)
                     wc4 =  np.nanmean(wc3, axis=(1, 3))
 
             if downscale == 1: # Temperature
                 diff_wc = wc4 - input
                 #diff_wc[np.isnan( diff_wc)] = 0.0
-                diffSmooth = scipy.ndimage.zoom(diff_wc, 6, order=1)
+                diffSmooth = scipy.ndimage.zoom(diff_wc, resoint, order=1)
                 down1 = wc2 - diffSmooth
                 down1 = np.where(np.isnan(down1),down3,down1)
             if downscale == 2:  # precipitation
                 quot_wc = input / wc4
-                quotSmooth = scipy.ndimage.zoom(quot_wc, 6, order=1)
+                quotSmooth = scipy.ndimage.zoom(quot_wc, resoint, order=1)
                 down1 = wc2 * quotSmooth
                 down1 = np.where(np.isnan(down1),down3,down1)
                 down1 = np.where(np.isinf(down1), down3, down1)
@@ -194,27 +197,24 @@ class readmeteo(object):
             ZeroKelvin = 273.15
 
 
-        #self.var.Precipitation = readnetcdf2('PrecipitationMaps',dateVar['currDate'],addZeros = True, meteo = True) * self.var.DtDay * self.var.con_precipitation
         self.var.Precipitation = readmeteodata('PrecipitationMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale) * self.var.DtDay * self.var.con_precipitation
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
-        #self.var.prec1 = self.var.Precipitation / self.var.con_precipitation
-        #self.var.Precipitation = downscaling(self.var.Precipitation)
-
-        #self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec  = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
         self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
+        #self.var.Precipitation  = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
 
+        self.var.prec = self.var.Precipitation / self.var.con_precipitation
 
-
-        # precipitation (conversion to [mm] per time step)
+        # precipitation (conversion to [mm] per time step)  `
 
         #self.var.Tavg = readnetcdf2('TavgMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
         tzero = 0
         if checkOption('TemperatureInKelvin'):
-			tzero = ZeroKelvin
+            tzero = ZeroKelvin
         self.var.Tavg = readmeteodata('TavgMaps',dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.var.meteomapsscale)
         self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
+        ##self.var.Tavg = downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=0)
 
-        #self.var.temperature = self.var.Tavg.copy()
+        self.var.temp = self.var.Tavg.copy()
         # average DAILY temperature (even if you are running the model
         # on say an hourly time step) [degrees C]
         if checkOption('TemperatureInKelvin'):

@@ -526,43 +526,6 @@ def readCoordNetCDF(name,check = True):
         # if subroutine is called already from inside a try command
         nf1 = Dataset(name, 'r')
 
-    #x1 = round(nf1.variables.values()[0][0],5)
-    x1 = round(nf1.variables['lon'][0], 6)
-    x2 = round(nf1.variables['lon'][1],6)
-    #xlast = round(nf1.variables.values()[0][-1],5)
-    y1 = round(nf1.variables['lat'][0],6)
-    ylast = round(nf1.variables['lat'][-1],6)
-    # swap to make y1 the biggest number
-    if y1 < ylast:
-        y1, ylast = ylast, y1
-
-    cellSize = round(np.abs(x2 - x1),6)
-    #nrRows = int(0.5+np.abs(ylast - y1) / cellSize + 1)
-    #nrCols = int(0.5+np.abs(xlast - x1) / cellSize + 1)
-    x = x1 - cellSize / 2
-    y = y1 + cellSize / 2
-    nf1.close()
-
-    return x,y,cellSize
-
-
-
-def mapattrNetCDF(name, check = True):
-    """
-    get the map attributes like col, row etc from a netcdf map
-    and define the rectangular of the mask map inside the netcdf map
-    """
-
-    if check:
-        try:
-            nf1 = Dataset(name, 'r')
-        except:
-            msg = "Checking netcdf map \n"
-            raise CWATMFileError(name,msg)
-    else:
-        # if subroutine is called already from inside a try command
-        nf1 = Dataset(name, 'r')
-
     lon0 = nf1.variables['lon'][0]
     lon1 = nf1.variables['lon'][1]
     lat0 = nf1.variables['lat'][0]
@@ -577,6 +540,18 @@ def mapattrNetCDF(name, check = True):
     invcell = round(1.0 / cell, 0)
     lon = lon0 - cell / 2
     lat = lat0 + cell / 2
+
+    return lat,lon, cell,invcell
+
+
+
+def mapattrNetCDF(name, check = True):
+    """
+    get the map attributes like col, row etc from a netcdf map
+    and define the rectangular of the mask map inside the netcdf map
+    """
+
+    lat, lon, cell, invcell = readCoordNetCDF(name, check)
 
     if maskmapAttr['invcell'] != invcell:
         msg = "Cell size different in maskmap: " + \
@@ -587,14 +562,9 @@ def mapattrNetCDF(name, check = True):
     yy = maskmapAttr['y']
     cut0 = int(0.01 + np.abs(xx - lon) * invcell)
     cut2 = int(0.01 + np.abs(yy - lat) * invcell)
-    #cut0 = int(0.1 + np.abs(maskmapAttr['x'] - lon) / maskmapAttr['cell'])
-    #cut2 = int(0.1 + np.abs(maskmapAttr['y'] - lat) / maskmapAttr['cell'])
 
     cut1 = cut0 + maskmapAttr['col']
     cut3 = cut2 + maskmapAttr['row']
-
-
-
     return cut0, cut1, cut2, cut3
 
 def mapattrNetCDFMeteo(name, check = True):
@@ -603,41 +573,7 @@ def mapattrNetCDFMeteo(name, check = True):
     and define the rectangular of the mask map inside the netcdf map
     """
 
-    #x, y , cellSize = readCoordNetCDF(name, check)
-
-    if check:
-        try:
-            nf1 = Dataset(name, 'r')
-        except:
-            msg = "Checking netcdf map \n"
-            raise CWATMFileError(name,msg)
-    else:
-        # if subroutine is called already from inside a try command
-        nf1 = Dataset(name, 'r')
-
-    lon0 = nf1.variables['lon'][0]
-    lon1 = nf1.variables['lon'][1]
-    lat0 = nf1.variables['lat'][0]
-    lat0 = nf1.variables['lat'][0]
-    latlast = nf1.variables['lat'][-1]
-    nf1.close()
-    # swap to make lat0 the biggest number
-    if lat0 < latlast:
-        lat0, latlast = latlast, lat0
-
-    cell = np.abs(lon1 - lon0)
-    invcell = round(1.0 / cell, 0)
-    lon = lon0 - cell / 2
-    lat = lat0 + cell / 2
-
-    """
-    x, y , cellSize = readCoordNetCDF(name, check)
-    factor = cellSize / maskmapAttr['cell']
-    coladd = int(maskmapAttr['col']/factor + 1.999)
-    rowadd = int(maskmapAttr['row'] / factor + 1.999)
-    #col 16 row 13
-    """
-
+    lat, lon, cell, invcell = readCoordNetCDF(name, check)
 
     # x0,xend, y0,yend - borders of fine resolution map
     lon0 = maskmapAttr['x']
@@ -688,7 +624,7 @@ def mapattrTiff(nf2):
 
     if maskmapAttr['invcell'] != invcell:
         msg = "Cell size different in maskmap: " + \
-            binding['MaskMap'] + " and: " + filename
+            binding['MaskMap']
         raise CWATMError(msg)
 
 
@@ -698,8 +634,6 @@ def mapattrTiff(nf2):
     cut2 = int(0.01 + np.abs(maskmapAttr['y'] - y) * invcell)
     cut1 = cut0 + maskmapAttr['col']
     cut3 = cut2 + maskmapAttr['row']
-
-
 
     return (cut0, cut1, cut2, cut3)
 
@@ -814,6 +748,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     try:
         mapnp.mask.all()
         mapnp = mapnp.data
+        mapnp[mapnp>1e15] = np.nan
     except:
         ii =1
 
