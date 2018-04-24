@@ -29,6 +29,7 @@ Community Water Model
    modeldesign
    publication
    setup
+   tutorial
    results
 
    todo

@@ -1185,9 +1185,7 @@ def writeIniNetcdf(netfile,varlist, inputlist):
         value.long_name= getmeta("long_name",varname,varname)
         value.units= getmeta("unit",varname,"undefined")
 
-
         # write values
-
         mapnp = maskinfo['maskall'].copy()
         help = np.minimum(10e15,np.maximum(-9999., inputlist[i][:]))
         mapnp[~maskinfo['maskflat']] = help

@@ -102,8 +102,8 @@ class waterdemand(object):
 
 
             # init unmetWaterDemand -> to calculate actual one the the unmet water demand from previous day is needed
-            self.var.unmetDemandPaddy = self.var.init_module.load_initial('unmetDemandPaddy')
-            self.var.unmetDemandNonpaddy = self.var.init_module.load_initial('unmetDemandNonpaddy')
+            self.var.unmetDemandPaddy = self.var.init_module.load_initial('unmetDemandPaddy', default = globals.inZero.copy())
+            self.var.unmetDemandNonpaddy = self.var.init_module.load_initial('unmetDemandNonpaddy', default = globals.inZero.copy())
             #self.var.unmetDemandPaddy = globals.inZero.copy()
             #self.var.unmetDemandNonpaddy = globals.inZero.copy()
 

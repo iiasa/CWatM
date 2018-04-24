@@ -25,6 +25,7 @@ Libraries
 These external libraries are needed:
 
 * `Numpy <http://www.numpy.org>`_
+* `Scipy <https://www.scipy.org>`_
 * `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
 * `GDAL <http://www.gdal.org>`_
 
