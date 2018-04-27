@@ -64,35 +64,39 @@ class CWATModel_ini(DynamicModel):
         self.MaskMap = loadsetclone('MaskMap')
 
 
-        # get the extent of the maps from the precipitation input maps
-        # and the modelling extent from the MaskMap
-        # cutmap[] defines the MaskMap inside the precipitation map
-        try:  # read meteomapscale: if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
-            self.meteomapsscale = returnBool('meteomapssamescale')
-        except:
-            self.meteomapsscale = True
-
-
         name = cbinding('PrecipitationMaps')
         #name1 = os.path.splitext(cbinding(('Ldd')))[0] + '.nc'
         nameall = glob.glob(os.path.normpath(name))
         if not nameall:
             raise CWATMFileError(name, sname='PrecipitationMaps')
-        name1 = nameall[0]
+        namemeteo = nameall[0]
+        latmeteo, lonmeteo, cell, invcellmeteo = readCoordNetCDF(namemeteo)
+        nameldd = cbinding('Ldd')
+        nameldd = os.path.splitext(nameldd)[0] + '.nc'
+        latldd, lonldd, cell, invcellldd = readCoordNetCDF(nameldd)
+        maskmapAttr['reso_mask_meteo'] = round(invcellldd / invcellmeteo)
 
-        if self.meteomapsscale:
-            cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(name1)
-            for i in range(4): cutmapFine[i] = cutmap[i]
 
-        else:
-            name2 = cbinding('Ldd')
-            name2 = os.path.splitext(name2)[0] + '.nc'
-            #cutmap[0], cutmap[1], cutmap[2], cutmap[3] =  mapattrNetCDF(name2)
-            cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(name2)
+        # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
+        self.meteomapsscale = True
+        if invcellmeteo != invcellldd:
+            msg = "Resolution of meteo forcing is " + str(maskmapAttr['reso_mask_meteo']) + " times higher than base maps."
+            print msg
+            self.meteomapsscale = False
 
-            cutmapFine[0], cutmapFine[1],cutmapFine[2],cutmapFine[3],cutmapVfine[0], cutmapVfine[1],cutmapVfine[2],cutmapVfine[3]  = mapattrNetCDFMeteo(name1)
-            #cutmapFine, cutmapVfine = mapattrNetCDFMeteo(name1)
+        cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(nameldd)
+        for i in range(4): cutmapFine[i] = cutmap[i]
 
+
+        if not(self.meteomapsscale):
+            cutmapFine[0], cutmapFine[1],cutmapFine[2],cutmapFine[3],cutmapVfine[0], cutmapVfine[1],cutmapVfine[2],cutmapVfine[3]  = mapattrNetCDFMeteo(namemeteo)
+            for i in range(4): cutmapGlobal[i] = cutmapFine[i]
+            # for downscaling it is always cut from the global map
+            if (latldd != latmeteo) or (lonldd != lonmeteo):
+                cutmapGlobal[0] = int(cutmap[0] / maskmapAttr['reso_mask_meteo'])
+                cutmapGlobal[2] = int(cutmap[2] / maskmapAttr['reso_mask_meteo'])
+                cutmapGlobal[1] = int(cutmap[1] / maskmapAttr['reso_mask_meteo']+0.999)
+                cutmapGlobal[3] = int(cutmap[3] / maskmapAttr['reso_mask_meteo']+0.999)
 
         if checkOption('writeNetcdfStack') or checkOption('writeNetcdf'):
             # if NetCDF is writen, the pr.nc is read to get the metadata

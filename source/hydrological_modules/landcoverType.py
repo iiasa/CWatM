@@ -67,9 +67,9 @@ class landcoverType(object):
                          'effSatAt50',  'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin','rootZoneWaterStorageRange',
                          'totalPotET','potTranspiration','soilWaterStorage',
                          'infiltration','actBareSoilEvap','landSurfaceRunoff','actTransTotal',
-                         'gwRecharge','interflow','actualET','irrGrossDemand',
+                         'gwRecharge','interflow','actualET','irrConsumption','irrDemand',
                          'topWaterLayer',
-                         'totalPotentialGrossDemand','actSurfaceWaterAbstract','allocSurfaceWaterAbstract','potGroundwaterAbstract',
+                         'totalPotentialDemand','actSurfaceWaterAbstract','allocSurfaceWaterAbstract','potGroundwaterAbstract',
                          'perc3toGW','capRiseFromGW','netPercUpper','netPerc','prefFlow']
         # for 6 landcover types
         for variable in landcoverVars:  vars(self.var)[variable] = np.tile(globals.inZero,(6,1))
@@ -523,7 +523,7 @@ class landcoverType(object):
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.sum_availWaterInfiltration,self.var.sum_capRiseFromGW,self.var.act_irrGrossWithdrawal],                             # In  self.var.irrGrossDemand
+                [self.var.sum_availWaterInfiltration,self.var.sum_capRiseFromGW,self.var.act_irrDemand],                             # In
                 [self.var.sum_directRunoff,self.var.sum_perc3toGW, self.var.sum_prefFlow, \
                  self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap],                                                                # Out
                 [pretop,preStor1,preStor2,preStor3],                                       # prev storage
@@ -532,16 +532,15 @@ class landcoverType(object):
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Rain,self.var.SnowMelt,self.var.sum_capRiseFromGW,self.var.act_irrGrossWithdrawal],                             # In  self.var.irrGrossDemand
-                [self.var.sum_directRunoff,self.var.sum_perc3toGW, self.var.sum_prefFlow, \
-                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap,self.var.sum_interceptEvap],                                                                # Out
+                [self.var.Rain,self.var.SnowMelt,self.var.sum_capRiseFromGW,self.var.act_irrDemand,                             # In
+                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap,self.var.sum_interceptEvap],                                                               # Out
                 [pretop,preStor1,preStor2,preStor3,preIntStor],                                       # prev storage
                 [self.var.sum_w1, self.var.sum_w2, self.var.sum_w3,self.var.sum_interceptStor,self.var.sum_topwater],
                 "Soil_sum11", False)
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Rain,self.var.SnowMelt,self.var.waterWithdrawal],                             # In  self.var.irrGrossDemand
+                [self.var.Rain,self.var.SnowMelt,self.var.waterWithdrawal],                             # In
                 [self.var.sum_directRunoff,self.var.sum_interflow,self.var.sum_gwRecharge,
                  self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap,self.var.sum_interceptEvap],                                                                # Out
                 [pretop,preStor1,preStor2,preStor3,preIntStor],                                       # prev storage
@@ -551,7 +550,7 @@ class landcoverType(object):
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation,self.var.act_irrGrossWithdrawal],                             # In  self.var.irrGrossDemand
+                [self.var.Precipitation,self.var.act_irrDemand],                             # In
                 [self.var.sum_directRunoff,self.var.sum_interflow,self.var.sum_gwRecharge, \
                  self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap,self.var.sum_interceptEvap,self.var.snowEvap],                                                                # Out
                 [pretop,preStor1,preStor2,preStor3,preIntStor,self.var.prevSnowCover],                                       # prev storage
@@ -560,7 +559,7 @@ class landcoverType(object):
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation,self.var.act_irrGrossWithdrawal],                             # In  self.var.irrGrossDemand
+                [self.var.Precipitation,self.var.act_irrDemand],                             # In
                 [self.var.sum_directRunoff,self.var.sum_interflow,self.var.sum_gwRecharge, \
                  self.var.totalET],                                                                # Out
                 [self.var.pretotalSto],                                       # prev storage

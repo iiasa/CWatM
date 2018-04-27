@@ -31,7 +31,7 @@ modelSteps=[]
 xmlstring=[]
 
 global binding, option, FlagName, Flags, ReportSteps, FilterSteps, EnsMembers, outputDir
-global MMaskMap, maskmapAttr, bigmapAttr, cutmap, cutmapFine, cutmapVfine, metadataNCDF
+global MMaskMap, maskmapAttr, bigmapAttr, cutmap, cutmapGlobal, cutmapFine, cutmapVfine, metadataNCDF
 global timestepInit
 global metaNetcdfVar
 global inputcounter
@@ -80,6 +80,7 @@ outputDir = []
 maskmapAttr = {}
 bigmapAttr = {}
 cutmap = [0, 1, 0, 1]
+cutmapGlobal = [0, 1, 0, 1]
 cutmapFine = [0, 1, 0, 1]
 cutmapVfine = [0, 1, 0, 1]
 cdfFlag = [0, 0, 0,0,0,0,0]  # flag for netcdf output for all, steps and end, monthly (steps), yearly(steps), monthly , yearly

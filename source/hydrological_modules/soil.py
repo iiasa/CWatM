@@ -140,7 +140,7 @@ class soil(object):
             ii=1
 
         availWaterInfiltration = self.var.availWaterInfiltration[No].copy()
-        availWaterInfiltration = availWaterInfiltration + self.var.irrGrossDemand[No]
+        availWaterInfiltration = availWaterInfiltration + self.var.irrConsumption[No]
         # availWaterInfiltration = water net from precipitation (- soil - interception - snow + snow melt) + water for irrigation
 
 
@@ -557,7 +557,7 @@ class soil(object):
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No],self.var.irrGrossDemand[No]],  # In  water demand included in availwater
+                [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No],self.var.irrDemand[No]],  # In  water demand included in availwater
                 [self.var.directRunoff[No],self.var.perc3toGW[No], self.var.prefFlow[No] ,  \
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [ preStor1, preStor2, preStor3,pretopwater],  # prev storage
@@ -566,7 +566,7 @@ class soil(object):
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.irrGrossDemand[No],self.var.openWaterEvap[No]],  # In
+                [self.var.availWaterInfiltration[No], self.var.irrDemand[No],self.var.openWaterEvap[No]],  # In
                 [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No],  \
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [ preStor1, preStor2, preStor3],  # prev storage
@@ -576,7 +576,7 @@ class soil(object):
 
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.irrGrossDemand[No],self.var.snowEvap,self.var.interceptEvap[No]],  # In
+                [self.var.availWaterInfiltration[No], self.var.irrDemand[No],self.var.snowEvap,self.var.interceptEvap[No]],  # In
                 [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No], \
                  self.var.actualET[No]],  # Out
                 [preStor1, preStor2, preStor3],  # prev storage

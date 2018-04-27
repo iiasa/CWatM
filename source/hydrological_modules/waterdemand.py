@@ -81,7 +81,7 @@ class waterdemand(object):
                 if not(returnBool('livestockTimeMonthly')): self.var.livestockTime = 'yearly'
 
             # variablenames
-            # name of the variable Withrawal = Gross, consumption = Netto
+            # name of the variable Demand = Withrawal = Gross, consumption = Netto
             if "domesticWithdrawalvarname" in binding:
                 self.var.domWithdrawalVar = cbinding("domesticWithdrawalvarname")
                 self.var.domConsumptionVar = cbinding("domesticConsuptionvarname")
@@ -102,12 +102,16 @@ class waterdemand(object):
 
 
             # init unmetWaterDemand -> to calculate actual one the the unmet water demand from previous day is needed
-            self.var.unmetDemandPaddy = self.var.init_module.load_initial('unmetDemandPaddy')
-            self.var.unmetDemandNonpaddy = self.var.init_module.load_initial('unmetDemandNonpaddy')
+            self.var.unmetDemandPaddy = self.var.init_module.load_initial('unmetDemandPaddy', default = globals.inZero.copy())
+            self.var.unmetDemandNonpaddy = self.var.init_module.load_initial('unmetDemandNonpaddy', default = globals.inZero.copy())
             #self.var.unmetDemandPaddy = globals.inZero.copy()
             #self.var.unmetDemandNonpaddy = globals.inZero.copy()
 
-
+            # irrigation efficiency
+            # at the moment a single map, but will be replaced by map stack for every year
+            self.var.efficiencyPaddy = loadmap("irrPaddy_efficiency")
+            self.var.efficiencyNonpaddy = loadmap("irrNonPaddy_efficiency")
+            self.var.returnfractionIrr = loadmap("irrigation_returnfraction")
 
 
 
@@ -119,15 +123,15 @@ class waterdemand(object):
 
 
         else:  # no water demand
-            self.var.nonIrrGrossDemand = 0
+            self.var.nonIrrDemand = 0
             self.var.nonIrrReturnFlowFraction = 0
             self.var.nonFossilGroundwaterAbs = 0
 
 
 
-            self.var.sumIrrGrossDemand = 0
-            self.var.waterWithdrawal = 0
-            self.var.act_irrGrossWithdrawal = 0
+            self.var.sumIrrDemand = 0
+            self.var.waterDemand = 0
+            self.var.act_irrDemand = 0
             self.var.unmetDemand = 0
 
             self.var.unmetDemandPaddy = globals.inZero.copy()
@@ -148,7 +152,7 @@ class waterdemand(object):
         Dynamic part of the water demand module
 
         * calculate the fraction of water from surface water vs. groundwater
-        * get non-Irrigation GROSS water demand and its return flow fraction
+        * get non-Irrigation water demand and its return flow fraction
         """
 
         #
@@ -194,20 +198,20 @@ class waterdemand(object):
             if self.var.industryTime == 'monthly': new = 'newMonth'
 
             if dateVar['newStart'] or dateVar[new]:
-                self.var.industryGrossDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], self.var.industryTime, value=self.var.indWithdrawalVar)
-                self.var.industryNettoDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], self.var.industryTime, value=self.var.indConsumptionVar)
-                self.var.industryGrossDemand = np.where(self.var.industryGrossDemand > self.var.InvCellArea, self.var.industryGrossDemand, 0.0)
-                self.var.industryNettoDemand = np.where(self.var.industryNettoDemand > self.var.InvCellArea, self.var.industryNettoDemand, 0.0)
+                self.var.industryDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], self.var.industryTime, value=self.var.indWithdrawalVar)
+                self.var.industryConsumption = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], self.var.industryTime, value=self.var.indConsumptionVar)
+                self.var.industryDemand = np.where(self.var.industryDemand > self.var.InvCellArea, self.var.industryDemand, 0.0)
+                self.var.industryConsumption = np.where(self.var.industryConsumption > self.var.InvCellArea, self.var.industryConsumption, 0.0)
 
             # domestic water demand
             new = 'newYear'
             if self.var.domesticTime == 'monthly': new = 'newMonth'
             if dateVar['newStart'] or dateVar[new]:
-                self.var.domesticGrossDemand = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.domWithdrawalVar)
-                self.var.domesticNettoDemand = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.domConsumptionVar)
+                self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.domWithdrawalVar)
+                self.var.domesticConsumption = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.domConsumptionVar)
                 # avoid small values (less than 1 m3):
-                self.var.domesticGrossDemand = np.where(self.var.domesticGrossDemand > self.var.InvCellArea, self.var.domesticGrossDemand, 0.0)
-                self.var.domesticNettoDemand = np.where(self.var.domesticNettoDemand > self.var.InvCellArea, self.var.domesticNettoDemand, 0.0)
+                self.var.domesticDemand = np.where(self.var.domesticDemand > self.var.InvCellArea, self.var.domesticDemand, 0.0)
+                self.var.domesticConsumption = np.where(self.var.domesticConsumption > self.var.InvCellArea, self.var.domesticConsumption, 0.0)
 
                 # livestock water demand
             if self.var.uselivestock:
@@ -223,10 +227,10 @@ class waterdemand(object):
 
             if dateVar['newStart'] or dateVar['newMonth']:
                 # total (potential) non irrigation water demand
-                self.var.nonIrrGrossDemand = self.var.domesticGrossDemand + self.var.industryGrossDemand + self.var.livestockDemand
-                self.var.nonIrrNettoDemand = np.minimum(self.var.nonIrrGrossDemand, self.var.domesticNettoDemand + self.var.industryNettoDemand + self.var.livestockDemand)
+                self.var.nonIrrDemand = self.var.domesticDemand + self.var.industryDemand + self.var.livestockDemand
+                self.var.nonIrrConsumption = np.minimum(self.var.nonIrrDemand, self.var.domesticConsumption + self.var.industryConsumption + self.var.livestockDemand)
                 # fraction of return flow from domestic and industrial water demand
-                self.var.nonIrrReturnFlowFraction = divideValues((self.var.nonIrrGrossDemand - self.var.nonIrrNettoDemand), self.var.nonIrrGrossDemand)
+                self.var.nonIrrReturnFlowFraction = divideValues((self.var.nonIrrDemand - self.var.nonIrrConsumption), self.var.nonIrrDemand)
 
 
 
@@ -237,12 +241,14 @@ class waterdemand(object):
 
             # irrigation water demand for paddy
             No = 2
-            self.var.irrGrossDemand[No] = 0.0
+            self.var.irrConsumption[No] = 0.0
             # a function of cropKC (evaporation and transpiration) and available water see Wada et al. 2014 p. 19
-            self.var.irrGrossDemand[No] = np.where(self.var.cropKC[No] > 0.75, np.maximum(0.,(self.var.alphaDepletion * self.var.maxtopwater - (self.var.topwater + self.var.availWaterInfiltration[
-                No]))), 0.)
+            self.var.irrConsumption[No] = np.where(self.var.cropKC[No] > 0.75, np.maximum(0.,(self.var.alphaDepletion * self.var.maxtopwater - (self.var.topwater +
+                                        self.var.availWaterInfiltration[No]))), 0.)
             # ignore demand if less than 1 m3
-            self.var.irrGrossDemand[No] = np.where(self.var.irrGrossDemand[No] > self.var.InvCellArea, self.var.irrGrossDemand[No], 0)
+            self.var.irrConsumption[No] = np.where(self.var.irrConsumption[No] > self.var.InvCellArea, self.var.irrConsumption[No], 0)
+            self.var.irrDemand[No] = self.var.irrConsumption[No] / self.var.efficiencyPaddy
+
 
 
             # irrNonPaddy
@@ -302,28 +308,34 @@ class waterdemand(object):
             critAvlWater = critWaterPlant1 + critWaterPlant2 # + critWaterPlant3
 
             # with alpha from Xiaogang He, to adjust irrigation to farmer's need
-            self.var.irrGrossDemand[No] = np.where(self.var.cropKC[No] > 0.20, np.where(readAvlWater < self.var.alphaDepletion * critAvlWater,
+            self.var.irrConsumption[No] = np.where(self.var.cropKC[No] > 0.20, np.where(readAvlWater < self.var.alphaDepletion * critAvlWater,
                                                             np.maximum(0.0, self.var.alphaDepletion * self.var.totAvlWater - readAvlWater),  0.), 0.)
             # should not be bigger than infiltration capacity
-            self.var.irrGrossDemand[No] = np.minimum(self.var.irrGrossDemand[No],potInf)
+            self.var.irrConsumption[No] = np.minimum(self.var.irrConsumption[No],potInf)
 
             # ignore demand if less than 1 m3
-            self.var.irrGrossDemand[No] = np.where(self.var.irrGrossDemand[No] > self.var.InvCellArea, self.var.irrGrossDemand[No], 0)
+            self.var.irrConsumption[No] = np.where(self.var.irrConsumption[No] > self.var.InvCellArea, self.var.irrConsumption[No], 0)
+            self.var.irrConsumption[No] = self.var.irrConsumption[No] / self.var.efficiencyNonpaddy
+
+
+
+
 
             # Sum up irrigation water demand
-            self.var.sumIrrGrossDemand = self.var.fracVegCover[2] * self.var.irrGrossDemand[2] + self.var.fracVegCover[3] * self.var.irrGrossDemand[3]
-            irrPaddyDemand = self.var.fracVegCover[2] * self.var.irrGrossDemand[2]
-            irrNonpaddyDemand = self.var.fracVegCover[3] * self.var.irrGrossDemand[3]
+            irrPaddyDemand = self.var.fracVegCover[2] * self.var.irrDemand[2]
+            irrNonpaddyDemand = self.var.fracVegCover[3] * self.var.irrDemand[3]
+            self.var.sumIrrDemand = irrPaddyDemand +  irrPaddyDemand
+
 
             # Sum up water demand
-            # totalGrossDemand [m]: total maximum (potential) water demand: irrigation and non irrigation
-            totalPotGrossDemand = self.var.nonIrrGrossDemand + self.var.sumIrrGrossDemand  # in [m]
+            # totalDemand [m]: total maximum (potential) water demand: irrigation and non irrigation
+            totalPotDemand = self.var.nonIrrDemand + self.var.sumIrrDemand  # in [m]
 
 
-            # surface water abstraction that can be extracted to fulfill totalGrossDemand
-            # - based on ChannelStorage and swAbstractionFraction * totalPotGrossDemand
+            # surface water abstraction that can be extracted to fulfill totalDemand
+            # - based on ChannelStorage and swAbstractionFraction * totalPotDemand
             # sum up potentiel surface water abstraction (no groundwater abstraction under water and sealed area)
-            potSurfaceAbstract = totalPotGrossDemand * self.var.swAbstractionFraction
+            potSurfaceAbstract = totalPotDemand * self.var.swAbstractionFraction
 
 
 
@@ -339,8 +351,8 @@ class waterdemand(object):
 
 
                 if checkOption('includeWaterBodies'):
-                    #self.var.potGroundwaterAbstract = totalPotGrossDemand - self.var.actSurfaceWaterAbstract
-                    #realswAbstractionFraction = divideValues(self.var.actSurfaceWaterAbstract, totalPotGrossDemand)
+                    #self.var.potGroundwaterAbstract = totalPotDemand - self.var.actSurfaceWaterAbstract
+                    #realswAbstractionFraction = divideValues(self.var.actSurfaceWaterAbstract, totalPotDemand)
 
                     # water that is still needed from surface water
                     remainNeed = potSurfaceAbstract - self.var.actSurfaceWaterAbstract
@@ -379,12 +391,12 @@ class waterdemand(object):
 
                     # remaining is taken from groundwater if possible
                     remainNeed2 = potSurfaceAbstract - (self.var.actSurfaceWaterAbstract + self.var.actbigLakeResAbst + self.var.actsmallLakeResAbst)
-                    self.var.potGroundwaterAbstract = totalPotGrossDemand - (self.var.actSurfaceWaterAbstract + self.var.actsmallLakeResAbst)
+                    self.var.potGroundwaterAbstract = totalPotDemand - (self.var.actSurfaceWaterAbstract + self.var.actsmallLakeResAbst)
                     # real surface water abstraction can be lower, because not all demand can be done from surface water
-                    realswAbstractionFraction = divideValues(self.var.actSurfaceWaterAbstract + self.var.actsmallLakeResAbst, totalPotGrossDemand)
+                    realswAbstractionFraction = divideValues(self.var.actSurfaceWaterAbstract + self.var.actsmallLakeResAbst, totalPotDemand)
                 else:
-                    self.var.potGroundwaterAbstract = totalPotGrossDemand - self.var.actSurfaceWaterAbstract
-                    realswAbstractionFraction = divideValues(self.var.actSurfaceWaterAbstract, totalPotGrossDemand)
+                    self.var.potGroundwaterAbstract = totalPotDemand - self.var.actSurfaceWaterAbstract
+                    realswAbstractionFraction = divideValues(self.var.actSurfaceWaterAbstract, totalPotDemand)
 
 
 
@@ -408,63 +420,80 @@ class waterdemand(object):
                 # allocation rule here: domestic& industry > irrigation > paddy
 
                 # nonirrgated demand: adjusted (and maybe increased) by gwabstration factor
-                nonIrrGrossDemandGW = self.var.nonIrrGrossDemand  * (1- realswAbstractionFraction)
+                nonIrrDemandGW = self.var.nonIrrDemand  * (1- realswAbstractionFraction)
 
                 # if nonirrgated water demand is higher than actual growndwater abstraction (wwhat is needed and what is stored in gw)
-                nonIrrGrossDemandGW  = np.where(nonIrrGrossDemandGW > self.var.nonFossilGroundwaterAbs, self.var.nonFossilGroundwaterAbs, nonIrrGrossDemandGW)
-                self.var.act_nonIrrGrossWithdrawal = realswAbstractionFraction * self.var.nonIrrGrossDemand + nonIrrGrossDemandGW
+                nonIrrDemandGW  = np.where(nonIrrDemandGW > self.var.nonFossilGroundwaterAbs, self.var.nonFossilGroundwaterAbs, nonIrrDemandGW)
+                self.var.act_nonIrrDemand = realswAbstractionFraction * self.var.nonIrrDemand + nonIrrDemandGW
 
 
-                sum_irrGrossDemandGW = self.var.sumIrrGrossDemand  * (1- realswAbstractionFraction)
-                sum_irrGrossDemandGW = np.minimum(self.var.nonFossilGroundwaterAbs - nonIrrGrossDemandGW, sum_irrGrossDemandGW)
-                self.var.act_irrGrossWithdrawal = realswAbstractionFraction * self.var.sumIrrGrossDemand + sum_irrGrossDemandGW
+                sum_irrDemandGW = self.var.sumIrrDemand  * (1- realswAbstractionFraction)
+                sum_irrDemandGW = np.minimum(self.var.nonFossilGroundwaterAbs - nonIrrDemandGW, sum_irrDemandGW)
+                self.var.act_irrDemand = realswAbstractionFraction * self.var.sumIrrDemand + sum_irrDemandGW
 
                 # nonpaddy
-                irrnonpaddyGW = self.var.fracVegCover[3] * (1- realswAbstractionFraction) * self.var.irrGrossDemand[3]
-                irrnonpaddyGW = np.minimum(self.var.nonFossilGroundwaterAbs - nonIrrGrossDemandGW, irrnonpaddyGW)
-                self.var.act_irrNonpaddyWithdrawal = self.var.fracVegCover[3] * realswAbstractionFraction * self.var.irrGrossDemand[3]  +  irrnonpaddyGW
+                irrnonpaddyGW = self.var.fracVegCover[3] * (1- realswAbstractionFraction) * self.var.irrDemand[3]
+                irrnonpaddyGW = np.minimum(self.var.nonFossilGroundwaterAbs - nonIrrDemandGW, irrnonpaddyGW)
+                self.var.act_irrNonpaddyWithdrawal = self.var.fracVegCover[3] * realswAbstractionFraction * self.var.irrDemand[3]  +  irrnonpaddyGW
                 # paddy
-                irrpaddyGW = self.var.fracVegCover[2] * (1 - realswAbstractionFraction) * self.var.irrGrossDemand[2]
-                irrpaddyGW = np.minimum(self.var.nonFossilGroundwaterAbs - nonIrrGrossDemandGW - irrnonpaddyGW, irrpaddyGW)
-                self.var.act_irrPaddyWithdrawal = self.var.fracVegCover[2] * realswAbstractionFraction * self.var.irrGrossDemand[2]  +  irrpaddyGW
+                irrpaddyGW = self.var.fracVegCover[2] * (1 - realswAbstractionFraction) * self.var.irrDemand[2]
+                irrpaddyGW = np.minimum(self.var.nonFossilGroundwaterAbs - nonIrrDemandGW - irrnonpaddyGW, irrpaddyGW)
+                self.var.act_irrPaddyDemand = self.var.fracVegCover[2] * realswAbstractionFraction * self.var.irrDemand[2]  +  irrpaddyGW
 
                 # back to non fraction values
-                self.var.irrGrossDemand[2] = divideValues(self.var.act_irrPaddyWithdrawal, self.var.fracVegCover[2])
-                self.var.irrGrossDemand[3] = divideValues(self.var.act_irrNonpaddyWithdrawal, self.var.fracVegCover[3])
+                self.var.irrDemand[2] = divideValues(self.var.act_irrPaddyDemand, self.var.fracVegCover[2])
+                self.var.irrDemand[3] = divideValues(self.var.act_irrNonpaddyWithdrawal, self.var.fracVegCover[3])
+                # consumption - irrigation (without loss) = demand  * efficiency
+                self.var.irrConsumption[2] = self.var.irrDemand[2] * self.var.efficiencyPaddy
+                self.var.irrConsumption[3] = self.var.irrDemand[3] * self.var.efficiencyNonpaddy
+
+                # calculate real water demand, because irr demand has still demand from previous day included
+                # if the demand from previous day is not fulfilled it is taken to the next day and so on
+                # if we do not correct we double account each day the demand from previous days
+                self.var.act_irrPaddyDemand = np.maximum(0, irrPaddyDemand - self.var.unmetDemandPaddy)
+                self.var.act_irrNonpaddyDeman = np.maximum(0, irrNonpaddyDemand - self.var.unmetDemandNonpaddy)
+
+                # unmet is either potGroundwaterAbstract - self.var.nonFossilGroundwaterAbs or demand - withdrawal
+                #self.var.unmetDemand = np.maximum(0.0, self.var.potGroundwaterAbstract - self.var.nonFossilGroundwaterAbs)
+                self.var.unmetDemand = (self.var.sumIrrDemand - self.var.act_irrDemand) + (self.var.nonIrrDemand - self.var.act_nonIrrDemand)
+                self.var.unmetDemandPaddy = irrPaddyDemand - self.var.act_irrPaddyDemand
+                self.var.unmetDemandNonpaddy = irrNonpaddyDemand - self.var.act_irrNonpaddyDemand
+
 
             else:
                 # Fossil groundwater abstractions are allowed
                 ii =1
-                self.var.act_nonIrrGrossWithdrawal = self.var.nonIrrGrossDemand
-                self.var.act_irrGrossWithdrawal = self.var.sumIrrGrossDemand
-                self.var.act_irrNonpaddyWithdrawal = self.var.fracVegCover[3] * self.var.irrGrossDemand[3]
-                self.var.act_irrPaddyWithdrawal = self.var.fracVegCover[2] * self.var.irrGrossDemand[2]
+                self.var.act_nonIrrDemand = self.var.nonIrrDemand
+                self.var.act_irrDemand = self.var.sumIrrDemand
+                self.var.act_irrNonpaddyDemand = self.var.fracVegCover[3] * self.var.irrDemand[3]
+                self.var.act_irrPaddyDemand = self.var.fracVegCover[2] * self.var.irrDemand[2]
 
             if (dateVar['curr'] == 1):
                 ii = 1
 
-
-            # calculate real water demand, because irr demand has still demand from previous day included
-            self.var.act_demandIrrPaddy = np.maximum(0, irrPaddyDemand - self.var.unmetDemandPaddy)
-            self.var.act_demandIrrNonpaddy = np.maximum(0, irrNonpaddyDemand - self.var.unmetDemandNonpaddy)
-            self.var.waterDemand =  self.var.act_demandIrrPaddy  + self.var.act_demandIrrNonpaddy + self.var.nonIrrGrossDemand
-            self.var.waterWithdrawal = self.var.act_nonIrrGrossWithdrawal + self.var.act_irrGrossWithdrawal
-
-            # unmet is either potGroundwaterAbstract - self.var.nonFossilGroundwaterAbs or demand - withdrawal
-            #self.var.unmetDemand = np.maximum(0.0, self.var.potGroundwaterAbstract - self.var.nonFossilGroundwaterAbs)
-            self.var.unmetDemand = (self.var.sumIrrGrossDemand - self.var.act_irrGrossWithdrawal) + (self.var.nonIrrGrossDemand - self.var.act_nonIrrGrossWithdrawal)
-            self.var.unmetDemandPaddy = irrPaddyDemand - self.var.act_irrPaddyWithdrawal
-            self.var.unmetDemandNonpaddy = irrNonpaddyDemand - self.var.act_irrNonpaddyWithdrawal
+            self.var.waterDemand =  self.var.act_irrPaddyDemand  + self.var.act_irrNonpaddyDemand + self.var.nonIrrDemand
+            self.var.waterWithdrawal = self.var.act_nonIrrDemand + self.var.act_irrDemand
 
 
 
 
+            #Sum up loss
+            sumIrrLoss = self.var.fracVegCover[2] * (self.var.irrDemand[2] - self.var.irrConsumption[2]) +  self.var.fracVegCover[3] * (self.var.irrDemand[3] - self.var.irrConsumption[3])
+            #sumIrrLoss = self.var.act_irrPaddyDemand - (self.var.fracVegCover[2] * self.var.irrConsumption[2]) +
+            returnflowIrr =  self.var.returnfractionIrr * sumIrrLoss
+            addtoevapotrans = (1- self.var.returnfractionIrr) *  sumIrrLoss
+
+
+
+            # returnflow to river and to evapotranspiration
+            self.var.returnFlow = self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrDemand + returnflowIrr
+            self.var.sum_actualET += addtoevapotrans
 
 
 
             if checkOption('calcWaterBalance'):
                 self.var.waterbalance_module.waterBalanceCheck(
-                    [self.var.nonIrrGrossDemand, self.var.sumIrrGrossDemand],  # In
+                    [self.var.nonIrrDemand, self.var.sumIrrDemand],  # In
                     [self.var.nonFossilGroundwaterAbs, self.var.unmetDemand, self.var.actSurfaceWaterAbstract],  # Out
                     [globals.inZero],
                     [globals.inZero],
@@ -482,8 +511,8 @@ class waterdemand(object):
 
             if checkOption('calcWaterBalance'):
                 self.var.waterbalance_module.waterBalanceCheck(
-                    [self.var.act_irrGrossWithdrawal],  # In
-                    [self.var.fracVegCover[2]* self.var.irrGrossDemand[2], self.var.fracVegCover[3]* self.var.irrGrossDemand[3]],  # Out
+                    [self.var.act_irrWithdrawal],  # In
+                    [self.var.fracVegCover[2]* self.var.irrDemand[2], self.var.fracVegCover[3]* self.var.irrDemand[3]],  # Out
                     [globals.inZero],
                     [globals.inZero],
                     "Waterdemand4", True)
