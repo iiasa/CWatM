@@ -38,12 +38,4 @@ Community Water Model
    calibration
    license
 
-   
-
-#######################
-Indices and tables
-#######################
-
 * :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

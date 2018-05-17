@@ -149,19 +149,12 @@ class routing_kinematic(object):
 
         #self.var.channelAlphaPcr = decompress(self.var.channelAlpha)
         #self.var.chanLengthPcr = decompress(self.var.chanLength)
-        """
-        self.var.timestepsToAvgDischarge = globals.inZero.copy()
+
 
         if checkOption('sumWaterBalance'):
-            self.var.catchmentAll = loadmap('Catchment').astype(np.int)
-            self.var.catchmentNo = int(loadmap('CatchmentNo'))
-
-            lddnp = loadmap('Ldd')
-            # all last outflow points are marked
-            self.var.outlets = np.where(lddnp ==5, self.var.catchmentAll, 0)
+            self.var.catchmentAll = (loadmap('MaskMap')*0.).astype(np.int)
+            #self.var.catchmentNo = int(loadmap('CatchmentNo'))
             ii =1
-        """
-
 
 
 
@@ -192,11 +185,8 @@ class routing_kinematic(object):
 
         if checkOption('calcWaterBalance'):
             self.var.prechannelStorage = self.var.channelStorage.copy()
-            #preRes = globals.inZero.copy()
-            #np.put(preRes,self.var.decompress_LR,self.var.reservoirStorageM3C)
-            #self.var.preRes = self.var.reservoirStorageM3C.copy()
-
-
+            if checkOption('includeWaterBodies'):
+                self.var.prelakeResStorage = self.var.lakeResStorage.copy()
 
 
         Qnew = globals.inZero.copy()
@@ -209,11 +199,11 @@ class routing_kinematic(object):
 
         EWRefact =  self.var.lakeEvaFactor * self.var.EWRef - self.var.openWaterEvap[5]
         # evaporation from channel minus the calculated evaporation from rainfall
-        self.var.EvaAddM = EWRefact * channelFraction * self.var.cellArea
-        #self.var.EvaAddM = self.var.EWRef * channelFraction * self.var.cellArea
+        self.var.EvapoChannel = EWRefact * channelFraction * self.var.cellArea
+        #self.var.EvapoChannel = self.var.EWRef * channelFraction * self.var.cellArea
 
         # restrict to 95% of channel storage -> something should stay in the river
-        self.var.EvaAddM = np.where((0.95 * self.var.channelStorage - self.var.EvaAddM) > 0.0, self.var.EvaAddM, 0.95 * self.var.channelStorage)
+        self.var.EvapoChannel = np.where((0.95 * self.var.channelStorage - self.var.EvapoChannel) > 0.0, self.var.EvapoChannel, 0.95 * self.var.channelStorage)
 
 
 
@@ -241,26 +231,30 @@ class routing_kinematic(object):
             # ------------------------------------------------------------
             # evaporation from water bodies (m3), will be limited by available water in lakes and reservoirs
             # calculate outflow from lakes and reservoirs
+
+            # average evaporation overeach lake
             EWRefavg = npareaaverage(EWRefact, self.var.waterBodyID)
+            # evaporation for the whole lake for each routing step
             eWaterBody = np.maximum(0.0, EWRefavg * self.var.lakeArea) / self.var.noRoutingSteps
-            #eWaterBody = np.maximum(0.0, EWRefact * self.var.lakeArea) / self.var.noRoutingSteps
-
+            # compressed to the number lakes
             self.var.evapWaterBodyC = self.var.lakeEvaFactorC  * np.compress(self.var.compress_LR, eWaterBody)
-            
-            self.var.EvaAddM = np.where(self.var.waterBodyID > 0, (1-self.var.fracVegCover[5]) * self.var.EvaAddM, self.var.EvaAddM)
-            self.var.riverbedExchange = np.where(self.var.waterBodyID > 0, 0., self.var.riverbedExchange)
+            # exclude evaporation where lakes are, because they are filled in again with evapWaterBodyC
+            self.var.EvapoChannel = np.where(self.var.waterBodyID > 0, (1-self.var.fracVegCover[5]) * self.var.EvapoChannel, self.var.EvapoChannel)
+            #self.var.riverbedExchange = np.where(self.var.waterBodyID > 0, 0., self.var.riverbedExchange)
 
-        #report(decompress(self.var.sumsum_Precipitation), "c:\work\output\Prsum.map")
+            # sum of all routingsteps of evaporation from lakes and reservoirs   - set to 0 each time step
+            self.var.sumResEvapWaterBodyC = self.var.evapWaterBodyC * 0.
+            self.var.sumLakeEvapWaterBodyC = self.var.evapWaterBodyC * 0.
 
-        EvaAddM3Dt = self.var.EvaAddM / self.var.noRoutingSteps
-
-        riverbedExchangeDt = self.var.riverbedExchange / self.var.noRoutingSteps
+        EvapoChannelM3Dt = self.var.EvapoChannel / self.var.noRoutingSteps
+        #riverbedExchangeDt = self.var.riverbedExchange / self.var.noRoutingSteps
 
         if checkOption('inflow'):
             self.var.QDelta = (self.var.inflowM3 - self.var.QInM3Old) / self.var.noRoutingSteps
             # difference between old and new inlet flow  per sub step
             # in order to calculate the amount of inlet flow in the routing loop
 
+        WDAddM3Dt = 0
         if checkOption('includeWaterDemand'):
              WDAddM3Dt = self.var.actSurfaceWaterAbstract.copy()
              #return flow from (m) non irrigation water demand
@@ -288,11 +282,17 @@ class routing_kinematic(object):
         # ************************************************************
 
         #sideflowChan = sideflowChan / self.var.noRoutingSteps
+        self.var.sumsideflow = 0
+
+
+        self.var.prechannelStorage = self.var.channelAlpha * self.var.chanLength * self.var.discharge ** self.var.beta
+
+
         for subrouting in xrange(self.var.noRoutingSteps):
 
             sideflowChanM3 = runoffM3.copy()
             # minus evaporation from channels
-            sideflowChanM3 -= EvaAddM3Dt
+            sideflowChanM3 -= EvapoChannelM3Dt
             # minus riverbed exchange
             #sideflowChanM3 -= riverbedExchangeDt
 
@@ -310,6 +310,10 @@ class routing_kinematic(object):
                 lakesResOut, lakeOutflowDis = self.lakes_reservoirs_module.dynamic_inloop(subrouting)
                 sideflowChanM3 += lakesResOut
 
+            else:
+                lakesResOut = 0
+
+
             #sideflowChan = sideflowChanM3 * self.var.invchanLength * self.var.InvDtSec
             sideflowChan = sideflowChanM3 * self.var.invchanLength * 1/ self.var.dtRouting
 
@@ -320,17 +324,15 @@ class routing_kinematic(object):
                lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown, self.var.dirupLen, self.var.dirupID, Qnew, self.var.channelAlpha, self.var.beta, self.var.dtRouting, self.var.chanLength, self.var.lendirDown)
             self.var.discharge = Qnew.copy()
 
+        self.var.sumsideflow = self.var.sumsideflow + sideflowChanM3
+
 
         # -- end substeping ---------------------
-        #self.var.channelStorageBefore = self.var.channelStorage.copy()
         if checkOption('includeWaterBodies'):
             # if there is a lake no discharge is calculated in the routing routine.
             # therefore this is filled up with the discharge which goes outof the lake
             # these outflow is used for the whole lake
             self.var.discharge = np.where(self.var.waterBodyID > 0, lakeOutflowDis, self.var.discharge)
-
-
-
 
         self.var.channelStorage = self.var.channelAlpha * self.var.chanLength * Qnew ** self.var.beta
 
@@ -339,39 +341,83 @@ class routing_kinematic(object):
              self.var.QInM3Old = self.var.inflowM3.copy()
 
 
+
+        ch1 = self.var.prechannelStorage/self.var.cellArea
+        ch2 = self.var.channelStorage/self.var.cellArea
+        #avgArea = npareaaverage(self.var.cellArea, self.var.catchmentAll)
+        DisOut = self.var.discharge * self.var.DtSec / self.var.cellArea
+        #DisOut = (disold +self.var.discharge) /2  * self.var.DtSec / self.var.cellArea
+        #DisOut = (disold +self.var.discharge) /2  * self.var.DtSec / avgArea
+        #DisOut = self.var.sumdis   * self.var.DtSec / self.var.cellArea
+        #disold = self.var.discharge.copy()
+        DisOut = np.where(self.var.lddCompress == 5, DisOut, 0.)
+
+
+
+        sumside = self.var.sumsideflow / self.var.cellArea
+
+        if checkOption('includeWaterBodies'):
+            if checkOption('calcWaterBalance'):
+                self.var.waterbalance_module.waterBalanceCheck(
+                    [self.var.lakeResInflowM],  # In
+                    [self.var.lakeResOutflowM , self.var.EvapWaterBodyM]  ,  # Out  self.var.evapWaterBodyC
+                    [self.var.prelakeResStorage / self.var.cellArea] ,  # prev storage
+                    [self.var.lakeResStorage / self.var.cellArea],
+                    "lake_res", False)
+
+
+#### IMPORTANT set Routingstep to 1 to test!
+
+
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheckSum(
-                [runoffM3,lakesResOut],            # In
-                [sideflowChanM3,EvaAddM3Dt],           # Out
-                [],                                  # prev storage
+            self.var.waterbalance_module.waterBalanceCheck(
+                [runoffM3, lakesResOut ],  # In
+                [sideflowChanM3,EvapoChannelM3Dt, WDAddM3Dt],  # Out
+                [],   # prev storage
                 [],
-                "Routing111", False)
+                "rout1", True)
 
-        """
-        if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheckSum(
-                [runoffM3, lakesResOut],            # In
-                [sideflowChanM3, EvaAddM3Dt],           # Out
-                [ ],                                  # prev storage
+                [self.var.runoff, self.var.returnFlow, lakesResOut/ self.var.cellArea],  # In
+                [self.var.sumsideflow / self.var.cellArea, self.var.EvapoChannel / self.var.cellArea, self.var.actSurfaceWaterAbstract, ],  # Out
+                [],  # prev storage
                 [],
-                "Routing1", False)
+                "rout2", True)
+
+
+
+        if (dateVar['curr'] == 99):
+           iii = 1
 
         if checkOption('calcWaterBalance'):
-            Res = globals.inZero.copy()
-            np.put(Res, self.var.decompress_LR, self.var.reservoirStorageM3C)
             self.var.waterbalance_module.waterBalanceCheckSum(
-                [runoffM3,lakesResOut,eWaterBody],            # In
-                [sideflowChanM3, EvaAddM3Dt  ],           # Out
-                [preRes],                                  # prev storage
-                [Res],
-                "Routing2", False)
-        """
+                [sumside ],  # In
+                [DisOut],  # Out
+                [ch1],   # prev storage
+                [ch2],
+                "rout3", False)
 
+
+        if checkOption('calcWaterBalance'):
+            self.var.waterbalance_module.waterBalanceCheckSum(
+                [self.var.runoff, self.var.returnFlow ],  # In
+                [self.var.sumsideflow / self.var.cellArea,self.var.EvapoChannel / self.var.cellArea, self.var.actSurfaceWaterAbstract],  # Out
+                [],   # prev storage
+                [],
+                "rout4", False)
+
+        if checkOption('calcWaterBalance'):
+            self.var.waterbalance_module.waterBalanceCheckSum(
+                [self.var.runoff, self.var.returnFlow, lakesResOut// self.var.cellArea],  # In
+                [DisOut, self.var.EvapoChannel / self.var.cellArea, self.var.actSurfaceWaterAbstract ],  # Out
+                [self.var.prechannelStorage/self.var.cellArea],   # prev storage
+                [self.var.channelStorage/self.var.cellArea],
+                "rout5", False)
 
 
 
         #if checkOption('PCRaster'): report(decompress(self.var.discharge), "C:\work\output2/q1.map")
-
+        #report(decompress(self.var.sumsum_Precipitation), "c:\work\output\Prsum.map")
 
 
 

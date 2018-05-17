@@ -704,6 +704,11 @@ Download
 .. warning:: This is a pre-release alpha version! We will announce the "official" release. But for testing feel free to use it.
 
 
+Download pdf
+------------
+
+:download:`CWATM_MANUAL.pdf<_static/CWATM.pdf>`
+
 Source code - Community Water Model 
 -----------------------------------
 

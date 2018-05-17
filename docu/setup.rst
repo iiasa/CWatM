@@ -344,7 +344,7 @@ Either as numbers or references to maps (.tif, PCraster or netCDF)
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 332-334
+    :lines: 335-337
 
 
 
@@ -417,7 +417,7 @@ Here the value definitions for [SNOW] is shown:
     :linenos:
     :lineno-match:
     :language: ini
-    :lines: 283-317
+    :lines: 279-318
 	
 .. note:: TemperatureLapseRate = 0.0065
      | for the variable TemperatureLapseRate the value of 0.0065 is set	

@@ -323,13 +323,13 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'CWATM.tex', u'CWATM Documentation',
-     u'Author', 'manual'),
+     u'Peter Burek, IIASA WAT ', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
 #
-# latex_logo = None
+latex_logo = '_static/CWATM1.jpg'
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
@@ -357,7 +357,7 @@ latex_documents = [
 # If false, no module index is generated.
 #
 # latex_domain_indices = True
-
+# latex_show_pagerefs = True
 
 # -- Options for manual page output ---------------------------------------
 
