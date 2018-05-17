@@ -268,7 +268,7 @@ class snow(object):
                 [self.var.SnowMelt],  # Out
                 [self.var.prevSnowCover],   # prev storage
                 [self.var.SnowCover],
-                "Snow", False)
+                "Snow1", False)
 
         #map = decompress( self.var.TotalPrecipitation)
         #report(map, 'C:\work\output\out3.map')

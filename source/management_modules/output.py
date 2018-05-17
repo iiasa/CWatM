@@ -501,7 +501,6 @@ class outputTssMap(object):
 
                         if tss[-8:] == "monthend":
                             # reporting at the end of the month:
-                            #outTss[tss][i][0].sample2(decompress(eval(what)),1)
                             outTss[tss][i] = sample3(outTss[tss][i], eval(what), 1)
 
                         if (tss[-8:] == "monthtot"):
@@ -510,7 +509,6 @@ class outputTssMap(object):
                                 vars(self.var)[varname + "_monthtotTss"] += vars(self.var)[varname]
                             else:
                                 vars(self.var)[varname + "_monthtotTss"] = vars(self.var)[varname]
-                            #outTss[tss][i][0].sample2(decompress(eval(what + "_monthtotTss")), 1)
                             outTss[tss][i] = sample3(outTss[tss][i], eval(what + "_monthtotTss"), 1)
 
                         if (tss[-8:] == "monthavg"):
@@ -520,7 +518,6 @@ class outputTssMap(object):
                                 vars(self.var)[varname + "_monthavgTss"] = 0
                                 vars(self.var)[varname + "_monthavgTss"] += vars(self.var)[varname]
                             avgmap = vars(self.var)[varname + "_monthavgTss"] /  dateVar['daysInMonth']
-                            #outTss[tss][i][0].sample2(decompress(avgmap), 1)
                             outTss[tss][i] = sample3(outTss[tss][i], avgmap, 1)
 
 
@@ -532,16 +529,12 @@ class outputTssMap(object):
                             outTss[tss][i] = sample3(outTss[tss][i], eval(what), 2)
 
                         if (tss[-9:] == "annualtot"):
-                            # if  monthtot is not calculated it is done here
-                            if (varname + "_annualtotTss0") in vars(self.var):
-                                for ii in xrange(self.var.noOutpoints):
-                                    vars(self.var)[varname + "_annualtotTss"+str(ii)] += vars(self.var)[varname][ii]
+
+                            if (varname + "_annualtotTss") in vars(self.var):
+                                vars(self.var)[varname + "_annualtotTss"] += vars(self.var)[varname]
                             else:
-                                for ii in xrange(self.var.noOutpoints):
-                                    vars(self.var)[varname + "_annualtotTss"+str(ii)] = 0
-                                    vars(self.var)[varname + "_annualtotTss"+str(ii)] += vars(self.var)[varname][ii]
-                            #outTss[tss][i][0].sample2(decompress(eval(what + "_annualtotTss")), 2)
-                            outTss[tss][i] = sample4(outTss[tss][i], eval(what + "_annualtotTss"), 2)
+                                vars(self.var)[varname + "_annualtotTss"] = vars(self.var)[varname]
+                            outTss[tss][i] = sample3(outTss[tss][i], eval(what + "_annualtotTss"), 2)
 
                         if (tss[-9:] == "annualavg"):
                             if (varname + "_annualavgTss") in vars(self.var):

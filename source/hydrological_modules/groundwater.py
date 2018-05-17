@@ -55,6 +55,12 @@ class groundwater(object):
         # for water demand to have some initial value
         tresholdStorGroundwater = 0.00005  # 0.05 mm
         self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater,0.0)
+
+
+        #self.var.area1 = loadmap('MaskMap1')
+
+
+
         ii =1
 
 # --------------------------------------------------------------------------
@@ -96,11 +102,34 @@ class groundwater(object):
         tresholdStorGroundwater = 0.00005  # 0.05 mm
         self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater,0.0)
 
+        """
+        area = self.var.area1.astype(np.int64)
+        diff  = 1000000000.
+        #aream =  npareatotal(self.var.cellArea,area)
+
+        gw = self.var.sum_gwRecharge * self.var.MtoM3 / diff
+        self.var.sumgw = npareatotal(gw,area)
+        pr = self.var.Precipitation  * self.var.MtoM3 / diff
+        self.var.sumpr = npareatotal(pr,area)
+        #self.var.sumpr = npareaaverage(pr, area)
+        run = (self.var.sum_landSurfaceRunoff + self.var.baseflow) * self.var.MtoM3 / diff
+        self.var.sumrunoff = npareatotal(run,area)
+        et = self.var.totalET * self.var.MtoM3 / diff
+        self.var.sumtotalET = npareatotal(et, area)
+
+        etpot = self.var.ETRef * self.var.MtoM3 / diff
+        self.var.sumETRef = npareatotal(etpot, area)
+
+        base = self.var.baseflow * self.var.MtoM3 / diff
+        self.var.sumbaseflow = npareatotal(base, area)
+        """
+        t =1
+
 
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.sum_gwRecharge, self.var.surfaceWaterInf],            # In
+                [self.var.sum_gwRecharge ],            # In
                 [self.var.baseflow,self.var.nonFossilGroundwaterAbs],           # Out
                 [self.var.prestorGroundwater],                                  # prev storage
                 [self.var.storGroundwater],

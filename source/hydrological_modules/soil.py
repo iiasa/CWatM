@@ -526,6 +526,7 @@ class soil(object):
 
         # total actual evaporation + transpiration
         self.var.actualET[No] = self.var.actualET[No] + self.var.actBareSoilEvap[No] + self.var.openWaterEvap[No] + self.var.actTransTotal[No]
+
         #  actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water evaporation, therefore self.var.totalPotET[No] is adjusted
         self.var.totalPotET[No] = np.maximum(self.var.totalPotET[No], self.var.actualET[No])
 
@@ -554,19 +555,19 @@ class soil(object):
         if (dateVar['curr'] == 130) and (No==2):
             ii=1
 
-
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No],self.var.irrDemand[No]],  # In  water demand included in availwater
+                [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No], self.var.irrConsumption[No]],  # In  water demand included in availwater
                 [self.var.directRunoff[No],self.var.perc3toGW[No], self.var.prefFlow[No] ,  \
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [ preStor1, preStor2, preStor3,pretopwater],  # prev storage
                 [self.var.w1[No], self.var.w2[No], self.var.w3[No],self.var.topwater],
-                "Soil_1 "+str(No), True)
+                "Soil_1_"+str(No), False)
+
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.irrDemand[No],self.var.openWaterEvap[No]],  # In
+                [self.var.availWaterInfiltration[No], self.var.irrConsumption[No],self.var.openWaterEvap[No]],  # In
                 [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No],  \
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [ preStor1, preStor2, preStor3],  # prev storage
@@ -576,7 +577,7 @@ class soil(object):
 
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.irrDemand[No],self.var.snowEvap,self.var.interceptEvap[No]],  # In
+                [self.var.availWaterInfiltration[No], self.var.irrConsumption[No],self.var.snowEvap,self.var.interceptEvap[No]],  # In
                 [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No], \
                  self.var.actualET[No]],  # Out
                 [preStor1, preStor2, preStor3],  # prev storage

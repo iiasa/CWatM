@@ -44,8 +44,8 @@ class sealed_water(object):
 
             self.var.openWaterEvap[No] =  np.minimum(mult * self.var.EWRef, self.var.availWaterInfiltration[No])
             self.var.directRunoff[No] = self.var.availWaterInfiltration[No] - self.var.openWaterEvap[No]
-           # open water evaporation is directly substracted from the river, lakes, reservoir
-
+            # open water evaporation is directly substracted from the river, lakes, reservoir
+            self.var.actualET[No] = self.var.actualET[No] +  self.var.openWaterEvap[No]
 
         if checkOption('calcWaterBalance') and (No>3):
             self.var.waterbalance_module.waterBalanceCheck(
