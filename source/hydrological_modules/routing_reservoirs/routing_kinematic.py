@@ -154,8 +154,7 @@ class routing_kinematic(object):
         if checkOption('sumWaterBalance'):
             self.var.catchmentAll = (loadmap('MaskMap')*0.).astype(np.int)
             #self.var.catchmentNo = int(loadmap('CatchmentNo'))
-            ii =1
-
+            self.var.sumbalance = 0
 
 
 
@@ -281,11 +280,9 @@ class routing_kinematic(object):
         # ***** KINEMATIC WAVE                        ****************
         # ************************************************************
 
-        #sideflowChan = sideflowChan / self.var.noRoutingSteps
         self.var.sumsideflow = 0
-
-
         self.var.prechannelStorage = self.var.channelAlpha * self.var.chanLength * self.var.discharge ** self.var.beta
+        avgDis = 0
 
 
         for subrouting in xrange(self.var.noRoutingSteps):
@@ -324,7 +321,11 @@ class routing_kinematic(object):
                lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown, self.var.dirupLen, self.var.dirupID, Qnew, self.var.channelAlpha, self.var.beta, self.var.dtRouting, self.var.chanLength, self.var.lendirDown)
             self.var.discharge = Qnew.copy()
 
-        self.var.sumsideflow = self.var.sumsideflow + sideflowChanM3
+
+
+            self.var.sumsideflow = self.var.sumsideflow + sideflowChanM3
+            avgDis = avgDis  + self.var.discharge / self.var.noRoutingSteps
+            ii= 1
 
 
         # -- end substeping ---------------------
@@ -340,21 +341,26 @@ class routing_kinematic(object):
         if checkOption('inflow'):
              self.var.QInM3Old = self.var.inflowM3.copy()
 
+        if checkOption('calcWaterBalance'):
+            ch1 = self.var.prechannelStorage/self.var.cellArea
+            ch2 = self.var.channelStorage/self.var.cellArea
+            avgArea = npareaaverage(self.var.cellArea, self.var.catchmentAll)
+            DisOut = self.var.discharge * self.var.DtSec / self.var.cellArea
+            #DisOut = (self.var.disold +self.var.discharge) /2  * self.var.DtSec / self.var.cellArea
+            DisOut = self.var.discharge  * self.var.DtSec / avgArea
+
+            #self.var.disold = self.var.discharge.copy()
+
+            DisOut = avgDis * self.var.DtSec / avgArea
 
 
-        ch1 = self.var.prechannelStorage/self.var.cellArea
-        ch2 = self.var.channelStorage/self.var.cellArea
-        #avgArea = npareaaverage(self.var.cellArea, self.var.catchmentAll)
-        DisOut = self.var.discharge * self.var.DtSec / self.var.cellArea
-        #DisOut = (disold +self.var.discharge) /2  * self.var.DtSec / self.var.cellArea
-        #DisOut = (disold +self.var.discharge) /2  * self.var.DtSec / avgArea
-        #DisOut = self.var.sumdis   * self.var.DtSec / self.var.cellArea
-        #disold = self.var.discharge.copy()
-        DisOut = np.where(self.var.lddCompress == 5, DisOut, 0.)
+
+
+            DisOut = np.where(self.var.lddCompress == 5, DisOut, 0.)
 
 
 
-        sumside = self.var.sumsideflow / self.var.cellArea
+            sumside = self.var.sumsideflow / self.var.cellArea
 
         if checkOption('includeWaterBodies'):
             if checkOption('calcWaterBalance'):
@@ -390,12 +396,13 @@ class routing_kinematic(object):
            iii = 1
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheckSum(
+            self.var.sumbalance = self.var.sumbalance + self.var.waterbalance_module.waterBalanceCheckSum(
                 [sumside ],  # In
                 [DisOut],  # Out
                 [ch1],   # prev storage
                 [ch2],
-                "rout3", False)
+                "rout3", True)
+            print "  ",self.var.sumbalance,"   ", avgDis[0],"   ",
 
 
         if checkOption('calcWaterBalance'):

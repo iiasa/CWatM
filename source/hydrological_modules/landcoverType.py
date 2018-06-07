@@ -85,7 +85,7 @@ class landcoverType(object):
         self.var.landcoverSum = ['interceptStor', 'interflow',
                          'directRunoff', 'totalPotET', 'potTranspiration', 'availWaterInfiltration',
                          'interceptEvap', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTransTotal', 'gwRecharge',
-                          'openWaterEvap','capRiseFromGW','perc3toGW',"prefFlow"]
+                          'openWaterEvap','capRiseFromGW','perc3toGW','prefFlow', 'actualET']
         for variable in self.var.landcoverSum: vars(self.var)["sum_"+variable] = globals.inZero.copy()
 
         # for three soil layers
