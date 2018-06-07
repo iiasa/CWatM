@@ -27,7 +27,7 @@ from pcraster2.dynamicPCRasterBase import *
 #from pcraster.framework import *
 
 from netCDF4 import Dataset,num2date,date2num,date2index
-from netcdftime import utime
+#from netcdftime import utime
 
 import gdal
 from gdalconst import *
