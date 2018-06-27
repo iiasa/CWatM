@@ -52,7 +52,7 @@ class soil(object):
         for i in dzRel:
             vars(self.var)[i] = readnetcdfWithoutTime(cbinding('relativeElevation'),i)
 
-
+        # Fraction of area where percolation to groundwater is impeded [dimensionless]
         self.var.percolationImp = np.maximum(0,np.minimum(1,loadmap('percolationImp') * loadmap('factor_interflow')))
 
 

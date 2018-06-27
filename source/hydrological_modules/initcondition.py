@@ -89,14 +89,14 @@ class initcondition(object):
         # lakes & reservoirs
         if checkOption('includeWaterBodies'):
             Var1 = ["lakeInflow", "lakeStorage","reservoirStorage","outLake","lakeOutflow"]
-            Var2 = ["lakeInflow","lakeStorage","reservoirStorage","outLake","lakeOutflow"]
+            Var2 = ["lakeInflow","lakeVolume","reservoirStorage","outLake","lakeOutflow"]
             initCondVar.extend(Var1)
             initCondVarValue.extend(Var2)
 
         # lakes & reservoirs
         if checkOption('includeWaterBodies'):
             Var1 = ["smalllakeInflow","smalllakeStorage","smalllakeOutflow"]
-            Var2 = ["smalllakeInflowOld","smalllakeStorageM3","smalllakeOutflow"]
+            Var2 = ["smalllakeInflowOld","smalllakeVolumeM3","smalllakeOutflow"]
             initCondVar.extend(Var1)
             initCondVarValue.extend(Var2)
 

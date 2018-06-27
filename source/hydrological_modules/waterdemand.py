@@ -101,6 +101,14 @@ class waterdemand(object):
                 self.var.uselivestock = returnBool('uselivestock')
 
 
+            self.var.use_environflow = False
+            self.var.cut_ef_map = False
+            if "use_environflow" in binding:
+                self.var.use_environflow = returnBool('use_environflow')
+            if self.var.use_environflow:
+                self.var.cut_ef_map = returnBool('cut_ef_map')
+
+
             # init unmetWaterDemand -> to calculate actual one the the unmet water demand from previous day is needed
             self.var.unmetDemandPaddy = self.var.init_module.load_initial('unmetDemandPaddy', default = globals.inZero.copy())
             self.var.unmetDemandNonpaddy = self.var.init_module.load_initial('unmetDemandNonpaddy', default = globals.inZero.copy())
@@ -176,7 +184,7 @@ class waterdemand(object):
             # ----------------------------------------------------
             # WATER AVAILABILITY
 
-            if checkOption('use_environflow'):
+            if self.var.use_environflow:
                 if dateVar['newStart'] or dateVar['newMonth']:
                     # envflow in [m3/s] -> [m]
                     self.var.envFlowm3s = readnetcdf2('EnvironmentalFlowFile', dateVar['currDate'],"month", cut = self.var.cut_ef_map) # in [m3/s]

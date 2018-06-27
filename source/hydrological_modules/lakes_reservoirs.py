@@ -145,10 +145,10 @@ class lakes_reservoirs(object):
             self.var.lakeVolume = globals.inZero.copy()
             self.var.outLake = self.var.init_module.load_initial("outLake")
 
-            #self.var.lakeStorage = globals.inZero.copy()
-            #self.var.lakeInflow = globals.inZero.copy()
-            #self.var.lakeOutflow = globals.inZero.copy()
-            #self.var.reservoirStorage = globals.inZero.copy()
+            self.var.lakeStorage = globals.inZero.copy()
+            self.var.lakeInflow = globals.inZero.copy()
+            self.var.lakeOutflow = globals.inZero.copy()
+            self.var.reservoirStorage = globals.inZero.copy()
 
             self.var.MtoM3C = np.compress(self.var.compress_LR, self.var.MtoM3)
 
@@ -401,11 +401,11 @@ class lakes_reservoirs(object):
             # expanding the size
             # self.var.QLakeOutM3Dt = globals.inZero.copy()
             # np.put(self.var.QLakeOutM3Dt,self.var.LakeIndex,QLakeOutM3DtC)
-            if  (self.var.noRoutingSteps == (NoRoutingExecuted + 1)):
-            #if self.var.saveInit and (self.var.noRoutingSteps == (NoRoutingExecuted + 1)):
+            #if  (self.var.noRoutingSteps == (NoRoutingExecuted + 1)):
+            if self.var.saveInit and (self.var.noRoutingSteps == (NoRoutingExecuted + 1)):
                 np.put(self.var.lakeVolume, self.var.decompress_LR, self.var.lakeVolumeM3C)
-                #np.put(self.var.lakeInflow, self.var.decompress_LR, self.var.lakeInflowOldC)
-                #np.put(self.var.lakeOutflow, self.var.decompress_LR, self.var.lakeOutflowC)
+                np.put(self.var.lakeInflow, self.var.decompress_LR, self.var.lakeInflowOldC)
+                np.put(self.var.lakeOutflow, self.var.decompress_LR, self.var.lakeOutflowC)
 
 
 
@@ -503,8 +503,8 @@ class lakes_reservoirs(object):
             # New reservoir fill
 
             #if  (self.var.noRoutingSteps == (NoRoutingExecuted + 1)):
-            #if self.var.saveInit and (self.var.noRoutingSteps == (NoRoutingExecuted + 1)):
-           #     np.put(self.var.reservoirStorage, self.var.decompress_LR, self.var.reservoirStorageM3C)
+            if self.var.saveInit and (self.var.noRoutingSteps == (NoRoutingExecuted + 1)):
+                np.put(self.var.reservoirStorage, self.var.decompress_LR, self.var.reservoirStorageM3C)
 
 
             if checkOption('calcWaterBalance'):
