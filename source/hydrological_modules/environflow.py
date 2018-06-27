@@ -29,12 +29,9 @@ class environflow(object):
         Initial part of environmental flow
 
         """
-        if checkOption('includeWaterDemand'):
-            if checkOption('use_environflow'):
-               self.var.cut_ef_map = returnBool('cut_ef_map')
-
-
+        self.var.cut_ef_map = False
         if checkOption('calc_environflow'):
+            self.var.cut_ef_map = returnBool('cut_ef_map')
             if returnBool('calc_ef_afterRun'):
                 meteofiles['EFDis'] = ''
                 try:

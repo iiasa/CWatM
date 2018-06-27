@@ -101,6 +101,7 @@ class waterbalance(object):
                 if (minB < -0.00001) or (maxB > 0.00001):
                    i=11111
             """
+            return maxBB
 
 
 
@@ -159,6 +160,7 @@ class waterbalance(object):
             #avgArea = npareaaverage(self.var.cellArea, self.var.catchmentAll)
             #dis = balance[no] * avgArea[0] / self.var.DtSec
             #print "     %s %10.8f" % (processName, dis),
+            return balance[no]
 
 
 

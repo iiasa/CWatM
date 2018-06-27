@@ -134,7 +134,7 @@ class routing_kinematic(object):
         #self.var.chanQKin = chanQKinIni
 
         #self.var.riverbedExchange = globals.inZero.copy()
-        self.var.riverbedExchange = self.var.init_module.load_initial("riverbedExchange")
+        self.var.riverbedExchange = self.var.init_module.load_initial("riverbedExchange", default = globals.inZero.copy())
         #self.var.discharge = self.var.chanQKin.copy()
 
 

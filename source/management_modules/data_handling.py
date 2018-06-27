@@ -217,7 +217,7 @@ def loadsetclone(name):
             checkmap(name, filename, map, flagmap, 0)
 
     else:
-        msg = "Maskmap: " + Mask + \
+        msg = "Maskmap: " + filename + \
             " is not a valid mask map nor valid coordinates"
         raise CWATMError(msg)
 
