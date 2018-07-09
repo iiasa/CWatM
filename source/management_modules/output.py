@@ -484,7 +484,12 @@ class outputTssMap(object):
                         varnameCollect.append(varname)
                         what = 'self.var.' + outTss[tss][i][1]
 
-                        checkifvariableexists(tss,outTss[tss][i][1],vars(self.var).keys())
+                        # to use also variables with index from soil e.g. actualET[2]
+                        if '[' in varname:
+                            checkname = varname[0:varname.index("[")]
+                        else:
+                            checkname = varname
+                        checkifvariableexists(tss, checkname, vars(self.var).keys())
 
                         if tss[-5:] == "daily":
                             # what = 'self.var.' + reportTimeSerieAct[tss]['outputVar'][0]

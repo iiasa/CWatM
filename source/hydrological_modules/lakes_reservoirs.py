@@ -598,8 +598,8 @@ class lakes_reservoirs(object):
 
 
         # decompress to normal maskarea size
-#        np.put(self.var.reslakeinflow,self.var.decompress_LR,inflowCorrC)
-# maybe delete this
+        # np.put(self.var.reslakeinflow,self.var.decompress_LR,inflowCorrC)
+
 
         np.put(self.var.reslakeoutflow,self.var.decompress_LR,outflowC)
         lakeResOutflowDis = npareatotal(self.var.reslakeoutflow, self.var.waterBodyID) / (self.var.DtSec / self.var.noRoutingSteps)

@@ -275,9 +275,10 @@ class snow(object):
 
         # ---------------------------------------------------------------------------------
         # Dynamic part of frost index
+        self.var.Kfrost = np.where(self.var.Tavg < 0, 0.08, 0.5)
 
         FrostIndexChangeRate = -(1 - self.var.Afrost) * self.var.FrostIndex - self.var.Tavg * \
-            np.exp(-0.04 * self.var.Kfrost * self.var.SnowCover / self.var.SnowWaterEquivalent)
+            np.exp(-0.4 * 100 * self.var.Kfrost * np.minimum(1.0,self.var.SnowCover / self.var.SnowWaterEquivalent))
         # FrostIndexChangeRate=self.var.AfrostIndex - self.var.Tavg*      pc raster.exp(self.var.Kfrost*self.var.SnowCover*self.var.InvSnowWaterEquivalent)
         # Rate of change of frost index (expressed as rate, [degree days/day])
         self.var.FrostIndex = np.maximum(self.var.FrostIndex + FrostIndexChangeRate * self.var.DtDay, 0)
@@ -285,10 +286,11 @@ class snow(object):
         # Forecasting. In: Maidment, Handbook of Hydrology, p. 7.28, 7.55)
         # if Tavg is above zero, FrostIndex will stay 0
         # if Tavg is negative, FrostIndex will increase with 1 per degree C per day
-        # Exponent of 0.04 (instead of 0.4 in HoH): conversion [cm] to [mm]!
+        # Exponent of 0.04 (instead of 0.4 in HoH): conversion [cm] to [mm]!  -> from cm to m HERE -> 100 * 0.4
+        # maximum snowlayer = 1.0 m
         # Division by SnowDensity because SnowDepth is expressed as equivalent water depth(always less than depth of snow pack)
-        # SnowWaterEquivalent taken as 0.100 (based on density of 100 kg/m3) (Handbook of Hydrology, p. 7.5)
+        # SnowWaterEquivalent taken as 0.45
         # Afrost, (daily decay coefficient) is taken as 0.97 (Handbook of Hydrology, p. 7.28)
-        # Kfrost, (snow depth reduction coefficient) is taken as 0.57 [1/cm], (HH, p. 7.28)
-
+        # Kfrost, (snow depth reduction coefficient) is taken as 0.57 [1/cm], (HH, p. 7.28) -> from Molnau taken as 0.5 for t> 0 and 0.08 for T<0
+        ii =1
 

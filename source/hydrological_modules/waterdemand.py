@@ -136,6 +136,8 @@ class waterdemand(object):
             self.var.nonIrrDemand = 0
             self.var.nonIrrReturnFlowFraction = 0
             self.var.nonFossilGroundwaterAbs = 0
+            self.var.waterWithdrawal = 0
+            self.var.nonIrruse = 0
 
 
 
@@ -580,12 +582,12 @@ class waterdemand(object):
                     "Waterdemand3", False)
 
             nonIrrReturn = self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrDemand
-            nonIrruse = self.var.act_nonIrrDemand - nonIrrReturn
+            self.var.nonIrruse = self.var.act_nonIrrDemand - nonIrrReturn
 
             if checkOption('calcWaterBalance'):
                 self.var.waterbalance_module.waterBalanceCheck(
                     [self.var.waterWithdrawal],  # In
-                    [self.var.sumirrConsumption,self.var.returnflowIrr,self.var.addtoevapotrans, nonIrruse, nonIrrReturn],  # Out
+                    [self.var.sumirrConsumption,self.var.returnflowIrr,self.var.addtoevapotrans, self.var.nonIrruse, nonIrrReturn],  # Out
                     [globals.inZero],
                     [globals.inZero],
                     "Waterdemand4", False)
@@ -593,7 +595,7 @@ class waterdemand(object):
             if checkOption('calcWaterBalance'):
                 self.var.waterbalance_module.waterBalanceCheck(
                     [self.var.waterWithdrawal],  # In
-                    [self.var.sumirrConsumption,self.var.returnFlow,self.var.addtoevapotrans, nonIrruse],  # Out
+                    [self.var.sumirrConsumption,self.var.returnFlow,self.var.addtoevapotrans, self.var.nonIrruse],  # Out
                     [globals.inZero],
                     [globals.inZero],
-                    "Waterdemand5", False)
+                    "Waterdemand5",False)

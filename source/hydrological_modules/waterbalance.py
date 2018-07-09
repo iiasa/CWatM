@@ -92,15 +92,15 @@ class waterbalance(object):
             #meanB = np.average(balance, axis=0)
             #meanB = 0.0
 
-            print "     %s %10.8f " % (processName, maxBB),
+            #print "     %s %10.8f " % (processName, maxBB),
             #if maxBB > 0.00000001:
             #    sys.exit()
-            """
             if maxBB > 0.0000000001:
                 print "     %s %10.8f %10.8f" % (processName, minB,maxB),
+                #quit()
                 if (minB < -0.00001) or (maxB > 0.00001):
                    i=11111
-            """
+
             return maxBB
 
 
@@ -256,14 +256,14 @@ class waterbalance(object):
                     [self.var.totalET, self.var.runoff, self.var.returnflowIrr, self.var.act_nonIrrDemand,  self.var.smallrunoffDiff ],  # Out
                     [self.var.pretotalSto,self.var.prestorGroundwater],  # prev storage
                     [self.var.totalSto,self.var.storGroundwater],
-                    "Soil+G+WD31", True)
+                    "Soil+G+WD31", False)
 
                 self.var.waterbalance_module.waterBalanceCheck(
                     [self.var.Precipitation, self.var.unmetDemand, self.var.actSurfaceWaterAbstract],
                     [self.var.totalET, self.var.runoff, self.var.returnFlow, nonIrruse, self.var.smallrunoffDiff],  # Out
                     [self.var.pretotalSto,self.var.prestorGroundwater],  # prev storage
                     [self.var.totalSto,self.var.storGroundwater ],
-                    "Soil+G+WD32", True)
+                    "Soil+G+WD32", False)
 
 
                 if checkOption('calcWaterBalance'):
@@ -308,7 +308,7 @@ class waterbalance(object):
                          self.var.EvapWaterBodyM,  self.var.smallevapWaterBody,  self.var.smallLakeDiff],  # Out
                         [self.var.pretotalSto,self.var.prestorGroundwater, self.var.prelakeResStorage/ self.var.cellArea, self.var.preSmalllakeStorage / self.var.cellArea],  # prev storage
                         [self.var.totalSto,self.var.storGroundwater, self.var.lakeResStorage/ self.var.cellArea, self.var.smalllakeStorage / self.var.cellArea ],
-                        "Soil+G+WD+LR22", True)
+                        "Soil+G+WD+LR22", False)
 
 #### IMPORTANT set Routingstep to 1 to test!
 

@@ -151,7 +151,7 @@ class routing_kinematic(object):
         #self.var.chanLengthPcr = decompress(self.var.chanLength)
 
 
-        if checkOption('sumWaterBalance'):
+        if checkOption('calcWaterBalance'):
             self.var.catchmentAll = (loadmap('MaskMap')*0.).astype(np.int)
             #self.var.catchmentNo = int(loadmap('CatchmentNo'))
             self.var.sumbalance = 0
@@ -347,19 +347,11 @@ class routing_kinematic(object):
             avgArea = npareaaverage(self.var.cellArea, self.var.catchmentAll)
             DisOut = self.var.discharge * self.var.DtSec / self.var.cellArea
             #DisOut = (self.var.disold +self.var.discharge) /2  * self.var.DtSec / self.var.cellArea
-            DisOut = self.var.discharge  * self.var.DtSec / avgArea
 
+            ## DisOut = self.var.discharge  * self.var.DtSec / avgArea
             #self.var.disold = self.var.discharge.copy()
-
-            DisOut = avgDis * self.var.DtSec / avgArea
-
-
-
-
-            DisOut = np.where(self.var.lddCompress == 5, DisOut, 0.)
-
-
-
+            ## DisOut = avgDis * self.var.DtSec / avgArea
+            ## DisOut = np.where(self.var.lddCompress == 5, DisOut, 0.)
             sumside = self.var.sumsideflow / self.var.cellArea
 
         if checkOption('includeWaterBodies'):
@@ -381,14 +373,14 @@ class routing_kinematic(object):
                 [sideflowChanM3,EvapoChannelM3Dt, WDAddM3Dt],  # Out
                 [],   # prev storage
                 [],
-                "rout1", True)
+                "rout1", False)
 
             self.var.waterbalance_module.waterBalanceCheckSum(
                 [self.var.runoff, self.var.returnFlow, lakesResOut/ self.var.cellArea],  # In
                 [self.var.sumsideflow / self.var.cellArea, self.var.EvapoChannel / self.var.cellArea, self.var.actSurfaceWaterAbstract, ],  # Out
                 [],  # prev storage
                 [],
-                "rout2", True)
+                "rout2", False)
 
 
 
@@ -402,7 +394,7 @@ class routing_kinematic(object):
                 [ch1],   # prev storage
                 [ch2],
                 "rout3", True)
-            print "  ",self.var.sumbalance,"   ", avgDis[0],"   ",
+            #print "  ",self.var.sumbalance,"   ", avgDis[0],"   ",
 
 
         if checkOption('calcWaterBalance'):

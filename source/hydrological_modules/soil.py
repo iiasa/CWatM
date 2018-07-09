@@ -524,8 +524,12 @@ class soil(object):
         #self.var.actTransTotal[No] =  np.sum(actTrans, axis=0)
         self.var.actTransTotal[No] = ta1 + ta2 + ta3
 
+        self.var.before = self.var.actualET[No].copy()
+
         # total actual evaporation + transpiration
         self.var.actualET[No] = self.var.actualET[No] + self.var.actBareSoilEvap[No] + self.var.openWaterEvap[No] + self.var.actTransTotal[No]
+        #self.var.actualET[No] = self.var.actualET[No] + self.var.actBareSoilEvap[No] + self.var.actTransTotal[No]
+
 
         #  actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water evaporation, therefore self.var.totalPotET[No] is adjusted
         self.var.totalPotET[No] = np.maximum(self.var.totalPotET[No], self.var.actualET[No])
@@ -552,7 +556,7 @@ class soil(object):
 
 
 
-        if (dateVar['curr'] == 130) and (No==2):
+        if (dateVar['curr'] == 121) and (No==2):
             ii=1
 
         if checkOption('calcWaterBalance'):
@@ -567,11 +571,11 @@ class soil(object):
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.irrConsumption[No],self.var.openWaterEvap[No]],  # In
+                [self.var.availWaterInfiltration[No], self.var.irrConsumption[No]],  # In
                 [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No],  \
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
-                [ preStor1, preStor2, preStor3],  # prev storage
-                [self.var.w1[No], self.var.w2[No], self.var.w3[No]],
+                [ preStor1, preStor2, preStor3,pretopwater],  # prev storage
+                [self.var.w1[No], self.var.w2[No], self.var.w3[No],self.var.topwater],
                 "Soil_2", False)
             # openWaterEvap in because it is taken from availWater directly, out because it taken out immediatly. It is not a soil process indeed
 
@@ -580,9 +584,10 @@ class soil(object):
                 [self.var.availWaterInfiltration[No], self.var.irrConsumption[No],self.var.snowEvap,self.var.interceptEvap[No]],  # In
                 [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No], \
                  self.var.actualET[No]],  # Out
-                [preStor1, preStor2, preStor3],  # prev storage
-                [self.var.w1[No], self.var.w2[No], self.var.w3[No]],
+                [preStor1, preStor2, preStor3,pretopwater],  # prev storage
+                [self.var.w1[No], self.var.w2[No], self.var.w3[No],self.var.topwater],
                 "Soil_AllSoil", False)
+
         i = 1
 
 

@@ -500,7 +500,7 @@ class landcoverType(object):
 
         self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
         self.var.totalET = self.var.sum_actTransTotal + self.var.sum_actBareSoilEvap + self.var.sum_openWaterEvap + self.var.sum_interceptEvap + self.var.snowEvap + self.var.addtoevapotrans
-        #self.var.totalET = self.var.sum_actTransTotal + self.var.sum_actBareSoilEvap + self.var.sum_openWaterEvap + self.var.sum_interceptEvap + self.var.snowEvap
+        # addtoevapotrans: part of water demand which is lost due to evaporation
         self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
 
 
@@ -555,15 +555,26 @@ class landcoverType(object):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Precipitation,self.var.sumirrConsumption],                             # In
                 [self.var.sum_directRunoff,self.var.sum_interflow,self.var.sum_gwRecharge, \
-                 self.var.totalET],                                                                # Out
+                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap],                                                                # Out
+                [self.var.pretotalSto],                                       # prev storage
+                [self.var.totalSto],
+                "Soil_sum2b", False)
+
+
+
+        if checkOption('calcWaterBalance'):
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation,self.var.waterWithdrawal],                             # In
+                [self.var.sum_directRunoff,self.var.sum_interflow,self.var.sum_gwRecharge, \
+                 self.var.totalET, self.var.nonIrruse,self.var.returnFlow ],                                                                # Out
                 [self.var.pretotalSto],                                       # prev storage
                 [self.var.totalSto],
                 "Soil_sum3", False)
 
         i = 1
 
-
-
+        #[self.var.waterWithdrawal],  # In
+        #[self.var.sumirrConsumption, self.var.returnFlow, self.var.addtoevapotrans, nonIrruse],  # Out
 
 
         #a = decompress(self.var.sumsum_Precipitation)
