@@ -7,6 +7,14 @@
 # Created:     15/07/2016
 # Copyright:   (c) PB 2016
 # -------------------------------------------------------------------------
+"""
+Naming convention:
+  -
+  -
+  -
+  -
+
+"""
 from management_modules.data_handling import *
 
 class waterdemand(object):
@@ -125,8 +133,14 @@ class waterdemand(object):
             self.var.waterDemand = 0
             self.var.act_irrDemand = 0
             self.var.act_nonIrrDemand = 0
+            self.var.act_indDemand = 0
+            self.var.act_domDemand = 0
+            self.var.act_livDemand = 0
             self.var.unmetDemand = 0
             self.var.sumirrConsumption = 0
+            self.var.act_indConsumption = 0
+            self.var.act_domConsumption = 0
+            self.var.act_livConsumption = 0
             self.var.addtoevapotrans = 0
             self.var.returnflowIrr = 0
             self.var.returnFlow = 0
@@ -174,6 +188,7 @@ class waterdemand(object):
                 # avoid small values (less than 1 m3):
                 self.var.industryDemand = np.where(self.var.industryDemand > self.var.InvCellArea, self.var.industryDemand, 0.0)
                 self.var.industryConsumption = np.where(self.var.industryConsumption > self.var.InvCellArea, self.var.industryConsumption, 0.0)
+                ind_efficiency = divideValues(self.var.industryConsumption, self.var.industryDemand)
 
             # domestic water demand
             new = 'newYear'
@@ -184,6 +199,7 @@ class waterdemand(object):
                 # avoid small values (less than 1 m3):
                 self.var.domesticDemand = np.where(self.var.domesticDemand > self.var.InvCellArea, self.var.domesticDemand, 0.0)
                 self.var.domesticConsumption = np.where(self.var.domesticConsumption > self.var.InvCellArea, self.var.domesticConsumption, 0.0)
+                dom_efficiency = divideValues(self.var.domesticConsumption, self.var.domesticDemand)
 
             # livestock water demand
             if self.var.uselivestock:
@@ -195,13 +211,22 @@ class waterdemand(object):
                 self.var.livestockDemand = np.where(self.var.livestockDemand > self.var.InvCellArea, self.var.livestockDemand, 0.0)
             else:
                 self.var.livestockDemand = 0.
+            # todo: temporal....
+            liv_efficiency = globals.inZero.copy() + 1.
+
 
             if dateVar['newStart'] or dateVar['newMonth']:
                 # total (potential) non irrigation water demand
                 self.var.nonIrrDemand = self.var.domesticDemand + self.var.industryDemand + self.var.livestockDemand
+                # todo: why is this necessary?
                 self.var.nonIrrConsumption = np.minimum(self.var.nonIrrDemand, self.var.domesticConsumption + self.var.industryConsumption + self.var.livestockDemand)
                 # fraction of return flow from domestic and industrial water demand
                 self.var.nonIrrReturnFlowFraction = divideValues((self.var.nonIrrDemand - self.var.nonIrrConsumption), self.var.nonIrrDemand)
+
+            # non-irrg fracs in nonIrrDemand
+            frac_industry = divideValues(self.var.industryDemand, self.var.nonIrrDemand)
+            frac_domestic = divideValues(self.var.domesticDemand, self.var.nonIrrDemand)
+            frac_livestock = divideValues(self.var.livestockDemand, self.var.nonIrrDemand)
 
             #-----------------
             # from irrigation
@@ -375,12 +400,10 @@ class waterdemand(object):
                 # allocation rule here: domestic& industry > irrigation > paddy
 
                 # non-irrgated demand: adjusted (and maybe increased) by gwabstration factor
-                nonIrrDemandGW = self.var.nonIrrDemand  * (1 - realswAbstractionFraction)
+                nonIrrDemandGW = self.var.nonIrrDemand * (1 - realswAbstractionFraction)
                 # if nonirrgated water demand is higher than actual growndwater abstraction (wwhat is needed and what is stored in gw)
                 nonIrrDemandGW  = np.where(nonIrrDemandGW > self.var.nonFossilGroundwaterAbs, self.var.nonFossilGroundwaterAbs, nonIrrDemandGW)
                 self.var.act_nonIrrDemand = realswAbstractionFraction * self.var.nonIrrDemand + nonIrrDemandGW
-                # todo: add actual non-irrg water consumption here!!
-
 
                 # todo: should be consistent, demand or withdrawal...
                 # irrigated demand:
@@ -424,7 +447,14 @@ class waterdemand(object):
                 self.var.act_irrNonpaddyDemand = self.var.fracVegCover[3] * self.var.irrDemand[3]
                 self.var.act_irrPaddyDemand = self.var.fracVegCover[2] * self.var.irrDemand[2]
 
+            self.var.act_indDemand = frac_industry * self.var.act_nonIrrDemand
+            self.var.act_domDemand = frac_domestic * self.var.act_nonIrrDemand
+            self.var.act_livDemand = frac_livestock * self.var.act_nonIrrDemand
+
             self.var.sumirrConsumption = self.var.fracVegCover[2] * self.var.irrConsumption[2] + self.var.fracVegCover[3] * self.var.irrConsumption[3]
+            self.var.act_indConsumption = ind_efficiency * self.var.act_indDemand
+            self.var.act_domConsumption = dom_efficiency * self.var.act_domDemand
+            self.var.act_livConsumption = liv_efficiency * self.var.act_livDemand
 
             self.var.waterDemand = self.var.act_irrPaddyDemand + self.var.act_irrNonpaddyDemand + self.var.nonIrrDemand
             self.var.waterWithdrawal = self.var.act_nonIrrDemand + self.var.act_irrDemand
