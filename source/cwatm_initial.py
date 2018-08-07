@@ -103,6 +103,18 @@ class CWATModel_ini(DynamicModel):
             # like projection
             metaNetCDF()
 
+
+            if "coverresult" in binding:
+                coverresult[0] = returnBool('coverresult')
+                if coverresult[0]:
+                    cover = loadmap('covermap', compress = False)
+                    cover[cover > 1] = False
+                    cover[cover == 1] = True
+                    coverresult[1] = cover
+                    #coverresult[1] = np.ma.array(cover, mask = covermask)
+
+                ii=1
+
         # ----------------------------------------
         # include output of tss and maps
 

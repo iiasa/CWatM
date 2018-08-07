@@ -670,13 +670,19 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
             if nctime.calendar in ['360_day']:
                 dateVar['leapYear'] = 2
 
+
             datestart = num2date(nctime[0],units=nctime.units,calendar=nctime.calendar)
+            #datestart = num2date(nctime[0], units=nctime.units, calendar='proleptic_gregorian')
             # sometime daily records have a strange hour to start with -> it is changed to 0:00 to haqve the same record
             datestart = datestart.replace(hour=0, minute=0)
             dateend = num2date(nctime[-1], units=nctime.units, calendar=nctime.calendar)
+            #dateend = num2date(nctime[-1], units=nctime.units, calendar='proleptic_gregorian')
             dateend = dateend.replace(hour=0, minute=0)
             if startfile == 0: # search first file where dynamic run starts
-                start = dateVar[startcheck]
+                if dateVar['leapYear'] > 0:
+                    start = num2date(date2num(dateVar[startcheck],nctime.units,calendar=nctime.calendar), units=nctime.units, calendar=nctime.calendar)
+                else:
+                    start = dateVar[startcheck]
                 if (dateend >= start) and (datestart <= start):  # if enddate of a file is bigger than the start of run
                     startfile = 1
                     indstart = (start - datestart).days
@@ -770,7 +776,12 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
 
 
     # increase index and check if next file
+    #if (dateVar['leapYear'] == 1) and calendar.isleap(date.year):
+    #    if (date.month ==2) and (date.day == 28):
+    #        ii = 1  # dummmy for not doing anything
+    #    else:
     inputcounter[name] += 1
+
     if inputcounter[name] > meteoInfo[2]:
         inputcounter[name] = 0
         flagmeteo[name] += 1
@@ -1015,13 +1026,18 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
 
         if flagTime:
 
+            year = dateVar['dateStart'].year
+            if year > 1900:   yearstr = "1901"
+            elif year < 1861: yearstr = "1650"
+            else:             yearstr = "1861"
+
             #nf1.createDimension('time', None)
             nf1.createDimension('time', nrdays)
             time = nf1.createVariable('time', 'f8', ('time'))
             time.standard_name = 'time'
-            if dateunit == "days": time.units = 'Days since 1901-01-01'
-            if dateunit == "months": time.units = 'Months since 1901-01-01'
-            if dateunit == "years": time.units = 'Years since 1901-01-01'
+            if dateunit == "days": time.units = 'Days since ' + yearstr + '-01-01'
+            if dateunit == "months": time.units = 'Months since ' + yearstr + '-01-01'
+            if dateunit == "years": time.units = 'Years since ' + yearstr + '-01-01'
             time.calendar = 'standard'
 
 
@@ -1077,6 +1093,12 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
     mapnp[~maskinfo['maskflat']] = inputmap[:]
     #mapnp = mapnp.reshape(maskinfo['shape']).data
     mapnp = mapnp.reshape(maskinfo['shape'])
+
+    if coverresult[0]:
+        mapnp = mapnp.reshape(maskinfo['shape']).data
+        mapnp = np.where(coverresult[1], mapnp, np.nan)
+    else:
+        mapnp = mapnp.reshape(maskinfo['shape'])
 
     #date_time[posCnt] = date2num(timeStamp, date_time.units, date_time.calendar)
 

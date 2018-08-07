@@ -266,7 +266,7 @@ class outputTssMap(object):
             if len(expression[3]):
                 numbervalues = len(expression[3][0])
 
-                for timestep in xrange(dateVar['intSpin'], dateVar['intEnd'] + 1):
+                for timestep in xrange(dateVar['intSpin'], dateVar['intEnd'] + 1 - dateVar['leapYearMinus']):
                     if dateVar['checked'][timestep - dateVar['intSpin']] >= daymonthyear:
                     #if dateVar['checked'][timestep - 1] >= daymonthyear:
                         row = ""

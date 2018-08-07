@@ -39,8 +39,7 @@ class CWATModel_dyn(DynamicModel):
 
         #self.CalendarDate = dateVar['dateStart'] + datetime.timedelta(days=dateVar['curr'])
         #self.CalendarDay = int(self.CalendarDate.strftime("%j"))
-        timestep_dynamic()
-
+        timestep_dynamic(self)
 
 
         del timeMes[:]
@@ -148,6 +147,8 @@ class CWATModel_dyn(DynamicModel):
         self.sumsum_gwRecharge += self.sum_gwRecharge
         runoff = self.baseflow + self.sum_landSurfaceRunoff
         self.sumsum_Runoff += runoff
+
+
 
         #print self.sum_directRunoff,  self.sum_interflowTotal, self.sum_landSurfaceRunoff, self.baseflow, runoff
         #print self.sumsum_Precipitation, self.sumsum_Runoff
