@@ -183,8 +183,13 @@ class waterdemand(object):
             new = 'newYear'
             if self.var.industryTime == 'monthly': new = 'newMonth'
             if dateVar['newStart'] or dateVar[new]:
-                self.var.industryDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], self.var.industryTime, value=self.var.indWithdrawalVar)
-                self.var.industryConsumption = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], self.var.industryTime, value=self.var.indConsumptionVar)
+                date_tmp = dateVar['currDate']
+                if date_tmp.year < 1960: date_tmp.year = 1960
+                if data_tmp.year > 2010: date_tmp.year = 2010
+                self.var.industryDemand = readnetcdf2('industryWaterDemandFile', date_tmp, self.var.industryTime, value=self.var.indWithdrawalVar)
+                self.var.industryConsumption = readnetcdf2('industryWaterDemandFile', date_tmp, self.var.industryTime, value=self.var.indConsumptionVar)
+                #self.var.industryDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], self.var.industryTime, value=self.var.indWithdrawalVar)
+                #self.var.industryConsumption = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], self.var.industryTime, value=self.var.indConsumptionVar)
                 # avoid small values (less than 1 m3):
                 self.var.industryDemand = np.where(self.var.industryDemand > self.var.InvCellArea, self.var.industryDemand, 0.0)
                 self.var.industryConsumption = np.where(self.var.industryConsumption > self.var.InvCellArea, self.var.industryConsumption, 0.0)
@@ -194,8 +199,13 @@ class waterdemand(object):
             new = 'newYear'
             if self.var.domesticTime == 'monthly': new = 'newMonth'
             if dateVar['newStart'] or dateVar[new]:
-                self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.domWithdrawalVar)
-                self.var.domesticConsumption = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.domConsumptionVar)
+                date_tmp = dateVar['currDate']
+                if date_tmp.year < 1960: date_tmp.year = 1960
+                if data_tmp.year > 2010: date_tmp.year = 2010
+                self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', date_tmp, self.var.domesticTime, value=self.var.domWithdrawalVar)
+                self.var.domesticConsumption = readnetcdf2('domesticWaterDemandFile', date_tmp, self.var.domesticTime, value=self.var.domConsumptionVar)
+                #self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.domWithdrawalVar)
+                #self.var.domesticConsumption = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.domConsumptionVar)
                 # avoid small values (less than 1 m3):
                 self.var.domesticDemand = np.where(self.var.domesticDemand > self.var.InvCellArea, self.var.domesticDemand, 0.0)
                 self.var.domesticConsumption = np.where(self.var.domesticConsumption > self.var.InvCellArea, self.var.domesticConsumption, 0.0)
@@ -206,7 +216,11 @@ class waterdemand(object):
                 new = 'newYear'
                 if self.var.livestockTime == 'monthly': new = 'newMonth'
                 if dateVar['newStart'] or dateVar[new]:
-                    self.var.livestockDemand = readnetcdf2('livestockWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.livVar)
+                    date_tmp = dateVar['currDate']
+                    if date_tmp.year < 1960: date_tmp.year = 1960
+                    if data_tmp.year > 2010: date_tmp.year = 2010
+                    self.var.livestockDemand = readnetcdf2('livestockWaterDemandFile', date_tmp, self.var.domesticTime, value=self.var.livVar)
+                    #self.var.livestockDemand = readnetcdf2('livestockWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.livVar)
                 # avoid small values (less than 1 m3):
                 self.var.livestockDemand = np.where(self.var.livestockDemand > self.var.InvCellArea, self.var.livestockDemand, 0.0)
             else:
