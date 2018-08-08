@@ -146,7 +146,9 @@ class waterdemand(object):
             self.var.returnFlow = 0
             self.var.unmetDemandPaddy = globals.inZero.copy()
             self.var.unmetDemandNonpaddy = globals.inZero.copy()
-
+            self.var.ind_efficiency = 1.
+            self.var.dom_efficiency = 1.
+            self.var.liv_efficiency = 1.
 
     # --------------------------------------------------------------------------
     # --------------------------------------------------------------------------
@@ -184,8 +186,8 @@ class waterdemand(object):
             if self.var.industryTime == 'monthly': new = 'newMonth'
             if dateVar['newStart'] or dateVar[new]:
                 date_tmp = dateVar['currDate']
-                if date_tmp.year < 1960: date_tmp.year = 1960
-                if data_tmp.year > 2010: date_tmp.year = 2010
+                if date_tmp.year < 1960: date_tmp.replace(year=1960)
+                if date_tmp.year > 2010: date_tmp.replace(year=2010)
                 self.var.industryDemand = readnetcdf2('industryWaterDemandFile', date_tmp, self.var.industryTime, value=self.var.indWithdrawalVar)
                 self.var.industryConsumption = readnetcdf2('industryWaterDemandFile', date_tmp, self.var.industryTime, value=self.var.indConsumptionVar)
                 #self.var.industryDemand = readnetcdf2('industryWaterDemandFile', dateVar['currDate'], self.var.industryTime, value=self.var.indWithdrawalVar)
@@ -193,15 +195,15 @@ class waterdemand(object):
                 # avoid small values (less than 1 m3):
                 self.var.industryDemand = np.where(self.var.industryDemand > self.var.InvCellArea, self.var.industryDemand, 0.0)
                 self.var.industryConsumption = np.where(self.var.industryConsumption > self.var.InvCellArea, self.var.industryConsumption, 0.0)
-                ind_efficiency = divideValues(self.var.industryConsumption, self.var.industryDemand)
+                self.var.ind_efficiency = divideValues(self.var.industryConsumption, self.var.industryDemand)
 
             # domestic water demand
             new = 'newYear'
             if self.var.domesticTime == 'monthly': new = 'newMonth'
             if dateVar['newStart'] or dateVar[new]:
                 date_tmp = dateVar['currDate']
-                if date_tmp.year < 1960: date_tmp.year = 1960
-                if data_tmp.year > 2010: date_tmp.year = 2010
+                if date_tmp.year < 1960: date_tmp.replace(year=1960)
+                if date_tmp.year > 2010: date_tmp.replace(year=2010)
                 self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', date_tmp, self.var.domesticTime, value=self.var.domWithdrawalVar)
                 self.var.domesticConsumption = readnetcdf2('domesticWaterDemandFile', date_tmp, self.var.domesticTime, value=self.var.domConsumptionVar)
                 #self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.domWithdrawalVar)
@@ -209,7 +211,7 @@ class waterdemand(object):
                 # avoid small values (less than 1 m3):
                 self.var.domesticDemand = np.where(self.var.domesticDemand > self.var.InvCellArea, self.var.domesticDemand, 0.0)
                 self.var.domesticConsumption = np.where(self.var.domesticConsumption > self.var.InvCellArea, self.var.domesticConsumption, 0.0)
-                dom_efficiency = divideValues(self.var.domesticConsumption, self.var.domesticDemand)
+                self.var.dom_efficiency = divideValues(self.var.domesticConsumption, self.var.domesticDemand)
 
             # livestock water demand
             if self.var.uselivestock:
@@ -217,8 +219,8 @@ class waterdemand(object):
                 if self.var.livestockTime == 'monthly': new = 'newMonth'
                 if dateVar['newStart'] or dateVar[new]:
                     date_tmp = dateVar['currDate']
-                    if date_tmp.year < 1960: date_tmp.year = 1960
-                    if data_tmp.year > 2010: date_tmp.year = 2010
+                    if date_tmp.year < 1960: date_tmp.replace(year=1960)
+                    if date_tmp.year > 2010: date_tmp.replace(year=2010)
                     self.var.livestockDemand = readnetcdf2('livestockWaterDemandFile', date_tmp, self.var.domesticTime, value=self.var.livVar)
                     #self.var.livestockDemand = readnetcdf2('livestockWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.livVar)
                 # avoid small values (less than 1 m3):
@@ -226,7 +228,7 @@ class waterdemand(object):
             else:
                 self.var.livestockDemand = 0.
             # todo: temporal....
-            liv_efficiency = globals.inZero.copy() + 1.
+            self.var.liv_efficiency = globals.inZero.copy() + 1.
 
 
             if dateVar['newStart'] or dateVar['newMonth']:
@@ -466,9 +468,9 @@ class waterdemand(object):
             self.var.act_livDemand = frac_livestock * self.var.act_nonIrrDemand
 
             self.var.sumirrConsumption = self.var.fracVegCover[2] * self.var.irrConsumption[2] + self.var.fracVegCover[3] * self.var.irrConsumption[3]
-            self.var.act_indConsumption = ind_efficiency * self.var.act_indDemand
-            self.var.act_domConsumption = dom_efficiency * self.var.act_domDemand
-            self.var.act_livConsumption = liv_efficiency * self.var.act_livDemand
+            self.var.act_indConsumption = self.var.ind_efficiency * self.var.act_indDemand
+            self.var.act_domConsumption = self.var.dom_efficiency * self.var.act_domDemand
+            self.var.act_livConsumption = self.var.liv_efficiency * self.var.act_livDemand
 
             self.var.waterDemand = self.var.act_irrPaddyDemand + self.var.act_irrNonpaddyDemand + self.var.nonIrrDemand
             self.var.waterWithdrawal = self.var.act_nonIrrDemand + self.var.act_irrDemand
