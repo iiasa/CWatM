@@ -67,7 +67,7 @@ class landcoverType(object):
                          'effSatAt50',  'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin','rootZoneWaterStorageRange',
                          'totalPotET','potTranspiration','soilWaterStorage',
                          'infiltration','actBareSoilEvap','landSurfaceRunoff','actTransTotal',
-                         'gwRecharge','interflow','actualET','irrConsumption','irrDemand',
+                         'gwRecharge','interflow','actualET','pot_irrConsumption','act_irrConsumption','irrDemand',
                          'topWaterLayer',
                          'perc3toGW','capRiseFromGW','netPercUpper','netPerc','prefFlow']
         # for 6 landcover types
