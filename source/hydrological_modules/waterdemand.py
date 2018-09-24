@@ -100,6 +100,13 @@ class waterdemand(object):
             if "uselivestock" in binding:
                 self.var.uselivestock = returnBool('uselivestock')
 
+            self.var.demand_unit = True
+            if "demand_unit" in binding:
+                self.var.demand_unit = returnBool('demand_unit')
+            if self.var.demand_unit:
+                     self.var.M3toM
+
+
 
             self.var.use_environflow = False
             self.var.cut_ef_map = False
@@ -223,6 +230,15 @@ class waterdemand(object):
                 self.var.industryDemand = np.where(self.var.industryDemand > self.var.InvCellArea, self.var.industryDemand, 0.0)
                 self.var.industryConsumption = np.where(self.var.industryConsumption > self.var.InvCellArea, self.var.industryConsumption, 0.0)
 
+                # transform from mio m3 per year (or month) to m/day if necessary
+                if not(self.var.demand_unit):
+                    if self.var.industryTime == 'monthly':
+                        timediv= dateVar['daysInMonth']
+                    else:
+                        timediv = dateVar['daysInYear']
+                    self.var.industryDemand = self.var.industryDemand * 1000000 * self.var.M3toM / timediv
+                    self.var.industryConsumption = self.var.industryConsumption * 1000000 * self.var.M3toM / timediv
+
             # domestic water demand
             new = 'newYear'
             if self.var.domesticTime == 'monthly': new = 'newMonth'
@@ -233,6 +249,17 @@ class waterdemand(object):
                 self.var.domesticDemand = np.where(self.var.domesticDemand > self.var.InvCellArea, self.var.domesticDemand, 0.0)
                 self.var.domesticConsumption = np.where(self.var.domesticConsumption > self.var.InvCellArea, self.var.domesticConsumption, 0.0)
 
+                # transform from mio m3 per year (or month) to m/day if necessary
+                if not(self.var.demand_unit):
+                    if self.var.domesticTime == 'monthly':
+                        timediv= dateVar['daysInMonth']
+                    else:
+                        timediv = dateVar['daysInYear']
+                    self.var.domesticDemand = self.var.domesticDemand * 1000000 * self.var.M3toM / timediv
+                    self.var.domesticConsumption = self.var.domesticConsumption * 1000000 * self.var.M3toM / timediv
+
+
+
                 # livestock water demand
             if self.var.uselivestock:
                 new = 'newYear'
@@ -241,8 +268,22 @@ class waterdemand(object):
                     self.var.livestockDemand = readnetcdf2('livestockWaterDemandFile', dateVar['currDate'], self.var.domesticTime, value=self.var.livVar)
                 # avoid small values (less than 1 m3):
                 self.var.livestockDemand = np.where(self.var.livestockDemand > self.var.InvCellArea, self.var.livestockDemand, 0.0)
+
+                # transform from mio m3 per year (or month) to m/day if necessary
+                if not (self.var.demand_unit):
+                    if self.var.livestockTime == 'monthly':
+                        timediv = dateVar['daysInMonth']
+                    else:
+                        timediv = dateVar['daysInYear']
+                    self.var.livestockDemand = self.var.livestockDemand * 1000000 * self.var.M3toM / timediv
+
+
+
             else:
                 self.var.livestockDemand = 0.
+
+
+
 
 
             if dateVar['newStart'] or dateVar['newMonth']:

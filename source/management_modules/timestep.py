@@ -17,6 +17,7 @@ import numpy as np
 from management_modules.data_handling import *
 from management_modules.globals import *
 from management_modules.messages import *
+from netCDF4 import Dataset,num2date,date2num,date2index
 
 import difflib  # to check the closest word in settingsfile, if an error occurs
 
@@ -196,6 +197,25 @@ def checkifDate(start,end,spinup):
     dateVar['leapYear'] = 0
 
     dateVar['leapYearMinus'] = 0 # if meteo data are 365 days or 360 days there are less days altogether
+
+
+def date2indexNew(date, nctime, calendar, select='nearest'):
+    # because date2index cannot handle month and years only
+    unit = nctime.units.split()
+    if unit[0].upper() =="DAYS":
+        index = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+    elif unit[0][0:5].upper() =="MONTH":
+        year0 = int(unit[2][0:4])
+        month0 = int(unit[2][6:7])
+        value = (date.year - year0) * 12 + (date.month - month0)
+        index = np.where(nctime[:] == value)[0][0]
+    elif unit[0][0:4].upper() == "YEAR":
+        year0 = int(unit[2][0:4])
+        value = date.year - year0
+        index = np.where(nctime[:] == value)[0][0]
+    else:
+        index = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+    return index
 
 
 

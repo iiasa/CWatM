@@ -853,7 +853,7 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
                 idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
             else:
                 #idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
-                idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+                idx = date2indexNew(date, nctime, calendar=nctime.calendar, select='nearest')
 
             if meteo: inputcounter[value] = idx
 
