@@ -179,7 +179,6 @@ References
 - Beck, H. E., A. I. J. M. Van Dijk, V. Levizzani, J. Schellekens, D. G. Miralles, B. Martens and A. De Roo (2017). "MSWEP: 3-hourly 0.25° global gridded precipitation (1979-2015) by merging gauge, satellite, and reanalysis data." Hydrology and Earth System Sciences 21(1): 589-615.
 - Döll, P. and B. Lehner (2002). "Validation of a new global 30-min drainage direction map." Journal of Hydrology 258(1): 214-231.
 - Döll, P. and S. Siebert (2002). "Global modeling of irrigation water requirements." Water Resources Research 38(4): 81-811.
-- Fang, Z., I. E. V. Ted, F. Katja, S. Jacob, O. Sebastian, W. Sven, S. Bernhard, N. G. Simon, S. Hannes Müller, T. P. Felix, L. Guoyong, H. Maoyi, L. Xingcai, T. Qiuhong, H. Naota, B. Hester, G. Dieter, S. Yusuke, P. Yadu, S. Tobias, C. Philippe, C. Jinfeng, D. Agnes, G. Matthieu, W. Yoshihide, K. Hyungjun and Y. Dai (2017). "The critical role of the routing scheme in simulating peak river discharge in global hydrological models." Environmental Research Letters 12(7): 075003.
 - Gleeson, T., N. Moosdorf, J. Hartmann and L. P. H. Van Beek (2014). "A glimpse beneath earth's surface: GLobal HYdrogeology MaPS (GLHYMPS) of permeability and porosity." Geophysical Research Letters 41(11): 3891-3898.
 - Hengl, T., J. M. de Jesus, R. A. MacMillan, N. H. Batjes, G. B. M. Heuvelink, E. Ribeiro, A. Samuel-Rosa, B. Kempen, J. G. B. Leenaars, M. G. Walsh and M. R. Gonzalez (2014). "SoilGrids1km — Global Soil Information Based on Automated Mapping." PLOS ONE 9(8): e105992.
 - Jarvis, A., H. I. Reuter, A. Nelson and E. Guevara (2008). Hole-filled SRTM for the globe Version 4, available from the CGIAR-CSI SRTM 90m Database (http://srtm.csi.cgiar.org).
@@ -196,6 +195,8 @@ References
 - Wösten, J. H. M., A. Lilly, A. Nemes and C. Le Bas (1999). "Development and use of a database of hydraulic properties of European soils." Geoderma 90(3-4): 169-185.
 - Wu, H., J. S. Kimball, N. Mantua and J. Stanford (2011). "Automated upscaling of river networks for macroscale hydrological modeling." Water Resources Research 47(3).
 - Yamazaki, D., T. Oki and S. Kanae (2009). "Deriving a global river network map and its sub-grid topographic characteristics from a fine-resolution flow direction map." Hydrology and Earth System Sciences 13(11): 2241-2251.
+- Zhao, F., Veldkamp, T. I. E., Frieler, K., Schewe, J., Ostberg, S., Willner, S., Schauberger, B., Gosling, S., N. , Müller Schmied, H., Portmann, F., T. , Leng, G., Huang, M., Liu, X., Tang, Q., Hanasaki, N., Biemans, H., Gerten, D., Satoh, Y., Pokhrel, Y., Stacke, T., Ciais, P., Chang, J., Ducharne, A., Guimberteau, M., Wada, Y., Kim, H., & Yamazaki, D. (2017). The critical role of the routing scheme in simulating peak river discharge in global hydrological models. Environmental Research Letters, 12(7), 075003
+
 
 
 

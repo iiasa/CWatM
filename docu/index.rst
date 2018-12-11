@@ -36,6 +36,7 @@ Community Water Model
    
    data
    calibration
+   calibration_tutorial
    license
 
 * :ref:`genindex`
