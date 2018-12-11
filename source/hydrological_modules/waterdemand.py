@@ -34,6 +34,7 @@ class waterdemand(object):
         if checkOption('includeWaterDemand'):
 
             # Add  zones at which water allocation (surface and groundwater allocation) is determined
+            #self.var.allocSegments = loadmap('allocSegments').astype(np.int)
             if checkOption('usingAllocSegments'):
                self.var.allocSegments = loadmap('allocSegments').astype(np.int)
                self.var.segmentArea = npareatotal(self.var.cellArea, self.var.allocSegments)
@@ -133,7 +134,7 @@ class waterdemand(object):
 
 
             # for Xiaogang's agent model
-            self.var.alphaDepletion = 1.0
+            self.var.alphaDepletion = 0.6
             if "alphaDepletion" in binding:
                 self.var.alphaDepletion = loadmap('alphaDepletion')
 
@@ -269,7 +270,7 @@ class waterdemand(object):
                 # avoid small values (less than 1 m3):
                 self.var.livestockDemand = np.where(self.var.livestockDemand > self.var.InvCellArea, self.var.livestockDemand, 0.0)
 
-                # transform from mio m3 per year (or month) to m/day if necessary
+                # transform from mio m3 per year (or month) to m/day if necessary - if demand_unit = False -> transdform from mio m3 per month or year
                 if not (self.var.demand_unit):
                     if self.var.livestockTime == 'monthly':
                         timediv = dateVar['daysInMonth']
@@ -555,20 +556,27 @@ class waterdemand(object):
             self.var.waterDemand =  self.var.act_irrPaddyDemand  + self.var.act_irrNonpaddyDemand + self.var.nonIrrDemand
             self.var.waterWithdrawal = self.var.act_nonIrrDemand + self.var.act_irrDemand
 
-
+            unmet_div_ww = 1. - divideValues(self.var.unmetDemand, self.var.waterWithdrawal)
 
 
             #Sum up loss
             #sumIrrLoss = self.var.fracVegCover[2] * (self.var.irrDemand[2] - self.var.irrConsumption[2]) +  self.var.fracVegCover[3] * (self.var.irrDemand[3] - self.var.irrConsumption[3])
             sumIrrLoss =  self.var.act_irrDemand - self.var.sumirrConsumption
-            #sumIrrLoss = self.var.act_irrPaddyDemand - (self.var.fracVegCover[2] * self.var.irrConsumption[2]) +
+            #sumIrrLoss = np.maximum(0, sumIrrLoss - self.var.unmetDemand)
+
             self.var.returnflowIrr =  self.var.returnfractionIrr * sumIrrLoss
-            self.var.addtoevapotrans = (1- self.var.returnfractionIrr) *  sumIrrLoss
+            self.var.addtoevapotrans = (1- self.var.returnfractionIrr) * sumIrrLoss * unmet_div_ww
 
 
 
             # returnflow to river and to evapotranspiration
             self.var.returnFlow = self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrDemand + self.var.returnflowIrr
+            self.var.returnFlow = self.var.returnFlow * unmet_div_ww
+
+            self.var.waterConsumption = self.var.sumirrConsumption + self.var.nonIrrConsumption
+            self.var.waterDemandLost = self.var.waterConsumption + self.var.addtoevapotrans 
+            #self.var.waterDemandLostarea = npareatotal(self.var.waterDemandLost, self.var.allocSegments)
+
 
             #if addtoevapotrans  > 0:
             #    jjj =1

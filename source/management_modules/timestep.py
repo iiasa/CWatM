@@ -199,7 +199,7 @@ def checkifDate(start,end,spinup):
     dateVar['leapYearMinus'] = 0 # if meteo data are 365 days or 360 days there are less days altogether
 
 
-def date2indexNew(date, nctime, calendar, select='nearest'):
+def date2indexNew(date, nctime, calendar, select='nearest', name =""):
     # because date2index cannot handle month and years only
     unit = nctime.units.split()
     if unit[0].upper() =="DAYS":
@@ -208,10 +208,23 @@ def date2indexNew(date, nctime, calendar, select='nearest'):
         year0 = int(unit[2][0:4])
         month0 = int(unit[2][6:7])
         value = (date.year - year0) * 12 + (date.month - month0)
+        if value > max(nctime[:]):
+            value = max(nctime[:]) - 11 + (date.month - month0)
+            msg = " - " + date.strftime('%Y-%m') + " is later then the last dataset in " + name + " -"
+            msg += " instead last year/month dataset is used"
+            print CWATMWarning(msg)
+
+
         index = np.where(nctime[:] == value)[0][0]
     elif unit[0][0:4].upper() == "YEAR":
         year0 = int(unit[2][0:4])
         value = date.year - year0
+        if value > max(nctime[:]):
+            value = max(nctime[:])
+            msg = " - " + date.strftime('%Y') + " is later then the last dataset in " + name + " -"
+            msg += " instead last year dataset is used"
+            print CWATMWarning(msg)
+
         index = np.where(nctime[:] == value)[0][0]
     else:
         index = date2index(date, nctime, calendar=nctime.calendar, select='nearest')

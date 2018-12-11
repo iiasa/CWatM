@@ -400,9 +400,9 @@ class outputTssMap(object):
 
                         # if end of month is reached
                         if dateVar['checked'][dateVar['currwrite'] - 1]>0:
-                            if (map[-8:] == "monthend"):
-                                outMap[map][i][2] = writenetcdf(netfile, varname,"_monthend", "undefined", eval(inputmap+ "_monthend"), dateVar['currDate'], dateVar['currMonth'], flag, True,
-                                                                dateVar['diffMonth'],dateunit="months")
+                            #if (map[-8:] == "monthend"):
+                            #    outMap[map][i][2] = writenetcdf(netfile, varname,"_monthend", "undefined", eval(inputmap+ "_monthend"), #dateVar['currDate'], dateVar['currMonth'], flag, True,
+                            #                                    dateVar['diffMonth'],dateunit="months")
                             if (map[-8:] == "monthtot"):
                                 outMap[map][i][2] = writenetcdf(netfile, varname,"_monthtot", "undefined", eval(inputmap+ "_monthtot"), dateVar['currDate'], dateVar['currMonth'], flag, True,
                                                                 dateVar['diffMonth'],dateunit="months")
