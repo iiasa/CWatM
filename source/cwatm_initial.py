@@ -72,8 +72,9 @@ class CWATModel_ini(DynamicModel):
         namemeteo = nameall[0]
         latmeteo, lonmeteo, cell, invcellmeteo = readCoordNetCDF(namemeteo)
         nameldd = cbinding('Ldd')
-        nameldd = os.path.splitext(nameldd)[0] + '.nc'
-        latldd, lonldd, cell, invcellldd = readCoordNetCDF(nameldd)
+        #nameldd = os.path.splitext(nameldd)[0] + '.nc'
+        #latldd, lonldd, cell, invcellldd = readCoordNetCDF(nameldd)
+        latldd, lonldd, cell, invcellldd = readCoord(nameldd)
         maskmapAttr['reso_mask_meteo'] = round(invcellldd / invcellmeteo)
 
 
@@ -102,6 +103,18 @@ class CWATModel_ini(DynamicModel):
             # if NetCDF is writen, the pr.nc is read to get the metadata
             # like projection
             metaNetCDF()
+
+
+            if "coverresult" in binding:
+                coverresult[0] = returnBool('coverresult')
+                if coverresult[0]:
+                    cover = loadmap('covermap', compress = False)
+                    cover[cover > 1] = False
+                    cover[cover == 1] = True
+                    coverresult[1] = cover
+                    #coverresult[1] = np.ma.array(cover, mask = covermask)
+
+                ii=1
 
         # ----------------------------------------
         # include output of tss and maps

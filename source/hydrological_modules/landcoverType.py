@@ -15,10 +15,8 @@ class landcoverType(object):
 
     """
     LAND COVER TYPE
-
     runs the 6 land cover types through soil procedures
     This routine calls the soil routine for each land cover type
-
     """
 
     def __init__(self, landcoverType_variable):
@@ -31,14 +29,12 @@ class landcoverType(object):
         """
         Initial part of the land cover type module
         Initialise the six land cover types
-
         * Forest
         * Grasland/non irrigated land
         * Irrigation
         * Paddy iirigation
         * Sealed area
         * Water covered area
-
         And initialize the soil variables
         """
 
@@ -70,6 +66,7 @@ class landcoverType(object):
                          'gwRecharge','interflow','actualET','pot_irrConsumption','act_irrConsumption','irrDemand',
                          'topWaterLayer',
                          'perc3toGW','capRiseFromGW','netPercUpper','netPerc','prefFlow']
+     
         # for 6 landcover types
         for variable in landcoverVars:  vars(self.var)[variable] = np.tile(globals.inZero,(6,1))
 
@@ -347,7 +344,6 @@ class landcoverType(object):
         """
         Dynamic part of the land cover type module
         Calculating fraction of land cover
-
         * loads the fraction of landcover for each year from netcdf maps
         * calculate the fraction of 6 land cover types based on the maps
         """
@@ -420,12 +416,10 @@ class landcoverType(object):
         """
         Dynamic part of the land cover type module
         Calculating soil for each of the 6  land cover class
-
         * calls evaporation_module.dynamic
         * calls interception_module.dynamic
         * calls soil_module.dynamic
         * calls sealed_water_module.dynamic
-
         And sums every thing up depending on the land cover type fraction
         """
         if (dateVar['curr'] == 15):
@@ -502,7 +496,7 @@ class landcoverType(object):
         self.var.totalET = self.var.sum_actTransTotal + self.var.sum_actBareSoilEvap + self.var.sum_openWaterEvap + self.var.sum_interceptEvap + self.var.snowEvap + self.var.addtoevapotrans
         # addtoevapotrans: part of water demand which is lost due to evaporation
         self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
-
+        self.var.sum_runoff = self.var.sum_directRunoff + self.var.sum_interflow
 
         i= 1
 
@@ -569,7 +563,16 @@ class landcoverType(object):
                  self.var.totalET, self.var.nonIrruse,self.var.returnFlow ],                                                                # Out
                 [self.var.pretotalSto],                                       # prev storage
                 [self.var.totalSto],
-                "Soil_sum3", False)
+                "Soil_sum3", True)
+
+        if checkOption('calcWaterBalance'):
+            self.var.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation],                             # In
+                [self.var.sum_runoff,self.var.sum_gwRecharge,self.var.totalET ],  # out
+                [self.var.pretotalSto],                                       # prev storage
+                [self.var.totalSto],
+                "Soil_sum4", True)
+
 
         i = 1
 

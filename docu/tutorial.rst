@@ -265,6 +265,90 @@ for example
 .. note:: For information how to adjust the output in the settings file see :ref:`rst_outputone`
 
 
+Most important output variables - a selection
+---------------------------------------------
+
+::
+   
+   #Variable name    : Description
+   discharge         : river discharge
+   runoff            : runoff
+   Precipitation     : rainfall + snow
+   Tavg              : average temperature
+   ETRef: potential  : evaporation from reference soil
+   sum_gwRecharge    : total groundwater recharge
+   totalET           : total actual evapotranspiration
+   baseflow          : baseflow from groundwater
+   ... (to be continued)
+
+
+
+Output variables - starting a list
+----------------------------------
+
+| A list of variables can be produced by using:
+| grep -d recurse 'self.var.' *.py 
+| Every self.var.variable can be used as output variable
+| For a description of the variable please take a look at the python module itself.
+| 
+| As output variable please use without self.var.
+
+::
+   
+   #Python_modul            Variable_name
+   capillarRise.py          self.var.capRiseFrac 
+   evaporationPot.py        self.var.AlbedoCanopy
+   evaporationPot.py        self.var.AlbedoSoil
+   evaporationPot.py        self.var.AlbedoWater
+   evaporationPot.py        self.var.ETRef
+   evaporationPot.py        self.var.EWRef
+   evaporation.py           self.var.potBareSoilEvap 
+   evaporation.py           self.var.snowEvap
+   evaporation.py           self.var.SnowMelt
+   evaporation.py           self.var.potBareSoilEvap 
+   evaporation.py           self.var.cropKC[No] 
+   evaporation.py           self.var.totalPotET[No] 
+   evaporation.py           self.var.potTranspiration[No]
+   groundwater.py           self.var.recessionCoeff 
+   groundwater.py           self.var.specificYield 
+   groundwater.py           self.var.kSatAquifer 
+   groundwater.py           self.var.storGroundwater 
+   groundwater.py           self.var.baseflow 
+   interception.py          self.var.interceptCap[No]  
+   interception.py          self.var.interceptStor[No] 
+   interception.py          self.var.availWaterInfiltration[No] 
+   interception.py          self.var.potTranspiration[No] 
+   interception.py          self.var.actualET[No] 
+   lakes_reservoirs.py      self.var.waterBodyID 
+   lakes_reservoirs.py      self.var.waterBodyOut
+   lakes_reservoirs.py      self.var.lakeArea
+   lakes_reservoirs.py      self.var.lakeDis0
+   lakes_reservoirs.py      self.var.lakeAC
+   lakes_reservoirs.py      self.var.lakeEvaFactor
+   lakes_reservoirs.py      self.var.reslakeoutflow
+   lakes_reservoirs.py      self.var.lakeVolume
+   lakes_reservoirs.py      self.var.lakeStorage
+   lakes_reservoirs.py      self.var.lakeInflow
+   lakes_reservoirs.py      self.var.lakeOutflow
+   lakes_reservoirs.py      self.var.reservoirStorage
+   lakes_reservoirs.py      self.var.lakeResStorage
+   lakes_reservoirs.py      self.var.sumlakeResInflow
+   lakes_reservoirs.py      self.var.sumlakeResOutflow
+   lakes_res_small.py       self.var.smalllakeArea
+   lakes_res_small.py       self.var.smalllakeDis0
+   lakes_res_small.py       self.var.smalllakeA
+   lakes_res_small.py       self.var.smalllakeFactor
+   lakes_res_small.py       self.var.smalllakeVolumeM3
+   lakes_res_small.py       self.var.smallevapWaterBodyStorage 
+   landcoverType.py         self.var.coverTypes
+   landcoverType.py         self.var.totalET
+   landcoverType.py         self.var.actSurfaceWaterAbstract
+   landcoverType.py         self.var.minInterceptCap
+   landcoverType.py         self.var.interceptStor[No]
+   landcoverType.py         self.var.sum_interceptStor
+   landcoverType.py         self.var.minCropKC
+   landcoverType.py         self.var.maxGWCapRise
+   ... (to be continued)
 
 
 

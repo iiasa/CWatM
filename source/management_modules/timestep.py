@@ -17,6 +17,7 @@ import numpy as np
 from management_modules.data_handling import *
 from management_modules.globals import *
 from management_modules.messages import *
+from netCDF4 import Dataset,num2date,date2num,date2index
 
 import difflib  # to check the closest word in settingsfile, if an error occurs
 
@@ -195,10 +196,44 @@ def checkifDate(start,end,spinup):
     dateVar['diffYear'] = dateVar['checked'].count(2)
     dateVar['leapYear'] = 0
 
+    dateVar['leapYearMinus'] = 0 # if meteo data are 365 days or 360 days there are less days altogether
+
+
+def date2indexNew(date, nctime, calendar, select='nearest', name =""):
+    # because date2index cannot handle month and years only
+    unit = nctime.units.split()
+    if unit[0].upper() =="DAYS":
+        index = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+    elif unit[0][0:5].upper() =="MONTH":
+        year0 = int(unit[2][0:4])
+        month0 = int(unit[2][6:7])
+        value = (date.year - year0) * 12 + (date.month - month0)
+        if value > max(nctime[:]):
+            value = max(nctime[:]) - 11 + (date.month - month0)
+            msg = " - " + date.strftime('%Y-%m') + " is later then the last dataset in " + name + " -"
+            msg += " instead last year/month dataset is used"
+            print CWATMWarning(msg)
+
+
+        index = np.where(nctime[:] == value)[0][0]
+    elif unit[0][0:4].upper() == "YEAR":
+        year0 = int(unit[2][0:4])
+        value = date.year - year0
+        if value > max(nctime[:]):
+            value = max(nctime[:])
+            msg = " - " + date.strftime('%Y') + " is later then the last dataset in " + name + " -"
+            msg += " instead last year dataset is used"
+            print CWATMWarning(msg)
+
+        index = np.where(nctime[:] == value)[0][0]
+    else:
+        index = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+    return index
 
 
 
-def timestep_dynamic():
+
+def timestep_dynamic(self):
     """
     Dynamic part of setting the date
     Current date is increasing, checking if beginning of month, year
@@ -214,12 +249,20 @@ def timestep_dynamic():
 
     if dateVar['leapYear']>0:   # 365 days per year
         if dateVar['currDate'].month==2 and dateVar['currDate'].day==29:
-             dateVar['curr'] += 1
-             dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
+            dateVar['curr'] += 1
+            dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
+            if dateVar['currDate'] >=  dateVar['dateStart']:
+                dateVar['leapYearMinus'] += 1
+                self._d_nrTimeSteps = self.nrTimeSteps() - 1   # reduce the number of timesteps if no leap year
+
+
     if dateVar['leapYear']==2:   # 360 days per year
         if  dateVar['currDate'].month < 9 and dateVar['currDate'].day==31:
-             dateVar['curr'] += 1
-             dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
+            dateVar['curr'] += 1
+            dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
+            if dateVar['currDate'] >= dateVar['dateStart']:
+                dateVar['leapYearMinus'] += 1
+                self._d_nrTimeSteps = self.nrTimeSteps() - 1
 
 
     #dateVar['currDatestr'] = dateVar['currDate'].strftime("%d/%m/%Y")

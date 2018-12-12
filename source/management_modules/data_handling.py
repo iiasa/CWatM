@@ -214,7 +214,7 @@ def loadsetclone(name):
 
 
         if Flags['check']:
-            checkmap(name, filename, map, flagmap, 0)
+            checkmap(name, filename, mapnp, flagmap, 0)
 
     else:
         msg = "Maskmap: " + filename + \
@@ -297,11 +297,11 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = 
 
 
         try:
-
+            nf1 = Dataset(filename, 'r')
             cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check = False)
 
             # load netcdf map but only the rectangle needed
-            nf1 = Dataset(filename, 'r')
+            #nf1 = Dataset(filename, 'r')
             value = nf1.variables.items()[-1][0]  # get the last variable name
 
             if not timestepInit:
@@ -358,7 +358,7 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = 
 
 
 
-
+        flagmap = True
         # if a map should be pc raster
         if pcr:
             warnings.filterwarnings("ignore")
@@ -379,23 +379,29 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = 
             if lddflag: map = ldd(nominal(map))
             warnings.filterwarnings("default")
         else:
+            if Flags['check']:
+                if flagmap == False:
+                    checkmap(name, filename, mapC, flagmap, 0)
+                else:
+                    checkmap(name, filename, mapnp, flagmap, 0)
+
             if compress:  mapC = compressArray(mapnp,pcr=False,name=filename)
             else: mapC = mapnp
-        flagmap = True
+
 
     # pc raster map but it has to be an array
     if pcrmap and not(pcr):
         mapC = compressArray(map,name=filename)
-    if Flags['check']:
-
-        print name, filename
-        if flagmap == False: checkmap(name, filename, mapC, flagmap, 0)
-        elif pcr: checkmap(name, filename, map, flagmap, 0)
-        else:
-            print name, mapC.size
-            if mapC.size >0:
-                map= decompress(mapC)
-                checkmap(name, filename, map, flagmap, 0)
+    #if Flags['check']:
+      #  if flagmap == False:
+      #      checkmap(name, filename, mapC, flagmap, 0)
+        #elif pcr: checkmap(name, filename, map, flagmap, 0)
+        #else:
+        #print name, mapC.size
+        #if mapC.size >0:
+           #map= decompress(mapC)
+      #  else:
+       #     checkmap(name, filename, mapnp, flagmap, mapC.size)
 
 
     if pcr:  return map
@@ -508,6 +514,28 @@ def metaNetCDF():
         msg = "Trying to get metadata from netcdf \n"
         raise CWATMFileError(cbinding('PrecipitationMaps'),msg)
 
+
+def readCoord(name):
+    namenc = os.path.splitext(name)[0] + '.nc'
+
+    try:
+        nf1 = Dataset(namenc, 'r')
+        nc = True
+    except:
+        nc = False
+    if nc:
+        lat, lon, cell, invcell = readCoordNetCDF(namenc)
+    else:
+        raster = gdal.Open(name)
+        gt = raster.GetGeoTransform()
+
+        cell = gt[1]
+        invcell = round(1.0 / cell, 0)
+        lon = gt[0]
+        lat = gt[3]
+
+    return lat,lon, cell,invcell
+
 def readCoordNetCDF(name,check = True):
     """
     reads the map attributes col, row etc from a netcdf map
@@ -551,7 +579,7 @@ def mapattrNetCDF(name, check = True):
     and define the rectangular of the mask map inside the netcdf map
     """
 
-    lat, lon, cell, invcell = readCoordNetCDF(name, check)
+    lat, lon, cell, invcell = readCoord(name)
 
     if maskmapAttr['invcell'] != invcell:
         msg = "Cell size different in maskmap: " + \
@@ -670,13 +698,19 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
             if nctime.calendar in ['360_day']:
                 dateVar['leapYear'] = 2
 
+
             datestart = num2date(nctime[0],units=nctime.units,calendar=nctime.calendar)
+            #datestart = num2date(nctime[0], units=nctime.units, calendar='proleptic_gregorian')
             # sometime daily records have a strange hour to start with -> it is changed to 0:00 to haqve the same record
             datestart = datestart.replace(hour=0, minute=0)
             dateend = num2date(nctime[-1], units=nctime.units, calendar=nctime.calendar)
+            #dateend = num2date(nctime[-1], units=nctime.units, calendar='proleptic_gregorian')
             dateend = dateend.replace(hour=0, minute=0)
             if startfile == 0: # search first file where dynamic run starts
-                start = dateVar[startcheck]
+                if dateVar['leapYear'] > 0:
+                    start = num2date(date2num(dateVar[startcheck],nctime.units,calendar=nctime.calendar), units=nctime.units, calendar=nctime.calendar)
+                else:
+                    start = dateVar[startcheck]
                 if (dateend >= start) and (datestart <= start):  # if enddate of a file is bigger than the start of run
                     startfile = 1
                     indstart = (start - datestart).days
@@ -770,7 +804,12 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
 
 
     # increase index and check if next file
+    #if (dateVar['leapYear'] == 1) and calendar.isleap(date.year):
+    #    if (date.month ==2) and (date.day == 28):
+    #        ii = 1  # dummmy for not doing anything
+    #    else:
     inputcounter[name] += 1
+
     if inputcounter[name] > meteoInfo[2]:
         inputcounter[name] = 0
         flagmeteo[name] += 1
@@ -836,13 +875,13 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
 
             if nctime.calendar in ['noleap', '365_day']:
                 dateVar['leapYear'] = 1
-                idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+                idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest', name = name)
             elif nctime.calendar in ['360_day']:
                 dateVar['leapYear'] = 2
-                idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+                idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest', name = name)
             else:
                 #idx = date2index(date, nctime, calendar=nctime.calendar, select='exact')
-                idx = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+                idx = date2indexNew(date, nctime, calendar=nctime.calendar, select='nearest', name = name)
 
             if meteo: inputcounter[value] = idx
 
@@ -1015,13 +1054,18 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
 
         if flagTime:
 
+            year = dateVar['dateStart'].year
+            if year > 1900:   yearstr = "1901"
+            elif year < 1861: yearstr = "1650"
+            else:             yearstr = "1861"
+
             #nf1.createDimension('time', None)
             nf1.createDimension('time', nrdays)
             time = nf1.createVariable('time', 'f8', ('time'))
             time.standard_name = 'time'
-            if dateunit == "days": time.units = 'Days since 1901-01-01'
-            if dateunit == "months": time.units = 'Months since 1901-01-01'
-            if dateunit == "years": time.units = 'Years since 1901-01-01'
+            if dateunit == "days": time.units = 'Days since ' + yearstr + '-01-01'
+            if dateunit == "months": time.units = 'Months since ' + yearstr + '-01-01'
+            if dateunit == "years": time.units = 'Years since ' + yearstr + '-01-01'
             time.calendar = 'standard'
 
 
@@ -1077,6 +1121,12 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
     mapnp[~maskinfo['maskflat']] = inputmap[:]
     #mapnp = mapnp.reshape(maskinfo['shape']).data
     mapnp = mapnp.reshape(maskinfo['shape'])
+
+    if coverresult[0]:
+        mapnp = mapnp.reshape(maskinfo['shape']).data
+        mapnp = np.where(coverresult[1], mapnp, np.nan)
+    else:
+        mapnp = mapnp.reshape(maskinfo['shape'])
 
     #date_time[posCnt] = date2num(timeStamp, date_time.units, date_time.calendar)
 

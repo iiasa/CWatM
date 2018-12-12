@@ -266,7 +266,7 @@ class outputTssMap(object):
             if len(expression[3]):
                 numbervalues = len(expression[3][0])
 
-                for timestep in xrange(dateVar['intSpin'], dateVar['intEnd'] + 1):
+                for timestep in xrange(dateVar['intSpin'], dateVar['intEnd'] + 1 - dateVar['leapYearMinus']):
                     if dateVar['checked'][timestep - dateVar['intSpin']] >= daymonthyear:
                     #if dateVar['checked'][timestep - 1] >= daymonthyear:
                         row = ""
@@ -400,9 +400,9 @@ class outputTssMap(object):
 
                         # if end of month is reached
                         if dateVar['checked'][dateVar['currwrite'] - 1]>0:
-                            if (map[-8:] == "monthend"):
-                                outMap[map][i][2] = writenetcdf(netfile, varname,"_monthend", "undefined", eval(inputmap+ "_monthend"), dateVar['currDate'], dateVar['currMonth'], flag, True,
-                                                                dateVar['diffMonth'],dateunit="months")
+                            #if (map[-8:] == "monthend"):
+                            #    outMap[map][i][2] = writenetcdf(netfile, varname,"_monthend", "undefined", eval(inputmap+ "_monthend"), #dateVar['currDate'], dateVar['currMonth'], flag, True,
+                            #                                    dateVar['diffMonth'],dateunit="months")
                             if (map[-8:] == "monthtot"):
                                 outMap[map][i][2] = writenetcdf(netfile, varname,"_monthtot", "undefined", eval(inputmap+ "_monthtot"), dateVar['currDate'], dateVar['currMonth'], flag, True,
                                                                 dateVar['diffMonth'],dateunit="months")
