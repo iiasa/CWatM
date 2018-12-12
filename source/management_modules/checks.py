@@ -50,7 +50,28 @@ def checkmap(name, value, map, flagmap, find):
 
     s = [name, value]
     if flagmap:
-        iii = 1
+        numbernonmv = np.count_nonzero(~np.isnan(map))
+        numbermv = np.count_nonzero(np.isnan(map))
+        minmap = map[~np.isnan(map)].min()
+        meanmap = map[~np.isnan(map)].mean()
+        maxmap = map[~np.isnan(map)].max()
+
+
+        s.append(numbernonmv)
+        s.append(numbermv)
+        s.append(minmap)
+        s.append(meanmap)
+        s.append(maxmap)
+        s.append(find)
+        s.append(np.count_nonzero(map))
+    else:
+        s.append(0)
+        s.append(0)
+        s.append(float(map))
+        s.append(float(map))
+        s.append(float(map))
+        s.append(0)
+        s.append(0)
         """
         amap = scalar(defined(MMaskMap))
         try:
@@ -59,7 +80,7 @@ def checkmap(name, value, map, flagmap, find):
             msg = "Map: " + name + " in " + value + " does not fit"
             if name == "LZAvInflowMap":
                 msg +="\nMaybe run initial run first"
-            raise LisfloodError(msg)
+            raise CWATMError(msg)
 
         mvmap = maptotal(smap)
         mv = cellvalue(mvmap, 1, 1)[0]
@@ -83,16 +104,9 @@ def checkmap(name, value, map, flagmap, find):
                 s.append('')
         """
 
-    else:
-        s.append(0)
-        s.append(0)
-        s.append(float(map))
-        s.append(float(map))
-        s.append(float(map))
-
     if checkmap.called == 1:
-        print "%-25s%-40s%11s%11s%11s%11s%11s" %("Name","File/Value","nonMV","MV","min","mean","max")
-    print "%-25s%-40s%11i%11i%11.2f%11.2f%11.2f" %(s[0],s[1][-39:],s[2],s[3],s[4],s[5],s[6])
+        print "%-30s%-40s%11s%11s%11s%11s%14s%14s%14s" %("Name","File/Value","nonMV","MV", "non0","Compress","min","mean","max")
+    print "%-30s%-40s%11i%11i%11i%11i%14.2f%14.2f%14.2f" %(s[0],s[1][-39:],s[2],s[3],s[8],s[7],s[4],s[5],s[6])
     return
 
 

@@ -72,8 +72,9 @@ class CWATModel_ini(DynamicModel):
         namemeteo = nameall[0]
         latmeteo, lonmeteo, cell, invcellmeteo = readCoordNetCDF(namemeteo)
         nameldd = cbinding('Ldd')
-        nameldd = os.path.splitext(nameldd)[0] + '.nc'
-        latldd, lonldd, cell, invcellldd = readCoordNetCDF(nameldd)
+        #nameldd = os.path.splitext(nameldd)[0] + '.nc'
+        #latldd, lonldd, cell, invcellldd = readCoordNetCDF(nameldd)
+        latldd, lonldd, cell, invcellldd = readCoord(nameldd)
         maskmapAttr['reso_mask_meteo'] = round(invcellldd / invcellmeteo)
 
 

@@ -45,6 +45,10 @@ class readmeteo(object):
         #meteomaps = ["PrecipitationMaps","TavgMaps"]
         multinetdf(meteomaps)
 
+        # Downscaling
+        self.var.meteodown = True
+        if "usemeteodownscaling" in binding:
+            self.var.meteodown = returnBool('usemeteodownscaling')
 
         self.var.wc2_tavg = 0
         self.var.wc4_tavg = 0
@@ -54,6 +58,7 @@ class readmeteo(object):
         self.var.wc4_tmax = 0
         self.var.wc2_prec = 0
         self.var.wc4_prec = 0
+
 
         # read dem for making a anomolydem between high resolution dem and low resoultion dem
 
@@ -199,22 +204,27 @@ class readmeteo(object):
 
         self.var.Precipitation = readmeteodata('PrecipitationMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale) * self.var.DtDay * self.var.con_precipitation
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
-        self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
-        #self.var.Precipitation  = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
 
+        if self.var.meteodown:
+            self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
+        else:
+            self.var.Precipitation = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
         self.var.prec = self.var.Precipitation / self.var.con_precipitation
-
         # precipitation (conversion to [mm] per time step)  `
 
         #self.var.Tavg = readnetcdf2('TavgMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
+
         tzero = 0
         if checkOption('TemperatureInKelvin'):
             tzero = ZeroKelvin
         self.var.Tavg = readmeteodata('TavgMaps',dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.var.meteomapsscale)
-        self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
-        ##self.var.Tavg = downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=0)
 
+        if self.var.meteodown:
+            self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
+        else:
+            self.var.Tavg  = downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=0)
         self.var.temp = self.var.Tavg.copy()
+
         # average DAILY temperature (even if you are running the model
         # on say an hourly time step) [degrees C]
         if checkOption('TemperatureInKelvin'):
@@ -231,13 +241,20 @@ class readmeteo(object):
 
             #self.var.TMin = readnetcdf2('TminMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
             self.var.TMin = readmeteodata('TminMaps',dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale)
-            #self.var.TMin = downscaling(self.var.TMin, downscale = 1)
-            self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin = downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=1)
+            if self.var.meteodown:
+                self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin = downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=1)
+            else:
+                self.var.TMin = downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=0)
+
 
             #self.var.TMax = readnetcdf2('TmaxMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
             self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale)
-            #self.var.TMax = downscaling(self.var.TMax,downscale = 1)
-            self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax = downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=1)
+            if self.var.meteodown:
+                self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax = downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=1)
+            else:
+                self.var.TMax = downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=0)
+
+
 
             #self.var.Psurf = readnetcdf2('PSurfMaps', dateVar['currDate'], addZeros = True, meteo = True)
             self.var.Psurf = readmeteodata('PSurfMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)

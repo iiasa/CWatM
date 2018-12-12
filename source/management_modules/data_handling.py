@@ -214,7 +214,7 @@ def loadsetclone(name):
 
 
         if Flags['check']:
-            checkmap(name, filename, map, flagmap, 0)
+            checkmap(name, filename, mapnp, flagmap, 0)
 
     else:
         msg = "Maskmap: " + filename + \
@@ -297,11 +297,11 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = 
 
 
         try:
-
+            nf1 = Dataset(filename, 'r')
             cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check = False)
 
             # load netcdf map but only the rectangle needed
-            nf1 = Dataset(filename, 'r')
+            #nf1 = Dataset(filename, 'r')
             value = nf1.variables.items()[-1][0]  # get the last variable name
 
             if not timestepInit:
@@ -358,7 +358,7 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = 
 
 
 
-
+        flagmap = True
         # if a map should be pc raster
         if pcr:
             warnings.filterwarnings("ignore")
@@ -379,23 +379,29 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = 
             if lddflag: map = ldd(nominal(map))
             warnings.filterwarnings("default")
         else:
+            if Flags['check']:
+                if flagmap == False:
+                    checkmap(name, filename, mapC, flagmap, 0)
+                else:
+                    checkmap(name, filename, mapnp, flagmap, 0)
+
             if compress:  mapC = compressArray(mapnp,pcr=False,name=filename)
             else: mapC = mapnp
-        flagmap = True
+
 
     # pc raster map but it has to be an array
     if pcrmap and not(pcr):
         mapC = compressArray(map,name=filename)
-    if Flags['check']:
-
-        print name, filename
-        if flagmap == False: checkmap(name, filename, mapC, flagmap, 0)
-        elif pcr: checkmap(name, filename, map, flagmap, 0)
-        else:
-            print name, mapC.size
-            if mapC.size >0:
-                map= decompress(mapC)
-                checkmap(name, filename, map, flagmap, 0)
+    #if Flags['check']:
+      #  if flagmap == False:
+      #      checkmap(name, filename, mapC, flagmap, 0)
+        #elif pcr: checkmap(name, filename, map, flagmap, 0)
+        #else:
+        #print name, mapC.size
+        #if mapC.size >0:
+           #map= decompress(mapC)
+      #  else:
+       #     checkmap(name, filename, mapnp, flagmap, mapC.size)
 
 
     if pcr:  return map
@@ -508,6 +514,28 @@ def metaNetCDF():
         msg = "Trying to get metadata from netcdf \n"
         raise CWATMFileError(cbinding('PrecipitationMaps'),msg)
 
+
+def readCoord(name):
+    namenc = os.path.splitext(name)[0] + '.nc'
+
+    try:
+        nf1 = Dataset(namenc, 'r')
+        nc = True
+    except:
+        nc = False
+    if nc:
+        lat, lon, cell, invcell = readCoordNetCDF(namenc)
+    else:
+        raster = gdal.Open(name)
+        gt = raster.GetGeoTransform()
+
+        cell = gt[1]
+        invcell = round(1.0 / cell, 0)
+        lon = gt[0]
+        lat = gt[3]
+
+    return lat,lon, cell,invcell
+
 def readCoordNetCDF(name,check = True):
     """
     reads the map attributes col, row etc from a netcdf map
@@ -551,7 +579,7 @@ def mapattrNetCDF(name, check = True):
     and define the rectangular of the mask map inside the netcdf map
     """
 
-    lat, lon, cell, invcell = readCoordNetCDF(name, check)
+    lat, lon, cell, invcell = readCoord(name)
 
     if maskmapAttr['invcell'] != invcell:
         msg = "Cell size different in maskmap: " + \
