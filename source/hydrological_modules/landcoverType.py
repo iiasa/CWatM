@@ -15,10 +15,8 @@ class landcoverType(object):
 
     """
     LAND COVER TYPE
-
     runs the 6 land cover types through soil procedures
     This routine calls the soil routine for each land cover type
-
     """
 
     def __init__(self, landcoverType_variable):
@@ -31,14 +29,12 @@ class landcoverType(object):
         """
         Initial part of the land cover type module
         Initialise the six land cover types
-
         * Forest
         * Grasland/non irrigated land
         * Irrigation
         * Paddy iirigation
         * Sealed area
         * Water covered area
-
         And initialize the soil variables
         """
 
@@ -67,9 +63,10 @@ class landcoverType(object):
                          'effSatAt50',  'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin','rootZoneWaterStorageRange',
                          'totalPotET','potTranspiration','soilWaterStorage',
                          'infiltration','actBareSoilEvap','landSurfaceRunoff','actTransTotal',
-                         'gwRecharge','interflow','actualET','irrConsumption','irrDemand',
+                         'gwRecharge','interflow','actualET','pot_irrConsumption','act_irrConsumption','irrDemand',
                          'topWaterLayer',
                          'perc3toGW','capRiseFromGW','netPercUpper','netPerc','prefFlow']
+     
         # for 6 landcover types
         for variable in landcoverVars:  vars(self.var)[variable] = np.tile(globals.inZero,(6,1))
 
@@ -347,7 +344,6 @@ class landcoverType(object):
         """
         Dynamic part of the land cover type module
         Calculating fraction of land cover
-
         * loads the fraction of landcover for each year from netcdf maps
         * calculate the fraction of 6 land cover types based on the maps
         """
@@ -420,12 +416,10 @@ class landcoverType(object):
         """
         Dynamic part of the land cover type module
         Calculating soil for each of the 6  land cover class
-
         * calls evaporation_module.dynamic
         * calls interception_module.dynamic
         * calls soil_module.dynamic
         * calls sealed_water_module.dynamic
-
         And sums every thing up depending on the land cover type fraction
         """
         if (dateVar['curr'] == 15):
