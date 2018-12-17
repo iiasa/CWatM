@@ -67,9 +67,9 @@ class waterdemand(object):
                 swAbstractionFraction = np.minimum(1.0, np.maximum(0.0, swAbstractionFraction))
 
             self.var.swAbstractionFraction = globals.inZero.copy()
-            for No in xrange(4):
+            for No in range(4):
                 self.var.swAbstractionFraction += self.var.fracVegCover[No] * swAbstractionFraction
-            for No in xrange(4,6):
+            for No in range(4,6):
                 self.var.swAbstractionFraction += self.var.fracVegCover[No]
 
             # demand time monthly or yearly
@@ -213,6 +213,7 @@ class waterdemand(object):
                 self.var.pot_industryConsumption = np.where(self.var.pot_industryConsumption > self.var.InvCellArea, self.var.pot_industryConsumption, 0.0)
                 self.var.ind_efficiency = divideValues(self.var.pot_industryConsumption, self.var.industryDemand)
 
+
                 # transform from mio m3 per year (or month) to m/day if necessary
                 if not(self.var.demand_unit):
                     if self.var.industryTime == 'monthly':
@@ -268,8 +269,6 @@ class waterdemand(object):
                 self.var.livestockDemand = 0.
                 self.var.pot_livestockConsumption = 0.
                 self.var.liv_efficiency = 1.
-
-            self.var.livestockDemand5 = self.var.livestockDemand / 1000000 * self.var.cellArea
 
 
             if dateVar['newStart'] or dateVar['newMonth']:

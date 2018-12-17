@@ -31,7 +31,7 @@ These external libraries are needed:
 
 **Windows**
 
-Three libraries can be installed with pip or
+The four libraries can be installed with pip or
 downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
 
 
