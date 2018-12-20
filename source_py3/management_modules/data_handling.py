@@ -21,10 +21,8 @@ from management_modules.messages import *
 
 import difflib  # to check the closest word in settingsfile, if an error occurs
 import math
-from pcraster2.dynamicPCRasterBase import *
+from management_modules.dynamicModel import *
 
-
-#from pcraster.framework import *
 
 from netCDF4 import Dataset,num2date,date2num,date2index
 #from netcdftime import utime
@@ -124,7 +122,9 @@ def loadsetclone(name):
 
     #if checkOption('PCRaster'): from pcraster.framework import *
     warnings.filterwarnings("ignore")
-    if checkOption('PCRaster'): from pcraster.framework import pcraster
+    if checkOption('PCRaster'):
+        from pcraster.framework import pcraster
+        #TODO at the moment pcraster is for Python3.6 only!!!
 
     filename = cbinding(name)
     coord = filename.split()

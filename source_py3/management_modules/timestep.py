@@ -20,6 +20,7 @@ from management_modules.messages import *
 from netCDF4 import Dataset,num2date,date2num,date2index
 
 import difflib  # to check the closest word in settingsfile, if an error occurs
+from dateutil.relativedelta import *
 
 def date2str(date):
     return "%02d/%02d/%02d" % (date.day, date.month, date.year)
@@ -61,7 +62,7 @@ def timemeasure(name,loops=0, update = False, sample = 1):
 # Calendar routines
 # -----------------------------------------------------------------------
 
-def Calendar(input):
+def Calendar(input,errorNo = 0):
     """
     Get the date from CalendarDayStart in the settings xml
     Reformatting the date till it fits to datetime
@@ -89,10 +90,14 @@ def Calendar(input):
         try:
             date = datetime.datetime.strptime(d, formatstr)
         except:
-            msg = "Either date in StepStart is not a date or in SpinUp or StepEnd it is neither a number or a date!"
-            raise CWATMError(msg)
-
-
+            if errorNo == 0:
+                msg = "Either date in StepStart is not a date or in SpinUp or StepEnd it is neither a number or a date!"
+                raise CWATMError(msg)
+            elif errorNo == 1:
+                msg = "First date in StepInit is neither a number or a date!"
+                raise CWATMError(msg)
+            elif errorNo > 1:
+                return -99999
 
     return date
 
@@ -123,6 +128,66 @@ def datetoInt(dateIn,begin,both=False):
 
 
 
+def datetosaveInit(initdates,begin,end):
+    """
+    Calculates the save init dates
+
+    :param initdates: one or several dates
+    :param begin: reference date
+    :param end: end date
+    :return: interger value of a dates, satarting from begin date
+    """
+
+    # datetosaveInit(initdates, dateVar['dateBegin'], dateVar['dateEnd'])
+    # dd = datetoInt(d, dateVar['dateBegin'])
+    # dateVar['intInit'].append(datetoInt(d, dateVar['dateBegin']))
+
+
+    i = 0
+    dateVar['intInit'] = []
+
+    for d in initdates:
+        i += 1
+        date1 = Calendar(d,i)
+
+        # check if it a row of dates
+        if date1 == -99999:
+            if not(d[-1] in ["d", "m","y"]):
+                msg = "Second value in StepInit is not indicating a repetition of year(y), month(m) or day(d) \n"
+                msg +="e.g. 2y for every 2 years or 6m for every 6 month"
+                raise CWATMError(msg)
+            else:
+                try:
+                    add = int(d[0:-1])
+                except:
+                    msg = "Second value in StepInit is not an integer + 'y' or 'm' or 'd'"
+                    raise CWATMError(msg)
+                start = begin + datetime.timedelta(days=dateVar['intInit'][0]-1)
+                j = 1
+                while True:
+                    if d[-1] == 'y':
+                        date2 = start + relativedelta(years=+ add * j)
+                    elif d[-1] == 'm':
+                        date2 = start + relativedelta(months=+ add * j)
+                    else:
+                        date2 = start + relativedelta(days=+ add * j)
+                    if date2 > end:
+                        break
+                    else:
+                        int1 = (date2 - begin).days + 1
+                        dateVar['intInit'].append(int1)
+                        j += 1
+                return
+
+
+        if type(date1) is datetime.datetime:
+            int1 = (date1 - begin).days + 1
+        else:
+            int1 = int(date1)
+        dateVar['intInit'].append(int1)
+
+
+    jj =1
 
 def checkifDate(start,end,spinup):
     """

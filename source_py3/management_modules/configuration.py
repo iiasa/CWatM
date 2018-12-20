@@ -180,18 +180,28 @@ def read_metanetcdf(metaxml,name):
     :param metaxml: file mit information for netcdf files (metadata)
     :return: List with metadata information: metaNetcdfVar
     """
+    if os.path.isfile(metaxml):
+        try:
+            metaparse = xml.dom.minidom.parse(metaxml)
+        except:
+            msg = "Error using option file: " + metaxml
+            raise CWATMError(msg)
+    else:
+        msg = "Cannot find option file: " + metaxml +"\n"
+        path, name = os.path.split(metaxml)
+        metaxml = os.path.join(os.getcwd(),name)
+        if os.path.isfile(metaxml):
+            msg += "Using file: " + metaxml + " instead."
+            print(CWATMWarning(msg))
+        else:
+            msg = "Cannot find option file: " + metaxml
+            raise CWATMFileError(metaxml, msg, sname=name)
 
-    try:
-        f=open(metaxml)
-        f.close()
-    except:
-        msg = "Cannot find option file: " + metaxml
-        raise CWATMFileError(metaxml,msg, sname = name)
-    try:
-        metaparse = xml.dom.minidom.parse(metaxml)
-    except:
-        msg = "Error using option file: " + metaxml
-        raise CWATMError(msg)
+        try:
+            metaparse = xml.dom.minidom.parse(metaxml)
+        except:
+            msg = "Error using option file: " + metaxml
+            raise CWATMError(msg)
 
     # running through all output variable
     # if an output variable is not defined here the standard metadata is used

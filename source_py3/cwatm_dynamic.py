@@ -8,10 +8,6 @@
 # Copyright:   (c) burekpe 2016
 # -------------------------------------------------------------------------
 
-#from management_modules.improvepcraster import *
-from pcraster2.dynamicFramework import *
-from pcraster2.dynamicPCRasterBase import *
-
 from management_modules.data_handling import *
 from management_modules.messages import *
 
@@ -25,7 +21,7 @@ class CWATModel_dyn(DynamicModel):
 
     def dynamic(self):
         """
-        Dynamic part of LISFLOOD
+        Dynamic part of CWATM
         calls the dynamic part of the hydrological modules
         Looping through time and space
 
@@ -135,7 +131,8 @@ class CWATModel_dyn(DynamicModel):
         self.init_module.dynamic()
 
         for i in range(len(timeMes)):
-            if self.currentTimeStep() == self.firstTimeStep():
+            #if self.currentTimeStep() == self.firstTimeStep():
+            if self.currentStep == self.firstStep:
                 timeMesSum.append(timeMes[i] - timeMes[0])
             else: timeMesSum[i] += timeMes[i] - timeMes[0]
 

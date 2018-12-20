@@ -81,8 +81,9 @@ class CWATModel_ini(DynamicModel):
         # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
         self.meteomapsscale = True
         if invcellmeteo != invcellldd:
-            msg = "Resolution of meteo forcing is " + str(maskmapAttr['reso_mask_meteo']) + " times higher than base maps."
-            print(msg)
+            if (not(Flags['quiet'])) and (not(Flags['veryquiet'])):
+                msg = "Resolution of meteo forcing is " + str(maskmapAttr['reso_mask_meteo']) + " times higher than base maps."
+                print(msg)
             self.meteomapsscale = False
 
         cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(nameldd)

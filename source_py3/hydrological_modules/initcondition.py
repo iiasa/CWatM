@@ -103,21 +103,29 @@ class initcondition(object):
 
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # Load init file - a single file can be loaded - needs path and file name
+        self.var.loadInit = returnBool('load_initial')
+        if self.var.loadInit:
+            self.var.initLoadFile = cbinding('initLoad')
 
+        # Safe init file
+        # several initial conditions can be stored in different netcdf files
+        # initSave has the path and the first part of the name
+        # intInit has the dates - as a single date, as several dates
+        # or in certain interval e.g. 2y = every 2 years, 3m = every 3 month, 15d = every 15 days
 
         self.var.saveInit = returnBool('save_initial')
 
         if self.var.saveInit:
             self.var.saveInitFile = cbinding('initSave')
             initdates = cbinding('StepInit').split()
-            dateVar['intInit'] =[]
-            for d in initdates:
-                dateVar['intInit'].append(datetoInt(d, dateVar['dateBegin']))
+            datetosaveInit(initdates,dateVar['dateBegin'],dateVar['dateEnd'])
+
+            #for d in initdates:
+            #    dd = datetoInt(d, dateVar['dateBegin'])
+            #    dateVar['intInit'].append(datetoInt(d, dateVar['dateBegin']))
 
 
-        self.var.loadInit = returnBool('load_initial')
-        if self.var.loadInit:
-            self.var.initLoadFile = cbinding('initLoad')
 
 
 

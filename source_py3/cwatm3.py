@@ -100,12 +100,7 @@ def CWATMexe():
 
 
     CWATM = CWATModel()
-    stCWATM = DynamicFramework(CWATM, firstTimestep=dateVar["intStart"], lastTimeStep=dateVar["intEnd"])
-    #stCWATM = DynamicFramework2(CWATM, firstTimestep=dateVar["intStart"], lastTimeStep=dateVar["intEnd"])
-
-    stCWATM.rquiet = True
-    stCWATM.rtrace = False
-
+    stCWATM = ModelFrame(CWATM, firstTimestep=dateVar["intStart"], lastTimeStep=dateVar["intEnd"])
 
 
     """
