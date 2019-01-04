@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------------
 
 import numpy as np
-import globals
+from . import globals
 
 import sys
 import os
@@ -23,7 +23,7 @@ from hydrological_modules.routing_reservoirs.routing_sub import *
 from management_modules.checks import *
 from management_modules.replace_pcr import *
 from management_modules.data_handling import *
-from messages import *
+from .messages import *
 from netCDF4 import Dataset,num2date,date2num,date2index
 
 from decimal import Decimal
@@ -51,7 +51,7 @@ class outputTssMap(object):
             """
 
             sampleAdresses = {}
-            for i in xrange(maskinfo['mapC'][0]):
+            for i in range(maskinfo['mapC'][0]):
                 if out[i]>0:
                     sampleAdresses[out[i]] = i
             return sampleAdresses
@@ -109,7 +109,6 @@ class outputTssMap(object):
             outpoints = valuecell(self.var.MaskMap, coord, outpoints)
         else:
             if os.path.exists(outpoints):
-                #outpoints = loadmap(where, pcr=True)
                 outpoints = loadmap(where, local = localGauges).astype(np.int64)
             else:
                 if len(coord) == 1:
@@ -127,7 +126,7 @@ class outputTssMap(object):
         self.var.evalCatch =[]
         for key in sorted(self.var.sampleAdresses):
             outp = outpoints.copy()
-            outp[outp <> key] = 0
+            outp[outp != key] = 0
             self.var.evalCatch.append(catchment1(self.var.dirUp, outp))
 
         ii =1
@@ -155,7 +154,7 @@ class outputTssMap(object):
 
 
         # check if timing of output is in outputTypTss  (globals.py)
-        for out in outTss.keys():
+        for out in list(outTss.keys()):
             if not(out.split('_')[-1] in outputTypTss):
                 msg = "Output is not possible!\n"
                 msg += "\""+out +"\" is not one of these: daily, monthend, monthtot, monthavg, annualend, annualtot, annualavg"
@@ -208,7 +207,7 @@ class outputTssMap(object):
             # if inputmap is not an array give out error message
             if not (hasattr(map, '__len__')):
                 msg = "No values in: " + expression[1] + "\nCould not write: " + expression[0]
-                print CWATMWarning(msg)
+                print(CWATMWarning(msg))
                 return expression
 
             for key in sorted(self.var.sampleAdresses):
@@ -266,12 +265,12 @@ class outputTssMap(object):
             if len(expression[3]):
                 numbervalues = len(expression[3][0])
 
-                for timestep in xrange(dateVar['intSpin'], dateVar['intEnd'] + 1 - dateVar['leapYearMinus']):
+                for timestep in range(dateVar['intSpin'], dateVar['intEnd'] + 1 - dateVar['leapYearMinus']):
                     if dateVar['checked'][timestep - dateVar['intSpin']] >= daymonthyear:
                     #if dateVar['checked'][timestep - 1] >= daymonthyear:
                         row = ""
                         row += " %8g" % timestep
-                        for i in xrange(numbervalues):
+                        for i in range(numbervalues):
                             value = expression[3][timestep-1][i]
                             if isinstance(value, Decimal):
                                 row += "           1e31"
@@ -324,7 +323,7 @@ class outputTssMap(object):
             outputFile.write("Parameter: " + expression[1] + "\n")
             outputFile.write("Number of cells: " + str(size) + "\n")
 
-            for i in xrange(size):
+            for i in range(size):
                 v = "%.3f\n" % round(1000. * map[i],3)
                 outputFile.write(v)
             outputFile.close()
@@ -346,8 +345,8 @@ class outputTssMap(object):
         varname = None
         varnameCollect =[]
         if checkOption('reportMap') and dateVar['curr'] >= dateVar['intSpin'] or ef:
-            for map in outMap.keys():
-                for i in xrange(outMap[map].__len__()):
+            for map in list(outMap.keys()):
+                for i in range(outMap[map].__len__()):
                     if outMap[map][i] != "None":
 
                         netfile = outMap[map][i][0]
@@ -361,7 +360,7 @@ class outputTssMap(object):
                             checkname = varname[0:varname.index("[")]
                         else:
                             checkname = varname
-                        checkifvariableexists(map,checkname, vars(self.var).keys())
+                        checkifvariableexists(map,checkname, list(vars(self.var).keys()))
 
                         varnameCollect.append(varname)
                         inputmap = 'self.var.' + varname
@@ -391,7 +390,7 @@ class outputTssMap(object):
                             if (returnBool('calc_ef_afterRun') == False) or (dateVar['currDate'] == dateVar['dateEnd']):
                                 # either load already calculated discharge or at the end of the simulation
                                 flag1 = False # create new netcdf file
-                                for j in xrange(12):
+                                for j in range(12):
                                     in1 = inputmap  + '[' +str(j) + ']'
                                     date1 = datetime.datetime(dateVar['dateEnd'].year, j+1, 1, 0, 0)
                                     outMap[map][i][2] = writenetcdf(netfile, varname,"", "undefined", eval(in1), date1, j+1, flag1, True,12)
@@ -473,11 +472,11 @@ class outputTssMap(object):
             # print " %10.2f"  %cellvalue(maptotal(decompress(eval('self.var.' + reportTimeSerieAct["DisTS"]['outputVar'][0]))),1,1)[0]
             # print " %10.2f" % self.var.Tss["DisTS"].firstout(decompress(self.var.ChanQAvg))
             #print " %10.2f" % outTss['routing_out_tss_daily'][0][0].firstout(decompress(self.var.discharge))
-            print " %10.2f" % firstout(self.var.discharge)
+            print(" %10.2f" % firstout(self.var.discharge))
 
         if checkOption('reportTss'):
-            for tss in outTss.keys():
-                for i in xrange(outTss[tss].__len__()):
+            for tss in list(outTss.keys()):
+                for i in range(outTss[tss].__len__()):
                     # loop for each variable in a section
                     if outTss[tss][i] != "None":
                         varname = outTss[tss][i][1]
@@ -489,7 +488,7 @@ class outputTssMap(object):
                             checkname = varname[0:varname.index("[")]
                         else:
                             checkname = varname
-                        checkifvariableexists(tss, checkname, vars(self.var).keys())
+                        checkifvariableexists(tss, checkname, list(vars(self.var).keys()))
 
                         if tss[-5:] == "daily":
                             # what = 'self.var.' + reportTimeSerieAct[tss]['outputVar'][0]
@@ -592,7 +591,7 @@ class outputTssMap(object):
                     vars(self.var)[varname + "_annualavg"] = 0
                 if (varname + "_annualtotTss") in vars(self.var):
                     vars(self.var)[varname + "_annualtotTss"] = 0
-                for ii in xrange(self.var.noOutpoints):
+                for ii in range(self.var.noOutpoints):
                     if (varname + "_annualtotTss"+str(ii)) in vars(self.var):
                         vars(self.var)[varname + "_annualtotTss"+str(ii)] = 0
                 if (varname + "_annualavgTss") in vars(self.var):

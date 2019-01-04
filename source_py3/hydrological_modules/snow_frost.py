@@ -143,7 +143,7 @@ class snow(object):
         # initialize snowcovers as many as snow layers -> read them as SnowCover1 , SnowCover2 ...
         # SnowCover1 is the highest zone
         self.var.SnowCoverS = []
-        for i in xrange(self.var.numberSnowLayers):
+        for i in range(self.var.numberSnowLayers):
             self.var.SnowCoverS.append(self.var.init_module.load_initial("SnowCover",number = i+1))
 
         # initial snow depth in elevation zones A, B, and C, respectively  [mm]
@@ -173,7 +173,7 @@ class snow(object):
             self.var.frostInd1 = globals.inZero
             self.var.frostInd2 = globals.inZero
             self.var.frostindexS = []
-            for i in xrange(self.var.numberSnowLayers):
+            for i in range(self.var.numberSnowLayers):
                 self.var.frostindexS.append(globals.inZero)
 
 
@@ -228,7 +228,7 @@ class snow(object):
         self.var.SnowMelt = globals.inZero.copy()
         self.var.SnowCover = globals.inZero.copy()
 
-        for i in xrange(self.var.numberSnowLayers):
+        for i in range(self.var.numberSnowLayers):
             TavgS = self.var.Tavg + self.var.DeltaTSnow * self.var.deltaInvNorm[i]
             # Temperature at center of each zone (temperature at zone B equals Tavg)
             # i=0 -> highest zone
@@ -272,7 +272,7 @@ class snow(object):
 
         if self.var.extfrostindex:
             if dateVar['curr'] >= dateVar['intSpin']:
-                for i in xrange(self.var.numberSnowLayers):
+                for i in range(self.var.numberSnowLayers):
                     self.var.frostInd1 = np.where(self.var.frostindexS[i] > self.var.FrostIndexThreshold, self.var.frostInd1  + 1/ float(self.var.numberSnowLayers), self.var.frostInd1)
                     self.var.frostInd2 = np.where(self.var.frostindexS[i] > self.var.FrostIndexThreshold2, self.var.frostInd2 + 1/ float(self.var.numberSnowLayers), self.var.frostInd2)
             if dateVar['currDate'] == dateVar['dateEnd']:

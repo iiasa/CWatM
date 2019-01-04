@@ -15,7 +15,7 @@ import time as xtime
 import os
 
 
-from globals import *
+from .globals import *
 
 
 
@@ -105,8 +105,8 @@ def checkmap(name, value, map, flagmap, find):
         """
 
     if checkmap.called == 1:
-        print "%-30s%-40s%11s%11s%11s%11s%14s%14s%14s" %("Name","File/Value","nonMV","MV", "non0","Compress","min","mean","max")
-    print "%-30s%-40s%11i%11i%11i%11i%14.2f%14.2f%14.2f" %(s[0],s[1][-39:],s[2],s[3],s[8],s[7],s[4],s[5],s[6])
+        print("%-30s%-40s%11s%11s%11s%11s%14s%14s%14s" %("Name","File/Value","nonMV","MV", "non0","Compress","min","mean","max"))
+    print("%-30s%-40s%11i%11i%11i%11i%14.2f%14.2f%14.2f" %(s[0],s[1][-39:],s[2],s[3],s[8],s[7],s[4],s[5],s[6]))
     return
 
 

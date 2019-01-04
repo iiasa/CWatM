@@ -13,7 +13,7 @@
 import os, glob
 import calendar
 import numpy as np
-import globals
+from . import globals
 from management_modules.checks import *
 from management_modules.timestep import *
 from management_modules.replace_pcr import *
@@ -21,15 +21,14 @@ from management_modules.messages import *
 
 import difflib  # to check the closest word in settingsfile, if an error occurs
 import math
-from pcraster2.dynamicPCRasterBase import *
+from management_modules.dynamicModel import *
 
-
-#from pcraster.framework import *
 
 from netCDF4 import Dataset,num2date,date2num,date2index
 #from netcdftime import utime
 
 import gdal
+from osgeo import osr
 from gdalconst import *
 import warnings
 
@@ -58,7 +57,7 @@ def valuecell(mask, coordx, coordstr):
     null = np.zeros((maskmapAttr['row'], maskmapAttr['col']))
     null[null == 0] = -9999
 
-    for i in xrange(int(len(coord) / 2)):
+    for i in range(int(len(coord) / 2)):
         col = int((coord[i * 2] -  maskmapAttr['x']) * maskmapAttr['invcell'])
         row = int((maskmapAttr['y'] - coord[i * 2 + 1]) * maskmapAttr['invcell'])
 
@@ -79,7 +78,7 @@ def valuecell(mask, coordx, coordstr):
 
             #print box
 
-            print "%2s %-17s %10s %8s" % ("No", "Name", "time[s]", "%")
+            print("%2s %-17s %10s %8s" % ("No", "Name", "time[s]", "%"))
 
             msg = "Coordinates: x = " + str(coord[i * 2]) + '  y = ' + str(
                 coord[i * 2 + 1]) + " of gauge is outside mask map\n\n"
@@ -89,7 +88,7 @@ def valuecell(mask, coordx, coordstr):
 
     #map = numpy2pcr(Nominal, null, -9999)
     #return map
-    return compressArray(null, pcr=False).astype(np.int64)
+    return compressArray(null).astype(np.int64)
 
 
 def setmaskmapAttr(x,y,col,row,cell):
@@ -122,10 +121,6 @@ def loadsetclone(name):
     :param name: name of mask map, can be a file or - row col cellsize xupleft yupleft -
     """
 
-    #if checkOption('PCRaster'): from pcraster.framework import *
-    warnings.filterwarnings("ignore")
-    if checkOption('PCRaster'): from pcraster.framework import pcraster
-
     filename = cbinding(name)
     coord = filename.split()
     if len(coord) == 5:
@@ -133,7 +128,6 @@ def loadsetclone(name):
         # settings x is first
         # setclone row col cellsize xupleft yupleft
         # retancle: Number of Cols, Number of rows, cellsize, upper left corner X, upper left corner Y
-        if checkOption('PCRaster'): pcraster.setclone(int(coord[1]), int(coord[0]), float(coord[2]), float(coord[3]), float(coord[4]))
 
         mapnp = np.ones((int(coord[1]), int(coord[0])))
         setmaskmapAttr(float(coord[3]),float(coord[4]), int(coord[0]),int(coord[1]),float(coord[2]))
@@ -141,75 +135,57 @@ def loadsetclone(name):
         #map = numpy2pcr(Boolean, mapnp, -9999)
 
     elif len(coord) == 1:
+
+        filename = os.path.splitext(cbinding(name))[0] + '.nc'
         try:
-            # try to read a pc raster map
-            pcraster.setclone(filename)
-            map =  pcraster.boolean( pcraster.readmap(filename))
+            nf1 = Dataset(filename, 'r')
+            value = list(nf1.variables.items())[-1][0]  # get the last variable name
+
+            #x1 = nf1.variables.values()[0][0]
+            #x2 = nf1.variables.values()[0][1]
+            #xlast = nf1.variables.values()[0][-1]
+            x1 = nf1.variables['lon'][0]
+            x2 = nf1.variables['lon'][1]
+            xlast = nf1.variables['lon'][-1]
+
+            y1 = nf1.variables['lat'][0]
+            ylast = nf1.variables['lat'][-1]
+            # swap to make y1 the biggest number
+            if y1 < ylast:
+                y1, ylast = ylast, y1
+
+            cellSize = np.abs(x2 - x1)
+            invcell = round(1/cellSize)
+            nrRows = int(0.5 + np.abs(ylast - y1) * invcell + 1)
+            nrCols = int(0.5 + np.abs(xlast - x1) * invcell + 1)
+            x = x1 - cellSize / 2
+            y = y1 + cellSize / 2
+
+            mapnp = np.array(nf1.variables[value][0:nrRows, 0:nrCols])
+            nf1.close()
+            setmaskmapAttr( x, y, nrCols, nrRows, cellSize)
+
             flagmap = True
-            mapnp =  pcraster.pcr2numpy(map,np.nan)
-
-            # Definition of cellsize, coordinates of the meteomaps and maskmap
-            # need some love for error handling
-            setmaskmapAttr(pcraster.clone().west(), pcraster.clone().north(), pcraster.clone().nrCols(),pcraster.clone().nrRows(), pcraster.clone().cellSize())
-
 
         except:
-            filename = os.path.splitext(cbinding(name))[0] + '.nc'
+            # load geotiff
             try:
-                nf1 = Dataset(filename, 'r')
-                value = nf1.variables.items()[-1][0]  # get the last variable name
 
-                #x1 = nf1.variables.values()[0][0]
-                #x2 = nf1.variables.values()[0][1]
-                #xlast = nf1.variables.values()[0][-1]
-                x1 = nf1.variables['lon'][0]
-                x2 = nf1.variables['lon'][1]
-                xlast = nf1.variables['lon'][-1]
+                filename = cbinding(name)
+                nf2 = gdal.Open(filename, GA_ReadOnly)
+                geotransform = nf2.GetGeoTransform()
+                geotrans.append(geotransform)
+                setmaskmapAttr( geotransform[0], geotransform[3], nf2.RasterXSize, nf2.RasterYSize, geotransform[1])
 
-                y1 = nf1.variables['lat'][0]
-                ylast = nf1.variables['lat'][-1]
-                # swap to make y1 the biggest number
-                if y1 < ylast:
-                    y1, ylast = ylast, y1
+                band = nf2.GetRasterBand(1)
+                bandtype = gdal.GetDataTypeName(band.DataType)
+                mapnp = band.ReadAsArray(0, 0, nf2.RasterXSize, nf2.RasterYSize)
+                mapnp[mapnp > 1] = 0
 
-                cellSize = np.abs(x2 - x1)
-                invcell = round(1/cellSize)
-                nrRows = int(0.5 + np.abs(ylast - y1) * invcell + 1)
-                nrCols = int(0.5 + np.abs(xlast - x1) * invcell + 1)
-                x = x1 - cellSize / 2
-                y = y1 + cellSize / 2
-
-                mapnp = np.array(nf1.variables[value][0:nrRows, 0:nrCols])
-                nf1.close()
-                setmaskmapAttr( x, y, nrCols, nrRows, cellSize)
-
-                # setclone  row col cellsize xupleft yupleft
-                if checkOption('PCRaster'):
-                    pcraster.setclone(maskmapAttr['row'], maskmapAttr['col'], maskmapAttr['cell'], maskmapAttr['x'], maskmapAttr['y'])
-                    #map = numpy2pcr(Boolean, mapnp, 0)
                 flagmap = True
 
             except:
-                # load geotiff
-                try:
-
-                    filename = cbinding(name)
-                    nf2 = gdal.Open(filename, GA_ReadOnly)
-                    geotransform = nf2.GetGeoTransform()
-                    setmaskmapAttr( geotransform[0], geotransform[3], nf2.RasterXSize, nf2.RasterYSize, geotransform[1])
-
-                    band = nf2.GetRasterBand(1)
-                    bandtype = gdal.GetDataTypeName(band.DataType)
-                    mapnp = band.ReadAsArray(0, 0, nf2.RasterXSize, nf2.RasterYSize)
-                    mapnp[mapnp > 1] = 0
-
-                    if checkOption('PCRaster'):
-                        pcraster.setclone(maskmapAttr['row'], maskmapAttr['col'], maskmapAttr['cell'], maskmapAttr['x'], maskmapAttr['y'])
-                        #map = numpy2pcr(Boolean, mapnp, 0)
-                    flagmap = True
-
-                except:
-                    raise CWATMFileError(filename, sname=name)
+                raise CWATMFileError(filename, sname=name)
 
 
 
@@ -225,9 +201,11 @@ def loadsetclone(name):
 
     # put in the ldd map
     # if there is no ldd at a cell, this cell should be excluded from modelling
-    #ldd = loadmap('Ldd',pcr=True)
-    #maskldd = pcr2numpy(ldd,np.nan)
+
     maskldd = loadmap('Ldd', compress = False)
+
+    #report("C:/work/output2/ldd.map",maskldd,compr=False)
+
     maskarea = np.bool8(mapnp)
     mask = np.logical_not(np.logical_and(maskldd,maskarea))
 
@@ -249,12 +227,11 @@ def loadsetclone(name):
     return mapC
 
 
-def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = True):
+def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
     """
     load a static map either value or pc raster map or netcdf
 
     :param name: name of map
-    :param pcr:  if pcr=True - pcraster map is given back
     :param lddflag: if True the map is used as a ldd map
     :param compress: if True the return map will be compressed
     :param local: if True the map will be not cut
@@ -263,30 +240,13 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = 
 
     value = cbinding(name)
     filename = value
-    pcrmap = False
-
 
     try:  # loading an integer or float but not a map
         mapC = float(value)
         flagmap = False
         load = True
-        if pcr: map=mapC
     except ValueError:
-        try:  # try to read a pc raster map
-            map = readmap(value)
-            flagmap = True
-            load = True
-            pcrmap = True
-        except:
-            load = False
-
-    if load and pcrmap:  # test if map is same size as clone map, if not it will make an error
-        try:
-           test = pcraster.scalar(map) + pcraster.scalar(map)
-        except:
-           msg = value +" might be of a different size than clone size "
-           raise CWATMError(msg)
-
+        load = False
 
 
     if not(load):   # read a netcdf  (single one not a stack)
@@ -294,18 +254,18 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = 
          # get mapextend of netcdf map and calculate the cutting
         #cut0, cut1, cut2, cut3 = mapattrNetCDF(filename)
 
-
-
         try:
             nf1 = Dataset(filename, 'r')
             cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check = False)
 
             # load netcdf map but only the rectangle needed
             #nf1 = Dataset(filename, 'r')
-            value = nf1.variables.items()[-1][0]  # get the last variable name
+            value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
             if not timestepInit:
-                with np.errstate(invalid='ignore'):
+                #with np.errstate(invalid='ignore'):
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
                     # in order to ignore some invalid value comments
                     if cut:
                         mapnp = nf1.variables[value][cut2:cut3, cut0:cut1].astype(np.float64)
@@ -337,7 +297,6 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = 
         except:
 
             filename = cbinding(name)
-
             try:
                 nf2 = gdal.Open(filename, GA_ReadOnly)
                 band = nf2.GetRasterBand(1)
@@ -347,7 +306,6 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = 
                     if cut:
                         cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
                         mapnp = mapnp[cut2:cut3, cut0:cut1]
-
             except:
                 raise CWATMFileError(filename,sname=name)
 
@@ -359,75 +317,36 @@ def loadmap(name,pcr=False, lddflag=False,compress = True, local = False, cut = 
 
 
         flagmap = True
-        # if a map should be pc raster
-        if pcr:
-            warnings.filterwarnings("ignore")
-            # check if integer map (like outlets, lakes etc
-            checkint=str(mapnp.dtype)
-            if checkint=="int16" or checkint=="int32":
-                mapnp[mapnp.mask]=-9999
-                map = numpy2pcr(Nominal, mapnp, -9999)
-            elif checkint=="int8":
-                mapnp[mapnp<0]=-9999
-                map = numpy2pcr(Nominal, mapnp, -9999)
+
+        if Flags['check']:
+            if flagmap == False:
+                checkmap(name, filename, mapC, flagmap, 0)
             else:
-                mapnp[np.isnan(mapnp)] = -9999
-                map = numpy2pcr(Scalar, mapnp, -9999)
+                checkmap(name, filename, mapnp, flagmap, 0)
 
-            # if the map is a ldd
-            #if value.split('.')[0][:3] == 'ldd':
-            if lddflag: map = ldd(nominal(map))
-            warnings.filterwarnings("default")
-        else:
-            if Flags['check']:
-                if flagmap == False:
-                    checkmap(name, filename, mapC, flagmap, 0)
-                else:
-                    checkmap(name, filename, mapnp, flagmap, 0)
-
-            if compress:  mapC = compressArray(mapnp,pcr=False,name=filename)
-            else: mapC = mapnp
+        if compress:  mapC = compressArray(mapnp,name=filename)
+        else: mapC = mapnp
 
 
-    # pc raster map but it has to be an array
-    if pcrmap and not(pcr):
-        mapC = compressArray(map,name=filename)
-    #if Flags['check']:
-      #  if flagmap == False:
-      #      checkmap(name, filename, mapC, flagmap, 0)
-        #elif pcr: checkmap(name, filename, map, flagmap, 0)
-        #else:
-        #print name, mapC.size
-        #if mapC.size >0:
-           #map= decompress(mapC)
-      #  else:
-       #     checkmap(name, filename, mapnp, flagmap, mapC.size)
-
-
-    if pcr:  return map
-    else:
-        return mapC
+    return mapC
 
 
 # -----------------------------------------------------------------------
 # Compressing to 1-dimensional numpy array
 # -----------------------------------------------------------------------
 
-def compressArray(map, pcr=True, name="None", zeros = 0.):
+def compressArray(map, name="None", zeros = 0.):
     """
     Compress 2D array with missing values to 1D array without missing values
 
     :param map: in map
-    :param pcr: if True input map is used as pcraster map
+    :param pcr: if True input map is used as .map format
     :param name:
     :return:
     """
 
-    if pcr:
-        mapnp = pcr2numpy(map, np.nan).astype(np.float64)
-        mapnp1 = np.ma.masked_array(mapnp, mapnp1)
-    else:
-        mapnp1 = np.ma.masked_array(map, maskinfo['mask'])
+
+    mapnp1 = np.ma.masked_array(map, maskinfo['mask'])
     mapC = np.ma.compressed(mapnp1)
     # if fill: mapC[np.isnan(mapC)]=0
     if name != "None":
@@ -441,42 +360,33 @@ def compressArray(map, pcr=True, name="None", zeros = 0.):
 
     return mapC
 
-def decompress(map, pcr1 = True):
+def decompress(map, pcmap):
     """
     Decompress 1D array without missing values to 2D array with missing values
 
     :param map: numpy 1D array as input
-    :param pcr1: if True map is used as pcraster map
+    :param pcr1: if True map is used as .map format
     :return: 2D map
     """
-
-    #if checkOption('PCRaster'): from pcraster.framework import *
-    if checkOption('PCRaster'):
-        from pcraster.framework import pcraster
 
     # dmap=np.ma.masked_all(maskinfo['shapeflat'], dtype=map.dtype)
     dmap = maskinfo['maskall'].copy()
     dmap[~maskinfo['maskflat']] = map[:]
     dmap = dmap.reshape(maskinfo['shape'])
-    if pcr1 == False: return dmap
 
     # check if integer map (like outlets, lakes etc
     try:
         checkint = str(map.dtype)
     except:
         checkint = "x"
-
     if checkint == "int16" or checkint == "int32":
         dmap[dmap.mask] = -9999
-        map = pcraster.numpy2pcr(pcraster.Nominal, dmap, -9999)
     elif checkint == "int8":
-        dmap[dmap < 0] = -9999
-        map = pcraster.numpy2pcr(pcraster.Nominal, dmap, -9999)
+        dmap[dmap < 0] = 0
     else:
         dmap[dmap.mask] = -9999
-        map = pcraster.numpy2pcr(pcraster.Scalar, dmap, -9999)
-
-    return map
+    ii =2
+    return dmap
 
 
 
@@ -766,7 +676,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
         raise CWATMFileError(filename,msg, sname = name)
 
     if value == "None":
-        value = nf1.variables.items()[-1][0]  # get the last variable name
+        value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
     # check if mask = map size -> if yes do not cut the map
     cutcheckmask = maskinfo['shape'][0] * maskinfo['shape'][1]
@@ -793,12 +703,12 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
 
 
     if mapsscale:  # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
-        if maskinfo['shapeflat'][0]<> mapnp.size:
+        if maskinfo['shapeflat'][0]!= mapnp.size:
             msg = name + " has less or more valid pixels than the mask map \n"
             msg += "if it is the ET maps, it might be from another run with different mask. Please look at the option: calc_evaporation"
             raise CWATMWarning(msg)
 
-        mapC = compressArray(mapnp,pcr=False,name=filename,zeros = zeros)
+        mapC = compressArray(mapnp, name=filename,zeros = zeros)
     else: # if static map extend not equal meteo maps -> downscaling in readmeteo
         mapC = mapnp
 
@@ -848,7 +758,7 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
         raise CWATMFileError(filename,msg, sname = namebinding)
 
     if value == "None":
-        value = nf1.variables.items()[-1][0]  # get the last variable name
+        value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
     # date if used daily, monthly or yearly or day of year
     if useDaily == "DOY":  # day of year 1-366
@@ -903,12 +813,12 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
     if not(compress):
         return mapnp
 
-    if maskinfo['shapeflat'][0]<> mapnp.size:
+    if maskinfo['shapeflat'][0]!= mapnp.size:
         msg = name + " has less or more valid pixels than the mask map \n"
         msg += "if it is the ET maps, it might be from another run with different mask. Please look at the option: calc_evaporation"
         raise CWATMWarning(msg)
 
-    mapC = compressArray(mapnp,pcr=False,name=filename)
+    mapC = compressArray(mapnp, name=filename)
     return mapC
 
 
@@ -925,12 +835,12 @@ def readnetcdfWithoutTime(name, value="None"):
         msg = "Netcdf map stacks: \n"
         raise CWATMFileError(filename,msg)
     if value == "None":
-        value = nf1.variables.items()[-1][0]  # get the last variable name
+        value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
     mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
     nf1.close()
 
-    mapC = compressArray(mapnp,pcr=False,name=filename)
+    mapC = compressArray(mapnp, name=filename)
     return mapC
 
 
@@ -946,23 +856,23 @@ def readnetcdfInitial(name, value,default = 0.0):
     except:
         msg = "Netcdf Initial file: \n"
         raise CWATMFileError(filename,msg)
-    if value in nf1.variables.keys():
+    if value in list(nf1.variables.keys()):
         try:
             #mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
             mapnp = (nf1.variables[value][:].astype(np.float64))
             nf1.close()
-            mapC = compressArray(mapnp,pcr=False,name=filename)
+            mapC = compressArray(mapnp, name=filename)
             return mapC
         except:
             #nf1.close()
             msg ="===== Problem reading initial data ====== \n"
             msg += "Initial value: " + value + " is has not the same shape as the mask map\n"
             msg += "Maybe put\"load_initial = False\""
-            print CWATMError(msg)
+            print(CWATMError(msg))
     else:
         nf1.close()
         msg = "Initial value: " + value + " is not included in: " + name + " - using default: " + str(default)
-        print CWATMWarning(msg)
+        print(CWATMWarning(msg))
         return default
 
 
@@ -1000,44 +910,44 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
         # infomation from the settingsfile comes first
         if prename in metaNetcdfVar:
            for key in metaNetcdfVar[prename]:
-                if not (key in nf1.__dict__.keys()):
+                if not (key in list(nf1.__dict__.keys())):
                     if not (key in ["unit", "long_name", "standard_name"]):
                         nf1.__setattr__(key, metaNetcdfVar[prename][key])
 
 
 
             # Dimension
-        if 'x' in metadataNCDF.keys():
+        if 'x' in list(metadataNCDF.keys()):
             lon = nf1.createDimension('x', col)  # x 1000
             longitude = nf1.createVariable('x', 'f8', ('x',))
             for i in metadataNCDF['x']:
-                exec('%s="%s"') % ("longitude." + i, metadataNCDF['x'][i])
-        if 'lon' in metadataNCDF.keys():
+                exec(('%s="%s"') % ("longitude." + i, metadataNCDF['x'][i]))
+        if 'lon' in list(metadataNCDF.keys()):
             lon = nf1.createDimension('lon', col)
             longitude = nf1.createVariable('lon', 'f8', ('lon',))
             for i in metadataNCDF['lon']:
-                exec('%s="%s"') % ("longitude." + i, metadataNCDF['lon'][i])
-        if 'y' in metadataNCDF.keys():
+                exec(('%s="%s"') % ("longitude." + i, metadataNCDF['lon'][i]))
+        if 'y' in list(metadataNCDF.keys()):
             lat = nf1.createDimension('y', row)  # x 950
             latitude = nf1.createVariable('y', 'f8', ('y'))
             for i in metadataNCDF['y']:
-                exec('%s="%s"') % ("latitude." + i, metadataNCDF['y'][i])
-        if 'lat' in metadataNCDF.keys():
+                exec(('%s="%s"') % ("latitude." + i, metadataNCDF['y'][i]))
+        if 'lat' in list(metadataNCDF.keys()):
             lat = nf1.createDimension('lat', row)  # x 950
             latitude = nf1.createVariable('lat', 'f8', ('lat'))
             for i in metadataNCDF['lat']:
-                exec('%s="%s"') % ("latitude." + i, metadataNCDF['lat'][i])
+                exec(('%s="%s"') % ("latitude." + i, metadataNCDF['lat'][i]))
 
         # projection
-        if 'laea' in metadataNCDF.keys():
+        if 'laea' in list(metadataNCDF.keys()):
             proj = nf1.createVariable('laea', 'i4')
             for i in metadataNCDF['laea']:
-                exec('%s="%s"') % ("proj." + i, metadataNCDF['laea'][i])
-        if 'lambert_azimuthal_equal_area' in metadataNCDF.keys():
+                exec(('%s="%s"') % ("proj." + i, metadataNCDF['laea'][i]))
+        if 'lambert_azimuthal_equal_area' in list(metadataNCDF.keys()):
             proj = nf1.createVariable('lambert_azimuthal_equal_area', 'i4')
             for i in metadataNCDF['lambert_azimuthal_equal_area']:
-                exec('%s="%s"') % (
-                    "proj." + i, metadataNCDF['lambert_azimuthal_equal_area'][i])
+                exec(('%s="%s"') % (
+                    "proj." + i, metadataNCDF['lambert_azimuthal_equal_area'][i]))
 
 
         # Fill variables
@@ -1069,15 +979,15 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
             time.calendar = 'standard'
 
 
-            if 'x' in metadataNCDF.keys():
+            if 'x' in list(metadataNCDF.keys()):
                value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True,fill_value=1e20)
-            if 'lon' in metadataNCDF.keys():
+            if 'lon' in list(metadataNCDF.keys()):
                 #value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20)
                 value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20,chunksizes=(1,row,col))
         else:
-          if 'x' in metadataNCDF.keys():
+          if 'x' in list(metadataNCDF.keys()):
               value = nf1.createVariable(varname, 'f4', ('y', 'x'), zlib=True,fill_value=1e20)
-          if 'lon' in metadataNCDF.keys():
+          if 'lon' in list(metadataNCDF.keys()):
               # for world lat/lon coordinates
               value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
 
@@ -1087,8 +997,8 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
         value.long_name = p1 + p2
         value.units= getmeta("unit",prename,varunits)
 
-        for var in metadataNCDF.keys():
-            if "esri_pe_string" in metadataNCDF[var].keys():
+        for var in list(metadataNCDF.keys()):
+            if "esri_pe_string" in list(metadataNCDF[var].keys()):
                 value.esri_pe_string = metadataNCDF[var]['esri_pe_string']
 
 
@@ -1113,7 +1023,7 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
         date1 = "%02d/%02d/%02d" % (timeStamp.day, timeStamp.month, timeStamp.year)
         msg = "No values in: " + varname + " on date: " + date1 +"\nCould not write: " + netfile
         nf1.close()
-        print CWATMWarning(msg)
+        print(CWATMWarning(msg))
         return False
 
 
@@ -1172,42 +1082,42 @@ def writeIniNetcdf(netfile,varlist, inputlist):
 
     if "initcondition" in metaNetcdfVar:
         for key in metaNetcdfVar["initcondition"]:
-            if not (key in nf1.__dict__.keys()):
+            if not (key in list(nf1.__dict__.keys())):
                if not (key in ["unit", "long_name", "standard_name"]):
                    nf1.__setattr__(key, metaNetcdfVar["initcondition"][key])
 
 
     # Dimension
-    if 'x' in metadataNCDF.keys():
+    if 'x' in list(metadataNCDF.keys()):
         lon = nf1.createDimension('x', col)  # x 1000
         longitude = nf1.createVariable('x', 'f8', ('x',))
         for i in metadataNCDF['x']:
-            exec('%s="%s"') % ("longitude." + i, metadataNCDF['x'][i])
-    if 'lon' in metadataNCDF.keys():
+            exec(('%s="%s"') % ("longitude." + i, metadataNCDF['x'][i]))
+    if 'lon' in list(metadataNCDF.keys()):
         lon = nf1.createDimension('lon', col)
         longitude = nf1.createVariable('lon', 'f8', ('lon',))
         for i in metadataNCDF['lon']:
-            exec('%s="%s"') % ("longitude." + i, metadataNCDF['lon'][i])
-    if 'y' in metadataNCDF.keys():
+            exec(('%s="%s"') % ("longitude." + i, metadataNCDF['lon'][i]))
+    if 'y' in list(metadataNCDF.keys()):
         lat = nf1.createDimension('y', row)  # x 950
         latitude = nf1.createVariable('y', 'f8', ('y'))
         for i in metadataNCDF['y']:
-            exec('%s="%s"') % ("latitude." + i, metadataNCDF['y'][i])
-    if 'lat' in metadataNCDF.keys():
+            exec(('%s="%s"') % ("latitude." + i, metadataNCDF['y'][i]))
+    if 'lat' in list(metadataNCDF.keys()):
         lat = nf1.createDimension('lat', row)  # x 950
         latitude = nf1.createVariable('lat', 'f8', ('lat'))
         for i in metadataNCDF['lat']:
-            exec('%s="%s"') % ("latitude." + i, metadataNCDF['lat'][i])
+            exec(('%s="%s"') % ("latitude." + i, metadataNCDF['lat'][i]))
 
     # projection
-    if 'laea' in metadataNCDF.keys():
+    if 'laea' in list(metadataNCDF.keys()):
         proj = nf1.createVariable('laea', 'i4')
         for i in metadataNCDF['laea']:
-            exec('%s="%s"') % ("proj." + i, metadataNCDF['laea'][i])
-    if 'lambert_azimuthal_equal_area' in metadataNCDF.keys():
+            exec(('%s="%s"') % ("proj." + i, metadataNCDF['laea'][i]))
+    if 'lambert_azimuthal_equal_area' in list(metadataNCDF.keys()):
         proj = nf1.createVariable('lambert_azimuthal_equal_area', 'i4')
         for i in metadataNCDF['lambert_azimuthal_equal_area']:
-            exec('%s="%s"') % ("proj." + i, metadataNCDF['lambert_azimuthal_equal_area'][i])
+            exec(('%s="%s"') % ("proj." + i, metadataNCDF['lambert_azimuthal_equal_area'][i]))
 
     # Fill variables
     cell = maskmapAttr['cell']
@@ -1225,9 +1135,9 @@ def writeIniNetcdf(netfile,varlist, inputlist):
     i = 0
     for varname in varlist:
 
-        if 'x' in metadataNCDF.keys():
+        if 'x' in list(metadataNCDF.keys()):
             value = nf1.createVariable(varname, 'f8', ('y', 'x'), zlib=True,fill_value=1e20)
-        if 'lon' in metadataNCDF.keys():
+        if 'lon' in list(metadataNCDF.keys()):
             # for world lat/lon coordinates
             value = nf1.createVariable(varname, 'f8', ('lat', 'lon'), zlib=True, fill_value=1e20)
 
@@ -1248,6 +1158,65 @@ def writeIniNetcdf(netfile,varlist, inputlist):
 
 
     nf1.close()
+
+# --------------------------------------------------------------------------------------------
+# report .tif and .maps
+
+def report(name,valueIn,compr=True):
+
+
+    filename = os.path.splitext(name)
+    pcmap = False
+    if filename[1] == ".map":   pcmap = True
+
+    if compr:
+        value = decompress(valueIn,pcmap)
+    else:
+        value = valueIn
+
+    checkint = value.dtype.char in np.typecodes['AllInteger']
+    ny, nx = value.shape
+
+
+
+
+    if pcmap: # if it is a map
+        raster = gdal.GetDriverByName('PCRaster')
+        # ds = raster.Create(name, nx, ny, 1, gdal.GDT_Float32)
+        if checkint:
+            ds = raster.Create(name, nx, ny, 1, gdal.GDT_Int32, ["PCRASTER_VALUESCALE=VS_NOMINAL"])
+        else:
+            ds = raster.Create(name, nx, ny, 1, gdal.GDT_Float32, ["PCRASTER_VALUESCALE=VS_SCALAR"])
+
+        ds.SetGeoTransform(geotrans[0])  # specify coords
+        outband = ds.GetRasterBand(1)
+        # set NoData value
+        # outband.SetNoDataValue(np.nan)
+        outband.SetNoDataValue(-9999)
+        value[np.isnan(value)] = -9999
+
+
+    else: # if is not a .map
+        if checkint:
+            ds = gdal.GetDriverByName('GTiff').Create(name, nx, ny, 1, gdal.GDT_Int32, ['COMPRESS=LZW'])
+        else:
+            ds = gdal.GetDriverByName('GTiff').Create(name, nx, ny, 1, gdal.GDT_Float32, ['COMPRESS=LZW'])
+
+        ds.SetGeoTransform(geotrans[0])  # specify coords
+        srs = osr.SpatialReference()  # establish encoding
+        srs.ImportFromEPSG(4326)  # WGS84 lat/long
+        ds.SetProjection(srs.ExportToWkt())  # export coords to file
+        outband = ds.GetRasterBand(1)
+        # set NoData value
+        outband.SetNoDataValue(-9999)
+        outband.SetStatistics(np.nanmin(value).astype(np.float), np.nanmax(value).astype(np.float),
+                              np.nanmean(value).astype(np.float), np.nanstd(value).astype(np.float))
+
+    outband.WriteArray(value)
+    ds.FlushCache()
+    ds = None
+    outband = None
+
 
 
 
@@ -1275,7 +1244,7 @@ def checkOption(inBinding):
     if test:
         return option[inBinding]
     else:
-        closest = difflib.get_close_matches(inBinding, option.keys())[0]
+        closest = difflib.get_close_matches(inBinding, list(option.keys()))[0]
         with open(sys.argv[1]) as f:
             i = 0
             for line in f:
@@ -1294,7 +1263,7 @@ def cbinding(inBinding):
     if test:
         return binding[inBinding]
     else:
-        close = difflib.get_close_matches(inBinding, binding.keys())
+        close = difflib.get_close_matches(inBinding, list(binding.keys()))
         if close:
             closest = close[0]
 

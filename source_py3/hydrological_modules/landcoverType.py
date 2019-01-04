@@ -45,7 +45,7 @@ class landcoverType(object):
             self.var.dynamicLandcover = False
 
 
-        self.var.coverTypes= map(str.strip, cbinding("coverTypes").split(","))
+        self.var.coverTypes= list(map(str.strip, cbinding("coverTypes").split(",")))
         landcoverAll = ['fracVegCover','interceptStor','interceptCap','availWaterInfiltration','interceptEvap',
                         'directRunoff', 'openWaterEvap']
         for variable in landcoverAll:  vars(self.var)[variable] = np.tile(globals.inZero, (6, 1))
@@ -92,7 +92,7 @@ class landcoverType(object):
 
 
         self.var.totalET = globals.inZero.copy()
-        self.var.actSurfaceWaterAbstract = globals.inZero.copy()
+        self.var.act_SurfaceWaterAbstract = globals.inZero.copy()
 
         # ----------------------------------------------------------
         # Load initial values and calculate basic soil parameters which are not changed in time
@@ -141,7 +141,7 @@ class landcoverType(object):
             # self.var.rootDepth[0][i] = np.minimum(self.var.soildepth[0], self.var.maxRootDepth[i])
             self.var.rootDepth[0][i] = self.var.soildepth[0].copy()  # 0.05 m
             # if land cover = forest
-            if coverType <> 'grassland':
+            if coverType != 'grassland':
                 # soil layer 1 = root max of land cover  - first soil layer
                 h1 = np.maximum(self.var.soildepth[1], self.var.maxRootDepth[i] - self.var.soildepth[0])
                 self.var.rootDepth[1][i] = np.minimum(self.var.soildepth12 - 0.05, h1)
@@ -213,7 +213,7 @@ class landcoverType(object):
         i = 0
         for coverType in self.var.coverTypes[:4]:
             j = 0
-            if coverType <> "forest": j = 1
+            if coverType != "forest": j = 1
             self.var.ws1.append(self.var.thetas1[j] * self.var.rootDepth[0][i])
             self.var.ws2.append(self.var.thetas2[j] * self.var.rootDepth[1][i])
             self.var.ws3.append(self.var.thetas3[j] * self.var.rootDepth[2][i])
@@ -281,7 +281,7 @@ class landcoverType(object):
             soilVars = ['w1', 'w2', 'w3']
             for variable in soilVars:
                 vars(self.var)["sum_" + variable] = globals.inZero.copy()
-                for No in xrange(4):
+                for No in range(4):
                     vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
             # for paddy irrigation flooded paddy fields
@@ -312,7 +312,7 @@ class landcoverType(object):
             rootFrac[1] = (1 - fractionroot12) * self.var.rootFraction1[i]
             rootFrac[2] = 1.0 - self.var.rootFraction1[i]
             rootFracSum = np.sum(rootFrac,axis=0)
-            for soilLayer in xrange(self.var.soilLayers):
+            for soilLayer in range(self.var.soilLayers):
                 self.var.adjRoot[soilLayer][i] = rootFrac[soilLayer] / rootFracSum
 
 
@@ -478,7 +478,7 @@ class landcoverType(object):
         # aggregated variables by fraction of land cover
         for variable in self.var.landcoverSum:
             vars(self.var)["sum_" + variable] = globals.inZero.copy()
-            for No in xrange(6):
+            for No in range(6):
                 vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
         #print "--", self.var.sum_directRunoff
@@ -488,7 +488,7 @@ class landcoverType(object):
         soilVars = ['w1','w2','w3']
         for variable in soilVars:
                 vars(self.var)["sum_" + variable] = globals.inZero.copy()
-                for No in xrange(4):
+                for No in range(4):
                     vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
 

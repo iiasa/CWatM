@@ -96,7 +96,7 @@ class waterbalance(object):
             #if maxBB > 0.00000001:
             #    sys.exit()
             if maxBB > 0.0000000001:
-                print "     %s %10.8f %10.8f" % (processName, minB,maxB),
+                print("     %s %10.8f %10.8f" % (processName, minB,maxB), end=' ')
                 #quit()
                 if (minB < -0.00001) or (maxB > 0.00001):
                    i=11111
@@ -155,7 +155,7 @@ class waterbalance(object):
             #print "     %s %10.8f " % (processName, maxBB),
             #print "     %s %10.8f %10.8f" % (processName, minB,maxB),
             #print "     %s %10.8f" % (processName, balance[no]),
-            print "     %s %10.8f" % (processName, balance[no]),
+            print("     %s %10.8f" % (processName, balance[no]), end=' ')
 
             #avgArea = npareaaverage(self.var.cellArea, self.var.catchmentAll)
             #dis = balance[no] * avgArea[0] / self.var.DtSec
@@ -319,7 +319,7 @@ class waterbalance(object):
 
             self.var.waterbalance_module.waterBalanceCheckSum(
                 [self.var.runoff, self.var.returnFlow],  # In
-                [self.var.sumsideflow / self.var.cellArea, self.var.EvapoChannel / self.var.cellArea, self.var.actSurfaceWaterAbstract, ],  # Out
+                [self.var.sumsideflow / self.var.cellArea, self.var.EvapoChannel / self.var.cellArea, self.var.act_SurfaceWaterAbstract, ],  # Out
                 [],  # prev storage
                 [],
                 "rout1", False)

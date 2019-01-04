@@ -39,7 +39,7 @@ class routing_kinematic(object):
         * calculate manning's roughness coefficient
         """
 
-        ldd = loadmap('Ldd')
+        ldd = loadmap('Ldd',compress=False)
         # l1 = decompress(ldd)
 
         self.var.lddCompress, dirshort, self.var.dirUp, self.var.dirupLen, self.var.dirupID, self.var.downstruct, self.var.catchment, self.var.dirDown, self.var.lendirDown = defLdd2(ldd)
@@ -166,13 +166,12 @@ class routing_kinematic(object):
         Dynamic part of the routing module
 
         * calculate evaporation from channels
-        * calcualte riverbed exchange between riverbed and groundwater
+        * calculate riverbed exchange between riverbed and groundwater
         * if option **waterbodies** is true, calculate retention from water bodies
         * calculate sideflow -> inflow to river
-        * calcculate kinematic wave -> using C++ library for computational speed
+        * calculate kinematic wave -> using C++ library for computational speed
         """
 
-        #   if option['PCRaster']: from pcraster.framework import *
 
 # ---------------------------------------------------------------------------------
 
@@ -285,7 +284,7 @@ class routing_kinematic(object):
         avgDis = 0
 
 
-        for subrouting in xrange(self.var.noRoutingSteps):
+        for subrouting in range(self.var.noRoutingSteps):
 
             sideflowChanM3 = runoffM3.copy()
             # minus evaporation from channels
@@ -400,7 +399,7 @@ class routing_kinematic(object):
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheckSum(
                 [self.var.runoff, self.var.returnFlow ],  # In
-                [self.var.sumsideflow / self.var.cellArea,self.var.EvapoChannel / self.var.cellArea, self.var.actSurfaceWaterAbstract],  # Out
+                [self.var.sumsideflow / self.var.cellArea,self.var.EvapoChannel / self.var.cellArea, self.var.act_SurfaceWaterAbstract],  # Out
                 [],   # prev storage
                 [],
                 "rout4", False)
@@ -412,12 +411,6 @@ class routing_kinematic(object):
                 [self.var.prechannelStorage/self.var.cellArea],   # prev storage
                 [self.var.channelStorage/self.var.cellArea],
                 "rout5", False)
-
-
-
-        #if checkOption('PCRaster'): report(decompress(self.var.discharge), "C:\work\output2/q1.map")
-        #report(decompress(self.var.sumsum_Precipitation), "c:\work\output\Prsum.map")
-
 
 
 

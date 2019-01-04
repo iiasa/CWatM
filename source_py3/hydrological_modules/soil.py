@@ -94,7 +94,9 @@ class soil(object):
         self.var.soildepth[2] = self.var.soildepth[2] * soildepth_factor
         self.var.soildepth12 = self.var.soildepth[1] + self.var.soildepth[2]
 
-        ii =1
+        # report("C:/work/output2/soil.map", self.var.soildepth12)
+
+
 
 
 
@@ -446,7 +448,7 @@ class soil(object):
 
         # Start iterating
 
-        for i in xrange(self.var.NoSubSteps):
+        for i in range(self.var.NoSubSteps):
             if i > 0:
                 # Saturation term in Van Genuchten equation
                 satTerm1 = np.maximum(0., wtemp1 - self.var.wres1[No])/ self.var.wrange1[No]

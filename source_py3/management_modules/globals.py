@@ -25,10 +25,11 @@ import platform
 from management_modules.messages import *
 
 
-global maskinfo,zeromap,modelSteps,xmlstring
+global maskinfo,zeromap,modelSteps,xmlstring,geotransfrom
 maskinfo = {}
 modelSteps=[]
 xmlstring=[]
+geotrans=[]
 
 global binding, option, FlagName, Flags, ReportSteps, FilterSteps, EnsMembers, outputDir
 global MMaskMap, maskmapAttr, bigmapAttr, cutmap, cutmapGlobal, cutmapFine, cutmapVfine, metadataNCDF
@@ -112,7 +113,7 @@ elif platform1 == "CYGWIN_NT-6.1":
     # CYGWIN_NT-6.1 - compiled with cygwin
     dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t5cyg.so")
 else:
-    print "Linux\n"
+    print("Linux\n")
     dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t5_linux.so")
 
 #dll_routing = "C:/work2/test1/t4.dll"
