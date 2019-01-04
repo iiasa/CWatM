@@ -17,13 +17,6 @@ class inflow(object):
     """
     READ INFLOW HYDROGRAPHS (OPTIONAL)
     If option "inflow" is set to 1 the inflow hydrograph code is used otherwise dummy code is used
-
-    Warning:
-        Not included at moment
-
-    Todo:
-        has to be revamped
-        The  pcraster routine timeinputscalar has to be replaced by reading txt -> numpy
     """
 
     def __init__(self, inflow_variable):

@@ -25,10 +25,11 @@ import platform
 from management_modules.messages import *
 
 
-global maskinfo,zeromap,modelSteps,xmlstring
+global maskinfo,zeromap,modelSteps,xmlstring,geotransfrom
 maskinfo = {}
 modelSteps=[]
 xmlstring=[]
+geotrans=[]
 
 global binding, option, FlagName, Flags, ReportSteps, FilterSteps, EnsMembers, outputDir
 global MMaskMap, maskmapAttr, bigmapAttr, cutmap, cutmapGlobal, cutmapFine, cutmapVfine, metadataNCDF

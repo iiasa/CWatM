@@ -94,7 +94,9 @@ class soil(object):
         self.var.soildepth[2] = self.var.soildepth[2] * soildepth_factor
         self.var.soildepth12 = self.var.soildepth[1] + self.var.soildepth[2]
 
-        ii =1
+        # report("C:/work/output2/soil.map", self.var.soildepth12)
+
+
 
 
 

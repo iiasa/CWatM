@@ -385,8 +385,8 @@ class waterdemand(object):
 
 
                 if checkOption('includeWaterBodies'):
-                    #self.var.potGroundwaterAbstract = totalPotDemand - self.var.actSurfaceWaterAbstract
-                    #realswAbstractionFraction = divideValues(self.var.actSurfaceWaterAbstract, totalPotDemand)
+                    #self.var.potGroundwaterAbstract = totalPotDemand - self.var.act_SurfaceWaterAbstract
+                    #realswAbstractionFraction = divideValues(self.var.act_SurfaceWaterAbstract, totalPotDemand)
                     # water that is still needed from surface water
                     # todo: remainNeed > 0, so put max(remainNeed,0)
                     remainNeed = pot_SurfaceAbstract - self.var.act_SurfaceWaterAbstract

@@ -15,9 +15,19 @@ Requirements
 Python version
 **************
 
-Requirements are a 64 bit `Python 2.7.x version <https://www.python.org/downloads/release/python-2712/>`_
+NEW from 2019 on:
+Requirements are a 64 bit `Python 3.7.x version <https://www.python.org/downloads/release/python-372/>`_
+
+Reason for this step:
+
+* Python 2.7 support ends in 2019
+* We will be able to provide a better error handling
+* We are able to provide an executable of CWATM for Windows
+
 
 .. warning:: a 32 bit version is not able to handle the data requirements!
+
+.. warning:: From 2019 on we are changing to Python37. We do not provide further support for Python 2.7
 
 Libraries
 *********
@@ -35,39 +45,35 @@ The four libraries can be installed with pip or
 downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
 
 
+Windows executeable Python version
+**********************************
+
+| A CWATM executable cwatm.exe can be used instead of the Python version
+
+* It is done with cx_freeze library 
+* It includes all Libraries
+* ADVANTAGE: you can run it without installing or knowledge of Python
+* DISADVANTAGE 1: You cannot see the source code or change it 
+* DISADVANTAGE 2: We do not update this version as often as the Python version
+
+| At the moment it is (will be!)  stored on our FTP server due to the big size 
+| But we are looking for a better place
+
+
 PCRaster
 ******** 
 
-And the PCRASTER library from Faculty of Geosciences, Utrecht University, The Netherlands - `Webpage of PCRaster <http://pcraster.geo.uu.nl>`_
+| CWATM is not using anymore anything from PCRaster
+| But the general idea of PCraster to split the modules in a initial part and a dynamic part 
+| is still used
+
+| Anyway PCRaster is still a great tool
+| PCRASTER library from Faculty of Geosciences, Utrecht University, The Netherlands
+| `Webpage of PCRaster <http://pcraster.geo.uu.nl>`_
 
 | Reference:
 | Karssenberg, D., Schmitz, O., Salamon, P., de Jong, K., and Bierkens, M. F. P.: A software framework for construction of process-based stochastic spatio-temporal models and data assimilation, Environmental Modelling & Software 25(4), 489-502, 2010. doi: 10.1016/j.envsoft.2009.10.004
 
-**PCRaster installation**
-
-| CWATM is using the PCRaster Python framwork of PCRaster but not the GIS commands.
-| But nevertheless it is quite usefull to install a full PCRaster version:
-
-| **Windows**
-| `Windows installation guide of PCRaster <http://pcraster.geo.uu.nl/quick-start-guide/>`_
-
-| **Linux**
-| `Linux installation guide of PCRaster <http://pcraster.geo.uu.nl/getting-started/pcraster-on-linux/>`_
-
-.. note:: If it is not possible to install a full version of PCRaster! 
-    Copy following files
-
-::
-
-    From: PCRasterFolder\python\pcraster\framework
-    
-    dynamicBase.py
-    dynamicFramework.py
-    dynamicPCRasterBase.py
-    frameworkBase.py
-    shellscript.py
-    
-    To: CWATM/source/pcraster2	
 
 
 C++ libraries
@@ -96,6 +102,10 @@ Compiling a version
 *******************
 
 C++ sourcecode is in *../source/hydrological_modules/routing_reservoirs/t5.cpp*
+.. note::
+    A compiled version is already provided for Windows and Linux.
+
+
 
 **Windows**
 
@@ -764,6 +774,92 @@ for example
 .. note:: For each variable the meta data information can be defined in :ref:`rst_metadata`
 
 .. note:: For information how to adjust the output in the settings file see :ref:`rst_outputone`
+
+
+Most important output variables - a selection
+---------------------------------------------
+
+::
+   
+   #Variable name    : Description
+   discharge         : river discharge
+   runoff            : runoff
+   Precipitation     : rainfall + snow
+   Tavg              : average temperature
+   ETRef: potential  : evaporation from reference soil
+   sum_gwRecharge    : total groundwater recharge
+   totalET           : total actual evapotranspiration
+   baseflow          : baseflow from groundwater
+   ... (to be continued)
+
+
+
+Output variables - starting a list
+----------------------------------
+
+| A list of variables can be produced by using:
+| grep -d recurse 'self.var.' *.py 
+| Every self.var.variable can be used as output variable
+| For a description of the variable please take a look at the python module itself.
+| 
+| As output variable please use without self.var.
+
+::
+   
+   #Python_modul            Variable_name
+   capillarRise.py          self.var.capRiseFrac 
+   evaporationPot.py        self.var.AlbedoCanopy
+   evaporationPot.py        self.var.AlbedoSoil
+   evaporationPot.py        self.var.AlbedoWater
+   evaporationPot.py        self.var.ETRef
+   evaporationPot.py        self.var.EWRef
+   evaporation.py           self.var.potBareSoilEvap 
+   evaporation.py           self.var.snowEvap
+   evaporation.py           self.var.SnowMelt
+   evaporation.py           self.var.potBareSoilEvap 
+   evaporation.py           self.var.cropKC[No] 
+   evaporation.py           self.var.totalPotET[No] 
+   evaporation.py           self.var.potTranspiration[No]
+   groundwater.py           self.var.recessionCoeff 
+   groundwater.py           self.var.specificYield 
+   groundwater.py           self.var.kSatAquifer 
+   groundwater.py           self.var.storGroundwater 
+   groundwater.py           self.var.baseflow 
+   interception.py          self.var.interceptCap[No]  
+   interception.py          self.var.interceptStor[No] 
+   interception.py          self.var.availWaterInfiltration[No] 
+   interception.py          self.var.potTranspiration[No] 
+   interception.py          self.var.actualET[No] 
+   lakes_reservoirs.py      self.var.waterBodyID 
+   lakes_reservoirs.py      self.var.waterBodyOut
+   lakes_reservoirs.py      self.var.lakeArea
+   lakes_reservoirs.py      self.var.lakeDis0
+   lakes_reservoirs.py      self.var.lakeAC
+   lakes_reservoirs.py      self.var.lakeEvaFactor
+   lakes_reservoirs.py      self.var.reslakeoutflow
+   lakes_reservoirs.py      self.var.lakeVolume
+   lakes_reservoirs.py      self.var.lakeStorage
+   lakes_reservoirs.py      self.var.lakeInflow
+   lakes_reservoirs.py      self.var.lakeOutflow
+   lakes_reservoirs.py      self.var.reservoirStorage
+   lakes_reservoirs.py      self.var.lakeResStorage
+   lakes_reservoirs.py      self.var.sumlakeResInflow
+   lakes_reservoirs.py      self.var.sumlakeResOutflow
+   lakes_res_small.py       self.var.smalllakeArea
+   lakes_res_small.py       self.var.smalllakeDis0
+   lakes_res_small.py       self.var.smalllakeA
+   lakes_res_small.py       self.var.smalllakeFactor
+   lakes_res_small.py       self.var.smalllakeVolumeM3
+   lakes_res_small.py       self.var.smallevapWaterBodyStorage 
+   landcoverType.py         self.var.coverTypes
+   landcoverType.py         self.var.totalET
+   landcoverType.py         self.var.actSurfaceWaterAbstract
+   landcoverType.py         self.var.minInterceptCap
+   landcoverType.py         self.var.interceptStor[No]
+   landcoverType.py         self.var.sum_interceptStor
+   landcoverType.py         self.var.minCropKC
+   landcoverType.py         self.var.maxGWCapRise
+   ... (to be continued)
 
 
 

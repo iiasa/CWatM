@@ -45,14 +45,10 @@ class miscInitial(object):
             # Limitation: always assumes square grid cells (not rectangles!). Size of grid cells
             # may vary across map though
 
-            #self.var.cellLengthPcr = loadmap('CellLength',pcr=True)
-            #self.var.cellLength = compressArray(self.var.cellLengthPcr)
             # Length of pixel [m]
             # NOT needed only in routing
 
             # Area of pixel [m2]
-            #self.var.cellAreaPcr = loadmap('CellArea',pcr=True)
-            #self.var.cellArea = compressArray(self.var.cellAreaPcr)
             self.var.cellArea = loadmap('CellArea')
 
 
@@ -65,11 +61,8 @@ class miscInitial(object):
 
             # Length of pixel [m]
             #self.var.PixelLength = celllength()
-            # self.var.cellLengthPcr = celllength()
-            #self.var.cellLength = maskmapAttr['cell']
 
             # Area of pixel [m2]
-            #self.var.cellAreaPcr = self.var.cellLength ** 2
             self.var.cellArea=np.empty(maskinfo['mapC'])
             self.var.cellArea.fill(self.var.cellLength ** 2)
 

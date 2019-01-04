@@ -1,4 +1,4 @@
-# initial and dynamic model-> idea taken from PCRaster
+# initial and dynamic model-> idea taken from PC_Raster
 
 class DynamicModel:
   i = 1

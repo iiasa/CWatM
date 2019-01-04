@@ -162,7 +162,7 @@ class readmeteo(object):
             down3 = np.kron(input, np.ones((resoint, resoint)))
             if downscale == 0:
                 down2 = down3[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
-                input = compressArray(down2, pcr=False)
+                input = compressArray(down2)
                 return input
             else:
                 if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
@@ -189,7 +189,7 @@ class readmeteo(object):
 
 
             down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
-            input = compressArray(down2, pcr=False)
+            input = compressArray(down2)
             return input, wc2, wc4
 
          # --- end downscaling ----------------------------

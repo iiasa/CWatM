@@ -39,7 +39,7 @@ class routing_kinematic(object):
         * calculate manning's roughness coefficient
         """
 
-        ldd = loadmap('Ldd')
+        ldd = loadmap('Ldd',compress=False)
         # l1 = decompress(ldd)
 
         self.var.lddCompress, dirshort, self.var.dirUp, self.var.dirupLen, self.var.dirupID, self.var.downstruct, self.var.catchment, self.var.dirDown, self.var.lendirDown = defLdd2(ldd)
@@ -166,13 +166,12 @@ class routing_kinematic(object):
         Dynamic part of the routing module
 
         * calculate evaporation from channels
-        * calcualte riverbed exchange between riverbed and groundwater
+        * calculate riverbed exchange between riverbed and groundwater
         * if option **waterbodies** is true, calculate retention from water bodies
         * calculate sideflow -> inflow to river
-        * calcculate kinematic wave -> using C++ library for computational speed
+        * calculate kinematic wave -> using C++ library for computational speed
         """
 
-        #   if option['PCRaster']: from pcraster.framework import *
 
 # ---------------------------------------------------------------------------------
 
@@ -255,13 +254,13 @@ class routing_kinematic(object):
 
         WDAddM3Dt = 0
         if checkOption('includeWaterDemand'):
-             WDAddM3Dt = self.var.actSurfaceWaterAbstract.copy()
+             WDAddM3Dt = self.var.act_SurfaceWaterAbstract.copy()
              #return flow from (m) non irrigation water demand
              #WDAddM3Dt = WDAddM3Dt - self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrDemand
              WDAddM3Dt = WDAddM3Dt - self.var.returnFlow
              WDAddM3Dt = WDAddM3Dt * self.var.cellArea / self.var.noRoutingSteps
 
-            #sideflowChanM3 -= self.var.sum_actSurfaceWaterAbstract * self.var.cellArea
+            #sideflowChanM3 -= self.var.sum_act_SurfaceWaterAbstract * self.var.cellArea
             # return flow from (m) non irrigation water demand
             #self.var.nonIrrReturnFlow = self.var.nonIrrReturnFlowFraction * self.var.nonIrrDemand
             #sideflowChanM3 +=  self.var.nonIrrReturnFlow * self.var.cellArea
@@ -377,7 +376,7 @@ class routing_kinematic(object):
 
             self.var.waterbalance_module.waterBalanceCheckSum(
                 [self.var.runoff, self.var.returnFlow, lakesResOut/ self.var.cellArea],  # In
-                [self.var.sumsideflow / self.var.cellArea, self.var.EvapoChannel / self.var.cellArea, self.var.actSurfaceWaterAbstract, ],  # Out
+                [self.var.sumsideflow / self.var.cellArea, self.var.EvapoChannel / self.var.cellArea, self.var.act_SurfaceWaterAbstract, ],  # Out
                 [],  # prev storage
                 [],
                 "rout2", False)
@@ -400,7 +399,7 @@ class routing_kinematic(object):
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheckSum(
                 [self.var.runoff, self.var.returnFlow ],  # In
-                [self.var.sumsideflow / self.var.cellArea,self.var.EvapoChannel / self.var.cellArea, self.var.actSurfaceWaterAbstract],  # Out
+                [self.var.sumsideflow / self.var.cellArea,self.var.EvapoChannel / self.var.cellArea, self.var.act_SurfaceWaterAbstract],  # Out
                 [],   # prev storage
                 [],
                 "rout4", False)
@@ -408,16 +407,10 @@ class routing_kinematic(object):
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheckSum(
                 [self.var.runoff, self.var.returnFlow, lakesResOut// self.var.cellArea],  # In
-                [DisOut, self.var.EvapoChannel / self.var.cellArea, self.var.actSurfaceWaterAbstract ],  # Out
+                [DisOut, self.var.EvapoChannel / self.var.cellArea, self.var.act_SurfaceWaterAbstract ],  # Out
                 [self.var.prechannelStorage/self.var.cellArea],   # prev storage
                 [self.var.channelStorage/self.var.cellArea],
                 "rout5", False)
-
-
-
-        #if checkOption('PCRaster'): report(decompress(self.var.discharge), "C:\work\output2/q1.map")
-        #report(decompress(self.var.sumsum_Precipitation), "c:\work\output\Prsum.map")
-
 
 
 

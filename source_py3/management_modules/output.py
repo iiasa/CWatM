@@ -109,7 +109,6 @@ class outputTssMap(object):
             outpoints = valuecell(self.var.MaskMap, coord, outpoints)
         else:
             if os.path.exists(outpoints):
-                #outpoints = loadmap(where, pcr=True)
                 outpoints = loadmap(where, local = localGauges).astype(np.int64)
             else:
                 if len(coord) == 1:

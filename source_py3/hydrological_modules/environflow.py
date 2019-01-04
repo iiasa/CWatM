@@ -115,7 +115,7 @@ class environflow(object):
                     else:
                         mapnp = nf1.variables[value][i]
 
-                    disall[i, :] = compressArray(mapnp, pcr=False)
+                    disall[i, :] = compressArray(mapnp)
 
                 nf1.close()
 

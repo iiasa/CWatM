@@ -92,7 +92,7 @@ class landcoverType(object):
 
 
         self.var.totalET = globals.inZero.copy()
-        self.var.actSurfaceWaterAbstract = globals.inZero.copy()
+        self.var.act_SurfaceWaterAbstract = globals.inZero.copy()
 
         # ----------------------------------------------------------
         # Load initial values and calculate basic soil parameters which are not changed in time

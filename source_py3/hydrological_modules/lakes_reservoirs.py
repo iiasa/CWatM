@@ -14,8 +14,6 @@ from hydrological_modules.routing_reservoirs.routing_sub import *
 
 
 from management_modules.globals import *
-#from pcraster.framework import *
-
 
 
 class lakes_reservoirs(object):
@@ -56,8 +54,6 @@ class lakes_reservoirs(object):
             lakeResmax = npareamaximum(self.var.UpArea1, self.var.waterBodyID)
             self.var.waterBodyOut = np.where(self.var.UpArea1 == lakeResmax,self.var.waterBodyID, 0)
 
-            #pcraster.report(nominal(decompress(self.var.waterBodyOut)), "C:\work\output3/out1.map")
-            #pcraster.report(decompress(self.var.UpArea1), "C:\work\output3/ups.map")
 
             # dismiss water bodies that a not subcatchment of an outlet
             sub = subcatchment1(self.var.dirUp, self.var.waterBodyOut,self.var.UpArea1)
@@ -72,9 +68,15 @@ class lakes_reservoirs(object):
 
             # change ldd: put pits in where lakes are:
             self.var.ldd_LR = np.where( self.var.waterBodyID > 0, 5, self.var.lddCompress)
+
+            # decompress from 1D to 2D array
+            dmap = maskinfo['maskall'].copy()
+            dmap[~maskinfo['maskflat']] = self.var.ldd_LR[:]
+            dmap = dmap.reshape(maskinfo['shape'])
+
             # create new ldd without lakes reservoirs
             self.var.lddCompress_LR, dirshort_LR, self.var.dirUp_LR, self.var.dirupLen_LR, self.var.dirupID_LR, \
-                self.var.downstruct_LR, self.var.catchment_LR, self.var.dirDown_LR, self.var.lendirDown_LR = defLdd2(self.var.ldd_LR)
+                self.var.downstruct_LR, self.var.catchment_LR, self.var.dirDown_LR, self.var.lendirDown_LR = defLdd2(dmap)
 
             #report(ldd(decompress(self.var.lddCompress_LR)), "C:\work\output3/ldd_lr.map")
 
@@ -160,14 +162,6 @@ class lakes_reservoirs(object):
 
             ii = 1
 
-
-
-            #self.var.UpArea1 = upstreamArea(self.var.dirDown_LR, dirshort_LR, globals.inZero + 1.0)
-            #self.var.UpArea = upstreamArea(self.var.dirDown, dirshort_LR, self.var.cellArea)
-            #d1 = downstream1(self.var.dirUp_LR, self.var.UpArea1)
-            #up1 = upstream1(self.var.downstruct_LR, self.var.UpArea1)
-            #ldd = pcraster.ldd(loadmap('Ldd',pcr=True))
-            #sub1 = subcatchment(ldd, nominal(decompress(self.var.waterBodyOut)))
 
 
     def initial_lakes(self):

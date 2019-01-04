@@ -30,8 +30,8 @@ GNU General Public License for more details
 """
 
 __authors__ = "Peter Burek IIASA"
-__version__ = "Version: 0.991"
-__date__ = "16/09/2017"
+__version__ = "Version: 1.02"
+__date__ = "04/01/2019"
 __copyright__ = "Copyright 2016, IIASA"
 __maintainer__ = "Peter Burek"
 __status__ = "Development"

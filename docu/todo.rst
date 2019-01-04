@@ -55,6 +55,12 @@ Updates
 
 **Most recent updates on top**
 
+4/01/2019
+
+* Change to Python 3.7
+* added a lot of changes in the mean time please see change track on github
+
+
 25/09/2017
 
 * bugfix on snow modul 

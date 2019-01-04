@@ -10,28 +10,39 @@ Tutorial
 Requirements
 ============
 
+Requirements
+------------
+
 Python version
---------------
+**************
 
-
-Requirements are a 64 bit `Python 2.7.x version <https://www.python.org/downloads/release/python-2712/>`_
+NEW from 2019 on:
+Requirements are a 64 bit `Python 3.7.x version <https://www.python.org/downloads/release/python-372/>`_
 
 .. warning:: a 32 bit version is not able to handle the data requirements!
 
+.. warning:: From 2019 on we are changing to Python37. We do not provide further support for Python 2.7
+
 Libraries
----------
+*********
 
 These external libraries are needed:
 
 * `Numpy <http://www.numpy.org>`_
+* `Scipy <https://www.scipy.org>`_
 * `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
 * `GDAL <http://www.gdal.org>`_
 
 **Windows**
 
-Three libraries can be installed with pip or
+The four libraries can be installed with pip or
 downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
 
+
+Windows executeable Python version
+**********************************
+
+| A CWATM executable cwatm.exe can be used instead of the Python version
 
 Test the model
 ==============

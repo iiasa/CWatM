@@ -40,6 +40,8 @@ class groundwater(object):
         self.var.specificYield = loadmap('specificYield')
         self.var.kSatAquifer = loadmap('kSatAquifer')
 
+        #report("C:/work/output2/ksat.map", self.var.kSatAquifer)
+
         # init calculation recession coefficient, speciefic yield, ksatAquifer
         self.var.recessionCoeff = np.maximum(5.e-4,self.var.recessionCoeff)
         self.var.recessionCoeff = np.minimum(1.000,self.var.recessionCoeff)

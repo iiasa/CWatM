@@ -255,13 +255,13 @@ class routing_kinematic(object):
 
         WDAddM3Dt = 0
         if checkOption('includeWaterDemand'):
-             WDAddM3Dt = self.var.actSurfaceWaterAbstract.copy()
+             WDAddM3Dt = self.var.act_SurfaceWaterAbstract.copy()
              #return flow from (m) non irrigation water demand
              #WDAddM3Dt = WDAddM3Dt - self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrDemand
              WDAddM3Dt = WDAddM3Dt - self.var.returnFlow
              WDAddM3Dt = WDAddM3Dt * self.var.cellArea / self.var.noRoutingSteps
 
-            #sideflowChanM3 -= self.var.sum_actSurfaceWaterAbstract * self.var.cellArea
+            #sideflowChanM3 -= self.var.sum_act_SurfaceWaterAbstract * self.var.cellArea
             # return flow from (m) non irrigation water demand
             #self.var.nonIrrReturnFlow = self.var.nonIrrReturnFlowFraction * self.var.nonIrrDemand
             #sideflowChanM3 +=  self.var.nonIrrReturnFlow * self.var.cellArea
@@ -377,7 +377,7 @@ class routing_kinematic(object):
 
             self.var.waterbalance_module.waterBalanceCheckSum(
                 [self.var.runoff, self.var.returnFlow, lakesResOut/ self.var.cellArea],  # In
-                [self.var.sumsideflow / self.var.cellArea, self.var.EvapoChannel / self.var.cellArea, self.var.actSurfaceWaterAbstract, ],  # Out
+                [self.var.sumsideflow / self.var.cellArea, self.var.EvapoChannel / self.var.cellArea, self.var.act_SurfaceWaterAbstract, ],  # Out
                 [],  # prev storage
                 [],
                 "rout2", False)
@@ -408,7 +408,7 @@ class routing_kinematic(object):
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheckSum(
                 [self.var.runoff, self.var.returnFlow, lakesResOut// self.var.cellArea],  # In
-                [DisOut, self.var.EvapoChannel / self.var.cellArea, self.var.actSurfaceWaterAbstract ],  # Out
+                [DisOut, self.var.EvapoChannel / self.var.cellArea, self.var.act_SurfaceWaterAbstract ],  # Out
                 [self.var.prechannelStorage/self.var.cellArea],   # prev storage
                 [self.var.channelStorage/self.var.cellArea],
                 "rout5", False)

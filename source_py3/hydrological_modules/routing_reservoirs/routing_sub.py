@@ -270,7 +270,8 @@ def defLdd2(ldd):
     :return:
     """
 
-    ldd2D = decompress(ldd, pcr1=False).astype(np.int64)
+    #ldd2D = decompress(ldd, pcr1=False).astype(np.int64)
+    ldd2D = ldd.astype(np.int64)
     ldd2D[ldd2D.mask] = 0
 
     # every cell gets an order starting from 0 ...
@@ -323,9 +324,9 @@ def lddrepair(lddnp,lddOrder):
 
     lib2.repairLdd1(lddnp, yi,xi)
 
-    lddcomp = compressArray(lddnp, pcr=False).astype(np.int64)
+    lddcomp = compressArray(lddnp).astype(np.int64)
     lib2.dirID(lddOrder, lddnp, dir,yi,xi)
-    dirshort = compressArray(dir, pcr=False).astype(np.int64)
+    dirshort = compressArray(dir).astype(np.int64)
 
     check = np.array(np.zeros(maskinfo['mapC'][0]),dtype=np.int64)
     lib2.repairLdd2(lddcomp, dirshort, check,maskinfo['mapC'][0] )
