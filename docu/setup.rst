@@ -27,7 +27,7 @@ Reason for this step:
 
 .. warning:: a 32 bit version is not able to handle the data requirements!
 
-.. warning:: From 2019 on we are changing to Python37. We do not provide further support for Python 2.7
+.. warning:: From 2019 on we are changing to Python 3.7. We do not provide further support for Python 2.7
 
 Libraries
 *********
@@ -102,10 +102,9 @@ Compiling a version
 *******************
 
 C++ sourcecode is in *../source/hydrological_modules/routing_reservoirs/t5.cpp*
+
 .. note::
     A compiled version is already provided for Windows and Linux.
-
-
 
 **Windows**
 
@@ -161,8 +160,7 @@ The output should be::
 	
 .. warning:: If python is not set in the environment path, the full path of python has to be used
 
-
-
+.. warning:: Please use the right version of CWATM with the right version of Python (either 2.7 or 3.7)
 
 
 
