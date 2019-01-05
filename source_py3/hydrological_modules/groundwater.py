@@ -48,7 +48,7 @@ class groundwater(object):
         self.var.specificYield  = np.maximum(0.010,self.var.specificYield)
         self.var.specificYield  = np.minimum(1.000,self.var.specificYield)
         self.var.kSatAquifer = np.maximum(0.010,self.var.kSatAquifer)
-        i = 1
+
 
         # initial conditions
         self.var.storGroundwater = self.var.init_module.load_initial('storGroundwater')
@@ -61,9 +61,6 @@ class groundwater(object):
 
         #self.var.area1 = loadmap('MaskMap1')
 
-
-
-        ii =1
 
 # --------------------------------------------------------------------------
 
@@ -125,7 +122,7 @@ class groundwater(object):
         base = self.var.baseflow * self.var.MtoM3 / diff
         self.var.sumbaseflow = npareatotal(base, area)
         """
-        t =1
+
 
 
 
@@ -138,7 +135,5 @@ class groundwater(object):
                 "Ground", False)
 
 
-
-        ii=1
 
 

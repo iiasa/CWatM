@@ -22,8 +22,7 @@ class interception(object):
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
- 
-
+    # noinspection PyTypeChecker
     def dynamic(self,coverType, No):
         """
         Dynamic part of the interception module
@@ -78,8 +77,8 @@ class interception(object):
 
 
 
-        if (dateVar['curr'] == 15):
-            ii=1
+        #if (dateVar['curr'] == 15):
+        #    ii=1
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(

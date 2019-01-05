@@ -180,7 +180,6 @@ class runoff_concentration(object):
 
 
             for No in range(6):
-               ii =1
                #self.var.runoff_conc = runoff_concentration(self.var.maxtime_runoff_conc,self.var.runoff_peak[No],self.var.fracVegCover[No] ,self.var.directRunoff[No], self.var.runoff_conc)
                lib2.runoffConc(self.var.runoff_conc, self.var.runoff_peak[No],self.var.fracVegCover[No] ,self.var.directRunoff[No],self.var.maxtime_runoff_conc,maskinfo['mapC'][0])
 
@@ -202,7 +201,7 @@ class runoff_concentration(object):
             #runoff from landSurface cells (unit: m)
             #self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow
             self.var.runoff = self.var.runoff_conc[0].copy()
-            ii =1
+
 
 
 

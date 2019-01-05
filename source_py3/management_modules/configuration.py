@@ -15,18 +15,13 @@ import re
 import xml.dom.minidom
 from management_modules.messages import *
 
-import optparse
 import os
-import sys
-import time
-import datetime
-import shutil
-import glob
+
 
 import difflib  # to check the closest word in settingsfile, if an error occurs
 
 
-class ExtParser(configparser.SafeConfigParser):
+class ExtParser(configparser.ConfigParser):
     """
     addition to the parser to replace placeholders
 
@@ -38,11 +33,12 @@ class ExtParser(configparser.SafeConfigParser):
     #implementing extended interpolation
     def __init__(self, *args, **kwargs):
          self.cur_depth = 0
-         configparser.SafeConfigParser.__init__(self, *args, **kwargs)
+         configparser.ConfigParser.__init__(self, *args, **kwargs)
 
 
-    def get(self, section, option, raw=False, vars=None):
+    def get(self, section, option, raw = False, vars = None, **kwargs):
          """
+         def get(self, section, option, raw=False, vars=None
          placeholder replacement
 
          :param section:
@@ -54,7 +50,7 @@ class ExtParser(configparser.SafeConfigParser):
          #h1 = sys.tracebacklimit
          #sys.tracebacklimit = 0  # no long error message
          try:
-            r_opt = configparser.SafeConfigParser.get(self, section, option, raw=True, vars=vars)
+            r_opt = configparser.ConfigParser.get(self, section, option, raw=True, vars=vars)
          except:
              print(section, option)
              closest = difflib.get_close_matches(option, list(binding.keys()))
@@ -165,7 +161,6 @@ def parse_configuration(settingsFileName):
                     binding[opt] = config.get(sec, opt)
 
         if check_section:
-            k =1
             outsection.append(sec)
 
     outputDir.append(binding["PathOut"])
@@ -178,6 +173,7 @@ def read_metanetcdf(metaxml,name):
     unit, long name, standard name and additional information
 
     :param metaxml: file mit information for netcdf files (metadata)
+    :param name: file name information
     :return: List with metadata information: metaNetcdfVar
     """
     if os.path.isfile(metaxml):
@@ -189,13 +185,13 @@ def read_metanetcdf(metaxml,name):
     else:
         msg = "Cannot find option file: " + metaxml +"\n"
         path, name = os.path.split(metaxml)
-        metaxml = os.path.join(os.getcwd(),name)
+        metaxml = os.path.join(os.getcwd(), name)
         if os.path.isfile(metaxml):
             msg += "Using file: " + metaxml + " instead."
             print(CWATMWarning(msg))
         else:
             msg = "Cannot find option file: " + metaxml
-            raise CWATMFileError(metaxml, msg, sname=name)
+            raise CWATMFileError(metaxml, msg, sname = name)
 
         try:
             metaparse = xml.dom.minidom.parse(metaxml)

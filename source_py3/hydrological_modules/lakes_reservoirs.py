@@ -160,9 +160,6 @@ class lakes_reservoirs(object):
             self.var.lakeResOutflowM = globals.inZero.copy()
 
 
-            ii = 1
-
-
 
     def initial_lakes(self):
         """
@@ -276,7 +273,7 @@ class lakes_reservoirs(object):
         else:
             self.var.reservoirStorageM3C = np.compress(self.var.compress_LR, reservoirStorageIni)
             self.var.reservoirFillC = self.var.reservoirStorageM3C / self.var.resVolumeC
-        ii = 1
+
 
         # water balance
         self.var.lakeResStorageC = np.where(self.var.waterBodyTypC == 0, 0., np.where(self.var.waterBodyTypC == 1,self.var.lakeStorageC,self.var.reservoirStorageM3C ))
@@ -348,8 +345,8 @@ class lakes_reservoirs(object):
             if checkOption('calcWaterBalance'):
                 oldlake = self.var.lakeStorageC.copy()
 
-            if (dateVar['curr'] == 3):
-                iii = 3
+            #if (dateVar['curr'] == 3):
+            #    ii = 3
 
             # Lake inflow in [m3/s]
             lakeInflowC = inflowC / self.var.dtRouting
@@ -578,7 +575,7 @@ class lakes_reservoirs(object):
         self.var.sumlakeResOutflow = self.var.sumlakeResOutflow  + self.var.lakeOutflowC * self.var.dtRouting
 
         # decompress to normal maskarea size waterbalance
-        if (self.var.noRoutingSteps == (NoRoutingExecuted + 1)):
+        if self.var.noRoutingSteps == (NoRoutingExecuted + 1):
             np.put(self.var.EvapWaterBodyM, self.var.decompress_LR, self.var.sumEvapWaterBodyC)
             self.var.EvapWaterBodyM = self.var.EvapWaterBodyM  / self.var.cellArea
             np.put(self.var.lakeResInflowM, self.var.decompress_LR, self.var.sumlakeResInflow)
@@ -602,8 +599,8 @@ class lakes_reservoirs(object):
 
 
 
-        if (dateVar['curr'] == 100):
-            ii =1
+        #if (dateVar['curr'] == 100):
+        #    ii =1
 
 
         # everything with is not going to another lake is output to river network

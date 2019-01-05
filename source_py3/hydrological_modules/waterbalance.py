@@ -31,7 +31,7 @@ class waterbalance(object):
         """
 
         if checkOption('calcWaterBalance'):
-            i = 1
+
             self.var.nonIrrReturnFlow = 0
             self.var.localQW = 0
             self.var.channelStorageBefore = 0
@@ -49,7 +49,7 @@ class waterbalance(object):
                 # vars(self.var)["sumup_" + variable] =  vars(self.var)[variable]
             for variable in self.var.sum_balanceFlux:
                 vars(self.var)["sumup_" + variable] =  globals.inZero.copy()
-            i =1
+
 
 
 # --------------------------------------------------------------------------
@@ -187,7 +187,7 @@ class waterbalance(object):
 
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Precipitation, self.var.sumirrConsumption,self.var.sum_capRiseFromGW],
-                [self.var.sum_directRunoff, self.var.sum_perc3toGW, self.var.sum_prefFlow, \
+                [self.var.sum_directRunoff, self.var.sum_perc3toGW, self.var.sum_prefFlow,
                  self.var.totalET],  # Out
                 [self.var.pretotalSto],  # prev storage
                 [self.var.totalSto],
@@ -197,7 +197,7 @@ class waterbalance(object):
 
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Precipitation, self.var.sumirrConsumption,self.var.sum_capRiseFromGW],
-                [self.var.sum_directRunoff, self.var.sum_perc3toGW, self.var.sum_prefFlow, \
+                [self.var.sum_directRunoff, self.var.sum_perc3toGW, self.var.sum_prefFlow,
                  self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap],  # Out
                 [self.var.pretotalSto],  # prev storage
                 [self.var.totalSto],
@@ -209,7 +209,7 @@ class waterbalance(object):
 
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.Precipitation, self.var.sumirrConsumption],
-                [self.var.sum_directRunoff, self.var.sum_interflow, self.var.nonFossilGroundwaterAbs,self.var.baseflow, \
+                [self.var.sum_directRunoff, self.var.sum_interflow, self.var.nonFossilGroundwaterAbs,self.var.baseflow,
                  self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap],  # Out
                 [self.var.pretotalSto,self.var.prestorGroundwater],  # prev storage
                 [self.var.totalSto,self.var.storGroundwater],
@@ -233,8 +233,8 @@ class waterbalance(object):
 
             self.var.waterbalance_module.waterBalanceCheckSum(
                 [self.var.Precipitation, self.var.act_irrDemand],
-                [self.var.sum_directRunoff, self.var.sum_interflow, self.var.nonFossilGroundwaterAbs,self.var.baseflow, \
-                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap, \
+                [self.var.sum_directRunoff, self.var.sum_interflow, self.var.nonFossilGroundwaterAbs,self.var.baseflow,
+                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap,
                  self.var.returnflowIrr, self.var.addtoevapotrans],  # Out
                 [self.var.pretotalSto,self.var.prestorGroundwater],  # prev storage
                 [self.var.totalSto,self.var.storGroundwater],
@@ -343,7 +343,7 @@ class waterbalance(object):
             #print self.var.channelStorageBefore[10],
             # print "%10.8f %10.8f %10.8f " % (income[10], out[10], store[10]),
 
-        ii =1
+
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -417,8 +417,8 @@ class waterbalance(object):
         If option **sumWaterBalance** sum water balance for certain variables
         """
 
-        if checkOption('sumWaterBalance'):
-            i = 1
+        #if checkOption('sumWaterBalance'):
+        #    i = 1
 
         # sum up storage variables
         #for variable in self.var.sum_balanceStore:
@@ -426,5 +426,5 @@ class waterbalance(object):
 
 
         # sum up fluxes variables
-            for variable in self.var.sum_balanceFlux:
-                vars(self.var)["sumup_" + variable] = vars(self.var)["sumup_" + variable] + vars(self.var)[variable]
+        for variable in self.var.sum_balanceFlux:
+            vars(self.var)["sumup_" + variable] = vars(self.var)["sumup_" + variable] + vars(self.var)[variable]

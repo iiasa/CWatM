@@ -47,10 +47,9 @@ class routing_kinematic(object):
         #self.var.ups = upstreamArea(dirDown, dirshort, self.var.cellArea)
         self.var.UpArea1 = upstreamArea(self.var.dirDown, dirshort, globals.inZero + 1.0)
         self.var.UpArea = upstreamArea(self.var.dirDown, dirshort, self.var.cellArea)
-        d1 =downstream1(self.var.dirUp, self.var.UpArea1)
-        up1 = upstream1( self.var.downstruct,self.var.UpArea1)
+        #d1 =downstream1(self.var.dirUp, self.var.UpArea1)
+        #up1 = upstream1( self.var.downstruct,self.var.UpArea1)
 
-        ii =1
 
         #lib2.kinematic(Qold, q, dd, dl, di, Qnew, alpha, 0.6, deltaT, deltaX, len(dirDown))
         #lib2.kinematic(Qold, q, self.var.dirDown, self.var.dirupLen, self.var.dirupID, Qnew, alpha, 0.6, deltaT, deltaX, self.var.lendirDown)
@@ -129,7 +128,7 @@ class routing_kinematic(object):
         # Initialise discharge at kinematic wave pixels (note that InvBeta is
         # simply 1/beta, computational efficiency!)
         #self.var.chanQKin = np.where(self.var.channelAlpha > 0, (self.var.totalCrossSectionArea / self.var.channelAlpha) ** self.var.invbeta, 0.)
-        dischargeIni = (self.var.channelStorage * self.var.invchanLength * self.var.invchannelAlpha) ** (self.var.invbeta)
+        dischargeIni = (self.var.channelStorage * self.var.invchanLength * self.var.invchannelAlpha) ** self.var.invbeta
         self.var.discharge = self.var.init_module.load_initial("discharge", default=dischargeIni)
         #self.var.chanQKin = chanQKinIni
 
@@ -145,7 +144,7 @@ class routing_kinematic(object):
 
         # factor for evaporation from lakes, reservoirs and open channels
         self.var.lakeEvaFactor = globals.inZero + loadmap('lakeEvaFactor')
-        ii =1
+
 
         #self.var.channelAlphaPcr = decompress(self.var.channelAlpha)
         #self.var.chanLengthPcr = decompress(self.var.chanLength)
@@ -324,8 +323,6 @@ class routing_kinematic(object):
 
             self.var.sumsideflow = self.var.sumsideflow + sideflowChanM3
             avgDis = avgDis  + self.var.discharge / self.var.noRoutingSteps
-            ii= 1
-
 
         # -- end substeping ---------------------
         if checkOption('includeWaterBodies'):
@@ -383,8 +380,8 @@ class routing_kinematic(object):
 
 
 
-        if (dateVar['curr'] == 99):
-           iii = 1
+        #if (dateVar['curr'] == 99):
+        #   ii = 1
 
         if checkOption('calcWaterBalance'):
             self.var.sumbalance = self.var.sumbalance + self.var.waterbalance_module.waterBalanceCheckSum(

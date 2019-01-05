@@ -26,6 +26,7 @@ from management_modules.messages import *
 
 
 global maskinfo,zeromap,modelSteps,xmlstring,geotransfrom
+# noinspection PyRedeclaration
 maskinfo = {}
 modelSteps=[]
 xmlstring=[]
@@ -54,6 +55,7 @@ initCondVar = []
 
 #date variable
 global dateVar
+# noinspection PyRedeclaration
 dateVar = {}
 
 # Output variables
@@ -155,7 +157,7 @@ lib2.runoffConc.argtypes = [array_2d_double,array_1d_double,array_1d_double,arra
 FlagName = ['quiet', 'veryquiet', 'loud',
             'checkfiles', 'noheader', 'printtime','warranty']
 Flags = {'quiet': False, 'veryquiet': False, 'loud': False,
-         'check': False, 'noheader': False, 'printtime': False, 'warranty': False}
+         'check': False, 'noheader': False, 'printtime': False, 'warranty': False, 'use': False}
 
 
 def globalFlags(arg):
@@ -167,7 +169,8 @@ def globalFlags(arg):
     try:
         opts, args = getopt.getopt(arg, 'qvlchtw', FlagName)
     except getopt.GetoptError:
-        usage()
+        Flags['use'] = True
+        return
 
     for o, a in opts:
         if o in ('-q', '--quiet'):
@@ -184,3 +187,4 @@ def globalFlags(arg):
             Flags['printtime'] = True
         if o in ('-w', '--warranty'):
             Flags['warranty'] = True
+

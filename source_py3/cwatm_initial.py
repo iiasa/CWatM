@@ -36,7 +36,7 @@ from hydrological_modules.lakes_reservoirs import *
 
 # --------------------------------------------
 
-from management_modules.data_handling import *
+#from management_modules.data_handling import *
 from management_modules.output import *
 import os, glob
 
@@ -90,7 +90,7 @@ class CWATModel_ini(DynamicModel):
         for i in range(4): cutmapFine[i] = cutmap[i]
 
 
-        if not(self.meteomapsscale):
+        if not self.meteomapsscale:
             cutmapFine[0], cutmapFine[1],cutmapFine[2],cutmapFine[3],cutmapVfine[0], cutmapVfine[1],cutmapVfine[2],cutmapVfine[3]  = mapattrNetCDFMeteo(namemeteo)
             for i in range(4): cutmapGlobal[i] = cutmapFine[i]
             # for downscaling it is always cut from the global map
@@ -115,7 +115,6 @@ class CWATModel_ini(DynamicModel):
                     coverresult[1] = cover
                     #coverresult[1] = np.ma.array(cover, mask = covermask)
 
-                ii=1
 
         # ----------------------------------------
         # include output of tss and maps

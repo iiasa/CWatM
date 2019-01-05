@@ -55,10 +55,8 @@ class environflow(object):
                 dismap = ["EFDis"]
                 multinetdf(dismap, startcheck = 'dateStart')
 
-            #print meteofiles['EFDis']
 
 
-        ii = 1
         self.var.MAF = 1
         self.var.Q90 = 1
         self.var.MMF = 1
@@ -71,6 +69,7 @@ class environflow(object):
     # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
+    # noinspection PyTypeChecker
     def dynamic(self):
         """
         Dynamic part of the environmental flow module
@@ -140,8 +139,6 @@ class environflow(object):
 
 
 
-
-            ii = 1
 
 
 

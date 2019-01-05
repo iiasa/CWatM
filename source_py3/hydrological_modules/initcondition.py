@@ -128,9 +128,6 @@ class initcondition(object):
 
 
 
-
-        j = 1
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
@@ -147,7 +144,7 @@ class initcondition(object):
         :return: spatial map or value of initial condition
         """
 
-        if number != None:
+        if number is not None:
             name = name + str(number)
 
         if self.var.loadInit:
@@ -155,23 +152,6 @@ class initcondition(object):
         else:
             return default
 
-        """
-        # removed this: FrostIndexIni = NONE
-        # it is load from file or set to default
-
-        init = binding[name+'Ini']
-        if init.lower() == "none":
-            # in case of snow /runoff concentration use a number, because too many layers
-            if number != None:
-                name = name + str(number)
-
-            if self.var.loadInit:
-                return readnetcdfInitial(self.var.initLoadFile, name)
-            else:
-                return default
-        else:
-            return loadmap(name+'Ini')
-        """
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
@@ -202,4 +182,4 @@ class initcondition(object):
                     initVar.append(eval(variabel))
                     i += 1
                 writeIniNetcdf(saveFile, initCondVar,initVar)
-                i =1
+
