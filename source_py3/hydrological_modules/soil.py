@@ -138,8 +138,8 @@ class soil(object):
         # # interceptEvap is the first flux in ET, soil evapo and transpiration are added later
         # self.var.actualET[No] = self.var.interceptEvap[No].copy()
 
-        if (dateVar['curr'] == 130) and (No==2):
-            ii=1
+        #if (dateVar['curr'] == 130) and (No==2):
+        #    ii=1
 
         availWaterInfiltration = self.var.availWaterInfiltration[No].copy()
         availWaterInfiltration = availWaterInfiltration + self.var.act_irrConsumption[No]
@@ -174,8 +174,8 @@ class soil(object):
 
 
 
-        if (dateVar['curr'] >= 0) and (No==3):
-            ii=1
+        #if (dateVar['curr'] >= 0) and (No==3):
+        #    ii=1
 
         # ---------------------------------------------------------
         # calculate transpiration
@@ -239,9 +239,9 @@ class soil(object):
         ta2 = np.maximum(np.minimum(TaMax * self.var.adjRoot[1][No], self.var.w2[No] - self.var.wwp2[No]), 0.0)
         ta3 = np.maximum(np.minimum(TaMax * self.var.adjRoot[2][No], self.var.w3[No] - self.var.wwp3[No]), 0.0)
 
-        if (dateVar['curr'] == 23) and (No==1):
-            ii=1
-            #print ('t', self.var.w1[No][0:3])
+        #if (dateVar['curr'] == 23) and (No==1):
+        #    ii=1
+        #   #print ('t', self.var.w1[No][0:3])
 
 
 
@@ -274,9 +274,9 @@ class soil(object):
         #if np.min(self.var.w1[No])< 0.:
         #   ii =1
 
-        if (dateVar['curr'] == 23) and (No==1):
-            ii=1
-            #print (No, self.var.w1[No][0:3])
+        #if (dateVar['curr'] == 23) and (No==1):
+        #    ii=1
+        #    print (No, self.var.w1[No][0:3])
 
         satAreaFrac = 1 - (1 - relSat) ** self.var.arnoBeta[No]
         # Fraction of pixel that is at saturation as a function of
@@ -558,13 +558,13 @@ class soil(object):
 
 
 
-        if (dateVar['curr'] == 121) and (No==2):
-            ii=1
+        #if (dateVar['curr'] == 121) and (No==2):
+        #    ii=1
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No], self.var.irrConsumption[No]],  # In  water demand included in availwater
-                [self.var.directRunoff[No],self.var.perc3toGW[No], self.var.prefFlow[No] ,  \
+                [self.var.directRunoff[No],self.var.perc3toGW[No], self.var.prefFlow[No] ,
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [ preStor1, preStor2, preStor3,pretopwater],  # prev storage
                 [self.var.w1[No], self.var.w2[No], self.var.w3[No],self.var.topwater],
@@ -574,7 +574,7 @@ class soil(object):
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.availWaterInfiltration[No], self.var.irrConsumption[No]],  # In
-                [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No],  \
+                [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No],
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [ preStor1, preStor2, preStor3,pretopwater],  # prev storage
                 [self.var.w1[No], self.var.w2[No], self.var.w3[No],self.var.topwater],
@@ -584,13 +584,12 @@ class soil(object):
         if option['calcWaterBalance']:
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.availWaterInfiltration[No], self.var.irrConsumption[No],self.var.snowEvap,self.var.interceptEvap[No]],  # In
-                [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No], \
+                [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No],
                  self.var.actualET[No]],  # Out
                 [preStor1, preStor2, preStor3,pretopwater],  # prev storage
                 [self.var.w1[No], self.var.w2[No], self.var.w3[No],self.var.topwater],
                 "Soil_AllSoil", False)
 
-        i = 1
 
 
 

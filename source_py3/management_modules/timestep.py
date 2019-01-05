@@ -54,7 +54,7 @@ def timemeasure(name,loops=0, update = False, sample = 1):
     if loops == 0:
         s = name
     else:
-        s = name+"_%i" %(loops)
+        s = name +"_%i" % loops
     timeMesString.append(s)
     return
 
@@ -68,8 +68,11 @@ def Calendar(input,errorNo = 0):
     Reformatting the date till it fits to datetime
 
     :param input: string from the settingsfile should be somehow a date
+    :param errorNo: 0: check startdate, enddate 1: check startinit
     :return: a datetime date
     """
+
+    date = None
 
     try:
         date = float(input)
@@ -187,8 +190,7 @@ def datetosaveInit(initdates,begin,end):
         dateVar['intInit'].append(int1)
 
 
-    jj =1
-
+# noinspection PyTypeChecker
 def checkifDate(start,end,spinup):
     """
     Checks if start date is earlier than end date etc
@@ -247,6 +249,7 @@ def checkifDate(start,end,spinup):
     dateVar['datelastyear'] = datetime.datetime(year=dateVar['dateEnd'].year, month= 1, day=1) - datetime.timedelta(days=1)
 
     dateVar['checked'] = []
+    # noinspection PyTypeChecker
     dates = np.arange(dateVar['dateStart'], dateVar['dateEnd']+ datetime.timedelta(days=1), datetime.timedelta(days = 1)).astype(datetime.datetime)
     for d in dates:
         if d.day == calendar.monthrange(d.year, d.month)[1]:

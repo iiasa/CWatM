@@ -157,7 +157,7 @@ class lakes_res_small(object):
         def dynamic_smalllakes(inflow):
             """
             Lake routine to calculate lake outflow
-            :param inflowC: inflow to lakes and reservoirs
+            :param inflow: inflow to lakes and reservoirs
             :return: QLakeOutM3DtC - lake outflow in [m3] per subtime step
             """
 
@@ -169,8 +169,8 @@ class lakes_res_small(object):
             if checkOption('calcWaterBalance'):
                 self.var.preSmalllakeStorage = self.var.smalllakeStorage.copy()
 
-            if (dateVar['curr'] == 998):
-                iii = 1
+            #if (dateVar['curr'] == 998):
+            #    ii = 1
 
             inflowM3S = inflow / self.var.DtSec
             # Lake inflow in [m3/s]

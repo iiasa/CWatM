@@ -156,8 +156,8 @@ class evaporationPot(object):
             #self.var.sumETRef = self.var.sumETRef + self.var.ETRef*1000
 
 
-            if dateVar['curr'] ==32:
-             iii=1
+            #if dateVar['curr'] ==32:
+            #ii=1
 
             #report(decompress(self.var.sumETRef), "C:\work\output2/sumetref.map")
 

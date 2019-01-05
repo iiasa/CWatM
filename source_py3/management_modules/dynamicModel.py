@@ -9,10 +9,8 @@ class ModelFrame:
   """
   Frame of the dynamic hydrological model
 
-  :param userModel: Mask map
-  :param lastTimeStep:  Last time step to run
-  :param firstTimestep: Starting time step of the model
-  :return:
+  lastTimeStep:  Last time step to run
+  firstTimestep: Starting time step of the model
   """
 
   def __init__(self, model, lastTimeStep=1, firstTimestep=1):

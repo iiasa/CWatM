@@ -111,10 +111,10 @@ class readmeteo(object):
             """
 
             # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
-            if not(self.var.meteomapsscale):
+            if not self.var.meteomapsscale:
                 down1 = np.kron(input, np.ones((6, 6)))
                 down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
-                down3 = compressArray(down2,pcr = False)
+                down3 = compressArray(down2)
                 if downscale == 0:
                     input = down3
 
@@ -136,7 +136,7 @@ class readmeteo(object):
             return input
 
 
-        def downscaling2(input, downscaleName = 0, wc2 = 0 , wc4 = 0, downscale = 0):
+        def downscaling2(input, downscaleName = "", wc2 = 0 , wc4 = 0, downscale = 0):
             """
             Downscaling based on Delta method:
             Moreno and Hasenauer  2015 ftp://palantir.boku.ac.at/Public/ClimateData/Moreno_et_al-2015-International_Journal_of_Climatology.pdf

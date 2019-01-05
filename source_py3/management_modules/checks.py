@@ -9,12 +9,6 @@
 # -------------------------------------------------------------------------
 
 
-import xml.dom.minidom
-import datetime
-import time as xtime
-import os
-
-
 from .globals import *
 
 

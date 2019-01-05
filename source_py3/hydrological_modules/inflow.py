@@ -59,7 +59,7 @@ class inflow(object):
             inflowPointsMap = cbinding(where)
             coord = cbinding(where).split()  # could be gauges, sites, lakeSites etc.
             if len(coord) % 2 == 0:
-                inflowPoints = valuecell(self.var.MaskMap, coord, inflowPointsMap)
+                inflowPoints = valuecell(coord, inflowPointsMap)
             else:
                 if os.path.exists(inflowPointsMap):
                     inflowPoints = loadmap(where, local=localGauges).astype(np.int64)
@@ -102,7 +102,7 @@ class inflow(object):
                     file.close()
                     skiplines = 3 + no
                 except:
-                    raise CWATMFileError(filename, sname=name)
+                    raise CWATMFileError(os.path.join(inDir,name), sname=name)
 
                 tempTssData = np.genfromtxt(filename, skip_header=skiplines, names=names, usecols=names[1:], filling_values=0.0)
 
@@ -140,7 +140,6 @@ class inflow(object):
                 self.var.inflowM3[loc] = self.var.inflowTs[str(key)][index] * self.var.DtSec
                 # Convert to [m3] per time step
             self.var.totalQInM3 += self.var.inflowM3
-            ii =1
             # Map of total inflow from inflow hydrographs [m3]
 
 

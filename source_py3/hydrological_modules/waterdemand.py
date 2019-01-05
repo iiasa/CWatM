@@ -172,8 +172,8 @@ class waterdemand(object):
         if checkOption('includeWaterDemand'):
 
             # for debugging of a specific date
-            if (dateVar['curr'] >= 137):
-                ii =1
+            #if (dateVar['curr'] >= 137):
+            #    ii =1
 
             # ----------------------------------------------------
             # WATER AVAILABILITY
@@ -210,7 +210,7 @@ class waterdemand(object):
 
 
                 # transform from mio m3 per year (or month) to m/day if necessary
-                if not(self.var.demand_unit):
+                if not self.var.demand_unit:
                     if self.var.industryTime == 'monthly':
                         timediv= dateVar['daysInMonth']
                     else:
@@ -231,7 +231,7 @@ class waterdemand(object):
 
 
                 # transform from mio m3 per year (or month) to m/day if necessary
-                if not(self.var.demand_unit):
+                if not self.var.demand_unit:
                     if self.var.domesticTime == 'monthly':
                         timediv= dateVar['daysInMonth']
                     else:
@@ -253,7 +253,7 @@ class waterdemand(object):
                     self.var.liv_efficiency = 1.
 
                     # transform from mio m3 per year (or month) to m/day if necessary - if demand_unit = False -> transdform from mio m3 per month or year
-                    if not (self.var.demand_unit):
+                    if not self.var.demand_unit:
                         if self.var.livestockTime == 'monthly':
                             timediv = dateVar['daysInMonth']
                         else:
@@ -372,7 +372,6 @@ class waterdemand(object):
             # - based on ChannelStorage and swAbstractionFraction * totalDemand
             # sum up potentiel surface water abstraction (no groundwater abstraction under water and sealed area)
             pot_SurfaceAbstract = totalDemand * self.var.swAbstractionFraction
-            self.var. pot_SurfaceAbstract =  pot_SurfaceAbstract
 
             if not(checkOption('usingAllocSegments')):
                 # only local surface water abstraction is allowed (network is only within a cell)
@@ -381,8 +380,7 @@ class waterdemand(object):
 
 
                 if checkOption('includeWaterBodies'):
-                    #self.var.pot_GroundwaterAbstract = totalPotDemand - self.var.act_SurfaceWaterAbstract
-                    #realswAbstractionFraction = divideValues(self.var.act_SurfaceWaterAbstract, totalPotDemand)
+
                     # water that is still needed from surface water
                     # todo: remainNeed > 0, so put max(remainNeed,0)
                     remainNeed = pot_SurfaceAbstract - self.var.act_SurfaceWaterAbstract
@@ -448,10 +446,10 @@ class waterdemand(object):
                 # calculate renewableAvlWater (non-fossil groundwater and channel) - environmental flow
                 self.var.renewableAvlWater = self.var.readAvlStorGroundwater + self.var.readAvlChannelStorageM
             else:
-                ii =0
+                ii = 0
 
-            if (dateVar['curr'] > 261):
-                ii = 1
+            #if (dateVar['curr'] > 261):
+            #    ii = 1
 
             self.var.nonFossilGroundwaterAbs = np.minimum(self.var.readAvlStorGroundwater, self.var.pot_GroundwaterAbstract)
 
@@ -533,8 +531,8 @@ class waterdemand(object):
             self.var.act_totalWaterConsumption = self.var.act_nonIrrConsumption + self.var.act_totalIrrConsumption
 
 
-            if (dateVar['curr'] == 1):
-                ii = 1
+            #if (dateVar['curr'] == 1):
+            #    ii = 1
             #self.var.sumirrConsumption = self.var.fracVegCover[2] * self.var.irrConsumption[2] + self.var.fracVegCover[3] * self.var.irrConsumption[3]
             #self.var.waterDemand =  self.var.act_irrPaddyDemand  + self.var.act_irrNonpaddyDemand + self.var.nonIrrDemand
             #self.var.waterWithdrawal = self.var.act_nonIrrDemand + self.var.act_irrDemand

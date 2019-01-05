@@ -50,15 +50,19 @@ Windows executeable Python version
 
 | A CWATM executable cwatm.exe can be used instead of the Python version
 
-* It is done with cx_freeze library 
-* It includes all Libraries
-* ADVANTAGE: you can run it without installing or knowledge of Python
+* ADVANTAGE: You can run it without installing or knowledge of Python
 * DISADVANTAGE 1: You cannot see the source code or change it 
 * DISADVANTAGE 2: We do not update this version as often as the Python version
 
-| At the moment it is (will be!)  stored on our FTP server due to the big size 
-| But we are looking for a better place
+* It is done with cx_freeze library 
+* It includes all Python libraries
 
+.. note::
+    | A cwatmexe.zip (around 300 MB with all Python libraries) is stored on:
+    | `Source code on Github repository of CWATM <https://github.com/CWatM/CWatM>`_
+
+.. note::
+    We recommend using the Python 3.7.x version, but if you not experienced in Python or have problems installing CWATM, please use the executable version.     
 
 PCRaster
 ******** 
@@ -68,7 +72,7 @@ PCRaster
 | is still used
 
 | Anyway PCRaster is still a great tool
-| PCRASTER library from Faculty of Geosciences, Utrecht University, The Netherlands
+| PCRASTER from Faculty of Geosciences, Utrecht University, The Netherlands
 | `Webpage of PCRaster <http://pcraster.geo.uu.nl>`_
 
 | Reference:
