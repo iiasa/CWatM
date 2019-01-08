@@ -21,7 +21,8 @@ class waterdemand(object):
 
     """
     WATERDEMAND
-    calculating water demand
+
+    calculating water demand -
     Industrial, domenstic based on precalculated maps
     Agricultural water demand based on water need by plants
     """
@@ -34,8 +35,10 @@ class waterdemand(object):
     def initial(self):
         """
         Initial part of the water demand module
+
         Set the water allocation
         """
+
         if checkOption('includeWaterDemand'):
 
             # Add  zones at which water allocation (surface and groundwater allocation) is determined
@@ -165,6 +168,7 @@ class waterdemand(object):
     def dynamic(self):
         """
         Dynamic part of the water demand module
+
         * calculate the fraction of water from surface water vs. groundwater
         * get non-Irrigation water demand and its return flow fraction
         """

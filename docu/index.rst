@@ -38,5 +38,6 @@ Community Water Model
    calibration
    calibration_tutorial
    license
+   sourcecode
 
-* :ref:`genindex`
+

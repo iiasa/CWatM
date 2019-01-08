@@ -27,10 +27,17 @@ class inflow(object):
     def initial(self):
         """
         Initial part of the inflow module
+        Get the inflow points
+
+        calls function :meth:`hydrological_modules.getlocOutpoints`
+        calls function :meth:`hydrological_modules.join_struct_arrays2`
+
         """
 
         def getlocOutpoints(out):
             """
+            Get location from Inflow (same as outflow) points
+
             :param out: get out
             :return: sampleAdresses - number and locs of the output
             """
@@ -42,6 +49,17 @@ class inflow(object):
             return sampleAdresses
 
         def join_struct_arrays2(arrays):
+            """
+            Join arrays to a combined one
+
+            :param arrays:
+            :return: combined arry
+            """
+            """
+            :param arrays: 
+            :return: 
+            """
+
             newdtype = sum((a.dtype.descr for a in arrays), [])
             newrecarray = np.empty(len(arrays[0]), dtype=newdtype)
             for a in arrays:
@@ -128,6 +146,7 @@ class inflow(object):
     def dynamic(self):
         """
         Dynamic part of the inflow module
+        Use the inflow points to add inflow from time series file(s)
         """
 
         if checkOption('inflow'):

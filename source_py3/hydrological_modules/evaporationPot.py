@@ -61,9 +61,6 @@ class evaporationPot(object):
         Dynamic part of the potential evaporation module
         Based on Penman Monteith - FAO 56
 
-        Note:
-            Only run if *calc_evaporation* is True
-
         Return:
             ETRef - potential reference evapotranspiration rate [m/day]
             EWRef - potential evaporation rate from water surface [m/day]

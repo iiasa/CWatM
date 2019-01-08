@@ -58,6 +58,7 @@ class waterbalance(object):
     def waterBalanceCheck(self, fluxesIn, fluxesOut, preStorages, endStorages, processName, printTrue=False):
         """
         Dynamic part of the water balance module
+
         Returns the water balance for a list of input, output, and storage map files
 
         :param fluxesIn: income
@@ -66,7 +67,7 @@ class waterbalance(object):
         :param endStorages:  this was in afterwards
         :param processName:  name of the process
         :param printTrue: calculate it?
-        :return:
+        :return: -
         """
 
         if printTrue:
@@ -406,7 +407,6 @@ class waterbalance(object):
 
             #report(decompress(self.var.sumRunoff), "C:\work\output3/sumRun.map")
 
-            ii= 1
         """
 
 

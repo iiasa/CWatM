@@ -23,10 +23,25 @@ import difflib  # to check the closest word in settingsfile, if an error occurs
 from dateutil.relativedelta import *
 
 def date2str(date):
+    """
+    Convert date to string of date e.g. 27/12/2018
+
+    :param x: date as (datetime)
+    :return: date string
+    """
+
     return "%02d/%02d/%02d" % (date.day, date.month, date.year)
 
 
 def ctbinding(inBinding):
+    """
+    Check if variable in settings file has a counterpart in source code
+
+    :param x: variable in settings file to be tested
+    :return: -
+    :raises: if variable is not found send an error: :meth:`management_modules.messages.CWATMError`
+    """
+
     test = inBinding in binding
     if test:
         return binding[inBinding]
@@ -112,7 +127,7 @@ def datetoInt(dateIn,begin,both=False):
     :param dateIn: date
     :param begin: reference date
     :param both: if set to True both the int and the string of the date are returned
-    :return: interger value of a date, satarting from begin date
+    :return: integer value of a date, starting from begin date
     """
 
     date1 = Calendar(dateIn)
@@ -138,7 +153,7 @@ def datetosaveInit(initdates,begin,end):
     :param initdates: one or several dates
     :param begin: reference date
     :param end: end date
-    :return: interger value of a dates, satarting from begin date
+    :return: integer value of a dates, starting from begin date
     """
 
     # datetosaveInit(initdates, dateVar['dateBegin'], dateVar['dateEnd'])
@@ -156,7 +171,7 @@ def datetosaveInit(initdates,begin,end):
         # check if it a row of dates
         if date1 == -99999:
             if not(d[-1] in ["d", "m","y"]):
-                msg = "Second value in StepInit is not indicating a repetition of year(y), month(m) or day(d) \n"
+                msg = "Second value in StepInit is indicating a repetition of year(y), month(m) or day(d) \n"
                 msg +="e.g. 2y for every 2 years or 6m for every 6 month"
                 raise CWATMError(msg)
             else:
@@ -268,7 +283,19 @@ def checkifDate(start,end,spinup):
 
 
 def date2indexNew(date, nctime, calendar, select='nearest', name =""):
-    # because date2index cannot handle month and years only
+    """
+    The original netCDF4 library cannot handle month and years
+    Replace: date2index
+    This one checks for days, month and years
+    And set some date variables
+
+    :param date: date
+    :param nctime: time unit of the netcdf file
+    :param select: (optional) which date is selected, default: nearest
+    :param name: (optional) name of th dataset
+    :return: index
+    """
+
     unit = nctime.units.split()
     if unit[0].upper() =="DAYS":
         index = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
@@ -308,8 +335,6 @@ def timestep_dynamic(self):
 
     :return: a list of date variable in: dateVar
     """
-
-
 
     #print "leap:", globals.leap_flag[0]
     dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])

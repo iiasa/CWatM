@@ -19,7 +19,9 @@
 import os
 import sys
 
-sys.path.insert(0,"C:\work\CWatM\source")
+print(sys.version)
+
+sys.path.insert(0,"C:\work\CWatM\source_py3")
 
 # -- General configuration ------------------------------------------------
 
@@ -45,7 +47,9 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.imgmath',
     'sphinx.ext.ifconfig',
-    'sphinx.ext.githubpages'
+    'sphinx.ext.githubpages',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.graphviz'
 ]
 
 

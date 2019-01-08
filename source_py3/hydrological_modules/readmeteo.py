@@ -12,11 +12,9 @@ from management_modules.data_handling import *
 import scipy.ndimage
 
 class readmeteo(object):
-
-
-
     """
     READ METEOROLOGICAL DATA
+
     reads all meteorological data from netcdf4 files
     """
 
@@ -27,8 +25,8 @@ class readmeteo(object):
     def initial(self):
         """
         Initial part of meteo
+
         read multiple file of input
-        :return:
         """
 
 
@@ -80,16 +78,117 @@ class readmeteo(object):
 
 
 
-
-
-
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
+
+    def downscaling1(self,input, downscale = 0):
+        """
+        Downscaling based on elevation correction for temperature and pressure
+
+        :param input:
+        :param downscale: 0 for no change, 1: for temperature change 6 deg per 1km , 2 for psurf
+        :return: input - downscaled input data
+
+        """
+
+        # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
+        if not self.var.meteomapsscale:
+            down1 = np.kron(input, np.ones((6, 6)))
+            down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
+            down3 = compressArray(down2)
+            if downscale == 0:
+                input = down3
+
+            if downscale == 1:
+                # temperature scaling 6 deg per 1000m difference in altitude
+                # see overview in Minder et al 2010 - http://onlinelibrary.wiley.com/doi/10.1029/2009JD013493/full
+                tempdiff = -0.006 * self.var.demAnomaly
+                input = down3 + tempdiff
+            if downscale == 2:
+                # psurf correction
+                # https://www.sandhurstweather.org.uk/barometric.pdf
+                # factor = exp(-elevation / (Temp x 29.263)  Temp in deg K
+                demLow = self.var.demHigh - self.var.demAnomaly
+                tavgK = self.var.Tavg + 273.15
+                factor1 = np.exp(-1 * demLow / (tavgK * 29.263))
+                factor2 = np.exp(-1 * self.var.demHigh / (tavgK * 29.263))
+                sealevelpressure = down3 / factor1
+                input = sealevelpressure * factor2
+        return input
+
+
+    def downscaling2(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, downscale = 0):
+        """
+        Downscaling based on Delta method:
+
+        Note:
+
+            | **References**
+            | Moreno and Hasenauer  2015:
+            | ftp://palantir.boku.ac.at/Public/ClimateData/Moreno_et_al-2015-International_Journal_of_Climatology.pdf
+            | Mosier et al. 2018:
+            | http://onlinelibrary.wiley.com/doi/10.1002/joc.5213/epdf\
+
+        :param input: low input map
+        :param downscaleName: High resolution monthly map from WorldClim
+        :param wc2: High resolution WorldClim map
+        :param wc4: upscaled to low resolution
+        :param downscale: 0 for no change, 1: for temperature , 2 for pprecipitation, 3 for psurf
+        :return: input - downscaled input data
+        :return: wc2
+        :return: wc4
+        """
+        reso = maskmapAttr['reso_mask_meteo']
+        resoint = int(reso)
+
+        if self.var.meteomapsscale:
+            if downscale == 0:
+                return input
+            else:
+                return input, wc2, wc4
+
+
+        down3 = np.kron(input, np.ones((resoint, resoint)))
+        if downscale == 0:
+            down2 = down3[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
+            input = compressArray(down2)
+            return input
+        else:
+            if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
+                wc1 = readnetcdf2(downscaleName, dateVar['currDate'], useDaily='month', compress = False, cut = False)
+                wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]
+                #wc2 = wc1[cutmapGlobal[2] * resoint:cutmapGlobal[3] * resoint, cutmapGlobal[0] * resoint:cutmapGlobal[1] * resoint]
+                rows = wc2.shape[0]
+                cols = wc2.shape[1]
+                wc3 =  wc2.reshape(rows//resoint,resoint,cols//resoint,resoint)
+                wc4 =  np.nanmean(wc3, axis=(1, 3))
+
+        if downscale == 1: # Temperature
+            diff_wc = wc4 - input
+            #diff_wc[np.isnan( diff_wc)] = 0.0
+            diffSmooth = scipy.ndimage.zoom(diff_wc, resoint, order=1)
+            down1 = wc2 - diffSmooth
+            down1 = np.where(np.isnan(down1),down3,down1)
+        if downscale == 2:  # precipitation
+            quot_wc = input / wc4
+            quotSmooth = scipy.ndimage.zoom(quot_wc, resoint, order=1)
+            down1 = wc2 * quotSmooth
+            down1 = np.where(np.isnan(down1),down3,down1)
+            down1 = np.where(np.isinf(down1), down3, down1)
+
+
+        down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
+        input = compressArray(down2)
+        return input, wc2, wc4
+
+     # --- end downscaling ----------------------------
+
+
 
     def dynamic(self):
         """
         Dynamic part of the readmeteo module
+
         Read meteo input maps from netcdf files
 
         Note:
@@ -101,98 +200,7 @@ class readmeteo(object):
 
         """
 
-        def downscaling1(input, downscale = 0):
-            """
-            Downscaling based on elevation correction for temperature and pressure
-            :param input:
-            :param downscale: 0 for no change, 1: for temperature change 6 deg per 1km , 2 for psurf
-            :return:
 
-            """
-
-            # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
-            if not self.var.meteomapsscale:
-                down1 = np.kron(input, np.ones((6, 6)))
-                down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
-                down3 = compressArray(down2)
-                if downscale == 0:
-                    input = down3
-
-                if downscale == 1:
-                    # temperature scaling 6 deg per 1000m difference in altitude
-                    # see overview in Minder et al 2010 - http://onlinelibrary.wiley.com/doi/10.1029/2009JD013493/full
-                    tempdiff = -0.006 * self.var.demAnomaly
-                    input = down3 + tempdiff
-                if downscale == 2:
-                    # psurf correction
-                    # https://www.sandhurstweather.org.uk/barometric.pdf
-                    # factor = exp(-elevation / (Temp x 29.263)  Temp in deg K
-                    demLow = self.var.demHigh - self.var.demAnomaly
-                    tavgK = self.var.Tavg + 273.15
-                    factor1 = np.exp(-1 * demLow / (tavgK * 29.263))
-                    factor2 = np.exp(-1 * self.var.demHigh / (tavgK * 29.263))
-                    sealevelpressure = down3 / factor1
-                    input = sealevelpressure * factor2
-            return input
-
-
-        def downscaling2(input, downscaleName = "", wc2 = 0 , wc4 = 0, downscale = 0):
-            """
-            Downscaling based on Delta method:
-            Moreno and Hasenauer  2015 ftp://palantir.boku.ac.at/Public/ClimateData/Moreno_et_al-2015-International_Journal_of_Climatology.pdf
-            Mosier et al. 2018: http://onlinelibrary.wiley.com/doi/10.1002/joc.5213/epdf\
-            :param input: low input map
-            :param downscaleName: High resolution monthly map from WorldClim
-            :param wc2: High resolution WorldClim map
-            :param wc4: upscaled to low resolution
-            :param downscale: 0 for no change, 1: for temperature , 2 for pprecipitation, 3 for psurf
-            :return:
-
-            """
-            reso = maskmapAttr['reso_mask_meteo']
-            resoint = int(reso)
-
-            if self.var.meteomapsscale:
-                if downscale == 0:
-                    return input
-                else:
-                    return input, wc2, wc4
-
-
-            down3 = np.kron(input, np.ones((resoint, resoint)))
-            if downscale == 0:
-                down2 = down3[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
-                input = compressArray(down2)
-                return input
-            else:
-                if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
-                    wc1 = readnetcdf2(downscaleName, dateVar['currDate'], useDaily='month', compress = False, cut = False)
-                    wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]
-                    #wc2 = wc1[cutmapGlobal[2] * resoint:cutmapGlobal[3] * resoint, cutmapGlobal[0] * resoint:cutmapGlobal[1] * resoint]
-                    rows = wc2.shape[0]
-                    cols = wc2.shape[1]
-                    wc3 =  wc2.reshape(rows//resoint,resoint,cols//resoint,resoint)
-                    wc4 =  np.nanmean(wc3, axis=(1, 3))
-
-            if downscale == 1: # Temperature
-                diff_wc = wc4 - input
-                #diff_wc[np.isnan( diff_wc)] = 0.0
-                diffSmooth = scipy.ndimage.zoom(diff_wc, resoint, order=1)
-                down1 = wc2 - diffSmooth
-                down1 = np.where(np.isnan(down1),down3,down1)
-            if downscale == 2:  # precipitation
-                quot_wc = input / wc4
-                quotSmooth = scipy.ndimage.zoom(quot_wc, resoint, order=1)
-                down1 = wc2 * quotSmooth
-                down1 = np.where(np.isnan(down1),down3,down1)
-                down1 = np.where(np.isinf(down1), down3, down1)
-
-
-            down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
-            input = compressArray(down2)
-            return input, wc2, wc4
-
-         # --- end downscaling ----------------------------
 
 
         ZeroKelvin = 0.0
@@ -206,7 +214,7 @@ class readmeteo(object):
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
 
         if self.var.meteodown:
-            self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
+            self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
         else:
             self.var.Precipitation = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
         self.var.prec = self.var.Precipitation / self.var.con_precipitation
@@ -220,9 +228,9 @@ class readmeteo(object):
         self.var.Tavg = readmeteodata('TavgMaps',dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.var.meteomapsscale)
 
         if self.var.meteodown:
-            self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
+            self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
         else:
-            self.var.Tavg  = downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=0)
+            self.var.Tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=0)
         self.var.temp = self.var.Tavg.copy()
 
         # average DAILY temperature (even if you are running the model
@@ -242,35 +250,35 @@ class readmeteo(object):
             #self.var.TMin = readnetcdf2('TminMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
             self.var.TMin = readmeteodata('TminMaps',dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale)
             if self.var.meteodown:
-                self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin = downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=1)
+                self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=1)
             else:
-                self.var.TMin = downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=0)
+                self.var.TMin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=0)
 
 
             #self.var.TMax = readnetcdf2('TmaxMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
             self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale)
             if self.var.meteodown:
-                self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax = downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=1)
+                self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=1)
             else:
-                self.var.TMax = downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=0)
+                self.var.TMax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=0)
 
 
 
             #self.var.Psurf = readnetcdf2('PSurfMaps', dateVar['currDate'], addZeros = True, meteo = True)
             self.var.Psurf = readmeteodata('PSurfMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-            self.var.Psurf = downscaling2(self.var.Psurf)
+            self.var.Psurf = self.downscaling2(self.var.Psurf)
                 # Instantaneous surface pressure[Pa]
             #self.var.Wind = readnetcdf2('WindMaps', dateVar['currDate'], addZeros = True, meteo = True)
             self.var.Wind = readmeteodata('WindMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-            self.var.Wind = downscaling2(self.var.Wind)
+            self.var.Wind = self.downscaling2(self.var.Wind)
                 # wind speed maps at 10m [m/s]
             #self.var.Rsds = readnetcdf2('RSDSMaps', dateVar['currDate'], addZeros = True, meteo = True)
             self.var.Rsds = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-            self.var.Rsds = downscaling2(self.var.Rsds)
+            self.var.Rsds = self.downscaling2(self.var.Rsds)
                 # radiation surface downwelling shortwave maps [W/m2]
             #self.var.Rsdl = readnetcdf2('RSDLMaps', dateVar['currDate'], addZeros = True, meteo = True)
             self.var.Rsdl = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-            self.var.Rsdl = downscaling2(self.var.Rsdl)
+            self.var.Rsdl = self.downscaling2(self.var.Rsdl)
                 # radiation surface downwelling longwave maps [W/m2]
             if returnBool('useHuss'):
                 #self.var.Qair = readnetcdf2('QAirMaps', dateVar['currDate'], addZeros = True, meteo = True)
@@ -279,7 +287,7 @@ class readmeteo(object):
             else:
                 #self.var.Qair = readnetcdf2('RhsMaps', dateVar['currDate'], addZeros = True, meteo = True)
                 self.var.Qair = readmeteodata('RhsMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
-            self.var.Qair = downscaling2(self.var.Qair)
+            self.var.Qair = self.downscaling2(self.var.Qair)
                 #
 
 

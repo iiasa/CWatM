@@ -74,9 +74,6 @@ class environflow(object):
         """
         Dynamic part of the environmental flow module
         Read meteo input maps from netcdf files
-
-
-
         """
 
         if checkOption('calc_environflow'):

@@ -18,8 +18,15 @@ from management_modules.globals import *
 
 class lakes_res_small(object):
     """
-    LAKES AND RESERVOIRS
-    calculate water retention in lakes and reservoirs
+    Small LAKES AND RESERVOIRS
+
+    Note:
+
+        Calculate water retention in lakes and reservoirs
+
+        Using the **Modified Puls approach** to calculate retention of a lake
+        See also: LISFLOOD manual Annex 3 (Burek et al. 2013)
+
     """
 
     def __init__(self, lakes_res_small_variable):
@@ -35,14 +42,9 @@ class lakes_res_small(object):
         Initialize small lakes and reservoirs
         Read parameters from maps e.g
         area, location, initial average discharge, type: reservoir or lake) etc.
-
         """
 
-
-
         if checkOption('includeWaterBodies') and returnBool('useSmallLakes'):
-
-
 
             if returnBool('useResAndLakes') and returnBool('dynamicLakesRes'):
                 year = datetime.datetime(dateVar['currDate'].year, 1, 1)
@@ -70,39 +72,7 @@ class lakes_res_small(object):
             self.var.smalllakeDis0 = np.maximum(self.var.smalllakeDis0, 0.01)
             chanwidth = 7.1 * np.power(self.var.smalllakeDis0, 0.539)
             self.var.smalllakeA = loadmap('lakeAFactor') * 0.612 * 2 / 3 * chanwidth * (2 * 9.81) ** 0.5
-
-
-
-            #Initial part of the lakes module
-            #Using the **Modified Puls approach** to calculate retention of a lake
-            # See also: LISFLOOD manual Annex 3 (Burek et al. 2013)
-
-            # for Modified Puls Method the Q(inflow)1 has to be used. It is assumed that this is the same as Q(inflow)2 for the first timestep
-            # has to be checked if this works in forecasting mode!
-
-            # NEW Lake Routine using Modified Puls Method (see Maniak, p.331ff)
-            # (Qin1 + Qin2)/2 - (Qout1 + Qout2)/2 = (S2 - S1)/dtime
-            # changed into:
-            # (S2/dtime + Qout2/2) = (S1/dtime + Qout1/2) - Qout1 + (Qin1 + Qin2)/2
-            # outgoing discharge (Qout) are linked to storage (S) by elevation.
-            # Now some assumption to make life easier:
-            # 1.) storage volume is increase proportional to elevation: S = A * H
-            #      H: elevation, A: area of lake
-            # 2.) outgoing discharge = c * b * H **2.0 (c: weir constant, b: width)
-            #      2.0 because it fits to a parabolic cross section see Aigner 2008
-            #      (and it is much easier to calculate (that's the main reason)
-            # c for a perfect weir with mu=0.577 and Poleni: 2/3 mu * sqrt(2*g) = 1.7
-            # c for a parabolic weir: around 1.8
-            # because it is a imperfect weir: C = c* 0.85 = 1.5
-            # results in a formular : Q = 1.5 * b * H ** 2 = a*H**2 -> H = sqrt(Q/a)
             self.var.smalllakeFactor = self.var.smalllakeArea / (self.var.DtSec * np.sqrt(self.var.smalllakeA))
-
-            #  solving the equation  (S2/dtime + Qout2/2) = (S1/dtime + Qout1/2) - Qout1 + (Qin1 + Qin2)/2
-            #  SI = (S2/dtime + Qout2/2) =  (A*H)/DtRouting + Q/2 = A/(DtRouting*sqrt(a)  * sqrt(Q) + Q/2
-            #  -> replacement: A/(DtRouting*sqrt(a)) = Lakefactor, Y = sqrt(Q)
-            #  Y**2 + 2*Lakefactor*Y-2*SI=0
-            # solution of this quadratic equation:
-            # Q=sqr(-LakeFactor+sqrt(sqr(LakeFactor)+2*SI))
 
             self.var.smalllakeFactorSqr = np.square(self.var.smalllakeFactor)
             # for faster calculation inside dynamic section
@@ -151,6 +121,9 @@ class lakes_res_small(object):
 
         * lakes with modified Puls approach
         * reservoirs with special filling levels
+
+        **Flow out of lake:**
+
         :return: outflow in m3 to the network
         """
 
@@ -193,14 +166,6 @@ class lakes_res_small(object):
             # of the equation above
 
             self.var.smalllakeOutflow = np.square(-self.var.smalllakeFactor + np.sqrt(self.var.smalllakeFactorSqr + 2 * lakeStorageIndicator))
-
-            # Flow out of lake:
-            #  solving the equation  (S2/dtime + Qout2/2) = (S1/dtime + Qout1/2) - Qout1 + (Qin1 + Qin2)/2
-            #  SI = (S2/dtime + Qout2/2) =  (A*H)/DtSec + Q/2 = A/(DtSec*sqrt(a)  * sqrt(Q) + Q/2
-            #  -> replacement: A/(DtSec*sqrt(a)) = Lakefactor, Y = sqrt(Q)
-            #  Y**2 + 2*Lakefactor*Y-2*SI=0
-            # solution of this quadratic equation:
-            # Q=sqr(-LakeFactor+sqrt(sqr(LakeFactor)+2*SI));
 
             QsmallLakeOut = self.var.smalllakeOutflow * self.var.DtSec
 

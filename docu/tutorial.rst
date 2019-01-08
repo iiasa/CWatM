@@ -49,7 +49,14 @@ Test the model
 
 **Windows and Linux**
 
-python <modelpath>/cwatm.py 
+Please try::
+
+   python <modelpath>/cwatm.py 
+   or:
+   python <modelpath>/cwatm3.py  (for the Python3.7 version)
+   or:
+   python <modelpath>/cwatm  (for the .exe version)
+
 
 
 The output should be::
@@ -71,6 +78,19 @@ The output should be::
 	
 .. warning:: If python is not set in the environment path, the full path of python has to be used
 
+Error because you did not run it with Python
+--------------------------------------------
+
+if the model is causing an error with look like this::
+
+   File "cwatm3.py", line 116
+   print("%-6s %10s %11s\n" %("Step","Date","Discharge"), end=' ')
+   SyntaxError: invalid syntax
+
+You run the model without the python command in front. Please use: python cwatm.py
+(You may have to adjust the path to your python version and to cwatm.py).
+
+
 Error because the python libraries are installed incorrectly
 ------------------------------------------------------------
 
@@ -81,6 +101,8 @@ If the model is causing an error at this stage, please check the python librarie
     import scipy.ndimage
     import gdal
     import netCDF4
+
+
 
 
 Running the model 1
@@ -293,73 +315,6 @@ Most important output variables - a selection
    ... (to be continued)
 
 
-
-Output variables - starting a list
-----------------------------------
-
-| A list of variables can be produced by using:
-| grep -d recurse 'self.var.' *.py 
-| Every self.var.variable can be used as output variable
-| For a description of the variable please take a look at the python module itself.
-| 
-| As output variable please use without self.var.
-
-::
-   
-   #Python_modul            Variable_name
-   capillarRise.py          self.var.capRiseFrac 
-   evaporationPot.py        self.var.AlbedoCanopy
-   evaporationPot.py        self.var.AlbedoSoil
-   evaporationPot.py        self.var.AlbedoWater
-   evaporationPot.py        self.var.ETRef
-   evaporationPot.py        self.var.EWRef
-   evaporation.py           self.var.potBareSoilEvap 
-   evaporation.py           self.var.snowEvap
-   evaporation.py           self.var.SnowMelt
-   evaporation.py           self.var.potBareSoilEvap 
-   evaporation.py           self.var.cropKC[No] 
-   evaporation.py           self.var.totalPotET[No] 
-   evaporation.py           self.var.potTranspiration[No]
-   groundwater.py           self.var.recessionCoeff 
-   groundwater.py           self.var.specificYield 
-   groundwater.py           self.var.kSatAquifer 
-   groundwater.py           self.var.storGroundwater 
-   groundwater.py           self.var.baseflow 
-   interception.py          self.var.interceptCap[No]  
-   interception.py          self.var.interceptStor[No] 
-   interception.py          self.var.availWaterInfiltration[No] 
-   interception.py          self.var.potTranspiration[No] 
-   interception.py          self.var.actualET[No] 
-   lakes_reservoirs.py      self.var.waterBodyID 
-   lakes_reservoirs.py      self.var.waterBodyOut
-   lakes_reservoirs.py      self.var.lakeArea
-   lakes_reservoirs.py      self.var.lakeDis0
-   lakes_reservoirs.py      self.var.lakeAC
-   lakes_reservoirs.py      self.var.lakeEvaFactor
-   lakes_reservoirs.py      self.var.reslakeoutflow
-   lakes_reservoirs.py      self.var.lakeVolume
-   lakes_reservoirs.py      self.var.lakeStorage
-   lakes_reservoirs.py      self.var.lakeInflow
-   lakes_reservoirs.py      self.var.lakeOutflow
-   lakes_reservoirs.py      self.var.reservoirStorage
-   lakes_reservoirs.py      self.var.lakeResStorage
-   lakes_reservoirs.py      self.var.sumlakeResInflow
-   lakes_reservoirs.py      self.var.sumlakeResOutflow
-   lakes_res_small.py       self.var.smalllakeArea
-   lakes_res_small.py       self.var.smalllakeDis0
-   lakes_res_small.py       self.var.smalllakeA
-   lakes_res_small.py       self.var.smalllakeFactor
-   lakes_res_small.py       self.var.smalllakeVolumeM3
-   lakes_res_small.py       self.var.smallevapWaterBodyStorage 
-   landcoverType.py         self.var.coverTypes
-   landcoverType.py         self.var.totalET
-   landcoverType.py         self.var.actSurfaceWaterAbstract
-   landcoverType.py         self.var.minInterceptCap
-   landcoverType.py         self.var.interceptStor[No]
-   landcoverType.py         self.var.sum_interceptStor
-   landcoverType.py         self.var.minCropKC
-   landcoverType.py         self.var.maxGWCapRise
-   ... (to be continued)
 
 
 

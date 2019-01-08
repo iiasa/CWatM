@@ -15,7 +15,8 @@ class soil(object):
 
     """
     SOIL
-    Caclulation vertical transfer of water based on improved Arno scheme
+
+    Caclulation vertical transfer of water based on Arno scheme
     """
 
     def __init__(self, soil_variable):
@@ -30,10 +31,6 @@ class soil(object):
 
         * Initialize all the hydraulic properties of soil
         * Set soil depth
-
-        Todo:
-            individual soil properties for each land cover type
-
         """
 
         self.var.soilLayers = 3
@@ -110,10 +107,10 @@ class soil(object):
     def dynamic(self, coverType, No):
         """
         Dynamic part of the soil module
+
         For each of the land cover classes the vertical water transport is simulated
         Distribution of water holding capiacity in 3 soil layers based on saturation excess overland flow, preferential flow
         Dependend on soil depth, soil hydraulic parameters
-
         """
 
     # ---------------------------------------------------------

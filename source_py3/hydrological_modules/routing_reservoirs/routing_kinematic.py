@@ -17,8 +17,8 @@ class routing_kinematic(object):
 
     """
     ROUTING
-    routing using the kinematic wave
 
+    routing using the kinematic wave
     """
 
     def __init__(self, routing_kinematic_variable):
@@ -171,10 +171,7 @@ class routing_kinematic(object):
         * calculate kinematic wave -> using C++ library for computational speed
         """
 
-
 # ---------------------------------------------------------------------------------
-
-
 
         # if routing is not needed return
         if not(checkOption('includeRouting')):

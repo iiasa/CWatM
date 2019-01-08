@@ -1,0 +1,110 @@
+* 2019-01-05 - CWatM : fix: corrected some warnings from PCCharm code inspector
+* 2019-01-04 - CWatM : add: adding executable cwatm.exe
+* 2019-01-04 - CWatM : Fix: new water demand changes did not use the same variable name act_surfacewater in waterdemand and routing_kinematic. changed this in both version 2.7 and 3.7 Add python: added a report command to report data as .map or .tif for debugging
+* 2018-12-20 - CWatM : Python3.7 New: replaced pcraster framework by own framework Removed folder pcraster2 New: added save conditions for warmstart -> you can add a 10d or 6m or 2y after the first date -> the initial data will be saved every 10d (or whatever number), or 6 month or 2 year
+* 2018-12-17 - CWatM : New: Python 3 test code
+*   2018-12-17 - CWatM : Merge branch 'develop' of https://github.com/iiasa/CWATM_priv into develop
+|\  
+| *   2018-12-12 - Community Water Model : Merge pull request #3 from iiasa/waterdemand_update
+| |\  
+| | *   2018-12-12 - Community Water Model : Merge branch 'develop' into waterdemand_update
+| | |\  
+| | |/  
+| |/|   
+| | * 2018-08-15 - Unknown : modify irrConsuption to act_irrConsumption in landcoverType and soil modules
+| | * 2018-08-15 - Unknown : potential and actual values are explicitly written in waterdemand module
+| | * 2018-08-08 - Unknown : modified efficiency vaiables ;)
+| | * 2018-08-07 - Unknown : modified read-netcdf for wateruse data
+| | * 2018-07-24 - Yusuke : Added act_nonIrrConsumption conponents
+| | * 2018-07-24 - Yusuke : Clean up before editing
+* | | 2018-12-17 - CWatM : New: python 3 test version
+* | | 2018-12-17 - CWatM : New: Added Python source code: Further test required, but it seems to work. -> Plan in 2019 further development will use Python 3.7 coding New: Building a executable .exe with Python 3  seems to work as well. Further testing -> 2019 an installation setup will be produced using cx_freeze and Inno setup to make an easy start on Windows (no Python background will be required for CWATM users)
+|/ /  
+* | 2018-12-12 - CWatM : Put Yusuke's version of waterdemand in (soil, landtypes, waterdemand)
+* | 2018-12-12 - CWatM : Fix: checkmap -c option now checks maps first (but can be improved) new flag: usemeteodownscaling in [meteo] for using meteo downscaling Fix: can now use rivernetwork as map or tif again (ldd.map) changes in initial and data_handling
+* | 2018-12-11 - CWatM : in sync with version on p drive
+* | 2018-12-11 - CWatM : Small change in tutorial, added output variable added calibration tutorial, to be extended
+* | 2018-09-24 - CWatM : chk: waterdemand can use water demand netcdf with m/s or million m3 per month/year
+* | 2018-08-07 - CWatM : fix: reading meteo map with no leap year (365 day maps) new: using a cover map to put addition values in
+|/  
+* 2018-07-09 - CWatM : Fix: waterbalance for soil Chg: output of tss from 3-d variable e.g actualET[1]
+* 2018-06-27 - CWatM : fix: corrected storing initial values for the next warm start chk: changed environmental flow (EF)settings file -      loading EF is now in water demand
+* 2018-06-07 - CWatM : chg: outcommented a library call in data_handling    #from netcdftime import utime chg: added the sum of ET_actual again
+* 2018-05-17 - CWatM : Changed waterbalance Changed waterbodies in large and small lakes and reservoirs
+* 2018-04-24 - CWatM : Fix: bugfix to read waterdemand map
+* 2018-04-19 - CWatM : Change: meteo data can be clipped before and used. CWAT detects if it is a global map or a regional one e.g using only meteo data set for the Rhine.
+* 2018-04-16 - CWatM : Change; in waterdemand, landcovertyp and soil cjhange variable names     Gross = demand = withdrawal, netto = consumptiom      all vraibales names now are ..demand or .. consumption
+* 2018-04-13 - CWatM : test
+* 2018-04-13 - CWatM : Change: netcdf output as monthly or annual map has now a adequate monthly or yearly time step e.g. Months since 1901-01-01
+* 2018-04-03 - CWatM : Change: CWATM can be used with a smaller meteo dataset e.g. to use a demo dataset for the Rine with pr, tavg, ETRef, EWref
+* 2018-04-03 - CWatM : Change: CWAT can be used with a smaller meteo dataset  e.g. to download a smaller test meteo dataset for the Rhine
+* 2018-04-03 - CWatM : Chg: running cwatm with a smaller meteo dataset in order to make a test catchment (e.g. Rhine) with a small meteo dataset
+* 2018-03-20 - CWatM : Added: - small lakes - calc environmental flow - 5 arcmin version - downscale 30min meteo dataset to 5min
+* 2017-11-20 - CWatM : fix: replace strftime with .year or .month etc fix: looks for > 1e20 and -1e20 in each map and change these to standard zero value (default =0)
+* 2017-10-30 - CWatM : Fix: bug fix to save maps with a SpinUp <> None
+* 2017-10-27 - CWatM : Fix: reading meteo maps - every data > 1e12 is set to 0 Add: maxtopwater in prg and settings.ini Fix: calibration routine
+* 2017-09-21 - CWatM : bugfix: snow with more layers than 3
+* 2017-09-20 - CWatM : chg: water demand, small lakes, land cover
+* 2017-08-29 - CWatM : chg: water demand , soil add: error handling for output maps
+* 2017-08-17 - CWatM : new: water demand is working chg: soil especially paddy and non paddy irrigation bug: checked water balance
+* 2017-07-13 - CWatM : fix: small bugfix, to run precipitation maps with the suffix .nc4
+* 2017-07-13 - CWatM : chg: soil part - using different maps -> map folder has to be updated! chg: meteo maps do not have to be merge before -> stack of maps can  be used add: inflow to a catchment (still to work on)
+* 2017-05-23 - CWatM : chk: saving of netcdf with fixed number of time and with fixed chunk size -> less diskspace used chk: a few more error handlings added
+* 2017-05-19 - CWatM : chk: Chaznged soil calculation to Arno scheme and Mualem - van Genuchten equation new: put in a lot of checks for the settingsfile e.g. check True and false (not mispelled like ture). Check timing, check output variables chk: a lot more error messages are given out if something is wrong chk: output netcdf time is calculate in advanced in order to reduce size of output netcdf -> data_handling line 789 sets it to this value
+* 2017-05-10 - CWatM : chk: bugfix cropKC per land cover new: snow evaporation included new: Calibration routine added
+* 2017-04-20 - CWatM : fix: output to netcdf - in output and data_handling fix: output as a time series without header with the option -h new: readme.md for github
+* 2017-04-18 - CWatM : Transfer to new IIASA domain and making it private in branch develop
+* 2017-04-18 - CWatM : Transfer to new IIASA CWAT domain
+* 2017-04-18 - CWatM : ready for transfer to iiasa
+* 2017-04-13 - CWatM : data handling: faster read of meteo data
+* 2017-04-06 - CWatM : soil - Copy (2).py- removed bug in calculation of soildepth - change calc of arno beta
+* 2017-04-06 - CWatM : Merge branch 'branch2' of https://github.com/CWatM/CWatM into branch2
+* 2017-04-06 - Community Water Model : Create LICENSE
+* 2017-04-06 - CWatM : Updated soil, removed bug in calculating the soil depth changed how arno beta is calculated
+* 2017-02-03 - CWatM : - made CWATM run under cygwin   (for other linux version the c++ code has to be compiled) - fixed reading maskmap from rectangle
+* 2017-02-02 - CWatM : set realtive file path to c++ routine
+* 2017-02-02 - CWatM : - New kinematic routing    - c++ routine include     TODO: make it usable for linu/Unix - removed pcraster GIS commands - new output routine for time series - Budyko output.html - corrected bug in snow modules - corrected bug in init read/save module - WORKING on lakes/reservoirs TODO: bug in reading maskmap from coordinates
+* 2017-01-17 - CWatM : init condition - save more than 1 date
+* 2017-01-16 - CWatM : Lake/reservoirs routing
+* 2016-12-22 - CWatM : updated soil , initconditions etc
+* 2016-12-16 - CWatM : runoff concentration
+* 2016-12-08 - CWatM : With sphinx documentation making files
+* 2016-12-07 - CWatM : Update
+* 2016-12-07 - CWatM : Preferential flow, frost
+* 2016-11-10 - CWatM : Cacluation Evaporation from climate data
+* 2016-10-21 - CWatM : Changed soil + test
+* 2016-10-18 - CWatM : Waterdemand included
+* 2016-10-03 - CWatM : last August update - waterbalance
+* 2016-08-26 - CWatM : water balance 7
+* 2016-08-26 - CWatM : water balance 6
+* 2016-08-25 - CWatM : water Balance 5
+* 2016-08-24 - CWatM : water balance 4 Checks ok : soil , groundwater, routing, waterdemand Missing: reservoirs, sum up to catchments
+* 2016-08-23 - CWatM : water balance 3
+* 2016-08-23 - CWatM : water balance 2
+* 2016-08-22 - CWatM : Water balance check 1 Output on screen
+* 2016-08-19 - CWatM : initial condition
+* 2016-08-17 - CWatM : Spin up
+* 2016-08-17 - CWatM : output netcdf add attributes
+* 2016-08-10 - CWatM : output + time
+* 2016-08-10 - CWatM : date and time
+* 2016-08-09 - CWatM : output 3
+* 2016-08-09 - CWatM : output 2
+* 2016-08-08 - CWatM : output timeseries
+* 2016-08-03 - CWatM : waterbodies 1 Checked routing - working :)
+* 2016-08-02 - CWatM : routing 3
+* 2016-08-01 - CWatM : routing 2
+* 2016-08-01 - CWatM : routing 1
+* 2016-07-29 - CWatM : some changes I do not know anymore
+* 2016-07-26 - CWatM : soil + groundwater
+* 2016-07-26 - CWatM : soil check3
+* 2016-07-25 - CWatM : soil check2
+* 2016-07-25 - CWatM : check soil module
+* 2016-07-24 - CWatM : soil update
+* 2016-07-24 - Burek : Soil and groundwater
+* 2016-07-22 - CWatM : soil
+* 2016-07-21 - CWatM : till waterdemand - soil
+* 2016-07-20 - CWatM : Next step interception
+* 2016-07-19 - CWatM : changing irrigationarea part
+* 2016-07-15 - CWatM : Initial procedure for soil, groundwater, waterdemand
+* 2016-07-13 - CWatM : include: snow frost
+

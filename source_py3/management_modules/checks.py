@@ -18,7 +18,7 @@ def counted(fn):
     count number of times a subroutine is called
 
     :param fn:
-    :return:
+    :return: number of times the subroutine is called
     """
     def wrapper(*args, **kwargs):
         wrapper.called+= 1
@@ -31,12 +31,13 @@ def counted(fn):
 def checkmap(name, value, map, flagmap, find):
     """
     check maps if the fit to the mask map
-    :param name:
-    :param value:
-    :param map:
-    :param flagmap:
-    :param find:
-    :return:
+
+    :param name: name of the variable in settingsfile
+    :param value: filename of the variable
+    :param map: data (either a number or a 1D array)
+    :param flagmap: indicates a 1D array or a number
+    :param find: at the moment a dummy
+    :return: -
 
     Todo:
         still to improve, this is work in progress!

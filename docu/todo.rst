@@ -53,71 +53,13 @@ For the Rhine basin reading input maps 79% is by far the most time consuming pro
 Updates
 =======
 
+.. note::
+    | Update history taken from github log
+    | git log --pretty=format:"%ad - %an : %s" --date=short --graph > github.log 
+
 **Most recent updates on top**
 
-4/01/2019
-
-* Change to Python 3.7
-* added a lot of changes in the mean time please see change track on github
-
-
-25/09/2017
-
-* bugfix on snow modul 
-* added additional evaporation from open water (transition loss in channels)
-
-20/08/2017
-----------
-
-* improved water demand modul
-* added small lakes and reservoirs
-
-24/06/2017
-----------
-
-* added netcdf read module - now the netcdf does not need to be merged before - abilitity to read in a stack of netcdf files
-* added inflow to a catchment - inflow is given as text file
-
-
-25/05/2017
-----------
-
-* added new soil scheme based on Arno scheme 
-
-27/03/2017
-----------
-
-* included license term GNU V3 in cwatm.py and globals.py
-
-26/03/2017
-----------
-
-* added documentation for autodocu for a lot of subroutines
-
-
-
-
-
-
-
-
-
-
-
-
-Bug and bugfix report
-=====================
-
-This is the only and first source code without bugs
-Really!
-
-Hey really!!
-
-Ok some exceptions:
--------------------
-
-
-
+.. literalinclude:: _static/gitlog.txt
 
 
 TODO

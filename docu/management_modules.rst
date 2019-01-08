@@ -1,28 +1,16 @@
 management_modules package
+**************************
+
+Data management
 ==========================
 
 
-Submodules
-----------
 
-management_modules.checks module
---------------------------------
 
-.. automodule:: management_modules.checks
-    :members:
-    :undoc-members:
-    :show-inheritance:
+data_handling module
+--------------------
 
-management_modules.configuration module
----------------------------------------
-
-.. automodule:: management_modules.configuration
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-management_modules.data_handling module
----------------------------------------
+**Managing data and data handling**
 
 .. automodule:: management_modules.data_handling
     :members:
@@ -30,29 +18,41 @@ management_modules.data_handling module
     :inherited-members:
     :show-inheritance:
 
-management_modules.globals module
----------------------------------
+timestep module
+---------------
 
-.. automodule:: management_modules.globals
+**Managing time**
+
+.. automodule:: management_modules.timestep
     :members:
     :undoc-members:
     :show-inheritance:
 
-management_modules.improvepcraster module
------------------------------------------
 
-.. automodule:: management_modules.improvepcraster
+
+
+configuration module
+--------------------
+
+**Loading and parsing of the settings file**
+
+.. automodule:: management_modules.configuration
     :members:
     :undoc-members:
     :show-inheritance:
+
 
 management_modules.messages module
 ----------------------------------
+
+**Error handling - giving out messages**
 
 .. automodule:: management_modules.messages
     :members:
     :undoc-members:
     :show-inheritance:
+
+**Handling output of CWATM**
 
 management_modules.output module
 --------------------------------
@@ -62,25 +62,53 @@ management_modules.output module
     :undoc-members:
     :show-inheritance:
 
-management_modules.replace_pcr module
--------------------------------------
+
+management_modules.checks module
+--------------------------------
+
+**Checking maps if they fit in**
+
+.. automodule:: management_modules.checks
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Program management
+==================
+
+**Global definition of variables**
+
+globals module
+---------------------------------
+
+**Global definition of variables**
+
+.. automodule:: management_modules.globals
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+dynamicModel module
+-------------------
+
+**Framework of initial and dynamic modules**
+
+.. automodule:: management_modules.dynamicModel
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+replace_pcr module
+------------------
+
+**Some pcr operation are done in numpy**
 
 .. automodule:: management_modules.replace_pcr
     :members:
     :undoc-members:
     :show-inheritance:
 
-management_modules.timestep module
-----------------------------------
-
-.. automodule:: management_modules.timestep
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
 
 .. automodule:: management_modules
     :members:

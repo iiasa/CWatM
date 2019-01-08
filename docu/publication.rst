@@ -19,9 +19,6 @@ Presentations
 =============
 Burek P, Satoh Y, Greve P, Kahil T, & Wada Y (2017). The Community Water Model (CWATM) / Development of a community driven global water model. In: European Geosciences Union (EGU) General Assembly 2017, 23–28 April 2017, Vienna, Austria - `Poster <http://pure.iiasa.ac.at/14536/1/Cwat_poster.pdf>`_
 
-
-Upcoming event
-==============
 | Event: 2017 AGU Fall Meeting, New Orleans, Louisiana
 | Presentation title: Improving Water Resources Management on Global and Region Scales – Evaluating Strategies for Water Futures with the IIASA’s Community Water Model 
 | When: Friday, 15 December 2017 11:50 - 12:05 

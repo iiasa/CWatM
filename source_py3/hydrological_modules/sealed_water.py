@@ -29,12 +29,13 @@ class sealed_water(object):
     def dynamic(self,coverType, No):
         """
         Dynamic part of the sealed_water module
+
         runoff calculation for open water and sealed areas
 
         :param coverType: Land cover type: forest, grassland  ...
         :param No: number of land cover type: forest = 0, grassland = 1 ...
-
         """
+
         if No > 3:
             if coverType == "water":
                 # bigger than 1.0 because of wind evaporation

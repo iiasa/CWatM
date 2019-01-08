@@ -164,6 +164,8 @@ def globalFlags(arg):
     """
     Read flags - according to the flags the output is adjusted
     quiet,veryquiet, loud, checkfiles, noheader,printtime, warranty
+
+    :param arg: argument from calling cwatm
     """
 
     try:

@@ -15,7 +15,9 @@ class landcoverType(object):
 
     """
     LAND COVER TYPE
+
     runs the 6 land cover types through soil procedures
+
     This routine calls the soil routine for each land cover type
     """
 
@@ -30,12 +32,14 @@ class landcoverType(object):
         """
         Initial part of the land cover type module
         Initialise the six land cover types
+
         * Forest
         * Grasland/non irrigated land
         * Irrigation
         * Paddy iirigation
         * Sealed area
         * Water covered area
+
         And initialize the soil variables
         """
 
@@ -341,9 +345,16 @@ class landcoverType(object):
     def dynamic_fracIrrigation(self, init = False, dynamic = True):
         """
         Dynamic part of the land cover type module
+
         Calculating fraction of land cover
+
         * loads the fraction of landcover for each year from netcdf maps
         * calculate the fraction of 6 land cover types based on the maps
+
+        :param init: (optional) True: set for the first time of a run
+        :param dynamic: used in the dynmic run not in the initial phase
+        :return: -
+
         """
 
         #if checkOption('includeIrrigation') and checkOption('dynamicIrrigationArea'):
@@ -408,13 +419,17 @@ class landcoverType(object):
     def dynamic(self):
         """
         Dynamic part of the land cover type module
+
         Calculating soil for each of the 6  land cover class
+
         * calls evaporation_module.dynamic
         * calls interception_module.dynamic
         * calls soil_module.dynamic
         * calls sealed_water_module.dynamic
+
         And sums every thing up depending on the land cover type fraction
         """
+
         #if (dateVar['curr'] == 15):
         #    ii=1
 

@@ -37,11 +37,11 @@ import warnings
 
 def valuecell( coordx, coordstr):
     """
-    to put a value into a pc raster map -> invert of cellvalue, map is converted into a numpy array first
+    to put a value into a raster map -> invert of cellvalue, map is converted into a numpy array first
 
     :param coordx: x,y or lon/lat coordinate
     :param coordstr: String of coordinates
-    :return:
+    :return: 1D array with new value
     """
 
     coord = []
@@ -94,15 +94,12 @@ def setmaskmapAttr(x,y,col,row,cell):
     """
     Definition of cell size, coordinates of the meteo maps and maskmap
 
-    Todo
-        need some love for error handling
-
     :param x: upper left corner x
     :param y: upper left corner y
     :param col: number of cols
     :param row: number of rows
     :param cell: cell size
-    :return:
+    :return: -
     """
 
     maskmapAttr['x'] = x
@@ -118,6 +115,8 @@ def loadsetclone(name):
     load the maskmap and set as clone
 
     :param name: name of mask map, can be a file or - row col cellsize xupleft yupleft -
+    :return: new mask map
+
     """
 
     filename = cbinding(name)
@@ -338,7 +337,7 @@ def compressArray(map, name="None", zeros = 0.):
     :param map: in map
     :param name: filename of the map
     :param zeros: add zeros (default= 0) if values of map are to big or too small
-    :return:
+    :return: Compressed 1D array
     """
 
 
@@ -362,7 +361,7 @@ def decompress(map, pcmap):
 
     :param map: numpy 1D array as input
     :param pcmap: if True map is used as .map format
-    :return: 2D map
+    :return: 2D array for displaying
     """
 
     # dmap=np.ma.masked_all(maskinfo['shapeflat'], dtype=map.dtype)
@@ -395,6 +394,10 @@ def getmeta(key,varname,alternative):
     """
     get the meta data information for the netcdf output from the global
     variable metaNetcdfVar
+
+    :param key: key
+    :param varname: variable name eg self.var.Precipitation
+    :return: metadata information
     """
 
     ret = alternative
@@ -406,7 +409,10 @@ def getmeta(key,varname,alternative):
 
 def metaNetCDF():
     """
-    get the map metadata from netcdf
+    get the map metadata from precipitation netcdf maps
+
+
+
     """
 
     try:
@@ -422,6 +428,14 @@ def metaNetCDF():
 
 
 def readCoord(name):
+    """
+    get the meta data information for the netcdf output from the global
+    variable metaNetcdfVar
+
+    :param name: name of the netcdf file
+    :return: latitude, longitude, cell size, inverse cell size
+    """
+
     namenc = os.path.splitext(name)[0] + '.nc'
 
     try:
@@ -445,9 +459,12 @@ def readCoord(name):
 def readCoordNetCDF(name,check = True):
     """
     reads the map attributes col, row etc from a netcdf map
+
     :param name: name of the netcdf file
     :param check:  checking if netcdffile exists
-    :return:
+    :return: latitude, longitude, cell size, inverse cell size
+
+    :raises if no netcdf map can be found: :meth:`management_modules.messages.CWATMFileError`
     """
 
     if check:
@@ -480,8 +497,14 @@ def readCoordNetCDF(name,check = True):
 
 def mapattrNetCDF(name, check = True):
     """
-    get the map attributes like col, row etc from a netcdf map
-    and define the rectangular of the mask map inside the netcdf map
+    get the 4 corners of a netcdf map to cut the map
+    defines the rectangular of the mask map inside the netcdf map
+    calls function :meth:`management_modules.data_handling.readCoord`
+
+    :param name: name of the netcdf file
+    :param check:  checking if netcdffile exists
+    :return: cut1,cut2,cut3,cut4
+    :raises if cell size is different: :meth:`management_modules.messages.CWATMError`
     """
 
     lat, lon, cell, invcell = readCoord(name)
@@ -504,6 +527,11 @@ def mapattrNetCDFMeteo(name, check = True):
     """
     get the map attributes like col, row etc from a netcdf map
     and define the rectangular of the mask map inside the netcdf map
+    calls function :meth:`management_modules.data_handling.readCoordNetCDF`
+
+    :param name: name of the netcdf file
+    :param check:  checking if netcdffile exists
+    :return: cut0,cut1,cut2,cut3,cut4,cut5,cut6,cut7
     """
 
     lat, lon, cell, invcell = readCoordNetCDF(name, check)
@@ -544,7 +572,7 @@ def mapattrTiff(nf2):
     map attributes of a geotiff file
 
     :param nf2:
-    :return:
+    :return: cut0,cut1,cut2,cut3
     """
 
     geotransform = nf2.GetGeoTransform()
@@ -577,6 +605,8 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
     :param meteomaps: list of meteomaps to define start and end time
     :param startcheck: date of beginning simulation
     :return:
+
+    :raises if no map stack in meteo map folder: :meth:`management_modules.messages.CWATMFileError`
     """
 
     end = dateVar['dateEnd']
@@ -653,7 +683,10 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     :param addZeros:
     :param zeros: default value
     :param mapsscale: if meteo maps have the same extend as the other spatial static m
-    :return:
+    :return: Compressed 1D array of meteo data
+
+    :raises if data is wrong: :meth:`management_modules.messages.CWATMError`
+    :raises if meteo netcdf file cannot be opened: :meth:`management_modules.messages.CWATMFileError`
     """
 
     try:
@@ -739,7 +772,10 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
     :param meteo: if map are meteo maps
     :param usefilename: if True filename is given False: filename is in settings file
     :param compress: True - compress data to 1D
-    :return:
+    :return: Compressed 1D array of netcdf stored data
+
+    :raises if netcdf file cannot be opened: :meth:`management_modules.messages.CWATMFileError`
+    :raises if netcdf file is not of the size of mask map: :meth:`management_modules.messages.CWATMWarning`
     """
 
     # in case a filename is used e.g. because of direct loading of pre results
@@ -824,7 +860,11 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
 
 def readnetcdfWithoutTime(name, value="None"):
     """
-    load stack of maps in netcdf format
+    load maps in netcdf format (has no time format)
+
+    :param namebinding: file name in settings file
+    :param value: (optional) netcdf variable name. If not given -> last variable is taken
+    :return: Compressed 1D array of netcdf stored data
     """
 
     filename =  os.path.normpath(name)
@@ -848,6 +888,14 @@ def readnetcdfWithoutTime(name, value="None"):
 def readnetcdfInitial(name, value,default = 0.0):
     """
     load initial condition from netcdf format
+
+    :param name: file name
+    :param value: netcdf variable name
+    :param default: (optional) if no variable is found a warning is given and value is set to default
+    :return: Compressed 1D array of netcdf stored data
+
+    :raises if netcdf file is not of the size of mask map: :meth:`management_modules.messages.CWATMError`
+    :raises if varibale name is not included in the netcdf file: :meth:`management_modules.messages.CWATMWarning`
     """
 
     filename =  os.path.normpath(name)
@@ -886,6 +934,19 @@ def readnetcdfInitial(name, value,default = 0.0):
 def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, flag,flagTime, nrdays=None, dateunit="days"):
     """
     write a netcdf stack
+
+    :param netfile: file name
+    :param prename: 1st part of variable name with tell which variable e.g. discharge
+    :param addname: part of the variable name with tells about the timestep e.g. daily, monthly
+    :param varunits: unit of the variable
+    :param inputmap: 1D array to be put as netcdf
+    :param timeStamp: time
+    :param posCnt: calculate nummer of the indece for time
+    :param flag: to indicate if the file is new -> netcdf header has to be written,or simply appending data
+    :param flagtime: to indicate the variable is time dependend (not a single array!)
+    :param nrdays: (optional) if indicate number of days are set in the time variable (makes files smaller!)
+    :param dateunit: (optional) dateunit indicate if the timestep in netcdf is days, month or years
+    :return: flag: to indicate if the file is set up
     """
 
     row = np.abs(cutmap[3] - cutmap[2])
@@ -1061,6 +1122,11 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
 def writeIniNetcdf(netfile,varlist, inputlist):
     """
     write variables to netcdf init file
+
+    :param netfile: file name
+    :param varlist: list of variable to be written in the netcdf file
+    :param inputlist: stack of 1D arrays
+    :return: -
     """
 
     row = np.abs(cutmap[3] - cutmap[2])
@@ -1163,6 +1229,20 @@ def writeIniNetcdf(netfile,varlist, inputlist):
 # report .tif and .maps
 
 def report(name,valueIn,compr=True):
+    """
+    For debugging: Save the 2D array as .map or .tif
+
+    :param name: Filename of the map
+    :param valueIn: 1D or 2D array in
+    :param compr: (optional) array is 1D (default) or 2D
+    :return: -
+
+    ::
+
+        Example:
+        > report(c:/temp/ksat1.map, self.var.ksat1)
+
+    """
 
 
     filename = os.path.splitext(name)
@@ -1176,9 +1256,6 @@ def report(name,valueIn,compr=True):
 
     checkint = value.dtype.char in np.typecodes['AllInteger']
     ny, nx = value.shape
-
-
-
 
     if pcmap: # if it is a map
         raster = gdal.GetDriverByName('PCRaster')
@@ -1226,6 +1303,7 @@ def report(name,valueIn,compr=True):
 def returnBool(inBinding):
     """
     Test if parameter is a boolean and return an error message if not, and the boolean if everything is ok
+
     :param inBinding: parameter in settings file
     :return: boolean of inBinding
     """
@@ -1240,7 +1318,11 @@ def returnBool(inBinding):
         raise CWATMError(msg)
 
 def checkOption(inBinding):
+    """
+    Check if option in settings file has a counterpart in the source code
 
+    :param inBinding: parameter in settings file
+    """
     lineclosest = ""
     test = inBinding in option
     if test:
@@ -1261,6 +1343,11 @@ def checkOption(inBinding):
         raise CWATMError(msg)
 
 def cbinding(inBinding):
+    """
+    Check if variable in settings file has a counterpart in the source code
+
+    :param inBinding: parameter in settings file
+    """
 
     lineclosest = ""
     test = inBinding in binding
@@ -1297,7 +1384,7 @@ def divideValues(x,y, default = 0.):
     :param x:
     :param y: divisor
     :param default: return value if y =0
-    :return:
+    :return: result of :math:`x/y` or default if y = 0
     """
     y1 = y.copy()
     y1[y1 == 0.] = 1.0

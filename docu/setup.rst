@@ -60,6 +60,7 @@ Windows executeable Python version
 .. note::
     | A cwatmexe.zip (around 300 MB with all Python libraries) is stored on:
     | `Source code on Github repository of CWATM <https://github.com/CWatM/CWatM>`_
+    | `Executable cwatmexe.zip on Github repository of CWATM <https://github.com/CWatM/CWatM/blob/version091/cwatmexe.zip>`_
 
 .. note::
     We recommend using the Python 3.7.x version, but if you not experienced in Python or have problems installing CWATM, please use the executable version.     
@@ -67,11 +68,10 @@ Windows executeable Python version
 PCRaster
 ******** 
 
-| CWATM is not using anymore anything from PCRaster
-| But the general idea of PCraster to split the modules in a initial part and a dynamic part 
-| is still used
+| CWATM is not using anything from PCRaster
+| But the general idea of PCraster to split the hydrological modules in a initial | part and a dynamic part is still used
 
-| Anyway PCRaster is still a great tool
+| Anyway PCRaster is a great tool
 | PCRASTER from Faculty of Geosciences, Utrecht University, The Netherlands
 | `Webpage of PCRaster <http://pcraster.geo.uu.nl>`_
 
@@ -231,13 +231,6 @@ In the meta data file information can be added  e.g. a description of the parame
 
 
 
-
-
-
-
-
-
-
 .. _rst_settingdoc:
 
 Settings file
@@ -347,16 +340,13 @@ Initial conditions can be stored and be loaded in order to initialise a warm sta
     :lines: 145-158
 
 	
-Initial conditions can be put directly into the settings file.
-Either as numbers or references to maps (.tif, PCraster or netCDF)
+StepInit indicate the date(s) when initial conditions are saved::
 
-.. warning:: The values here (if not set to NONE) will overwrite the initial conditions of the general initial condition netCDF file
-
-.. literalinclude:: _static/settings1.ini
-    :linenos:
-    :lineno-match:
-    :language: ini
-    :lines: 335-337
+    StepInit = 31/12/1989 
+    StepInit = 31/12/1989 31/12/2010
+    StepInit = 31/12/1989 5y
+    here: second value in StepInit is indicating a repetition of year(y), month(m) or day(d),
+    e.g. 2y for every 2 years or 6m for every 6 month
 
 
 
@@ -699,7 +689,7 @@ Time depending and non depending output maps
 --------------------------------------------
 	
 | Output maps will be produced as spatial maps, stack of spatial maps (over time) 
-| Format: `netCDF4 <http://www.unidata.ucar.edu/software/netcdf/>`_
+| Format: `netCDF <http://www.unidata.ucar.edu/software/netcdf/>`_
 
 The netCDF maps can be read with:
 
@@ -710,6 +700,7 @@ The netCDF maps can be read with:
 **Linux**
 
 - `ncview <http://meteora.ucsd.edu/~pierce/ncview_home_page.html>`_
+
 - `cdo <https://www.unidata.ucar.edu/software/netcdf/workshops/2012/third_party/CDO.html>`_
 
 
@@ -800,10 +791,10 @@ Output variables - starting a list
 ----------------------------------
 
 | A list of variables can be produced by using:
-| grep -d recurse 'self.var.' *.py 
+| grep -d recurse 'self.var.' \*.py 
 | Every self.var.variable can be used as output variable
 | For a description of the variable please take a look at the python module itself.
-| 
+| .
 | As output variable please use without self.var.
 
 ::

@@ -23,25 +23,16 @@ class snow(object):
     Variables *snow* and *rain* at end of this module are the pixel-average snowfall and rain
 
 
-    Inheritace: ``inheritance-diagram`` 
+    Inheritance: ``inheritance-diagram``
 
 
     .. inheritance-diagram:: cwatm_initial.CWATModel_ini
        :parts: 1
 
+    .. inheritance-diagram:: hydrological_modules.snow_frost.snow
 
-    
-    For example::
+    .. _extensions-literal:
 
-       .. inheritance-diagram:: cwatm
-
-    produces 1:
-
-       .. inheritance-diagram:: hydrological_modules.snow_frost.snow
-
-
-       .. _extensions-literal:
-	
 	
     """
 
@@ -64,31 +55,13 @@ class snow(object):
         .. inheritance-diagram: initial
 
 
-
-        Since Pythagoras, we know that :math:`a^2 + b^2 = c^2`.
-
-        test of math2
-
-        .. math:: (a + b)^2 = a^2 + 2ab + b^2 \clubsuit
-              :label: test2
-
-        .. math:: e^{i\pi} + 1 = 0
-             :label: euler
-
-        Euler's identity, equation :eq:`euler`, was elected one of the most beautiful mathematical formulas.
-
-			
         .. graphviz::
 
             digraph foo {
                 "snow" -> "initial";
             }
 
-
         """
-
-
-
 
         self.var.numberSnowLayersFloat = loadmap('NumberSnowLayers')    # default 3
         self.var.numberSnowLayers = int(self.var.numberSnowLayersFloat)
@@ -183,6 +156,7 @@ class snow(object):
     def dynamic(self):
         """
         Dynamic part of the snow module
+
         Distinguish between rain/snow and calculates snow melt and glacier melt
         The equation is a modification of:
 
