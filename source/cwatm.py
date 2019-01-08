@@ -36,6 +36,10 @@ __copyright__ = "Copyright 2016, IIASA"
 __maintainer__ = "Peter Burek"
 __status__ = "Development"
 
+"""
+Maintaining of the Python 2.7 code stops in 2019 as Python 2 support will end in 2020
+Please use the Python 3.7 version!
+"""
 
 #  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
