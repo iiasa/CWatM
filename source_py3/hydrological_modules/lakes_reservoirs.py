@@ -32,11 +32,13 @@ class lakes_reservoirs(object):
 
         Lake Routine using Modified Puls Method (see Maniak, p.331ff)
 
-        :math:`{Qin1 + Qin2 \over{2}} - {Qout1 + Qout2 \over{2}} = {S2 - S1 \over{\delta time}}`
+        .. math::
+             {Qin1 + Qin2 \over{2}} - {Qout1 + Qout2 \over{2}} = {S2 - S1 \over{\delta time}}
 
         changed into:
 
-        :math:`{S2 \over{time + Qout2/2}} = {S1 \over{dtime + Qout1/2}} - Qout1 + {Qin1 + Qin2 \over{2}}`
+        .. math::
+             {S2 \over{time + Qout2/2}} = {S1 \over{dtime + Qout1/2}} - Qout1 + {Qin1 + Qin2 \over{2}}
 
         Outgoing discharge (Qout) are linked to storage (S) by elevation.
 

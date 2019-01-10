@@ -48,6 +48,8 @@ downloaded at `Unofficial Windows Binaries for Python Extension Packages <http:/
 Windows executeable Python version
 **********************************
 
+
+
 | A CWATM executable cwatm.exe can be used instead of the Python version
 
 * ADVANTAGE: You can run it without installing or knowledge of Python
@@ -63,7 +65,13 @@ Windows executeable Python version
     | `Executable cwatmexe.zip on Github repository of CWATM <https://github.com/CWatM/CWatM/blob/version091/cwatmexe.zip>`_
 
 .. note::
-    We recommend using the Python 3.7.x version, but if you not experienced in Python or have problems installing CWATM, please use the executable version.     
+    | We recommend using the Python 3.7.x version, 
+    | but if you not experienced in Python or have problems installing CWATM, please use the executable version.     
+    | Either start it in DOS box (command cmd), or use the batch file cwatmbat.bat to start it
+    |  You still need the data for a successful run (see Todo)
+
+.. todo::
+    We will put a whole example of 30 deg Rhine basin with all necessary data in another zip file. Just for an easier start.
 
 PCRaster
 ******** 
