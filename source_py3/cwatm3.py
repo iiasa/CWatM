@@ -31,7 +31,7 @@ GNU General Public License for more details
 # --------------------------------------------------
 """
 
-__authors__ = "Peter Burek IIASA"
+__authors__ = "WATER Program, IIASA"
 __version__ = "Version: 1.02"
 __date__ = "07/01/2019"
 __copyright__ = "Copyright 2016, IIASA"
@@ -223,6 +223,7 @@ if __name__ == "__main__":
 
 	settings = sys.argv[1]    # setting.ini file
 
+	#settings = "settings_rhine5_test.ini"
 	args = sys.argv[2:]
 	globalFlags(args)
 	if Flags['use']: usage()

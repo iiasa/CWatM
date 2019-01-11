@@ -42,12 +42,72 @@ downloaded at `Unofficial Windows Binaries for Python Extension Packages <http:/
 Windows executeable Python version
 **********************************
 
-| A CWATM executable cwatm.exe can be used instead of the Python version
+| The A cwatmexe.zip with all Python libraries and a test case (River Rhine)) is stored on:
+| `Source code on Github repository of CWATM <https://github.com/CWatM/CWatM>`_
+| `Executable cwatmexe.zip on Github repository of CWATM <https://github.com/CWatM/CWatM/blob/version091/cwatmexe.zip>`_
 
-Test the model
-==============
 
-**Windows and Linux**
+Test the executable model version
+=================================
+
+**only Windows**
+
+If you familiar with Python just go to the next chapter.
+
+.. code-block:: rest
+   
+   cwatm
+   │-- README.md
+   │
+   └-- cwatmexe
+   │   └- lib
+   │   └---cwatm.exe
+   │   └---metaNetcdf.xml
+   │   └--- libraries etc.
+   │
+   └--rhine_basin
+   │   └---climate_rhine
+   │   └---cwatm_input_rhine
+   │   └---init
+   │   └---output
+   │   └---run_python_rhine30.bat
+   │   └---settings_rhine30.ini
+   │   
+   └-- run_test1.bat
+   └-- run_test2_rhine30min.bat
+   └-- settings_rhine_test.ini
+   └-- tutorial.html
+
+
+| Either start cwatm.exe in a DOS box (cmd windows command), or use a batch file e.g. run_test1.bat
+
+Test 1
+------
+
+In the root directory cwatm
+
+Please try::
+
+  run run_test1.bat or type .\cwatmexe\cwatm.exe
+
+The output should be like See: :ref:`rst_output1` 
+
+
+Test 2
+------
+
+Please try::
+
+  run run_test2_rhine30min.bat or type .\cwatmexe\cwatm.exe settings_rhine30_test.ini -l
+
+The output should be like See: :ref:`rst_output2` 
+
+.. _rst_output1:
+
+Test the Python model version
+=============================
+
+**Windows and Linux** (and maybe Mac, but not tested)
 
 Please try::
 
@@ -55,9 +115,7 @@ Please try::
    or:
    python <modelpath>/cwatm3.py  (for the Python3.7 version)
    or:
-   python <modelpath>/cwatm  (for the .exe version)
-
-
+   <modelpath>/cwatm  (for the .exe version)
 
 The output should be::
 
@@ -167,6 +225,11 @@ and as projection e.g.:
     | Please copy the the climate dataset 30min_meteo_rhine.zip or 5min_meteo_rhine.zip in a seperate folder
     | Please create a folder called output
 
+.. note:: 
+   
+    | For testing purpose there is a file rhine_basin.zip on GitHub
+    | it has all the necessary data to run the River Rhine on 30 arcmin from 1990-2010
+
 
 Changing the Settings file
 ==========================
@@ -188,6 +251,7 @@ The information of pathes are stored in the settings file around line 80-100
 
 .. note:: Please change the pathes according to your file system
 
+.. _rst_output2:
 
 Running the model 2
 ===================
@@ -195,6 +259,8 @@ Running the model 2
 If you type now::
 
    python cwatm.py settings_rhine.ini -l
+
+
 
 You should see::
 
@@ -212,7 +278,7 @@ You should see::
    ...
 
 
-If you do't see this. Something went wrong and you mifght see this instead::
+If you don't see this. Something went wrong and you might see this instead::
 
    E:\CWATM_rhine\source>python cwatm.py settings_rhine30min.ini -l
    CWATM - Community Water Model  Version: 0.991  Date:  16/09/2017

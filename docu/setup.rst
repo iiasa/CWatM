@@ -68,7 +68,7 @@ Windows executeable Python version
     | We recommend using the Python 3.7.x version, 
     | but if you not experienced in Python or have problems installing CWATM, please use the executable version.     
     | Either start it in DOS box (command cmd), or use the batch file cwatmbat.bat to start it
-    |  You still need the data for a successful run (see Todo)
+
 
 .. todo::
     We will put a whole example of 30 deg Rhine basin with all necessary data in another zip file. Just for an easier start.

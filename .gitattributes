@@ -17,3 +17,4 @@
 *.map filter=lfs diff=lfs merge=lfs -text
 *.mp4 filter=lfs diff=lfs merge=lfs -text
 cwatmexe.zip filter=lfs diff=lfs merge=lfs -text
+rhine_basin.zip filter=lfs diff=lfs merge=lfs -text
