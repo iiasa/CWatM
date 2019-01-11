@@ -33,11 +33,11 @@ Research Scholars, Water Program, IIASA
 
 .. _rst_developer:
 
-Peter Burek, Yusuke Satoh, Peter Greve
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Peter Burek, Yusuke Satoh, Peter Greve, Mikhail Smilovic
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-.. figure:: _static/developer.jpg
+.. figure:: _static/rooftop.jpg
     :width: 700px
 
 
