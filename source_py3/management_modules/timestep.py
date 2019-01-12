@@ -20,7 +20,7 @@ from management_modules.messages import *
 from netCDF4 import Dataset,num2date,date2num,date2index
 
 import difflib  # to check the closest word in settingsfile, if an error occurs
-from dateutil.relativedelta import *
+#from dateutil.relativedelta import *
 
 def date2str(date):
     """
@@ -145,6 +145,25 @@ def datetoInt(dateIn,begin,both=False):
     else: return int1
 
 
+def addmonths(d,x):
+    """
+    Adds months to a date
+
+    :param d: date
+    :param x: month to add
+    :return: date with added months
+    """
+
+    days_of_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    newmonth = ((( d.month - 1) + x ) % 12 ) + 1
+    newyear  = d.year + ((( d.month - 1) + x ) // 12 )
+    if d.day > days_of_month[newmonth-1]:
+       newday = days_of_month[newmonth-1]
+    else:
+       newday = d.day
+    return datetime.datetime( newyear, newmonth, newday)
+
+
 
 def datetosaveInit(initdates,begin,end):
     """
@@ -163,6 +182,7 @@ def datetosaveInit(initdates,begin,end):
 
     i = 0
     dateVar['intInit'] = []
+    dd =[]
 
     for d in initdates:
         i += 1
@@ -184,16 +204,24 @@ def datetosaveInit(initdates,begin,end):
                 j = 1
                 while True:
                     if d[-1] == 'y':
-                        date2 = start + relativedelta(years=+ add * j)
+                        #date2 = start + relativedelta(years=+ add * j)
+                        date2 = start
+                        try:
+                            date2 = date2.replace(year=date2.year + add * j)
+                        except ValueError:
+                            date2 = date2 - datetime.timedelta(days = 1)
+                            date2 = date2.replace(year=date2.year + add * j)
                     elif d[-1] == 'm':
-                        date2 = start + relativedelta(months=+ add * j)
+                        #date2 = start + relativedelta(months=+ add * j)
+                        date2 = addmonths(start, add * j)
                     else:
-                        date2 = start + relativedelta(days=+ add * j)
+                        date2 = start + datetime.timedelta(days= add * j)
                     if date2 > end:
                         break
                     else:
                         int1 = (date2 - begin).days + 1
                         dateVar['intInit'].append(int1)
+                        dd.append(date2)
                         j += 1
                 return
 
@@ -204,6 +232,8 @@ def datetosaveInit(initdates,begin,end):
             int1 = int(date1)
         dateVar['intInit'].append(int1)
 
+
+    ii = 1
 
 # noinspection PyTypeChecker
 def checkifDate(start,end,spinup):

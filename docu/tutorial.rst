@@ -32,7 +32,6 @@ These external libraries are needed:
 * `Scipy <https://www.scipy.org>`_
 * `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
 * `GDAL <http://www.gdal.org>`_
-* `python-dateutil <https://pypi.org/project/python-dateutil>`_
 
 **Windows**
 

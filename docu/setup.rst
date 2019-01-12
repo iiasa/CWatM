@@ -38,11 +38,10 @@ These external libraries are needed:
 * `Scipy <https://www.scipy.org>`_
 * `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
 * `GDAL <http://www.gdal.org>`_
-* `python-dateutil <https://pypi.org/project/python-dateutil>`_
 
 **Windows**
 
-The five libraries can be python-dateutil with pip or
+The five libraries can be installed with pip or
 downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
 
 
