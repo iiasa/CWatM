@@ -219,6 +219,9 @@ class readmeteo(object):
             self.var.Precipitation = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
         self.var.prec = self.var.Precipitation / self.var.con_precipitation
         # precipitation (conversion to [mm] per time step)  `
+        if Flags['check']:
+            checkmap('PrecipitationMaps', "", self.var.Precipitation, True, True, self.var.Precipitation)
+
 
         #self.var.Tavg = readnetcdf2('TavgMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
 
@@ -238,6 +241,10 @@ class readmeteo(object):
         if checkOption('TemperatureInKelvin'):
             self.var.Tavg -= ZeroKelvin
 
+        if Flags['check']:
+            checkmap('TavgMaps', "", self.var.Tavg, True, True, self.var.Tavg)
+
+
         #self.var.Tavg = downscaling(self.var.Tavg, downscale = 0)
 
         # -----------------------------------------------------------------------
@@ -245,6 +252,9 @@ class readmeteo(object):
         # Temparture min, max;  Windspeed,  specific humidity or relative humidity
         # psurf, radiation
         # -----------------------------------------------------------------------
+
+
+
         if checkOption('calc_evaporation'):
 
             #self.var.TMin = readnetcdf2('TminMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
@@ -254,6 +264,7 @@ class readmeteo(object):
             else:
                 self.var.TMin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=0)
 
+            if Flags['check']: checkmap('TminMaps', "", self.var.Tmin, True, True, self.var.Tmin)
 
             #self.var.TMax = readnetcdf2('TmaxMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
             self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale)
@@ -262,6 +273,7 @@ class readmeteo(object):
             else:
                 self.var.TMax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=0)
 
+            if Flags['check']: checkmap('TmaxMaps', "", self.var.Tmax, True, True, self.var.Tmax)
 
 
             #self.var.Psurf = readnetcdf2('PSurfMaps', dateVar['currDate'], addZeros = True, meteo = True)

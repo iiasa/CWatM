@@ -99,7 +99,8 @@ def CWATMexe():
 
 	checkifDate('StepStart','StepEnd','SpinUp')
 	# checks if end date is later than start date and puts both in modelSteps
-
+	if Flags['check']:
+		dateVar["intEnd"] = dateVar["intStart"]
 
 	CWATM = CWATModel()
 	stCWATM = ModelFrame(CWATM, firstTimestep=dateVar["intStart"], lastTimeStep=dateVar["intEnd"])
@@ -223,8 +224,11 @@ if __name__ == "__main__":
 
 	settings = sys.argv[1]    # setting.ini file
 
-	#settings = "settings_rhine5_test.ini"
 	args = sys.argv[2:]
+
+	#settings = "settings_rhine5_test.ini"
+	#args =['-c']
+
 	globalFlags(args)
 	if Flags['use']: usage()
 	if Flags['warranty']: GNU()

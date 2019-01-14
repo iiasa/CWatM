@@ -188,7 +188,7 @@ def loadsetclone(name):
 
 
         if Flags['check']:
-            checkmap(name, filename, mapnp, flagmap, 0)
+            checkmap(name, filename, mapnp, flagmap, False,0)
 
     else:
         msg = "Maskmap: " + filename + \
@@ -222,6 +222,9 @@ def loadsetclone(name):
 
     globals.inZero=np.zeros(maskinfo['mapC'])
 
+    if Flags['check']:
+        checkmap("Mask+Ldd", "", np.ma.masked_array(mask,mask), flagmap, True, mapC)
+
     return mapC
 
 
@@ -245,6 +248,8 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
         mapC = float(value)
         flagmap = False
         load = True
+        if Flags['check']:
+            checkmap(name, filename, mapC, False, False, 0)
     except ValueError:
         load = False
 
@@ -315,12 +320,14 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
             ii=0
 
 
-
-        if Flags['check']:
-            checkmap(name, filename, mapnp, True, 0)
-
-        if compress:  mapC = compressArray(mapnp,name=filename)
-        else: mapC = mapnp
+        if compress:
+            mapC = compressArray(mapnp,name=filename)
+            if Flags['check']:
+                checkmap(name, filename, mapnp, True, True, mapC)
+        else:
+            mapC = mapnp
+            if Flags['check']:
+                checkmap(name, filename, mapnp, True, False, 0)
 
 
     return mapC
@@ -738,9 +745,12 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
             raise CWATMWarning(msg)
 
         mapC = compressArray(mapnp, name=filename,zeros = zeros)
+        if Flags['check']:
+            checkmap(name, filename, mapnp, True, True, mapC)
     else: # if static map extend not equal meteo maps -> downscaling in readmeteo
         mapC = mapnp
-
+        if Flags['check']:
+            checkmap(name, filename, mapnp, True, False, 0)
 
     # increase index and check if next file
     #if (dateVar['leapYear'] == 1) and calendar.isleap(date.year):
@@ -855,6 +865,8 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
         raise CWATMWarning(msg)
 
     mapC = compressArray(mapnp, name=filename)
+    if Flags['check']:
+        checkmap(value, filename, mapnp, True, True, mapC)
     return mapC
 
 
@@ -881,6 +893,8 @@ def readnetcdfWithoutTime(name, value="None"):
     nf1.close()
 
     mapC = compressArray(mapnp, name=filename)
+    if Flags['check']:
+        checkmap(value, filename, mapnp, True, True, mapC)
     return mapC
 
 
@@ -910,6 +924,8 @@ def readnetcdfInitial(name, value,default = 0.0):
             mapnp = (nf1.variables[value][:].astype(np.float64))
             nf1.close()
             mapC = compressArray(mapnp, name=filename)
+            if Flags['check']:
+                checkmap(value, filename, mapnp, True, True, mapC)
             return mapC
         except:
             #nf1.close()
