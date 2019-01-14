@@ -521,12 +521,7 @@ Complete settings file
 Example of a settings file:
 
 .. literalinclude:: _static/settings1.ini
-
-
-
-
-
-
+    :linenos:
 
 
 

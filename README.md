@@ -8,6 +8,10 @@ CWATM represents one of the new key elements of IIASA’s Water program to asses
 http://www.iiasa.ac.at/cwatm
 
 
+![CWATM](docu/_static/CWATM1.jpg)
+
+
+
 ## Model design and processes included
 
 The Community Water Model (CWATM) will be designed for the purpose to assess water availability, water demand and environmental needs. It includes an accounting of how future water demands will evolve in response to socioeconomic change and how water availability will change in response to climate.

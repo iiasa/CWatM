@@ -114,37 +114,6 @@ def checkmap(name, value, map, flagmap, flagcompress,mapC):
         s.append(input2str(float(map)))
         s.append("")
 
-        """
-        amap = scalar(defined(MMaskMap))
-        try:
-            smap = scalar(defined(map))
-        except:
-            msg = "Map: " + name + " in " + value + " does not fit"
-            if name == "LZAvInflowMap":
-                msg +="\nMaybe run initial run first"
-            raise CWATMError(msg)
-
-        mvmap = maptotal(smap)
-        mv = cellvalue(mvmap, 1, 1)[0]
-        s.append(mv)
-
-        less = maptotal(ifthenelse(defined(MMaskMap), amap - smap, scalar(0)))
-        s.append(cellvalue(less, 1, 1)[0])
-        less = mapminimum(scalar(map))
-        s.append(cellvalue(less, 1, 1)[0])
-        less = maptotal(scalar(map))
-        if mv > 0:
-            s.append(cellvalue(less, 1, 1)[0] / mv)
-        else:
-            s.append('0')
-        less = mapmaximum(scalar(map))
-        s.append(cellvalue(less, 1, 1)[0])
-        if find > 0:
-            if find == 2:
-                s.append('last_Map_used')
-            else:
-                s.append('')
-        """
 
     t = ["<30","<40",">11",">11",">11",">11",">11",">11",">11",">11",">11", ">11",">11"]
     h = ["Name","File/Value","nonMV","MV", "lon-lat","Compress","MV-comp","Zero-comp","NonZero","min","mean","max","x1","x2","x3"]

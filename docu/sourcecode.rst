@@ -44,15 +44,113 @@ Modules of CWATM
 The source code of CWATM has a modular structure. Modules for data handling, output, reading as parsing the setting files
 are in the **management_modules** folder.
 
-Modules for hydrological processes e.g. snow, soil, groundwater etc. are located in the folder **hydrological_modules**. The kinematic routing
-and the C++ routines (for speeding up the computational time) are in the folder **hydrological_modules/routing_reservoirs**.
+| Modules for hydrological processes e.g. snow, soil, groundwater etc. are located in the folder **hydrological_modules**.
+| The kinematic routing and the C++ routines (for speeding up the computational time) are in the folder **hydrological_modules/routing_reservoirs**.
+| Fig. 1 shows the modules of CWATM and their connections
+| Fig. 2 shows a profile with of the workflow and timing of CWATM.
 
-Fig 1 show a profile with of the workflow of CWATM.
+
+.. graphviz::
+
+	digraph {
+		compound=true
+		overlap=false
+		graph [layout = neato]
+		node [shape=circle,style=filled,fillcolor=red,fixedsize=true,width=1.3,fontsize=23] cwatm3;
+		node [shape=box,style = filled,fillcolor=Tomato,fontsize=14,width=3] dynamicModel; 
+		node [shape=box,style=filled,fillcolor=orange,fontsize=14,width=2] data_handling; configuration; globals; messages; output; replace_pcr; timestep; checks;
+		
+		node [shape=circle,style=filled,fillcolor=Tomato,fixedsize=true,width=1.0] cwatm_initial;cwatm_dynamic;
+
+		node [shape=circle,style=filled,fillcolor=Azure,fixedsize=true,width=1.0] miscInitial; initcondition; landcoverType; 
+
+		node [shape=circle,style=filled,fillcolor=lightblue,fixedsize=true,width=1.0]  readmeteo; inflow; interception; evaporationPot; evaporation; snow_frost; sealed_water; 
+
+		node [shape=circle,style=filled,fillcolor=DodgerBlue,fixedsize=true,width=1.0]  soil; evaporation;capillarRise;groundwater;
+		
+
+		node [shape=circle,style=filled,fillcolor=MediumOrchid,fixedsize=true,width=1.0] waterbalance; waterdemand; environflow
+
+		node [shape=circle,style=filled,fillcolor=RoyalBlue,fixedsize=true,width=1.0] routing_kinematic; runoff_concentration; lakes_reservoirs; lakes_res_small
+		node [shape=circle,style=filled,fillcolor=RoyalBlue,fixedsize=true,width=0.8] routing_sub; "t5.dll"
+
+		cwatm3 -> dynamicModel[color=red,penwidth=3.5];
+		dynamicModel -> cwatm_initial[color=Tomato,penwidth=2.5];
+		dynamicModel -> cwatm_dynamic[color=Tomato,penwidth=2.5];
+		cwatm3 -> globals
+		cwatm3 -> configuration
+		
+		cwatm_initial -> miscInitial[color=RoyalBlue3];
+		cwatm_initial -> initcondition[color=RoyalBlue3];
+		cwatm_initial -> landcoverType[color=RoyalBlue3];
+		cwatm_initial -> inflow[color=RoyalBlue3];
+		cwatm_initial -> readmeteo[color=RoyalBlue3];
+		cwatm_initial -> evaporationPot[color=RoyalBlue3];
+		cwatm_initial -> snow_frost[color=RoyalBlue3];
+		cwatm_initial -> runoff_concentration[color=RoyalBlue3];
+		cwatm_initial -> lakes_reservoirs[color=RoyalBlue3];
+		cwatm_initial -> lakes_res_small[color=RoyalBlue3];
+		cwatm_initial -> soil[color=RoyalBlue3];
+		cwatm_initial -> evaporation[color=RoyalBlue3];
+		cwatm_initial -> environflow[color=RoyalBlue3];
+		cwatm_initial -> groundwater[color=RoyalBlue3];
+		cwatm_initial -> waterdemand[color=RoyalBlue3];		
+		cwatm_initial -> routing_kinematic[color=RoyalBlue3];
+
+		cwatm_dynamic -> landcoverType[color=MidnightBlue];
+		cwatm_dynamic -> inflow[color=MidnightBlue];
+		cwatm_dynamic -> readmeteo[color=MidnightBlue];
+		cwatm_dynamic -> evaporationPot[color=MidnightBlue];
+		cwatm_dynamic -> snow_frost[color=MidnightBlue];
+		cwatm_dynamic -> sealed_water[color=MidnightBlue];
+		cwatm_dynamic -> runoff_concentration[color=MidnightBlue];
+		cwatm_dynamic -> lakes_reservoirs[color=MidnightBlue];
+		cwatm_dynamic -> lakes_res_small[color=MidnightBlue];
+		landcoverType -> soil[color=MidnightBlue];
+		cwatm_dynamic -> environflow[color=MidnightBlue];
+		cwatm_dynamic -> evaporation[color=MidnightBlue];
+		cwatm_dynamic -> capillarRise[color=MidnightBlue];
+		cwatm_dynamic -> groundwater[color=MidnightBlue];
+		cwatm_dynamic -> interception[color=MidnightBlue];
+		cwatm_dynamic -> waterdemand[color=MidnightBlue];		
+		cwatm_dynamic -> routing_kinematic[color=MidnightBlue];
+		cwatm_dynamic -> waterbalance[color=MidnightBlue];
+
+		routing_kinematic -> lakes_reservoirs[color=MidnightBlue];
+		routing_kinematic -> routing_sub[color=MidnightBlue];
+		routing_kinematic -> "t5.dll"[color=MidnightBlue];
+		routing_sub -> "t5.dll"[color=MidnightBlue]
+	
+		cwatm_initial -> data_handling[penwidth=0.5, style=dashed, arrowsize =0];
+		readmeteo -> data_handling[penwidth=0.5, style=dashed, arrowsize =0]
+		cwatm_dynamic -> output[penwidth=0.5, style=dashed, arrowsize =0];
+		cwatm_dynamic -> timestep[penwidth=0.5, style=dashed, arrowsize =0];
+		data_handling -> checks[penwidth=0.5, style=dashed, arrowsize =0]	
+		data_handling -> messages[penwidth=0.5, style=dashed, arrowsize =0]
+		data_handling -> timestep[penwidth=0.5, style=dashed, arrowsize =0]
+		output -> messages[penwidth=0.5, style=dashed, arrowsize =0]
+		output -> timestep[penwidth=0.5, style=dashed, arrowsize =0]
+		readmeteo -> checks[penwidth=0.5, style=dashed, arrowsize =0]
+		
+		waterdemand -> replace_pcr[penwidth=0.5, style=dashed, arrowsize =0]
+		waterbalance -> replace_pcr[penwidth=0.5, style=dashed, arrowsize =0]
+		routing_kinematic -> replace_pcr[penwidth=0.5, style=dashed, arrowsize =0]
+		lakes_reservoirs -> replace_pcr[penwidth=0.5, style=dashed, arrowsize =0]
+		lakes_res_small -> replace_pcr[penwidth=0.5, style=dashed, arrowsize =0]
+
+	}
+
+
+Figure 1: Schematic graph of CWATM modules
+
 
 .. image:: _static/callgraph.png
     :width: 900px
 
-Figure 1: Graphical profile of CWATM run for Rhine catchment from 1/1/190-31/12/2010
+Figure 2: Graphical profile of CWATM run for Rhine catchment from 1/1/190-31/12/2010
+
+
+
 
 .. note::
    | Figure created with:
