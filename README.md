@@ -17,6 +17,11 @@ http://www.iiasa.ac.at/cwatm
 
 The Community Water Model (CWATM) will be designed for the purpose to assess water availability, water demand and environmental needs. It includes an accounting of how future water demands will evolve in response to socioeconomic change and how water availability will change in response to climate.
 
+<p align="center">
+  <img src="docu/_static/schematic_modules.jpg" width="350" title="Schematic modules">
+</p>
+Figure 1: Schematic graph of CWATM modules
+
 ## Next-generation global hydro-economic modeling framework
 
 The Community Water Model will help to develop a next-generation hydro-economic modeling tool that represents the economic trade-offs among water supply technologies and demands.  The tool will track water use from all sectors and will identify the least-cost solutions for meeting future water demands under policy constraints.  In addition, the tool will track the energy requirements associated with the water supply system (e.g., desalination and water conveyance) to facilitate the linkage with the energy-economic tool. The tool will also incorporate environmental flow requirements to ensure sufficient water for environmental needs.
