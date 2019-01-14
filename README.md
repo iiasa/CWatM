@@ -8,8 +8,9 @@ CWATM represents one of the new key elements of IIASA’s Water program to asses
 http://www.iiasa.ac.at/cwatm
 
 
-![CWATM](docu/_static/CWATM1.jpg)
-
+<p align="center">
+  <img src="docu/_static/CWATM1.jpg" width="200" title="CWATM">
+</p>
 
 
 ## Model design and processes included
