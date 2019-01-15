@@ -37,6 +37,7 @@ Community Water Model
    data
    calibration
    calibration_tutorial
+   resolution
    license
    sourcecode
 
