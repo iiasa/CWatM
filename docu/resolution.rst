@@ -1,12 +1,12 @@
-####################################
+######################################
 Increasing resolution (in development)
-####################################
+######################################
 
 Data handling
-==========
+=============
 
 Artificially increasing resolution
-----------------------------------------------
+----------------------------------
 
 Currently, input data must all be of the same resolution. If the model is to be run at 1km resolution, then all the data must be available at 1km resolution.
 One can artificially increase the resolution by appropriately dividing the cells to match the desired resolution, if data of a higher resolution is not available.
