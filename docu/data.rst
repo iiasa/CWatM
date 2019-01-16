@@ -333,7 +333,6 @@ Lakes and Reservoirs
 
 The HydroLakes database http://www.hydrosheds.org/page/hydrolakes (Bernhard Lehner et al., 2011; Messager, Lehner, Grill, Nedeva, & Schmitt, 2016) provides 1.4 million global lakes and reservoirs with a surface area of at least 10ha. CWATM differentiate between big lakes and reservoirs which are connected inside the river network and smaller lakes and reservoirs which are part of a single grid cell and part of the runoff concentration within a grid cell.  Therefore the HydroLakes database is separated into “big” lakes and reservoirs with an area ≥ 100 km2 or a upstream area ≥ 5000 km2 and “small” lakes which represents the non-big lakes. All lakes and reservoirs are combined at grid cell level but big lakes can have the expansion of several grid cells. Lakes bigger than 10000 km2 are shifted according to the ISIMIP protocol.
 
-
 Water demand
 ------------
 
