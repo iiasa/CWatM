@@ -33,9 +33,11 @@ Research Scholars, Water Program, IIASA
 
 .. _rst_developer:
 
-Peter Burek, Yusuke Satoh, Peter Greve, Mikhail Smilovic
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Peter Burek, Yusuke Satoh, Peter Greve, Mikhail Smilovic, Alejandra Virgen-Urcelay
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Hydrology and Programming: Peter Burek, Yusuke Satoh, Peter Greve, Mikhail Smilovic
+GIS: Alejandra Virgen-Urcelay
 
 .. figure:: _static/rooftop.jpg
     :width: 700px

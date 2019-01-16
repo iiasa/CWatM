@@ -18,7 +18,7 @@ http://www.iiasa.ac.at/cwatm
 The Community Water Model (CWATM) will be designed for the purpose to assess water availability, water demand and environmental needs. It includes an accounting of how future water demands will evolve in response to socioeconomic change and how water availability will change in response to climate.
 
 <p align="center">
-  <img src="docu/_static/schematic_modules.jpg" width="350" title="Schematic modules">
+  <img src="docu/_static/schematic_modules.jpg" width="450" title="Schematic modules">
 </p>
 Figure 1: Schematic graph of CWATM modules
 
@@ -29,6 +29,12 @@ The Community Water Model will help to develop a next-generation hydro-economic 
 ## The Nexus framework of IIASA
 
 In the nexus framework – water, energy, food, ecosystem - CWATM will be coupled to the existing IIASA models including the Integrated Assessment Model MESSAGE and the global land and ecosystem model GLOBIOM in order to realize an improved assessments of water-energy-food-ecosystem nexus and associated feedback.
+
+<p align="center">
+  <img src="docu/_static/nexus.jpg" width="350" title="IIASA nexus">
+</p>
+Figure 2: IIASA model nexus
+
 
 ## Short to medium vision
 
