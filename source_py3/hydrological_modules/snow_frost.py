@@ -21,18 +21,6 @@ class snow(object):
     snow zones 1 -7 which each occupy a part of the pixel surface
 
     Variables *snow* and *rain* at end of this module are the pixel-average snowfall and rain
-
-
-    Inheritance: ``inheritance-diagram``
-
-
-    .. inheritance-diagram:: cwatm_initial.CWATModel_ini
-       :parts: 1
-
-    .. inheritance-diagram:: hydrological_modules.snow_frost.snow
-
-    .. _extensions-literal:
-
 	
     """
 
@@ -48,19 +36,6 @@ class snow(object):
 
         * loads all the parameters for the day-degree approach for rain, snow and snowmelt
         * loads the parameter for frost
-
-        .. inheritance-diagram: snow
-
-
-        .. inheritance-diagram: initial
-
-
-        .. graphviz::
-
-            digraph foo {
-                "snow" -> "initial";
-            }
-
         """
 
         self.var.numberSnowLayersFloat = loadmap('NumberSnowLayers')    # default 3
@@ -170,14 +145,6 @@ class snow(object):
 
         Todo:
             calculate sinus shape function for the southern hemisspere
-
-        test of math1
-
-        .. math::
-              a = \sqrt{2} 
-
-
-
         """
         if checkOption('calcWaterBalance'):
             self.var.prevSnowCover = self.var.SnowCover
