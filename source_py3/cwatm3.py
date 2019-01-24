@@ -226,8 +226,8 @@ if __name__ == "__main__":
 
 	args = sys.argv[2:]
 
-	#settings = "settings_rhine5_test.ini"
-	#args =['-c']
+	#settings = "P:/watmodel/CWATM/cwatm_input_1km/settings_Pune_1km_peter.ini"
+	#args =['-l']
 
 	globalFlags(args)
 	if Flags['use']: usage()

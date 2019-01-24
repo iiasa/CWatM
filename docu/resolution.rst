@@ -1,6 +1,9 @@
-######################################
-Increasing resolution (in development)
-######################################
+#####################
+Increasing resolution
+#####################
+
+.. note:: In development
+
 
 Data handling
 =============

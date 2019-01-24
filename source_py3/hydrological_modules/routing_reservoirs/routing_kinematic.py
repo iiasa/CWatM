@@ -39,7 +39,7 @@ class routing_kinematic(object):
         * calculate manning's roughness coefficient
         """
 
-        ldd = loadmap('Ldd',compress=False)
+        ldd = loadmap('Ldd')
         # l1 = decompress(ldd)
 
         self.var.lddCompress, dirshort, self.var.dirUp, self.var.dirupLen, self.var.dirupID, self.var.downstruct, self.var.catchment, self.var.dirDown, self.var.lendirDown = defLdd2(ldd)

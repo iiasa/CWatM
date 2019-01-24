@@ -48,7 +48,7 @@ class interception(object):
 
 
 
-        # Rain instead Pr, bceause snow is substracted later
+        # Rain instead Pr, because snow is substracted later
         # assuming that all interception storage is used the other time step
         throughfall = np.maximum(0.0, self.var.Rain + self.var.interceptStor[No] - self.var.interceptCap[No])
 

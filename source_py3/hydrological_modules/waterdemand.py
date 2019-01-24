@@ -314,9 +314,9 @@ class waterdemand(object):
             potBeta = (self.var.arnoBeta[No] + 1) / self.var.arnoBeta[No]
             potInf = store - store * (1 - (1 - satAreaFrac) ** potBeta)
             # ----------------------------------------------------------
-            availWaterPlant1 = np.maximum(0., self.var.w1[No] - self.var.wwp1[No]) * self.var.rootDepth[0][No]
-            availWaterPlant2 = np.maximum(0., self.var.w2[No] - self.var.wwp2[No]) * self.var.rootDepth[1][No]
-            #availWaterPlant3 = np.maximum(0., self.var.w3[No] - self.var.wwp3[No]) * self.var.rootDepth[2][No]
+            availWaterPlant1 = np.maximum(0., self.var.w1[No] - self.var.wwp1[No])   #* self.var.rootDepth[0][No]  should not be multiplied again with soildepth
+            availWaterPlant2 = np.maximum(0., self.var.w2[No] - self.var.wwp2[No])   # * self.var.rootDepth[1][No]
+            #availWaterPlant3 = np.maximum(0., self.var.w3[No] - self.var.wwp3[No])  #* self.var.rootDepth[2][No]
             readAvlWater = availWaterPlant1 + availWaterPlant2 # + availWaterPlant3
 
             # calculate   ****** SOIL WATER STRESS ************************************
@@ -344,9 +344,9 @@ class waterdemand(object):
             wCrit2 = ((1 - p) * (self.var.wfc2[No] - self.var.wwp2[No])) + self.var.wwp2[No]
             wCrit3 = ((1 - p) * (self.var.wfc3[No] - self.var.wwp3[No])) + self.var.wwp3[No]
 
-            critWaterPlant1 = np.maximum(0., wCrit1 - self.var.wwp1[No]) * self.var.rootDepth[0][No]
-            critWaterPlant2 = np.maximum(0., wCrit2 - self.var.wwp2[No]) * self.var.rootDepth[1][No]
-            #critWaterPlant3 = np.maximum(0., wCrit3 - self.var.wwp3[No]) * self.var.rootDepth[2][No]
+            critWaterPlant1 = np.maximum(0., wCrit1 - self.var.wwp1[No])  # * self.var.rootDepth[0][No]
+            critWaterPlant2 = np.maximum(0., wCrit2 - self.var.wwp2[No])  # * self.var.rootDepth[1][No]
+            #critWaterPlant3 = np.maximum(0., wCrit3 - self.var.wwp3[No]) # * self.var.rootDepth[2][No]
             critAvlWater = critWaterPlant1 + critWaterPlant2 # + critWaterPlant3
 
             # with alpha from Xiaogang He, to adjust irrigation to farmer's need

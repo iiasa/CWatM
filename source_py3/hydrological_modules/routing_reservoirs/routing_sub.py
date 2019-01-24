@@ -256,8 +256,10 @@ def defLdd2(ldd):
     :return: ldd variables
     """
 
-    #ldd2D = decompress(ldd, pcr1=False).astype(np.int64)
-    ldd2D = ldd.astype(np.int64)
+    # decompressing ldd from 1D -> 2D
+    dmap = maskinfo['maskall'].copy()
+    dmap[~maskinfo['maskflat']] = ldd[:]
+    ldd2D = dmap.reshape(maskinfo['shape']).astype(np.int64)
     ldd2D[ldd2D.mask] = 0
 
     # every cell gets an order starting from 0 ...
@@ -316,12 +318,12 @@ def lddrepair(lddnp,lddOrder):
 
     check = np.array(np.zeros(maskinfo['mapC'][0]),dtype=np.int64)
     lib2.repairLdd2(lddcomp, dirshort, check,maskinfo['mapC'][0] )
-
+    ii=2
 	
 	
 	
     """
-    for i in xrange(maskattr["compshape"]):
+    for i in range(maskinfo['mapC'][0]):
        path=[]
        j=i
        while 1:
@@ -334,5 +336,6 @@ def lddrepair(lddnp,lddOrder):
           j = dirshort[j]
        check[path]=1
     """
+
 
     return lddcomp, dirshort

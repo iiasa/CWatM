@@ -230,6 +230,11 @@ if __name__ == "__main__":
     settings = sys.argv[1]    # setting.ini file
 
     args = sys.argv[2:]
+
+    settings = "P:/watmodel/CWATM/cwatm_input_1km/settings_Pune_1km_peter.ini"
+    args = ['-l']
+
+
     globalFlags(args)
     if Flags['warranty']: GNU()
     # setting of global flag e.g checking input maps, producing more output information

@@ -40,5 +40,5 @@ Community Water Model
    resolution
    license
    sourcecode
-
+   forum
 

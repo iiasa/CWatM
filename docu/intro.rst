@@ -12,7 +12,8 @@ CWATM will represent one of the new key elements of the WAT program going forwar
 
 Our vision for the short to medium term work of the group is to introduce water quality (i.e., salinization in deltas and eutrophication associated with mega cities) into the community model and to consider how to include a qualitative/quantitative measure of transboundary river and groundwater governance into a scenario and modelling framework.
 
-**Contact CWATM**
+Contact CWATM
+-------------
 
 | `www.iiasa.ac.at/cwatm <http://www.iiasa.ac.at/cwatm>`_ 
 | wfas.info@iiasa.ac.at
@@ -20,3 +21,4 @@ Our vision for the short to medium term work of the group is to introduce water 
 **Download pdf**
 
 :download:`CWATM_MANUAL.pdf<_static/CWATM.pdf>`
+

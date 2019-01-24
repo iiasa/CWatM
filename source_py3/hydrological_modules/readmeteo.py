@@ -216,7 +216,7 @@ class readmeteo(object):
         if self.var.meteodown:
             self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
         else:
-            self.var.Precipitation = downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
+            self.var.Precipitation = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
         self.var.prec = self.var.Precipitation / self.var.con_precipitation
         # precipitation (conversion to [mm] per time step)  `
         if Flags['check']:
