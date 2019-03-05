@@ -166,11 +166,12 @@ class readmeteo(object):
         if downscale == 1: # Temperature
             diff_wc = wc4 - input
             #diff_wc[np.isnan( diff_wc)] = 0.0
+            # could also use np.kron !
             diffSmooth = scipy.ndimage.zoom(diff_wc, resoint, order=1)
             down1 = wc2 - diffSmooth
             down1 = np.where(np.isnan(down1),down3,down1)
         if downscale == 2:  # precipitation
-            quot_wc = input / wc4
+            quot_wc = divideValues(input, wc4)
             quotSmooth = scipy.ndimage.zoom(quot_wc, resoint, order=1)
             down1 = wc2 * quotSmooth
             down1 = np.where(np.isnan(down1),down3,down1)
@@ -217,6 +218,9 @@ class readmeteo(object):
             self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
         else:
             self.var.Precipitation = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
+
+        #self.var.Precipitation = self.var.Precipitation * 1000
+
         self.var.prec = self.var.Precipitation / self.var.con_precipitation
         # precipitation (conversion to [mm] per time step)  `
         if Flags['check']:

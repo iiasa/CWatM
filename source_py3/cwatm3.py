@@ -227,6 +227,9 @@ if __name__ == "__main__":
 	args = sys.argv[2:]
 
 	#settings = "P:/watmodel/CWATM/cwatm_input_1km/settings_Pune_1km_peter.ini"
+	#settings = "C:/work/CWATM/source_py3/settings1.ini"
+	#settings = "P:/watmodel/CWATM/modelruns/indus/indus5min.ini"
+	#settings = "settings_indus.ini"
 	#args =['-l']
 
 	globalFlags(args)
