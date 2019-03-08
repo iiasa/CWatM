@@ -38,6 +38,7 @@ Peter Burek, Yusuke Satoh, Peter Greve, Mikhail Smilovic, Alejandra Virgen-Urcel
 
 | Hydrology and Programming: Peter Burek, Yusuke Satoh, Peter Greve, Mikhail Smilovic
 | GIS: Alejandra Virgen-Urcelay
+| Intro video: Junko Mochizuki
 
 .. figure:: _static/rooftop.jpg
     :width: 700px

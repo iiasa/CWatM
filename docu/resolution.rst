@@ -16,11 +16,10 @@ This section details how to derive the necessary river dimensions, including:
 
 **Necessary inputs:**
 
-* Ldd: Local drainage directions: This was derived from the drainage direction map (as_dir_30s) available from hydrosheds.com.
-The map from hydrosheds.com uses the ESRI direction conventions (for example, the direction top-right is 32) while we require the keypad convention (top-right is 9) for pcraster.
-The included *reclass_arc_ldd* file can be used for this "reclassification" in ArcGIS.
+* Ldd: Local drainage directions: This was derived from the drainage direction map (as_dir_30s) available from hydrosheds.com. The map from hydrosheds.com uses the ESRI direction conventions (for example, the direction top-right is 32) while we require the keypad convention (top-right is 9) for pcraster. The included *reclass_arc_ldd* file can be used for this "reclassification" in ArcGIS.
 
-* cell area: The file *cellarea_30sec_global.tif* is included.
+* cell area: The file *cellarea_30sec_global.tif* is included
+
 * dem: Digital elevation model: downloaded from hydrosheds.com
 
 We demonstrate this at 30 seconds resolution for the Upper Bhima basin in India. The input data is all of 30s resolution and type .map unless otherwise indicated.

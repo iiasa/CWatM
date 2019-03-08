@@ -3,6 +3,11 @@
 Introduction
 ############
 
+.. raw:: html 
+
+   <video autoplay loop controls src="_static/CWatM_intro.mp4" width="800"> </video>
+
+
 Community Water Model - CWATM
 =============================
 
