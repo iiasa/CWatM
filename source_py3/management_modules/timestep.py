@@ -20,7 +20,7 @@ from management_modules.messages import *
 from netCDF4 import Dataset,num2date,date2num,date2index
 
 import difflib  # to check the closest word in settingsfile, if an error occurs
-#from dateutil.relativedelta import *
+#from dateutil.relativedelta import *  # replaced by interal calculation of deltamonth/year
 
 def date2str(date):
     """

@@ -24,50 +24,35 @@ partly using C++ for speeding up
 def Compress (map,mask):
     """
     compressing map from 2D to 1D without missing values
+
     :param map:  input map
     :param mask: mask map
     :return: compressed map
     """
+
     maskmap = np.ma.masked_array(map,mask)
     compmap = np.ma.compressed(maskmap)
     return compmap
 
 
-def Decompress(compmap,mask,emptymap):
+def decompress(map):
     """
     Decompressing map from 1D to 2D with missing values
-    :param compmap: compressed map
-    :param mask:  mask map
-    :param emptymap: map with only 0 in
+
+    :param map: compressed map
     :return: decompressed 2D map
     """
-    dmap=emptymap.copy()
-    dmap[~mask.ravel()] = compmap[:]
-    dmap = dmap.reshape(mask.shape)
-    return dmap
 
-
-def decompress1(map):
-    """
-    redundant have to look if it is still used
-
-    Todo:
-        remove it?
-
-    :param map:
-    :return:
-    """
     dmap = maskinfo['maskall'].copy()
     dmap[~maskinfo['maskflat']] = map[:]
     dmap = dmap.reshape(maskinfo['shape'])
     return dmap
 
 
-
-
 def postorder(dirUp,catchment,node,catch,dirDown):
     """
-    routine to run a postoder tree traversal
+    Routine to run a postoder tree traversal
+
     :param dirUp:
     :param catchment:
     :param node:
@@ -115,7 +100,7 @@ def dirUpstream(dirshort):
     runs the network tree upstream from outlet to source
 
     :param dirshort:
-    :return:
+    :return: direction upstream
     """
 
     # -- up direction
@@ -144,7 +129,7 @@ def dirDownstream(dirUp,lddcomp,dirDown):
     :param dirUp:
     :param lddcomp:
     :param dirDown:
-    :return:
+    :return: direction downstream
     """
 
     catchment = np.array(np.zeros(maskinfo['mapC'][0]), dtype=np.int64)
@@ -162,10 +147,11 @@ def dirDownstream(dirUp,lddcomp,dirDown):
 def upstreamArea(dirDown,dirshort,area):
     """
     calculates upstream area
+
     :param dirDown: array which point from each cell to the next downstream cell
     :param dirshort:
     :param area: area in m2 for a single gridcell
-    :return:
+    :return: upstream area
     """
 
     ups = area.copy()
@@ -178,7 +164,7 @@ def upstream1(downstruct, weight):
 
     :param downstruct:
     :param weight:
-    :return:
+    :return: upstream 1cell
     """
     return np.bincount(downstruct, weights=weight)[:-1]
 
@@ -189,7 +175,7 @@ def downstream1(dirUp,weight):
 
     :param dirUp:
     :param weight:
-    :return:
+    :return: dowmnstream 1 cell
     """
 
     downstream = weight.copy()
@@ -207,7 +193,7 @@ def catchment1(dirUp, points):
 
     :param dirUp:
     :param points:
-    :return:
+    :return: subcatchment
     """
 
     subcatch = np.array(np.zeros(maskinfo['mapC'][0]), dtype=np.int64)
@@ -232,7 +218,7 @@ def subcatchment1(dirUp, points,ups):
     :param dirUp:
     :param points:
     :param ups:
-    :return:
+    :return: subcatchment
     """
 
     subcatch = np.array(np.zeros(maskinfo['mapC'][0]), dtype=np.int64)
@@ -266,18 +252,20 @@ def defLdd2(ldd):
     """
     defines river network
 
-    :param ldd:
-    :return:
+    :param ldd: river network
+    :return: ldd variables
     """
 
-    #ldd2D = decompress(ldd, pcr1=False).astype(np.int64)
-    ldd2D = ldd.astype(np.int64)
+    # decompressing ldd from 1D -> 2D
+    dmap = maskinfo['maskall'].copy()
+    dmap[~maskinfo['maskflat']] = ldd[:]
+    ldd2D = dmap.reshape(maskinfo['shape']).astype(np.int64)
     ldd2D[ldd2D.mask] = 0
 
     # every cell gets an order starting from 0 ...
     lddshortOrder =np.arange(maskinfo['mapC'][0])
     # decompress this map to 2D
-    lddOrder = decompress1(lddshortOrder)
+    lddOrder = decompress(lddshortOrder)
     lddOrder[maskinfo['mask']]=-1
     lddOrder = np.array(lddOrder.data, dtype=np.int64)
 
@@ -309,9 +297,9 @@ def lddrepair(lddnp,lddOrder):
     * eliminate unsound parts
     * add pits at points with no connections
 
-    :param lddnp:
+    :param lddnp: rivernetwork as 1D array
     :param lddOrder:
-    :return:
+    :return: repaired ldd
     """
 
     yi=lddnp.shape[0]
@@ -330,12 +318,12 @@ def lddrepair(lddnp,lddOrder):
 
     check = np.array(np.zeros(maskinfo['mapC'][0]),dtype=np.int64)
     lib2.repairLdd2(lddcomp, dirshort, check,maskinfo['mapC'][0] )
-
+    ii=2
 	
 	
 	
     """
-    for i in xrange(maskattr["compshape"]):
+    for i in range(maskinfo['mapC'][0]):
        path=[]
        j=i
        while 1:
@@ -348,5 +336,6 @@ def lddrepair(lddnp,lddOrder):
           j = dirshort[j]
        check[path]=1
     """
+
 
     return lddcomp, dirshort

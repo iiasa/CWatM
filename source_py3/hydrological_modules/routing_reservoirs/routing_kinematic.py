@@ -17,8 +17,8 @@ class routing_kinematic(object):
 
     """
     ROUTING
-    routing using the kinematic wave
 
+    routing using the kinematic wave
     """
 
     def __init__(self, routing_kinematic_variable):
@@ -39,7 +39,7 @@ class routing_kinematic(object):
         * calculate manning's roughness coefficient
         """
 
-        ldd = loadmap('Ldd',compress=False)
+        ldd = loadmap('Ldd')
         # l1 = decompress(ldd)
 
         self.var.lddCompress, dirshort, self.var.dirUp, self.var.dirupLen, self.var.dirupID, self.var.downstruct, self.var.catchment, self.var.dirDown, self.var.lendirDown = defLdd2(ldd)
@@ -171,10 +171,7 @@ class routing_kinematic(object):
         * calculate kinematic wave -> using C++ library for computational speed
         """
 
-
 # ---------------------------------------------------------------------------------
-
-
 
         # if routing is not needed return
         if not(checkOption('includeRouting')):

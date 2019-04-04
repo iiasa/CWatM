@@ -94,13 +94,15 @@ class initcondition(object):
             initCondVarValue.extend(Var2)
 
         # lakes & reservoirs
+        """
         if checkOption('includeWaterBodies'):
-            Var1 = ["smalllakeInflow","smalllakeStorage","smalllakeOutflow"]
-            Var2 = ["smalllakeInflowOld","smalllakeVolumeM3","smalllakeOutflow"]
-            initCondVar.extend(Var1)
-            initCondVarValue.extend(Var2)
+            if returnBool('useSmallLakes'):
+                Var1 = ["smalllakeInflow","smalllakeStorage","smalllakeOutflow"]
+                Var2 = ["smalllakeInflowOld","smalllakeVolumeM3","smalllakeOutflow"]
+                initCondVar.extend(Var1)
+                initCondVarValue.extend(Var2)
 
-
+        """
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # Load init file - a single file can be loaded - needs path and file name

@@ -30,9 +30,11 @@ class miscInitial(object):
 
     def initial(self):
         """
-        - grid area, length definition
-        - conversion factors
-        - conversion factors for precipitation and pot evaporation
+        Initialization of some basic parameters e.g. cellArea
+
+        * grid area, length definition
+        * conversion factors
+        * conversion factors for precipitation and pot evaporation
         """
 
         if checkOption('gridSizeUserDefined'):

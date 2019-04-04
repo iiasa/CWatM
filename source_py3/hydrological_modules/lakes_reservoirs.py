@@ -19,7 +19,60 @@ from management_modules.globals import *
 class lakes_reservoirs(object):
     """
     LAKES AND RESERVOIRS
-    calculate water retention in lakes and reservoirs
+
+    Note:
+
+        Calculate water retention in lakes and reservoirs
+
+        Using the **Modified Puls approach** to calculate retention of a lake
+        See also: LISFLOOD manual Annex 3 (Burek et al. 2013)
+
+        for Modified Puls Method the Q(inflow)1 has to be used. It is assumed that this is the same as Q(inflow)2 for the first timestep
+        has to be checked if this works in forecasting mode!
+
+        Lake Routine using Modified Puls Method (see Maniak, p.331ff)
+
+        .. math::
+             {Qin1 + Qin2 \over{2}} - {Qout1 + Qout2 \over{2}} = {S2 - S1 \over{\delta time}}
+
+        changed into:
+
+        .. math::
+             {S2 \over{time + Qout2/2}} = {S1 \over{dtime + Qout1/2}} - Qout1 + {Qin1 + Qin2 \over{2}}
+
+        Outgoing discharge (Qout) are linked to storage (S) by elevation.
+
+        Now some assumption to make life easier:
+
+        1.) storage volume is increase proportional to elevation: S = A * H where: H: elevation, A: area of lake
+
+        2.) :math:`Q_{\mathrm{out}} = c * b * H^{2.0}` (c: weir constant, b: width)
+
+             2.0 because it fits to a parabolic cross section see (Aigner 2008) (and it is much easier to calculate (that's the main reason)
+
+        c: for a perfect weir with mu=0.577 and Poleni: :math:`{2 \over{3}} \mu * \sqrt{2*g} = 1.7`
+
+        c: for a parabolic weir: around 1.8
+
+        because it is a imperfect weir: :math:`C = c * 0.85 = 1.5`
+
+        results in formular: :math:`Q = 1.5 * b * H^2 = a*H^2 -> H = \sqrt{Q/a}`
+
+        Solving the equation:
+
+        :math:`{S2 \over{dtime + Qout2/2}} = {S1 \over{dtime + Qout1/2}} - Qout1 + {Qin1 + Qin2 \over{2}}`
+
+        :math:`SI = {S2 \over{dtime}} + {Qout2 \over{2}} = {A*H \over{DtRouting}} + {Q \over{2}} = {A \over{DtRouting*\sqrt{a}* \sqrt{Q}}} + {Q \over{2}}`
+
+        -> replacement: :math:`{A \over{DtSec * \sqrt{a}}} = Lakefactor, Y = \sqrt{Q}`
+
+        :math:`Y^2 + 2 * Lakefactor *Y - 2 * SI=0`
+
+        solution of this quadratic equation:
+
+        :math:`Q = (-LakeFactor + \sqrt{LakeFactor^2+2*SI})^2`
+
+
     """
 
     def __init__(self, lakes_reservoirs_variable):
@@ -38,7 +91,6 @@ class lakes_reservoirs(object):
 
         Compress numpy array from mask map to the size of lakes+reservoirs
         (marked as capital C at the end of the variable name)
-
         """
 
         if checkOption('includeWaterBodies'):
@@ -69,14 +121,9 @@ class lakes_reservoirs(object):
             # change ldd: put pits in where lakes are:
             self.var.ldd_LR = np.where( self.var.waterBodyID > 0, 5, self.var.lddCompress)
 
-            # decompress from 1D to 2D array
-            dmap = maskinfo['maskall'].copy()
-            dmap[~maskinfo['maskflat']] = self.var.ldd_LR[:]
-            dmap = dmap.reshape(maskinfo['shape'])
-
             # create new ldd without lakes reservoirs
             self.var.lddCompress_LR, dirshort_LR, self.var.dirUp_LR, self.var.dirupLen_LR, self.var.dirupID_LR, \
-                self.var.downstruct_LR, self.var.catchment_LR, self.var.dirDown_LR, self.var.lendirDown_LR = defLdd2(dmap)
+                self.var.downstruct_LR, self.var.catchment_LR, self.var.dirDown_LR, self.var.lendirDown_LR = defLdd2(self.var.ldd_LR)
 
             #report(ldd(decompress(self.var.lddCompress_LR)), "C:\work\output3/ldd_lr.map")
 
@@ -165,10 +212,6 @@ class lakes_reservoirs(object):
         """
         Initial part of the lakes module
         Using the **Modified Puls approach** to calculate retention of a lake
-
-        See also:
-            LISFLOOD maunal Annex 3 (Burek et al. 2013)
-
         """
 
         # self.var.lakeInflowOldC = np.bincount(self.var.downstruct, weights=self.var.ChanQ)[self.var.LakeIndex]
@@ -177,31 +220,7 @@ class lakes_reservoirs(object):
         # for Modified Puls Method the Q(inflow)1 has to be used. It is assumed that this is the same as Q(inflow)2 for the first timestep
         # has to be checked if this works in forecasting mode!
 
-
-        # NEW Lake Routine using Modified Puls Method (see Maniak, p.331ff)
-        # (Qin1 + Qin2)/2 - (Qout1 + Qout2)/2 = (S2 - S1)/dtime
-        # changed into:
-        # (S2/dtime + Qout2/2) = (S1/dtime + Qout1/2) - Qout1 + (Qin1 + Qin2)/2
-        # outgoing discharge (Qout) are linked to storage (S) by elevation.
-        # Now some assumption to make life easier:
-        # 1.) storage volume is increase proportional to elevation: S = A * H
-        #      H: elevation, A: area of lake
-        # 2.) outgoing discharge = c * b * H **2.0 (c: weir constant, b: width)
-        #      2.0 because it fits to a parabolic cross section see Aigner 2008
-        #      (and it is much easier to calculate (that's the main reason)
-        # c for a perfect weir with mu=0.577 and Poleni: 2/3 mu * sqrt(2*g) = 1.7
-        # c for a parabolic weir: around 1.8
-        # because it is a imperfect weir: C = c* 0.85 = 1.5
-        # results in a formular : Q = 1.5 * b * H ** 2 = a*H**2 -> H =
-        # sqrt(Q/a)
         self.var.lakeFactor = self.var.lakeAreaC / (self.var.dtRouting * np.sqrt(self.var.lakeAC))
-
-        #  solving the equation  (S2/dtime + Qout2/2) = (S1/dtime + Qout1/2) - Qout1 + (Qin1 + Qin2)/2
-        #  SI = (S2/dtime + Qout2/2) =  (A*H)/DtRouting + Q/2 = A/(DtRouting*sqrt(a)  * sqrt(Q) + Q/2
-        #  -> replacement: A/(DtRouting*sqrt(a)) = Lakefactor, Y = sqrt(Q)
-        #  Y**2 + 2*Lakefactor*Y-2*SI=0
-        # solution of this quadratic equation:
-        # Q=sqr(-LakeFactor+sqrt(sqr(LakeFactor)+2*SI))
 
         self.var.lakeFactorSqr = np.square(self.var.lakeFactor)
         # for faster calculation inside dynamic section
@@ -243,7 +262,6 @@ class lakes_reservoirs(object):
 
         See Also:
             LISFLOOD manual Annex 1: (Burek et al. 2013)
-
         """
 
         #  Conservative, normal and flood storage limit (fraction of total storage, [-])
@@ -288,6 +306,7 @@ class lakes_reservoirs(object):
     def dynamic(self):
         """
         Dynamic part set lakes and reservoirs for each year
+
         """
         if checkOption('includeWaterBodies'):
             # check years
@@ -367,13 +386,6 @@ class lakes_reservoirs(object):
             # here S1/dtime - Qout1/2 + LakeIn , so that is the right part of the equation above
 
             self.var.lakeOutflowC = np.square(-self.var.lakeFactor + np.sqrt(self.var.lakeFactorSqr + 2 * lakeStorageIndicator))
-            # Flow out of lake:
-            #  solving the equation  (S2/dtime + Qout2/2) = (S1/dtime + Qout1/2) - Qout1 + (Qin1 + Qin2)/2
-            #  SI = (S2/dtime + Qout2/2) =  (A*H)/DtRouting + Q/2 = A/(DtRouting*sqrt(a)  * sqrt(Q) + Q/2
-            #  -> replacement: A/(DtRouting*sqrt(a)) = Lakefactor, Y = sqrt(Q)
-            #  Y**2 + 2*Lakefactor*Y-2*SI=0
-            # solution of this quadratic equation:
-            # Q=sqr(-LakeFactor+sqrt(sqr(LakeFactor)+2*SI));
 
             QLakeOutM3DtC = self.var.lakeOutflowC * self.var.dtRouting
             # Outflow in [m3] per timestep

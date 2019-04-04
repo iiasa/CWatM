@@ -16,12 +16,23 @@ from management_modules.data_handling import *
 class runoff_concentration(object):
 
     """
-    *Runoff concentration*
+    Runoff concentration
+
     this is the part between runoff generation and routing
     for each gridcell and for each land cover class the generated runoff is concentrated at a corner of a gridcell
     this concentration needs some lag-time (and peak time) and leads to diffusion
     lag-time/ peak time is calculated using slope, length and land cover class
     diffusion is calculated using a triangular-weighting-function
+
+    :math:`Q(t) = \sum_{i=0}^{max} c(i) * Q_{\mathrm{GW}} (t - i + 1)`
+
+    where :math:`c(i) = \int_{i-1}^{i} {2 \over{max}} - | u - {max \over {2}} | * {4 \over{max^2}} du`
+
+    see also:
+
+    http://stackoverflow.com/questions/24040984/transformation-using-triangular-weighting-function-in-python
+
+
     """
 
     def __init__(self, runoff_concentration_variable):
@@ -33,7 +44,8 @@ class runoff_concentration(object):
     def initial(self):
         """
         Initial part of the  runoff concentration module
-        Setting the peaq time for:
+
+        Setting the peak time for:
 
         * surface runoff = 3
         * interflow = 4
@@ -120,6 +132,7 @@ class runoff_concentration(object):
     def dynamic(self):
         """
         Dynamic part of the runoff concentration module
+
         For surface runoff for each land cover class  and for interflow and for baseflow the
         runoff concentration time is calculated
 
@@ -170,7 +183,8 @@ class runoff_concentration(object):
 
             self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow
 
-       # -------------------------------------------------------
+
+        # -------------------------------------------------------
         # runoff concentration: triangular-weighting method
         else:
             # shifting array

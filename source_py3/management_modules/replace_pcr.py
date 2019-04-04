@@ -27,7 +27,7 @@ def npareatotal(values, areaclass):
 
     :param values:
     :param areaclass:
-    :return:
+    :return: calculates the total area of a class
     """
     return np.take(np.bincount(areaclass,weights=values),areaclass)
 
@@ -38,7 +38,7 @@ def npareaaverage(values, areaclass):
 
     :param values:
     :param areaclass:
-    :return:
+    :return: calculates the average area of a class
     """
     with np.errstate(invalid='ignore', divide='ignore'):
         return np.take(np.bincount(areaclass,weights=values)/ np.bincount(areaclass) ,areaclass)
@@ -50,7 +50,7 @@ def npareamaximum(values, areaclass):
 
     :param values:
     :param areaclass:
-    :return:
+    :return: calculates the maximum of an area of a class
     """
     valueMax = np.zeros(areaclass.max() + 1)
     np.maximum.at(valueMax, areaclass, values)
@@ -63,7 +63,7 @@ def npareamajority(values, areaclass):
 
     :param values:
     :param areaclass:
-    :return:
+    :return: calculates the majority of an area of a class
     """
 
     uni,ind = np.unique(areaclass,return_inverse=True)

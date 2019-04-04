@@ -22,6 +22,11 @@ class CWATMError(Exception):
     """
     The error handling class
     prints out an error
+
+    :param Warning: class CWATMError
+    :return: prints out a message about an error
+
+
     """
     def __init__(self, msg):
 
@@ -41,6 +46,9 @@ class CWATMFileError(CWATMError):
     """
     The error handling class
     prints out an error
+
+    :param Warning: class CWATMError
+    :return: prints out a message about file error
 
     """
     def __init__(self, filename,msg="",sname = ""):
@@ -63,7 +71,11 @@ class CWATMWarning(Warning):
     """
     the error handling class
     prints out an error
+
+    :param Warning: class warning
+    :return: prints out a message
     """
+
     def __init__(self, msg):
         sys.tracebacklimit = 0
         header = "\n\n ========================== CWATM Warning =============================\n"
@@ -75,6 +87,9 @@ class CWATMWarning(Warning):
 class CWATMRunInfo(Warning):
     """
     prints out an error
+
+    :param Warning: class warning
+    :return: prints out a message
 
     Warning
         warning given with a header and a message from the subroutine

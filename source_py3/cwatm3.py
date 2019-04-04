@@ -3,7 +3,9 @@
 #  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 """
-## -------------------------------------------------
+::
+
+ -------------------------------------------------
  ######## ##          ##  ####  ######  ##    ##
  ##       ##          ## ##  ##   ##   ####  ####
  ##        ##        ##  ##  ##   ##   ## #### ##
@@ -29,9 +31,9 @@ GNU General Public License for more details
 # --------------------------------------------------
 """
 
-__authors__ = "Peter Burek IIASA"
+__authors__ = "WATER Program, IIASA"
 __version__ = "Version: 1.02"
-__date__ = "04/01/2019"
+__date__ = "07/01/2019"
 __copyright__ = "Copyright 2016, IIASA"
 __maintainer__ = "Peter Burek"
 __status__ = "Development"
@@ -97,7 +99,8 @@ def CWATMexe():
 
 	checkifDate('StepStart','StepEnd','SpinUp')
 	# checks if end date is later than start date and puts both in modelSteps
-
+	if Flags['check']:
+		dateVar["intEnd"] = dateVar["intStart"]
 
 	CWATM = CWATModel()
 	stCWATM = ModelFrame(CWATM, firstTimestep=dateVar["intStart"], lastTimeStep=dateVar["intEnd"])
@@ -222,6 +225,13 @@ if __name__ == "__main__":
 	settings = sys.argv[1]    # setting.ini file
 
 	args = sys.argv[2:]
+
+	#settings = "P:/watmodel/CWATM/cwatm_input_1km/settings_Pune_1km_peter.ini"
+	#settings = "C:/work/CWATM/source_py3/settings1.ini"
+	#settings = "P:/watmodel/CWATM/modelruns/indus/indus5min.ini"
+	#settings = "settings_indus.ini"
+	#args =['-l']
+
 	globalFlags(args)
 	if Flags['use']: usage()
 	if Flags['warranty']: GNU()

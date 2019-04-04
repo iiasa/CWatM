@@ -14,12 +14,24 @@ class ModelFrame:
   """
 
   def __init__(self, model, lastTimeStep=1, firstTimestep=1):
+    """
+    sets first and last time step into the model
+
+    :param lastTimeStep: last timestep
+    :param firstTimeStep: first timestep
+    :return: -
+    """
+
     self._model = model
     self._model.lastStep = lastTimeStep
     self._model.firstStep = firstTimestep
 
   def run(self):
-    """  Run the dynamic part of the model """
+    """  Run the dynamic part of the model
+
+    :return: -
+    """
+
     step = self._model.firstStep
     while step <= self._model.lastStep:
       self._model.currentStep = step

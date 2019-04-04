@@ -41,8 +41,8 @@ class ExtParser(configparser.ConfigParser):
          def get(self, section, option, raw=False, vars=None
          placeholder replacement
 
-         :param section:
-         :param option:
+         :param section: section part of the settings file
+         :param option: option part of the settings file
          :param raw:
          :param vars:
          :return:
