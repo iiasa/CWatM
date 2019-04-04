@@ -109,7 +109,7 @@ class CWATModel_dyn(DynamicModel):
         self.routing_kinematic_module.dynamic()
         timemeasure("Routing_Kin")  # 10. timing
 
-
+        self.waterquality1.dynamic()
 
 
         # *******  Calculate CUMULATIVE MASS BALANCE ERROR  **********

@@ -32,7 +32,7 @@ from hydrological_modules.environflow import *
 
 from hydrological_modules.routing_reservoirs.routing_kinematic import *
 from hydrological_modules.lakes_reservoirs import *
-
+from hydrological_modules.waterquality1 import *
 
 # --------------------------------------------
 
@@ -148,7 +148,7 @@ class CWATModel_ini(DynamicModel):
 
         self.routing_kinematic_module = routing_kinematic(self)
         self.lakes_reservoirs_module = lakes_reservoirs(self)
-
+        self.waterquality1 = waterquality1(self)
 
         # include output of tss and maps
         self.output_module = outputTssMap(self)
@@ -184,5 +184,6 @@ class CWATModel_ini(DynamicModel):
 
         self.output_module.initial()
         self.environflow_module.initial()
+        self.waterquality1.initial()
 
 

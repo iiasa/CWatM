@@ -1333,6 +1333,25 @@ def returnBool(inBinding):
         msg = "Value in: \"" + inBinding + "\" is not True or False! \nbut: " + b
         raise CWATMError(msg)
 
+
+def checkOptionOptinal(inBinding):
+    """
+    Test if parameter is a boolean and return an error message if not, and the boolean if everything is ok
+
+    :param inBinding: parameter in settings file
+    :return: boolean of inBinding
+    """
+
+    b = cbinding(inBinding)
+    btrue = b.lower() in ("yes", "true", "t", "1")
+    bfalse = b.lower() in ("no", "false", "f", "0")
+    if btrue or bfalse:
+        return btrue
+    else:
+        msg = "Value in: \"" + inBinding + "\" is not True or False! \nbut: " + b
+        raise CWATMError(msg)
+
+
 def checkOption(inBinding):
     """
     Check if option in settings file has a counterpart in the source code
@@ -1344,15 +1363,20 @@ def checkOption(inBinding):
     if test:
         return option[inBinding]
     else:
-        closest = difflib.get_close_matches(inBinding, list(option.keys()))[0]
-        with open(sys.argv[1]) as f:
-            i = 0
-            for line in f:
-                i +=1
-                if closest in line:
-                    lineclosest = "Line No. " + str(i) + ": "+ line
+        closest = difflib.get_close_matches(inBinding, list(option.keys()))
+        if close:
+            closest = close[0]
+            with open(sys.argv[1]) as f:
+                i = 0
+                for line in f:
+                    i +=1
+                    if closest in line:
+                        lineclosest = "Line No. " + str(i) + ": "+ line
 
-        if not closest: closest = ["- no match -"]
+            if not closest: closest = ["- no match -"]
+        else:
+            closest = "- no match -"
+
         msg = "No key with the name: \"" + inBinding + "\" in the settings file: \"" + sys.argv[1] + "\"\n"
         msg += "Closest key to the required one is: \""+ closest + "\""
         msg += lineclosest
