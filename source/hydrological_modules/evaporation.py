@@ -79,9 +79,7 @@ class evaporation(object):
         ## potTranspiration: Transpiration for each land cover class
         self.var.potTranspiration[No] = np.maximum(0.,self.var.totalPotET[No] - self.var.potBareSoilEvap - self.var.snowEvap)
 
-        ## it is assumed that there is always bare soil evaporation, therefore potTranspiration is also equal to the following:
-        ## potTranspiration[No] = (cropKC[No]-minCropKC) * cropCorrect * ETref
-        ## explicitly, self.var.potTranspiration[No] = np.maximum(0., self.var.cropCorrect * (self.var.cropKC[No]-self.var.minCropKC) * self.var.ETRef) 
+
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(

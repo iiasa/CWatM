@@ -36,10 +36,6 @@ __copyright__ = "Copyright 2016, IIASA"
 __maintainer__ = "Peter Burek"
 __status__ = "Development"
 
-"""
-Maintaining of the Python 2.7 code stops in 2019 as Python 2 support will end in 2020
-Please use the Python 3.7 version!
-"""
 
 #  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -230,13 +226,6 @@ if __name__ == "__main__":
     settings = sys.argv[1]    # setting.ini file
 
     args = sys.argv[2:]
-
-    #settings = "P:/watmodel/CWATM/cwatm_input_1km/settings_Pune_1km_peter.ini"
-    #settings = "P:/watmodel/CWATM/modelruns/indus/indus5min.ini"
-
-    args = ['-l']
-
-
     globalFlags(args)
     if Flags['warranty']: GNU()
     # setting of global flag e.g checking input maps, producing more output information
