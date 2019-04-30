@@ -21,6 +21,8 @@ from hydrological_modules.landcoverType import *
 from hydrological_modules.sealed_water import *
 from hydrological_modules.evaporation import *
 from hydrological_modules.groundwater import *
+from hydrological_modules.groundwater_modflow.groundwater_modflow import *
+
 from hydrological_modules.waterdemand import *
 from hydrological_modules.capillarRise import *
 from hydrological_modules.interception import *
@@ -139,6 +141,8 @@ class CWATModel_ini(DynamicModel):
         self.landcoverType_module = landcoverType(self)
         self.evaporation_module = evaporation(self)
         self.groundwater_module = groundwater(self)
+        self.groundwater_modflow_module = groundwater_modflow(self)
+
         self.waterdemand_module = waterdemand(self)
         self.capillarRise_module = capillarRise(self)
         self.interception_module = interception(self)
@@ -158,6 +162,8 @@ class CWATModel_ini(DynamicModel):
         # run intial misc to get all global variables
         self.misc_module.initial()
         self.init_module.initial()
+        self.groundwater_modflow_module.initial()
+        # groundwater before meteo, bc it checks steady state
         self.readmeteo_module.initial()
         self.inflow_module.initial()
 
@@ -168,6 +174,9 @@ class CWATModel_ini(DynamicModel):
 
         self.landcoverType_module.initial()
         self.groundwater_module.initial()
+
+
+
         self.runoff_concentration_module.initial()
         self.lakes_res_small_module.initial()
 

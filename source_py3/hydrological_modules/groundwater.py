@@ -92,7 +92,9 @@ class groundwater(object):
         self.var.storGroundwater = np.maximum(0., self.var.storGroundwater + self.var.sum_gwRecharge)
 
         # calculate baseflow and update storage:
-        self.var.baseflow = np.maximum(0., np.minimum(self.var.storGroundwater, self.var.recessionCoeff * self.var.storGroundwater))
+        if not(self.var.modflow):
+           # Groundwater baseflow from modflow or if modflow is not included calculate baseflow with linear storage function
+           self.var.baseflow = np.maximum(0., np.minimum(self.var.storGroundwater, self.var.recessionCoeff * self.var.storGroundwater))
 
         self.var.storGroundwater = np.maximum(0., self.var.storGroundwater - self.var.baseflow)
         # PS: baseflow must be calculated at the end (to ensure the availability of storGroundwater to support nonFossilGroundwaterAbs)

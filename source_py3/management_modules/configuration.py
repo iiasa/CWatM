@@ -138,8 +138,9 @@ def parse_configuration(settingsFileName):
                 try:
                     option[opt] = config.getboolean(sec, opt)
                 except:
-                    msg = "Value in: \"" + sec +", " + opt + "\" is not True or False!"
-                    raise CWATMError(msg)
+                    option[opt] = config.getint(sec, opt)
+                    #msg = "Value in: \"" + sec +", " + opt + "\" is not True or False!"
+                    #raise CWATMError(msg)
 
 
             else:

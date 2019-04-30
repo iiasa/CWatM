@@ -12,6 +12,8 @@
 
 import os, glob
 import calendar
+
+
 #import numpy as np
 from . import globals
 from management_modules.checks import *
@@ -711,6 +713,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
         msg = "Netcdf map stacks: \n"
         raise CWATMFileError(filename,msg, sname = name)
 
+    warnings.filterwarnings("ignore")
     if value == "None":
         value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
