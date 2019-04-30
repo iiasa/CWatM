@@ -372,16 +372,19 @@ class soil(object):
         satTermFC3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No]) / (self.var.wfc3[No] - self.var.wres3[No])
         capRise1 = np.minimum(np.maximum(0., (1 - satTermFC1) * kUnSat2), self.var.kunSatFC12[No])
         capRise2 = np.minimum(np.maximum(0., (1 - satTermFC2) * kUnSat3), self.var.kunSatFC23[No])
-        self.var.capRiseFromGW[No] = np.maximum(0., (1 - satTermFC3) * np.sqrt(self.var.KSat3[NoSoil] * kUnSat3))
-        self.var.capRiseFromGW[No] = 0.5 * self.var.capRiseFrac * self.var.capRiseFromGW[No]
-        self.var.capRiseFromGW[No] = np.minimum(np.maximum(0., self.var.storGroundwater), self.var.capRiseFromGW[No])
+
+
+        if self.var.modflow:
+            # from Modflow
+            self.var.capRiseFromGW[No] = self.var.capillar
+        else:
+            self.var.capRiseFromGW[No] = np.maximum(0., (1 - satTermFC3) * np.sqrt(self.var.KSat3[NoSoil] * kUnSat3))
+            self.var.capRiseFromGW[No] = 0.5 * self.var.capRiseFrac * self.var.capRiseFromGW[No]
+            self.var.capRiseFromGW[No] = np.minimum(np.maximum(0., self.var.storGroundwater), self.var.capRiseFromGW[No])
 
         self.var.w1[No] = self.var.w1[No] + capRise1
-        self.var.w2[No] = self.var.w2[No] - capRise1 +  capRise2
+        self.var.w2[No] = self.var.w2[No] - capRise1 + capRise2
         self.var.w3[No] = self.var.w3[No] - capRise2 + self.var.capRiseFromGW[No]
-
-
-
 
         # Percolation -----------------------------------------------
         # Available water in both soil layers [m]

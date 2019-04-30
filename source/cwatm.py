@@ -231,7 +231,9 @@ if __name__ == "__main__":
 
     args = sys.argv[2:]
 
-    settings = "P:/watmodel/CWATM/cwatm_input_1km/settings_Pune_1km_peter.ini"
+    #settings = "P:/watmodel/CWATM/cwatm_input_1km/settings_Pune_1km_peter.ini"
+    #settings = "P:/watmodel/CWATM/modelruns/indus/indus5min.ini"
+
     args = ['-l']
 
 

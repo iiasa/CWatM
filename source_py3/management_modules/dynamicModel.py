@@ -33,6 +33,12 @@ class ModelFrame:
     """
 
     step = self._model.firstStep
+
+    # if using the steady state model modflow the dynmaic part should run only 1 time
+    # inside cwatm_dynamic it will interate
+    if (self._model.modflow and self._model.modflowsteady):
+        step = self._model.lastStep
+
     while step <= self._model.lastStep:
       self._model.currentStep = step
       self._model.dynamic()

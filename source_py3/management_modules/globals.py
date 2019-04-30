@@ -89,6 +89,13 @@ cutmapVfine = [0, 1, 0, 1]
 cdfFlag = [0, 0, 0,0,0,0,0]  # flag for netcdf output for all, steps and end, monthly (steps), yearly(steps), monthly , yearly
 metadataNCDF = {}
 
+# groundwater modflow
+global domain, indexes
+domain = {}
+indexes = {}
+
+
+
 global timeMes,TimeMesString, timeMesSum
 timeMes=[]
 timeMesString = []  # name of the time measure - filled in dynamic

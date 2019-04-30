@@ -33,7 +33,7 @@ class capillarRise(object):
         :return: capRiseFrac = cell fraction influenced by capillary rise
         """
 
-        if checkOption('CapillarRise'):
+        if checkOption('CapillarRise') and not(self.var.modflow):
 
         # approximate height of groundwater table and corresponding reach of cell under influence of capillary rise
             dzGroundwater = self.var.storGroundwater / self.var.specificYield + self.var.maxGWCapRise
