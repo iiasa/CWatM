@@ -39,8 +39,10 @@ class evaporationPot(object):
         """
 
         self.var.sumETRef = globals.inZero.copy()
+        self.var.cropCorrect = loadmap('crop_correct')
+
         if checkOption('calc_evaporation'):
-            self.var.cropCorrect = loadmap('crop_correct')
+
 
             # Default calculation method is Penman Monteith
             # if PET_modus is missing use Penman Monteith

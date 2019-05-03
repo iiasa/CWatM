@@ -523,7 +523,7 @@ class landcoverType(object):
                 "InterAll", False)
 
 
-
+        """
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
@@ -593,6 +593,8 @@ class landcoverType(object):
         #print self.var.sum_directRunoff
         #report(decompress(self.var.sumsum_Precipitation), "c:\work\output\Prsum.map")
         #report(decompress(self.var.sumsum_gwRecharge), "c:\work\output\gwrsum.map")
+        
+        """
 
 
 
