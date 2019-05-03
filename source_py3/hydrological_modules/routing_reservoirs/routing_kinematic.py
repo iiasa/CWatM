@@ -379,16 +379,16 @@ class routing_kinematic(object):
 
         #if (dateVar['curr'] == 99):
         #   ii = 1
-
+        """
         if checkOption('calcWaterBalance'):
             self.var.sumbalance = self.var.sumbalance + self.var.waterbalance_module.waterBalanceCheckSum(
                 [sumside ],  # In
                 [DisOut],  # Out
                 [ch1],   # prev storage
                 [ch2],
-                "rout3", True)
+                "rout3", False)
             #print "  ",self.var.sumbalance,"   ", avgDis[0],"   ",
-
+        """
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheckSum(

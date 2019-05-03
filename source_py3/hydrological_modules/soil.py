@@ -267,6 +267,7 @@ class soil(object):
         soilWaterStorage =  self.var.w1[No] + self.var.w2[No]
         soilWaterStorageCap = self.var.ws1[No] + self.var.ws2[No]
         relSat = soilWaterStorage / soilWaterStorageCap
+        relSat = np.minimum(relSat, 1.0)
 
         #if np.min(self.var.w1[No])< 0.:
         #   ii =1
@@ -546,6 +547,7 @@ class soil(object):
         toGWorInterflow = self.var.perc3toGW[No] + self.var.prefFlow[No]
         self.var.interflow[No] = self.var.percolationImp * toGWorInterflow
         self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow  - self.var.capRiseFromGW[No]
+        ii =1
 
 
         # landSurfaceRunoff (needed for routing)
@@ -560,7 +562,7 @@ class soil(object):
 
         #if (dateVar['curr'] == 121) and (No==2):
         #    ii=1
-
+        """
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
                 [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No], self.var.irrConsumption[No]],  # In  water demand included in availwater
@@ -589,6 +591,7 @@ class soil(object):
                 [preStor1, preStor2, preStor3,pretopwater],  # prev storage
                 [self.var.w1[No], self.var.w2[No], self.var.w3[No],self.var.topwater],
                 "Soil_AllSoil", False)
+        """
 
 
 
