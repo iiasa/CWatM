@@ -162,8 +162,7 @@ class CWATModel_ini(DynamicModel):
         # run intial misc to get all global variables
         self.misc_module.initial()
         self.init_module.initial()
-        self.groundwater_modflow_module.initial()
-        # groundwater before meteo, bc it checks steady state
+
         self.readmeteo_module.initial()
         self.inflow_module.initial()
 
@@ -171,6 +170,10 @@ class CWATModel_ini(DynamicModel):
 
         self.snowfrost_module.initial()
         self.soil_module.initial()
+
+        self.groundwater_modflow_module.initial()
+        # groundwater before meteo, bc it checks steady state
+
 
         self.landcoverType_module.initial()
         self.groundwater_module.initial()
