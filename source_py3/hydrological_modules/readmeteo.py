@@ -29,6 +29,17 @@ class readmeteo(object):
         read multiple file of input
         """
 
+        # test if ModFlow is in the settingsfile
+        # if not, use default without Modflow
+        self.var.modflow = False
+        self.var.modflowsteady = True
+        if "modflow_coupling" in option:
+            self.var.modflow = checkOption('modflow_coupling')
+
+        if self.var.modflow:
+            ## Model properties ##
+            self.var.modflowsteady = returnBool('modflow_steadystate')
+
         if (self.var.modflow and self.var.modflowsteady):
             self.var.preMaps  = 'ModflowPrecipitationMaps'
             self.var.tempMaps = 'ModflowTavgMaps'

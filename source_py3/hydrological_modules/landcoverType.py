@@ -506,9 +506,6 @@ class landcoverType(object):
         self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
         self.var.sum_runoff = self.var.sum_directRunoff + self.var.sum_interflow
 
-        if self.var.modflow:
-            self.var.sumed_sum_gwRecharge = self.var.sumed_sum_gwRecharge + self.var.sum_gwRecharge
-
 # --------------------------------------------------------------------
 
         #if (dateVar['curr'] == 104):
