@@ -38,6 +38,7 @@ Community Water Model
    calibration
    calibration_tutorial
    resolution
+   zambezi
    license
    sourcecode
    forum

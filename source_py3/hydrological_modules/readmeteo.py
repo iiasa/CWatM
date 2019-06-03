@@ -222,6 +222,9 @@ class readmeteo(object):
             If option *TemperatureInKelvin* = True temperature is assumed to be Kelvin instead of Celsius!
 
         """
+        modflow = False
+        if (self.var.modflow and self.var.modflowsteady):
+            modflow = True
 
         ZeroKelvin = 0.0
         if checkOption('TemperatureInKelvin'):
@@ -230,7 +233,7 @@ class readmeteo(object):
             ZeroKelvin = 273.15
 
 
-        self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale) * self.var.DtDay * self.var.con_precipitation
+        self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale, modflowSteady = modflow) * self.var.DtDay * self.var.con_precipitation
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
 
         if self.var.meteodown:
@@ -251,7 +254,7 @@ class readmeteo(object):
         tzero = 0
         if checkOption('TemperatureInKelvin'):
             tzero = ZeroKelvin
-        self.var.Tavg = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.var.meteomapsscale)
+        self.var.Tavg = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.var.meteomapsscale, modflowSteady = modflow)
 
         if self.var.meteodown:
             self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
@@ -364,11 +367,11 @@ class readmeteo(object):
             """
 
             #self.var.ETRef = readmeteodata('ETMaps', dateVar['currDate'], addZeros=True) * self.var.DtDay * self.var.con_e
-            self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True, mapsscale = True) * self.var.DtDay * self.var.con_e
+            self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True, mapsscale = True, modflowSteady = modflow) * self.var.DtDay * self.var.con_e
             #self.var.ETRef = downscaling2(self.var.ETRef)
             # daily reference evaporation (conversion to [m] per time step)
             #self.var.EWRef = readmeteodata('E0Maps', dateVar['currDate'], addZeros=True) * self.var.DtDay * self.var.con_e
-            self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True, mapsscale = True) * self.var.DtDay * self.var.con_e
+            self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True, mapsscale = True, modflowSteady = modflow) * self.var.DtDay * self.var.con_e
             #self.var.EWRef = downscaling2(self.var.EWRef)
             # potential evaporation rate from water surface (conversion to [m] per time step)
             # self.var.ESRef = (self.var.EWRef + self.var.ETRef)/2

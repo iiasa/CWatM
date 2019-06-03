@@ -682,7 +682,7 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
 
 
 
-def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapsscale = True):
+def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapsscale = True, modflowSteady = False):
     """
     load stack of maps 1 at each timestamp in netcdf format
 
@@ -697,15 +697,18 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     :raises if data is wrong: :meth:`management_modules.messages.CWATMError`
     :raises if meteo netcdf file cannot be opened: :meth:`management_modules.messages.CWATMFileError`
     """
-
-    try:
-        meteoInfo = meteofiles[name][flagmeteo[name]]
-        idx = inputcounter[name]
-        filename =  os.path.normpath(meteoInfo[0])
-    except:
-        date1 = "%02d/%02d/%02d" % (date.day, date.month, date.year)
-        msg = "Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date1 + ": \n"
-        raise CWATMError(msg)
+    if modflowSteady:
+        idx = 0
+        filename = os.path.normpath(cbinding(name))
+    else:
+        try:
+            meteoInfo = meteofiles[name][flagmeteo[name]]
+            idx = inputcounter[name]
+            filename =  os.path.normpath(meteoInfo[0])
+        except:
+            date1 = "%02d/%02d/%02d" % (date.day, date.month, date.year)
+            msg = "Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date1 + ": \n"
+            raise CWATMError(msg)
 
     try:
        nf1 = Dataset(filename, 'r')
@@ -760,11 +763,12 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     #    if (date.month ==2) and (date.day == 28):
     #        ii = 1  # dummmy for not doing anything
     #    else:
-    inputcounter[name] += 1
 
-    if inputcounter[name] > meteoInfo[2]:
-        inputcounter[name] = 0
-        flagmeteo[name] += 1
+    if not(modflowSteady):
+        inputcounter[name] += 1
+        if inputcounter[name] > meteoInfo[2]:
+            inputcounter[name] = 0
+            flagmeteo[name] += 1
 
     return mapC
 

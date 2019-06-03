@@ -43,8 +43,14 @@ class sealed_water(object):
             else:
                 mult = 0.2  # evaporation from open areas on sealed area estimated as 0.2 EWRef
 
-            self.var.openWaterEvap[No] =  np.minimum(mult * self.var.EWRef, self.var.availWaterInfiltration[No])
-            self.var.directRunoff[No] = self.var.availWaterInfiltration[No] - self.var.openWaterEvap[No]
+            if self.var.modflow:
+                self.var.openWaterEvap[No] = np.minimum(mult * self.var.EWRef, self.var.availWaterInfiltration[No] + self.var.capillar)
+                self.var.directRunoff[No] = self.var.availWaterInfiltration[No] - self.var.openWaterEvap[No] + self.var.capillar
+                # GW capillary rise in sealed area is added to the runoff
+            else:
+                self.var.openWaterEvap[No] =  np.minimum(mult * self.var.EWRef, self.var.availWaterInfiltration[No])
+                self.var.directRunoff[No] = self.var.availWaterInfiltration[No] - self.var.openWaterEvap[No]
+
             # open water evaporation is directly substracted from the river, lakes, reservoir
             self.var.actualET[No] = self.var.actualET[No] +  self.var.openWaterEvap[No]
 

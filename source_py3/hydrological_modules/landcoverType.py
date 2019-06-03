@@ -439,8 +439,15 @@ class landcoverType(object):
             preStor2 = self.var.sum_w2.copy()
             preStor3 = self.var.sum_w3.copy()
             pretop = self.var.sum_topwater
-            self.var.pretotalSto = self.var.totalSto.copy()
 
+        ### To compute water balance for modflow
+        if self.var.modflow:
+            if (dateVar['curr'] - int(dateVar['curr'] / self.var.modflow_timestep) * self.var.modflow_timestep) == 1 and \
+                    dateVar['curr'] > self.var.modflow_timestep:  # if it is the first step of the week
+                self.var.presumed_sum_gwRecharge = self.var.sumed_sum_gwRecharge.copy()
+                # stormodf = np.nansum((self.var.presumed_sum_gwRecharge/self.var.modflow_timestep-self.var.capillar-self.var.baseflow) * self.var.cellArea) # From ModFlow during the previous step
+                # stormodf = self.var.GWVolumeVariation / self.var.modflow_timestep # GW volume change from the previous ModFlow run (difference betwwen water levels times porosity)
+        self.var.pretotalSto = self.var.totalSto.copy()
 
         coverNo = 0
         # update soil (loop per each land cover type):
@@ -448,7 +455,7 @@ class landcoverType(object):
             if checkOption('includeIrrigation'):
                 usecovertype = 4  # include paddy and non paddy irrigation
             else:
-                usecovertype = 2   # exclude irrgation
+                usecovertype = 2   # exclude irrigation
             # calculate evaporation and transpiration for soil land cover types (not for sealed and water covered areas)
             if coverNo < usecovertype:
                 self.var.evaporation_module.dynamic(coverType, coverNo)
@@ -506,7 +513,17 @@ class landcoverType(object):
         self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
         self.var.sum_runoff = self.var.sum_directRunoff + self.var.sum_interflow
 
-# --------------------------------------------------------------------
+        ### Printing the soil+GW water balance (considering no pumping), without the surface part
+        #print('Date : ', dateVar['currDatestr'])
+        if checkOption('calcWaterBalance'):
+            if dateVar['curr'] > self.var.modflow_timestep:  # from the second step
+                storcwat = np.sum((self.var.totalSto - self.var.pretotalSto) * self.var.cellArea)  # Daily CWAT storage variations
+                cwatbudg = np.sum((self.var.Precipitation - self.var.sum_runoff - self.var.totalET + self.var.presumed_sum_gwRecharge / self.var.modflow_timestep - self.var.sum_gwRecharge - self.var.baseflow) * self.var.cellArea)  # Inputs-Outputs (baseflow comes from the previous ModFlow model)
+                print('CWatM-ModFlow water balance error [%]: ',
+                      round(100 * (cwatbudg - storcwat - self.var.GWVolumeVariation / self.var.modflow_timestep) /
+                            (0.5 * cwatbudg + 0.5 * storcwat + 0.5 * self.var.GWVolumeVariation / self.var.modflow_timestep) * 100) / 100)
+
+        # --------------------------------------------------------------------
 
         #if (dateVar['curr'] == 104):
         #    ii=1
