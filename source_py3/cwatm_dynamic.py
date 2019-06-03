@@ -188,9 +188,9 @@ class CWATModel_dyn(DynamicModel):
                     self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'], dynamic=self.dynamicLandcover)
 
                     # initial run of soil to get recharge in steady state
-                    #for days in range(365):
-                    #    self.landcoverType_module.dynamic()
-                    #    print (days)
+                    for days in range(1000):
+                        self.landcoverType_module.dynamic()
+                        print (days)
 
                 start2 = time.time()
                 self.landcoverType_module.dynamic()

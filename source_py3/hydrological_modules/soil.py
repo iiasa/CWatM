@@ -176,6 +176,20 @@ class soil(object):
         #if (dateVar['curr'] >= 0) and (No==3):
         #    ii=1
 
+        # add capillary rise from groundwater if modflow is used
+        if self.var.modflow:
+            ### if GW capillary rise saturates soil layers, water is sent to the above layer, then to runoff
+            self.var.w3[No] = self.var.w3[No] + self.var.capillar
+            # CAPRISE from GW to soilayer 3 , if this is full it is send to soil layer 2
+            self.var.w2[No] = self.var.w2[No] + np.where(self.var.w3[No] > self.var.ws3[No], self.var.w3[No] - self.var.ws3[No], 0)
+            self.var.w3[No] = np.minimum(self.var.ws3[No], self.var.w3[No])
+            # CAPRISE from GW to soilayer 2 , if this is full it is send to soil layer 1
+            self.var.w1[No] = self.var.w1[No] + np.where(self.var.w2[No] > self.var.ws2[No], self.var.w2[No] - self.var.ws2[No], 0)
+            self.var.w2[No] = np.minimum(self.var.ws2[No], self.var.w2[No])
+            # CAPRISE from GW to soilayer 1 , if this is full it is send to RUNOFF
+            saverunofffromGW = + np.where(self.var.w1[No] > self.var.ws1[No], self.var.w1[No] - self.var.ws1[No], 0)
+            self.var.w1[No]= np.minimum(self.var.ws1[No], self.var.w1[No])
+
         # ---------------------------------------------------------
         # calculate transpiration
         # ***** SOIL WATER STRESS ************************************
@@ -213,8 +227,6 @@ class soil(object):
         wCrit3 = ((1 - p) * (self.var.wfc3[No] - self.var.wwp3[No])) + self.var.wwp3[No]
 
         # Transpiration reduction factor (in case of water stress)
-
-
         rws1 = divideValues((self.var.w1[No] - self.var.wwp1[No]),(wCrit1 - self.var.wwp1[No]), default = 1.)
         rws2 = divideValues((self.var.w2[No] - self.var.wwp2[No]), (wCrit2 - self.var.wwp2[No]), default=1.)
         rws3 = divideValues((self.var.w3[No] - self.var.wwp3[No]), (wCrit3 - self.var.wwp3[No]), default=1.)
@@ -241,8 +253,6 @@ class soil(object):
         #if (dateVar['curr'] == 23) and (No==1):
         #    ii=1
         #   #print ('t', self.var.w1[No][0:3])
-
-
 
         self.var.w1[No] = self.var.w1[No] - ta1
         self.var.w2[No] = self.var.w2[No] - ta2
@@ -313,6 +323,12 @@ class soil(object):
             h = np.maximum(0., self.var.topwater- self.var.maxtopwater)
             self.var.directRunoff[No] = np.where(self.var.cropKC[No] > 0.75, h, self.var.directRunoff[No])
             self.var.topwater = np.maximum(0., self.var.topwater - self.var.directRunoff[No])
+
+
+        ### ModFlow
+        if self.var.modflow:
+            self.var.directRunoff[No]=self.var.directRunoff[No] + saverunofffromGW
+            # ADDING EXCESS WATER FROM GW CAPILLARY RISE
 
 
         # infiltration to soilayer 1 , if this is full it is send to soil layer 2
@@ -387,7 +403,11 @@ class soil(object):
 
         self.var.w1[No] = self.var.w1[No] + capRise1
         self.var.w2[No] = self.var.w2[No] - capRise1 + capRise2
-        self.var.w3[No] = self.var.w3[No] - capRise2 + self.var.capRiseFromGW[No]
+        if self.var.modflow:
+            self.var.w3[No] = self.var.w3[No] - capRise2
+            # GW capillary rise has already been added to the soil
+        else:
+            self.var.w3[No] = self.var.w3[No] - capRise2 + self.var.capRiseFromGW[No]
 
         # Percolation -----------------------------------------------
         # Available water in both soil layers [m]
@@ -548,19 +568,17 @@ class soil(object):
         #self.var.gwRecharge[No] = self.var.perc3toGW[No] - self.var.capRiseFromGW[No] + self.var.prefFlow[No]
         toGWorInterflow = self.var.perc3toGW[No] + self.var.prefFlow[No]
         self.var.interflow[No] = self.var.percolationImp * toGWorInterflow
-        self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow  - self.var.capRiseFromGW[No]
-        ii =1
+
+        if self.var.modflow:
+            self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow
+        else:
+            self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow - self.var.capRiseFromGW[No]
+
+
 
 
         # landSurfaceRunoff (needed for routing)
         #self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflowTotal[No]
-
-
-
-
-
-
-
 
         #if (dateVar['curr'] == 121) and (No==2):
         #    ii=1
