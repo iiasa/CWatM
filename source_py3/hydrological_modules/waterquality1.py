@@ -17,7 +17,7 @@ class waterquality1(object):
     """
     WATER QUALITY 1
 
-    calculates water quaility variables e.g. travel time, velocity, water temperature
+    calculates water quality variables e.g. travel time, velocity, water temperature
     """
 
     def __init__(self, waterquality1_variable):

@@ -29,6 +29,8 @@ Reason for this step:
 
 .. warning:: From 2019 on we are changing to Python 3.7. We do not provide further support for Python 2.7
 
+.. warning:: CWATM is tested for Python 3.7 and will for sure not work with Python versions lower than 3.6. We recommend using Python 3.7
+
 Libraries
 *********
 
