@@ -1,6 +1,7 @@
-readme.txt 
+Groundwater pumping: gw_pumping_excel2npy.py 
+-------------------------------------
 
-The script gw_pumping_excel2npy.py converts groundwater pumping information held in excel format into one readble by cwatm. Specifically, converting data on location (latitude and longitude) and pumping rate (m3/day) into an (.npy) file. This is only necessary if Groundwater_pumping = True in the settings file.
+The script gw_pumping_excel2npy.py converts groundwater pumping information held in excel format into one readble by cwatm. Specifically, converting data on location and pumping rate into an (.npy) file. This is only necessary if Groundwater_pumping = True in the settings file.
 
 gw_pumping_excel2npy.py
 Required files: 
@@ -9,11 +10,8 @@ Required files:
 
 Excel file: pumping_wells.xlsx
 -------------------------------------
-Provide a list of well locations and pumping rates.
 
-Latitude	Longitude	Pumping rate [m3/day]
-18.7	    73.6	    600
-18.65	    73.65	    600
+Provide a list of well locations (latitude and longitude) and pumping rates (m3/day).
 
 The Latitude and Longitude can be given in any defined coordinate system, and is chosen here to be in WGS84 format (World Geodesic System).
 
@@ -29,16 +27,6 @@ Depending on your region, you will need to change the UTM coding
 catchment limits
 -------------------------------------
 The program also uses one of the CWATM input files with data on the dimensions on the simulation area, set to the variable catchment_limits.
-Here is an example of this file:
-
-324388.8217428711
-625888.8217428711
-2146608.857620636
-1864108.8576206362
-566
-604
-320
-370
 
 The default script uses the file UB_limits.txt, and should be changed to your limits file accordingly. 
 
