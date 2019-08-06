@@ -202,11 +202,12 @@ def GNU():
 def headerinfo():
 	"""
 	Print the information on top of each run
-	"""
 
-    # this is collecting the last change of one of the source files
-	# in order to give more information of the settingsfile and the version of cwatm
-	# this information is put in the result files .tss and .nc
+    this is collecting the last change of one of the source files
+	in order to give more information of the settingsfile and the version of cwatm
+	this information is put in the result files .tss and .nc
+    """
+	
 	versioning['exe'] = __file__
 	realPath = os.path.dirname(os.path.realpath(versioning['exe']))
 	i = 0
