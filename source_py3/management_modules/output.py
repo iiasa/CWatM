@@ -283,7 +283,9 @@ class outputTssMap(object):
             outputFile = open(outputFilename, "w")
             # header
             # outputFile.write("timeseries " + self._spatialDatatype.lower() + "\n")
-            outputFile.write("timeseries " + " settingsfile: " + os.path.realpath(sys.argv[1]) + " date: " + xtime.ctime(xtime.time()) + "\n")
+            header = "timeseries " + " settingsfile: " + os.path.realpath(sys.argv[1]) + " date: " + xtime.ctime(xtime.time())
+            header += " CWATM: " + versioning['exe']  + ", " +versioning['lastdate'] + "\n"
+            outputFile.write(header)
             if len(expression[3]):
                 numbervalues = len(expression[3][0]) + 1
             else: numbervalues = 0

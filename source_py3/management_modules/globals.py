@@ -37,7 +37,9 @@ global MMaskMap, maskmapAttr, bigmapAttr, cutmap, cutmapGlobal, cutmapFine, cutm
 global timestepInit
 global metaNetcdfVar
 global inputcounter
+global versioning
 
+versioning = {}
 timestepInit =[]
 binding = {}
 option = {}

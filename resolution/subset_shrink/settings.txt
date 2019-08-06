@@ -1,7 +1,0 @@
-Basin code = UB
-
-lateral bounds 		= 17.125 19.5
-longitudinal bounds 	= 73.2 76.3
-
-E:/fuse/subset_shrink/APHRO_2015.nc
-E:\cwatm_input5min\landcover\grassland\cropCoefficientGrassland_10days.nc

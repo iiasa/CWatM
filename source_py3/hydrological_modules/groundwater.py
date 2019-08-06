@@ -58,8 +58,9 @@ class groundwater(object):
         tresholdStorGroundwater = 0.00005  # 0.05 mm
         self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater,0.0)
 
-
-        #self.var.area1 = loadmap('MaskMap1')
+        #PB for Bejing
+        #self.var.area1 = loadmap('MaskMap')
+        #ii = 1
 
 
 # --------------------------------------------------------------------------
@@ -103,16 +104,40 @@ class groundwater(object):
         tresholdStorGroundwater = 0.00005  # 0.05 mm
         self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater,0.0)
 
+
         """
+
+        ## PB for Bejing
         area = self.var.area1.astype(np.int64)
-        diff  = 1000000000.
+        #diff  = 1000*1000*1000.
+        diff = 1.
         #aream =  npareatotal(self.var.cellArea,area)
+
+        gwstor = self.var.storGroundwater * self.var.MtoM3 / diff
+        self.var.sumgwstor = npareatotal(gwstor,area)
+
+        pf = self.var.sum_prefFlow * self.var.MtoM3 / diff
+        self.var.sumpf = npareatotal(pf,area)
+
+        perc = self.var.sum_perc3toGW * self.var.MtoM3 / diff
+        self.var.sumperc = npareatotal(perc,area)
+
+        cap = self.var.sum_capRiseFromGW * self.var.MtoM3 / diff
+        self.var.sumcap = npareatotal(cap,area)
+
+
 
         gw = self.var.sum_gwRecharge * self.var.MtoM3 / diff
         self.var.sumgw = npareatotal(gw,area)
-        pr = self.var.Precipitation  * self.var.MtoM3 / diff
-        self.var.sumpr = npareatotal(pr,area)
-        #self.var.sumpr = npareaaverage(pr, area)
+
+
+        gw = self.var.sum_gwRecharge * self.var.MtoM3 / diff
+        self.var.sumgw = npareatotal(gw,area)
+
+
+        #pr = self.var.Precipitation * self.var.MtoM3 / diff
+        #self.var.sumpr = npareatotal(pr,area)
+        self.var.avgpr = npareaaverage(self.var.Precipitation, area)
         run = (self.var.sum_landSurfaceRunoff + self.var.baseflow) * self.var.MtoM3 / diff
         self.var.sumrunoff = npareatotal(run,area)
         et = self.var.totalET * self.var.MtoM3 / diff

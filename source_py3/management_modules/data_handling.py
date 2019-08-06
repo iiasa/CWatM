@@ -997,9 +997,12 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
         nf1 = Dataset(netfile, 'w', format='NETCDF4')
 
         # general Attributes
-        nf1.settingsfile = os.path.realpath(sys.argv[1])
-        nf1.date_created = xtime.ctime(xtime.time())
-        nf1.Source_Software = 'CWATM Python'
+        settingsfile = os.path.realpath(sys.argv[1])
+        nf1.settingsfile = settingsfile + ": " + xtime.ctime(os.path.getmtime(settingsfile))
+        nf1.run_created = xtime.ctime(xtime.time())
+        nf1.Source_Software = 'CWATM Python: ' + versioning['exe']
+        nf1.Platform = versioning['platform']
+        nf1.Version = versioning['version']  + ": " + versioning['lastfile']  + " " + versioning['lastdate']
         nf1.institution = cbinding ("institution")
         nf1.title = cbinding ("title")
         nf1.source = 'CWATM output maps'
