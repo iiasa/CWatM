@@ -1,14 +1,15 @@
-Groundwater pumping: gw_pumping_excel2npy.py 
--------------------------------------
+Groundwater pumping
+===================================
 
-The script gw_pumping_excel2npy.py converts groundwater pumping information held in excel format into one readble by cwatm. Specifically, converting data on location and pumping rate into an (.npy) file. This is only necessary if Groundwater_pumping = True in the settings file.
+If you would like to include groundwater pumping, you must provide a list of well locations and pumping rates. The script  gw_pumping_excel2npy.py converts groundwater pumping information held in excel format into one readble by cwatm. Specifically, converting data on location and pumping rate into an (.npy) file. This is only necessary if Groundwater_pumping = True in the settings file.
 
 gw_pumping_excel2npy.py
+
 Required files: 
-- Excel file: pumping_wells.xlsx
+- pumping_wells.xlsx
 - catchment limits 
 
-Excel file: pumping_wells.xlsx
+pumping_wells.xlsx
 -------------------------------------
 
 Provide a list of well locations (latitude and longitude) and pumping rates (m3/day).
@@ -30,4 +31,4 @@ The program also uses one of the CWATM input files with data on the dimensions o
 
 The default script uses the file UB_limits.txt, and should be changed to your limits file accordingly. 
 
-This creates the file Pumping_input_file.npy that CWATM reads in each Modflow timestep. 
+This creates the file Pumping_input_file.npy that CWatM reads in each Modflow timestep. 
