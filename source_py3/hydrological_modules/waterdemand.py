@@ -397,7 +397,7 @@ class waterdemand(object):
                     # Storage of a big lake
                     lakeResStorageC = np.where(self.var.waterBodyTypCTemp == 0, 0.,
                                 np.where(self.var.waterBodyTypCTemp == 1, self.var.lakeStorageC, self.var.reservoirStorageM3C)) / self.var.MtoM3C
-                    minlake = np.maximum(0., lakeResStorageC - 0.99 * lakeResStorageC)
+                    minlake = np.maximum(0., 0.9*lakeResStorageC) #changed from 0.01 to 0.9
 
 
                     act_bigLakeAbstC = np.minimum(minlake , remainNeedBigC)
