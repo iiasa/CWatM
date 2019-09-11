@@ -587,8 +587,8 @@ def mapattrTiff(nf2):
     geotransform = nf2.GetGeoTransform()
     x1 = geotransform[0]
     y1 = geotransform[3]
-    maskmapAttr['col'] = nf2.RasterXSize
-    maskmapAttr['row'] = nf2.RasterYSize
+    #maskmapAttr['col'] = nf2.RasterXSize
+    #maskmapAttr['row'] = nf2.RasterYSize
     cellSize = geotransform[1]
     invcell = round(1/cellSize,0)
 
@@ -602,6 +602,7 @@ def mapattrTiff(nf2):
     y = y1 + cellSize / 2
     cut0 = int(0.01 + np.abs(maskmapAttr['x'] - x) * invcell)
     cut2 = int(0.01 + np.abs(maskmapAttr['y'] - y) * invcell)
+
     cut1 = cut0 + maskmapAttr['col']
     cut3 = cut2 + maskmapAttr['row']
 
