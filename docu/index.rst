@@ -10,12 +10,14 @@ Community Water Model
 ########################
 
 
-.. figure:: _static/iiasa.jpg
+.. figure:: _static/Hydrological-model_no-labels2.jpg
     :width: 800px
+
+------------
 
 :Copyright: IIASA WAT Program
 :Authors: :ref:`rst_developer`
-:Version: 1.02  
+:Version: 1.04  
 :Version Date: |today|
 
 **Content:**

@@ -32,8 +32,8 @@ GNU General Public License for more details
 """
 
 __authors__ = "WATER Program, IIASA"
-__version__ = "Version: 1.02"
-__date__ = "07/01/2019"
+__version__ = "Version: 1.04"
+__date__ = "06/08/2019"
 __copyright__ = "Copyright 2016, IIASA"
 __maintainer__ = "Peter Burek"
 __status__ = "Development"
@@ -47,6 +47,7 @@ from pyexpat import *
 #import xml.dom.minidom
 #import netCDF4
 #from netCDF4 import Dataset
+import glob, sys, time, datetime
 
 from management_modules.configuration import *
 #from management_modules.messages import *
@@ -153,7 +154,7 @@ def usage():
 	* -t --printtime   the computation time for hydrological modules are printed
 
 	"""
-	print('CWatM - Community Water model')
+	print('CWatM - Community Water Model')
 	print('Authors: ', __authors__)
 	print('Version: ', __version__)
 	print('Date: ', __date__)
@@ -178,8 +179,7 @@ def GNU():
 
 	"""
 
-
-	print('CWatM - Community Water model')
+	print('CWatM - Community Water Model')
 	print('Authors: ', __authors__)
 	print('Version: ', __version__)
 	print('Date: ', __date__)
@@ -201,14 +201,39 @@ def GNU():
 def headerinfo():
 	"""
 	Print the information on top of each run
+	
+	this is collecting the last change of one of the source files
+	in order to give more information of the settingsfile and the version of cwatm
+	this information is put in the result files .tss and .nc
 	"""
+	
+	versioning['exe'] = __file__
+	realPath = os.path.dirname(os.path.realpath(versioning['exe']))
+	i = 0
+	for (dirpath, dirnames, filenames) in os.walk(realPath):
+		for file in filenames:
+			if file[-3:] ==".py":
+				i += 1
+				file1 = dirpath + "/" + file
+				if i == 1:
+					lasttime = os.path.getmtime(file1)
+					lastfile = file
+				else:
+					if os.path.getmtime(file1) > lasttime:
+						lasttime = os.path.getmtime(file1)
+						lastfile = file
+	versioning['lastdate'] = datetime.datetime.fromtimestamp(lasttime).strftime("%Y/%m/%d %H:%M")
+	__date__ = versioning['lastdate']
+	versioning['lastfile'] = lastfile
+	versioning['version'] = __version__
+	versioning['platform'] = platform1
 
-	print("CWATM - Community Water Model ",__version__," Date: ",__date__," ")
-	print("International Institute of Applied Systems Analysis (IIASA)")
-	print("Running under platform: ", platform1)
-	print("-----------------------------------------------------------")
-current_time = datetime.datetime.now().time()
-#print current_time.isoformat()
+	if not (Flags['veryquiet']) and not (Flags['quiet']):
+		print("CWATM - Community Water Model ",__version__," Date: ",versioning['lastdate']," ")
+		print("International Institute of Applied Systems Analysis (IIASA)")
+		print("Running under platform: ", platform1)
+		print("-----------------------------------------------------------")
+
 
 # ==================================================
 # ============== MAIN ==============================
@@ -226,15 +251,11 @@ if __name__ == "__main__":
 
 	args = sys.argv[2:]
 
-	#settings = "P:/watmodel/CWATM/cwatm_input_1km/settings_Pune_1km_peter.ini"
-	#settings = "C:/work/CWATM/source_py3/settings1.ini"
-	#settings = "P:/watmodel/CWATM/modelruns/indus/indus5min.ini"
-	#settings = "settings_indus.ini"
 	#args =['-l']
 
 	globalFlags(args)
 	if Flags['use']: usage()
 	if Flags['warranty']: GNU()
 	# setting of global flag e.g checking input maps, producing more output information
-	if not(Flags['veryquiet']) and not(Flags['quiet']) : headerinfo()
+	headerinfo()
 	CWATMexe()

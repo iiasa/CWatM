@@ -587,8 +587,8 @@ def mapattrTiff(nf2):
     geotransform = nf2.GetGeoTransform()
     x1 = geotransform[0]
     y1 = geotransform[3]
-    maskmapAttr['col'] = nf2.RasterXSize
-    maskmapAttr['row'] = nf2.RasterYSize
+    #maskmapAttr['col'] = nf2.RasterXSize
+    #maskmapAttr['row'] = nf2.RasterYSize
     cellSize = geotransform[1]
     invcell = round(1/cellSize,0)
 
@@ -602,6 +602,7 @@ def mapattrTiff(nf2):
     y = y1 + cellSize / 2
     cut0 = int(0.01 + np.abs(maskmapAttr['x'] - x) * invcell)
     cut2 = int(0.01 + np.abs(maskmapAttr['y'] - y) * invcell)
+
     cut1 = cut0 + maskmapAttr['col']
     cut3 = cut2 + maskmapAttr['row']
 
@@ -997,9 +998,12 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
         nf1 = Dataset(netfile, 'w', format='NETCDF4')
 
         # general Attributes
-        nf1.settingsfile = os.path.realpath(sys.argv[1])
-        nf1.date_created = xtime.ctime(xtime.time())
-        nf1.Source_Software = 'CWATM Python'
+        settingsfile = os.path.realpath(sys.argv[1])
+        nf1.settingsfile = settingsfile + ": " + xtime.ctime(os.path.getmtime(settingsfile))
+        nf1.run_created = xtime.ctime(xtime.time())
+        nf1.Source_Software = 'CWATM Python: ' + versioning['exe']
+        nf1.Platform = versioning['platform']
+        nf1.Version = versioning['version']  + ": " + versioning['lastfile']  + " " + versioning['lastdate']
         nf1.institution = cbinding ("institution")
         nf1.title = cbinding ("title")
         nf1.source = 'CWATM output maps'

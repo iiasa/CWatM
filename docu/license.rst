@@ -675,11 +675,10 @@ The owners of the copyright of CWATM are Peter Burek, Yoshihide Wada, Yusuke Sat
 
 In the event of the publication of a document or scientific paper using CWATM or its modified version, the following paper must be referenced:
 
-paper is still under work.
+Burek, P., Satoh, Y., Kahil, T., Tang, T., Greve, P., Smilovic, M., Guillaumot, L., and Wada, Y.: Development of the Community Water Model (CWatM v1.04) A high-resolution hydrological model for global and regional assessment of integrated water resources management, Geosci. Model Dev. Discuss., https://doi.org/10.5194/gmd-2019-214, in review, 2019. 
+ 
+`Link to paper in Geoscientific Model Development <https://www.geosci-model-dev-discuss.net/gmd-2019-214>`_
 
-At the moment refer to:
-
-Burek, P., Satoh, Y., Greve, P., Kahil, T. and Wada, Y. 2017: The Community Water Model (CWATM) / Development of a community driven global water model. Geophysical Research Abstracts. Vol. 19, EGU2017-9769
 
 3. Usage
 ^^^^^^^^

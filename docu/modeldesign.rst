@@ -112,8 +112,8 @@ Design
 The Community Water Model (CWATM) will be designed for the purpose to assess water availability, water demand and environmental needs. It includes an accounting of how future water demands will evolve in response to socioeconomic change and how water availability will change in response to climate.
 
 
-.. image:: _static/processes.jpg
-    :width: 600px
+.. image:: _static/Hydrological-model2.jpg
+    :width: 800px
 
 Figure 3: CWATM - Water related processes included in the model design
 
