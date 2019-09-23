@@ -135,7 +135,6 @@ class lakes_reservoirs(object):
             # year when the reservoirs is operating
             self.var.resYearC = np.compress(self.var.compress_LR, loadmap('waterBodyYear'))
 
-
             # water body types:
             # - 3 = reservoirs and lakes (used as reservoirs but before the year of construction as lakes
             # - 2 = reservoirs (regulated discharge)
@@ -272,7 +271,7 @@ class lakes_reservoirs(object):
         self.var.norm_floodLimitC = self.var.normLimitC + self.var.adjust_Normal_FloodC * (self.var.floodLimitC - self.var.normLimitC)
 
         # Minimum, Normal and Non-damaging reservoir outflow  (fraction of average discharge, [-])
-        # muyktiplied with the given discharge at the outlet from Hydrolakes database
+        # multiplied with the given discharge at the outlet from Hydrolakes database
         self.var.minQC = np.compress(self.var.compress_LR, loadmap('MinOutflowQ') * self.var.lakeDis0)
         self.var.normQC = np.compress(self.var.compress_LR, loadmap('NormalOutflowQ') * self.var.lakeDis0)
         self.var.nondmgQC = np.compress(self.var.compress_LR, loadmap('NonDamagingOutflowQ') * self.var.lakeDis0)

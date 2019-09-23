@@ -335,8 +335,8 @@ class landcoverType(object):
             vars(self.var)["sumsum_" + variable] = globals.inZero.copy()
 
         # for irrigation of non paddy -> No =3
-        totalWaterPlant1 = np.maximum(0., self.var.wfc1[3] - self.var.wwp1[3]) * self.var.rootDepth[0][3]
-        totalWaterPlant2 = np.maximum(0., self.var.wfc2[3] - self.var.wwp2[3]) * self.var.rootDepth[1][3]
+        totalWaterPlant1 = np.maximum(0., self.var.wfc1[3] - self.var.wwp1[3]) #* self.var.rootDepth[0][3]
+        totalWaterPlant2 = np.maximum(0., self.var.wfc2[3] - self.var.wwp2[3]) #* self.var.rootDepth[1][3]
         #totalWaterPlant3 = np.maximum(0., self.var.wfc3[3] - self.var.wwp3[3]) * self.var.rootDepth[2][3]
         self.var.totAvlWater = totalWaterPlant1 + totalWaterPlant2 #+ totalWaterPlant3
 
