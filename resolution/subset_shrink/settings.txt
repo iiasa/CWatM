@@ -1,0 +1,8 @@
+Basin code = UB
+
+lateral bounds 		= 16.8 19.45833
+longitudinal bounds 	= 73.20833 76.3
+
+Desired resolution = 1/120
+
+P:\watmodel\CWATM\CWAT_input_5min\input5min_netcdf\soil\alpha1.nc
