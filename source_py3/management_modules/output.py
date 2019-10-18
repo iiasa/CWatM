@@ -126,19 +126,32 @@ class outputTssMap(object):
 
         self.var.noOutpoints = len(self.var.sampleAdresses)
         #catch = subcatchment1(self.var.dirUp,outpoints,self.var.UpArea1)
-        self.var.evalCatch =[]
-        for key in sorted(self.var.sampleAdresses):
-            outp = outpoints.copy()
-            outp[outp != key] = 0
-            self.var.evalCatch.append(catchment1(self.var.dirUp, outp))
 
+        # check if catchment area calculation is necessary
+        calcCatch = False
+        for s in filter(lambda x: "areaavg" in x, outTss.keys()): calcCatch = True
+        for s in filter(lambda x: "areasum" in x, outTss.keys()): calcCatch = True
+
+        if calcCatch:
+           self.var.evalCatch ={}
+           self.var.catcharea = {}
+           for key in sorted(self.var.sampleAdresses):
+              outp = outpoints.copy()
+              outp[outp != key] = 0
+              self.var.evalCatch[key]= catchment1(self.var.dirUp, outp)
+              self.var.catcharea[key] =np.bincount(self.var.evalCatch[key], weights=self.var.cellArea)[key]
 
         # ------------------------------------------------------------------------------
         if checkOption('reportTss'):
             # loop through all the section with output variables
             for sec in outsection:
-                for type in outputTypTss:
-                    appendinfo(outTss, sec, "_out_tss_",type, False)
+                for type2 in outputTypTss2:
+                    for type in outputTypTss:
+                        if type2 == "tss":
+                            type = type
+                        else:
+                            type = type2 + "_" + type
+                        appendinfo(outTss, sec, "_out_tss_",type, False)
 
 
         if checkOption('reportMap'):
@@ -159,7 +172,10 @@ class outputTssMap(object):
                 msg = "Output is not possible!\n"
                 msg += "\""+out +"\" is not one of these: daily, monthend, monthtot, monthavg, annualend, annualtot, annualavg"
                 raise CWATMError(msg)
-
+            if not(out.split('_')[-2] in outputTypTss2):
+                msg = "Output is not possible!\n"
+                msg += "\""+out +"\" is not one of these: TSS for point value, AreaSum for sum of area, AreaAvg for average of area"
+                raise CWATMError(msg)
 
 
 
@@ -215,6 +231,7 @@ class outputTssMap(object):
             #if dateVar['checked'][dateVar['currwrite'] - 1] >= daymonthyear:
             # using a list with is 1 for monthend and 2 for year end to check for execution
             value = []
+            #tss.split('_')[-2]
 
             # if inputmap is not an array give out error message
             if not (hasattr(map, '__len__')):
@@ -223,7 +240,17 @@ class outputTssMap(object):
                 return expression
 
             for key in sorted(self.var.sampleAdresses):
-                v = map[self.var.sampleAdresses[key]]
+                if expression[0].split('_')[-2] in ['areaavg','areasum']:
+                    # value from catchment
+                    v = np.bincount(self.var.evalCatch[key], weights = map * self.var.cellArea)[key]
+
+                    if expression[0].split('_')[-2] == 'areaavg':
+                        if self.var.catcharea[key] == 0:
+                            v = 0.
+                        else:
+                            v = v / self.var.catcharea[key]
+                else: # from single cell
+                   v = map[self.var.sampleAdresses[key]]
                 value.append(v)
             expression[3].append(value)
 

@@ -193,8 +193,8 @@ def loadsetclone(name):
             checkmap(name, filename, mapnp, flagmap, False,0)
 
     else:
-        msg = "Maskmap: " + filename + \
-            " is not a valid mask map nor valid coordinates"
+        msg = "Maskmap: " + filename + " is not a valid mask map nor valid coordinates\n"
+        msg +="Or there is a whitespace or undefined character in Maskmap"
         raise CWATMError(msg)
 
 
@@ -934,6 +934,9 @@ def readnetcdfInitial(name, value,default = 0.0):
             mapC = compressArray(mapnp, name=filename)
             if Flags['check']:
                 checkmap(value, filename, mapnp, True, True, mapC)
+            a = globals.inZero
+            if mapC.shape != globals.inZero.shape:
+                raise Exception
             return mapC
         except:
             #nf1.close()
@@ -941,6 +944,7 @@ def readnetcdfInitial(name, value,default = 0.0):
             msg += "Initial value: " + value + " is has not the same shape as the mask map\n"
             msg += "Maybe put\"load_initial = False\""
             print(CWATMError(msg))
+            sys.exit()
     else:
         nf1.close()
         msg = "Initial value: " + value + " is not included in: " + name + " - using default: " + str(default)
