@@ -179,7 +179,6 @@ def GNU():
 
 	"""
 
-
 	print('CWatM - Community Water Model')
 	print('Authors: ', __authors__)
 	print('Version: ', __version__)
@@ -202,12 +201,11 @@ def GNU():
 def headerinfo():
 	"""
 	Print the information on top of each run
-
-    this is collecting the last change of one of the source files
+	
+	this is collecting the last change of one of the source files
 	in order to give more information of the settingsfile and the version of cwatm
 	this information is put in the result files .tss and .nc
-	
-    """
+	"""
 	
 	versioning['exe'] = __file__
 	realPath = os.path.dirname(os.path.realpath(versioning['exe']))
@@ -253,10 +251,6 @@ if __name__ == "__main__":
 
 	args = sys.argv[2:]
 
-	#settings = "P:/watmodel/CWATM/cwatm_input_1km/settings_Pune_1km_peter.ini"
-	#settings = "C:/work/CWATM/source_py3/settings1.ini"
-	#settings = "P:/watmodel/CWATM/modelruns/indus/indus5min.ini"
-	#settings = "settings_indus.ini"
 	#args =['-l']
 
 	globalFlags(args)

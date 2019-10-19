@@ -126,19 +126,32 @@ class outputTssMap(object):
 
         self.var.noOutpoints = len(self.var.sampleAdresses)
         #catch = subcatchment1(self.var.dirUp,outpoints,self.var.UpArea1)
-        self.var.evalCatch =[]
-        for key in sorted(self.var.sampleAdresses):
-            outp = outpoints.copy()
-            outp[outp != key] = 0
-            self.var.evalCatch.append(catchment1(self.var.dirUp, outp))
 
+        # check if catchment area calculation is necessary
+        calcCatch = False
+        for s in filter(lambda x: "areaavg" in x, outTss.keys()): calcCatch = True
+        for s in filter(lambda x: "areasum" in x, outTss.keys()): calcCatch = True
+
+        if calcCatch:
+           self.var.evalCatch ={}
+           self.var.catcharea = {}
+           for key in sorted(self.var.sampleAdresses):
+              outp = outpoints.copy()
+              outp[outp != key] = 0
+              self.var.evalCatch[key] = catchment1(self.var.dirUp, outp)
+              self.var.catcharea[key] =np.bincount(self.var.evalCatch[key], weights=self.var.cellArea)[key]
 
         # ------------------------------------------------------------------------------
         if checkOption('reportTss'):
             # loop through all the section with output variables
             for sec in outsection:
-                for type in outputTypTss:
-                    appendinfo(outTss, sec, "_out_tss_",type, False)
+                for type2 in outputTypTss2:
+                    for type in outputTypTss:
+                        if type2 == "tss":
+                            type = type
+                        else:
+                            type = type2 + "_" + type
+                        appendinfo(outTss, sec, "_out_tss_",type, False)
 
 
         if checkOption('reportMap'):
@@ -159,7 +172,10 @@ class outputTssMap(object):
                 msg = "Output is not possible!\n"
                 msg += "\""+out +"\" is not one of these: daily, monthend, monthtot, monthavg, annualend, annualtot, annualavg"
                 raise CWATMError(msg)
-
+            if not(out.split('_')[-2] in outputTypTss2):
+                msg = "Output is not possible!\n"
+                msg += "\""+out +"\" is not one of these: TSS for point value, AreaSum for sum of area, AreaAvg for average of area"
+                raise CWATMError(msg)
 
 
 
@@ -215,6 +231,7 @@ class outputTssMap(object):
             #if dateVar['checked'][dateVar['currwrite'] - 1] >= daymonthyear:
             # using a list with is 1 for monthend and 2 for year end to check for execution
             value = []
+            #tss.split('_')[-2]
 
             # if inputmap is not an array give out error message
             if not (hasattr(map, '__len__')):
@@ -223,7 +240,17 @@ class outputTssMap(object):
                 return expression
 
             for key in sorted(self.var.sampleAdresses):
-                v = map[self.var.sampleAdresses[key]]
+                if expression[0].split('_')[-2] in ['areaavg','areasum']:
+                    # value from catchment
+                    v = np.bincount(self.var.evalCatch[key], weights = map * self.var.cellArea)[key]
+
+                    if expression[0].split('_')[-2] == 'areaavg':
+                        if self.var.catcharea[key] == 0:
+                            v = 0.
+                        else:
+                            v = v / self.var.catcharea[key]
+                else: # from single cell
+                   v = map[self.var.sampleAdresses[key]]
                 value.append(v)
             expression[3].append(value)
 
@@ -375,9 +402,9 @@ class outputTssMap(object):
                                 outMap[map][i][2] = writenetcdf(netfile, varname, "_monthend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currMonth'], flag,True,dateVar['diffMonth'])
                         if map[-8:] == "monthtot":
                             # sum up daily value to monthly values
-                            vars(self.var)[varname + "_monthtot"] += vars(self.var)[varname]
+                            vars(self.var)[varname + "_monthtot"] = vars(self.var)[varname + "_monthtot"] + vars(self.var)[varname]
                         if map[-8:] == "monthavg":
-                            vars(self.var)[varname + "_monthavg"] += vars(self.var)[varname]
+                            vars(self.var)[varname + "_monthavg"] = vars(self.var)[varname + "_monthavg"] + vars(self.var)[varname]
 
                         if map[-4:] == "once":
                             if (returnBool('calc_ef_afterRun') == False) or (dateVar['currDate'] == dateVar['dateEnd']):
@@ -417,9 +444,9 @@ class outputTssMap(object):
                                 outMap[map][i][2] = writenetcdf(netfile, varname,"_annualend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currYear'], flag,True,dateVar['diffYear'],
                                                                 dateunit="years")
                         if map[-9:] == "annualtot":
-                            vars(self.var)[varname + "_annualtot"] += vars(self.var)[varname]
+                            vars(self.var)[varname + "_annualtot"] = vars(self.var)[varname + "_annualtot"] + vars(self.var)[varname]
                         if map[-9:] == "annualavg":
-                            vars(self.var)[varname + "_annualavg"] += vars(self.var)[varname]
+                            vars(self.var)[varname + "_annualavg"] = vars(self.var)[varname + "_annualavg"] + vars(self.var)[varname]
 
                         if dateVar['checked'][dateVar['currwrite'] - 1]==2:
                             if map[-9:] == "annualtot":
@@ -435,7 +462,7 @@ class outputTssMap(object):
 
                         if map[-8:] == "totaltot":
                             if dateVar['curr'] >= dateVar['intSpin']:
-                                vars(self.var)[varname + "_totaltot"] += vars(self.var)[varname]
+                                vars(self.var)[varname + "_totaltot"] = vars(self.var)[varname + "_totaltot"] + vars(self.var)[varname]
                                 if dateVar['currDate'] == dateVar['dateEnd']:
                                     # at the end of simulation write this map
                                     outMap[map][i][2] = writenetcdf(netfile, varname,"_totaltot", "undefined", eval(inputmap +  "_totaltot"),
@@ -443,7 +470,7 @@ class outputTssMap(object):
 
                         if map[-8:] == "totalavg":
                             if dateVar['curr'] >= dateVar['intSpin']:
-                                vars(self.var)[varname + "_totalavg"] += vars(self.var)[varname]/ float(dateVar['diffdays'])
+                                vars(self.var)[varname + "_totalavg"] = vars(self.var)[varname + "_totalavg"] + vars(self.var)[varname]/ float(dateVar['diffdays'])
                                 if dateVar['currDate'] == dateVar['dateEnd']:
                                     # at the end of simulation write this map
                                     outMap[map][i][2] = writenetcdf(netfile, varname,"_totalavg", "undefined",
@@ -508,17 +535,17 @@ class outputTssMap(object):
                         if tss[-8:] == "monthtot":
                             # if  monthtot is not calculated it is done here
                             if (varname + "_monthtotTss") in vars(self.var):
-                                vars(self.var)[varname + "_monthtotTss"] += vars(self.var)[varname]
+                                vars(self.var)[varname + "_monthtotTss"] = vars(self.var)[varname + "_monthtotTss"] + vars(self.var)[varname]
                             else:
                                 vars(self.var)[varname + "_monthtotTss"] = vars(self.var)[varname]
                             outTss[tss][i] = sample3(outTss[tss][i], eval(what + "_monthtotTss"), 1)
 
                         if tss[-8:] == "monthavg":
                             if (varname + "_monthavgTss") in vars(self.var):
-                                vars(self.var)[varname + "_monthavgTss"] += vars(self.var)[varname]
+                                vars(self.var)[varname + "_monthavgTss"] =  vars(self.var)[varname + "_monthavgTss"] + vars(self.var)[varname]
                             else:
                                 vars(self.var)[varname + "_monthavgTss"] = 0
-                                vars(self.var)[varname + "_monthavgTss"] += vars(self.var)[varname]
+                                vars(self.var)[varname + "_monthavgTss"] = vars(self.var)[varname + "_monthavgTss"] + vars(self.var)[varname]
                             avgmap = vars(self.var)[varname + "_monthavgTss"] /  dateVar['daysInMonth']
                             outTss[tss][i] = sample3(outTss[tss][i], avgmap, 1)
 
@@ -533,14 +560,14 @@ class outputTssMap(object):
                         if tss[-9:] == "annualtot":
 
                             if (varname + "_annualtotTss") in vars(self.var):
-                                vars(self.var)[varname + "_annualtotTss"] += vars(self.var)[varname]
+                                vars(self.var)[varname + "_annualtotTss"] = vars(self.var)[varname + "_annualtotTss"] + vars(self.var)[varname]
                             else:
                                 vars(self.var)[varname + "_annualtotTss"] = vars(self.var)[varname]
                             outTss[tss][i] = sample3(outTss[tss][i], eval(what + "_annualtotTss"), 2)
 
                         if tss[-9:] == "annualavg":
                             if (varname + "_annualavgTss") in vars(self.var):
-                                vars(self.var)[varname + "_annualavgTss"] += vars(self.var)[varname]
+                                vars(self.var)[varname + "_annualavgTss"] = vars(self.var)[varname + "_annualavgTss"] + vars(self.var)[varname]
                             else:
                                 vars(self.var)[varname + "_annualavgTss"] = vars(self.var)[varname]
                             avgmap = vars(self.var)[varname + "_annualavgTss"] /dateVar['daysInYear']
@@ -550,7 +577,7 @@ class outputTssMap(object):
                         if tss[-8:] == "totaltot":
                             if dateVar['curr'] >= dateVar['intSpin']:
                                 if (varname + "_totaltotTss") in vars(self.var):
-                                    vars(self.var)[varname + "_totaltotTss"] += vars(self.var)[varname]
+                                    vars(self.var)[varname + "_totaltotTss"] =  vars(self.var)[varname + "_totaltotTss"] + vars(self.var)[varname]
                                 else:
                                     vars(self.var)[varname + "_totaltotTss"] = vars(self.var)[varname]
                                 if dateVar['currDate'] == dateVar['dateEnd']:
@@ -560,7 +587,7 @@ class outputTssMap(object):
                         if tss[-8:] == "totalavg":
                             if dateVar['curr'] >= dateVar['intSpin']:
                                 if (varname + "_totalavgTss") in vars(self.var):
-                                    vars(self.var)[varname + "_totalavgTss"] += vars(self.var)[varname] / float(dateVar['diffdays'])
+                                    vars(self.var)[varname + "_totalavgTss"] = vars(self.var)[varname + "_totalavgTss"] + vars(self.var)[varname] / float(dateVar['diffdays'])
                                 else:
                                     vars(self.var)[varname + "_totalavgTss"] = vars(self.var)[varname] / float(dateVar['diffdays'])
                                 if dateVar['currDate'] == dateVar['dateEnd']:

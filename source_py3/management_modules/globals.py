@@ -69,6 +69,7 @@ outTss = {}
 outsection = []
 outputTypMap = ['daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend','totaltot','totalavg','totalend','once','12month']
 outputTypTss = ['daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend','totaltot','totalavg']
+outputTypTss2 = ['tss', 'areasum','areaavg']
 
 reportTimeSerieAct = {}
 reportMapsAll = {}
