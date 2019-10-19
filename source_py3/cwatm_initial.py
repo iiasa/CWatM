@@ -61,10 +61,54 @@ class CWATModel_ini(DynamicModel):
 
         DynamicModel.__init__(self)
 
+        # ----------------------------------------
+        # include output of tss and maps
+
+        self.output_module = outputTssMap(self)
+
+        # include all the hydrological modules
+
+        self.misc_module = miscInitial(self)
+        self.init_module = initcondition(self)
+        self.waterbalance_module = waterbalance(self)
+
+        self.readmeteo_module = readmeteo(self)
+        self.environflow_module = environflow(self)
+
+        self.evaporationPot_module = evaporationPot(self)
+        self.inflow_module = inflow(self)
+        self.snowfrost_module = snow(self)
+        self.soil_module = soil(self)
+        self.landcoverType_module = landcoverType(self)
+        self.evaporation_module = evaporation(self)
+        self.groundwater_module = groundwater(self)
+        self.groundwater_modflow_module = groundwater_modflow(self)
+
+        self.waterdemand_module = waterdemand(self)
+        self.capillarRise_module = capillarRise(self)
+        self.interception_module = interception(self)
+        self.sealed_water_module = sealed_water(self)
+        self.runoff_concentration_module = runoff_concentration(self)
+        self.lakes_res_small_module = lakes_res_small(self)
+
+        self.routing_kinematic_module = routing_kinematic(self)
+        self.lakes_reservoirs_module = lakes_reservoirs(self)
+        self.waterquality1 = waterquality1(self)
+
+        # include output of tss and maps
+        self.output_module = outputTssMap(self)
+        # ----------------------------------------------------------------
+
         ## MakMap: the maskmap is flexible e.g. col,row,x1,y1  or x1,x2,y1,y2
         # set the maskmap
-        self.MaskMap = loadsetclone('MaskMap')
+        self.MaskMap, point, lenmask = loadsetclone('MaskMap')
 
+        if lenmask == 2:
+            print ("Create catchment from point and river network")
+            mask2D, xleft, yup = self.routing_kinematic_module.catchment(point)
+            self.MaskMap = maskfrompoint(mask2D, xleft, yup)
+            area = np.sum(loadmap('CellArea')) * 1e-6
+            print("Number of cells in catchment: %7.0f km2" %(area))
 
         name = cbinding('PrecipitationMaps')
         #name1 = os.path.splitext(cbinding(('Ldd')))[0] + '.nc'
@@ -117,46 +161,6 @@ class CWATModel_ini(DynamicModel):
                     coverresult[1] = cover
                     #coverresult[1] = np.ma.array(cover, mask = covermask)
 
-
-        # ----------------------------------------
-        # include output of tss and maps
-
-        self.output_module = outputTssMap(self)
-
-
-        # include all the hydrological modules
-
-        self.misc_module = miscInitial(self)
-        self.init_module = initcondition(self)
-        self.waterbalance_module = waterbalance(self)
-
-        self.readmeteo_module = readmeteo(self)
-        self.environflow_module = environflow(self)
-
-
-        self.evaporationPot_module = evaporationPot(self)
-        self.inflow_module = inflow(self)
-        self.snowfrost_module = snow(self)
-        self.soil_module = soil(self)
-        self.landcoverType_module = landcoverType(self)
-        self.evaporation_module = evaporation(self)
-        self.groundwater_module = groundwater(self)
-        self.groundwater_modflow_module = groundwater_modflow(self)
-
-        self.waterdemand_module = waterdemand(self)
-        self.capillarRise_module = capillarRise(self)
-        self.interception_module = interception(self)
-        self.sealed_water_module = sealed_water(self)
-        self.runoff_concentration_module = runoff_concentration(self)
-        self.lakes_res_small_module = lakes_res_small(self)
-
-        self.routing_kinematic_module = routing_kinematic(self)
-        self.lakes_reservoirs_module = lakes_reservoirs(self)
-        self.waterquality1 = waterquality1(self)
-
-        # include output of tss and maps
-        self.output_module = outputTssMap(self)
-# ----------------------------------------------------------------
 
 
         # run intial misc to get all global variables

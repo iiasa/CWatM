@@ -25,6 +25,52 @@ class routing_kinematic(object):
         self.var = routing_kinematic_variable
         self.lakes_reservoirs_module = lakes_reservoirs(self.var)
 
+    def catchment(self, point):
+        """
+        Get the catchment from "global"  LDD and a point
+
+        * load and create a river network
+        * calculate catchment upstream of point
+        """
+
+        ldd = loadmap('Ldd')
+        #self.var.lddCompress, dirshort, self.var.dirUp, self.var.dirupLen, self.var.dirupID, self.var.downstruct, self.var.catchment, self.var.dirDown, self.var.lendirDown = defLdd2(ldd)
+
+        # decompressing ldd from 1D -> 2D
+        dmap = maskinfo['maskall'].copy()
+        dmap[~maskinfo['maskflat']] = ldd[:]
+        ldd2D = dmap.reshape(maskinfo['shape']).astype(np.int64)
+        ldd2D[ldd2D.mask] = 0
+
+        # every cell gets an order starting from 0 ...
+        lddshortOrder = np.arange(maskinfo['mapC'][0])
+        # decompress this map to 2D
+        lddOrder = decompress(lddshortOrder)
+        lddOrder[maskinfo['mask']] = -1
+        lddOrder = np.array(lddOrder.data, dtype=np.int64)
+
+        dirshort = lddshort(ldd2D, lddOrder)
+        dirUp, dirupLen, dirupID = dirUpstream(dirshort)
+
+
+
+        c1 = catchment1(dirUp, point)
+
+        # decompressing catchment from 1D -> 2D
+        dmap = maskinfo['maskall'].copy()
+        dmap[~maskinfo['maskflat']] = c1[:]
+        c2 = dmap.reshape(maskinfo['shape']).astype(np.int64)
+
+        #ldd2D[ldd2D.mask] = 0
+
+        c3 = np.where(c2 == 1)
+        d1, d2 = min(c3[0]), max(c3[0]+1)
+        d3, d4 = min(c3[1]), max(c3[1]+1)
+
+        c4 = c2[d1: d2, d3: d4]
+
+        return c4,d3,d1
+
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
