@@ -33,12 +33,12 @@ class landcoverType(object):
         Initial part of the land cover type module
         Initialise the six land cover types
 
-        * Forest
-        * Grasland/non irrigated land
-        * Irrigation
-        * Paddy iirigation
-        * Sealed area
-        * Water covered area
+        * Forest No.0
+        * Grasland/non irrigated land No.1
+        * Paddy irrigation No.2
+        * non-Paddy irrigation No.3
+        * Sealed area No.4
+        * Water covered area No.5
 
         And initialize the soil variables
         """
@@ -149,6 +149,7 @@ class landcoverType(object):
             if coverType != 'grassland':
                 # soil layer 1 = root max of land cover  - first soil layer
                 h1 = np.maximum(self.var.soildepth[1], self.var.maxRootDepth[i] - self.var.soildepth[0])
+                #
                 self.var.rootDepth[1][i] = np.minimum(self.var.soildepth12 - 0.05, h1)
                 # soil layer is minimim 0.05 m
                 self.var.rootDepth[2][i] = np.maximum(0.05, self.var.soildepth12 - self.var.rootDepth[1][i])
@@ -309,19 +310,36 @@ class landcoverType(object):
             self.var.arnoBeta[i] = self.var.arnoBetaOro + loadmap(coverType + "_arnoBeta")
             self.var.arnoBeta[i] = np.minimum(1.2, np.maximum(0.01, self.var.arnoBeta[i]))
 
+            rootFrac_toggle = False
+            #This is included as the layer after the first 0.05 layer is the size of maxRootDepth-0.05-0.05 (max: soildepth12-0.05)
 
-            # scaleRootFractions
-            rootFrac = np.tile(globals.inZero,(self.var.soilLayers,1))
-            fractionroot12 = self.var.rootDepth[0][i] / (self.var.rootDepth[0][i] + self.var.rootDepth[1][i] )
-            rootFrac[0] = fractionroot12 * self.var.rootFraction1[i]
-            rootFrac[1] = (1 - fractionroot12) * self.var.rootFraction1[i]
-            rootFrac[2] = 1.0 - self.var.rootFraction1[i]
+            if rootFrac_toggle == False:
+
+                # scaleRootFractions
+                rootFrac = np.tile(globals.inZero,(self.var.soilLayers,1))
+
+                root_depth_sum = self.var.rootDepth[0][i] + self.var.rootDepth[1][i] + self.var.rootDepth[2][i]
+
+                for layer in range(3):
+                    rootFrac[layer] = self.var.rootDepth[layer][i] / root_depth_sum
+
+            else:
+
+                # scaleRootFractions
+                rootFrac = np.tile(globals.inZero,(self.var.soilLayers,1))
+                fractionroot12 = self.var.rootDepth[0][i] / (self.var.rootDepth[0][i] + self.var.rootDepth[1][i] )
+                rootFrac[0] = fractionroot12 * self.var.rootFraction1[i]
+                rootFrac[1] = (1 - fractionroot12) * self.var.rootFraction1[i]
+                rootFrac[2] = 1.0 - self.var.rootFraction1[i]
+
+
             rootFracSum = np.sum(rootFrac,axis=0)
+
             for soilLayer in range(self.var.soilLayers):
                 self.var.adjRoot[soilLayer][i] = rootFrac[soilLayer] / rootFracSum
-
-
             i += 1
+
+
 
 
         # for maximum of topwater flooding (default = 0.05m)
