@@ -675,6 +675,8 @@ class waterdemand(object):
                 act_irrpaddySW = self.var.fracVegCover[2] * act_swAbstractionFraction * self.var.irrDemand[2]
                 self.var.act_irrPaddyWithdrawal = act_irrpaddySW + act_irrpaddyGW
 
+                act_gw = act_nonIrrWithdrawalGW + act_irrnonpaddyGW + act_irrWithdrawalGW
+
                 # todo: is act_irrWithdrawal needed to be replaced? Check later!!
                 # consumption - irrigation (without loss) = demand  * efficiency   (back to non fraction value)
                 self.var.act_irrConsumption[2] = divideValues(self.var.act_irrPaddyWithdrawal, self.var.fracVegCover[2]) * self.var.efficiencyPaddy
@@ -703,8 +705,24 @@ class waterdemand(object):
                 self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
                 self.var.act_nonIrrWithdrawal = self.var.nonIrrDemand
                 self.var.act_irrWithdrawal = self.var.totalIrrDemand
+
+                act_gw = self.var.pot_GroundwaterAbstract
+
                 self.var.act_irrNonpaddyWithdrawal = self.var.fracVegCover[3] * self.var.irrDemand[3]
                 self.var.act_irrPaddyWithdrawal = self.var.fracVegCover[2] * self.var.irrDemand[2]
+
+            if 'demand2pumping' in binding:
+                if cbinding('demand2pumping') == True:
+                    demand2pumping = True
+                else:
+                    demand2pumping = False
+            else:
+                demand2pumping = False
+
+            if demand2pumping == True:
+                self.var.modflowPumping += act_gw * self.var.MtoM3
+
+
 
 
             self.var.act_indWithdrawal = frac_industry * self.var.act_nonIrrWithdrawal
