@@ -474,7 +474,7 @@ class waterdemand(object):
 
                         # Sum up each segment's available lake and reservoir water, in volume [m3]
                         lakeResStorage_alloc = np.where(self.var.allocSegments != 65535.0, npareatotal(self.var.lakeResStorage, self.var.allocSegments),self.var.lakeResStorage) # [M3]
-                        act_bigLakeResAbst_alloc = np.minimum(0.50 * lakeResStorage_alloc, remain_Segment) #take maximum 90% of reservoir volume
+                        act_bigLakeResAbst_alloc = np.minimum(0.05 * lakeResStorage_alloc, remain_Segment) #take maximum 5% of reservoir volume
                         ResAbstractFactor = np.where(lakeResStorage_alloc != 0, divideValues(act_bigLakeResAbst_alloc, lakeResStorage_alloc), 0)  # fraction of water abstracted versus water available for total segment reservoir volumes
                         ResAbstractFactorC = np.compress(self.var.compress_LR, ResAbstractFactor)
 
@@ -521,7 +521,7 @@ class waterdemand(object):
                         lakeResStorageC = np.where(self.var.waterBodyTypCTemp == 0, 0.,
                                                    np.where(self.var.waterBodyTypCTemp == 1, self.var.lakeStorageC,
                                                             self.var.reservoirStorageM3C)) / self.var.MtoM3C
-                        minlake = np.maximum(0., 0.9 * lakeResStorageC)
+                        minlake = np.maximum(0., 0.05 * lakeResStorageC)
 
                         act_bigLakeAbstC = np.minimum(minlake, remainNeedBigC)
                         # substract from both, because it is sorted by self.var.waterBodyTypCTemp
@@ -543,7 +543,8 @@ class waterdemand(object):
 
                 else:
                     self.var.act_bigLakeResAbst = 0
-                self.var.act_smallLakeResAbst = 0 # In the current development, small lakes are not directly used to meet water demands.
+                self.var.act_smallLakeResAbst = 0 
+                # At 30 arc-seconds resolution, the small lakes development is not used.
 
                 # available surface water is from river network + large/small lake & reservoirs
                 self.var.act_SurfaceWaterAbstract += (self.var.act_bigLakeResAbst + self.var.act_smallLakeResAbst)
@@ -583,7 +584,7 @@ class waterdemand(object):
                     # Storage of a big lake
                     lakeResStorageC = np.where(self.var.waterBodyTypCTemp == 0, 0.,
                                 np.where(self.var.waterBodyTypCTemp == 1, self.var.lakeStorageC, self.var.reservoirStorageM3C)) / self.var.MtoM3C
-                    minlake = np.maximum(0., 0.9*lakeResStorageC) #changed from 0.01 to 0.9
+                    minlake = np.maximum(0., 0.05*lakeResStorageC) #reasonable but arbitrary limit
 
 
                     act_bigLakeAbstC = np.minimum(minlake , remainNeedBigC)
