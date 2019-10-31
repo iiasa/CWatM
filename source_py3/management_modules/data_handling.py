@@ -123,6 +123,10 @@ def loadsetclone(name):
 
     filename = cbinding(name)
     coord = filename.split()
+
+    if len(coord) == 2:
+        name = "Ldd"
+
     if len(coord) == 5:
         # changed order of x, y i- in setclone y is first in CWATM
         # settings x is first
@@ -134,7 +138,7 @@ def loadsetclone(name):
         #mapnp[mapnp == 0] = 1
         #map = numpy2pcr(Boolean, mapnp, -9999)
 
-    elif len(coord) == 1:
+    elif len(coord) < 3:
 
         filename = os.path.splitext(cbinding(name))[0] + '.nc'
         try:
@@ -161,7 +165,9 @@ def loadsetclone(name):
             x = x1 - cellSize / 2
             y = y1 + cellSize / 2
 
-            mapnp = np.array(nf1.variables[value][0:nrRows, 0:nrCols])
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                mapnp = np.array(nf1.variables[value][0:nrRows, 0:nrCols])
             nf1.close()
             setmaskmapAttr( x, y, nrCols, nrRows, cellSize)
 
@@ -192,9 +198,10 @@ def loadsetclone(name):
         if Flags['check']:
             checkmap(name, filename, mapnp, flagmap, False,0)
 
+
     else:
-        msg = "Maskmap: " + filename + \
-            " is not a valid mask map nor valid coordinates"
+        msg = "Maskmap: " + filename + " is not a valid mask map nor valid coordinates\n"
+        msg +="Or there is a whitespace or undefined character in Maskmap"
         raise CWATMError(msg)
 
 
@@ -203,9 +210,6 @@ def loadsetclone(name):
     # if there is no ldd at a cell, this cell should be excluded from modelling
 
     maskldd = loadmap('Ldd', compress = False)
-
-    #report("C:/work/output2/ldd.map",maskldd,compr=False)
-
     maskarea = np.bool8(mapnp)
     mask = np.logical_not(np.logical_and(maskldd,maskarea))
 
@@ -227,6 +231,45 @@ def loadsetclone(name):
     if Flags['check']:
         checkmap("Mask+Ldd", "", np.ma.masked_array(mask,mask), flagmap, True, mapC)
 
+    outpoints = 0
+    if len(coord) == 2:
+       outpoints = valuecell( coord, filename)
+       outpoints[outpoints < 0] = 0
+
+    return mapC, outpoints, len(coord)
+
+
+def maskfrompoint(mask2D,xleft,yup):
+    """
+    load a static map either value or pc raster map or netcdf
+
+    :param mask2D: 2D array of new mask
+    :param xleft: left lon coordinate
+    :param yup: upper lat coordinate
+    :return:  new mask map
+    """
+
+    x = xleft * maskmapAttr['cell'] + maskmapAttr['x']
+    y = maskmapAttr['y'] - yup * maskmapAttr['cell']
+
+    maskmapAttr['x'] = x
+    maskmapAttr['y'] = y
+    maskmapAttr['col'] = mask2D.shape[1]
+    maskmapAttr['row'] = mask2D.shape[0]
+
+    mask = np.invert(np.bool8(mask2D))
+    mapC = np.ma.compressed(np.ma.masked_array(mask, mask))
+
+    # Definition of compressed array and info how to blow it up again
+    maskinfo['mask'] = mask
+    maskinfo['shape'] = mask.shape
+    maskinfo['maskflat'] = mask.ravel()  # map to 1D not compresses
+    maskinfo['shapeflat'] = maskinfo['maskflat'].shape  # length of the 1D array
+    maskinfo['mapC'] = mapC.shape  # length of the compressed 1D array
+    maskinfo['maskall'] = np.ma.masked_all(maskinfo['shapeflat'])  # empty map 1D but with mask
+    maskinfo['maskall'].mask = maskinfo['maskflat']
+
+    globals.inZero = np.zeros(maskinfo['mapC'])
     return mapC
 
 
@@ -934,6 +977,9 @@ def readnetcdfInitial(name, value,default = 0.0):
             mapC = compressArray(mapnp, name=filename)
             if Flags['check']:
                 checkmap(value, filename, mapnp, True, True, mapC)
+            a = globals.inZero
+            if mapC.shape != globals.inZero.shape:
+                raise Exception
             return mapC
         except:
             #nf1.close()
@@ -941,6 +987,7 @@ def readnetcdfInitial(name, value,default = 0.0):
             msg += "Initial value: " + value + " is has not the same shape as the mask map\n"
             msg += "Maybe put\"load_initial = False\""
             print(CWATMError(msg))
+            sys.exit()
     else:
         nf1.close()
         msg = "Initial value: " + value + " is not included in: " + name + " - using default: " + str(default)

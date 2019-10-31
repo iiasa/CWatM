@@ -289,6 +289,30 @@ def defLdd2(ldd):
     return lddCompress, dirshort, dirUp, dirupLen, dirupID, downstruct, catchment, dirDown, lendirDown
 
 
+def lddshort(lddnp,lddOrder):
+    """
+    return short for calculating a catchment from a river network
+
+    :param lddnp: rivernetwork as 1D array
+    :param lddOrder:
+    :return: short ldd
+    """
+
+    yi=lddnp.shape[0]
+    xi=lddnp.shape[1]
+
+    # direction downstream naming the order of the cell
+    dir = np.array(np.empty(maskinfo['shape']), dtype=np.int64)
+    dir.fill(-1)
+
+    #lib2.repairLdd1(lddnp, yi,xi)
+
+    lddcomp = compressArray(lddnp).astype(np.int64)
+    lib2.dirID(lddOrder, lddnp, dir,yi,xi)
+    dirshort = compressArray(dir).astype(np.int64)
+
+    return dirshort
+
 
 def lddrepair(lddnp,lddOrder):
     """
