@@ -133,6 +133,10 @@ class waterdemand(object):
             if "alphaDepletion" in binding:
                 self.var.alphaDepletion = loadmap('alphaDepletion')
 
+            self.var.modflowPumping = globals.inZero.copy()
+            self.var.modflowDepth2 = 0
+            self.var.modflowTopography = 0
+
         else:  # no water demand
 
             self.var.nonIrrReturnFlowFraction = 0
@@ -162,6 +166,9 @@ class waterdemand(object):
             self.var.ind_efficiency = 1.
             self.var.dom_efficiency = 1.
             self.var.liv_efficiency = 1
+            self.var.modflowPumping = 0
+            self.var.modflowDepth2 = 0
+            self.var.modflowTopography = 0
 
 
 
@@ -712,7 +719,7 @@ class waterdemand(object):
                 self.var.act_irrPaddyWithdrawal = self.var.fracVegCover[2] * self.var.irrDemand[2]
 
             if 'demand2pumping' in binding:
-                if cbinding('demand2pumping') == True:
+                if cbinding('demand2pumping') == 'True':
                     demand2pumping = True
                 else:
                     demand2pumping = False

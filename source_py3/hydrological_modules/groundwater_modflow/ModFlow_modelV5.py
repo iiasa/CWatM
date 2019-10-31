@@ -54,10 +54,10 @@ def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, rec
         # MODFLOW FUNCTION
         ss = np.divide(self.var.poro,self.var.delv2)    # Specific storage [1/m]
         hk2 = self.var.hk0 * StepSize          # Permeability [1/m]
-        laytyp = 0                             # 0 if confined, else laytyp=1
+        laytyp = 1                             # 0 if confined, else laytyp=1
         layvka = 1                               # If layvka=0 vka=vertical hydraulic conductivity, if not vka=ratio horizontal to vertical conductivity
-        vka = 1
-        sy = 0.1                               # Specific yield: not used if the layer is confined
+        vka = 5
+        sy = 0.03                              # Specific yield: not used if the layer is confined
 
         ## FLOPY OBJECTS
         if numero == 1:
@@ -88,7 +88,7 @@ def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, rec
                 wel_sp = []
                 print('number of pumping wells :', len(pumping_datas))
                 for kk in range(len(pumping_datas)):  # adding each pumping well to the package
-                    wel_sp.append([0, pumping_datas[kk][0], pumping_datas[kk][1], pumping_datas[kk][2] * StepSize])
+                    wel_sp.append([0, pumping_datas[kk][0], pumping_datas[kk][1], pumping_datas[kk][2]])   # Multiply pumping_datas[kk][2] by StepSize if flow is in m3/day, currently in m3/7days, pumping < 0 implies abstraction
                     # Pumping [m3/timestep] in the first layer
                 wel = flopy.modflow.ModflowWel(mf, stress_period_data=wel_sp)
                 # the well path has to be defined in the .nam file
@@ -108,7 +108,7 @@ def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, rec
             if self.var.GW_pumping:
                 wel_sp = []
                 for kk in range(len(pumping_datas)):  # adding each pumping well to the package
-                    wel_sp.append([0, pumping_datas[kk][0], pumping_datas[kk][1], pumping_datas[kk][2] * StepSize])  # Pumping [m3/timestep] in the first layer, warning pumping rate has to be  < 0 !!!
+                    wel_sp.append([0, pumping_datas[kk][0], pumping_datas[kk][1], pumping_datas[kk][2]]) # Multiply pumping_datas[kk][2] by StepSize if flow is in m3/day, currently in m3/7days, pumping < 0 implies abstraction
                 wel = flopy.modflow.ModflowWel(mf, stress_period_data=wel_sp)  # the well path has to be defined in the .nam file
 
             rch = flopy.modflow.ModflowRch(mf, nrchop=3, rech=recharge)
@@ -157,6 +157,11 @@ def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, rec
         # Groundwater storage in [m]
         head = np.where(self.var.head[0] == -999, self.var.botm[0]-self.var.actual_thick[0], self.var.head[0])
         self.var.modflowStorGW = (head - (self.var.botm[0]-self.var.actual_thick[0])) * self.var.poro[0]
+
+        self.var.modflowTopography = np.where(self.var.head[0] < -900, self.var.head[0], self.var.botm[0])
+
+        self.var.modflowDepth = np.where(self.var.head[0] < -900, -999, self.var.botm[0] - self.var.head[0])
+        self.var.modflowDepth2 = np.ma.masked_values(self.var.modflowDepth, -999)
 
         budget_terms = 0
         if self.var.writeerror:

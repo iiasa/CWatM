@@ -388,8 +388,30 @@ class landcoverType(object):
                 landcoverYear = datetime.datetime(int(binding['fixLandcoverYear']), 1, 1)
 
             i = 0
+
+
             for coverType in self.var.coverTypes:
-                self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
+
+                if 'Forest_1km' in binding:
+                    if i == 0:  # Forest
+                        self.var.fracVegCover[i] = loadmap('Forest_1km')
+
+                    elif i == 2:
+                        self.var.fracVegCover[i] = globals.inZero.copy()  # *= self.var.riceWeight
+
+                    elif i == 3:  # Crop
+                        self.var.fracVegCover[i] = loadmap('Irr_1km')
+
+                    elif i == 4:  # Urban / Sealed
+                        self.var.fracVegCover[i] = loadmap('Urban_1km')
+                    elif i == 5:  # Urban / Sealed
+                        self.var.fracVegCover[i] = loadmap('Water_1km')
+                    else:
+                        self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
+
+                else:
+                    self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
+
                 i += 1
 
 
