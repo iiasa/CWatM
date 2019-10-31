@@ -182,7 +182,7 @@ def modflow_transient(self,compteur):
                 xi.append(int((x[i] - min_x) // 500))
                 yi.append(int((max_y - y[i]) // 500))
 
-            Wells = np.array([[yi[i], xi[i], pumping[i]] for i in range(len(lat))])  # *-10 to get exaggerated effect
+            Wells = np.array([[yi[i], xi[i], -pumping[i]] for i in range(len(lat))])  # *-10 to get exaggerated effect
             # print(Wells)
             print(len(Wells))
             #np.save('Pumping_input_file', Wells)
