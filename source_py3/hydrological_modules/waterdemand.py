@@ -133,6 +133,10 @@ class waterdemand(object):
             if "alphaDepletion" in binding:
                 self.var.alphaDepletion = loadmap('alphaDepletion')
 
+            self.var.modflowPumping = globals.inZero.copy()
+            self.var.modflowDepth2 = 0
+            self.var.modflowTopography = 0
+
         else:  # no water demand
 
             self.var.nonIrrReturnFlowFraction = 0
@@ -162,6 +166,9 @@ class waterdemand(object):
             self.var.ind_efficiency = 1.
             self.var.dom_efficiency = 1.
             self.var.liv_efficiency = 1
+            self.var.modflowPumping = 0
+            self.var.modflowDepth2 = 0
+            self.var.modflowTopography = 0
 
 
 
@@ -474,7 +481,7 @@ class waterdemand(object):
 
                         # Sum up each segment's available lake and reservoir water, in volume [m3]
                         lakeResStorage_alloc = np.where(self.var.allocSegments != 65535.0, npareatotal(self.var.lakeResStorage, self.var.allocSegments),self.var.lakeResStorage) # [M3]
-                        act_bigLakeResAbst_alloc = np.minimum(0.50 * lakeResStorage_alloc, remain_Segment) #take maximum 90% of reservoir volume
+                        act_bigLakeResAbst_alloc = np.minimum(0.05 * lakeResStorage_alloc, remain_Segment) #take maximum 5% of reservoir volume
                         ResAbstractFactor = np.where(lakeResStorage_alloc != 0, divideValues(act_bigLakeResAbst_alloc, lakeResStorage_alloc), 0)  # fraction of water abstracted versus water available for total segment reservoir volumes
                         ResAbstractFactorC = np.compress(self.var.compress_LR, ResAbstractFactor)
 
@@ -521,7 +528,7 @@ class waterdemand(object):
                         lakeResStorageC = np.where(self.var.waterBodyTypCTemp == 0, 0.,
                                                    np.where(self.var.waterBodyTypCTemp == 1, self.var.lakeStorageC,
                                                             self.var.reservoirStorageM3C)) / self.var.MtoM3C
-                        minlake = np.maximum(0., 0.9 * lakeResStorageC)
+                        minlake = np.maximum(0., 0.05 * lakeResStorageC)
 
                         act_bigLakeAbstC = np.minimum(minlake, remainNeedBigC)
                         # substract from both, because it is sorted by self.var.waterBodyTypCTemp
@@ -543,7 +550,8 @@ class waterdemand(object):
 
                 else:
                     self.var.act_bigLakeResAbst = 0
-                self.var.act_smallLakeResAbst = 0 # In the current development, small lakes are not directly used to meet water demands.
+                self.var.act_smallLakeResAbst = 0 
+                # At 30 arc-seconds resolution, the small lakes development is not used.
 
                 # available surface water is from river network + large/small lake & reservoirs
                 self.var.act_SurfaceWaterAbstract += (self.var.act_bigLakeResAbst + self.var.act_smallLakeResAbst)
@@ -583,7 +591,7 @@ class waterdemand(object):
                     # Storage of a big lake
                     lakeResStorageC = np.where(self.var.waterBodyTypCTemp == 0, 0.,
                                 np.where(self.var.waterBodyTypCTemp == 1, self.var.lakeStorageC, self.var.reservoirStorageM3C)) / self.var.MtoM3C
-                    minlake = np.maximum(0., 0.9*lakeResStorageC) #changed from 0.01 to 0.9
+                    minlake = np.maximum(0., 0.05*lakeResStorageC) #reasonable but arbitrary limit
 
 
                     act_bigLakeAbstC = np.minimum(minlake , remainNeedBigC)
@@ -674,6 +682,8 @@ class waterdemand(object):
                 act_irrpaddySW = self.var.fracVegCover[2] * act_swAbstractionFraction * self.var.irrDemand[2]
                 self.var.act_irrPaddyWithdrawal = act_irrpaddySW + act_irrpaddyGW
 
+                act_gw = act_nonIrrWithdrawalGW + act_irrnonpaddyGW + act_irrWithdrawalGW
+
                 # todo: is act_irrWithdrawal needed to be replaced? Check later!!
                 # consumption - irrigation (without loss) = demand  * efficiency   (back to non fraction value)
                 self.var.act_irrConsumption[2] = divideValues(self.var.act_irrPaddyWithdrawal, self.var.fracVegCover[2]) * self.var.efficiencyPaddy
@@ -702,8 +712,24 @@ class waterdemand(object):
                 self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
                 self.var.act_nonIrrWithdrawal = self.var.nonIrrDemand
                 self.var.act_irrWithdrawal = self.var.totalIrrDemand
+
+                act_gw = self.var.pot_GroundwaterAbstract
+
                 self.var.act_irrNonpaddyWithdrawal = self.var.fracVegCover[3] * self.var.irrDemand[3]
                 self.var.act_irrPaddyWithdrawal = self.var.fracVegCover[2] * self.var.irrDemand[2]
+
+            if 'demand2pumping' in binding:
+                if cbinding('demand2pumping') == 'True':
+                    demand2pumping = True
+                else:
+                    demand2pumping = False
+            else:
+                demand2pumping = False
+
+            if demand2pumping == True:
+                self.var.modflowPumping += act_gw * self.var.MtoM3
+
+
 
 
             self.var.act_indWithdrawal = frac_industry * self.var.act_nonIrrWithdrawal
