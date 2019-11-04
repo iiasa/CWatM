@@ -512,7 +512,7 @@ class lakes_reservoirs(object):
                         reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4, 0.0)
 
                 elif sometimes_closed_start < sometimes_closed_end:
-                    if month >= sometimes_closed_start and month <= sometimes_closed_end
+                    if month >= sometimes_closed_start and month <= sometimes_closed_end:
 
                         reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4,
                                                     0.0)
