@@ -186,7 +186,7 @@ def loadsetclone(name):
                 band = nf2.GetRasterBand(1)
                 #bandtype = gdal.GetDataTypeName(band.DataType)
                 mapnp = band.ReadAsArray(0, 0, nf2.RasterXSize, nf2.RasterYSize)
-                mapnp[mapnp > 1] = 0
+                mapnp[mapnp > 10] = 0
 
                 flagmap = True
 
