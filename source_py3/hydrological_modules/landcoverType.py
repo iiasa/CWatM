@@ -310,10 +310,20 @@ class landcoverType(object):
             self.var.arnoBeta[i] = self.var.arnoBetaOro + loadmap(coverType + "_arnoBeta")
             self.var.arnoBeta[i] = np.minimum(1.2, np.maximum(0.01, self.var.arnoBeta[i]))
 
-            rootFrac_toggle = False
-            #This is included as the layer after the first 0.05 layer is the size of maxRootDepth-0.05-0.05 (max: soildepth12-0.05)
+            # Due to large rooting depths, the third (final) soil layer may be pushed to its minimum of 0.05 m.
+            # In such a case, it may be better to turn off the root fractioning feature, as there is limited depth
+            # in the third soil layer to hold water, while having a significant fraction of the rootss.
+            # TODO: Extend soil depths to match maximum root depths
 
-            if rootFrac_toggle == False:
+            if 'rootFrac' in binding:
+                if cbinding('rootFrac') == 'False':
+                    rootFrac = False
+                else:
+                    rootFrac = True
+            else:
+                rootFrac = True
+
+            if rootFrac == False:
 
                 # scaleRootFractions
                 rootFrac = np.tile(globals.inZero,(self.var.soilLayers,1))

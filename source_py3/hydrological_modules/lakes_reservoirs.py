@@ -491,10 +491,13 @@ class lakes_reservoirs(object):
             # If reservoirs are closed off to the river system at some point, i.e. the reservoirs stop releasing water into the rivers
             # When this feature is activated, for the months specified the reservoirs do not relase water into the river.
             # TODO: put beginnning and end month in Settings file. 
-            
+
             if "sometimes_closed" in binding:
+                print('hello')
                 if cbinding("sometimes_closed") == 'True':
                     sometimes_closed = True
+                    sometimes_closed_start = int(cbinding('sometimes_closed_start'))
+                    sometimes_closed_end = int(cbinding('sometimes_closed_end'))
                 else:
                     sometimes_closed = False
             else:
@@ -502,10 +505,17 @@ class lakes_reservoirs(object):
                 
             if sometimes_closed == True:
                 month = int(dateVar['currDatestr'].split('/')[1])
-                if month > 10 or month < 6: #this is specifically for the UB
-                    
-                    #only override if there is a possibility of flooding
-                    reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4, 0.0)
+
+                if sometimes_closed_end <= sometimes_closed_start:
+                    if month >= sometimes_closed_start or month <= sometimes_closed_end:
+                        #only override if there is a possibility of flooding
+                        reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4, 0.0)
+
+                elif sometimes_closed_start < sometimes_closed_end:
+                    if month >= sometimes_closed_start and month <= sometimes_closed_end
+
+                        reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4,
+                                                    0.0)
 
             temp = np.minimum(reservoirOutflow, np.maximum(inflowC, self.var.normQC))
 
