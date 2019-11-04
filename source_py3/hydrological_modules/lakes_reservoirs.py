@@ -457,11 +457,7 @@ class lakes_reservoirs(object):
 
             self.var.reservoirFillC = self.var.reservoirStorageM3C / self.var.resVolumeC
             # New reservoir fill [-]
-
-            #If reservoirs are closed off to the river system at some point
-            sometimes_closed = True
-            
-                
+                     
             reservoirOutflow1 = np.minimum(self.var.minQC, self.var.reservoirStorageM3C * self.var.InvDtSec)
             # Reservoir outflow [m3/s] if ReservoirFill is nearing absolute minimum. 
 
@@ -489,6 +485,13 @@ class lakes_reservoirs(object):
             reservoirOutflow = np.where(self.var.reservoirFillC > self.var.norm_floodLimitC, reservoirOutflow3, reservoirOutflow)
             reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4, reservoirOutflow)
 
+            
+            
+            # This is a development inspired by the Upper Bhima basin. 
+            # If reservoirs are closed off to the river system at some point, i.e. the reservoirs stop releasing water into the rivers
+            # When this feature is activated, for the months specified the reservoirs do not relase water into the river.
+            # TODO: put beginnning and end month in Settings file. 
+            
             if "sometimes_closed" in binding:
                 if cbinding("sometimes_closed") == True:
                     sometimes_closed = True
