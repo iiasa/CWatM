@@ -493,7 +493,7 @@ class lakes_reservoirs(object):
             # TODO: put beginnning and end month in Settings file. 
 
             if "sometimes_closed" in binding:
-                print('hello')
+
                 if cbinding("sometimes_closed") == 'True':
                     sometimes_closed = True
                     sometimes_closed_start = int(cbinding('sometimes_closed_start'))
