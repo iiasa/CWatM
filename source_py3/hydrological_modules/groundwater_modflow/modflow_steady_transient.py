@@ -11,6 +11,8 @@
 
 import numpy as np
 from management_modules.data_handling import *
+import pyproj
+import xlrd
 
 from hydrological_modules.groundwater_modflow.ModFlow_modelV5 import ModFlow_modelV5
 
@@ -124,10 +126,80 @@ def modflow_transient(self,compteur):
 
     # To Modflow subroutine
     ### MODIF LUCA, add the pumping case
+
+    wgs84 = pyproj.Proj("+init=EPSG:4326")  # Associated coord system
+    UTM = pyproj.Proj("+init=EPSG:32643")  # Projection system for the Upper Bhima basin
+
+    self.var.lats = loadmap('Lat')
+    self.var.lons = loadmap('Lon')
+
+    toNPY = [self.var.modflowPumping, self.var.lats, self.var.lons]
+    # print(toNPY)
+
+    pumping = toNPY[0]
+    lat = toNPY[1]
+    lon = toNPY[2]
+
     if self.var.GW_pumping:
-        pumping_data = cbinding('Pumping_input_file')
-        pumping_data = np.load(pumping_data)
-        cap,base, budget_terms = ModFlow_modelV5(self,self.var.PathModflow , compteur, 1, self.var.modflow_timestep, domain['nrow'],domain['ncol'], gwrecharge, pumping_datas=pumping_data)
+
+        if 'demand2pumping' in binding:
+            if cbinding('demand2pumping') == 'True':
+                demand2pumping = True
+            else:
+                demand2pumping = False
+        else:
+            demand2pumping = False
+
+        if demand2pumping == False:
+            pumping_data = cbinding('Pumping_input_file')
+            pumping_data = np.load(pumping_data)
+
+        else:
+
+            ## CONVERSION OF THE COORDINATES into UTM ##
+
+            x = []
+            y = []
+
+            Coord = pyproj.transform(wgs84, UTM, self.var.lons, self.var.lats)
+
+            x = Coord[0]
+            y = Coord[1]
+
+
+            ##Conversion into indices
+            #f = open('UB_limits.txt')
+            f = open(cbinding('catchment_limits'))
+            lines = list(f)
+
+            min_x = float(lines[0]) // 1
+            max_y = float(lines[2]) // 1
+
+            xi = []
+            yi = []
+
+            for i in range(len(lat)):
+                xi.append(int((x[i] - min_x) // 500))
+                yi.append(int((max_y - y[i]) // 500))
+
+            Wells = np.array([[yi[i], xi[i], -pumping[i]] for i in range(len(lat))])  # *-10 to get exaggerated effect
+            # print(Wells)
+            print(len(Wells))
+            #np.save('Pumping_input_file', Wells)
+            # Reset 7-day pumping amount
+            self.var.modflowPumping = globals.inZero.copy()
+
+            #pumping_data_file = cbinding('Pumping_input_file')
+            #pumpage = np.load(pumping_data_file)
+
+            # leakage = np.load('Pumping_input_file_10000.npy')
+            # leakage = np.load('Pumping_input_file_900000.npy')
+
+            #pumping_data = pumpage  # np.concatenate((pumpage, leakage))
+            #print(len(pumping_data))
+            #np.save('Pumping_input_file', pumping_data)
+
+        cap,base, budget_terms = ModFlow_modelV5(self,self.var.PathModflow , compteur, 1, self.var.modflow_timestep, domain['nrow'],domain['ncol'], gwrecharge, pumping_datas=Wells)
     else:
         cap,base, budget_terms = ModFlow_modelV5(self,self.var.PathModflow , compteur, 1, self.var.modflow_timestep, domain['nrow'],domain['ncol'], gwrecharge, pumping_datas=[])
 

@@ -107,7 +107,7 @@ class lakes_reservoirs(object):
             self.var.waterBodyOut = np.where(self.var.UpArea1 == lakeResmax,self.var.waterBodyID, 0)
 
 
-            # dismiss water bodies that a not subcatchment of an outlet
+            # dismiss water bodies that are not a subcatchment of an outlet
             sub = subcatchment1(self.var.dirUp, self.var.waterBodyOut,self.var.UpArea1)
             self.var.waterBodyID = np.where(self.var.waterBodyID == sub, sub, 0)
 
@@ -457,9 +457,9 @@ class lakes_reservoirs(object):
 
             self.var.reservoirFillC = self.var.reservoirStorageM3C / self.var.resVolumeC
             # New reservoir fill [-]
-
+                     
             reservoirOutflow1 = np.minimum(self.var.minQC, self.var.reservoirStorageM3C * self.var.InvDtSec)
-            # Reservoir outflow [m3/s] if ReservoirFill
+            # Reservoir outflow [m3/s] if ReservoirFill is nearing absolute minimum. 
 
             reservoirOutflow2 = self.var.minQC + self.var.deltaO * (self.var.reservoirFillC - 2 * self.var.conLimitC) / self.var.deltaLN
             # 2*ConservativeStorageLimit
@@ -474,12 +474,48 @@ class lakes_reservoirs(object):
             # Reservoir outflow [m3/s] if ReservoirFill gt FloodStorageLimit
             # Depending on ReservoirFill the reservoir outflow equals ReservoirOutflow1, ReservoirOutflow2,
             # ReservoirOutflow3 or ReservoirOutflow4
+            
 
+                
             reservoirOutflow = reservoirOutflow1.copy()
+           
+                
             reservoirOutflow = np.where(self.var.reservoirFillC > 2 * self.var.conLimitC, reservoirOutflow2, reservoirOutflow)
             reservoirOutflow = np.where(self.var.reservoirFillC > self.var.normLimitC, self.var.normQC, reservoirOutflow)
             reservoirOutflow = np.where(self.var.reservoirFillC > self.var.norm_floodLimitC, reservoirOutflow3, reservoirOutflow)
             reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4, reservoirOutflow)
+
+            
+            
+            # This is a development inspired by the Upper Bhima basin. 
+            # If reservoirs are closed off to the river system at some point, i.e. the reservoirs stop releasing water into the rivers
+            # When this feature is activated, for the months specified the reservoirs do not relase water into the river.
+            # TODO: put beginnning and end month in Settings file. 
+
+            if "sometimes_closed" in binding:
+
+                if cbinding("sometimes_closed") == 'True':
+                    sometimes_closed = True
+                    sometimes_closed_start = int(cbinding('sometimes_closed_start'))
+                    sometimes_closed_end = int(cbinding('sometimes_closed_end'))
+                else:
+                    sometimes_closed = False
+            else:
+                sometimes_closed = False
+                
+            if sometimes_closed == True:
+                month = int(dateVar['currDatestr'].split('/')[1])
+
+                if sometimes_closed_end <= sometimes_closed_start:
+                    if month >= sometimes_closed_start or month <= sometimes_closed_end:
+                        #only override if there is a possibility of flooding
+                        reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4, 0.0)
+
+                elif sometimes_closed_start < sometimes_closed_end:
+                    if month >= sometimes_closed_start and month <= sometimes_closed_end:
+
+                        reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4,
+                                                    0.0)
 
             temp = np.minimum(reservoirOutflow, np.maximum(inflowC, self.var.normQC))
 
@@ -497,7 +533,7 @@ class lakes_reservoirs(object):
 
             self.var.reservoirStorageM3C -= qResOutM3DtC
 
-            # self.var.reservoirStorageM3C = np.maximum(0.0,self.var.reservoirStorageM3C)
+            self.var.reservoirStorageM3C = np.maximum(0.0,self.var.reservoirStorageM3C)
 
 
             # New reservoir storage [m3]

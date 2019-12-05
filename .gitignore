@@ -1,0 +1,10 @@
+
+*.cpython-37.pyc
+*.pyc
+source_py3/management_modules/__pycache__/output.cpython-37.pyc
+source_py3/management_modules/__pycache__/globals.cpython-37.pyc
+source_py3/management_modules/__pycache__/data_handling.cpython-37.pyc
+source_py3/hydrological_modules/routing_reservoirs/__pycache__/routing_sub.cpython-37.pyc
+source_py3/hydrological_modules/routing_reservoirs/__pycache__/routing_kinematic.cpython-37.pyc
+source_py3/hydrological_modules/groundwater_modflow/__pycache__/modflow_steady_transient.cpython-37.pyc
+source_py3/hydrological_modules/groundwater_modflow/__pycache__/ModFlow_modelV5.cpython-37.pyc
