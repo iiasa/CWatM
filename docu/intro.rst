@@ -23,8 +23,6 @@ Our vision for the short to medium term work of the group is to introduce water 
 Figure: CWatM - Water related processes included in the model design
 
 
-
-
 Contact CWatM
 -------------
 

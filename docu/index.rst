@@ -4,16 +4,18 @@
    contain the root `toctree` directive.
 
 
-   
-########################
-Community Water Model
-########################
 
-
+.. image:: _static/CWM-logo2.gif
+    :width: 300px
 .. figure:: _static/Hydrological-model_no-labels2.jpg
     :width: 800px
 
 ------------
+
+######################
+Community Water Modell
+######################
+
 
 :Copyright: IIASA WAT Program
 :Authors: :ref:`rst_developer`

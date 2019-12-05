@@ -36,7 +36,6 @@ import warnings
 
 
 
-
 def valuecell( coordx, coordstr):
     """
     to put a value into a raster map -> invert of cellvalue, map is converted into a numpy array first
@@ -87,9 +86,8 @@ def valuecell( coordx, coordstr):
             msg +="\nPlease have a look at \"MaskMap\" or \"Gauges\""
             raise CWATMError(msg)
 
-    #map = numpy2pcr(Nominal, null, -9999)
-    #return map
-    return compressArray(null).astype(np.int64)
+    mapnp = compressArray(null).astype(np.int64)
+    return mapnp
 
 
 def setmaskmapAttr(x,y,col,row,cell):
@@ -103,13 +101,18 @@ def setmaskmapAttr(x,y,col,row,cell):
     :param cell: cell size
     :return: -
     """
+    invcell = round(1/cell,0)
+    # getgeotransform only delivers single precision!
+    cell = 1 / invcell
+    x = 1/round(1/(x-int(x)),4) + int(x)
+    y = 1 / round(1 / (y - int(y)), 4) + int(y)
 
     maskmapAttr['x'] = x
     maskmapAttr['y'] = y
     maskmapAttr['col'] = col
     maskmapAttr['row'] = row
     maskmapAttr['cell'] = cell
-    maskmapAttr['invcell'] = round(1/cell,0)
+    maskmapAttr['invcell'] = invcell
 
 
 def loadsetclone(name):
@@ -186,7 +189,8 @@ def loadsetclone(name):
                 band = nf2.GetRasterBand(1)
                 #bandtype = gdal.GetDataTypeName(band.DataType)
                 mapnp = band.ReadAsArray(0, 0, nf2.RasterXSize, nf2.RasterYSize)
-                mapnp[mapnp > 1] = 0
+                # 10 because that includes all valid LDD values [1-9]
+                mapnp[mapnp > 10] = 0
 
                 flagmap = True
 
@@ -200,7 +204,7 @@ def loadsetclone(name):
 
 
     else:
-        msg = "Maskmap: " + filename + " is not a valid mask map nor valid coordinates\n"
+        msg = "Maskmap: " + filename + " is not a valid mask map nor valid coordinates nor valid point\n"
         msg +="Or there is a whitespace or undefined character in Maskmap"
         raise CWATMError(msg)
 
@@ -248,6 +252,10 @@ def maskfrompoint(mask2D,xleft,yup):
     :param yup: upper lat coordinate
     :return:  new mask map
     """
+
+    if xleft == -1:
+        msg = "MaskMap point does not have a valid value in the river network (LDD)"
+        raise CWATMError(msg)
 
     x = xleft * maskmapAttr['cell'] + maskmapAttr['x']
     y = maskmapAttr['y'] - yup * maskmapAttr['cell']
@@ -503,8 +511,14 @@ def readCoord(name):
 
         cell = gt[1]
         invcell = round(1.0 / cell, 0)
-        lon = gt[0]
-        lat = gt[3]
+
+        # getgeotransform only delivers single precision!
+        cell = 1 / invcell
+        x1 = gt[0]
+        y1 = gt[3]
+        lon = 1 / round(1 / (x1 - int(x1)), 4) + int(x1)
+        lat = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
+
 
     return lat,lon, cell,invcell
 
@@ -545,7 +559,72 @@ def readCoordNetCDF(name,check = True):
 
     return lat,lon, cell,invcell
 
+def checkMeteo_Wordclim(meteodata, wordclimdata):
+    """
+    reads the map attributes of meteo dataset and wordclima dataset
+    and compare if it has the same map extend
 
+    :param nmeteodata: name of the meteo netcdf file
+    :param wordlclimdata:  cname of the wordlclim netcdf file
+    :return: True if meteo and wordclim has the same mapextend
+
+    :raises if map extend is different :meth:`management_modules.messages.CWATMFileError`
+    """
+
+    try:
+        nf1 = Dataset(meteodata, 'r')
+    except:
+        msg = "Checking netcdf map \n"
+        raise CWATMFileError(meteodata, msg)
+
+    lonM0 = nf1.variables['lon'][0]
+    lon1 = nf1.variables['lon'][1]
+    cellM = np.abs(lon1 - lonM0) / 2.
+    lonM0 = lonM0 - cellM
+
+    lonM1 = nf1.variables['lon'][-1] + cellM
+    latM0 = nf1.variables['lat'][0]
+    latM1 = nf1.variables['lat'][-1]
+    nf1.close()
+    # swap to make lat0 the biggest number
+    if latM0 < latM1:
+        latM0, latM1 = latM1, latM0
+    latM0 = latM0 + cellM
+    latM1 = latM1 - cellM
+
+    # load Wordclima data
+    try:
+        nf1 = Dataset(wordclimdata, 'r')
+    except:
+        msg = "Checking netcdf map \n"
+        raise CWATMFileError(wordclimdata, msg)
+
+    lonW0 = nf1.variables['lon'][0]
+    lon1 = nf1.variables['lon'][1]
+    cellW = np.abs(lon1 - lonW0) / 2.
+    lonW0 = lonW0 - cellW
+    lonW1 = nf1.variables['lon'][-1] + cellW
+
+
+    latW0 = nf1.variables['lat'][0]
+    latW1 = nf1.variables['lat'][-1]
+    nf1.close()
+    # swap to make lat0 the biggest number
+    if latW0 < latW1:
+        latW0, latW1 = latW1, latW0
+    latW0 = latW0 + cellW
+    latW1 = latW1 - cellW
+    # calculate the controll variable
+    contr1 = (lonM0 + lonM1 + latM0 + latM1)
+    contr2 = (lonW0 + lonW1 + latW0 + latW1)
+    contr = abs(round(contr1 - contr2,5))
+
+    if contr > 0.00001:
+        msg = "Data from meteo dataset and Wordclim dataset does not match"
+        raise CWATMError(msg)
+
+
+    ii = 1
 
 def mapattrNetCDF(name, check = True):
     """
@@ -575,7 +654,7 @@ def mapattrNetCDF(name, check = True):
     cut3 = cut2 + maskmapAttr['row']
     return cut0, cut1, cut2, cut3
 
-def mapattrNetCDFMeteo(name, check = True):
+def mapattrNetCDFMeteo(name, check = True, add1 = True):
     """
     get the map attributes like col, row etc from a netcdf map
     and define the rectangular of the mask map inside the netcdf map
@@ -601,6 +680,12 @@ def mapattrNetCDFMeteo(name, check = True):
     cut3 = int(0.01 + np.abs(latend - lat) * invcell) + 1
     if cut1 > 720: cut1 = 720
     if cut3 > 300: cut3 = 300
+
+    # rounding issue, hard to find out why and when it is working or not
+    # here if you use a crodex map do not add a 1
+    if not(add1):
+        cut1 = cut1 - 1
+        cut3 = cut3 - 1
 
 
     # lon and lat of coarse meteo dataset
@@ -630,10 +715,19 @@ def mapattrTiff(nf2):
     geotransform = nf2.GetGeoTransform()
     x1 = geotransform[0]
     y1 = geotransform[3]
+
+
+
     #maskmapAttr['col'] = nf2.RasterXSize
     #maskmapAttr['row'] = nf2.RasterYSize
     cellSize = geotransform[1]
+
     invcell = round(1/cellSize,0)
+
+    # getgeotransform only delivers single precision!
+    cellSize = 1 / invcell
+    x1 = 1/round(1/(x1-int(x1)),4) + int(x1)
+    y1 = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
 
     if maskmapAttr['invcell'] != invcell:
         msg = "Cell size different in maskmap: " + \

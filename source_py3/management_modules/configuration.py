@@ -30,28 +30,29 @@ class ExtParser(configparser.ConfigParser):
         MaskMap = $(FILE_PATHS:PathRoot)/data/areamaps/area.tif
 
     """
+
     #implementing extended interpolation
     def __init__(self, *args, **kwargs):
-         self.cur_depth = 0
-         configparser.ConfigParser.__init__(self, *args, **kwargs)
+        self.cur_depth = 0
+        configparser.ConfigParser.__init__(self, *args, **kwargs)
 
+    def get(self, section, option, raw=False, vars=None, **kwargs):
+        """
+        def get(self, section, option, raw=False, vars=None
+        placeholder replacement
 
-    def get(self, section, option, raw = False, vars = None, **kwargs):
-         """
-         def get(self, section, option, raw=False, vars=None
-         placeholder replacement
+        :param section: section part of the settings file
+        :param option: option part of the settings file
+        :param raw:
+        :param vars:
+        :return:
+        """
 
-         :param section: section part of the settings file
-         :param option: option part of the settings file
-         :param raw:
-         :param vars:
-         :return:
-         """
-         #h1 = sys.tracebacklimit
-         #sys.tracebacklimit = 0  # no long error message
-         try:
-            r_opt = configparser.ConfigParser.get(self, section, option, raw=True, vars=vars)
-         except:
+        #h1 = sys.tracebacklimit
+        #sys.tracebacklimit = 0  # no long error message
+        try:
+           r_opt = configparser.ConfigParser.get(self, section, option, raw=True, vars=vars)
+        except:
              print(section, option)
              closest = difflib.get_close_matches(option, list(binding.keys()))
              if not closest: closest = ["- no match -"]
@@ -60,21 +61,21 @@ class ExtParser(configparser.ConfigParser):
              raise CWATMError(msg)
 
 
-         #sys.tracebacklimit = h1   # set error message back to default
-         if raw:
-             return r_opt
+        #sys.tracebacklimit = h1   # set error message back to default
+        if raw:
+            return r_opt
 
-         ret = r_opt
-         re_newintp1 = r'\$\((\w*):(\w*)\)'  # other section
-         re_newintp2 = r'\$\((\w*)\)'  # same section
+        ret = r_opt
+        re_newintp1 = r'\$\((\w*):(\w*)\)'  # other section
+        re_newintp2 = r'\$\((\w*)\)'  # same section
 
-         re_old1 = re.findall('\$\(\w*:\w*\)', r_opt)
-         re_old2 = re.findall('\$\(\w*\)', r_opt)
+        re_old1 = re.findall('\$\(\w*:\w*\)', r_opt)
+        re_old2 = re.findall('\$\(\w*\)', r_opt)
 
-         m_new1 = re.findall(re_newintp1, r_opt)
-         m_new2 = re.findall(re_newintp2, r_opt)
+        m_new1 = re.findall(re_newintp1, r_opt)
+        m_new2 = re.findall(re_newintp2, r_opt)
 
-         if m_new1:
+        if m_new1:
              i = 0
              for f_section, f_option in m_new1:
                  self.cur_depth = self.cur_depth + 1
@@ -85,7 +86,7 @@ class ExtParser(configparser.ConfigParser):
                  else:
                      raise configparser.InterpolationDepthError(option, section, r_opt)
 
-         if m_new2:
+        if m_new2:
              i = 0
              for l_option in m_new2:
                  self.cur_depth = self.cur_depth + 1
@@ -96,8 +97,8 @@ class ExtParser(configparser.ConfigParser):
                  else:
                      raise configparser.InterpolationDepthError(option, section, r_opt)
 
-         self.cur_depth = self.cur_depth - 1
-         return ret
+        self.cur_depth = self.cur_depth - 1
+        return ret
 
 
 

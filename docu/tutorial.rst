@@ -34,6 +34,7 @@ These external libraries are needed:
 * `Scipy <https://www.scipy.org>`_
 * `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
 * `GDAL <http://www.gdal.org>`_
+* `Flopy <https://www.usgs.gov/software/flopy-python-package-creating-running-and-post-processing-modflow-based-models>`_
 
 **Windows**
 
@@ -345,6 +346,8 @@ Daily, monthly - at the end or average
 * total year, average year, end of year 
 * total average, total at the end
 
+available prefixes are: 'daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend','totaltot','totalavg'
+
 for example
 ::
    
@@ -364,6 +367,25 @@ for example
 .. note:: For each variable the meta data information can be defined in :ref:`rst_metadata`
 
 .. note:: For information how to adjust the output in the settings file see :ref:`rst_outputone`
+
+Time series as point infomation or catchment sum or average
+-----------------------------------------------------------
+
+As standard time series can include values of the specific cell as defined in the settings file as *Gauges*
+But time series can also show the area sum or area average of the upstream catchment from the specific cell
+
+for example
+::
+   
+   [OUTPUT]
+   # OUTPUT maps and timeseries
+   # Standard values of a specific cell
+   OUT_TSS_Daily = discharge
+   OUT_TSS_AnnualAvg = Precipitation
+   # Area sum of upstream catchment
+   OUT_TSS_AreaSum_MonthTot = Precipitation, runoff
+   # Area sum of upstream catchment
+   OUT_TSS_AreaAvg_MonthTot = Precipitation
 
 
 Most important output variables - a selection

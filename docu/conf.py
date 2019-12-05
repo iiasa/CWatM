@@ -19,8 +19,6 @@
 import os
 import sys
 
-print(sys.version)
-
 sys.path.insert(0,"C:\work\CWatM\source_py3")
 
 # -- General configuration ------------------------------------------------
@@ -35,22 +33,24 @@ sys.path.insert(0,"C:\work\CWatM\source_py3")
 # --------------------------------------------------------------------
 # put in extensions for source code documentation
 #    'sphinx.ext.autodoc',
-#    'sphinx.ext.viewcode',
+#	'sphinx.ext.inheritance_diagram',
+# --------------------------------------------------------------------
+
+#     'sphinx.ext.imgmath',
+    #'sphinx.ext.viewcode',
 
 extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.inheritance_diagram',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.imgmath',
-    'sphinx.ext.ifconfig',
-    'sphinx.ext.githubpages',
-    'sphinx.ext.viewcode',
+	'sphinx.ext.autodoc',
+	'sphinx.ext.napoleon',
+	'sphinx.ext.imgmath',
+	'sphinx.ext.viewcode',
     'sphinx.ext.graphviz'
 ]
+
 
 
 # Napoleon settings
@@ -67,7 +67,6 @@ napoleon_use_param = True
 napoleon_use_rtype = True
 
 math_number_all = False
-
 # 'sphinx.ext.imgmath'  instead of 'rst2pdf.pdfbuilder',
 
 pdf_documents = [('index', u'CWATM', u'CommunityWaterModel_V-1,1', u'Peter Burek'),]
@@ -90,7 +89,7 @@ pdf_use_numbered_links = False
 pdf_fit_background_mode = 'scale'
 
 
-
+#pdf_use_index = False
 
 
 
@@ -207,8 +206,8 @@ html_short_title = 'CWAT Model'
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 #
-html_logo = '_static/CWATM1.jpg'
-
+#html_logo = '_static/CWATM1.jpg'
+html_logo = '_static/cwatmlogo1.png'
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
@@ -333,7 +332,34 @@ latex_documents = [
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
 #
-latex_logo = '_static/CWATM1.jpg'
+#latex_logo = '_static/CWATM1.jpg'
+latex_logo = '_static/cwatmlogo1.png'
+ 
+latex_use_modindex = True
+latex_show_pagerefs = True
+latex_show_urls ='footnote'
+
+release = ''
+latex_elements = { 'releasename': '' }
+
+latex_elements = {
+     # The paper size ('letterpaper' or 'a4paper').
+     #
+     # 'papersize': 'letterpaper',
+
+     # The font size ('10pt', '11pt' or '12pt').
+     #
+     # 'pointsize': '10pt',
+
+     # Additional stuff for the LaTeX preamble.
+     #
+     # 'preamble': '',
+
+     # Latex figure (float) alignment
+     #
+     # 'figure_align': 'htbp',
+    'extraclassoptions': 'openany',
+}
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
@@ -361,7 +387,7 @@ latex_logo = '_static/CWATM1.jpg'
 # If false, no module index is generated.
 #
 # latex_domain_indices = True
-# latex_show_pagerefs = True
+
 
 # -- Options for manual page output ---------------------------------------
 

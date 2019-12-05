@@ -11,8 +11,6 @@
 
 from .globals import *
 
-
-
 def counted(fn):
     """
     count number of times a subroutine is called
@@ -21,14 +19,15 @@ def counted(fn):
     :return: number of times the subroutine is called
     """
     def wrapper(*args, **kwargs):
-        wrapper.called+= 1
+        wrapper.called += 1
         return fn(*args, **kwargs)
-    wrapper.called= 0
-    wrapper.__name__= fn.__name__
+    wrapper.called = 0
+    wrapper.__name__ = fn.__name__
     return wrapper
 
+
 @counted
-def checkmap(name, value, map, flagmap, flagcompress,mapC):
+def checkmap(name, value, map, flagmap, flagcompress, mapC):
     """
     check maps if the fit to the mask map
 
@@ -45,12 +44,13 @@ def checkmap(name, value, map, flagmap, flagcompress,mapC):
     """
 
     def input2str(inp):
-        if isinstance(inp, str): return(inp)
+        if isinstance(inp, str):
+            return(inp)
         elif isinstance(inp, int):
-           return f'{inp}'
+            return f'{inp}'
         else:
             if inp < 100000:
-               return f'{inp:.2f}'
+                return f'{inp:.2f}'
             else:
                 return f'{inp:.2E}'
 

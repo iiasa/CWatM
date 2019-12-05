@@ -61,9 +61,11 @@ class routing_kinematic(object):
         dmap[~maskinfo['maskflat']] = c1[:]
         c2 = dmap.reshape(maskinfo['shape']).astype(np.int64)
 
-        #ldd2D[ldd2D.mask] = 0
+        if np.max(c2) == 0:
+            return -1,-1,-1
 
         c3 = np.where(c2 == 1)
+
         d1, d2 = min(c3[0]), max(c3[0]+1)
         d3, d4 = min(c3[1]), max(c3[1]+1)
 

@@ -108,10 +108,9 @@ class CWATModel_ini(DynamicModel):
             mask2D, xleft, yup = self.routing_kinematic_module.catchment(point)
             self.MaskMap = maskfrompoint(mask2D, xleft, yup)
             area = np.sum(loadmap('CellArea')) * 1e-6
-            print("Number of cells in catchment: %7.0f km2" %(area))
+            print("Number of cells in catchment: %6i = %7.0f km2" %(np.sum(mask2D),area))
 
         name = cbinding('PrecipitationMaps')
-        #name1 = os.path.splitext(cbinding(('Ldd')))[0] + '.nc'
         nameall = glob.glob(os.path.normpath(name))
         if not nameall:
             raise CWATMFileError(name, sname='PrecipitationMaps')
@@ -135,16 +134,34 @@ class CWATModel_ini(DynamicModel):
         cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(nameldd)
         for i in range(4): cutmapFine[i] = cutmap[i]
 
+        # in case other mapsets are used e.g. Cordex RCM meteo data
+        # if (latldd != latmeteo) or (lonldd != lonmeteo):
+        #    cutmapFine[0], cutmapFine[1], cutmapFine[2], cutmapFine[3], cutmapVfine[0], cutmapVfine[1], cutmapVfine[2], cutmapVfine[3] = mapattrNetCDFMeteo(namemeteo,add1 = False)
+
+
+        # for downscaling meteomaps , Wordclim data at a finer resolution is used
+        # here it is necessary to clip the wordclim data so that they fit to meteo dataset
+        self.meteodown = True
+        if "usemeteodownscaling" in binding:
+            self.meteodown = returnBool('usemeteodownscaling')
+
+        if self.meteodown:
+            checkMeteo_Wordclim(namemeteo, cbinding('downscale_wordclim_prec'))
 
         if not self.meteomapsscale:
+            # if the cellsize of the spatial dataset e.g. ldd, soil etc is not the same as the meteo maps than:
             cutmapFine[0], cutmapFine[1],cutmapFine[2],cutmapFine[3],cutmapVfine[0], cutmapVfine[1],cutmapVfine[2],cutmapVfine[3]  = mapattrNetCDFMeteo(namemeteo)
+
+
             for i in range(4): cutmapGlobal[i] = cutmapFine[i]
             # for downscaling it is always cut from the global map
+            """
             if (latldd != latmeteo) or (lonldd != lonmeteo):
                 cutmapGlobal[0] = int(cutmap[0] / maskmapAttr['reso_mask_meteo'])
                 cutmapGlobal[2] = int(cutmap[2] / maskmapAttr['reso_mask_meteo'])
                 cutmapGlobal[1] = int(cutmap[1] / maskmapAttr['reso_mask_meteo']+0.999)
                 cutmapGlobal[3] = int(cutmap[3] / maskmapAttr['reso_mask_meteo']+0.999)
+            """
 
         if checkOption('writeNetcdfStack') or checkOption('writeNetcdf'):
             # if NetCDF is writen, the pr.nc is read to get the metadata

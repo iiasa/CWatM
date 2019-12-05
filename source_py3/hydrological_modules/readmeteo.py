@@ -65,11 +65,7 @@ class readmeteo(object):
         #meteomaps = ["PrecipitationMaps","TavgMaps"]
         multinetdf(meteomaps)
 
-        # Downscaling
-        self.var.meteodown = True
-        if "usemeteodownscaling" in binding:
-            self.var.meteodown = returnBool('usemeteodownscaling')
-
+        # downscaling to wordclim, set parameter to 0 in case they are only used as dummy
         self.var.wc2_tavg = 0
         self.var.wc4_tavg = 0
         self.var.wc2_tmin = 0

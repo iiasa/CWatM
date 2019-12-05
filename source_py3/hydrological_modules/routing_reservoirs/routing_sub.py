@@ -51,7 +51,7 @@ def decompress(map):
 
 def postorder(dirUp,catchment,node,catch,dirDown):
     """
-    Routine to run a postoder tree traversal
+    Routine to run a postorder tree traversal
 
     :param dirUp:
     :param catchment:

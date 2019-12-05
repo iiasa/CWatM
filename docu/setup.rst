@@ -40,6 +40,7 @@ These external libraries are needed:
 * `Scipy <https://www.scipy.org>`_
 * `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
 * `GDAL <http://www.gdal.org>`_
+* `Flopy <https://www.usgs.gov/software/flopy-python-package-creating-running-and-post-processing-modflow-based-models>`_
 
 **Windows**
 
@@ -338,6 +339,7 @@ Path of data, output
     :language: ini
     :lines: 88-100	
 
+.. _rst_modelarea:
 	
 Defining the modeling area
 ***************************
@@ -345,13 +347,17 @@ Defining the modeling area
 In general the input data are stored and used at global scale.
 The modeling area can be defined by:
 
-* a mask map
-* coordinates 
+* a mask map e.g.: $(FILE_PATHS:PathRoot)/source/rhine30min.tif
+* coordinates e.g.: 14 12 0.5 5.0 52.0
+* lowest point of a catchment e.g.: 6.25 51.75
 
 .. note:: 
 
-    The mask map can be a .tif, PCraster or a netCDF format
+    | The mask map can be a .tif, PCraster or a netCDF format
     | The coordinates have the format: Number of Cols, Number of rows, cellsize, upper left corner X, upper left corner Y 
+    | The point location (lon lat) will be used to create the catchment upstream of this point
+
+.. warning:: If you use a mask map, make sure you do not use blanks in the file path or name! 
 
 
 .. literalinclude:: _static/settings1.ini
@@ -438,6 +444,7 @@ An output directory can be defined and for each sort of output the variable(s) c
 
 | *OUT_* defines that this variable(s) are output
 | *MAP_* or *TSS_* defines if it is a spatial map or a time series of point(s)
+| *AreaSum_* or *AreaAvg_* after *TSS_* defines if the catchment sum of average upstream of the point is calculated
 | *Daily* or *MonthAvg* or .. is specifying the time
 | The variable is given after the equal sign e.g. * = discharge*
 | If more than one variable should be used for output, split with **,**
@@ -452,10 +459,13 @@ As example output for precipitation, temperature and discharge is shown here::
    OUT_MAP_MonthTot = Precipitation, Tavg
    OUT_MAP_MonthAvg = 
 
-   OUT_TSS_MonthTot = Precipitation, Tavg
-   OUT_TSS_Daily = discharge
+   OUT_TSS_MonthTot = Precipitation, Tavg   # monthly total precipitation and average temperature
+   OUT_TSS_Daily = discharge                # daily discharge
    OUT_TSS_MonthEnd = discharge
    OUT_TSS_AnnualEnd = discharge
+
+   OUT_TSS_AreaSum_Daily = Precipitation    # daily sum of precipitation for the upstream catchment
+   OUT_TSS_AreaAvg_MonthAvg = runoff        # monthly average sum of runoff for the upstream catchment
 
 .. note:: For each variable the meta data information can be defined in :ref:`rst_metadata`
 
@@ -758,7 +768,8 @@ Or time series at specified points
 | Timeseries are procuded as ASCII files, which can be read with every text editor
 | or with `PCRaster Aquila <http://pcraster.geo.uu.nl/projects/developments/aguila/>`_
 
-| The specific point where timeseries are provided are defined in the settings file as *Gauges*:
+| The specific point(s) where timeseries are provided are defined in the settings file as *Gauges*:
+| Can be several points in the format lon lat lon lat ..
 
 ::
    
@@ -766,7 +777,7 @@ Or time series at specified points
    # either a map e.g. $(FILE_PATHS:PathRoot)/data/areamaps/area3.map
    # or a location coordinates (X,Y) e.g. 5.75 52.25 9.25 49.75 )
    # Lobith/Rhine
-   Gauges = 6.25 51.75
+   Gauges = 6.25 51.75 7.75 49.75
    
    # if .tif file for gauges, this is a flag if the file is global or local
    # e.g. Gauges = $(FILE_PATHS:PathRoot)/data/areamaps/gaugesRhine.tif
@@ -796,6 +807,8 @@ Daily, monthly - at the end or average
 * total year, average year, end of year 
 * total average, total at the end
 
+available prefixes are: 'daily', 'monthtot','monthavg', 'monthend','annualtot','annualavg','annualend','totaltot','totalavg'
+
 for example
 ::
    
@@ -808,7 +821,9 @@ for example
    OUT_MAP_TotalAvg = Tavg
    
    OUT_TSS_Daily = discharge
+   OUT_TSS_MonthTot = runoff
    OUT_TSS_AnnualAvg = Precipitation
+   OUT_TSS_AnnualTot = runoff
 
   
    
@@ -816,6 +831,24 @@ for example
 
 .. note:: For information how to adjust the output in the settings file see :ref:`rst_outputone`
 
+Time series as point infomation or catchment sum or average
+-----------------------------------------------------------
+
+As standard time series can include values of the specific cell as defined in the settings file as *Gauges*
+But time series can also show the area sum or area average of the upstream catchment from the specific cell
+
+for example
+::
+   
+   [OUTPUT]
+   # OUTPUT maps and timeseries
+   # Standard values of a specific cell
+   OUT_TSS_Daily = discharge
+   OUT_TSS_AnnualAvg = Precipitation
+   # Area sum of upstream catchment
+   OUT_TSS_AreaSum_MonthTot = Precipitation, runoff
+   # Area sum of upstream catchment
+   OUT_TSS_AreaAvg_MonthTot = Precipitation
 
 Most important output variables - a selection
 ---------------------------------------------

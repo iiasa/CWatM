@@ -9,7 +9,6 @@
 # -------------------------------------------------------------------------
 
 from management_modules.data_handling import *
-#from scipy.stats import norm
 
 
 class snow(object):
