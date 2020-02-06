@@ -70,7 +70,7 @@ class CWATModel(CWATModel_ini, CWATModel_dyn):
 
 # ==================================================
 
-def CWATMexe():
+def CWATMexe(settings):
     """
     Base subroutine of the CWATM model
 
@@ -107,7 +107,7 @@ def CWATMexe():
     Deterministic run
     ----------------------------------------------
     """
-    print(CWATMRunInfo(outputDir=outputDir[0]))
+    print(CWATMRunInfo([outputDir[0], settingsfile[0]]))
     start_time = datetime.datetime.now().time()
     if Flags['loud']:
         print("%-6s %10s %11s\n" % ("Step", "Date", "Discharge"), end=' ')
@@ -130,6 +130,9 @@ def CWATMexe():
     current_time = datetime.datetime.now().time()
     print(start_time.isoformat())
     print(current_time.isoformat())
+
+    # return with last value and true for successfull run for pytest
+    return(True, CWATM.firstout)
 
 
 # ==================================================
@@ -235,26 +238,30 @@ def headerinfo():
 # ==================================================
 # ============== MAIN ==============================
 # ==================================================
+def main(settings,args):
 
-if __name__ == "__main__":
+    success = False
+    if Flags['test']: globalclear()
 
-    if len(sys.argv) < 2:
-        usage()
-
-    CWatM_Path = os.path.dirname(sys.argv[0])
-    CWatM_Path = os.path.abspath(CWatM_Path)
-
-    settings = sys.argv[1]  # setting.ini file
-
-    args = sys.argv[2:]
-
-    # args =['-l']
-
-    globalFlags(args)
+    globalFlags(settings, args, settingsfile, Flags)
     if Flags['use']:
         usage()
     if Flags['warranty']:
         GNU()
     # setting of global flag e.g checking input maps, producing more output information
     headerinfo()
-    CWATMexe()
+    success, last_dis = CWATMexe(settingsfile[0])
+
+    #if Flags['test']:
+    return success, last_dis
+
+if __name__ == "__main__":
+
+    if len(sys.argv) < 2:
+        usage()
+    CWatM_Path = os.path.dirname(sys.argv[0])
+    CWatM_Path = os.path.abspath(CWatM_Path)
+
+    main(sys.argv[1],sys.argv[2:])
+
+

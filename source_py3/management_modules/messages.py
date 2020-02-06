@@ -95,9 +95,9 @@ class CWATMRunInfo(Warning):
         warning given with a header and a message from the subroutine
     """
 
-    def __init__(self, outputDir, Steps = 1, ensMembers=1, Cores=1):
+    def __init__(self, outputS):
         header = "\nCWATM Simulation Information and Setting\n"
-        msg = "The simulation output as specified in the settings file: " + sys.argv[1] + " can be found in "+str(outputDir)+"\n"
+        msg = "The simulation output as specified in the settings file: " + str(outputS[0]) + " can be found in "+str(outputS[1])+"\n"
         self._msg = header + msg
     def __str__(self):
         return self._msg

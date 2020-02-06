@@ -141,27 +141,27 @@ class CWATModel_ini(DynamicModel):
 
         # for downscaling meteomaps , Wordclim data at a finer resolution is used
         # here it is necessary to clip the wordclim data so that they fit to meteo dataset
-        self.meteodown = True
+        self.meteodown = False
         if "usemeteodownscaling" in binding:
             self.meteodown = returnBool('usemeteodownscaling')
 
         if self.meteodown:
-            checkMeteo_Wordclim(namemeteo, cbinding('downscale_wordclim_prec'))
+            check_clim = checkMeteo_Wordclim(namemeteo, cbinding('downscale_wordclim_prec'))
 
         if not self.meteomapsscale:
             # if the cellsize of the spatial dataset e.g. ldd, soil etc is not the same as the meteo maps than:
             cutmapFine[0], cutmapFine[1],cutmapFine[2],cutmapFine[3],cutmapVfine[0], cutmapVfine[1],cutmapVfine[2],cutmapVfine[3]  = mapattrNetCDFMeteo(namemeteo)
-
-
+            # downscaling wordlclim maps
             for i in range(4): cutmapGlobal[i] = cutmapFine[i]
-            # for downscaling it is always cut from the global map
-            """
-            if (latldd != latmeteo) or (lonldd != lonmeteo):
-                cutmapGlobal[0] = int(cutmap[0] / maskmapAttr['reso_mask_meteo'])
-                cutmapGlobal[2] = int(cutmap[2] / maskmapAttr['reso_mask_meteo'])
-                cutmapGlobal[1] = int(cutmap[1] / maskmapAttr['reso_mask_meteo']+0.999)
-                cutmapGlobal[3] = int(cutmap[3] / maskmapAttr['reso_mask_meteo']+0.999)
-            """
+
+            if not(check_clim):
+               # for downscaling it is always cut from the global map
+                if (latldd != latmeteo) or (lonldd != lonmeteo):
+                    cutmapGlobal[0] = int(cutmap[0] / maskmapAttr['reso_mask_meteo'])
+                    cutmapGlobal[2] = int(cutmap[2] / maskmapAttr['reso_mask_meteo'])
+                    cutmapGlobal[1] = int(cutmap[1] / maskmapAttr['reso_mask_meteo']+0.999)
+                    cutmapGlobal[3] = int(cutmap[3] / maskmapAttr['reso_mask_meteo']+0.999)
+
 
         if checkOption('writeNetcdfStack') or checkOption('writeNetcdf'):
             # if NetCDF is writen, the pr.nc is read to get the metadata

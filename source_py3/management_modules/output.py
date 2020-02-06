@@ -310,7 +310,7 @@ class outputTssMap(object):
             outputFile = open(outputFilename, "w")
             # header
             # outputFile.write("timeseries " + self._spatialDatatype.lower() + "\n")
-            header = "timeseries " + " settingsfile: " + os.path.realpath(sys.argv[1]) + " date: " + xtime.ctime(xtime.time())
+            header = "timeseries " + " settingsfile: " + os.path.realpath(settingsfile[0]) + " date: " + xtime.ctime(xtime.time())
             header += " CWATM: " + versioning['exe']  + ", " +versioning['lastdate'] + "\n"
             outputFile.write(header)
             if len(expression[3]):
@@ -344,7 +344,7 @@ class outputTssMap(object):
 
             outputFilename = os.path.splitext(expression[0])[0] + ".txt"
             outputFile = open(outputFilename, "w")
-            outputFile.write("Map_dump " + " settingsfile: " + os.path.realpath(sys.argv[1]) + " date: " + xtime.ctime(xtime.time()) + "\n")
+            outputFile.write("Map_dump " + " settingsfile: " + os.path.realpath(settingsfile[0]) + " date: " + xtime.ctime(xtime.time()) + "\n")
             outputFile.write("Parameter: " + expression[1] + "\n")
             outputFile.write("Number of cells: " + str(size) + "\n")
 
@@ -491,13 +491,14 @@ class outputTssMap(object):
                                 # ************************************************************
         # ***** WRITING RESULTS: TIME SERIES *************************
         # ************************************************************
+        self.var.firstout = firstout(self.var.discharge)
 
         if Flags['loud'] and checkOption('reportTss'):
             # print the discharge of the first output map loc
             # print " %10.2f"  %cellvalue(maptotal(decompress(eval('self.var.' + reportTimeSerieAct["DisTS"]['outputVar'][0]))),1,1)[0]
             # print " %10.2f" % self.var.Tss["DisTS"].firstout(decompress(self.var.ChanQAvg))
             #print " %10.2f" % outTss['routing_out_tss_daily'][0][0].firstout(decompress(self.var.discharge))
-            print(" %10.2f" % firstout(self.var.discharge))
+            print(" %10.2f" % self.var.firstout)
 
         if checkOption('reportTss'):
             for tss in list(outTss.keys()):

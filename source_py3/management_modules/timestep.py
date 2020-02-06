@@ -49,7 +49,7 @@ def ctbinding(inBinding):
         closest = difflib.get_close_matches(inBinding, list(binding.keys()))
         if not closest: closest = ["- no match -"]
         msg = "===== Timing in the section: [TIME-RELATED_CONSTANTS] is wrong! =====\n"
-        msg += "No key with the name: \"" + inBinding + "\" in the settings file: \"" + sys.argv[1] + "\"\n"
+        msg += "No key with the name: \"" + inBinding + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
         msg += "Closest key to the required one is: \""+ closest[0] + "\""
         raise CWATMError(msg)
 

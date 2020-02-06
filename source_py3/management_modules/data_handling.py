@@ -104,8 +104,10 @@ def setmaskmapAttr(x,y,col,row,cell):
     invcell = round(1/cell,0)
     # getgeotransform only delivers single precision!
     cell = 1 / invcell
-    x = 1/round(1/(x-int(x)),4) + int(x)
-    y = 1 / round(1 / (y - int(y)), 4) + int(y)
+    if (x-int(x)) != 0.:
+       x = 1/round(1/(x-int(x)),4) + int(x)
+    if (y - int(y)) != 0.:
+       y = 1 / round(1 / (y - int(y)), 4) + int(y)
 
     maskmapAttr['x'] = x
     maskmapAttr['y'] = y
@@ -368,7 +370,7 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
                 raise CWATMFileError(filename,sname=name)
 
         try:
-            if any(maskinfo): mapnp.mask = maskinfo['mask']
+            if any(maskinfo) and compress: mapnp.mask = maskinfo['mask']
         except:
             ii=0
 
@@ -522,6 +524,28 @@ def readCoord(name):
 
     return lat,lon, cell,invcell
 
+
+def readCoordNetCDF2(name,check = True):
+
+
+    if check:
+        try:
+            nf1 = Dataset(name, 'r')
+        except:
+            msg = "Checking netcdf map \n"
+            raise CWATMFileError(name,msg)
+    else:
+        # if subroutine is called already from inside a try command
+        nf1 = Dataset(name, 'r')
+
+    lons = nf1.variables['lon'][:]
+    lats = nf1.variables['lat'][:]
+    nf1.close()
+    return lats, lons
+
+
+
+
 def readCoordNetCDF(name,check = True):
     """
     reads the map attributes col, row etc from a netcdf map
@@ -619,12 +643,13 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
     contr2 = (lonW0 + lonW1 + latW0 + latW1)
     contr = abs(round(contr1 - contr2,5))
 
+    check = True
     if contr > 0.00001:
-        msg = "Data from meteo dataset and Wordclim dataset does not match"
-        raise CWATMError(msg)
+        #msg = "Data from meteo dataset and Wordclim dataset does not match"
+        #raise CWATMError(msg)
+        check  = False
 
-
-    ii = 1
+    return check
 
 def mapattrNetCDF(name, check = True):
     """
@@ -647,7 +672,7 @@ def mapattrNetCDF(name, check = True):
 
     xx = maskmapAttr['x']
     yy = maskmapAttr['y']
-    cut0 = int(0.01 + np.abs(xx - lon) * invcell)
+    cut0 = int(0.01 + np.abs(xx - lon) * invcell)  # argmin() ??
     cut2 = int(0.01 + np.abs(yy - lat) * invcell)
 
     cut1 = cut0 + maskmapAttr['col']
@@ -674,12 +699,27 @@ def mapattrNetCDFMeteo(name, check = True, add1 = True):
     latend = lat0 - maskmapAttr['row'] / maskmapAttr['invcell']
 
     # cut for 0.5 deg map based on finer resolution
+
+    # lats = nc_simulated.variables['lat'][:]
+    # in_lat = discharge_location[1]
+    # lat_idx = geo_idx(in_lat, lats)
+    # geo_idx = (np.abs(dd_array - dd)).argmin()
+    # geo_idx(dd, dd_array):
+
     cut0 = int(0.01 + np.abs(lon0 - lon) * invcell)
     cut1 = int(0.01 + np.abs(lonend - lon) * invcell) + 1
     cut2 = int(0.01 + np.abs(lat0 - lat) * invcell)
     cut3 = int(0.01 + np.abs(latend - lat) * invcell) + 1
     if cut1 > 720: cut1 = 720
     if cut3 > 300: cut3 = 300
+
+
+    lats, lons = readCoordNetCDF2(name, check)
+    geo_idx1 = (np.abs(lons - lon0)).argmin()
+    geo_idx2 = (np.abs(lons - lonend)).argmin()
+    geo_idy1 = (np.abs(lats - lat0)).argmin()
+    geo_idy2 = (np.abs(lats - latend)).argmin()
+
 
     # rounding issue, hard to find out why and when it is working or not
     # here if you use a crodex map do not add a 1
@@ -1139,8 +1179,8 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
         nf1 = Dataset(netfile, 'w', format='NETCDF4')
 
         # general Attributes
-        settingsfile = os.path.realpath(sys.argv[1])
-        nf1.settingsfile = settingsfile + ": " + xtime.ctime(os.path.getmtime(settingsfile))
+        settings = os.path.realpath(settingsfile[0])
+        nf1.settingsfile = settings + ": " + xtime.ctime(os.path.getmtime(settings))
         nf1.run_created = xtime.ctime(xtime.time())
         nf1.Source_Software = 'CWATM Python: ' + versioning['exe']
         nf1.Platform = versioning['platform']
@@ -1340,7 +1380,7 @@ def writeIniNetcdf(netfile,varlist, inputlist):
     nf1 = Dataset(netfile, 'w', format='NETCDF4')
 
     # general Attributes
-    nf1.settingsfile = os.path.realpath(sys.argv[1])
+    nf1.settingsfile = os.path.realpath(settingsfile[0])
     nf1.date_created = xtime.ctime(xtime.time())
     nf1.Source_Software = 'CWATM Python'
     nf1.institution = cbinding ("institution")
@@ -1555,7 +1595,7 @@ def checkOption(inBinding):
         closest = difflib.get_close_matches(inBinding, list(option.keys()))
         if close:
             closest = close[0]
-            with open(sys.argv[1]) as f:
+            with open(settingsfile[0]) as f:
                 i = 0
                 for line in f:
                     i +=1
@@ -1566,7 +1606,7 @@ def checkOption(inBinding):
         else:
             closest = "- no match -"
 
-        msg = "No key with the name: \"" + inBinding + "\" in the settings file: \"" + sys.argv[1] + "\"\n"
+        msg = "No key with the name: \"" + inBinding + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
         msg += "Closest key to the required one is: \""+ closest + "\""
         msg += lineclosest
         raise CWATMError(msg)
@@ -1587,7 +1627,7 @@ def cbinding(inBinding):
         if close:
             closest = close[0]
 
-            with open(sys.argv[1]) as f:
+            with open(settingsfile[0]) as f:
                 i = 0
                 for line in f:
                     i +=1
@@ -1598,7 +1638,7 @@ def cbinding(inBinding):
         else:
             closest = "- no match -"
 
-        msg = "No key with the name: \"" + inBinding + "\" in the settings file: \"" + sys.argv[1] + "\"\n"
+        msg = "No key with the name: \"" + inBinding + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
         msg += "Closest key to the required one is: \""+ closest + "\"\n"
         msg += lineclosest
         raise CWATMError(msg)

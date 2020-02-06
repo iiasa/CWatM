@@ -37,7 +37,7 @@ class environflow(object):
                 try:
                     t = outMap['output_out_map_daily']
                 except:
-                    msg = "OUT_MAP_Daily = discharge may be not defined in [OUTPUT] \n in the settings file: \"" + sys.argv[1] + "\"\n"
+                    msg = "OUT_MAP_Daily = discharge may be not defined in [OUTPUT] \n in the settings file: \"" + ssettingsfile[0] + "\"\n"
                     raise CWATMError(msg)
 
                 for map in outMap['output_out_map_daily']:

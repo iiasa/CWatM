@@ -14,6 +14,7 @@
 
 import getopt
 import os.path
+import sys
 
 import ctypes
 import numpy.ctypeslib as npct
@@ -24,8 +25,56 @@ import platform
 
 from management_modules.messages import *
 
+def globalclear():
 
-global maskinfo,zeromap,modelSteps,xmlstring,geotransfrom
+    settingsfile.clear()
+    maskinfo.clear()
+    modelSteps.clear()
+    xmlstring.clear()
+    geotrans.clear()
+    versioning.clear()
+    timestepInit.clear()
+    binding.clear()
+    option.clear()
+    metaNetcdfVar.clear()
+
+    inputcounter.clear()
+    flagmeteo.clear()
+    meteofiles.clear()
+
+    initCondVarValue.clear()
+    initCondVar.clear()
+
+    dateVar.clear()
+
+    outDir.clear()
+    outMap.clear()
+    outTss.clear()
+    outsection.clear()
+    reportTimeSerieAct.clear()
+    reportMapsAll.clear()
+    reportMapsSteps.clear()
+    reportMapsEnd.clear()
+
+
+    ReportSteps.clear()
+    FilterSteps.clear()
+    EnsMembers.clear()
+    nrCores.clear()
+    outputDir.clear()
+
+    maskmapAttr.clear()
+    bigmapAttr.clear()
+    metadataNCDF.clear()
+
+    domain.clear()
+    indexes.clear()
+
+
+global settingsfile
+settingsfile = []
+
+global maskinfo,zeromap,modelSteps,xmlstring,geotrans
 # noinspection PyRedeclaration
 maskinfo = {}
 modelSteps=[]
@@ -38,6 +87,7 @@ global timestepInit
 global metaNetcdfVar
 global inputcounter
 global versioning
+global meteofiles, flagmeteo
 
 versioning = {}
 timestepInit =[]
@@ -63,6 +113,8 @@ dateVar = {}
 # Output variables
 global outDir, outsection, outputTyp
 global outMap, outTss
+global outputTypMap,outputTypTss, outputTypTss2
+
 outDir = {}
 outMap = {}
 outTss = {}
@@ -97,9 +149,7 @@ global domain, indexes
 domain = {}
 indexes = {}
 
-
-
-global timeMes,TimeMesString, timeMesSum
+global timeMes,timeMesString, timeMesSum
 timeMes=[]
 timeMesString = []  # name of the time measure - filled in dynamic
 timeMesSum = []    # time measure of hydrological modules
@@ -111,8 +161,17 @@ coverresult = [False,0]
 global platform1
 
 platform1 = platform.uname()[0]
-python_bit = ctypes.sizeof(ctypes.c_voidp) * 8
 
+# ----------------------------------
+FlagName = ['quiet', 'veryquiet', 'loud',
+            'checkfiles', 'noheader', 'printtime','warranty']
+Flags = {'quiet': False, 'veryquiet': False, 'loud': False,
+         'check': False, 'noheader': False, 'printtime': False, 'warranty': False, 'use': False,
+         'test': False}
+
+
+
+python_bit = ctypes.sizeof(ctypes.c_voidp) * 8
 #print "Running under platform: ", platform1
 if python_bit  < 64:
    msg = "The Python version used is not a 64 bit version! Python " + str(python_bit) + "bit"
@@ -163,20 +222,20 @@ lib2.kinematic.argtypes = [array_1d_double,array_1d_double, array_1d_int, array_
 lib2.runoffConc.restype = None
 lib2.runoffConc.argtypes = [array_2d_double,array_1d_double,array_1d_double,array_1d_double,ctypes.c_int, ctypes.c_int]
 
-# ----------------------------------
-FlagName = ['quiet', 'veryquiet', 'loud',
-            'checkfiles', 'noheader', 'printtime','warranty']
-Flags = {'quiet': False, 'veryquiet': False, 'loud': False,
-         'check': False, 'noheader': False, 'printtime': False, 'warranty': False, 'use': False}
 
 
-def globalFlags(arg):
+
+
+def globalFlags(setting, arg,settingsfile,Flags):
     """
     Read flags - according to the flags the output is adjusted
     quiet,veryquiet, loud, checkfiles, noheader,printtime, warranty
 
     :param arg: argument from calling cwatm
     """
+    # put the settingsfile name in a global variable
+
+    settingsfile.append(setting)
 
     try:
         opts, args = getopt.getopt(arg, 'qvlchtw', FlagName)
@@ -199,4 +258,7 @@ def globalFlags(arg):
             Flags['printtime'] = True
         if o in ('-w', '--warranty'):
             Flags['warranty'] = True
+        # if testing from pytest
+    if "pytest" in sys.modules:
+        Flags['test'] = True
 
