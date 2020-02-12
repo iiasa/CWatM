@@ -65,7 +65,7 @@ def timemeasure(name,loops=0, update = False, sample = 1):
     :param sample:
     :return: add a string to the time measure string: timeMesString
     """
-    timeMes.append(xtime.clock())
+    timeMes.append(xtime.process_time())
     if loops == 0:
         s = name
     else:
