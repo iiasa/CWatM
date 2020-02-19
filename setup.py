@@ -1,11 +1,12 @@
 from setuptools import setup
+from cwatm import __version__, __author__, __email__
 
 setup(name='CWatM',
-      version='1.4',
+      version=__version__,
       description='',
       url='https://github.com/CWatM',
-      author='Peter Burek',
-      author_email='burek@iiasa.ac.at',
+      author=__author__,
+      author_email=__email__,
       packages=[
             'cwatm',
             'cwatm.hydrological_modules',
@@ -22,7 +23,7 @@ setup(name='CWatM',
                   'routing_reservoirs/t5.cpp',
             ],
       },
-      zip_safe=False,
+      zip_safe=True,
       install_requires=[
             'numpy',
             'scipy',
