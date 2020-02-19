@@ -1,0 +1,1162 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>management_modules package &#8212; Community Water Model</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="15. Forum" href="forum.html" />
+    <link rel="prev" title="hydrological_modules package" href="hydrological_modules.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="forum.html" title="15. Forum"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="hydrological_modules.html" title="hydrological_modules package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CWAT Model</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="sourcecode.html" accesskey="U"><span class="section-number">14. </span>Source code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="management-modules-package">
+<h1>management_modules package<a class="headerlink" href="#management-modules-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="data-management">
+<h2>Data management<a class="headerlink" href="#data-management" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="data-handling-module">
+<h3>data_handling module<a class="headerlink" href="#data-handling-module" title="Permalink to this headline">¶</a></h3>
+<p><strong>Managing data and data handling</strong></p>
+<span class="target" id="module-cwatm.management_modules.data_handling"></span><dl class="function">
+<dt id="cwatm.management_modules.data_handling.cbinding">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">cbinding</code><span class="sig-paren">(</span><em class="sig-param">inBinding</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#cbinding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.cbinding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if variable in settings file has a counterpart in the source code</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inBinding</strong> – parameter in settings file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.checkMeteo_Wordclim">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">checkMeteo_Wordclim</code><span class="sig-paren">(</span><em class="sig-param">meteodata</em>, <em class="sig-param">wordclimdata</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#checkMeteo_Wordclim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.checkMeteo_Wordclim" title="Permalink to this definition">¶</a></dt>
+<dd><p>reads the map attributes of meteo dataset and wordclima dataset
+and compare if it has the same map extend</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nmeteodata</strong> – name of the meteo netcdf file</p></li>
+<li><p><strong>wordlclimdata</strong> – cname of the wordlclim netcdf file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if meteo and wordclim has the same mapextend</p>
+</dd>
+</dl>
+<p>:raises if map extend is different <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.messages.CWATMFileError()</span></code></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.checkOption">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">checkOption</code><span class="sig-paren">(</span><em class="sig-param">inBinding</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#checkOption"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.checkOption" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if option in settings file has a counterpart in the source code</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inBinding</strong> – parameter in settings file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.checkOptionOptinal">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">checkOptionOptinal</code><span class="sig-paren">(</span><em class="sig-param">inBinding</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#checkOptionOptinal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.checkOptionOptinal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if parameter is a boolean and return an error message if not, and the boolean if everything is ok</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inBinding</strong> – parameter in settings file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>boolean of inBinding</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.compressArray">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">compressArray</code><span class="sig-paren">(</span><em class="sig-param">map</em>, <em class="sig-param">name='None'</em>, <em class="sig-param">zeros=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#compressArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.compressArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compress 2D array with missing values to 1D array without missing values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>map</strong> – in map</p></li>
+<li><p><strong>name</strong> – filename of the map</p></li>
+<li><p><strong>zeros</strong> – add zeros (default= 0) if values of map are to big or too small</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Compressed 1D array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.decompress">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">decompress</code><span class="sig-paren">(</span><em class="sig-param">map</em>, <em class="sig-param">pcmap</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#decompress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.decompress" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decompress 1D array without missing values to 2D array with missing values</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>map</strong> – numpy 1D array as input</p></li>
+<li><p><strong>pcmap</strong> – if True map is used as .map format</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>2D array for displaying</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.divideValues">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">divideValues</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">default=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#divideValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.divideValues" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the result of a division that possibly involves a zero</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – </p></li>
+<li><p><strong>y</strong> – divisor</p></li>
+<li><p><strong>default</strong> – return value if y =0</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>result of <img class="math" src="_images/math/25c7c2f6c7f3a0c226c874277d8ebf7181ba1855.png" alt="x/y"/> or default if y = 0</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.getmeta">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">getmeta</code><span class="sig-paren">(</span><em class="sig-param">key</em>, <em class="sig-param">varname</em>, <em class="sig-param">alternative</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#getmeta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.getmeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the meta data information for the netcdf output from the global
+variable metaNetcdfVar</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> – key</p></li>
+<li><p><strong>varname</strong> – variable name eg self.var.Precipitation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>metadata information</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.loadmap">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">loadmap</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">lddflag=False</em>, <em class="sig-param">compress=True</em>, <em class="sig-param">local=False</em>, <em class="sig-param">cut=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#loadmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.loadmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>load a static map either value or pc raster map or netcdf</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of map</p></li>
+<li><p><strong>lddflag</strong> – if True the map is used as a ldd map</p></li>
+<li><p><strong>compress</strong> – if True the return map will be compressed</p></li>
+<li><p><strong>local</strong> – if True the map is local and will be not cut</p></li>
+<li><p><strong>cut</strong> – if True the map will be not cut</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>1D numpy array of map</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.loadsetclone">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">loadsetclone</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#loadsetclone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.loadsetclone" title="Permalink to this definition">¶</a></dt>
+<dd><p>load the maskmap and set as clone</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – name of mask map, can be a file or - row col cellsize xupleft yupleft -</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>new mask map</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.mapattrNetCDF">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">mapattrNetCDF</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">check=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#mapattrNetCDF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.mapattrNetCDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the 4 corners of a netcdf map to cut the map
+defines the rectangular of the mask map inside the netcdf map
+calls function <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.data_handling.readCoord()</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of the netcdf file</p></li>
+<li><p><strong>check</strong> – checking if netcdffile exists</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>cut1,cut2,cut3,cut4</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>if cell size is different</strong> – <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.messages.CWATMError()</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.mapattrNetCDFMeteo">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">mapattrNetCDFMeteo</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">check=True</em>, <em class="sig-param">add1=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#mapattrNetCDFMeteo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.mapattrNetCDFMeteo" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the map attributes like col, row etc from a netcdf map
+and define the rectangular of the mask map inside the netcdf map
+calls function <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.data_handling.readCoordNetCDF()</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of the netcdf file</p></li>
+<li><p><strong>check</strong> – checking if netcdffile exists</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>cut0,cut1,cut2,cut3,cut4,cut5,cut6,cut7</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.mapattrTiff">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">mapattrTiff</code><span class="sig-paren">(</span><em class="sig-param">nf2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#mapattrTiff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.mapattrTiff" title="Permalink to this definition">¶</a></dt>
+<dd><p>map attributes of a geotiff file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>nf2</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>cut0,cut1,cut2,cut3</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.maskfrompoint">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">maskfrompoint</code><span class="sig-paren">(</span><em class="sig-param">mask2D</em>, <em class="sig-param">xleft</em>, <em class="sig-param">yup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#maskfrompoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.maskfrompoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>load a static map either value or pc raster map or netcdf</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mask2D</strong> – 2D array of new mask</p></li>
+<li><p><strong>xleft</strong> – left lon coordinate</p></li>
+<li><p><strong>yup</strong> – upper lat coordinate</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>new mask map</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.metaNetCDF">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">metaNetCDF</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#metaNetCDF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.metaNetCDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the map metadata from precipitation netcdf maps</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.multinetdf">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">multinetdf</code><span class="sig-paren">(</span><em class="sig-param">meteomaps</em>, <em class="sig-param">startcheck='dateBegin'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#multinetdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.multinetdf" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>meteomaps</strong> – list of meteomaps to define start and end time</p></li>
+<li><p><strong>startcheck</strong> – date of beginning simulation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>if no map stack in meteo map folder</strong> – <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.messages.CWATMFileError()</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.readCoord">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">readCoord</code><span class="sig-paren">(</span><em class="sig-param">name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#readCoord"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.readCoord" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the meta data information for the netcdf output from the global
+variable metaNetcdfVar</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> – name of the netcdf file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>latitude, longitude, cell size, inverse cell size</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.readCoordNetCDF">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">readCoordNetCDF</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">check=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#readCoordNetCDF"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.readCoordNetCDF" title="Permalink to this definition">¶</a></dt>
+<dd><p>reads the map attributes col, row etc from a netcdf map</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of the netcdf file</p></li>
+<li><p><strong>check</strong> – checking if netcdffile exists</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>latitude, longitude, cell size, inverse cell size</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>if no netcdf map can be found</strong> – <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.messages.CWATMFileError()</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.readCoordNetCDF2">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">readCoordNetCDF2</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">check=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#readCoordNetCDF2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.readCoordNetCDF2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.readmeteodata">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">readmeteodata</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">date</em>, <em class="sig-param">value='None'</em>, <em class="sig-param">addZeros=False</em>, <em class="sig-param">zeros=0.0</em>, <em class="sig-param">mapsscale=True</em>, <em class="sig-param">modflowSteady=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#readmeteodata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.readmeteodata" title="Permalink to this definition">¶</a></dt>
+<dd><p>load stack of maps 1 at each timestamp in netcdf format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – file name</p></li>
+<li><p><strong>date</strong> – </p></li>
+<li><p><strong>value</strong> – if set the name of the parameter is defined</p></li>
+<li><p><strong>addZeros</strong> – </p></li>
+<li><p><strong>zeros</strong> – default value</p></li>
+<li><p><strong>mapsscale</strong> – if meteo maps have the same extend as the other spatial static m</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Compressed 1D array of meteo data</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>if data is wrong</strong> – <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.messages.CWATMError()</span></code></p></li>
+<li><p><strong>if meteo netcdf file cannot be opened</strong> – <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.messages.CWATMFileError()</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.readnetcdf2">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">readnetcdf2</code><span class="sig-paren">(</span><em class="sig-param">namebinding</em>, <em class="sig-param">date</em>, <em class="sig-param">useDaily='daily'</em>, <em class="sig-param">value='None'</em>, <em class="sig-param">addZeros=False</em>, <em class="sig-param">cut=True</em>, <em class="sig-param">zeros=0.0</em>, <em class="sig-param">meteo=False</em>, <em class="sig-param">usefilename=False</em>, <em class="sig-param">compress=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#readnetcdf2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.readnetcdf2" title="Permalink to this definition">¶</a></dt>
+<dd><p>load stack of maps 1 at each timestamp in netcdf format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>namebinding</strong> – file name in settings file</p></li>
+<li><p><strong>date</strong> – </p></li>
+<li><p><strong>useDaily</strong> – if True daily values are used</p></li>
+<li><p><strong>value</strong> – if set the name of the parameter is defined</p></li>
+<li><p><strong>addZeros</strong> – </p></li>
+<li><p><strong>cut</strong> – if True the map is clipped to mask map</p></li>
+<li><p><strong>zeros</strong> – default value</p></li>
+<li><p><strong>meteo</strong> – if map are meteo maps</p></li>
+<li><p><strong>usefilename</strong> – if True filename is given False: filename is in settings file</p></li>
+<li><p><strong>compress</strong> – True - compress data to 1D</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Compressed 1D array of netcdf stored data</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>if netcdf file cannot be opened</strong> – <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.messages.CWATMFileError()</span></code></p></li>
+<li><p><strong>if netcdf file is not of the size of mask map</strong> – <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.messages.CWATMWarning()</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.readnetcdfInitial">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">readnetcdfInitial</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">value</em>, <em class="sig-param">default=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#readnetcdfInitial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.readnetcdfInitial" title="Permalink to this definition">¶</a></dt>
+<dd><p>load initial condition from netcdf format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – file name</p></li>
+<li><p><strong>value</strong> – netcdf variable name</p></li>
+<li><p><strong>default</strong> – (optional) if no variable is found a warning is given and value is set to default</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Compressed 1D array of netcdf stored data</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>if netcdf file is not of the size of mask map</strong> – <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.messages.CWATMError()</span></code></p></li>
+<li><p><strong>if varibale name is not included in the netcdf file</strong> – <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.messages.CWATMWarning()</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.readnetcdfWithoutTime">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">readnetcdfWithoutTime</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">value='None'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#readnetcdfWithoutTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.readnetcdfWithoutTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>load maps in netcdf format (has no time format)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>namebinding</strong> – file name in settings file</p></li>
+<li><p><strong>value</strong> – (optional) netcdf variable name. If not given -&gt; last variable is taken</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Compressed 1D array of netcdf stored data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.report">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">report</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">valueIn</em>, <em class="sig-param">compr=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.report" title="Permalink to this definition">¶</a></dt>
+<dd><p>For debugging: Save the 2D array as .map or .tif</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – Filename of the map</p></li>
+<li><p><strong>valueIn</strong> – 1D or 2D array in</p></li>
+<li><p><strong>compr</strong> – (optional) array is 1D (default) or 2D</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Example</span><span class="p">:</span>
+<span class="o">&gt;</span> <span class="n">report</span><span class="p">(</span><span class="n">c</span><span class="p">:</span><span class="o">/</span><span class="n">temp</span><span class="o">/</span><span class="n">ksat1</span><span class="o">.</span><span class="n">map</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ksat1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.returnBool">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">returnBool</code><span class="sig-paren">(</span><em class="sig-param">inBinding</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#returnBool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.returnBool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if parameter is a boolean and return an error message if not, and the boolean if everything is ok</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>inBinding</strong> – parameter in settings file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>boolean of inBinding</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.setmaskmapAttr">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">setmaskmapAttr</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">y</em>, <em class="sig-param">col</em>, <em class="sig-param">row</em>, <em class="sig-param">cell</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#setmaskmapAttr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.setmaskmapAttr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Definition of cell size, coordinates of the meteo maps and maskmap</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – upper left corner x</p></li>
+<li><p><strong>y</strong> – upper left corner y</p></li>
+<li><p><strong>col</strong> – number of cols</p></li>
+<li><p><strong>row</strong> – number of rows</p></li>
+<li><p><strong>cell</strong> – cell size</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.valuecell">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">valuecell</code><span class="sig-paren">(</span><em class="sig-param">coordx</em>, <em class="sig-param">coordstr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#valuecell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.valuecell" title="Permalink to this definition">¶</a></dt>
+<dd><p>to put a value into a raster map -&gt; invert of cellvalue, map is converted into a numpy array first</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coordx</strong> – x,y or lon/lat coordinate</p></li>
+<li><p><strong>coordstr</strong> – String of coordinates</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>1D array with new value</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.writeIniNetcdf">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">writeIniNetcdf</code><span class="sig-paren">(</span><em class="sig-param">netfile</em>, <em class="sig-param">varlist</em>, <em class="sig-param">inputlist</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#writeIniNetcdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.writeIniNetcdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>write variables to netcdf init file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>netfile</strong> – file name</p></li>
+<li><p><strong>varlist</strong> – list of variable to be written in the netcdf file</p></li>
+<li><p><strong>inputlist</strong> – stack of 1D arrays</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.data_handling.writenetcdf">
+<code class="sig-prename descclassname">cwatm.management_modules.data_handling.</code><code class="sig-name descname">writenetcdf</code><span class="sig-paren">(</span><em class="sig-param">netfile</em>, <em class="sig-param">prename</em>, <em class="sig-param">addname</em>, <em class="sig-param">varunits</em>, <em class="sig-param">inputmap</em>, <em class="sig-param">timeStamp</em>, <em class="sig-param">posCnt</em>, <em class="sig-param">flag</em>, <em class="sig-param">flagTime</em>, <em class="sig-param">nrdays=None</em>, <em class="sig-param">dateunit='days'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/data_handling.html#writenetcdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.data_handling.writenetcdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>write a netcdf stack</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>netfile</strong> – file name</p></li>
+<li><p><strong>prename</strong> – 1st part of variable name with tell which variable e.g. discharge</p></li>
+<li><p><strong>addname</strong> – part of the variable name with tells about the timestep e.g. daily, monthly</p></li>
+<li><p><strong>varunits</strong> – unit of the variable</p></li>
+<li><p><strong>inputmap</strong> – 1D array to be put as netcdf</p></li>
+<li><p><strong>timeStamp</strong> – time</p></li>
+<li><p><strong>posCnt</strong> – calculate nummer of the indece for time</p></li>
+<li><p><strong>flag</strong> – to indicate if the file is new -&gt; netcdf header has to be written,or simply appending data</p></li>
+<li><p><strong>flagtime</strong> – to indicate the variable is time dependend (not a single array!)</p></li>
+<li><p><strong>nrdays</strong> – (optional) if indicate number of days are set in the time variable (makes files smaller!)</p></li>
+<li><p><strong>dateunit</strong> – (optional) dateunit indicate if the timestep in netcdf is days, month or years</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>flag: to indicate if the file is set up</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="timestep-module">
+<h3>timestep module<a class="headerlink" href="#timestep-module" title="Permalink to this headline">¶</a></h3>
+<p><strong>Managing time</strong></p>
+<span class="target" id="module-cwatm.management_modules.timestep"></span><dl class="function">
+<dt id="cwatm.management_modules.timestep.Calendar">
+<code class="sig-prename descclassname">cwatm.management_modules.timestep.</code><code class="sig-name descname">Calendar</code><span class="sig-paren">(</span><em class="sig-param">input</em>, <em class="sig-param">errorNo=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/timestep.html#Calendar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.timestep.Calendar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the date from CalendarDayStart in the settings xml
+Reformatting the date till it fits to datetime</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input</strong> – string from the settingsfile should be somehow a date</p></li>
+<li><p><strong>errorNo</strong> – 0: check startdate, enddate 1: check startinit</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a datetime date</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.timestep.addmonths">
+<code class="sig-prename descclassname">cwatm.management_modules.timestep.</code><code class="sig-name descname">addmonths</code><span class="sig-paren">(</span><em class="sig-param">d</em>, <em class="sig-param">x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/timestep.html#addmonths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.timestep.addmonths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds months to a date</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d</strong> – date</p></li>
+<li><p><strong>x</strong> – month to add</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>date with added months</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.timestep.checkifDate">
+<code class="sig-prename descclassname">cwatm.management_modules.timestep.</code><code class="sig-name descname">checkifDate</code><span class="sig-paren">(</span><em class="sig-param">start</em>, <em class="sig-param">end</em>, <em class="sig-param">spinup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/timestep.html#checkifDate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.timestep.checkifDate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if start date is earlier than end date etc
+And set some date variables</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start</strong> – start date</p></li>
+<li><p><strong>end</strong> – end date</p></li>
+<li><p><strong>spinup</strong> – date till no output is generated = warming up time</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a list of date variable in: dateVar</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.timestep.ctbinding">
+<code class="sig-prename descclassname">cwatm.management_modules.timestep.</code><code class="sig-name descname">ctbinding</code><span class="sig-paren">(</span><em class="sig-param">inBinding</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/timestep.html#ctbinding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.timestep.ctbinding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if variable in settings file has a counterpart in source code</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> – variable in settings file to be tested</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p>if variable is not found send an error: <code class="xref py py-meth docutils literal notranslate"><span class="pre">management_modules.messages.CWATMError()</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.timestep.date2indexNew">
+<code class="sig-prename descclassname">cwatm.management_modules.timestep.</code><code class="sig-name descname">date2indexNew</code><span class="sig-paren">(</span><em class="sig-param">date</em>, <em class="sig-param">nctime</em>, <em class="sig-param">calendar</em>, <em class="sig-param">select='nearest'</em>, <em class="sig-param">name=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/timestep.html#date2indexNew"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.timestep.date2indexNew" title="Permalink to this definition">¶</a></dt>
+<dd><p>The original netCDF4 library cannot handle month and years
+Replace: date2index
+This one checks for days, month and years
+And set some date variables</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>date</strong> – date</p></li>
+<li><p><strong>nctime</strong> – time unit of the netcdf file</p></li>
+<li><p><strong>select</strong> – (optional) which date is selected, default: nearest</p></li>
+<li><p><strong>name</strong> – (optional) name of th dataset</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>index</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.timestep.date2str">
+<code class="sig-prename descclassname">cwatm.management_modules.timestep.</code><code class="sig-name descname">date2str</code><span class="sig-paren">(</span><em class="sig-param">date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/timestep.html#date2str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.timestep.date2str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert date to string of date e.g. 27/12/2018</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> – date as (datetime)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>date string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.timestep.datetoInt">
+<code class="sig-prename descclassname">cwatm.management_modules.timestep.</code><code class="sig-name descname">datetoInt</code><span class="sig-paren">(</span><em class="sig-param">dateIn</em>, <em class="sig-param">begin</em>, <em class="sig-param">both=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/timestep.html#datetoInt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.timestep.datetoInt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the integer of a date from a reference date</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dateIn</strong> – date</p></li>
+<li><p><strong>begin</strong> – reference date</p></li>
+<li><p><strong>both</strong> – if set to True both the int and the string of the date are returned</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>integer value of a date, starting from begin date</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.timestep.datetosaveInit">
+<code class="sig-prename descclassname">cwatm.management_modules.timestep.</code><code class="sig-name descname">datetosaveInit</code><span class="sig-paren">(</span><em class="sig-param">initdates</em>, <em class="sig-param">begin</em>, <em class="sig-param">end</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/timestep.html#datetosaveInit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.timestep.datetosaveInit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the save init dates</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>initdates</strong> – one or several dates</p></li>
+<li><p><strong>begin</strong> – reference date</p></li>
+<li><p><strong>end</strong> – end date</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>integer value of a dates, starting from begin date</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.timestep.timemeasure">
+<code class="sig-prename descclassname">cwatm.management_modules.timestep.</code><code class="sig-name descname">timemeasure</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">loops=0</em>, <em class="sig-param">update=False</em>, <em class="sig-param">sample=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/timestep.html#timemeasure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.timestep.timemeasure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measuring of the time for each subroutine</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – name of the subroutine</p></li>
+<li><p><strong>loops</strong> – if it it called several times this is added to the name</p></li>
+<li><p><strong>update</strong> – </p></li>
+<li><p><strong>sample</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>add a string to the time measure string: timeMesString</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.timestep.timestep_dynamic">
+<code class="sig-prename descclassname">cwatm.management_modules.timestep.</code><code class="sig-name descname">timestep_dynamic</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/timestep.html#timestep_dynamic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.timestep.timestep_dynamic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dynamic part of setting the date
+Current date is increasing, checking if beginning of month, year</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a list of date variable in: dateVar</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="configuration-module">
+<h3>configuration module<a class="headerlink" href="#configuration-module" title="Permalink to this headline">¶</a></h3>
+<p><strong>Loading and parsing of the settings file</strong></p>
+<span class="target" id="module-cwatm.management_modules.configuration"></span><dl class="class">
+<dt id="cwatm.management_modules.configuration.ExtParser">
+<em class="property">class </em><code class="sig-prename descclassname">cwatm.management_modules.configuration.</code><code class="sig-name descname">ExtParser</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/configuration.html#ExtParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.configuration.ExtParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></p>
+<p>addition to the parser to replace placeholders</p>
+<p class="rubric">Example</p>
+<p>PathRoot = C:/work
+MaskMap = $(FILE_PATHS:PathRoot)/data/areamaps/area.tif</p>
+<dl class="method">
+<dt id="cwatm.management_modules.configuration.ExtParser.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param">section</em>, <em class="sig-param">option</em>, <em class="sig-param">raw=False</em>, <em class="sig-param">vars=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/configuration.html#ExtParser.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.configuration.ExtParser.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>def get(self, section, option, raw=False, vars=None
+placeholder replacement</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>section</strong> – section part of the settings file</p></li>
+<li><p><strong>option</strong> – option part of the settings file</p></li>
+<li><p><strong>raw</strong> – </p></li>
+<li><p><strong>vars</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.configuration.parse_configuration">
+<code class="sig-prename descclassname">cwatm.management_modules.configuration.</code><code class="sig-name descname">parse_configuration</code><span class="sig-paren">(</span><em class="sig-param">settingsFileName</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/configuration.html#parse_configuration"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.configuration.parse_configuration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse settings file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>settingsFileName</strong> – name of the settings file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>parameters in list: binding, options in list: option</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.configuration.read_metanetcdf">
+<code class="sig-prename descclassname">cwatm.management_modules.configuration.</code><code class="sig-name descname">read_metanetcdf</code><span class="sig-paren">(</span><em class="sig-param">metaxml</em>, <em class="sig-param">name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/configuration.html#read_metanetcdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.configuration.read_metanetcdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the metadata for netcdf output files
+unit, long name, standard name and additional information</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>metaxml</strong> – file mit information for netcdf files (metadata)</p></li>
+<li><p><strong>name</strong> – file name information</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List with metadata information: metaNetcdfVar</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="management-modules-messages-module">
+<h3>management_modules.messages module<a class="headerlink" href="#management-modules-messages-module" title="Permalink to this headline">¶</a></h3>
+<p><strong>Error handling - giving out messages</strong></p>
+<span class="target" id="module-cwatm.management_modules.messages"></span><dl class="exception">
+<dt id="cwatm.management_modules.messages.CWATMError">
+<em class="property">exception </em><code class="sig-prename descclassname">cwatm.management_modules.messages.</code><code class="sig-name descname">CWATMError</code><span class="sig-paren">(</span><em class="sig-param">msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/messages.html#CWATMError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.messages.CWATMError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>The error handling class
+prints out an error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Warning</strong> – class CWATMError</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>prints out a message about an error</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="exception">
+<dt id="cwatm.management_modules.messages.CWATMFileError">
+<em class="property">exception </em><code class="sig-prename descclassname">cwatm.management_modules.messages.</code><code class="sig-name descname">CWATMFileError</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">msg=''</em>, <em class="sig-param">sname=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/messages.html#CWATMFileError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.messages.CWATMFileError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cwatm.management_modules.messages.CWATMError" title="cwatm.management_modules.messages.CWATMError"><code class="xref py py-class docutils literal notranslate"><span class="pre">cwatm.management_modules.messages.CWATMError</span></code></a></p>
+<p>The error handling class
+prints out an error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Warning</strong> – class CWATMError</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>prints out a message about file error</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="exception">
+<dt id="cwatm.management_modules.messages.CWATMRunInfo">
+<em class="property">exception </em><code class="sig-prename descclassname">cwatm.management_modules.messages.</code><code class="sig-name descname">CWATMRunInfo</code><span class="sig-paren">(</span><em class="sig-param">outputS</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/messages.html#CWATMRunInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.messages.CWATMRunInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Warning</span></code></p>
+<p>prints out an error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Warning</strong> – class warning</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>prints out a message</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Warning</dt><dd><p>warning given with a header and a message from the subroutine</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="exception">
+<dt id="cwatm.management_modules.messages.CWATMWarning">
+<em class="property">exception </em><code class="sig-prename descclassname">cwatm.management_modules.messages.</code><code class="sig-name descname">CWATMWarning</code><span class="sig-paren">(</span><em class="sig-param">msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/messages.html#CWATMWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.messages.CWATMWarning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Warning</span></code></p>
+<p>the error handling class
+prints out an error</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Warning</strong> – class warning</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>prints out a message</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p><strong>Handling output of CWATM</strong></p>
+</div>
+<div class="section" id="module-cwatm.management_modules.output">
+<span id="management-modules-output-module"></span><h3>management_modules.output module<a class="headerlink" href="#module-cwatm.management_modules.output" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="cwatm.management_modules.output.outputTssMap">
+<em class="property">class </em><code class="sig-prename descclassname">cwatm.management_modules.output.</code><code class="sig-name descname">outputTssMap</code><span class="sig-paren">(</span><em class="sig-param">out_variable</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/output.html#outputTssMap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.output.outputTssMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class: Output of time series and map</p>
+<dl class="method">
+<dt id="cwatm.management_modules.output.outputTssMap.dynamic">
+<code class="sig-name descname">dynamic</code><span class="sig-paren">(</span><em class="sig-param">ef=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/output.html#outputTssMap.dynamic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.output.outputTssMap.dynamic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dynamic part of the output module
+Output of maps and timeseries</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ef</strong> – done with environmental flow</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="cwatm.management_modules.output.outputTssMap.initial">
+<code class="sig-name descname">initial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/output.html#outputTssMap.initial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.output.outputTssMap.initial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initial part of the output module</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="management-modules-checks-module">
+<h3>management_modules.checks module<a class="headerlink" href="#management-modules-checks-module" title="Permalink to this headline">¶</a></h3>
+<p><strong>Checking maps if they fit in</strong></p>
+<span class="target" id="module-cwatm.management_modules.checks"></span><dl class="function">
+<dt id="cwatm.management_modules.checks.checkmap">
+<code class="sig-prename descclassname">cwatm.management_modules.checks.</code><code class="sig-name descname">checkmap</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/checks.html#checkmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.checks.checkmap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.checks.counted">
+<code class="sig-prename descclassname">cwatm.management_modules.checks.</code><code class="sig-name descname">counted</code><span class="sig-paren">(</span><em class="sig-param">fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/checks.html#counted"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.checks.counted" title="Permalink to this definition">¶</a></dt>
+<dd><p>count number of times a subroutine is called</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fn</strong> – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>number of times the subroutine is called</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="program-management">
+<h2>Program management<a class="headerlink" href="#program-management" title="Permalink to this headline">¶</a></h2>
+<p><strong>Global definition of variables</strong></p>
+<div class="section" id="globals-module">
+<h3>globals module<a class="headerlink" href="#globals-module" title="Permalink to this headline">¶</a></h3>
+<p><strong>Global definition of variables</strong></p>
+<span class="target" id="module-cwatm.management_modules.globals"></span><dl class="function">
+<dt id="cwatm.management_modules.globals.globalFlags">
+<code class="sig-prename descclassname">cwatm.management_modules.globals.</code><code class="sig-name descname">globalFlags</code><span class="sig-paren">(</span><em class="sig-param">setting</em>, <em class="sig-param">arg</em>, <em class="sig-param">settingsfile</em>, <em class="sig-param">Flags</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/globals.html#globalFlags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.globals.globalFlags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read flags - according to the flags the output is adjusted
+quiet,veryquiet, loud, checkfiles, noheader,printtime, warranty</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>arg</strong> – argument from calling cwatm</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.globals.globalclear">
+<code class="sig-prename descclassname">cwatm.management_modules.globals.</code><code class="sig-name descname">globalclear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/globals.html#globalclear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.globals.globalclear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="dynamicmodel-module">
+<h3>dynamicModel module<a class="headerlink" href="#dynamicmodel-module" title="Permalink to this headline">¶</a></h3>
+<p><strong>Framework of initial and dynamic modules</strong></p>
+<span class="target" id="module-cwatm.management_modules.dynamicModel"></span><dl class="class">
+<dt id="cwatm.management_modules.dynamicModel.DynamicModel">
+<em class="property">class </em><code class="sig-prename descclassname">cwatm.management_modules.dynamicModel.</code><code class="sig-name descname">DynamicModel</code><a class="reference internal" href="_modules/cwatm/management_modules/dynamicModel.html#DynamicModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.dynamicModel.DynamicModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="cwatm.management_modules.dynamicModel.DynamicModel.i">
+<code class="sig-name descname">i</code><em class="property"> = 1</em><a class="headerlink" href="#cwatm.management_modules.dynamicModel.DynamicModel.i" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cwatm.management_modules.dynamicModel.ModelFrame">
+<em class="property">class </em><code class="sig-prename descclassname">cwatm.management_modules.dynamicModel.</code><code class="sig-name descname">ModelFrame</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">lastTimeStep=1</em>, <em class="sig-param">firstTimestep=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/dynamicModel.html#ModelFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.dynamicModel.ModelFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Frame of the dynamic hydrological model</p>
+<p>lastTimeStep:  Last time step to run
+firstTimestep: Starting time step of the model</p>
+<dl class="method">
+<dt id="cwatm.management_modules.dynamicModel.ModelFrame.initialize_run">
+<code class="sig-name descname">initialize_run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/dynamicModel.html#ModelFrame.initialize_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.dynamicModel.ModelFrame.initialize_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cwatm.management_modules.dynamicModel.ModelFrame.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/dynamicModel.html#ModelFrame.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.dynamicModel.ModelFrame.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run the dynamic part of the model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="cwatm.management_modules.dynamicModel.ModelFrame.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/dynamicModel.html#ModelFrame.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.dynamicModel.ModelFrame.step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="replace-pcr-module">
+<h3>replace_pcr module<a class="headerlink" href="#replace-pcr-module" title="Permalink to this headline">¶</a></h3>
+<p><strong>Some pcr operation are done in numpy</strong></p>
+<span class="target" id="module-cwatm.management_modules.replace_pcr"></span><dl class="function">
+<dt id="cwatm.management_modules.replace_pcr.npareaaverage">
+<code class="sig-prename descclassname">cwatm.management_modules.replace_pcr.</code><code class="sig-name descname">npareaaverage</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">areaclass</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/replace_pcr.html#npareaaverage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.replace_pcr.npareaaverage" title="Permalink to this definition">¶</a></dt>
+<dd><p>numpy area average procedure</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> – </p></li>
+<li><p><strong>areaclass</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>calculates the average area of a class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.replace_pcr.npareamajority">
+<code class="sig-prename descclassname">cwatm.management_modules.replace_pcr.</code><code class="sig-name descname">npareamajority</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">areaclass</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/replace_pcr.html#npareamajority"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.replace_pcr.npareamajority" title="Permalink to this definition">¶</a></dt>
+<dd><p>numpy area majority procedure</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> – </p></li>
+<li><p><strong>areaclass</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>calculates the majority of an area of a class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.replace_pcr.npareamaximum">
+<code class="sig-prename descclassname">cwatm.management_modules.replace_pcr.</code><code class="sig-name descname">npareamaximum</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">areaclass</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/replace_pcr.html#npareamaximum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.replace_pcr.npareamaximum" title="Permalink to this definition">¶</a></dt>
+<dd><p>numpy area maximum procedure</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> – </p></li>
+<li><p><strong>areaclass</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>calculates the maximum of an area of a class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cwatm.management_modules.replace_pcr.npareatotal">
+<code class="sig-prename descclassname">cwatm.management_modules.replace_pcr.</code><code class="sig-name descname">npareatotal</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">areaclass</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cwatm/management_modules/replace_pcr.html#npareatotal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cwatm.management_modules.replace_pcr.npareatotal" title="Permalink to this definition">¶</a></dt>
+<dd><p>numpy area total procedure</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>values</strong> – </p></li>
+<li><p><strong>areaclass</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>calculates the total area of a class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-cwatm.management_modules"></span></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results.html">6. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="todo.html">7. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">8. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">9. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration_tutorial.html">10. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resolution.html">11. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zambezi.html">12. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">13. License and download info</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="sourcecode.html">14. Source code</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="sourcecode.html#source-code-on-github">Source code on Github</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="sourcecode.html#id1">Source code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sourcecode.html#download-manual-as-pdf">Download Manual as pdf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sourcecode.html#global-dataset">Global dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sourcecode.html#contact-cwatm">Contact CWATM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sourcecode.html#remarks">Remarks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="forum.html">15. Forum</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="hydrological_modules.html"
+                        title="previous chapter">hydrological_modules package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="forum.html"
+                        title="next chapter"><span class="section-number">15. </span>Forum</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="forum.html" title="15. Forum"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="hydrological_modules.html" title="hydrological_modules package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CWAT Model</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="sourcecode.html" ><span class="section-number">14. </span>Source code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, PB.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.2.
+    </div>
+  </body>
+</html>

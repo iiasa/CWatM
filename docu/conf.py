@@ -19,7 +19,7 @@
 import os
 import sys
 
-sys.path.insert(0,"C:\work\CWatM\source_py3")
+sys.path.insert(0, os.path.abspath('..'))
 
 # -- General configuration ------------------------------------------------
 

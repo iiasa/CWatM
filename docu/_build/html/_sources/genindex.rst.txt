@@ -1,0 +1,6 @@
+Index
+=====
+
+.. toctree::
+
+   genindex

@@ -1,0 +1,530 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>7. The Model Itself &#8212; Community Water Model</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="8. Data" href="data.html" />
+    <link rel="prev" title="6. Demo of the model" href="results.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="data.html" title="8. Data"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="results.html" title="6. Demo of the model"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CWAT Model</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="the-model-itself">
+<h1><a class="toc-backref" href="#id1"><span class="section-number">7. </span>The Model Itself</a><a class="headerlink" href="#the-model-itself" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#the-model-itself" id="id1">The Model Itself</a></p>
+<ul>
+<li><p><a class="reference internal" href="#performance" id="id2">Performance</a></p></li>
+<li><p><a class="reference internal" href="#updates" id="id3">Updates</a></p></li>
+<li><p><a class="reference internal" href="#todo" id="id4">TODO</a></p>
+<ul>
+<li><p><a class="reference internal" href="#structural-improvements" id="id5">Structural improvements</a></p></li>
+<li><p><a class="reference internal" href="#model-improvements" id="id6">Model improvements</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="performance">
+<h2><a class="toc-backref" href="#id2">Performance</a><a class="headerlink" href="#performance" title="Permalink to this headline">¶</a></h2>
+<p>Computational run time (on a linux single node - 2400 MHz with Intel Xeon CPU E5- 2699A v4):</p>
+<p>Daily timestep on 0.5 deg</p>
+<p><strong>Global:</strong> 100 years in appr. 12h = 7.2min per year</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 57%" />
+<col style="width: 29%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Process</p></th>
+<th class="head"><p>sum % runtime</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>Read Meteo Data</p></td>
+<td><p>6.2</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>Et pot</p></td>
+<td><p>7.6</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>Snow</p></td>
+<td><p>8.8</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>Soil</p></td>
+<td><p>59.4</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p>Groundwater</p></td>
+<td><p>59.5</p></td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p>Runoff conc</p></td>
+<td><p>70.1</p></td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><p>Lakes</p></td>
+<td><p>70.4</p></td>
+</tr>
+<tr class="row-odd"><td><p>8</p></td>
+<td><p>Routing</p></td>
+<td><p>95.5</p></td>
+</tr>
+<tr class="row-even"><td><p>9</p></td>
+<td><p>Output</p></td>
+<td><p>100</p></td>
+</tr>
+</tbody>
+</table>
+<p>For the global setting, soil processes with 50% computing time is the most time consuming part, followed by routing with 25% and runoff concentration with 10%.</p>
+<p><strong>Rhine:</strong>  640 years in appr. 4.5h = 0.4min per year</p>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 57%" />
+<col style="width: 29%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>Process</p></th>
+<th class="head"><p>sum % runtime</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>Read Meteo Data</p></td>
+<td><p>79.4</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>Et pot</p></td>
+<td><p>80.5</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>Snow</p></td>
+<td><p>80.9</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>Soil</p></td>
+<td><p>88.8</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p>Groundwater</p></td>
+<td><p>88.9</p></td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p>Runoff conc</p></td>
+<td><p>89.6</p></td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><p>Lakes</p></td>
+<td><p>89.8</p></td>
+</tr>
+<tr class="row-odd"><td><p>8</p></td>
+<td><p>Routing</p></td>
+<td><p>99.6</p></td>
+</tr>
+<tr class="row-even"><td><p>9</p></td>
+<td><p>Output</p></td>
+<td><p>100</p></td>
+</tr>
+</tbody>
+</table>
+<p>For the Rhine basin reading input maps 79% is by far the most time consuming process, followed by routing (kinematic wave) 10% and the soil processes (8%)</p>
+</div>
+<div class="section" id="updates">
+<h2><a class="toc-backref" href="#id3">Updates</a><a class="headerlink" href="#updates" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<div class="line-block">
+<div class="line">Update history taken from github log</div>
+<div class="line">git log –pretty=format:”%ad - %an : %s” –date=short –graph &gt; github.log</div>
+</div>
+</div>
+<p><strong>Most recent updates on top</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>* 2019-01-05 - CWatM : fix: corrected some warnings from PCCharm code inspector
+* 2019-01-04 - CWatM : add: adding executable cwatm.exe
+* 2019-01-04 - CWatM : Fix: new water demand changes did not use the same variable name act_surfacewater in waterdemand and routing_kinematic. changed this in both version 2.7 and 3.7 Add python: added a report command to report data as .map or .tif for debugging
+* 2018-12-20 - CWatM : Python3.7 New: replaced pcraster framework by own framework Removed folder pcraster2 New: added save conditions for warmstart -&gt; you can add a 10d or 6m or 2y after the first date -&gt; the initial data will be saved every 10d (or whatever number), or 6 month or 2 year
+* 2018-12-17 - CWatM : New: Python 3 test code
+*   2018-12-17 - CWatM : Merge branch &#39;develop&#39; of https://github.com/iiasa/CWATM_priv into develop
+|\  
+| *   2018-12-12 - Community Water Model : Merge pull request #3 from iiasa/waterdemand_update
+| |\  
+| | *   2018-12-12 - Community Water Model : Merge branch &#39;develop&#39; into waterdemand_update
+| | |\  
+| | |/  
+| |/|   
+| | * 2018-08-15 - Unknown : modify irrConsuption to act_irrConsumption in landcoverType and soil modules
+| | * 2018-08-15 - Unknown : potential and actual values are explicitly written in waterdemand module
+| | * 2018-08-08 - Unknown : modified efficiency vaiables ;)
+| | * 2018-08-07 - Unknown : modified read-netcdf for wateruse data
+| | * 2018-07-24 - Yusuke : Added act_nonIrrConsumption conponents
+| | * 2018-07-24 - Yusuke : Clean up before editing
+* | | 2018-12-17 - CWatM : New: python 3 test version
+* | | 2018-12-17 - CWatM : New: Added Python source code: Further test required, but it seems to work. -&gt; Plan in 2019 further development will use Python 3.7 coding New: Building a executable .exe with Python 3  seems to work as well. Further testing -&gt; 2019 an installation setup will be produced using cx_freeze and Inno setup to make an easy start on Windows (no Python background will be required for CWATM users)
+|/ /  
+* | 2018-12-12 - CWatM : Put Yusuke&#39;s version of waterdemand in (soil, landtypes, waterdemand)
+* | 2018-12-12 - CWatM : Fix: checkmap -c option now checks maps first (but can be improved) new flag: usemeteodownscaling in [meteo] for using meteo downscaling Fix: can now use rivernetwork as map or tif again (ldd.map) changes in initial and data_handling
+* | 2018-12-11 - CWatM : in sync with version on p drive
+* | 2018-12-11 - CWatM : Small change in tutorial, added output variable added calibration tutorial, to be extended
+* | 2018-09-24 - CWatM : chk: waterdemand can use water demand netcdf with m/s or million m3 per month/year
+* | 2018-08-07 - CWatM : fix: reading meteo map with no leap year (365 day maps) new: using a cover map to put addition values in
+|/  
+* 2018-07-09 - CWatM : Fix: waterbalance for soil Chg: output of tss from 3-d variable e.g actualET[1]
+* 2018-06-27 - CWatM : fix: corrected storing initial values for the next warm start chk: changed environmental flow (EF)settings file -      loading EF is now in water demand
+* 2018-06-07 - CWatM : chg: outcommented a library call in data_handling    #from netcdftime import utime chg: added the sum of ET_actual again
+* 2018-05-17 - CWatM : Changed waterbalance Changed waterbodies in large and small lakes and reservoirs
+* 2018-04-24 - CWatM : Fix: bugfix to read waterdemand map
+* 2018-04-19 - CWatM : Change: meteo data can be clipped before and used. CWAT detects if it is a global map or a regional one e.g using only meteo data set for the Rhine.
+* 2018-04-16 - CWatM : Change; in waterdemand, landcovertyp and soil cjhange variable names     Gross = demand = withdrawal, netto = consumptiom      all vraibales names now are ..demand or .. consumption
+* 2018-04-13 - CWatM : test
+* 2018-04-13 - CWatM : Change: netcdf output as monthly or annual map has now a adequate monthly or yearly time step e.g. Months since 1901-01-01
+* 2018-04-03 - CWatM : Change: CWATM can be used with a smaller meteo dataset e.g. to use a demo dataset for the Rine with pr, tavg, ETRef, EWref
+* 2018-04-03 - CWatM : Change: CWAT can be used with a smaller meteo dataset  e.g. to download a smaller test meteo dataset for the Rhine
+* 2018-04-03 - CWatM : Chg: running cwatm with a smaller meteo dataset in order to make a test catchment (e.g. Rhine) with a small meteo dataset
+* 2018-03-20 - CWatM : Added: - small lakes - calc environmental flow - 5 arcmin version - downscale 30min meteo dataset to 5min
+* 2017-11-20 - CWatM : fix: replace strftime with .year or .month etc fix: looks for &gt; 1e20 and -1e20 in each map and change these to standard zero value (default =0)
+* 2017-10-30 - CWatM : Fix: bug fix to save maps with a SpinUp &lt;&gt; None
+* 2017-10-27 - CWatM : Fix: reading meteo maps - every data &gt; 1e12 is set to 0 Add: maxtopwater in prg and settings.ini Fix: calibration routine
+* 2017-09-21 - CWatM : bugfix: snow with more layers than 3
+* 2017-09-20 - CWatM : chg: water demand, small lakes, land cover
+* 2017-08-29 - CWatM : chg: water demand , soil add: error handling for output maps
+* 2017-08-17 - CWatM : new: water demand is working chg: soil especially paddy and non paddy irrigation bug: checked water balance
+* 2017-07-13 - CWatM : fix: small bugfix, to run precipitation maps with the suffix .nc4
+* 2017-07-13 - CWatM : chg: soil part - using different maps -&gt; map folder has to be updated! chg: meteo maps do not have to be merge before -&gt; stack of maps can  be used add: inflow to a catchment (still to work on)
+* 2017-05-23 - CWatM : chk: saving of netcdf with fixed number of time and with fixed chunk size -&gt; less diskspace used chk: a few more error handlings added
+* 2017-05-19 - CWatM : chk: Chaznged soil calculation to Arno scheme and Mualem - van Genuchten equation new: put in a lot of checks for the settingsfile e.g. check True and false (not mispelled like ture). Check timing, check output variables chk: a lot more error messages are given out if something is wrong chk: output netcdf time is calculate in advanced in order to reduce size of output netcdf -&gt; data_handling line 789 sets it to this value
+* 2017-05-10 - CWatM : chk: bugfix cropKC per land cover new: snow evaporation included new: Calibration routine added
+* 2017-04-20 - CWatM : fix: output to netcdf - in output and data_handling fix: output as a time series without header with the option -h new: readme.md for github
+* 2017-04-18 - CWatM : Transfer to new IIASA domain and making it private in branch develop
+* 2017-04-18 - CWatM : Transfer to new IIASA CWAT domain
+* 2017-04-18 - CWatM : ready for transfer to iiasa
+* 2017-04-13 - CWatM : data handling: faster read of meteo data
+* 2017-04-06 - CWatM : soil - Copy (2).py- removed bug in calculation of soildepth - change calc of arno beta
+* 2017-04-06 - CWatM : Merge branch &#39;branch2&#39; of https://github.com/CWatM/CWatM into branch2
+* 2017-04-06 - Community Water Model : Create LICENSE
+* 2017-04-06 - CWatM : Updated soil, removed bug in calculating the soil depth changed how arno beta is calculated
+* 2017-02-03 - CWatM : - made CWATM run under cygwin   (for other linux version the c++ code has to be compiled) - fixed reading maskmap from rectangle
+* 2017-02-02 - CWatM : set realtive file path to c++ routine
+* 2017-02-02 - CWatM : - New kinematic routing    - c++ routine include     TODO: make it usable for linu/Unix - removed pcraster GIS commands - new output routine for time series - Budyko output.html - corrected bug in snow modules - corrected bug in init read/save module - WORKING on lakes/reservoirs TODO: bug in reading maskmap from coordinates
+* 2017-01-17 - CWatM : init condition - save more than 1 date
+* 2017-01-16 - CWatM : Lake/reservoirs routing
+* 2016-12-22 - CWatM : updated soil , initconditions etc
+* 2016-12-16 - CWatM : runoff concentration
+* 2016-12-08 - CWatM : With sphinx documentation making files
+* 2016-12-07 - CWatM : Update
+* 2016-12-07 - CWatM : Preferential flow, frost
+* 2016-11-10 - CWatM : Cacluation Evaporation from climate data
+* 2016-10-21 - CWatM : Changed soil + test
+* 2016-10-18 - CWatM : Waterdemand included
+* 2016-10-03 - CWatM : last August update - waterbalance
+* 2016-08-26 - CWatM : water balance 7
+* 2016-08-26 - CWatM : water balance 6
+* 2016-08-25 - CWatM : water Balance 5
+* 2016-08-24 - CWatM : water balance 4 Checks ok : soil , groundwater, routing, waterdemand Missing: reservoirs, sum up to catchments
+* 2016-08-23 - CWatM : water balance 3
+* 2016-08-23 - CWatM : water balance 2
+* 2016-08-22 - CWatM : Water balance check 1 Output on screen
+* 2016-08-19 - CWatM : initial condition
+* 2016-08-17 - CWatM : Spin up
+* 2016-08-17 - CWatM : output netcdf add attributes
+* 2016-08-10 - CWatM : output + time
+* 2016-08-10 - CWatM : date and time
+* 2016-08-09 - CWatM : output 3
+* 2016-08-09 - CWatM : output 2
+* 2016-08-08 - CWatM : output timeseries
+* 2016-08-03 - CWatM : waterbodies 1 Checked routing - working :)
+* 2016-08-02 - CWatM : routing 3
+* 2016-08-01 - CWatM : routing 2
+* 2016-08-01 - CWatM : routing 1
+* 2016-07-29 - CWatM : some changes I do not know anymore
+* 2016-07-26 - CWatM : soil + groundwater
+* 2016-07-26 - CWatM : soil check3
+* 2016-07-25 - CWatM : soil check2
+* 2016-07-25 - CWatM : check soil module
+* 2016-07-24 - CWatM : soil update
+* 2016-07-24 - Burek : Soil and groundwater
+* 2016-07-22 - CWatM : soil
+* 2016-07-21 - CWatM : till waterdemand - soil
+* 2016-07-20 - CWatM : Next step interception
+* 2016-07-19 - CWatM : changing irrigationarea part
+* 2016-07-15 - CWatM : Initial procedure for soil, groundwater, waterdemand
+* 2016-07-13 - CWatM : include: snow frost
+
+</pre></div>
+</div>
+</div>
+<div class="section" id="todo">
+<h2><a class="toc-backref" href="#id4">TODO</a><a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="structural-improvements">
+<h3><a class="toc-backref" href="#id5">Structural improvements</a><a class="headerlink" href="#structural-improvements" title="Permalink to this headline">¶</a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This has to be done. Importance: 1 to be changed first .. 3 to be changed later</p>
+</div>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 24%" />
+<col style="width: 29%" />
+<col style="width: 18%" />
+<col style="width: 12%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Topic</p></th>
+<th class="head"><p>TODO</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Importance</p></th>
+<th class="head"><p>DONE</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Documentation</p></td>
+<td><p>Documentation</p></td>
+<td><p>start writing a user manual</p></td>
+<td><p>1</p></td>
+<td><p>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Documentation</p></td>
+<td><p>Source code documentation</p></td>
+<td><p>Improve comment-lines in the code and include them in the autodocu sphinx</p></td>
+<td><p>1</p></td>
+<td><p>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Documentation</p></td>
+<td><p>Include log file/change log</p></td>
+<td><p>document the changes in the code/settings</p></td>
+<td><p>2</p></td>
+<td><p>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Output</p></td>
+<td><p>GAMS output</p></td>
+<td><p>output/input in GAMS (gdx -files)</p></td>
+<td><p>2</p></td>
+<td><p>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Output</p></td>
+<td><p>Extent output possibilities</p></td>
+<td><p>Output as e.g. yearly areatotal, catchment total as maps, as time series</p></td>
+<td><p>1</p></td>
+<td><p>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Handling</p></td>
+<td><p>Improve error handling</p></td>
+<td><p>more messages for users if something goes wrong</p></td>
+<td><p>1</p></td>
+<td><p>.</p></td>
+</tr>
+<tr class="row-even"><td><p>Handling</p></td>
+<td><p>Checks maps</p></td>
+<td><p>include a pre-run, where input data are checked for plausibility</p></td>
+<td><p>2</p></td>
+<td><p>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Handling</p></td>
+<td><p>Load multiple netcd files</p></td>
+<td><p>read meteo input netcdf from split files</p></td>
+<td><p>2</p></td>
+<td><p>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="model-improvements">
+<h3><a class="toc-backref" href="#id6">Model improvements</a><a class="headerlink" href="#model-improvements" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 33%" />
+<col style="width: 27%" />
+<col style="width: 13%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>TODO</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Importance</p></th>
+<th class="head"><p>DONE</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Frost</p></td>
+<td><p>include frost routine (no soil movement during strong frost)</p></td>
+<td><p>1</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Snow</p></td>
+<td><p>include more than 3 vertical layers (make it flexible)</p></td>
+<td><p>2</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Runoff concentration</p></td>
+<td><p>include a 1st routing to the edge of a grid cell</p></td>
+<td><p>1</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Include water &amp; sealed land cover</p></td>
+<td><p>include 2 more land cover types (water covered area, sealed area)</p></td>
+<td><p>1</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Preferential flow</p></td>
+<td><p>include preferential flow to soil layers</p></td>
+<td><p>1</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Calculate Evaporation on PM</p></td>
+<td><p>include Penman Monteith ET routine</p></td>
+<td><p>1</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Reduce reading of time series maps</p></td>
+<td><p>e.g. interception maps only 1 per month</p></td>
+<td><p>2</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Kinematic wave</p></td>
+<td><p>Add C++ kinematic wave procedure</p></td>
+<td><p>2</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>soil depend on land cover</p></td>
+<td><p>include hydropedo transfer function landcover -&gt; soil</p></td>
+<td><p>2</p></td>
+<td><p>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Improve lakes&amp; reservoirs</p></td>
+<td><p>Add another way of including lakes/reservoirs</p></td>
+<td><p>2</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Inflow points</p></td>
+<td><p>add points where water can be added/substracted</p></td>
+<td><p>1</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>Include Environmental flow</p></td>
+<td><p>use environmental flow concept on the fly not only post-processing</p></td>
+<td><p>2</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-even"><td><p>Water allocation</p></td>
+<td><p>include water demand &lt;-&gt; water supply functionality</p></td>
+<td><p>2-3</p></td>
+<td><p>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Include EPIC approach</p></td>
+<td><p>to be in line with ESM include the EPIC approach</p></td>
+<td><p>3</p></td>
+<td><p>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results.html">6. Demo of the model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">7. The Model Itself</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#performance">Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#updates">Updates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#todo">TODO</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">8. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">9. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration_tutorial.html">10. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resolution.html">11. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zambezi.html">12. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">13. License and download info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sourcecode.html">14. Source code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forum.html">15. Forum</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="results.html"
+                        title="previous chapter"><span class="section-number">6. </span>Demo of the model</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="data.html"
+                        title="next chapter"><span class="section-number">8. </span>Data</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="data.html" title="8. Data"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="results.html" title="6. Demo of the model"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CWAT Model</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, PB.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.2.
+    </div>
+  </body>
+</html>

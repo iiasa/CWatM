@@ -82,10 +82,10 @@ class evaporationPot(object):
     def dynamic(self):
         """
         Dynamic part of the potential evaporation module
-        Return:
-            ETRef - potential reference evapotranspiration rate [m/day]
-            EWRef - potential evaporation rate from water surface [m/day]
 
+        :return: 
+            - ETRef - potential reference evapotranspiration rate [m/day]
+            - EWRef - potential evaporation rate from water surface [m/day]
         """
 
         if checkOption('calc_evaporation'):

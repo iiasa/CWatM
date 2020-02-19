@@ -1,0 +1,3141 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>4. Setup of the model &#8212; Community Water Model</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="5. Tutorial" href="tutorial.html" />
+    <link rel="prev" title="3. Publication" href="publication.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tutorial.html" title="5. Tutorial"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="publication.html" title="3. Publication"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CWAT Model</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="setup-of-the-model">
+<h1><a class="toc-backref" href="#id7"><span class="section-number">4. </span>Setup of the model</a><a class="headerlink" href="#setup-of-the-model" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#setup-of-the-model" id="id7">Setup of the model</a></p>
+<ul>
+<li><p><a class="reference internal" href="#setup" id="id8">Setup</a></p>
+<ul>
+<li><p><a class="reference internal" href="#requirements" id="id9">Requirements</a></p>
+<ul>
+<li><p><a class="reference internal" href="#python-version" id="id10">Python version</a></p></li>
+<li><p><a class="reference internal" href="#libraries" id="id11">Libraries</a></p></li>
+<li><p><a class="reference internal" href="#installing" id="id12">Installing</a></p></li>
+<li><p><a class="reference internal" href="#windows-executeable-python-version" id="id13">Windows executeable Python version</a></p></li>
+<li><p><a class="reference internal" href="#pcraster" id="id14">PCRaster</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#c-libraries" id="id15">C++ libraries</a></p>
+<ul>
+<li><p><a class="reference internal" href="#compiled-versions" id="id16">Compiled versions</a></p></li>
+<li><p><a class="reference internal" href="#compiling-a-version" id="id17">Compiling a version</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#test-the-model" id="id18">Test the model</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#running-the-model" id="id19">Running the model</a></p>
+<ul>
+<li><p><a class="reference internal" href="#start-the-model" id="id20">Start the model</a></p>
+<ul>
+<li><p><a class="reference internal" href="#flags" id="id21">Flags</a></p></li>
+<li><p><a class="reference internal" href="#settings-file" id="id22">Settings file</a></p></li>
+<li><p><a class="reference internal" href="#netcdf-meta-data" id="id23">NetCDF meta data</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#test-the-data" id="id24">Test the data</a></p></li>
+<li><p><a class="reference internal" href="#rst-settingdoc" id="id25">Settings file</a></p>
+<ul>
+<li><p><a class="reference internal" href="#components-of-the-settings-file" id="id26">Components of the settings file</a></p>
+<ul>
+<li><p><a class="reference internal" href="#general-flags" id="id27">General flags</a></p></li>
+<li><p><a class="reference internal" href="#id3" id="id28">NetCDF meta data</a></p></li>
+<li><p><a class="reference internal" href="#path-of-data-output" id="id29">Path of data, output</a></p></li>
+<li><p><a class="reference internal" href="#defining-the-modeling-area" id="id30">Defining the modeling area</a></p></li>
+<li><p><a class="reference internal" href="#defining-the-time" id="id31">Defining the time</a></p></li>
+<li><p><a class="reference internal" href="#initial-conditions" id="id32">Initial conditions</a></p></li>
+<li><p><a class="reference internal" href="#output" id="id33">Output</a></p></li>
+<li><p><a class="reference internal" href="#reading-information" id="id34">Reading information</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#sections-of-information" id="id35">Sections of information</a></p></li>
+<li><p><a class="reference internal" href="#complete-settings-file" id="id36">Complete settings file</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#id4" id="id37">NetCDF meta data</a></p>
+<ul>
+<li><p><a class="reference internal" href="#output-meta-netcdf-information" id="id38">Output Meta NetCDF information</a></p></li>
+<li><p><a class="reference internal" href="#name-and-location-of-the-netcdf-meta-data-file" id="id39">Name and location of the NetCDF meta data file</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#initialisation" id="id40">Initialisation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#example-of-soil-moisture" id="id41">Example of soil moisture</a></p></li>
+<li><p><a class="reference internal" href="#cold-start" id="id42">Cold start</a></p>
+<ul>
+<li><p><a class="reference internal" href="#set-up-a-cold-start-in-the-settingsfile" id="id43">Set up a cold start in the settingsfile</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#storing-initial-variables" id="id44">Storing initial variables</a></p></li>
+<li><p><a class="reference internal" href="#warm-start" id="id45">Warm start</a></p>
+<ul>
+<li><p><a class="reference internal" href="#id5" id="id46">Set up a cold start in the settingsfile</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#rst-initialcondition" id="id47">Initial conditions</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#model-output" id="id48">Model Output</a></p>
+<ul>
+<li><p><a class="reference internal" href="#time-depending-and-non-depending-output-maps" id="id49">Time depending and non depending output maps</a></p></li>
+<li><p><a class="reference internal" href="#or-time-series-at-specified-points" id="id50">Or time series at specified points</a></p></li>
+<li><p><a class="reference internal" href="#output-variables" id="id51">Output variables</a></p></li>
+<li><p><a class="reference internal" href="#daily-monthly-at-the-end-or-average" id="id52">Daily, monthly - at the end or average</a></p></li>
+<li><p><a class="reference internal" href="#time-series-as-point-infomation-or-catchment-sum-or-average" id="id53">Time series as point infomation or catchment sum or average</a></p></li>
+<li><p><a class="reference internal" href="#most-important-output-variables-a-selection" id="id54">Most important output variables - a selection</a></p></li>
+<li><p><a class="reference internal" href="#output-variables-starting-a-list" id="id55">Output variables - starting a list</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="setup">
+<h2><a class="toc-backref" href="#id8">Setup</a><a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="requirements">
+<h3><a class="toc-backref" href="#id9">Requirements</a><a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="python-version">
+<h4><a class="toc-backref" href="#id10">Python version</a><a class="headerlink" href="#python-version" title="Permalink to this headline">¶</a></h4>
+<p>NEW from 2019 on:
+Requirements are a 64 bit <a class="reference external" href="https://www.python.org/downloads/release/python-372/">Python 3.7.x or 3.8.x version</a></p>
+<p>Reason for this step:</p>
+<ul class="simple">
+<li><p>Python 2.7 support ended in 2019</p></li>
+<li><p>We will be able to provide a better error handling</p></li>
+<li><p>We are able to provide an executable of CWATM for Windows</p></li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>a 32 bit version is not able to handle the data requirements!</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>CWATM is tested for Python 3.7 and 3.8 and will for sure not work with Python versions lower than 3.6. We recommend using Python 3.7 or 3.8</p>
+</div>
+</div>
+<div class="section" id="libraries">
+<h4><a class="toc-backref" href="#id11">Libraries</a><a class="headerlink" href="#libraries" title="Permalink to this headline">¶</a></h4>
+<p>These external libraries are needed:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://www.numpy.org">Numpy</a></p></li>
+<li><p><a class="reference external" href="https://www.scipy.org">Scipy</a></p></li>
+<li><p><a class="reference external" href="https://pypi.python.org/pypi/netCDF4">netCDF4</a></p></li>
+<li><p><a class="reference external" href="http://www.gdal.org">GDAL</a></p></li>
+<li><p><a class="reference external" href="https://www.usgs.gov/software/flopy-python-package-creating-running-and-post-processing-modflow-based-models">Flopy</a></p></li>
+</ul>
+<p><strong>Windows</strong></p>
+<p>The five libraries can be installed with pip or
+downloaded at <a class="reference external" href="http://www.lfd.uci.edu/~gohlke/pythonlibs">Unofficial Windows Binaries for Python Extension Packages</a></p>
+</div>
+<div class="section" id="installing">
+<h4><a class="toc-backref" href="#id12">Installing</a><a class="headerlink" href="#installing" title="Permalink to this headline">¶</a></h4>
+<p>Finally the model can be installed with pip:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">CWatM</span><span class="o">/</span><span class="n">CWatM</span>
+</pre></div>
+</div>
+<p>Or in editable mode:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">CWatM</span><span class="o">/</span><span class="n">CWatM</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="windows-executeable-python-version">
+<h4><a class="toc-backref" href="#id13">Windows executeable Python version</a><a class="headerlink" href="#windows-executeable-python-version" title="Permalink to this headline">¶</a></h4>
+<div class="line-block">
+<div class="line">A CWATM executable cwatm.exe can be used instead of the Python version</div>
+</div>
+<ul class="simple">
+<li><p>ADVANTAGE: You can run it without installing or knowledge of Python</p></li>
+<li><p>DISADVANTAGE 1: You cannot see the source code or change it</p></li>
+<li><p>DISADVANTAGE 2: We do not update this version as often as the Python version</p></li>
+<li><p>It is done with cx_freeze library</p></li>
+<li><p>It includes all Python libraries</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<div class="line-block">
+<div class="line">A cwatmexe.zip (around 300 MB with all Python libraries) is stored on:</div>
+<div class="line"><a class="reference external" href="https://github.com/CWatM/CWatM">Source code on Github repository of CWATM</a></div>
+<div class="line"><a class="reference external" href="https://github.com/CWatM/CWatM/blob/version091/cwatmexe.zip">Executable cwatmexe.zip on Github repository of CWATM</a></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<div class="line-block">
+<div class="line">We recommend using the Python 3.7.x version,</div>
+<div class="line">but if you not experienced in Python or have problems installing CWATM, please use the executable version.</div>
+<div class="line">Either start it in DOS box (command cmd), or use the batch file cwatmbat.bat to start it</div>
+</div>
+</div>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>We will put a whole example of 30 deg Rhine basin with all necessary data in another zip file. Just for an easier start.</p>
+</div>
+</div>
+<div class="section" id="pcraster">
+<h4><a class="toc-backref" href="#id14">PCRaster</a><a class="headerlink" href="#pcraster" title="Permalink to this headline">¶</a></h4>
+<div class="line-block">
+<div class="line">CWATM is not using anything from PCRaster</div>
+<div class="line">But the general idea of PCraster to split the hydrological modules in a initial | part and a dynamic part is still used</div>
+</div>
+<div class="line-block">
+<div class="line">Anyway PCRaster is a great tool</div>
+<div class="line">PCRASTER from Faculty of Geosciences, Utrecht University, The Netherlands</div>
+<div class="line"><a class="reference external" href="http://pcraster.geo.uu.nl">Webpage of PCRaster</a></div>
+</div>
+<div class="line-block">
+<div class="line">Reference:</div>
+<div class="line">Karssenberg, D., Schmitz, O., Salamon, P., de Jong, K., and Bierkens, M. F. P.: A software framework for construction of process-based stochastic spatio-temporal models and data assimilation, Environmental Modelling &amp; Software 25(4), 489-502, 2010. doi: 10.1016/j.envsoft.2009.10.004</div>
+</div>
+</div>
+</div>
+<div class="section" id="c-libraries">
+<h3><a class="toc-backref" href="#id15">C++ libraries</a><a class="headerlink" href="#c-libraries" title="Permalink to this headline">¶</a></h3>
+<p>For the computational time demanding parts e.g. routing,
+CWATM comes with a C++ library</p>
+<div class="section" id="compiled-versions">
+<h4><a class="toc-backref" href="#id16">Compiled versions</a><a class="headerlink" href="#compiled-versions" title="Permalink to this headline">¶</a></h4>
+<div class="line-block">
+<div class="line"><strong>Windows and CYGWIN_NT-6.1</strong></div>
+<div class="line">a compiled version is provided and CWATM is detecting automatically which system is running and which compiled version is needed</div>
+</div>
+<div class="line-block">
+<div class="line"><strong>Linux</strong></div>
+<div class="line">For Cygwin linux a compiled version <em>t5cyg.so</em> is provided in <em>../source/hydrological_modules/routing_reservoirs/</em> for version CYGWIN_NT-6.1.</div>
+<div class="line">If you use another cygwin version please compile it by yourself and name it <em>t5_linux.so</em></div>
+</div>
+<p>For Linux Ubuntu a compiled version is provided as <em>t5_linux.so</em>. The file is in <em>../source/hydrological_modules/routing_reservoirs/</em></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you use another Linux version or the compiled version is not working or you have a compiler which produce faster executables please compile a version on your own.</p>
+</div>
+</div>
+<div class="section" id="compiling-a-version">
+<h4><a class="toc-backref" href="#id17">Compiling a version</a><a class="headerlink" href="#compiling-a-version" title="Permalink to this headline">¶</a></h4>
+<p>C++ sourcecode is in <em>../source/hydrological_modules/routing_reservoirs/t5.cpp</em></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A compiled version is already provided for Windows and Linux.</p>
+</div>
+<p><strong>Windows</strong></p>
+<p>A compiled version is provided, but maybe you have a faster compiler than the “Minimalist GNU for Windows” or “Microsoft Visual Studio 14.0” we used.</p>
+<p>To compile with g++:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">..</span>\<span class="n">g</span><span class="o">++</span> <span class="o">-</span><span class="n">c</span> <span class="o">-</span><span class="n">fPIC</span> <span class="o">-</span><span class="n">Ofast</span> <span class="n">t5</span><span class="o">.</span><span class="n">cpp</span> <span class="o">-</span><span class="n">o</span> <span class="n">t5</span><span class="o">.</span><span class="n">o</span>
+<span class="o">..</span>\<span class="n">g</span><span class="o">++</span> <span class="o">-</span><span class="n">shared</span> <span class="o">-</span><span class="n">Ofast</span> <span class="o">-</span><span class="n">Wl</span><span class="p">,</span><span class="o">-</span><span class="n">soname</span><span class="p">,</span><span class="n">t5</span><span class="o">.</span><span class="n">so</span> <span class="o">-</span><span class="n">o</span> <span class="n">t5</span><span class="o">.</span><span class="n">so</span>  <span class="n">t5</span><span class="o">.</span><span class="n">o</span>
+</pre></div>
+</div>
+<p>To compile with Microsoft Visual Studio 14.0:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">call</span> <span class="s2">&quot;C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC</span><span class="se">\b</span><span class="s2">in</span><span class="se">\a</span><span class="s2">md64/vcvars64.bat&quot;</span>
+<span class="n">cl</span> <span class="o">/</span><span class="n">LD</span> <span class="o">/</span><span class="n">O2</span> <span class="n">t5</span><span class="o">.</span><span class="n">cpp</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl>
+<dt>We used Visual Studio, because it seems to be computational faster</dt><dd><div class="line-block">
+<div class="line">the libray used with Windows is named <em>t5.dll</em>, if you generate a libray <em>t5.so</em> the filename in <strong>../source/management_modules/globals.py</strong> has to be changed!</div>
+</div>
+</dd>
+</dl>
+</div>
+<p><strong>Linux</strong></p>
+<p>To compile with g++:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">..</span>\<span class="n">g</span><span class="o">++</span> <span class="o">-</span><span class="n">c</span> <span class="o">-</span><span class="n">fPIC</span> <span class="o">-</span><span class="n">Ofast</span> <span class="n">t5</span><span class="o">.</span><span class="n">cpp</span> <span class="o">-</span><span class="n">o</span> <span class="n">t5_linux</span><span class="o">.</span><span class="n">o</span>
+<span class="o">..</span>\<span class="n">g</span><span class="o">++</span> <span class="o">-</span><span class="n">shared</span> <span class="o">-</span><span class="n">Ofast</span> <span class="o">-</span><span class="n">Wl</span><span class="p">,</span><span class="o">-</span><span class="n">soname</span><span class="p">,</span><span class="n">t5_linux</span><span class="o">.</span><span class="n">so</span> <span class="o">-</span><span class="n">o</span> <span class="n">t5_linux</span><span class="o">.</span><span class="n">so</span>  <span class="n">t5_linux</span><span class="o">.</span><span class="n">o</span>
+
+    <span class="ow">or</span>
+
+    <span class="o">..</span>\<span class="n">g</span><span class="o">++</span> <span class="o">-</span><span class="n">c</span> <span class="o">-</span><span class="n">Ofast</span> <span class="n">t5</span><span class="o">.</span><span class="n">cpp</span> <span class="o">-</span><span class="n">o</span> <span class="n">t5_linux</span><span class="o">.</span><span class="n">o</span>
+<span class="o">..</span>\<span class="n">g</span><span class="o">++</span> <span class="o">-</span><span class="n">shared</span> <span class="o">-</span><span class="n">Ofast</span> <span class="o">-</span><span class="n">Wl</span><span class="p">,</span><span class="o">-</span><span class="n">soname</span><span class="p">,</span><span class="n">t5_linux</span><span class="o">.</span><span class="n">so</span> <span class="o">-</span><span class="n">o</span> <span class="n">t5_linux</span><span class="o">.</span><span class="n">so</span>  <span class="n">t5_linux</span><span class="o">.</span><span class="n">o</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Please rename your compiled version to t5_linux.so! At the moment the file t5_linux.so is compiled with Ubuntu Linux</p>
+</div>
+</div>
+</div>
+<div class="section" id="test-the-model">
+<h3><a class="toc-backref" href="#id18">Test the model</a><a class="headerlink" href="#test-the-model" title="Permalink to this headline">¶</a></h3>
+<p><strong>Windows and Linux</strong></p>
+<p>python &lt;modelpath&gt;/cwatm.py</p>
+<p>The output should be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Running</span> <span class="n">under</span> <span class="n">platform</span><span class="p">:</span>  <span class="n">Windows</span>  <span class="o">**</span><span class="p">(</span><span class="ow">or</span> <span class="n">Linux</span> <span class="n">etc</span><span class="p">)</span><span class="o">**</span>
+<span class="n">CWatM</span> <span class="o">-</span> <span class="n">Community</span> <span class="n">Water</span> <span class="n">Model</span>
+<span class="n">Authors</span><span class="p">:</span> <span class="o">...</span>
+<span class="n">Version</span><span class="p">:</span> <span class="o">...</span>
+<span class="n">Date</span><span class="p">:</span> <span class="o">...</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If python is not set in the environment path, the full path of python has to be used</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Please use the right version of CWATM with the right version of Python (either 2.7 or 3.7)</p>
+</div>
+</div>
+</div>
+<div class="section" id="running-the-model">
+<h2><a class="toc-backref" href="#id19">Running the model</a><a class="headerlink" href="#running-the-model" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="start-the-model">
+<h3><a class="toc-backref" href="#id20">Start the model</a><a class="headerlink" href="#start-the-model" title="Permalink to this headline">¶</a></h3>
+<p>Download and run run_cwatm.py</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The model needs a settings file as an argument. See: <a class="reference internal" href="#rst-settingdoc"><span class="std std-ref">Settings file</span></a></p>
+</div>
+<p><strong>Windows</strong></p>
+<p>python run_cwatm.py settingsfile flags</p>
+<p>example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run_cwatm</span><span class="o">.</span><span class="n">py</span> <span class="n">settings1</span><span class="o">.</span><span class="n">ini</span>
+<span class="ow">or</span> <span class="k">with</span> <span class="n">more</span> <span class="n">information</span> <span class="ow">and</span> <span class="n">an</span> <span class="n">overview</span> <span class="n">of</span> <span class="n">computational</span> <span class="n">runtime</span>
+<span class="n">python</span> <span class="n">run_cwatm</span><span class="o">.</span><span class="n">py</span> <span class="n">settings1</span><span class="o">.</span><span class="n">ini</span> <span class="o">-</span><span class="n">l</span> <span class="o">-</span><span class="n">t</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If python is not set in the environment path, the full path of python has to be used</p>
+</div>
+<p><strong>Linux</strong></p>
+<p>run_cwatm.py settingsfile flags</p>
+<p>example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">run_cwatm</span><span class="o">.</span><span class="n">py</span> <span class="n">settings1</span><span class="o">.</span><span class="n">ini</span> <span class="o">-</span><span class="n">l</span> <span class="o">-</span><span class="n">t</span>
+</pre></div>
+</div>
+<div class="section" id="flags">
+<h4><a class="toc-backref" href="#id21">Flags</a><a class="headerlink" href="#flags" title="Permalink to this headline">¶</a></h4>
+<p>Flags can be used to change the runtime output on the screen</p>
+<p>example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">q</span> <span class="o">--</span><span class="n">quiet</span>       <span class="n">output</span> <span class="n">progression</span> <span class="n">given</span> <span class="k">as</span> <span class="o">.</span>
+<span class="o">-</span><span class="n">v</span> <span class="o">--</span><span class="n">veryquiet</span>   <span class="n">no</span> <span class="n">output</span> <span class="n">progression</span> <span class="ow">is</span> <span class="n">given</span>
+<span class="o">-</span><span class="n">l</span> <span class="o">--</span><span class="n">loud</span>        <span class="n">output</span> <span class="n">progression</span> <span class="n">given</span> <span class="k">as</span> <span class="n">time</span> <span class="n">step</span><span class="p">,</span> <span class="n">date</span> <span class="ow">and</span> <span class="n">discharge</span>
+<span class="o">-</span><span class="n">c</span> <span class="o">--</span><span class="n">check</span>       <span class="nb">input</span> <span class="n">maps</span> <span class="ow">and</span> <span class="n">stack</span> <span class="n">maps</span> <span class="n">are</span> <span class="n">checked</span><span class="p">,</span> <span class="n">output</span> <span class="k">for</span> <span class="n">each</span> <span class="nb">input</span> <span class="nb">map</span> <span class="n">BUT</span> <span class="n">no</span> <span class="n">model</span> <span class="n">run</span>
+<span class="o">-</span><span class="n">h</span> <span class="o">--</span><span class="n">noheader</span>    <span class="o">.</span><span class="n">tss</span> <span class="n">file</span> <span class="n">have</span> <span class="n">no</span> <span class="n">header</span> <span class="ow">and</span> <span class="n">start</span> <span class="n">immediately</span> <span class="k">with</span> <span class="n">the</span> <span class="n">time</span> <span class="n">series</span>
+<span class="o">-</span><span class="n">t</span> <span class="o">--</span><span class="n">printtime</span>   <span class="n">the</span> <span class="n">computation</span> <span class="n">time</span> <span class="k">for</span> <span class="n">hydrological</span> <span class="n">modules</span> <span class="n">are</span> <span class="n">printed</span>
+    <span class="o">-</span><span class="n">w</span> <span class="o">--</span><span class="n">warranty</span>    <span class="n">copyright</span> <span class="ow">and</span> <span class="n">warranty</span> <span class="n">information</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="settings-file">
+<h4><a class="toc-backref" href="#id22">Settings file</a><a class="headerlink" href="#settings-file" title="Permalink to this headline">¶</a></h4>
+<p>The setup of the setings file is shown in the next chapter.</p>
+</div>
+<div class="section" id="netcdf-meta-data">
+<h4><a class="toc-backref" href="#id23">NetCDF meta data</a><a class="headerlink" href="#netcdf-meta-data" title="Permalink to this headline">¶</a></h4>
+<p>The format for spatial data for output data is netCDF.
+In the meta data file information can be added  e.g. a description of the parameter</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is not necessary to change this file! This is an option to put additional information into output maps</p>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="test-the-data">
+<h2><a class="toc-backref" href="#id24">Test the data</a><a class="headerlink" href="#test-the-data" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">The model is only as good as the data!</div>
+<div class="line">To give out a list of data and to check the data the model can run a check.</div>
+</div>
+<p>example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cwatm</span><span class="o">.</span><span class="n">py</span> <span class="n">settings1</span><span class="o">.</span><span class="n">ini</span> <span class="o">-</span><span class="n">c</span>
+<span class="ow">or</span>
+<span class="n">cwatm</span><span class="o">.</span><span class="n">py</span> <span class="n">settings1</span><span class="o">.</span><span class="n">ini</span> <span class="o">-</span><span class="n">c</span> <span class="o">&gt;</span> <span class="n">checkdata</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>A list is created with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Name:      Name of the variable
+Filename:  filename or if the value if it is a fixed value
+nonMV:     non missing value in 2D map
+MV:        missing value in 2D map
+lon-lat:   longitude x latitude of 2D map
+CompressV: 2D is compressed to 1D?
+MV-comp:   missing value in 1D
+Zero-comp: Number of 0 in 1D
+NonZero:   Number of non 0 in 1D
+min:       minimum in 1D (or 2D)
+mean:      mean in 1D (or 2D)
+max:       maximum in 1D (or 2D)
+</pre></div>
+</div>
+<p>example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Name</span>                          <span class="n">File</span><span class="o">/</span><span class="n">Value</span>                                    <span class="n">nonMV</span>         <span class="n">MV</span>    <span class="n">lon</span><span class="o">-</span><span class="n">lat</span>   <span class="n">Compress</span>    <span class="n">MV</span><span class="o">-</span><span class="n">comp</span>  <span class="n">Zero</span><span class="o">-</span><span class="n">comp</span>    <span class="n">NonZero</span>        <span class="nb">min</span>       <span class="n">mean</span>        <span class="nb">max</span>
+<span class="n">MaskMap</span>                       <span class="n">put5min_netcdf</span><span class="o">/</span><span class="n">areamaps</span><span class="o">/</span><span class="n">rhine5min</span><span class="o">.</span><span class="n">map</span>          <span class="mi">5236</span>          <span class="mi">0</span>      <span class="mi">68</span><span class="n">x77</span>      <span class="kc">False</span>          <span class="mi">0</span>       <span class="mi">2404</span>       <span class="mi">2832</span>       <span class="mf">0.00</span>       <span class="mf">0.54</span>       <span class="mf">1.00</span>
+<span class="n">Ldd</span>                           <span class="n">_5min</span><span class="o">/</span><span class="n">input5min_netcdf</span><span class="o">/</span><span class="n">routing</span><span class="o">/</span><span class="n">ldd</span><span class="o">.</span><span class="n">nc</span>          <span class="mi">5236</span>          <span class="mi">0</span>      <span class="mi">68</span><span class="n">x77</span>      <span class="kc">False</span>          <span class="mi">0</span>          <span class="mi">0</span>       <span class="mi">5236</span>       <span class="mf">1.00</span>       <span class="mf">5.34</span>       <span class="mf">9.00</span>
+<span class="n">Mask</span><span class="o">+</span><span class="n">Ldd</span>                                                                     <span class="mi">2832</span>          <span class="mi">0</span>      <span class="mi">68</span><span class="n">x77</span>       <span class="kc">True</span>          <span class="mi">0</span>       <span class="mi">2832</span>          <span class="mi">0</span>       <span class="mf">0.00</span>       <span class="mf">0.00</span>       <span class="mf">0.00</span>
+<span class="n">CellArea</span>                      <span class="n">n_netcdf</span><span class="o">/</span><span class="n">landsurface</span><span class="o">/</span><span class="n">topo</span><span class="o">/</span><span class="n">cellarea</span><span class="o">.</span><span class="n">nc</span>          <span class="mi">2832</span>          <span class="mi">0</span>      <span class="mi">68</span><span class="n">x77</span>       <span class="kc">True</span>          <span class="mi">0</span>          <span class="mi">0</span>       <span class="mi">2832</span>   <span class="mf">5.31E+07</span>   <span class="mf">5.63E+07</span>   <span class="mf">5.94E+07</span>
+<span class="n">precipitation_coversion</span>       <span class="mf">86.4</span>                                              <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>                 <span class="mf">86.40</span>
+<span class="n">evaporation_coversion</span>         <span class="mf">1.00</span>                                              <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>                  <span class="mf">1.00</span>
+<span class="n">crop_correct</span>                  <span class="mf">1.534</span>                                             <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>                  <span class="mf">1.53</span>
+<span class="n">NumberSnowLayers</span>              <span class="mi">7</span>                                                 <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>                  <span class="mf">7.00</span>
+<span class="n">GlacierTransportZone</span>          <span class="mi">3</span>                                                 <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>          <span class="o">-</span>                  <span class="mf">3.00</span>
+<span class="n">ElevationStD</span>                  <span class="n">min_netcdf</span><span class="o">/</span><span class="n">landsurface</span><span class="o">/</span><span class="n">topo</span><span class="o">/</span><span class="n">elvstd</span><span class="o">.</span><span class="n">nc</span>          <span class="mi">2832</span>          <span class="mi">0</span>      <span class="mi">68</span><span class="n">x77</span>       <span class="kc">True</span>          <span class="mi">0</span>          <span class="mi">0</span>       <span class="mi">2832</span>       <span class="mf">0.04</span>      <span class="mf">78.67</span>     <span class="mf">672.68</span>
+<span class="o">...</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="rst-settingdoc">
+<span id="id2"></span><h2><a class="toc-backref" href="#id25">Settings file</a><a class="headerlink" href="#rst-settingdoc" title="Permalink to this headline">¶</a></h2>
+<p>The settings file is controlling the CWATM run</p>
+<div class="highlight-ini notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1">######## ##          ##  ####  ######  ##    ##</span>
+<span class="c1">##       ##          ## ##  ##   ##   ####  ####</span>
+<span class="c1">##        ##        ##  ##  ##   ##   ## #### ##</span>
+<span class="c1">##        ##   ##   ## ########  ##  ##   ##   ##</span>
+<span class="c1">##         ## #### ##  ##    ##  ##  ##        ##</span>
+<span class="c1">##         ####  #### ##      ## ## ##          ##</span>
+<span class="c1">##########  ##    ##  ##      ## ## ##          ##</span>
+
+<span class="c1"># Community Water Model Version 0.99</span>
+</pre></div>
+</td></tr></table></div>
+<div class="section" id="components-of-the-settings-file">
+<h3><a class="toc-backref" href="#id26">Components of the settings file</a><a class="headerlink" href="#components-of-the-settings-file" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="general-flags">
+<h4><a class="toc-backref" href="#id27">General flags</a><a class="headerlink" href="#general-flags" title="Permalink to this headline">¶</a></h4>
+<p>General flags are set in the first paragraph
+For example: If Temperature data are in unit ° Celsius ot Kelvin</p>
+<div class="highlight-ini notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">[OPTIONS]</span>
+<span class="c1">#-------------------------------------------------------</span>
+<span class="c1"># OPTION - to switch on/off</span>
+<span class="c1">#-------------------------------------------------------</span>
+
+<span class="c1"># Data otions</span>
+<span class="c1"># if temperature is stored in Kelvin instead Celsius</span>
+<span class="na">TemperatureInKelvin</span> <span class="o">=</span> <span class="s">True</span>
+<span class="c1"># if lat/lon the area has to be user defined = precalculated</span>
+<span class="na">gridSizeUserDefined</span> <span class="o">=</span> <span class="s">True</span>
+
+<span class="c1">#-----------------------------------------------</span>
+<span class="c1"># Evaporation: calculate pot. evaporation (True) or use precalculated pot.evaporation map stacks (False)</span>
+<span class="na">calc_evaporation</span> <span class="o">=</span> <span class="s">False</span>
+
+<span class="c1">#-----------------------------------------------</span>
+<span class="c1"># Irrigation and water demand</span>
+
+<span class="c1"># if irrigation is included, otherwise paddy and non paddy is put into &#39;grassland&#39;</span>
+<span class="na">includeIrrigation</span> <span class="o">=</span> <span class="s">True</span>
+<span class="c1"># if water demand from irrigation, industry and domestic is included</span>
+<span class="na">includeWaterDemand</span> <span class="o">=</span> <span class="s">False</span>
+<span class="c1"># Water allocation</span>
+<span class="c1"># if water demand and availability is calculated for region to compare demand vs. avail</span>
+<span class="na">usingAllocSegments</span> <span class="o">=</span> <span class="s">False</span>
+<span class="c1"># limit abstraction to available groundwater (True) include fossil groundwater (False)</span>
+<span class="na">limitAbstraction</span> <span class="o">=</span> <span class="s">False</span>
+
+<span class="c1"># Environmental Flow</span>
+<span class="na">calc_environflow</span> <span class="o">=</span> <span class="s">False</span>
+<span class="na">use_environflow</span> <span class="o">=</span> <span class="s">False</span>
+
+<span class="c1">#-----------------------------------------------</span>
+<span class="c1"># Soil </span>
+<span class="c1"># use preferential flow, that bypasses the soil matrix and drains directly to the groundwater (not for irrPaddy)</span>
+<span class="na">preferentialFlow</span> <span class="o">=</span> <span class="s">False</span>
+<span class="c1"># Capillar rise</span>
+<span class="na">CapillarRise</span> <span class="o">=</span> <span class="s">True</span>
+
+<span class="c1">#-----------------------------------------------</span>
+<span class="c1"># Routing</span>
+
+<span class="c1"># if runoff concentration to the edge of a cell is included</span>
+<span class="na">includeRunoffConcentration</span> <span class="o">=</span> <span class="s">True</span>
+<span class="c1"># Waterbodies like lakes and reservoirs</span>
+<span class="na">includeWaterBodies</span> <span class="o">=</span> <span class="s">True</span>
+<span class="c1"># kinematic wave routing, if False no routing is calculated</span>
+<span class="na">includeRouting</span> <span class="o">=</span> <span class="s">True</span>
+
+<span class="c1">#-----------------------------------------------</span>
+<span class="c1"># Inflow from outside of the modelled area</span>
+<span class="na">inflow</span> <span class="o">=</span> <span class="s">False</span>
+
+<span class="c1"># --- Reporting &amp; Debugging ------------------- ----------------------------------------------</span>
+<span class="c1"># Reporting options</span>
+<span class="na">writeNetcdfStack</span> <span class="o">=</span> <span class="s">True</span>
+<span class="na">reportMap</span> <span class="o">=</span> <span class="s">True</span>
+<span class="na">reportTss</span> <span class="o">=</span> <span class="s">True</span>
+<span class="c1"># Checking water balance (for debugging)</span>
+<span class="na">calcWaterBalance</span> <span class="o">=</span> <span class="s">False</span>
+<span class="na">sumWaterBalance</span> <span class="o">=</span> <span class="s">False</span>
+<span class="c1"># use additional PCRaster GIS commands</span>
+<span class="na">PCRaster</span> <span class="o">=</span> <span class="s">False</span>
+
+
+
+
+
+
+<span class="c1">#-------------------------------------------------------</span>
+<span class="c1"># DEFINITIONS OF PARAMETERS</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="id3">
+<h4><a class="toc-backref" href="#id28">NetCDF meta data</a><a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<p>The format for spatial data for input and output data is netCDF.
+For output data the basic information are given in the settingsfile</p>
+<div class="highlight-ini notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>102
+103
+104
+105</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="k">[NETCDF_ATTRIBUTES]</span>
+<span class="na">institution</span> <span class="o">=</span> <span class="s">IIASA</span>
+<span class="na">title</span> <span class="o">=</span> <span class="s">Global Water Model - WATCH WDFEI</span>
+<span class="na">metaNetcdfFile</span> <span class="o">=</span> <span class="s">$(FILE_PATHS:PathRoot)/source/metaNetcdf.xml</span>
+</pre></div>
+</td></tr></table></div>
+<p>For each output file the specific information about units, variable name, displayed variable name is given
+in the metaNetcdf.xml. See: <a class="reference internal" href="#rst-metadata"><span class="std std-ref">Output Meta NetCDF information</span></a></p>
+</div>
+<div class="section" id="path-of-data-output">
+<h4><a class="toc-backref" href="#id29">Path of data, output</a><a class="headerlink" href="#path-of-data-output" title="Permalink to this headline">¶</a></h4>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Further on the pathes can be used as placeholders</p>
+</div>
+<div class="highlight-ini notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>88
+89
+90
+91
+92
+93
+94
+95</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1">#-------------------------------------------------------</span>
+<span class="k">[FILE_PATHS]</span>
+<span class="c1">#-------------------------------------------------------</span>
+<span class="na">PathRoot</span> <span class="o">=</span> <span class="s">E:/CWATM_rhine</span>
+
+<span class="na">PathOut</span> <span class="o">=</span> <span class="s">$(PathRoot)/output</span>
+<span class="na">PathMaps</span> <span class="o">=</span> <span class="s">$(PathRoot)/cwatm_input</span>
+<span class="na">PathMeteo</span> <span class="o">=</span> <span class="s">$(PathRoot)/climate</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="defining-the-modeling-area">
+<span id="rst-modelarea"></span><h4><a class="toc-backref" href="#id30">Defining the modeling area</a><a class="headerlink" href="#defining-the-modeling-area" title="Permalink to this headline">¶</a></h4>
+<p>In general the input data are stored and used at global scale.
+The modeling area can be defined by:</p>
+<ul class="simple">
+<li><p>a mask map e.g.: $(FILE_PATHS:PathRoot)/source/rhine30min.tif</p></li>
+<li><p>coordinates e.g.: 14 12 0.5 5.0 52.0</p></li>
+<li><p>lowest point of a catchment e.g.: 6.25 51.75</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<div class="line-block">
+<div class="line">The mask map can be a .tif, PCraster or a netCDF format</div>
+<div class="line">The coordinates have the format: Number of Cols, Number of rows, cellsize, upper left corner X, upper left corner Y</div>
+<div class="line">The point location (lon lat) will be used to create the catchment upstream of this point</div>
+</div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you use a mask map, make sure you do not use blanks in the file path or name!</p>
+</div>
+<div class="highlight-ini notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1"># AREA AND OUTLETS</span>
+<span class="c1">#-------------------------------------------------------</span>
+<span class="k">[MASK_OUTLET]</span>
+
+<span class="c1"># Area mask</span>
+<span class="c1"># A pcraster map, tif or netcdf map e.g.  $(FILE_PATHS:PathRoot)/data/areamaps/area_indus.map</span>
+<span class="c1"># or a retancle: Number of Cols, Number of rows, cellsize, upper left corner X, upper left corner Y </span>
+<span class="na">MaskMap</span> <span class="o">=</span> <span class="s">$(FILE_PATHS:PathRoot)/source/rhine30min.tif</span>
+<span class="c1">#MaskMap = 14 12 0.5 5.0 52.0</span>
+
+
+<span class="c1">#-------------------------------------------------------</span>
+<span class="c1"># Station data</span>
+<span class="c1"># either a map e.g. $(FILE_PATHS:PathRoot)/data/areamaps/area3.map</span>
+<span class="c1"># or a location coordinates (X,Y) e.g. 5.75 52.25 9.25 49.75 )</span>
+<span class="c1"># Lobith/Rhine</span>
+<span class="na">Gauges</span> <span class="o">=</span> <span class="s">6.25 51.75</span>
+
+<span class="c1"># if .tif file for gauges, this is a flag if the file is global or local</span>
+<span class="c1"># e.g. Gauges = $(FILE_PATHS:PathRoot)/data/areamaps/gaugesRhine.tif</span>
+<span class="na">GaugesLocal</span> <span class="o">=</span> <span class="s">True</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="defining-the-time">
+<h4><a class="toc-backref" href="#id31">Defining the time</a><a class="headerlink" href="#defining-the-time" title="Permalink to this headline">¶</a></h4>
+<p>The start and end time have to be defined.
+Spin-up time is the time for warming up (results will be stored after the spin-up time)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The time can be given as date: dd/mm/yyyy or as relative date: number (but then CalendarDayStart has to be defined)</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Spin-up time can be given as date or number</p>
+</div>
+<div class="highlight-ini notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1">#-------------------------------------------------------</span>
+<span class="k">[TIME-RELATED_CONSTANTS]</span>
+<span class="c1">#-------------------------------------------------------</span>
+
+<span class="c1"># StepStart has to be a date e.g. 01/06/1990</span>
+<span class="c1"># SpinUp or StepEnd either date or numbers </span>
+<span class="c1"># SpinUp: from this date output is generated (up to this day: warm up)</span>
+
+<span class="na">StepStart</span> <span class="o">=</span> <span class="s">1/1/1990</span>
+<span class="na">SpinUp</span> <span class="o">=</span>  <span class="s">1/01/1995</span>
+<span class="na">StepEnd</span> <span class="o">=</span>  <span class="s">31/12/2010</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="initial-conditions">
+<h4><a class="toc-backref" href="#id32">Initial conditions</a><a class="headerlink" href="#initial-conditions" title="Permalink to this headline">¶</a></h4>
+<p>Initial conditions can be stored and be loaded in order to initialise a warm start of the model</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Initial conditions are store as one netCDF file with all necessary variables</p>
+</div>
+<div class="highlight-ini notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1">#-------------------------------------------------------</span>
+<span class="k">[INITITIAL CONDITIONS]</span>
+<span class="c1">#-------------------------------------------------------</span>
+
+<span class="c1"># for a warm start initial variables a loaded</span>
+<span class="c1"># e.g for a start on 01/01/2010 load variable from 31/12/2009</span>
+<span class="na">load_initial</span> <span class="o">=</span> <span class="s">False</span>
+<span class="na">initLoad</span> <span class="o">=</span> <span class="s">$(FILE_PATHS:PathRoot)/init/Rhine_19891231.nc</span>
+
+<span class="c1"># saving variables from this run, to initiate a warm start next run</span>
+<span class="c1"># StepInit = saving date, can be more than one: 10/01/1973 20/01/1973</span>
+<span class="na">save_initial</span> <span class="o">=</span> <span class="s">False</span>
+<span class="na">initSave</span> <span class="o">=</span> <span class="s">$(FILE_PATHS:PathRoot)/init/Rhine</span>
+<span class="na">StepInit</span> <span class="o">=</span> <span class="s">31/12/1989 31/12/2010</span>
+</pre></div>
+</td></tr></table></div>
+<p>StepInit indicate the date(s) when initial conditions are saved:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">StepInit</span> <span class="o">=</span> <span class="mi">31</span><span class="o">/</span><span class="mi">12</span><span class="o">/</span><span class="mi">1989</span>
+<span class="n">StepInit</span> <span class="o">=</span> <span class="mi">31</span><span class="o">/</span><span class="mi">12</span><span class="o">/</span><span class="mi">1989</span> <span class="mi">31</span><span class="o">/</span><span class="mi">12</span><span class="o">/</span><span class="mi">2010</span>
+<span class="n">StepInit</span> <span class="o">=</span> <span class="mi">31</span><span class="o">/</span><span class="mi">12</span><span class="o">/</span><span class="mi">1989</span> <span class="mi">5</span><span class="n">y</span>
+<span class="n">here</span><span class="p">:</span> <span class="n">second</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">StepInit</span> <span class="ow">is</span> <span class="n">indicating</span> <span class="n">a</span> <span class="n">repetition</span> <span class="n">of</span> <span class="n">year</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">month</span><span class="p">(</span><span class="n">m</span><span class="p">)</span> <span class="ow">or</span> <span class="n">day</span><span class="p">(</span><span class="n">d</span><span class="p">),</span>
+<span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="mi">2</span><span class="n">y</span> <span class="k">for</span> <span class="n">every</span> <span class="mi">2</span> <span class="n">years</span> <span class="ow">or</span> <span class="mi">6</span><span class="n">m</span> <span class="k">for</span> <span class="n">every</span> <span class="mi">6</span> <span class="n">month</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="output">
+<span id="rst-outputone"></span><h4><a class="toc-backref" href="#id33">Output</a><a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h4>
+<dl>
+<dt>Output can be spatial/time as netCDF4 map stacks</dt><dd><div class="line-block">
+<div class="line">and/or time series at specified points</div>
+</div>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For additional information see <a class="reference internal" href="#rst-outputtwo"><span class="std std-ref">Model Output</span></a></p>
+</div>
+<p>Output can be as maps and time series:</p>
+<ul class="simple">
+<li><p>per day [Daily]</p></li>
+<li><p>total month [MonthTot],  average month [MonthAvg], end of month [MonthEnd]</p></li>
+<li><p>total year  [AnnualTot], average year [AnnualAvg], end of year [AnnualEnd]</p></li>
+<li><p>total sum [TotalTot], total average [TotalAvg]</p></li>
+</ul>
+<p>For each of the following sections output can be defined for different variables:</p>
+<ul class="simple">
+<li><p>Meteo</p></li>
+<li><p>Snow</p></li>
+<li><p>Soil for different land cover (forest, grassland, irrigated land, paddy irrigated)</p></li>
+<li><p>Water demand</p></li>
+<li><p>Groundwater</p></li>
+<li><p>River routing</p></li>
+<li><p>Lakes and reservoirs</p></li>
+</ul>
+<p><strong>Or</strong> output can be defined in the section <em>[output]</em></p>
+<p>An output directory can be defined and for each sort of output the variable(s) can be set:</p>
+<div class="line-block">
+<div class="line"><em>OUT_</em> defines that this variable(s) are output</div>
+<div class="line"><em>MAP_</em> or <em>TSS_</em> defines if it is a spatial map or a time series of point(s)</div>
+<div class="line"><em>AreaSum_</em> or <em>AreaAvg_</em> after <em>TSS_</em> defines if the catchment sum of average upstream of the point is calculated</div>
+<div class="line"><em>Daily</em> or <em>MonthAvg</em> or .. is specifying the time</div>
+<div class="line">The variable is given after the equal sign e.g. * = discharge*</div>
+<div class="line">If more than one variable should be used for output, split with <strong>,</strong></div>
+<div class="line">E.g. OUT_MAP_Daily = discharge -&gt; daily spatial map of discharge</div>
+</div>
+<p>As example output for precipitation, temperature and discharge is shown here:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># OUTPUT maps and timeseries
+OUT_Dir = $(FILE_PATHS:PathOut)
+OUT_MAP_Daily =
+OUT_MAP_MonthEnd =
+OUT_MAP_MonthTot = Precipitation, Tavg
+OUT_MAP_MonthAvg =
+
+OUT_TSS_MonthTot = Precipitation, Tavg   # monthly total precipitation and average temperature
+OUT_TSS_Daily = discharge                # daily discharge
+OUT_TSS_MonthEnd = discharge
+OUT_TSS_AnnualEnd = discharge
+
+OUT_TSS_AreaSum_Daily = Precipitation    # daily sum of precipitation for the upstream catchment
+OUT_TSS_AreaAvg_MonthAvg = runoff        # monthly average sum of runoff for the upstream catchment
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For each variable the meta data information can be defined in <a class="reference internal" href="#rst-metadata"><span class="std std-ref">Output Meta NetCDF information</span></a></p>
+</div>
+</div>
+<div class="section" id="reading-information">
+<h4><a class="toc-backref" href="#id34">Reading information</a><a class="headerlink" href="#reading-information" title="Permalink to this headline">¶</a></h4>
+<p>Information will be read in from values in the settings file
+Here the value definitions for [SNOW] is shown:</p>
+<div class="highlight-ini notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1">#-------------------------------------------------------</span>
+<span class="k">[SNOW]</span>
+<span class="c1">#-------------------------------------------------------</span>
+
+<span class="c1"># Number of vertical Snow layers</span>
+<span class="na">NumberSnowLayers</span> <span class="o">=</span> <span class="s">7</span>
+<span class="c1"># up to which layer the ice melt is calculated with the middle temperature</span>
+<span class="na">GlacierTransportZone</span> <span class="o">=</span> <span class="s">3</span>
+
+<span class="c1"># Temperature lapse rate with altitude [deg C / m]</span>
+<span class="na">TemperatureLapseRate</span> <span class="o">=</span> <span class="s">0.0065 </span>
+<span class="c1"># Multiplier applied to precipitation that falls as snow</span>
+<span class="na">SnowFactor</span> <span class="o">=</span> <span class="s">1.0</span>
+<span class="c1"># Range [m C-1 d-1] of the seasonal variation, SnowMeltCoef is the average value</span>
+<span class="na">SnowSeasonAdj</span> <span class="o">=</span> <span class="s">0.001</span>
+<span class="c1"># Average temperature at which snow melts</span>
+<span class="na">TempMelt</span> <span class="o">=</span><span class="s">1.0</span>
+<span class="c1"># Average temperature below which precipitation is snow</span>
+<span class="na">TempSnow</span> <span class="o">=</span> <span class="s">1.0</span>
+<span class="c1"># Snow melt coefficient: default: 4.0 </span>
+<span class="c1"># SRM: 0.0045 m/C/day ( = 4.50 mm/C/day), Kwadijk: 18 mm/C/month (= 0.59 mm/C/day)  </span>
+<span class="c1"># See also Martinec et al., 1998.</span>
+
+<span class="c1"># use in CALIBRATION -&gt; copied to CALIBRATION</span>
+<span class="c1">#SnowMeltCoef = 0.004</span>
+<span class="na">IceMeltCoef</span>  <span class="o">=</span> <span class="s">0.007</span>
+
+<span class="c1">#--------------------------------------------------------------</span>
+<span class="c1"># INITIAL CONDITIONS - Initial snow depth in snow zone 1-7 [mm]  - SnowCoverIni</span>
+
+<span class="k">[FROST]</span>
+<span class="c1"># Snow water equivalent, (based on snow density of 450 kg/m3) (e.g. Tarboton and Luce, 1996)</span>
+<span class="na">SnowWaterEquivalent</span> <span class="o">=</span> <span class="s">0.45</span>
+<span class="c1"># Daily decay coefficient, (Handbook of Hydrology, p. 7.28)</span>
+<span class="na">Afrost</span> <span class="o">=</span> <span class="s">0.97</span>
+<span class="c1"># Snow depth reduction coefficient, [cm-1], (HH, p. 7.28)</span>
+<span class="na">Kfrost</span> <span class="o">=</span> <span class="s">0.57</span>
+<span class="c1"># Degree Days Frost Threshold (stops infiltration, percolation and capillary rise)</span>
+<span class="c1"># Molnau and Bissel found a value 56-85 for NW USA.</span>
+<span class="na">FrostIndexThreshold</span> <span class="o">=</span> <span class="s">56</span>
+</pre></div>
+</td></tr></table></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>TemperatureLapseRate = 0.0065
+| for the variable TemperatureLapseRate the value of 0.0065 is set</p>
+</div>
+<p>Variables can also be defined by spatial maps or map stacks</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>tanslope = $(PathTopo)\tanslope.map
+forest_coverFractionNC   = $(PathForest)\coverFractionInputForest366days.nc
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>suffix can be .map, but if there is no PCraster map it will look automatically for netCDF .nc</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>in most cases values can be replaced by map</p>
+</div>
+<div class="line-block">
+<div class="line">____________________________________________________________________________________________________________</div>
+<div class="line"><br /></div>
+</div>
+</div>
+</div>
+<div class="section" id="sections-of-information">
+<h3><a class="toc-backref" href="#id35">Sections of information</a><a class="headerlink" href="#sections-of-information" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Snow</p></li>
+<li><p>Frost</p></li>
+<li><p>General information on land cover types</p></li>
+<li><p>Soil</p></li>
+<li><dl class="simple">
+<dt>Information for each of the six land cover types</dt><dd><ul>
+<li><p>Forest</p></li>
+<li><p>Grassland</p></li>
+<li><p>Paddy irrigated area</p></li>
+<li><p>Irrigated area</p></li>
+<li><p>Sealed area</p></li>
+<li><p>Water covered area</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>Interflow</p></li>
+<li><p>Groundwater</p></li>
+<li><p>Water demand</p></li>
+<li><p>Runoff concentration</p></li>
+<li><p>Routing</p></li>
+<li><p>Lakes and reservoirs</p></li>
+<li><p>Inflow</p></li>
+</ul>
+</div>
+<div class="section" id="complete-settings-file">
+<span id="rst-setting"></span><h3><a class="toc-backref" href="#id36">Complete settings file</a><a class="headerlink" href="#complete-settings-file" title="Permalink to this headline">¶</a></h3>
+<p>Example of a settings file:</p>
+<div class="highlight-default notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+ 27
+ 28
+ 29
+ 30
+ 31
+ 32
+ 33
+ 34
+ 35
+ 36
+ 37
+ 38
+ 39
+ 40
+ 41
+ 42
+ 43
+ 44
+ 45
+ 46
+ 47
+ 48
+ 49
+ 50
+ 51
+ 52
+ 53
+ 54
+ 55
+ 56
+ 57
+ 58
+ 59
+ 60
+ 61
+ 62
+ 63
+ 64
+ 65
+ 66
+ 67
+ 68
+ 69
+ 70
+ 71
+ 72
+ 73
+ 74
+ 75
+ 76
+ 77
+ 78
+ 79
+ 80
+ 81
+ 82
+ 83
+ 84
+ 85
+ 86
+ 87
+ 88
+ 89
+ 90
+ 91
+ 92
+ 93
+ 94
+ 95
+ 96
+ 97
+ 98
+ 99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408
+409
+410
+411
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427
+428
+429
+430
+431
+432
+433
+434
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451
+452
+453
+454
+455
+456
+457
+458
+459
+460
+461
+462
+463
+464
+465
+466
+467
+468
+469
+470
+471
+472
+473
+474
+475
+476
+477
+478
+479
+480
+481
+482
+483
+484
+485
+486
+487
+488
+489
+490
+491
+492
+493
+494
+495
+496
+497
+498
+499
+500
+501
+502
+503
+504
+505
+506
+507
+508
+509
+510
+511
+512
+513
+514
+515
+516
+517
+518
+519
+520
+521
+522
+523
+524
+525
+526
+527
+528
+529
+530
+531
+532
+533
+534
+535
+536
+537
+538
+539
+540
+541
+542
+543
+544
+545
+546
+547
+548
+549
+550
+551
+552
+553
+554
+555
+556
+557
+558
+559
+560
+561
+562
+563
+564
+565
+566
+567
+568
+569
+570
+571
+572
+573
+574
+575
+576
+577
+578
+579
+580
+581
+582
+583
+584
+585
+586
+587
+588
+589
+590
+591
+592
+593
+594
+595
+596
+597
+598
+599
+600
+601
+602
+603
+604
+605
+606
+607
+608
+609
+610
+611
+612
+613
+614
+615
+616
+617
+618
+619
+620
+621
+622
+623
+624
+625
+626
+627
+628
+629
+630
+631
+632
+633
+634
+635
+636
+637
+638
+639
+640
+641
+642
+643
+644
+645
+646
+647
+648
+649
+650
+651
+652
+653
+654
+655
+656
+657
+658
+659
+660
+661
+662
+663
+664
+665
+666
+667
+668
+669
+670
+671
+672
+673
+674
+675
+676
+677
+678
+679
+680
+681
+682
+683
+684
+685
+686
+687
+688
+689
+690
+691
+692
+693
+694
+695
+696
+697
+698
+699
+700
+701
+702
+703
+704
+705
+706
+707
+708
+709
+710
+711
+712
+713
+714
+715
+716
+717
+718
+719
+720
+721
+722
+723
+724
+725
+726
+727
+728
+729
+730
+731
+732
+733
+734
+735
+736
+737
+738
+739
+740
+741
+742
+743
+744
+745
+746
+747
+748
+749
+750
+751
+752
+753
+754
+755
+756
+757
+758
+759
+760
+761
+762
+763
+764
+765
+766
+767
+768
+769
+770
+771</pre></div></td><td class="code"><div class="highlight"><pre><span></span># ------------------------------------------------
+
+######## ##          ##  ####  ######  ##    ##
+##       ##          ## ##  ##   ##   ####  ####
+##        ##        ##  ##  ##   ##   ## #### ##
+##        ##   ##   ## ########  ##  ##   ##   ##
+##         ## #### ##  ##    ##  ##  ##        ##
+##         ####  #### ##      ## ## ##          ##
+##########  ##    ##  ##      ## ## ##          ##
+
+# Community Water Model Version 0.99
+# SETTINGS FILE
+# ------------------------------------------------
+
+
+[OPTIONS]
+#-------------------------------------------------------
+# OPTION - to switch on/off
+#-------------------------------------------------------
+
+# Data otions
+# if temperature is stored in Kelvin instead Celsius
+TemperatureInKelvin = True
+# if lat/lon the area has to be user defined = precalculated
+gridSizeUserDefined = True
+
+#-----------------------------------------------
+# Evaporation: calculate pot. evaporation (True) or use precalculated pot.evaporation map stacks (False)
+calc_evaporation = False
+
+#-----------------------------------------------
+# Irrigation and water demand
+
+# if irrigation is included, otherwise paddy and non paddy is put into &#39;grassland&#39;
+includeIrrigation = True
+# if water demand from irrigation, industry and domestic is included
+includeWaterDemand = False
+# Water allocation
+# if water demand and availability is calculated for region to compare demand vs. avail
+usingAllocSegments = False
+# limit abstraction to available groundwater (True) include fossil groundwater (False)
+limitAbstraction = False
+
+# Environmental Flow
+calc_environflow = False
+use_environflow = False
+
+#-----------------------------------------------
+# Soil 
+# use preferential flow, that bypasses the soil matrix and drains directly to the groundwater (not for irrPaddy)
+preferentialFlow = False
+# Capillar rise
+CapillarRise = True
+
+#-----------------------------------------------
+# Routing
+
+# if runoff concentration to the edge of a cell is included
+includeRunoffConcentration = True
+# Waterbodies like lakes and reservoirs
+includeWaterBodies = True
+# kinematic wave routing, if False no routing is calculated
+includeRouting = True
+
+#-----------------------------------------------
+# Inflow from outside of the modelled area
+inflow = False
+
+# --- Reporting &amp; Debugging ------------------- ----------------------------------------------
+# Reporting options
+writeNetcdfStack = True
+reportMap = True
+reportTss = True
+# Checking water balance (for debugging)
+calcWaterBalance = False
+sumWaterBalance = False
+# use additional PCRaster GIS commands
+PCRaster = False
+
+
+
+
+
+
+#-------------------------------------------------------
+# DEFINITIONS OF PARAMETERS
+#-------------------------------------------------------
+
+#-------------------------------------------------------
+[FILE_PATHS]
+#-------------------------------------------------------
+PathRoot = E:/CWATM_rhine
+
+PathOut = $(PathRoot)/output
+PathMaps = $(PathRoot)/cwatm_input
+PathMeteo = $(PathRoot)/climate
+
+
+
+
+#-------------------------------------------------------
+[NETCDF_ATTRIBUTES]
+institution = IIASA
+title = Global Water Model - WATCH WDFEI
+metaNetcdfFile = $(FILE_PATHS:PathRoot)/source/metaNetcdf.xml
+
+#-------------------------------------------------------
+# AREA AND OUTLETS
+#-------------------------------------------------------
+[MASK_OUTLET]
+
+# Area mask
+# A pcraster map, tif or netcdf map e.g.  $(FILE_PATHS:PathRoot)/data/areamaps/area_indus.map
+# or a retancle: Number of Cols, Number of rows, cellsize, upper left corner X, upper left corner Y 
+MaskMap = $(FILE_PATHS:PathRoot)/source/rhine30min.tif
+#MaskMap = 14 12 0.5 5.0 52.0
+
+
+#-------------------------------------------------------
+# Station data
+# either a map e.g. $(FILE_PATHS:PathRoot)/data/areamaps/area3.map
+# or a location coordinates (X,Y) e.g. 5.75 52.25 9.25 49.75 )
+# Lobith/Rhine
+Gauges = 6.25 51.75
+
+# if .tif file for gauges, this is a flag if the file is global or local
+# e.g. Gauges = $(FILE_PATHS:PathRoot)/data/areamaps/gaugesRhine.tif
+GaugesLocal = True
+
+#-------------------------------------------------------
+[TIME-RELATED_CONSTANTS]
+#-------------------------------------------------------
+
+# StepStart has to be a date e.g. 01/06/1990
+# SpinUp or StepEnd either date or numbers 
+# SpinUp: from this date output is generated (up to this day: warm up)
+
+StepStart = 1/1/1990
+SpinUp =  1/01/1995
+StepEnd =  31/12/2010
+
+
+
+
+#-------------------------------------------------------
+[INITITIAL CONDITIONS]
+#-------------------------------------------------------
+
+# for a warm start initial variables a loaded
+# e.g for a start on 01/01/2010 load variable from 31/12/2009
+load_initial = False
+initLoad = $(FILE_PATHS:PathRoot)/init/Rhine_19891231.nc
+
+# saving variables from this run, to initiate a warm start next run
+# StepInit = saving date, can be more than one: 10/01/1973 20/01/1973
+save_initial = False
+initSave = $(FILE_PATHS:PathRoot)/init/Rhine
+StepInit = 31/12/1989 31/12/2010
+
+#-------------------------------------------------------
+# CALIBARTION PARAMETERS
+#-------------------------------------------------------
+[CALIBRATION]
+
+# These are parameter which are used for calibration
+# could be any parameter, but for an easier overview, tehey are collected here
+# in the calibration template a placeholder (e.g. %arnoBeta) instead of value
+
+# Snow  
+SnowMeltCoef = 0.0027
+# Cropf factor correction  
+crop_correct =  1.11
+#Soil
+soildepth_factor = 1.28
+#Soil preferentialFlowConstant = 4.0, arnoBeta_add = 0.1
+preferentialFlowConstant = 4.5
+arnoBeta_add = 0.19
+# interflow part of recharge factor = 1.0
+factor_interflow = 2.8
+# groundwater recessionCoeff_factor = 1.0
+recessionCoeff_factor = 5.278
+# runoff concentration factor runoffConc_factor = 1.0
+runoffConc_factor = 0.1
+#Routing manningsN Factor to Manning&#39;s roughness = 1.0 [0.1-10.]
+manningsN = 1.86
+# reservoir  normal storage limit (fraction of total storage, [-]) [0.15 - 0.85] default 0.5
+normalStorageLimit = 0.44
+# lake parameter - factor to alpha: parameter of of channel width and weir coefficient  [0.33 - 3.] dafault 1.
+lakeAFactor = 0.33
+# lake parameter - factor for wind evaporation
+lakeEvaFactor = 1.52
+#-------------------------------------------------------
+# TOPOGRAPHY MAPS
+#-------------------------------------------------------
+[TOPOP]
+# local drain direction map (1-9)
+Ldd = $(FILE_PATHS:PathMaps)/routing/ldd.map
+
+# Elevation standard deviation [m], i.e. altitude difference elevation within pixel.
+# Used for sub-pixel modelling of snow accumulation and melt
+ElevationStD = $(FILE_PATHS:PathMaps)/landsurface/topo/elvstd.map
+
+# Area of pixel [m2] (for lat/lon every cell has a different area)
+CellArea = $(FILE_PATHS:PathMaps)/routing/cellarea.map
+
+#-------------------------------------------------------
+# INPUT METEOROLOGICAL TIMESERIES AS MAPS
+#-------------------------------------------------------
+[METEO]
+# precipitation [kg m-2 s-1]
+#PrecipitationMaps = $(FILE_PATHS:PathMeteo)/pr*
+PrecipitationMaps = $(FILE_PATHS:PathMeteo)/30min/pr_rhine*
+# average daily temperature [K]
+#TavgMaps = $(FILE_PATHS:PathMeteo)/tavg*
+TavgMaps = $(FILE_PATHS:PathMeteo)/30min/tavg_rhine*
+
+# ----------------------------------------
+# This is used if calc_evaporation = False
+
+# daily reference evaporation (free water) 
+E0Maps = $(FILE_PATHS:PathMeteo)/30min/EWRef_rhine.nc
+#E0Maps = $(FILE_PATHS:PathMeteo)/EWRef_daily*
+# daily reference evapotranspiration (crop) 
+ETMaps = $(FILE_PATHS:PathMeteo)/30min/ETRef_rhine.nc
+#ETMaps = $(FILE_PATHS:PathMeteo)/ETRef_daily*
+
+# --------------------------------
+# from kg m-2s-1 to m : 86.4
+precipitation_coversion = 86.4
+
+# from MM to m : 0.001
+#precipitation_coversion = 0.001
+
+evaporation_coversion = 1.00
+
+# OUTPUT maps and timeseries
+#OUT_Dir = $(FILE_PATHS:PathOut)
+#OUT_MAP_Daily = Precipitation, prec1
+
+#-------------------------------------------------------
+# CALCULATE EVAPORATION - PENMAN - MONTEITH
+#-------------------------------------------------------
+[EVAPORATION]
+
+# This is used if calc_evaporation = True
+# use albedo maps
+albedo = True
+albedoMaps = $(FILE_PATHS:PathMaps)/landsurface/albedo/albedo.nc 
+
+# if not albedo maps use fixed albedo
+# Albedo of bare soil surface (Supit et. al.)
+AlbedoSoil = 0.15
+# Albedo of water surface (Supit et. al.)
+AlbedoWater = 0.05
+# Albedo of vegetation canopy (FAO,1998)
+AlbedoCanopy = 0.23
+
+# use specific humidity (TRUE) QAir,  or relative humidity (FALSE) - rhs
+useHuss = False
+
+# map stacks Temperature [K}]
+TminMaps = $(FILE_PATHS:PathMeteo)/tmin*
+TmaxMaps = $(FILE_PATHS:PathMeteo)/tmax*
+# Instantaneous surface pressure[Pa]
+PSurfMaps = $(FILE_PATHS:PathMeteo)/ps*
+# 2 m istantaneous specific humidity[kg /kg] (QAir) or relative humidity [%] (rhs)
+RhsMaps = $(FILE_PATHS:PathMeteo)/hurs*
+# wind speed maps at 10m [m/s]
+WindMaps = $(FILE_PATHS:PathMeteo)/wind*
+# radiation surface downwelling shortwave maps  [W/m2]
+RSDSMaps = $(FILE_PATHS:PathMeteo)/rsds*
+# radiation surface downwelling longwave maps [W/m2] [W/m2]
+RSDLMaps = $(FILE_PATHS:PathMeteo)/rlds*
+
+# OUTPUT maps and timeseries
+#OUT_Dir = $(FILE_PATHS:PathOut)
+#OUT_MAP_Daily = EWRef, ETRef, temp, prec
+
+#-------------------------------------------------------
+[SNOW]
+#-------------------------------------------------------
+
+# Number of vertical Snow layers
+NumberSnowLayers = 7
+# up to which layer the ice melt is calculated with the middle temperature
+GlacierTransportZone = 3
+
+# Temperature lapse rate with altitude [deg C / m]
+TemperatureLapseRate = 0.0065 
+# Multiplier applied to precipitation that falls as snow
+SnowFactor = 1.0
+# Range [m C-1 d-1] of the seasonal variation, SnowMeltCoef is the average value
+SnowSeasonAdj = 0.001
+# Average temperature at which snow melts
+TempMelt =1.0
+# Average temperature below which precipitation is snow
+TempSnow = 1.0
+# Snow melt coefficient: default: 4.0 
+# SRM: 0.0045 m/C/day ( = 4.50 mm/C/day), Kwadijk: 18 mm/C/month (= 0.59 mm/C/day)  
+# See also Martinec et al., 1998.
+
+# use in CALIBRATION -&gt; copied to CALIBRATION
+#SnowMeltCoef = 0.004
+IceMeltCoef  = 0.007
+
+#--------------------------------------------------------------
+# INITIAL CONDITIONS - Initial snow depth in snow zone 1-7 [mm]  - SnowCoverIni
+
+[FROST]
+# Snow water equivalent, (based on snow density of 450 kg/m3) (e.g. Tarboton and Luce, 1996)
+SnowWaterEquivalent = 0.45
+# Daily decay coefficient, (Handbook of Hydrology, p. 7.28)
+Afrost = 0.97
+# Snow depth reduction coefficient, [cm-1], (HH, p. 7.28)
+Kfrost = 0.57
+# Degree Days Frost Threshold (stops infiltration, percolation and capillary rise)
+# Molnau and Bissel found a value 56-85 for NW USA.
+FrostIndexThreshold = 56
+
+#--------------------------------------------------------------
+# INITIAL CONDITIONS: FrostIndexIni
+
+[VEGETATION]
+cropgroupnumber = $(FILE_PATHS:PathMaps)/others/cropgrp.nc
+# soil water depletion fraction, Van Diepen et al., 1988: WOFOST 6.0, p.86, Doorenbos et. al 1978
+
+#-------------------------------------------------------
+[SOIL]
+#-------------------------------------------------------
+
+PathTopo = $(FILE_PATHS:PathMaps)/landsurface/topo
+PathSoil = $(FILE_PATHS:PathMaps)/landsurface/soil
+PathSoil1 =  $(FILE_PATHS:PathMaps)/others
+
+# Topography - tangent slope, slope length  
+tanslope = $(PathTopo)/tanslope.map
+slopeLength = $(PathTopo)/slopeLength.map
+
+# maps of relative elevation above flood plains
+relativeElevation = $(PathTopo)/dzRel_hydro1k.nc
+
+# Soil hydraulic properties
+
+# soil (Hypres pedotransfer function - http://esdac.jrc.ec.europa.eu/ESDB_Archive/ESDBv2/popup/hy_param.htm)
+KSat1 = $(PathSoil1)/ksat1.map
+KSat2 = $(PathSoil1)/ksat2.map
+KSat3 = $(PathSoil1)/ksat3.map
+# Alpha: an Genuchten’s shape parameter
+alpha1 = $(PathSoil1)/alpha1.map
+alpha2 = $(PathSoil1)/alpha2.map
+alpha3 = $(PathSoil1)/alpha3.map
+#Lambda: an Genuchten’s shape parameter = n-1-&gt; n = lamda+1, m = 1 - (1/n)
+lambda1 = $(PathSoil1)/lambda1.map
+lambda2 = $(PathSoil1)/lambda2.map
+lambda3 = $(PathSoil1)/lambda3.map
+# thetas  is the volumetric water content θ saturated 
+thetas1 = $(PathSoil1)/thetas1.map
+thetas2 = $(PathSoil1)/thetas2.map
+thetas3 = $(PathSoil1)/thetas3.map
+# thetar is the volumetric water content θ residual 
+thetar1 = $(PathSoil1)/thetar1.map
+thetar2 = $(PathSoil1)/thetar2.map
+thetar3 = $(PathSoil1)/thetar3.map
+
+percolationImp = $(PathSoil)/percolationImp.map
+
+maxGWCapRise    = 5.0
+
+minCropKC        = 0.2
+minTopWaterLayer = 0.0
+
+# Soil depth
+StorDepth1 = $(PathSoil)/storageDepth1.map
+StorDepth2 = $(PathSoil)/storageDepth2.map
+
+# preferential flow (between 1.0 and 8.0)
+# used in CALIBRATION -&gt; copied to CALIBRATION
+#preferentialFlowConstant = 4.0
+
+#-------------------------------------------------------
+[LANDCOVER]
+PathLandcover = $(FILE_PATHS:PathMaps)/landsurface
+
+coverTypes = forest, grassland, irrPaddy, irrNonPaddy, sealed, water
+coverTypesShort = f, g, i, n, s, w
+fractionLandcover = $(PathLandcover)/fractionLandcover.nc
+
+# Landcover can vary from year to year
+dynamicLandcover = True
+# if landcover cannot vary, which year should be taken as fixed year
+fixLandcoverYear = 1961
+
+#-------------------------------------------------------
+
+[__forest]
+PathForest = $(FILE_PATHS:PathMaps)/landcover/forest
+PathSoil1 =  $(FILE_PATHS:PathMaps)/others
+
+# Parameters for the Arno&#39;s scheme 
+# arnoBeta is defined by orographic,+ land cover add + calibration add, the soil water capacity distribution is based on this 
+# range [0.01 - 1.2]
+forest_arnoBeta = 0.2
+
+#forest_soil
+forest_KSat1 = $(PathSoil1)/forest_ksat1.map
+forest_KSat2 = $(PathSoil1)/forest_ksat2.map
+forest_KSat3 = $(PathSoil1)/ksat3.map
+forest_alpha1 = $(PathSoil1)/forest_alpha1.map
+forest_alpha2 = $(PathSoil1)/forest_alpha2.map
+forest_alpha3 = $(PathSoil1)/alpha3.map
+forest_lambda1 = $(PathSoil1)/forest_lambda1.map
+forest_lambda2 = $(PathSoil1)/forest_lambda2.map
+forest_lambda3 = $(PathSoil1)/lambda3.map
+forest_thetas1 = $(PathSoil1)/forest_thetas1.map
+forest_thetas2 = $(PathSoil1)/forest_thetas2.map
+forest_thetas3 = $(PathSoil1)/thetas3.map
+forest_thetar1 = $(PathSoil1)/forest_thetar1.map
+forest_thetar2 = $(PathSoil1)/forest_thetar2.map
+forest_thetar3 = $(PathSoil1)/thetar3.map
+
+# other paramater values
+forest_minInterceptCap  = 0.001
+forest_cropDeplFactor   = 0.0
+
+forest_fracVegCover  = $(PathForest)/fracVegCover.map
+forest_rootFraction1 = $(PathForest)/rootFraction1.map
+forest_rootFraction2 = $(PathForest)/rootFraction2.map
+#forest_maxRootDepth  = 2.0
+forest_maxRootDepth  = $(PathForest)/maxRootDepth.map
+forest_minSoilDepthFrac = $(PathForest)/minSoilDepthFrac.map
+
+
+forest_cropCoefficientNC = $(PathForest)/CropCoefficientForest_10days.nc
+forest_interceptCapNC    = $(PathForest)/interceptCapForest10days.nc
+
+# initial conditions: forest_interceptStor, forest_w1, forest_w2, forest_w3, 
+
+
+[__grassland]
+PathGrassland = $(FILE_PATHS:PathMaps)/landcover/grassland
+
+# Parameters for the Arno&#39;s scheme: 
+grassland_arnoBeta = 0.0
+# arnoBeta is defined by orographic,+ land cover add + calibration add, the soil water capacity distribution is based on this
+# range [0.01 - 1.2]
+
+# other paramater values
+
+grassland_minInterceptCap  = 0.001
+grassland_cropDeplFactor   = 0.0
+
+grassland_fracVegCover  = $(PathGrassland)/fracVegCover.map
+grassland_rootFraction1 = $(PathGrassland)/rootFraction1.map
+grassland_rootFraction2 = $(PathGrassland)/rootFraction2.map
+grassland_maxRootDepth  = $(PathGrassland)/maxRootDepth.map
+grassland_minSoilDepthFrac = $(PathGrassland)/minSoilDepthFrac.map
+
+
+grassland_cropCoefficientNC = $(PathGrassland)/CropCoefficientGrassland_10days.nc
+grassland_interceptCapNC    = $(PathGrassland)/interceptCapGrassland10days.nc
+
+# initial conditions: grassland_interceptSto, grassland_w1, grassland_w2, grassland_w3
+
+
+[__irrPaddy]
+PathIrrPaddy = $(FILE_PATHS:PathMaps)/landcover/irrPaddy
+
+# Parameters for the Arno&#39;s scheme:
+irrPaddy_arnoBeta = 0.2
+# arnoBeta is defined by orographic,+ land cover add + calibration add, the soil water capacity distribution is based on this
+# range [0.01 - 1.2]
+
+# other paramater values
+
+irrPaddy_minInterceptCap  = 0.001
+irrPaddy_cropDeplFactor   = 0.0
+
+irrPaddy_fracVegCover  = $(PathIrrPaddy)/fracVegCover.map
+irrPaddy_rootFraction1 = $(PathIrrPaddy)/rootFraction1.map
+irrPaddy_rootFraction2 = $(PathIrrPaddy)/rootFraction2.map
+irrPaddy_maxRootDepth  = $(PathIrrPaddy)/maxRootDepth.map
+irrPaddy_minSoilDepthFrac = $(PathIrrPaddy)/minSoilDepthFrac.map
+
+irrPaddy_cropCoefficientNC = $(PathIrrPaddy)/CropCoefficientirrPaddy_10days.nc
+
+# maximum flooding depth for paddy
+irrPaddy_maxtopwater = 0.05
+
+
+
+# initial conditions: irrPaddy_interceptStor, irrPaddy_w1, irrPaddy_w2, irrPaddy_w3
+
+
+
+[__irrNonPaddy]
+PathIrrNonPaddy = $(FILE_PATHS:PathMaps)/landcover/irrNonPaddy
+
+# Parameters for the Arno&#39;s scheme:
+irrNonPaddy_arnoBeta = 0.2
+# arnoBeta is defined by orographic,+ land cover add + calibration add, the soil water capacity distribution is based on this
+# range [0.01 - 1.2]
+
+# other paramater values
+
+
+irrNonPaddy_minInterceptCap  = 0.001
+irrNonPaddy_cropDeplFactor   = 0.0
+
+irrNonPaddy_fracVegCover  = $(PathIrrNonPaddy)/fracVegCover.map
+irrNonPaddy_rootFraction1 = $(PathIrrNonPaddy)/rootFraction1.map
+irrNonPaddy_rootFraction2 = $(PathIrrNonPaddy)/rootFraction2.map
+irrNonPaddy_maxRootDepth  = $(PathIrrNonPaddy)/maxRootDepth.map
+irrNonPaddy_minSoilDepthFrac = $(PathIrrNonPaddy)/minSoilDepthFrac.map
+
+
+irrNonPaddy_cropCoefficientNC = $(PathIrrNonPaddy)/CropCoefficientirrNonPaddy_10days.nc
+
+
+# initial conditions: irrNonPaddy_interceptStor, irrNonPaddy_w1, irrNonPaddy_w2, irrNonPaddy_w3
+
+
+[__sealed]
+PathSealed = $(FILE_PATHS:PathMaps)/landcover/sealed
+
+sealed_minInterceptCap  = 0.001
+
+# initial conditions: sealed_interceptStor
+
+
+[__open_water]
+PathWater = $(FILE_PATHS:PathMaps)/landcover/water
+
+water_minInterceptCap  = 0.0
+
+#-------------------------------------------------------
+[GROUNDWATER]
+#-------------------------------------------------------
+
+PathGroundwater = $(FILE_PATHS:PathMaps)/groundwater
+
+recessionCoeff = $(PathGroundwater)/recessionCoeff.map
+# baseflow = recessionCoeff * storage groundwater
+specificYield = $(PathGroundwater)/specificYield.map
+kSatAquifer = $(PathGroundwater)/kSatAquifer.map
+# both not used at the moment in groundwater modul, but already loaded
+
+#--------------------------------------------------------------
+# INITIAL CONDITIONS: storGroundwater
+
+
+#-------------------------------------------------------
+[WATERDEMAND]
+#-------------------------------------------------------
+
+PathWaterdemand = $(FILE_PATHS:PathMaps)/landsurface/waterDemand
+# For water demand vs. availability: areas have to be aggregated
+# Allocation map
+allocSegments = $(PathWaterdemand)/catchx.nc
+
+domesticWaterDemandFile = $(PathWaterdemand)/domesticWaterDemand.nc
+industryWaterDemandFile = $(PathWaterdemand)/industryWaterDemand.nc
+
+irrNonPaddy_efficiency = $(FILE_PATHS:PathMaps)/landsurface/waterDemand/efficiency.nc
+irrPaddy_efficiency = $(FILE_PATHS:PathMaps)/landsurface/waterDemand/efficiency.nc
+
+#irrNonPaddy_efficiency = 0.8
+#irrPaddy_efficiency = 0.8
+irrigation_returnfraction = 0.5
+
+# -----------------------------------------------------------
+# Estimate of fractions of groundwater and surface water abstractions
+# Either a fixed fraction for surface water abstration
+# based on fraction of average baseflow and upstream average discharge 
+# if swAbstractionFrac &lt; 0: fraction is taken from baseflow / discharge 
+# if swAbstractionFrac &gt; 0 this value is taken as a fixed value 
+swAbstractionFrac = 0.9
+averageDischarge = $(FILE_PATHS:PathOut)/discharge_totalavg_rhine30min.nc
+# in [m3/s]
+averageBaseflow  = $(FILE_PATHS:PathOut)/baseflow_totalavg_rhine30min.nc
+# in [m3/s]
+baseflowInM = True
+# if baseflow is in [m] instead of [m3/s] it will be converted
+
+
+#-------------------------------------------------------
+# RUNOFF CONCENTRATION
+#-------------------------------------------------------
+[RUNOFF_CONCENTRATION]
+
+# using triagular weigthning method
+# the bigger the factor, more lag time 
+forest_runoff_peaktime = 1.0
+grassland_runoff_peaktime = 0.5
+irrPaddy_runoff_peaktime = 0.5
+irrNonPaddy_runoff_peaktime = 0.5
+sealed_runoff_peaktime = 0.15 
+water_runoff_peaktime = 0.01
+
+interflow_runoff_peaktime =1.0
+baseflow_runoff_peaktime = 2.0
+
+# initial conditions:
+# here only 1 layer is shown, but there are up to 10: runoff_concIni
+
+
+#-------------------------------------------------------
+# ROUTING MAPS and PARAMETERSD
+#-------------------------------------------------------
+[ROUTING]
+
+PathRouting = $(FILE_PATHS:PathMaps)/routing
+
+# Number of substep per day
+# should be 10 for 0.5 deg but 24 for 0.1 deg
+
+NoRoutingSteps = 10
+#kinematic wave parameter: 0.6 is for broad sheet flow
+chanBeta = 0.6
+
+# Channel gradient (fraction, dy/dx)
+chanGrad = $(PathRouting)/kinematic/changrad.nc
+# Minimum channel gradient (for kin. wave: slope cannot be 0)
+chanGradMin = 0.0001
+
+#Channel Manning&#39;s n
+chanMan = $(PathRouting)/kinematic/chanman.nc
+#Channel length [meters]
+chanLength = $(PathRouting)/kinematic/chanleng.nc
+#Channel bottom width [meters]
+chanWidth = $(PathRouting)/kinematic/chanbw.nc
+#Bankfull channel depth [meters]
+chanDepth = $(PathRouting)/kinematic/chanbnkf.nc
+
+# initial conditions: channelStorageIni, riverbedExchangeIni, dischargeIni  
+
+#-------------------------------------------------------
+# LAKES AND RESERVOIRS
+#-------------------------------------------------------
+[LAKES_RESERVOIRS]
+
+PathLakesRes = $(FILE_PATHS:PathMaps)/routing/lakesreservoirs
+
+# Use reservoirs and lakes (otherwise use only lakes Lake ID=1 and 3 =&gt; natural conditions)
+useResAndLakes = True
+# Reservoirs do have a year of implementation
+dynamicLakesRes = True
+# if Reservoirs does not have a year of implemtation, which year should be taken as fixed year
+fixLakesResYear = 1950
+
+
+#----------------------------
+#Big lakes and Reservoirs
+
+# ID of every lake, reservoir from HydroLakes database
+waterBodyID = $(PathLakesRes)/lakesResID.nc
+# 1 for lake, 2 for reservoir, 3 for lake and reservoir
+waterBodyTyp = $(PathLakesRes)/lakesResType.nc
+# Avergae discharge from HydroLakes Database
+waterBodyDis = $(PathLakesRes)/lakesResDis.nc
+
+# Lakes surface area from HydroLakes Database 
+waterBodyArea = $(PathLakesRes)/lakesResArea.nc
+# a factor to scale the outlet of a lake
+#lakeAFactor = 1.0  -&gt; calibration
+
+#----------------------------
+# Small lakes and reservoirs
+
+useSmallLakes = True
+
+smallLakesRes = $(PathLakesRes)/smallLakesRes.nc
+smallwaterBodyDis = $(PathLakesRes)/smalllakesresDis.nc
+
+# averageRunoff in [m] (if not given smallwaterBodyDis is taken instead)
+#averageRunoff  = $(FILE_PATHS:PathOut)/runoff_totalavg_cali.nc
+
+# for water demand
+#min storage in [m3] (if not give it is calculated)
+#minStorage  = $(FILE_PATHS:PathOut)/minsmalllakeStorage_cali.nc
+
+
+# initial conditions: lakeInflowIni, lakeStorageIni, outLakeIni, lakeOutflowIni, reservoirStorageIni 
+
+#------------------
+# Reservoirs
+# reservoir volume from HydroLakes database
+waterBodyVolRes = $(PathLakesRes)/lakesResVolRes.nc
+# reservoir starting year from HydroLakes database 
+waterBodyYear = $(PathLakesRes)/lakesResYear.nc
+
+#  Conservative, normal and flood storage limit (fraction of total storage, [-])
+conservativeStorageLimit = 0.1
+#normalStorageLimit = 0.5   # --&gt; put into calibration
+floodStorageLimit = 0.9
+# adjusting the balance between normal and flood storage
+# [0 ..1]  0: NormalstorageLimit      1: (= closer to flood) results in keeping the normal qoutflow longer constant
+adjust_Normal_Flood = 0.5
+
+# Minimum, Normal and Non-damaging reservoir outflow  (fraction of average discharge, [-])
+MinOutflowQ = 0.2
+NormalOutflowQ = 1.0
+NonDamagingOutflowQ = 4.0
+
+# initial conditions: lakeInflowIni, lakeStorageIni, outLakeIni, lakeOutflowIni, reservoirStorageIni 
+
+
+#-------------------------------------------------------
+[INFLOW]
+#-------------------------------------------------------
+
+# if option inflow = true
+# the inflow from outside is added at inflowpoints
+In_Dir = $(FILE_PATHS:PathRoot)/in
+
+# nominal map with locations of (measured)inflow hydrographs [cu m / s]
+InflowPoints = $(In_Dir)/in.map
+#InflowPoints = 8.25 49.75 7.75 50.25
+
+# if InflowPoints is a map, this flag is to identify if it is global (False) or local (True)
+# observed or simulated input hydrographs as time series [cu m / s]
+# Note: that identifiers in time series have to correspond to InflowPoints
+# can be several timeseries in one file or different files e.g. main.tss mosel.tss
+#QInTS = main1.tss mosel1.tss
+QInTS = mm.tss
+
+
+
+#-------------------------------------------------------
+[ENVIRONMENTALFLOW]
+#-------------------------------------------------------
+
+# Either calculate without run with predone discharge (set calc_ef_after = False)
+calc_ef_after = True
+# Or calculate after run (set calc_ef_after = False) and defining the file to be used
+EFDis = $(FILE_PATHS:PathOut)/discharge_rhine.nc
+
+# if predone discharge, do the maps need to be cut to fit to the mask?
+cut_ef_map = False
+
+EnvironmentalFlowFile = $(FILE_PATHS:PathOut)/MQ90_12month.nc
+
+# MAF: Mean, Q90: percentile 90, MMF: monthly average, MQ90: monthly Q90 9averagwed over al Jan, Feb..
+# EF_VMF: Environmental flow - variable monthly flow, EF_VMF_LIH - EF- variable monthly flow, high intermediate, low class
+OUT_Dir = $(FILE_PATHS:PathOut)
+#OUT_MAP_Once = MAF, Q90
+#OUT_MAP_12month = MMF, MQ90, EF_VMF, EF_VMF_LIH
+#OUT_MAP_12month = MQ90, EF_VMF
+
+
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+[OUTPUT]
+
+# OUTPUT maps and timeseries
+OUT_Dir = $(FILE_PATHS:PathOut)
+
+OUT_TSS_Daily = discharge
+#OUT_TSS_MonthAvg = discharge
+#OUT_TSS_AnnualAvg = discharge
+
+#OUT_Map_Daily = discharge
+#OUT_Map_MonthAvg = discharge, precipitation, runoff
+#OUT_Map_AnnualAvg = discharge
+#OUT_MAP_TotalAvg = discharge, baseflow
+
+
+
+
+</pre></div>
+</td></tr></table></div>
+</div>
+</div>
+<div class="section" id="id4">
+<h2><a class="toc-backref" href="#id37">NetCDF meta data</a><a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="output-meta-netcdf-information">
+<span id="rst-metadata"></span><h3><a class="toc-backref" href="#id38">Output Meta NetCDF information</a><a class="headerlink" href="#output-meta-netcdf-information" title="Permalink to this headline">¶</a></h3>
+<p>The metaNetcdf.xml includes information on the output netCDF files
+e.g. description of the parameter, unit ..</p>
+<p>Example of a metaNetcdf.xml file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">CWATM</span><span class="o">&gt;</span>
+<span class="c1"># METADATA for NETCDF OUTPUT DATA</span>
+
+<span class="c1"># varname: name of the variable in the CWAT code</span>
+<span class="c1"># unit: unit of the varibale</span>
+<span class="c1"># long name# standard name</span>
+
+<span class="c1"># Discharge maps </span>
+<span class="o">&lt;</span><span class="n">metanetcdf</span> <span class="n">varname</span><span class="o">=</span><span class="s2">&quot;discharge&quot;</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;m3/s&quot;</span>  <span class="n">standard_name</span><span class="o">=</span><span class="s2">&quot;Discharge&quot;</span> <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;Discharge in cubic meter per second&quot;</span>  <span class="n">title</span><span class="o">=</span><span class="s2">&quot;1st Demo CWATM&quot;</span> <span class="n">author</span><span class="o">=</span><span class="s2">&quot;PB&quot;</span> <span class="o">/&gt;</span>
+
+<span class="c1"># others</span>
+<span class="o">&lt;</span><span class="n">metanetcdf</span> <span class="n">varname</span><span class="o">=</span><span class="s2">&quot;soilmoisture&quot;</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;mm&quot;</span>  <span class="n">standard_name</span><span class="o">=</span><span class="s2">&quot;soil moisture&quot;</span> <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;Soil moisture&quot;</span>  <span class="n">title</span> <span class="o">=</span><span class="s2">&quot;1st Demo CWATM&quot;</span> <span class="n">author</span><span class="o">=</span><span class="s2">&quot;PB&quot;</span> <span class="o">/&gt;</span>
+
+<span class="c1"># Initial condition Files</span>
+<span class="o">&lt;</span><span class="n">metanetcdf</span> <span class="n">varname</span><span class="o">=</span><span class="s2">&quot;initcondition&quot;</span>  <span class="n">purpose</span> <span class="o">=</span><span class="s2">&quot;Initial Conditions CWATM&quot;</span> <span class="n">author</span><span class="o">=</span><span class="s2">&quot;PB&quot;</span> <span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">metanetcdf</span> <span class="n">varname</span><span class="o">=</span><span class="s2">&quot;SnowCover1&quot;</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;mm&quot;</span>  <span class="n">standard_name</span><span class="o">=</span><span class="s2">&quot;SnowCover1&quot;</span> <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;Snow cover top layer&quot;</span>  <span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">metanetcdf</span> <span class="n">varname</span><span class="o">=</span><span class="s2">&quot;SnowCover2&quot;</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;mm&quot;</span>  <span class="n">standard_name</span><span class="o">=</span><span class="s2">&quot;SnowCover2&quot;</span> <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;Snow cover middle layer&quot;</span>  <span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">metanetcdf</span> <span class="n">varname</span><span class="o">=</span><span class="s2">&quot;SnowCover3&quot;</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;mm&quot;</span>  <span class="n">standard_name</span><span class="o">=</span><span class="s2">&quot;SnowCover3&quot;</span> <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;Snow cover lower layer&quot;</span>  <span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">metanetcdf</span> <span class="n">varname</span><span class="o">=</span><span class="s2">&quot;FrostIndex&quot;</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;degree/days&quot;</span>  <span class="n">standard_name</span><span class="o">=</span><span class="s2">&quot;FrostIndex&quot;</span> <span class="n">long_name</span><span class="o">=</span><span class="s2">&quot;Frost index based on Molnau, Bissel (1983)&quot;</span>  <span class="o">/&gt;</span>
+<span class="o">&lt;/</span><span class="n">CWATM</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="name-and-location-of-the-netcdf-meta-data-file">
+<h3><a class="toc-backref" href="#id39">Name and location of the NetCDF meta data file</a><a class="headerlink" href="#name-and-location-of-the-netcdf-meta-data-file" title="Permalink to this headline">¶</a></h3>
+<p>In the settings file the name and location of the metadata file is given.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#-------------------------------------------------------
+[NETCDF_ATTRIBUTES]
+institution = IIASA
+title = Global Water Model - WATCH WDFEI
+metaNetcdfFile = $(FILE_PATHS:PathRoot)/CWATM/source/metaNetcdf.xml
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="initialisation">
+<span id="rst-meta"></span><h2><a class="toc-backref" href="#id40">Initialisation</a><a class="headerlink" href="#initialisation" title="Permalink to this headline">¶</a></h2>
+<p>CWATM needs to have estimates of the initial state of the internal storage variables, e.g. the amount of water stored in snow, soil, groundwater etc.</p>
+<p>There are two possibilities:</p>
+<ol class="arabic simple">
+<li><p>The initial state of the internal storage variables are unknown and a <strong>first</strong> guess has to be used e.g. all storage variables are half filled.</p></li>
+<li><p>The initial state is known from a previous run, where the variables are stored at a certain time step. This is called <strong>warm start</strong></p></li>
+</ol>
+<p>The the <strong>warm start</strong> is usful for:</p>
+<ul class="simple">
+<li><p>using a long pre-run to find the steady-state storage of the groundwater storage and use it as initial value</p></li>
+<li><p>using the stored variables to shorten the warm-up period</p></li>
+<li><p>using the stored variables to restart every day with the values from the pre3vious day (forecasting mode)</p></li>
+</ul>
+<div class="section" id="example-of-soil-moisture">
+<h3><a class="toc-backref" href="#id41">Example of soil moisture</a><a class="headerlink" href="#example-of-soil-moisture" title="Permalink to this headline">¶</a></h3>
+<p>The next figure shows the impact of different initial condition on the soil moisture of the lower soil.
+In one of the simulations the soil is initially almost ompletely saturated. In another simulation the soil is completely dry and the third simulation starts with initial conditions in between the two extremes.</p>
+<p>In the beginning the effect of different initial condition can be seen clearly. But after one year the three curves converge. The <strong>memory</strong> of the lower soil goes back for about one year.</p>
+<p>For all the initial condition apart from groundwater the memory is about 12 month. That means practically a spin-up of one year is sufficient to habve enough warm-up time.</p>
+<div class="figure align-default">
+<a class="reference internal image-reference" href="_images/init_soilmoisture.jpg"><img alt="_images/init_soilmoisture.jpg" src="_images/init_soilmoisture.jpg" style="width: 600px;" /></a>
+</div>
+<p>Figure: Simulation of soil moisture in the lower soil with different initial conditions</p>
+<p>For the groundwater zone a longer warm-up period is needed, because of the slow response of groundwater. Here a rather fast reacting groundwater storage is shown with the three curves coverge after two years.</p>
+<div class="figure align-default">
+<a class="reference internal image-reference" href="_images/init_groundwater.jpg"><img alt="_images/init_groundwater.jpg" src="_images/init_groundwater.jpg" style="width: 600px;" /></a>
+</div>
+<p>Figure: Simulation of groundwater storage with different initial conditions</p>
+</div>
+<div class="section" id="cold-start">
+<h3><a class="toc-backref" href="#id42">Cold start</a><a class="headerlink" href="#cold-start" title="Permalink to this headline">¶</a></h3>
+<p>For a <strong>cold start</strong> the values of the storage variables are unknown and set to a “first” guess.
+A list of variables and their default value for a <strong>cold start</strong> is given below in: <a class="reference internal" href="#rst-initialcondition"><span class="std std-ref">Initial conditions</span></a></p>
+<div class="section" id="set-up-a-cold-start-in-the-settingsfile">
+<h4><a class="toc-backref" href="#id43">Set up a cold start in the settingsfile</a><a class="headerlink" href="#set-up-a-cold-start-in-the-settingsfile" title="Permalink to this headline">¶</a></h4>
+<p>In the settings file the option: <strong>load_initial</strong> has to be set on <strong>False</strong></p>
+<div class="highlight-ini notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>145
+146
+147
+148
+149
+150
+151
+152</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1">#-------------------------------------------------------</span>
+<span class="k">[INITITIAL CONDITIONS]</span>
+<span class="c1">#-------------------------------------------------------</span>
+
+<span class="c1"># for a warm start initial variables a loaded</span>
+<span class="c1"># e.g for a start on 01/01/2010 load variable from 31/12/2009</span>
+<span class="na">load_initial</span> <span class="o">=</span> <span class="s">False</span>
+<span class="na">initLoad</span> <span class="o">=</span> <span class="s">$(FILE_PATHS:PathRoot)/init/Rhine_19891231.nc</span>
+</pre></div>
+</td></tr></table></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is possible to exclude the warming up period of your model run for further analysis of results by setting the <strong>SpinUp</strong> option</p>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">TIME</span><span class="o">-</span><span class="n">RELATED_CONSTANTS</span><span class="p">]</span>
+<span class="n">SpinUp</span> <span class="o">=</span>  <span class="mi">01</span><span class="o">/</span><span class="mi">01</span><span class="o">/</span><span class="mi">1995</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="storing-initial-variables">
+<h3><a class="toc-backref" href="#id44">Storing initial variables</a><a class="headerlink" href="#storing-initial-variables" title="Permalink to this headline">¶</a></h3>
+<p>In the settings file the option <strong>save_intitisal</strong> has to be set to <strong>True</strong></p>
+<p>The name of the initial netCDF4 file has to be put in <strong>initsave</strong></p>
+<p>and one or more dates have to be specified in StepInit</p>
+<div class="highlight-ini notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>154
+155
+156
+157
+158</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1"># saving variables from this run, to initiate a warm start next run</span>
+<span class="c1"># StepInit = saving date, can be more than one: 10/01/1973 20/01/1973</span>
+<span class="na">save_initial</span> <span class="o">=</span> <span class="s">False</span>
+<span class="na">initSave</span> <span class="o">=</span> <span class="s">$(FILE_PATHS:PathRoot)/init/Rhine</span>
+<span class="na">StepInit</span> <span class="o">=</span> <span class="s">31/12/1989 31/12/2010</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+<div class="section" id="warm-start">
+<h3><a class="toc-backref" href="#id45">Warm start</a><a class="headerlink" href="#warm-start" title="Permalink to this headline">¶</a></h3>
+<p>CWATM can write internal variables to a netCDF file for choosen timesteps. These netCDF files can be used as the initial conditions for a suceeding simulation.</p>
+<p>This is useful for establishing a steady-state with a long-term run and then using this steady-state for succeding simulations or for an every day run (forecasting mode)</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If the parameters are changes after a run(especially the groundwater parameters) the stored initial values do not represent the conditions of the storage variables. Stored initial conditions should <strong>not</strong> be used as initial values for a model run with another set of parameters. If you do this during calibration, you will not be able to reproduce the calibration results!</p>
+</div>
+<div class="section" id="id5">
+<h4><a class="toc-backref" href="#id46">Set up a cold start in the settingsfile</a><a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<p>In the settings file the option: <strong>load_initial</strong> has to be set on <strong>True</strong>
+And define the name of the netcdf4 file in <strong>initLoad</strong></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Use the initial values of the previous day here. E.g. if you run the model from 01/01/2006 use the inital condition from 31/12/2005</p>
+</div>
+<div class="highlight-ini notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>145
+146
+147
+148
+149
+150
+151
+152</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1">#-------------------------------------------------------</span>
+<span class="k">[INITITIAL CONDITIONS]</span>
+<span class="c1">#-------------------------------------------------------</span>
+
+<span class="c1"># for a warm start initial variables a loaded</span>
+<span class="c1"># e.g for a start on 01/01/2010 load variable from 31/12/2009</span>
+<span class="na">load_initial</span> <span class="o">=</span> <span class="s">False</span>
+<span class="na">initLoad</span> <span class="o">=</span> <span class="s">$(FILE_PATHS:PathRoot)/init/Rhine_19891231.nc</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+</div>
+<div class="section" id="rst-initialcondition">
+<span id="id6"></span><h3><a class="toc-backref" href="#id47">Initial conditions</a><a class="headerlink" href="#rst-initialcondition" title="Permalink to this headline">¶</a></h3>
+<table class="colwidths-given docutils align-default">
+<colgroup>
+<col style="width: 8%" />
+<col style="width: 20%" />
+<col style="width: 40%" />
+<col style="width: 20%" />
+<col style="width: 12%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>No.</p></th>
+<th class="head"><p>Variable</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default value</p></th>
+<th class="head"><p>Number of maps</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p>SnowCover</p></td>
+<td><p>Snow cover for up to 7 zones</p></td>
+<td><p>0</p></td>
+<td><p>7</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p>FrostIndex</p></td>
+<td><p>Degree days frost threshold</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p>Forest state</p></td>
+<td><p>Interception storage</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>Top water layer</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>Soil storage for 3 soil layers</p></td>
+<td><p>0</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p>Grassland state</p></td>
+<td><p>Interception storage</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>Top water layer</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>Soil storage for 3 soil layers</p></td>
+<td><p>0</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p>Paddy irrigation state</p></td>
+<td><p>Interception storage</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>Top water layer</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>Soil storage for 3 soil layers</p></td>
+<td><p>0</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p>Irrigation state</p></td>
+<td><p>Interception storage</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>Top water layer</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>Soil storage for 3 soil layers</p></td>
+<td><p>0</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><p>Sealed area state</p></td>
+<td><p>Interception storage</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>8</p></td>
+<td><p>Groundwater</p></td>
+<td><p>Groundwater storage</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>9</p></td>
+<td><p>Runoff concentration</p></td>
+<td><p>10 layers of runoff concentration</p></td>
+<td><p>0</p></td>
+<td><p>10</p></td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
+<td><p>Routing</p></td>
+<td><p>Channel storage</p></td>
+<td><p>0.2 * total cross section</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p>Routing</p></td>
+<td><p>Riverbed exchange</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td><p>Routing</p></td>
+<td><p>Discharge</p></td>
+<td><p>depending on ini channel stor.</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>11</p></td>
+<td><p>Lakes and Reservoirs</p></td>
+<td><p>Lake inflow</p></td>
+<td><p>from HydroLakes database</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>Lake outflow</p></td>
+<td><p>same as lake inflow</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>Lake&amp;Res outflow to other lakes&amp;res</p></td>
+<td><p>same as lake inflow</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>Lake storage</p></td>
+<td><p>based on inflow and lake area</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>Reservoir storage</p></td>
+<td><p>0.5 * max. reservoir storage</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>Small lake storage</p></td>
+<td><p>based on inflow and lake area</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td><p>Small lake inflow</p></td>
+<td><p>from HydroLakes database</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>Small lake outflow</p></td>
+<td><p>same as small lake inflow</p></td>
+<td><p>1</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="model-output">
+<span id="rst-outputtwo"></span><h2><a class="toc-backref" href="#id48">Model Output</a><a class="headerlink" href="#model-output" title="Permalink to this headline">¶</a></h2>
+<p>An advantage of <strong>CWATM</strong> is the full flexibility of the output variables.</p>
+<ul class="simple">
+<li><p>All parameters and variables can be used for output as maps or time series.</p></li>
+<li><p>Even if the model is run at daily timestep, output can be daily, monthly, annual, at the end of a run</p></li>
+<li><p>all variables maps are stored as netcdf and the meta data information can be added</p></li>
+</ul>
+<div class="section" id="time-depending-and-non-depending-output-maps">
+<h3><a class="toc-backref" href="#id49">Time depending and non depending output maps</a><a class="headerlink" href="#time-depending-and-non-depending-output-maps" title="Permalink to this headline">¶</a></h3>
+<div class="line-block">
+<div class="line">Output maps will be produced as spatial maps, stack of spatial maps (over time)</div>
+<div class="line">Format: <a class="reference external" href="http://www.unidata.ucar.edu/software/netcdf/">netCDF</a></div>
+</div>
+<p>The netCDF maps can be read with:</p>
+<p><strong>Windows</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://www.giss.nasa.gov/tools/panoply">Panoply</a></p></li>
+</ul>
+<p><strong>Linux</strong></p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://meteora.ucsd.edu/~pierce/ncview_home_page.html">ncview</a></p></li>
+<li><p><a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/workshops/2012/third_party/CDO.html">cdo</a></p></li>
+</ul>
+</div>
+<div class="section" id="or-time-series-at-specified-points">
+<h3><a class="toc-backref" href="#id50">Or time series at specified points</a><a class="headerlink" href="#or-time-series-at-specified-points" title="Permalink to this headline">¶</a></h3>
+<div class="line-block">
+<div class="line">Timeseries are procuded as ASCII files, which can be read with every text editor</div>
+<div class="line">or with <a class="reference external" href="http://pcraster.geo.uu.nl/projects/developments/aguila/">PCRaster Aquila</a></div>
+</div>
+<div class="line-block">
+<div class="line">The specific point(s) where timeseries are provided are defined in the settings file as <em>Gauges</em>:</div>
+<div class="line">Can be several points in the format lon lat lon lat ..</div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Station data</span>
+<span class="c1"># either a map e.g. $(FILE_PATHS:PathRoot)/data/areamaps/area3.map</span>
+<span class="c1"># or a location coordinates (X,Y) e.g. 5.75 52.25 9.25 49.75 )</span>
+<span class="c1"># Lobith/Rhine</span>
+<span class="n">Gauges</span> <span class="o">=</span> <span class="mf">6.25</span> <span class="mf">51.75</span> <span class="mf">7.75</span> <span class="mf">49.75</span>
+
+<span class="c1"># if .tif file for gauges, this is a flag if the file is global or local</span>
+<span class="c1"># e.g. Gauges = $(FILE_PATHS:PathRoot)/data/areamaps/gaugesRhine.tif</span>
+<span class="n">GaugesLocal</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="output-variables">
+<h3><a class="toc-backref" href="#id51">Output variables</a><a class="headerlink" href="#output-variables" title="Permalink to this headline">¶</a></h3>
+<p>Output can be every global defined variable in the model
+Variable are e.g. Precipitation, runoff, baseflow</p>
+<p>but also not so common variables as:</p>
+<ul class="simple">
+<li><p>reservoirStorage (amount of water in the reservoirs in [m3])</p></li>
+<li><p>nonIrrReturnFlowFraction (returnflow from domenstic and industrial water use [m3])</p></li>
+<li><p>actualET[1] (actual evapotranspiration from grassland [m/day])</p></li>
+<li><p>…</p></li>
+</ul>
+</div>
+<div class="section" id="daily-monthly-at-the-end-or-average">
+<h3><a class="toc-backref" href="#id52">Daily, monthly - at the end or average</a><a class="headerlink" href="#daily-monthly-at-the-end-or-average" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>per day</p></li>
+<li><p>total month, average month, end of month</p></li>
+<li><p>total year, average year, end of year</p></li>
+<li><p>total average, total at the end</p></li>
+</ul>
+<p>available prefixes are: ‘daily’, ‘monthtot’,’monthavg’, ‘monthend’,’annualtot’,’annualavg’,’annualend’,’totaltot’,’totalavg’</p>
+<p>for example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[OUTPUT]
+# OUTPUT maps and timeseries
+OUT_Dir = $(FILE_PATHS:PathOut)
+OUT_MAP_Daily = discharge, runoff
+OUT_MAP_MonthAvg = Precipitation
+OUT_MAP_TotalEnd = lakeStorage
+OUT_MAP_TotalAvg = Tavg
+
+OUT_TSS_Daily = discharge
+OUT_TSS_MonthTot = runoff
+OUT_TSS_AnnualAvg = Precipitation
+OUT_TSS_AnnualTot = runoff
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For each variable the meta data information can be defined in <a class="reference internal" href="#rst-metadata"><span class="std std-ref">Output Meta NetCDF information</span></a></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For information how to adjust the output in the settings file see <a class="reference internal" href="#rst-outputone"><span class="std std-ref">Output</span></a></p>
+</div>
+</div>
+<div class="section" id="time-series-as-point-infomation-or-catchment-sum-or-average">
+<h3><a class="toc-backref" href="#id53">Time series as point infomation or catchment sum or average</a><a class="headerlink" href="#time-series-as-point-infomation-or-catchment-sum-or-average" title="Permalink to this headline">¶</a></h3>
+<p>As standard time series can include values of the specific cell as defined in the settings file as <em>Gauges</em>
+But time series can also show the area sum or area average of the upstream catchment from the specific cell</p>
+<p>for example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">OUTPUT</span><span class="p">]</span>
+<span class="c1"># OUTPUT maps and timeseries</span>
+<span class="c1"># Standard values of a specific cell</span>
+<span class="n">OUT_TSS_Daily</span> <span class="o">=</span> <span class="n">discharge</span>
+<span class="n">OUT_TSS_AnnualAvg</span> <span class="o">=</span> <span class="n">Precipitation</span>
+<span class="c1"># Area sum of upstream catchment</span>
+<span class="n">OUT_TSS_AreaSum_MonthTot</span> <span class="o">=</span> <span class="n">Precipitation</span><span class="p">,</span> <span class="n">runoff</span>
+<span class="c1"># Area sum of upstream catchment</span>
+<span class="n">OUT_TSS_AreaAvg_MonthTot</span> <span class="o">=</span> <span class="n">Precipitation</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="most-important-output-variables-a-selection">
+<h3><a class="toc-backref" href="#id54">Most important output variables - a selection</a><a class="headerlink" href="#most-important-output-variables-a-selection" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#Variable name    : Description</span>
+<span class="n">discharge</span>         <span class="p">:</span> <span class="n">river</span> <span class="n">discharge</span>
+<span class="n">runoff</span>            <span class="p">:</span> <span class="n">runoff</span>
+<span class="n">Precipitation</span>     <span class="p">:</span> <span class="n">rainfall</span> <span class="o">+</span> <span class="n">snow</span>
+<span class="n">Tavg</span>              <span class="p">:</span> <span class="n">average</span> <span class="n">temperature</span>
+<span class="n">ETRef</span><span class="p">:</span> <span class="n">potential</span>  <span class="p">:</span> <span class="n">evaporation</span> <span class="kn">from</span> <span class="nn">reference</span> <span class="n">soil</span>
+<span class="n">sum_gwRecharge</span>    <span class="p">:</span> <span class="n">total</span> <span class="n">groundwater</span> <span class="n">recharge</span>
+<span class="n">totalET</span>           <span class="p">:</span> <span class="n">total</span> <span class="n">actual</span> <span class="n">evapotranspiration</span>
+<span class="n">baseflow</span>          <span class="p">:</span> <span class="n">baseflow</span> <span class="kn">from</span> <span class="nn">groundwater</span>
+<span class="o">...</span> <span class="p">(</span><span class="n">to</span> <span class="n">be</span> <span class="n">continued</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="output-variables-starting-a-list">
+<h3><a class="toc-backref" href="#id55">Output variables - starting a list</a><a class="headerlink" href="#output-variables-starting-a-list" title="Permalink to this headline">¶</a></h3>
+<div class="line-block">
+<div class="line">A list of variables can be produced by using:</div>
+<div class="line">grep -d recurse ‘self.var.’ *.py</div>
+<div class="line">Every self.var.variable can be used as output variable</div>
+<div class="line">For a description of the variable please take a look at the python module itself.</div>
+<div class="line">.</div>
+<div class="line">As output variable please use without self.var.</div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#Python_modul            Variable_name</span>
+<span class="n">capillarRise</span><span class="o">.</span><span class="n">py</span>          <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">capRiseFrac</span>
+<span class="n">evaporationPot</span><span class="o">.</span><span class="n">py</span>        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">AlbedoCanopy</span>
+<span class="n">evaporationPot</span><span class="o">.</span><span class="n">py</span>        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">AlbedoSoil</span>
+<span class="n">evaporationPot</span><span class="o">.</span><span class="n">py</span>        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">AlbedoWater</span>
+<span class="n">evaporationPot</span><span class="o">.</span><span class="n">py</span>        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span>
+<span class="n">evaporationPot</span><span class="o">.</span><span class="n">py</span>        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span>
+<span class="n">evaporation</span><span class="o">.</span><span class="n">py</span>           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">potBareSoilEvap</span>
+<span class="n">evaporation</span><span class="o">.</span><span class="n">py</span>           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">snowEvap</span>
+<span class="n">evaporation</span><span class="o">.</span><span class="n">py</span>           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowMelt</span>
+<span class="n">evaporation</span><span class="o">.</span><span class="n">py</span>           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">potBareSoilEvap</span>
+<span class="n">evaporation</span><span class="o">.</span><span class="n">py</span>           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">cropKC</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+<span class="n">evaporation</span><span class="o">.</span><span class="n">py</span>           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalPotET</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+<span class="n">evaporation</span><span class="o">.</span><span class="n">py</span>           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">potTranspiration</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+<span class="n">groundwater</span><span class="o">.</span><span class="n">py</span>           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">recessionCoeff</span>
+<span class="n">groundwater</span><span class="o">.</span><span class="n">py</span>           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">specificYield</span>
+<span class="n">groundwater</span><span class="o">.</span><span class="n">py</span>           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">kSatAquifer</span>
+<span class="n">groundwater</span><span class="o">.</span><span class="n">py</span>           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">storGroundwater</span>
+<span class="n">groundwater</span><span class="o">.</span><span class="n">py</span>           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">baseflow</span>
+<span class="n">interception</span><span class="o">.</span><span class="n">py</span>          <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptCap</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+<span class="n">interception</span><span class="o">.</span><span class="n">py</span>          <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptStor</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+<span class="n">interception</span><span class="o">.</span><span class="n">py</span>          <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">availWaterInfiltration</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+<span class="n">interception</span><span class="o">.</span><span class="n">py</span>          <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">potTranspiration</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+<span class="n">interception</span><span class="o">.</span><span class="n">py</span>          <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">actualET</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">waterBodyID</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">waterBodyOut</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeArea</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeDis0</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeAC</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeEvaFactor</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">reslakeoutflow</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeVolume</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeStorage</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeInflow</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeOutflow</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">reservoirStorage</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeResStorage</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">sumlakeResInflow</span>
+<span class="n">lakes_reservoirs</span><span class="o">.</span><span class="n">py</span>      <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">sumlakeResOutflow</span>
+<span class="n">lakes_res_small</span><span class="o">.</span><span class="n">py</span>       <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">smalllakeArea</span>
+<span class="n">lakes_res_small</span><span class="o">.</span><span class="n">py</span>       <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">smalllakeDis0</span>
+<span class="n">lakes_res_small</span><span class="o">.</span><span class="n">py</span>       <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">smalllakeA</span>
+<span class="n">lakes_res_small</span><span class="o">.</span><span class="n">py</span>       <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">smalllakeFactor</span>
+<span class="n">lakes_res_small</span><span class="o">.</span><span class="n">py</span>       <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">smalllakeVolumeM3</span>
+<span class="n">lakes_res_small</span><span class="o">.</span><span class="n">py</span>       <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">smallevapWaterBodyStorage</span>
+<span class="n">landcoverType</span><span class="o">.</span><span class="n">py</span>         <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">coverTypes</span>
+<span class="n">landcoverType</span><span class="o">.</span><span class="n">py</span>         <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalET</span>
+<span class="n">landcoverType</span><span class="o">.</span><span class="n">py</span>         <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">actSurfaceWaterAbstract</span>
+<span class="n">landcoverType</span><span class="o">.</span><span class="n">py</span>         <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">minInterceptCap</span>
+<span class="n">landcoverType</span><span class="o">.</span><span class="n">py</span>         <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptStor</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+<span class="n">landcoverType</span><span class="o">.</span><span class="n">py</span>         <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">sum_interceptStor</span>
+<span class="n">landcoverType</span><span class="o">.</span><span class="n">py</span>         <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">minCropKC</span>
+<span class="n">landcoverType</span><span class="o">.</span><span class="n">py</span>         <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">maxGWCapRise</span>
+<span class="o">...</span> <span class="p">(</span><span class="n">to</span> <span class="n">be</span> <span class="n">continued</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publication.html">3. Publication</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. Setup of the model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-model">Running the model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-the-data">Test the data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rst-settingdoc">Settings file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">NetCDF meta data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#initialisation">Initialisation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model-output">Model Output</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results.html">6. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="todo.html">7. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">8. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">9. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration_tutorial.html">10. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resolution.html">11. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zambezi.html">12. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">13. License and download info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sourcecode.html">14. Source code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forum.html">15. Forum</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="publication.html"
+                        title="previous chapter"><span class="section-number">3. </span>Publication</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="tutorial.html"
+                        title="next chapter"><span class="section-number">5. </span>Tutorial</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tutorial.html" title="5. Tutorial"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="publication.html" title="3. Publication"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CWAT Model</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, PB.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.2.
+    </div>
+  </body>
+</html>
