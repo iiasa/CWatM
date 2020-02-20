@@ -13,7 +13,7 @@ from cwatm.management_modules.data_handling import Flags, cbinding
 from cwatm.management_modules.timestep import checkifDate
 from cwatm.management_modules.dynamicModel import ModelFrame
 from cwatm.cwatm import CWATModel
-from cwatm import __authors__, __version__, __date__, __copyright__, __maintainer__, __status__
+from cwatm import __author__, __version__, __date__, __copyright__, __maintainer__, __status__
 # ---------------------------
 
 
@@ -30,7 +30,7 @@ def usage():
 
     """
     print('CWatM - Community Water Model')
-    print('Authors: ', __authors__)
+    print('Authors: ', __author__)
     print('Version: ', __version__)
     print('Date: ', __date__)
     print('Status: ', __status__)
@@ -128,7 +128,7 @@ def GNU():
     """
 
     print('CWatM - Community Water Model')
-    print('Authors: ', __authors__)
+    print('Authors: ', __author__)
     print('Version: ', __version__)
     print('Date: ', __date__)
     print()

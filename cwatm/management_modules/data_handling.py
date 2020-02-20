@@ -417,12 +417,11 @@ def compressArray(map, name="None", zeros = 0.):
 
     return mapC
 
-def decompress(map, pcmap):
+def decompress(map):
     """
     Decompress 1D array without missing values to 2D array with missing values
 
     :param map: numpy 1D array as input
-    :param pcmap: if True map is used as .map format
     :return: 2D array for displaying
     """
 
@@ -1495,7 +1494,7 @@ def report(name,valueIn,compr=True):
     if filename[1] == ".map":   pcmap = True
 
     if compr:
-        value = decompress(valueIn,pcmap)
+        value = decompress(valueIn)
     else:
         value = valueIn
 
