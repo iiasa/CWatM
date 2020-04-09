@@ -228,9 +228,10 @@ class readmeteo(object):
             # TODO in initial there could be a check if temperature > 200 -> automatic change to Kelvin
             ZeroKelvin = 273.15
 
-
         self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale, modflowSteady = modflow) * self.var.DtDay * self.var.con_precipitation
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
+
+
 
         if self.var.meteodown:
             self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)

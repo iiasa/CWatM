@@ -138,7 +138,12 @@ def datetoInt(dateIn,begin,both=False):
          # to cope with dates before 1990
          str1 = date2str(date1)
 
-         int1 = (date1 - begin).days + 1
+         #int1 = (date1 - begin).days + 1
+         d1 = date2num(date1, units=dateVar['unit'] , calendar=dateVar['calendar'] )
+         d2 = date2num(begin, units=dateVar['unit'], calendar=dateVar['calendar'])
+         int1 = int(d1 - d2) + 1
+         # to be used with different days in a year e.g. 360_years
+
     else:
         int1 = int(date1)
         str1 = str(date1)
@@ -201,7 +206,11 @@ def datetosaveInit(initdates,begin,end):
                 except:
                     msg = "Second value in StepInit is not an integer + 'y' or 'm' or 'd'"
                     raise CWATMError(msg)
-                start = begin + datetime.timedelta(days=dateVar['intInit'][0]-1)
+                #start = begin + datetime.timedelta(days=dateVar['intInit'][0]-1)
+                d1 = date2num(begin, units=dateVar['unit'] , calendar=dateVar['calendar'])
+                start = num2date(d1 + dateVar['intInit'][0]-1, units=dateVar['unit'], calendar=dateVar['calendar'])
+
+
                 j = 1
                 while True:
                     if d[-1] == 'y':
@@ -210,13 +219,23 @@ def datetosaveInit(initdates,begin,end):
                         try:
                             date2 = date2.replace(year=date2.year + add * j)
                         except ValueError:
-                            date2 = date2 - datetime.timedelta(days = 1)
+                            #date2 = date2 - datetime.timedelta(days = 1)
+                            d1 = date2num(date2, units=dateVar['unit'], calendar=dateVar['calendar'])
+                            date2 = num2date(d1 - 1, units=dateVar['unit'], calendar=dateVar['calendar'])
                             date2 = date2.replace(year=date2.year + add * j)
+
+
+
+
                     elif d[-1] == 'm':
                         #date2 = start + relativedelta(months=+ add * j)
                         date2 = addmonths(start, add * j)
                     else:
-                        date2 = start + datetime.timedelta(days= add * j)
+                        #date2 = start + datetime.timedelta(days= add * j)
+                        d1 = date2num(start, units=dateVar['unit'], calendar=dateVar['calendar'])
+                        date2 = num2date(d1 + add*j, units=dateVar['unit'], calendar=dateVar['calendar'])
+
+
                     if date2 > end:
                         break
                     else:
@@ -237,7 +256,7 @@ def datetosaveInit(initdates,begin,end):
     ii = 1
 
 # noinspection PyTypeChecker
-def checkifDate(start,end,spinup):
+def checkifDate(start,end,spinup,name):
     """
     Checks if start date is earlier than end date etc
     And set some date variables
@@ -249,6 +268,28 @@ def checkifDate(start,end,spinup):
     """
 
     #begin = Calendar(ctbinding('CalendarDayStart'))
+
+    name = glob.glob(os.path.normpath(name))[0]
+    if not name:
+        raise CWATMFileError(name, sname='PrecipitationMaps')
+    nf1 = Dataset(name, 'r')
+    try:
+        dateVar['calendar'] = nf1.variables['time'].calendar
+        dateVar['unit'] = nf1.variables['time'].units
+    except:
+        dateVar['calendar'] = 'standard'
+        dateVar['unit'] = "days since 1901-01- 01T00:00:00Z"
+
+    dateVar['calendar1'] = 0
+    if (dateVar['calendar'] =="noleap") or (dateVar['calendar'] =="365_day"):
+        dateVar['calendar1'] = 1
+    if (dateVar['calendar'] =="all_leap") or (dateVar['calendar'] =="366_day"):
+        dateVar['calendar1'] = 2
+    if (dateVar['calendar'] =="360_day"):
+        dateVar['calendar1'] = 3
+    nf1.close()
+
+
     startdate = Calendar(ctbinding('StepStart'))
     if type(startdate) is datetime.datetime:
         begin = startdate
@@ -282,23 +323,39 @@ def checkifDate(start,end,spinup):
 
     dateVar['currDate'] = begin
     dateVar['dateBegin'] = begin
-    dateVar['dateStart'] = begin + datetime.timedelta(days=dateVar['intSpin']-1)
-    #dateVar['diffdays'] = dateVar['intEnd'] - dateVar['intStart'] + 1
-    #dateVar['dateEnd'] = begin + datetime.timedelta(days=dateVar['diffdays']-1)
+    #dateVar['dateStart'] = begin + datetime.timedelta(days=dateVar['intSpin']-1)
+    d1 = date2num(begin, units=dateVar['unit'] , calendar=dateVar['calendar'])
+    dateVar['dateStart'] = num2date(d1 + dateVar['intSpin']-1,units=dateVar['unit'] , calendar=dateVar['calendar'])
+
     dateVar['diffdays'] = dateVar['intEnd'] - dateVar['intSpin'] + 1
-    dateVar['dateEnd'] = dateVar['dateStart'] + datetime.timedelta(days=dateVar['diffdays']-1)
+
+    #dateVar['dateEnd'] = dateVar['dateStart'] + datetime.timedelta(days=dateVar['diffdays']-1)
+    d1 = date2num(dateVar['dateStart'], units=dateVar['unit'] , calendar=dateVar['calendar'])
+    dateVar['dateEnd'] = num2date(d1 + dateVar['diffdays']-1,units=dateVar['unit'] , calendar=dateVar['calendar'])
 
     dateVar['curr'] = 0
     dateVar['currwrite'] = 0
 
-    dateVar['datelastmonth'] = datetime.datetime(year=dateVar['dateEnd'].year, month= dateVar['dateEnd'].month, day=1) - datetime.timedelta(days=1)
-    dateVar['datelastyear'] = datetime.datetime(year=dateVar['dateEnd'].year, month= 1, day=1) - datetime.timedelta(days=1)
+    #dateVar['datelastmonth'] = datetime.datetime(year=dateVar['dateEnd'].year, month= dateVar['dateEnd'].month, day=1) - datetime.timedelta(days=1)
+    d1 = date2num(datetime.datetime(year=dateVar['dateEnd'].year, month= dateVar['dateEnd'].month, day=1), units=dateVar['unit'], calendar=dateVar['calendar'])
+    dateVar['datelastmonth'] = num2date(d1 - 1,units=dateVar['unit'] , calendar=dateVar['calendar'])
+    #dateVar['datelastyear'] = datetime.datetime(year=dateVar['dateEnd'].year, month= 1, day=1) - datetime.timedelta(days=1)
+    d1 = date2num(datetime.datetime(year=dateVar['dateEnd'].year, month=1, day=1), units=dateVar['unit'], calendar=dateVar['calendar'])
+    dateVar['datelastyear'] = num2date(d1 - 1,units=dateVar['unit'] , calendar=dateVar['calendar'])
+
 
     dateVar['checked'] = []
     # noinspection PyTypeChecker
-    dates = np.arange(dateVar['dateStart'], dateVar['dateEnd']+ datetime.timedelta(days=1), datetime.timedelta(days = 1)).astype(datetime.datetime)
-    for d in dates:
-        if d.day == calendar.monthrange(d.year, d.month)[1]:
+    #dates = np.arange(dateVar['dateStart'], dateVar['dateEnd']+ datetime.timedelta(days=1), datetime.timedelta(days = 1)).astype(datetime.datetime)
+    #for d in dates:
+
+    d1 = date2num(begin, units=dateVar['unit'], calendar=dateVar['calendar'])
+    for dint in range(dateVar['intStart'] - 1, dateVar['intEnd']):
+
+        d = num2date(d1 + dint,units=dateVar['unit'] , calendar=dateVar['calendar'])
+        dnext = num2date(d1 + dint + 1, units=dateVar['unit'], calendar=dateVar['calendar'])
+        #if d.day == calendar.monthrange(d.year, d.month)[1]:
+        if d.month != dnext.month:
             if d.month == 12:
                 dateVar['checked'].append(2)
             else:
@@ -308,9 +365,8 @@ def checkifDate(start,end,spinup):
 
     dateVar['diffMonth'] = dateVar['checked'].count(1) + dateVar['checked'].count(2)
     dateVar['diffYear'] = dateVar['checked'].count(2)
-    dateVar['leapYear'] = 0
-
-    dateVar['leapYearMinus'] = 0 # if meteo data are 365 days or 360 days there are less days altogether
+    #dateVar['leapYear'] = 0
+    #dateVar['leapYearMinus'] = 0 # if meteo data are 365 days or 360 days there are less days altogether
 
 
 def date2indexNew(date, nctime, calendar, select='nearest', name =""):
@@ -368,26 +424,10 @@ def timestep_dynamic(self):
     """
 
     #print "leap:", globals.leap_flag[0]
-    dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
-
-
-    if dateVar['leapYear']>0:   # 365 days per year
-        if dateVar['currDate'].month==2 and dateVar['currDate'].day==29:
-            dateVar['curr'] += 1
-            dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
-            if dateVar['currDate'] >=  dateVar['dateStart']:
-                dateVar['leapYearMinus'] += 1
-                self._d_nrTimeSteps = self.nrTimeSteps() - 1   # reduce the number of timesteps if no leap year
-
-
-    if dateVar['leapYear']==2:   # 360 days per year
-        if  dateVar['currDate'].month < 9 and dateVar['currDate'].day==31:
-            dateVar['curr'] += 1
-            dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
-            if dateVar['currDate'] >= dateVar['dateStart']:
-                dateVar['leapYearMinus'] += 1
-                self._d_nrTimeSteps = self.nrTimeSteps() - 1
-
+    #dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
+    d1 = date2num(dateVar['dateBegin'], units=dateVar['unit'], calendar=dateVar['calendar'])
+    dateVar['currDate'] = num2date(d1 + dateVar['curr'],units=dateVar['unit'] , calendar=dateVar['calendar'])
+    datevarInt = d1 + dateVar['curr']
 
     #dateVar['currDatestr'] = dateVar['currDate'].strftime("%d/%m/%Y")
     dateVar['currDatestr'] = date2str(dateVar['currDate'])
@@ -395,12 +435,17 @@ def timestep_dynamic(self):
     #dateVar['doy'] = int(dateVar['currDate'].strftime('%j'))
     # replacing this because date less than 1900 is not used
     firstdoy = datetime.datetime(dateVar['currDate'].year,1,1)
-    dateVar['doy'] = (dateVar['currDate'] - firstdoy).days + 1
+    #dateVar['doy'] = (dateVar['currDate'] - firstdoy).days + 1
+    firstdoyInt = date2num(firstdoy , units=dateVar['unit'], calendar=dateVar['calendar'])
+    dateVar['doy'] = int(datevarInt  - firstdoyInt + 1)
 
     dateVar['10day'] = int((dateVar['doy']-1)/10)
 
     dateVar['laststep'] = False
+    #d1 = date2num(dateVar['intStart'] , units=dateVar['unit'], calendar=dateVar['calendar'])
+    #d2 = num2date(d1 + dateVar['curr'],units=dateVar['unit'] , calendar=dateVar['calendar'])
     if (dateVar['intStart'] + dateVar['curr']) == dateVar['intEnd']: dateVar['laststep'] = True
+    if (d1 + dateVar['curr']) == dateVar['intEnd']: dateVar['laststep'] = True
 
     dateVar['currStart'] = dateVar['curr'] + 1
 
@@ -418,16 +463,27 @@ def timestep_dynamic(self):
     dateVar['newYear'] = (dateVar['currDate'].day == 1) and (dateVar['currDate'].month == 1)
     dateVar['new10day'] = ((dateVar['doy'] - 1) / 10.0) == dateVar['10day']
 
-    #dateVar['daysInMonth'] = float(calendar.monthrange(int(dateVar['currDate'].strftime('%Y')),int(dateVar['currDate'].strftime('%m')))[1])
-    dateVar['daysInMonth'] = float(calendar.monthrange(dateVar['currDate'].year,dateVar['currDate'].month)[1])
 
-    dateVar['daysInYear'] = 365.0
-    if calendar.isleap(dateVar['currDate'].year): dateVar['daysInYear'] = 366.0
-    if dateVar['leapYear'] > 0:
-        dateVar['daysInYear'] = 365.0
-    if dateVar['leapYear'] == 2:
-        dateVar['daysInYear'] = 365.0
-        dateVar['daysInMonth'] = 30.0
+    d1month = date2num(datetime.datetime(year=dateVar['currDate'].year, month=dateVar['currDate'].month, day=1),
+                  units=dateVar['unit'], calendar=dateVar['calendar'])
+    if dateVar['currDate'].month == 12:
+        month = 1
+        year = dateVar['currDate'].year + 1
+    else:
+        month = dateVar['currDate'].month + 1
+        year = dateVar['currDate'].year
+    d2month = date2num(datetime.datetime(year=year, month=month, day=1),
+                  units=dateVar['unit'], calendar=dateVar['calendar'])
+
+    d1year = date2num(datetime.datetime(year=dateVar['currDate'].year, month=1, day=1),
+                  units=dateVar['unit'], calendar=dateVar['calendar'])
+    d2year = date2num(datetime.datetime(year=dateVar['currDate'].year + 1, month=1, day=1),
+                  units=dateVar['unit'], calendar=dateVar['calendar'])
+    dateVar['daysInMonth'] = d2month - d1month
+    dateVar['daysInYear'] = d2year - d1year
+
+    return
+
 
 
 

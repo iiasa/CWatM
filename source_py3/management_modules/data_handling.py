@@ -36,7 +36,7 @@ import warnings
 
 
 
-def valuecell( coordx, coordstr):
+def valuecell( coordx, coordstr, returnmap = True):
     """
     to put a value into a raster map -> invert of cellvalue, map is converted into a numpy array first
 
@@ -46,6 +46,8 @@ def valuecell( coordx, coordstr):
     """
 
     coord = []
+    col = []
+    row = []
     for xy in coordx:
         try:
             coord.append(float(xy))
@@ -58,11 +60,11 @@ def valuecell( coordx, coordstr):
     null[null == 0] = -9999
 
     for i in range(int(len(coord) / 2)):
-        col = int((coord[i * 2] -  maskmapAttr['x']) * maskmapAttr['invcell'])
-        row = int((maskmapAttr['y'] - coord[i * 2 + 1]) * maskmapAttr['invcell'])
+        col.append(int((coord[i * 2] -  maskmapAttr['x']) * maskmapAttr['invcell']))
+        row.append(int((maskmapAttr['y'] - coord[i * 2 + 1]) * maskmapAttr['invcell']))
 
-        if col >= 0 and row >= 0 and col < maskmapAttr['col'] and row < maskmapAttr['row']:
-            null[row, col] = i + 1
+        if col[i] >= 0 and row[i] >= 0 and col[i] < maskmapAttr['col'] and row[i] < maskmapAttr['row']:
+            null[row[i], col[i]] = i + 1
         else:
             x1 = maskmapAttr['x']
             x2 = x1 + maskmapAttr['cell']* maskmapAttr['col']
@@ -85,9 +87,11 @@ def valuecell( coordx, coordstr):
             msg += box
             msg +="\nPlease have a look at \"MaskMap\" or \"Gauges\""
             raise CWATMError(msg)
-
-    mapnp = compressArray(null).astype(np.int64)
-    return mapnp
+    if returnmap:
+        mapnp = compressArray(null).astype(np.int64)
+        return mapnp
+    else:
+        return col, row
 
 
 def setmaskmapAttr(x,y,col,row,cell):
@@ -105,9 +109,13 @@ def setmaskmapAttr(x,y,col,row,cell):
     # getgeotransform only delivers single precision!
     cell = 1 / invcell
     if (x-int(x)) != 0.:
-       x = 1/round(1/(x-int(x)),4) + int(x)
+        if abs(x - int(x)) > 1e9:
+            x = 1/round(1/(x-int(x)),4) + int(x)
+        else: x = round(x,4)
     if (y - int(y)) != 0.:
-       y = 1 / round(1 / (y - int(y)), 4) + int(y)
+        if abs(y - int(y)) > 1e9:
+            y = 1 / round(1 / (y - int(y)), 4) + int(y)
+        else: y = round(y,4)
 
     maskmapAttr['x'] = x
     maskmapAttr['y'] = y
@@ -193,6 +201,7 @@ def loadsetclone(name):
                 mapnp = band.ReadAsArray(0, 0, nf2.RasterXSize, nf2.RasterYSize)
                 # 10 because that includes all valid LDD values [1-9]
                 mapnp[mapnp > 10] = 0
+                mapnp[mapnp < -10] = 0
 
                 flagmap = True
 
@@ -576,12 +585,19 @@ def readCoordNetCDF(name,check = True):
     if lat0 < latlast:
         lat0, latlast = latlast, lat0
 
-    cell = np.abs(lon1 - lon0)
+    cell = round(np.abs(lon1 - lon0),8)
     invcell = round(1.0 / cell, 0)
-    lon = lon0 - cell / 2
-    lat = lat0 + cell / 2
+    lon = round(lon0 - cell / 2,8)
+    lat = round(lat0 + cell / 2,8)
+
+
 
     return lat,lon, cell,invcell
+
+def readCalendar(name):
+    nf1 = Dataset(name, 'r')
+    dateVar['calendar'] = nf1.variables['time'].calendar
+    nf1.close()
 
 def checkMeteo_Wordclim(meteodata, wordclimdata):
     """
@@ -603,18 +619,19 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
 
     lonM0 = nf1.variables['lon'][0]
     lon1 = nf1.variables['lon'][1]
-    cellM = np.abs(lon1 - lonM0) / 2.
-    lonM0 = lonM0 - cellM
+    cellM = round(np.abs(lon1 - lonM0) / 2.,8)
+    lonM0 = round(lonM0 - cellM,8)
 
-    lonM1 = nf1.variables['lon'][-1] + cellM
+    lonM1 = round(nf1.variables['lon'][-1] + cellM,8)
     latM0 = nf1.variables['lat'][0]
     latM1 = nf1.variables['lat'][-1]
     nf1.close()
+
     # swap to make lat0 the biggest number
     if latM0 < latM1:
         latM0, latM1 = latM1, latM0
-    latM0 = latM0 + cellM
-    latM1 = latM1 - cellM
+    latM0 = round(latM0 + cellM,8)
+    latM1 = round(latM1 - cellM,8)
 
     # load Wordclima data
     try:
@@ -625,9 +642,9 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
 
     lonW0 = nf1.variables['lon'][0]
     lon1 = nf1.variables['lon'][1]
-    cellW = np.abs(lon1 - lonW0) / 2.
-    lonW0 = lonW0 - cellW
-    lonW1 = nf1.variables['lon'][-1] + cellW
+    cellW = round(np.abs(lon1 - lonW0) / 2.,8)
+    lonW0 = round(lonW0 - cellW,8)
+    lonW1 = round(nf1.variables['lon'][-1] + cellW,8)
 
 
     latW0 = nf1.variables['lat'][0]
@@ -636,8 +653,8 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
     # swap to make lat0 the biggest number
     if latW0 < latW1:
         latW0, latW1 = latW1, latW0
-    latW0 = latW0 + cellW
-    latW1 = latW1 - cellW
+    latW0 = round(latW0 + cellW,8)
+    latW1 = round(latW1 - cellW,8)
     # calculate the controll variable
     contr1 = (lonM0 + lonM1 + latM0 + latM1)
     contr2 = (lonW0 + lonW1 + latW0 + latW1)
@@ -672,14 +689,14 @@ def mapattrNetCDF(name, check = True):
 
     xx = maskmapAttr['x']
     yy = maskmapAttr['y']
-    cut0 = int(0.01 + np.abs(xx - lon) * invcell)  # argmin() ??
-    cut2 = int(0.01 + np.abs(yy - lat) * invcell)
+    cut0 = int(0.0001 + np.abs(xx - lon) * invcell)  # argmin() ??
+    cut2 = int(0.0001 + np.abs(yy - lat) * invcell)
 
     cut1 = cut0 + maskmapAttr['col']
     cut3 = cut2 + maskmapAttr['row']
     return cut0, cut1, cut2, cut3
 
-def mapattrNetCDFMeteo(name, check = True, add1 = True):
+def mapattrNetCDFMeteo(name, check = True):
     """
     get the map attributes like col, row etc from a netcdf map
     and define the rectangular of the mask map inside the netcdf map
@@ -706,41 +723,36 @@ def mapattrNetCDFMeteo(name, check = True, add1 = True):
     # geo_idx = (np.abs(dd_array - dd)).argmin()
     # geo_idx(dd, dd_array):
 
-    cut0 = int(0.01 + np.abs(lon0 - lon) * invcell)
-    cut1 = int(0.01 + np.abs(lonend - lon) * invcell) + 1
-    cut2 = int(0.01 + np.abs(lat0 - lat) * invcell)
-    cut3 = int(0.01 + np.abs(latend - lat) * invcell) + 1
-    if cut1 > 720: cut1 = 720
-    if cut3 > 300: cut3 = 300
-
-
-    lats, lons = readCoordNetCDF2(name, check)
-    geo_idx1 = (np.abs(lons - lon0)).argmin()
-    geo_idx2 = (np.abs(lons - lonend)).argmin()
-    geo_idy1 = (np.abs(lats - lat0)).argmin()
-    geo_idy2 = (np.abs(lats - latend)).argmin()
-
-
-    # rounding issue, hard to find out why and when it is working or not
-    # here if you use a crodex map do not add a 1
-    if not(add1):
-        cut1 = cut1 - 1
-        cut3 = cut3 - 1
-
+    cut0 = int(0.0001 + np.abs(lon0 - lon) * invcell)
+    cut2 = int(0.0001 + np.abs(lat0 - lat) * invcell)
 
     # lon and lat of coarse meteo dataset
     lonCoarse = (cut0 * cell) + lon
     latCoarse = lat - (cut2 * cell)
-
-
-    cut4 = int(0.01 + np.abs(lon0 - lonCoarse) * maskmapAttr['invcell'])
+    cut4 = int(0.0001 + np.abs(lon0 - lonCoarse) * maskmapAttr['invcell'])
     cut5 = cut4 + maskmapAttr['col']
-    cut6 = int(0.01 + np.abs(lat0 - latCoarse) * maskmapAttr['invcell'])
+    cut6 = int(0.0001 + np.abs(lat0 - latCoarse) * maskmapAttr['invcell'])
     cut7 = cut6 + maskmapAttr['row']
 
-    #return [cut0, cut1, cut2, cut3], [cut4, cut5, cut6, cut7]
+    # now coarser cut of the coarse meteo dataset
+    cut1 = int(0.0001 + np.abs(lonend - lon) * invcell)
+    cut3 = int(0.0001 + np.abs(latend - lat) * invcell)
+
+    # test if fine cut is inside coarse cut
+    cellx = (cut1 - cut0) * maskmapAttr['reso_mask_meteo']
+    celly = (cut3 - cut2) * maskmapAttr['reso_mask_meteo']
+
+    if cellx < cut5:
+        cut1 += 1
+    if celly < cut7:
+        cut3 += 1
+
+    if cut1 > (360 * invcell): cut1 = int(360 * invcell)
+    if cut3 > (180 * invcell): cut3 = int(180 * invcell)
+
+
+
     return cut0, cut1, cut2, cut3, cut4, cut5, cut6, cut7
-    #return (cut0, cut1, cut2, cut3)
 
 
 
@@ -815,43 +827,51 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
                 raise CWATMFileError(filename, msg, sname=maps)
             nctime = nf1.variables['time']
 
-
-            if nctime.calendar in ['noleap', '365_day']:
-                dateVar['leapYear'] = 1
-            if nctime.calendar in ['360_day']:
-                dateVar['leapYear'] = 2
-
-
             datestart = num2date(nctime[0],units=nctime.units,calendar=nctime.calendar)
             #datestart = num2date(nctime[0], units=nctime.units, calendar='proleptic_gregorian')
             # sometime daily records have a strange hour to start with -> it is changed to 0:00 to haqve the same record
             datestart = datestart.replace(hour=0, minute=0)
             dateend = num2date(nctime[-1], units=nctime.units, calendar=nctime.calendar)
+
+            datestartint = int(nctime[0])
+            dateendint = int(nctime[-1])
+
             #dateend = num2date(nctime[-1], units=nctime.units, calendar='proleptic_gregorian')
             dateend = dateend.replace(hour=0, minute=0)
-            if dateVar['leapYear'] > 0:
-                start = num2date(date2num(dateVar[startcheck],nctime.units,calendar=nctime.calendar), units=nctime.units, calendar=nctime.calendar)
-            else:
-                start = dateVar[startcheck]
+            #if dateVar['leapYear'] > 0:
+            startint = int(date2num(dateVar[startcheck],nctime.units,calendar=nctime.calendar))
+            start = num2date(startint, units=nctime.units, calendar=nctime.calendar)
+            endint = int(date2num(end, nctime.units, calendar=nctime.calendar))
+
+            #else:
+            #    start = dateVar[startcheck]
 
             if startfile == 0:  # search first file where dynamic run starts
-                if (dateend >= start) and (datestart <= start):  # if enddate of a file is bigger than the start of run
+                if (dateendint >= startint) and (datestartint <= startint):  # if enddate of a file is bigger than the start of run
                     startfile = 1
-                    indstart = (start - datestart).days
-                    indend = (dateend -datestart).days
+                    #indstart = (start - datestart).days
+                    indstart = startint - datestartint
+
+                    #indend = (dateend -datestart).days
+                    indend = dateendint - datestartint
+
                     meteolist[startfile-1] = [filename,indstart,indend, start,dateend]
                     inputcounter[maps] = indstart  # startindex of timestep 1
-                    start = dateend + datetime.timedelta(days=1)
-                    start = start.replace(hour=0, minute=0)
+                    #start = dateend + datetime.timedelta(days=1)
+                    #start = start.replace(hour=0, minute=0)
+                    startint = dateendint + 1
+                    start = num2date(startint, units=nctime.units, calendar=nctime.calendar)
 
             else:
-                if (datestart >= start) and (datestart < end ):
+                if (datestartint >= startint) and (datestartint < endint ):
                     startfile += 1
-                    indstart = (start - datestart).days
-                    indend = (dateend -datestart).days
+                    indstart = startint - datestartint
+                    indend = dateendint - datestartint
                     meteolist[startfile - 1] = [filename, indstart,indend, start, dateend,]
-                    start = dateend + datetime.timedelta(days=1)
-                    start = start.replace(hour=0, minute=0)
+                    #start = dateend + datetime.timedelta(days=1)
+                    #start = start.replace(hour=0, minute=0)
+                    startint = dateendint + 1
+                    start = num2date(startint, units=nctime.units, calendar=nctime.calendar)
 
             nf1.close()
         meteofiles[maps] =  meteolist
@@ -1279,7 +1299,8 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
             if dateunit == "days": time.units = 'Days since ' + yearstr + '-01-01'
             if dateunit == "months": time.units = 'Months since ' + yearstr + '-01-01'
             if dateunit == "years": time.units = 'Years since ' + yearstr + '-01-01'
-            time.calendar = 'standard'
+            #time.calendar = 'standard'
+            time.calendar = dateVar['calendar']
 
             if modflow:
                 value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True, fill_value=1e20)
