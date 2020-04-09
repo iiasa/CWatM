@@ -2,7 +2,7 @@ cwatm_initial module
 ====================
 
    
-.. automodule:: cwatm_initial
+.. automodule:: cwatm.cwatm_initial
     :members:
     :undoc-members:
     :inherited-members:

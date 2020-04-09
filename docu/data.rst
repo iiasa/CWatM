@@ -151,7 +151,7 @@ The momentum equation can also be expressed as (Chow et al., 1988):
 
 The coefficients α and β are calculated by putting in Manning's equation
 
-:math:`Q = A v = {AR^{2/3} \sqrt{So} \over{n}} = {A^{5/3} \sqrt{So} \over{n P^{2/3}}}` 
+:math:`Q = A v = \frac{AR^{2/3} \sqrt{So}}{n}} = {A^{5/3} \sqrt{So} \over{n P^{2/3}}}` 
 
 | where:
 | v: velocity [m/s]
@@ -161,7 +161,7 @@ The coefficients α and β are calculated by putting in Manning's equation
 
 Solving this for α and β gives:
 
-:math:`\alpha = ({nP^{2/3} \over{\sqrt{So}}})^\beta` and  :math:`\beta = 0.6` 
+:math:`\alpha = (\frac{nP^{2/3}}{\sqrt{So}}})^\beta` and  :math:`\beta = 0.6` 
 
 | To calculate α CWATM uses static maps of:
 | P: wetted perimeter approximated in CWATM: P = channel width + 2 * channel bankful depth

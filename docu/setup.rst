@@ -16,20 +16,18 @@ Python version
 **************
 
 NEW from 2019 on:
-Requirements are a 64 bit `Python 3.7.x version <https://www.python.org/downloads/release/python-372/>`_
+Requirements are a 64 bit `Python 3.7.x or 3.8.x version <https://www.python.org/downloads/release/python-372/>`_
 
 Reason for this step:
 
-* Python 2.7 support ends in 2019
+* Python 2.7 support ended in 2019
 * We will be able to provide a better error handling
 * We are able to provide an executable of CWATM for Windows
 
 
 .. warning:: a 32 bit version is not able to handle the data requirements!
 
-.. warning:: From 2019 on we are changing to Python 3.7. We do not provide further support for Python 2.7
-
-.. warning:: CWATM is tested for Python 3.7 and will for sure not work with Python versions lower than 3.6. We recommend using Python 3.7
+.. warning:: CWATM is tested for Python 3.7 and 3.8 and will for sure not work with Python versions lower than 3.6. We recommend using Python 3.7 or 3.8
 
 Libraries
 *********
@@ -47,11 +45,24 @@ These external libraries are needed:
 The five libraries can be installed with pip or
 downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
 
+Installing
+**********
+
+Finally the model can be installed with pip:
+
+.. code-block:: python
+
+   pip install https://github.com/CWatM/CWatM
+
+Or in editable mode:
+
+.. code-block:: python
+
+   pip install -e https://github.com/CWatM/CWatM
+
 
 Windows executeable Python version
 **********************************
-
-
 
 | A CWATM executable cwatm.exe can be used instead of the Python version
 
@@ -185,28 +196,30 @@ Running the model
 Start the model
 ---------------
 
+Download and run run_cwatm.py
+
 .. warning:: The model needs a settings file as an argument. See: :ref:`rst_settingdoc` 
 
 **Windows**
 
-python <modelpath>/cwatm.py settingsfile flags
+python run_cwatm.py settingsfile flags
 
 example::
 
-   python cwatm.py settings1.ini
+   python run_cwatm.py settings1.ini
    or with more information and an overview of computational runtime
-   python cwatm.py settings1.ini -l -t
+   python run_cwatm.py settings1.ini -l -t
 	
 .. warning:: If python is not set in the environment path, the full path of python has to be used
 
 
 **Linux**
 
-<modelpath>/cwatm.py settingsfile flags
+run_cwatm.py settingsfile flags
 
 example::
 
-    cwatm.py settings1.ini -l -t
+    run_cwatm.py settings1.ini -l -t
 	
 Flags
 *****
