@@ -298,7 +298,12 @@ class routing_kinematic(object):
 
         WDAddM3Dt = 0
         if checkOption('includeWaterDemand'):
-             WDAddM3Dt = self.var.act_SurfaceWaterAbstract.copy()
+            # self.var.act_SurfaceWaterAbstract includes channel abstractions as well as abstractions from lakes and reservoirs
+            # In waterdemand.py: self.var.act_SurfaceWaterAbstract = self.var.act_SurfaceWaterAbstract + self.var.act_bigLakeResAbst + self.var.act_smallLakeResAbst
+            # The abstractions from lakes and reservoirs have already been dealt with by removing these amounts from their storages in the same module
+            # The water abstractions from the channel are thus the surface water abstractions subtract the lake and reservoir abstractions
+            
+             WDAddM3Dt = self.var.act_SurfaceWaterAbstract - (self.var.act_bigLakeResAbst + self.var.act_smallLakeResAbst)
              #return flow from (m) non irrigation water demand
              #WDAddM3Dt = WDAddM3Dt - self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrDemand
              WDAddM3Dt = WDAddM3Dt - self.var.returnFlow
