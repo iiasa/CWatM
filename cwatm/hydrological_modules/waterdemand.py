@@ -669,7 +669,7 @@ class waterdemand(object):
                 act_irrpaddySW = self.var.fracVegCover[2] * act_swAbstractionFraction * self.var.irrDemand[2]
                 self.var.act_irrPaddyWithdrawal = act_irrpaddySW + act_irrpaddyGW
 
-                act_gw = act_nonIrrWithdrawalGW + act_irrnonpaddyGW + act_irrWithdrawalGW
+                act_gw = act_nonIrrWithdrawalGW + act_irrWithdrawalGW
 
                 # todo: is act_irrWithdrawal needed to be replaced? Check later!!
                 # consumption - irrigation (without loss) = demand  * efficiency   (back to non fraction value)
