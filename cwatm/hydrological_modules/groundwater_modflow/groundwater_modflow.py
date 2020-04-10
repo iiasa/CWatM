@@ -111,9 +111,6 @@ class groundwater_modflow(object):
             top = np.loadtxt(cbinding('topo_modflow'))
             # "Topo.txt" is created by the ProjMapToModFlow function
             topography = top.reshape(domain['nrow'], domain['ncol'])
-            self.var.botm = np.full((self.var.nlay + 1, domain['nrow'], domain['ncol']), topography)
-            for il in range(1, self.var.nlay + 1):
-                self.var.botm[il] = self.var.botm[il - 1] - self.var.delv2[0]
 
             ## Uploading river percentage of each ModFlow cell computed by Matlab Topotoolbox on a finner topography map ##
             #  print("Calculate River percentage")
@@ -177,12 +174,16 @@ class groundwater_modflow(object):
             soildepth12 = maskinfo['maskall'].copy()
             soildepth12[~maskinfo['maskflat']] = self.var.soildepth12[:]
             # CWATM 2D array is comverted to Modflow 2D array
-            soildepth_modflow = indexes['Weight'] * soildepth12[indexes['CWATMindex']]
+            soildepth_modflow = soildepth12[indexes['CWATMindex']]
             soildepth_modflow[np.isnan(soildepth_modflow)] = 1.0
             soildepth_modflow[soildepth_modflow < 1e-20] = 1.0
             soildepth_modflow = soildepth_modflow.reshape(domain['nrow'], domain['ncol'])
             self.var.waterTable3 = topography - soildepth_modflow
 
+            self.var.botm = np.full((self.var.nlay + 1, domain['nrow'], domain['ncol']), topography)
+            self.var.botm[0] = self.var.waterTable3
+            for il in range(1, self.var.nlay + 1):
+                self.var.botm[il] = self.var.botm[il - 1] - self.var.delv2[0]
 
             taille = np.zeros(indexes['Weight2'].shape)
             h = np.bincount(indexes['CWATMindex'], np.ones(indexes['CWATMindex'].shape)).astype(int)
