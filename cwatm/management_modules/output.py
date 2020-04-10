@@ -112,7 +112,7 @@ class outputTssMap(object):
         coord = cbinding(where).split()  # could be gauges, sites, lakeSites etc.
         if len(coord) % 2 == 0:
             compress_arange = np.arange(maskinfo['mapC'][0])
-            arange = decompress(compress_arange, True).astype(int)
+            arange = decompress(compress_arange).astype(int)
 
             #outpoints = valuecell( coord, outpoints)
             col,row = valuecell(coord, outpoints, returnmap = False)
@@ -145,9 +145,14 @@ class outputTssMap(object):
         if calcCatch:
            self.var.evalCatch ={}
            self.var.catcharea = {}
+
+
            for key in sorted(self.var.sampleAdresses):
-              outp = outpoints.copy()
-              outp[outp != key] = 0
+              outp  = globals.inZero.copy()
+              outp[self.var.sampleAdresses[key]] = key
+
+
+
               self.var.evalCatch[key] = catchment1(self.var.dirUp, outp)
               self.var.catcharea[key] =np.bincount(self.var.evalCatch[key], weights=self.var.cellArea)[key]
 

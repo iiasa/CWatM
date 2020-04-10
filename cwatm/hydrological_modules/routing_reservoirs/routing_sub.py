@@ -35,7 +35,7 @@ def Compress (map,mask):
     return compmap
 
 
-def decompress(map):
+def decompress1(map):
     """
     Decompressing map from 1D to 2D with missing values
 
@@ -265,7 +265,7 @@ def defLdd2(ldd):
     # every cell gets an order starting from 0 ...
     lddshortOrder =np.arange(maskinfo['mapC'][0])
     # decompress this map to 2D
-    lddOrder = decompress(lddshortOrder)
+    lddOrder = decompress1(lddshortOrder)
     lddOrder[maskinfo['mask']]=-1
     lddOrder = np.array(lddOrder.data, dtype=np.int64)
 
