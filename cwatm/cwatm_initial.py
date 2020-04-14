@@ -106,7 +106,7 @@ class CWATModel_ini(DynamicModel):
         if lenmask == 2:
             print ("Create catchment from point and river network")
             mask2D, xleft, yup = self.routing_kinematic_module.catchment(point)
-            self.MaskMap = maskfrompoint(mask2D, xleft, yup)
+            self.MaskMap = maskfrompoint(mask2D, xleft, yup) + 1
             area = np.sum(loadmap('CellArea')) * 1e-6
             print("Number of cells in catchment: %6i = %7.0f km2" %(np.sum(mask2D),area))
 

@@ -442,15 +442,13 @@ def timestep_dynamic(self):
     #dateVar['doy'] = (dateVar['currDate'] - firstdoy).days + 1
     firstdoyInt = datenum(firstdoy)
     dateVar['doy'] = int(datevarInt  - firstdoyInt + 1)
-
     dateVar['10day'] = int((dateVar['doy']-1)/10)
 
     dateVar['laststep'] = False
-    if (dateVar['intStart'] + dateVar['curr']) == dateVar['intEnd']: dateVar['laststep'] = True
-    if (d1 + dateVar['curr']) == dateVar['intEnd']: dateVar['laststep'] = True
+    if (dateVar['intStart'] + dateVar['curr']) == dateVar['intEnd']:
+        dateVar['laststep'] = True
 
     dateVar['currStart'] = dateVar['curr'] + 1
-
     dateVar['curr'] += 1
     # count currwrite only after spin time
     if dateVar['curr'] >= dateVar['intSpin']:
