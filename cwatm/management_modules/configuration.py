@@ -187,7 +187,9 @@ def read_metanetcdf(metaxml,name):
     else:
         msg = "Cannot find option file: " + metaxml +"\n"
         path, name = os.path.split(metaxml)
-        metaxml = os.path.join(os.getcwd(), name)
+        #metaxml = os.path.join(os.getcwd(), name)
+        # using program name
+        metaxml = os.path.join(os.path.dirname(os.path.realpath(sys.argv[0])),'cwatm', name)
         if os.path.isfile(metaxml):
             msg += "Using file: " + metaxml + " instead."
             print(CWATMWarning(msg))
