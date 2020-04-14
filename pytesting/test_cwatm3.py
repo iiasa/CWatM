@@ -169,6 +169,15 @@ def config():
   config = open('test_py_catwm1.txt')
   return config
 
+@pytest.mark.parametrize("info, descript, changes, adds, setting, testvalue, outvalue", sets[runs[0]])
+def test_0_without(info, descript, changes, adds, setting, testvalue, outvalue):
+
+    print('\n ===== ',info,' =====')
+    print (" Setting file: NONE")
+
+    success = run_cwatm.usage()
+    assert success
+
 
 @pytest.mark.skipif(noskip[runs[0]] == False, reason= runs[0] + " skripped")
 @pytest.mark.parametrize("info, descript, changes, adds, setting, testvalue, outvalue", sets[runs[0]])

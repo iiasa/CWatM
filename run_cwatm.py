@@ -46,7 +46,7 @@ def usage():
     -t --printtime   the computation time for hydrological modules are printed
     -w --warranty    copyright and warranty information
     """)
-    sys.exit(1)
+    return True
 
 
 # ==================================================
@@ -209,7 +209,7 @@ def main(settings,args):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         usage()
-    CWatM_Path = os.path.dirname(sys.argv[0])
-    CWatM_Path = os.path.abspath(CWatM_Path)
-
-    main(sys.argv[1],sys.argv[2:])
+    else:
+        CWatM_Path = os.path.dirname(sys.argv[0])
+        CWatM_Path = os.path.abspath(CWatM_Path)
+        main(sys.argv[1],sys.argv[2:])

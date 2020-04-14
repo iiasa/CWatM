@@ -5,6 +5,8 @@ before_install:
   - python --version
   - pip install -U pip
   - pip install -U pytest
+  - pip install -U pytest-report
 install:
-  - pip install cwatm . # install package + test dependencies
+  - pip install -r requirements.txt
+  - pip install .
 script: pytest ./pytesting/test_cwatm3.py --html=report.html --settingsfile=./pytesting/test_py_catwm1.txt
