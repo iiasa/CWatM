@@ -36,9 +36,7 @@ from cwatm.hydrological_modules.routing_reservoirs.routing_kinematic import *
 from cwatm.hydrological_modules.lakes_reservoirs import *
 from cwatm.hydrological_modules.waterquality1 import *
 
-# --------------------------------------------
-
-#from cwatm.management_modules.data_handling import *
+from cwatm.management_modules.data_handling import loadsetmask
 from cwatm.management_modules.output import *
 import os, glob
 
@@ -101,14 +99,7 @@ class CWATModel_ini(DynamicModel):
 
         ## MakMap: the maskmap is flexible e.g. col,row,x1,y1  or x1,x2,y1,y2
         # set the maskmap
-        self.MaskMap, point, lenmask = loadsetclone('MaskMap')
-
-        if lenmask == 2:
-            print ("Create catchment from point and river network")
-            mask2D, xleft, yup = self.routing_kinematic_module.catchment(point)
-            self.MaskMap = maskfrompoint(mask2D, xleft, yup) + 1
-            area = np.sum(loadmap('CellArea')) * 1e-6
-            print("Number of cells in catchment: %6i = %7.0f km2" %(np.sum(mask2D),area))
+        self.MaskMap = loadsetmask(self, 'MaskMap')
 
         name = cbinding('PrecipitationMaps')
         nameall = glob.glob(os.path.normpath(name))

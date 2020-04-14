@@ -125,9 +125,9 @@ def setmaskmapAttr(x,y,col,row,cell):
     maskmapAttr['invcell'] = invcell
 
 
-def loadsetclone(name):
+def loadsetmask(model, name):
     """
-    load the maskmap and set as clone
+    load and set the maskmap
 
     :param name: name of mask map, can be a file or - row col cellsize xupleft yupleft -
     :return: new mask map
@@ -137,22 +137,7 @@ def loadsetclone(name):
     filename = cbinding(name)
     coord = filename.split()
 
-    if len(coord) == 2:
-        name = "Ldd"
-
-    if len(coord) == 5:
-        # changed order of x, y i- in setclone y is first in CWATM
-        # settings x is first
-        # setclone row col cellsize xupleft yupleft
-        # retancle: Number of Cols, Number of rows, cellsize, upper left corner X, upper left corner Y
-
-        mapnp = np.ones((int(coord[1]), int(coord[0])))
-        setmaskmapAttr(float(coord[3]),float(coord[4]), int(coord[0]),int(coord[1]),float(coord[2]))
-        #mapnp[mapnp == 0] = 1
-        #map = numpy2pcr(Boolean, mapnp, -9999)
-
-    elif len(coord) < 3:
-
+    if len(coord) == 1:  # is filename
         filename = os.path.splitext(cbinding(name))[0] + '.nc'
         try:
             nf1 = Dataset(filename, 'r')
@@ -212,24 +197,35 @@ def loadsetclone(name):
 
         if Flags['check']:
             checkmap(name, filename, mapnp, flagmap, False,0)
+    
+    elif len(coord) == 2:
+        name = "Ldd"
 
+    elif len(coord) == 5:
+        # changed order of x, y i- in setmask y is first in CWATM
+        # settings x is first
+        # setmask mask col cellsize xupleft yupleft
+        # retancle: Number of Cols, Number of rows, cellsize, upper left corner X, upper left corner Y
+
+        mapnp = np.ones((int(coord[1]), int(coord[0])))
+        setmaskmapAttr(float(coord[3]),float(coord[4]), int(coord[0]),int(coord[1]),float(coord[2]))
+        #mapnp[mapnp == 0] = 1
+        #map = numpy2pcr(Boolean, mapnp, -9999)
 
     else:
         msg = "Maskmap: " + filename + " is not a valid mask map nor valid coordinates nor valid point\n"
         msg +="Or there is a whitespace or undefined character in Maskmap"
         raise CWATMError(msg)
 
-
-
     # put in the ldd map
     # if there is no ldd at a cell, this cell should be excluded from modelling
 
     maskldd = loadmap('Ldd', compress = False)
     maskarea = np.bool8(mapnp)
-    mask = np.logical_not(np.logical_and(maskldd,maskarea))
+    mask = np.logical_not(np.logical_and(maskldd, maskarea))
 
-#    mask=np.isnan(mapnp)
-#    mask[mapnp==0] = True # all 0 become mask out
+    # mask=np.isnan(mapnp)
+    # mask[mapnp==0] = True # all 0 become mask out
     mapC = np.ma.compressed(np.ma.masked_array(mask,mask))
 
     # Definition of compressed array and info how to blow it up again
@@ -248,10 +244,16 @@ def loadsetclone(name):
 
     outpoints = 0
     if len(coord) == 2:
-       outpoints = valuecell( coord, filename)
-       outpoints[outpoints < 0] = 0
+        outpoints = valuecell( coord, filename)
+        outpoints[outpoints < 0] = 0
 
-    return mapC, outpoints, len(coord)
+        print("Create catchment from point and river network")
+        mask2D, xleft, yup = model.routing_kinematic_module.catchment(outpoints)
+        mapC = maskfrompoint(mask2D, xleft, yup) + 1
+        area = np.sum(loadmap('CellArea')) * 1e-6
+        print("Number of cells in catchment: %6i = %7.0f km2" %(np.sum(mask2D),area))
+
+    return mapC
 
 
 def maskfrompoint(mask2D,xleft,yup):
@@ -292,7 +294,7 @@ def maskfrompoint(mask2D,xleft,yup):
     return mapC
 
 
-def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
+def loadmap(name, lddflag=False, compress=True, local=False, cut=True):
     """
     load a static map either value or pc raster map or netcdf
 
@@ -401,7 +403,11 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
 # Compressing to 1-dimensional numpy array
 # -----------------------------------------------------------------------
 
-def compressArray(map, name="None", zeros = 0.):
+def compress(array):
+    masked_array = np.ma.masked_array(array, maskinfo['mask'])
+    return np.ma.compressed(masked_array)
+
+def compressArray(array, name=None, zeros = 0.):
     """
     Compress 2D array with missing values to 1D array without missing values
 
@@ -410,21 +416,16 @@ def compressArray(map, name="None", zeros = 0.):
     :param zeros: add zeros (default= 0) if values of map are to big or too small
     :return: Compressed 1D array
     """
-
-
-    mapnp1 = np.ma.masked_array(map, maskinfo['mask'])
-    mapC = np.ma.compressed(mapnp1)
-    # if fill: mapC[np.isnan(mapC)]=0
-    if name != "None":
-        if np.max(np.isnan(mapC)):
+    compressed_array = compress(array)
+    if name is not None:
+            # test if map has less valid pixel than area.map (or ldd)
+        if np.max(np.isnan(compressed_array)):
             msg = name + " has less valid pixels than area or ldd \n"
             raise CWATMError(msg)
-            # test if map has less valid pixel than area.map (or ldd)
     # if a value is bigger or smaller than 1e20, -1e20 than the standard value is taken
-    mapC[mapC > 1.E20] = zeros
-    mapC[mapC < -1.E20] = zeros
-
-    return mapC
+    compressed_array[compressed_array > 1.E20] = zeros
+    compressed_array[compressed_array < -1.E20] = zeros
+    return compressed_array
 
 def decompress(map):
     """
@@ -554,7 +555,7 @@ def readCoordNetCDF2(name,check = True):
 
 
 
-def readCoordNetCDF(name,check = True):
+def readCoordNetCDF(name, check=True):
     """
     reads the map attributes col, row etc from a netcdf map
 
@@ -591,7 +592,7 @@ def readCoordNetCDF(name,check = True):
 
 
 
-    return lat,lon, cell,invcell
+    return lat, lon, cell, invcell
 
 def readCalendar(name):
     nf1 = Dataset(name, 'r')
@@ -1638,11 +1639,10 @@ def cbinding(inBinding):
     :param inBinding: parameter in settings file
     """
 
-    lineclosest = ""
-    test = inBinding in binding
-    if test:
+    try:
         return binding[inBinding]
-    else:
+    except KeyError:
+        lineclosest = ""
         close = difflib.get_close_matches(inBinding, list(binding.keys()))
         if close:
             closest = close[0]
