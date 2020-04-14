@@ -17,7 +17,7 @@ import xlrd
 from cwatm.hydrological_modules.groundwater_modflow.ModFlow_modelV5 import ModFlow_modelV5
 
 
-def decompress(map):
+def decompress2(map):
     """
     Decompressing map from 1D to 2D with missing values
 
@@ -74,7 +74,7 @@ def modflow_steady(self,compteur):
 
     # gwrecharge from CWATM soil part, will be decompressed to 2D array
     # multiplied with timesteps (e.g. 7 days)
-    gw1 = decompress(self.var.sum_gwRecharge) * StepSize
+    gw1 = decompress2(self.var.sum_gwRecharge) * StepSize
 
     # CWATM 2D array is converted to Modflow 2D array
     gwrecharge = indexes['Weight'] * gw1[indexes['CWATMindex']]
@@ -113,7 +113,7 @@ def modflow_transient(self,compteur):
 
     # gwrecharge from CWATM soil part, will be decompressed to 2D array
     # using the sumed up (over e.g 7 days gwrecharge)
-    gw1 = decompress(self.var.sumed_sum_gwRecharge)
+    gw1 = decompress2(self.var.sumed_sum_gwRecharge)
 
     # CWATM 2D array is comverted to Modflow 2D array
     gwrecharge = indexes['Weight'] * gw1[indexes['CWATMindex']]

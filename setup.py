@@ -15,6 +15,9 @@ setup(name='CWatM',
             'cwatm.management_modules'
       ],
       package_data={
+            'cwatm': [
+                  'metaNetcdf.xml',
+            ],
             'cwatm.hydrological_modules': [
                   'routing_reservoirs/t5.dll',
                   'routing_reservoirs/t5cyg.so',

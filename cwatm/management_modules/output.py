@@ -107,9 +107,19 @@ class outputTssMap(object):
         where = "Gauges"
         outpoints = cbinding(where)
 
+        #globals.inZero = np.zeros(maskinfo['mapC'])
+
         coord = cbinding(where).split()  # could be gauges, sites, lakeSites etc.
         if len(coord) % 2 == 0:
-            outpoints = valuecell( coord, outpoints)
+            compress_arange = np.arange(maskinfo['mapC'][0])
+            arange = decompress(compress_arange).astype(int)
+
+            #outpoints = valuecell( coord, outpoints)
+            col,row = valuecell(coord, outpoints, returnmap = False)
+            self.var.sampleAdresses = {}
+            for i in range(len(col)):
+                self.var.sampleAdresses[i+1] = arange[row[i],col[i]]
+
         else:
             if os.path.exists(outpoints):
                 outpoints = loadmap(where, local = localGauges).astype(np.int64)
@@ -120,9 +130,9 @@ class outputTssMap(object):
                     msg = "Coordinates are not pairs\n"
                 raise CWATMFileError(outpoints, msg, sname="Gauges")
 
-        # self.var.Tss[tss] = TimeoutputTimeseries(cbinding(tss), self.var, outpoints, noHeader=Flags['noheader'])
-        outpoints[outpoints < 0] = 0
-        self.var.sampleAdresses = getlocOutpoints(outpoints)  # for key in sorted(mydict):
+            # self.var.Tss[tss] = TimeoutputTimeseries(cbinding(tss), self.var, outpoints, noHeader=Flags['noheader'])
+            outpoints[outpoints < 0] = 0
+            self.var.sampleAdresses = getlocOutpoints(outpoints)  # for key in sorted(mydict):
 
         self.var.noOutpoints = len(self.var.sampleAdresses)
         #catch = subcatchment1(self.var.dirUp,outpoints,self.var.UpArea1)
@@ -135,9 +145,14 @@ class outputTssMap(object):
         if calcCatch:
            self.var.evalCatch ={}
            self.var.catcharea = {}
+
+
            for key in sorted(self.var.sampleAdresses):
-              outp = outpoints.copy()
-              outp[outp != key] = 0
+              outp  = globals.inZero.copy()
+              outp[self.var.sampleAdresses[key]] = key
+
+
+
               self.var.evalCatch[key] = catchment1(self.var.dirUp, outp)
               self.var.catcharea[key] =np.bincount(self.var.evalCatch[key], weights=self.var.cellArea)[key]
 
@@ -282,7 +297,7 @@ class outputTssMap(object):
             if len(expression[3]):
                 numbervalues = len(expression[3][0])
 
-                for timestep in range(dateVar['intSpin'], dateVar['intEnd'] + 1 - dateVar['leapYearMinus']):
+                for timestep in range(dateVar['intSpin'], dateVar['intEnd'] + 1):
                     if dateVar['checked'][timestep - dateVar['intSpin']] >= daymonthyear:
                     #if dateVar['checked'][timestep - 1] >= daymonthyear:
                         row = ""
@@ -432,8 +447,8 @@ class outputTssMap(object):
                                                                 dateVar['diffMonth'],dateunit="months")
                                 #vars(self.var)[varname + "monthtot"] = 0
                             if map[-8:] == "monthavg":
-                                days = calendar.monthrange(dateVar['currDate'].year, dateVar['currDate'].month)[1]
-                                avgmap = vars(self.var)[varname + "_monthavg"] / days
+                                #days = calendar.monthrange(dateVar['currDate'].year, dateVar['currDate'].month)[1]
+                                avgmap = vars(self.var)[varname + "_monthavg"] / dateVar['daysInMonth']
                                 outMap[map][i][2] = writenetcdf(netfile, varname,"_monthavg", "undefined", avgmap,dateVar['currDate'], dateVar['currMonth'], flag, True,dateVar['diffMonth'],dateunit="months")
                                 #vars(self.var)[varname+"monthavg"] = 0
 

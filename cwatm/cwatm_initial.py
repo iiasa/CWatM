@@ -107,6 +107,7 @@ class CWATModel_ini(DynamicModel):
             raise CWATMFileError(name, sname='PrecipitationMaps')
         namemeteo = nameall[0]
         latmeteo, lonmeteo, cell, invcellmeteo = readCoordNetCDF(namemeteo)
+
         nameldd = cbinding('Ldd')
         #nameldd = os.path.splitext(nameldd)[0] + '.nc'
         #latldd, lonldd, cell, invcellldd = readCoordNetCDF(nameldd)
@@ -125,11 +126,6 @@ class CWATModel_ini(DynamicModel):
         cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(nameldd)
         for i in range(4): cutmapFine[i] = cutmap[i]
 
-        # in case other mapsets are used e.g. Cordex RCM meteo data
-        # if (latldd != latmeteo) or (lonldd != lonmeteo):
-        #    cutmapFine[0], cutmapFine[1], cutmapFine[2], cutmapFine[3], cutmapVfine[0], cutmapVfine[1], cutmapVfine[2], cutmapVfine[3] = mapattrNetCDFMeteo(namemeteo,add1 = False)
-
-
         # for downscaling meteomaps , Wordclim data at a finer resolution is used
         # here it is necessary to clip the wordclim data so that they fit to meteo dataset
         self.meteodown = False
@@ -139,11 +135,18 @@ class CWATModel_ini(DynamicModel):
         if self.meteodown:
             check_clim = checkMeteo_Wordclim(namemeteo, cbinding('downscale_wordclim_prec'))
 
+
+
+        # in case other mapsets are used e.g. Cordex RCM meteo data
+        if (latldd != latmeteo) or (lonldd != lonmeteo):
+            cutmapFine[0], cutmapFine[1], cutmapFine[2], cutmapFine[3], cutmapVfine[0], cutmapVfine[1], cutmapVfine[2], cutmapVfine[3] = mapattrNetCDFMeteo(namemeteo)
+
         if not self.meteomapsscale:
             # if the cellsize of the spatial dataset e.g. ldd, soil etc is not the same as the meteo maps than:
             cutmapFine[0], cutmapFine[1],cutmapFine[2],cutmapFine[3],cutmapVfine[0], cutmapVfine[1],cutmapVfine[2],cutmapVfine[3]  = mapattrNetCDFMeteo(namemeteo)
             # downscaling wordlclim maps
             for i in range(4): cutmapGlobal[i] = cutmapFine[i]
+
 
             if not(check_clim):
                # for downscaling it is always cut from the global map
@@ -154,11 +157,12 @@ class CWATModel_ini(DynamicModel):
                     cutmapGlobal[3] = int(cutmap[3] / maskmapAttr['reso_mask_meteo']+0.999)
 
 
+
+
         if checkOption('writeNetcdfStack') or checkOption('writeNetcdf'):
             # if NetCDF is writen, the pr.nc is read to get the metadata
             # like projection
             metaNetCDF()
-
 
             if "coverresult" in binding:
                 coverresult[0] = returnBool('coverresult')
@@ -168,8 +172,6 @@ class CWATModel_ini(DynamicModel):
                     cover[cover == 1] = True
                     coverresult[1] = cover
                     #coverresult[1] = np.ma.array(cover, mask = covermask)
-
-
 
         # run intial misc to get all global variables
         self.misc_module.initial()
@@ -185,7 +187,6 @@ class CWATModel_ini(DynamicModel):
 
         self.groundwater_modflow_module.initial()
         # groundwater before meteo, bc it checks steady state
-
 
         self.landcoverType_module.initial()
         self.groundwater_module.initial()

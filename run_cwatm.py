@@ -75,7 +75,7 @@ def CWATMexe(settings):
     # os.chdir(outputDir[0])
     # this prevent from using relative path in settings!
 
-    checkifDate('StepStart', 'StepEnd', 'SpinUp')
+    checkifDate('StepStart', 'StepEnd', 'SpinUp', cbinding('PrecipitationMaps'))
     # checks if end date is later than start date and puts both in modelSteps
     if Flags['check']:
         dateVar["intEnd"] = dateVar["intStart"]
