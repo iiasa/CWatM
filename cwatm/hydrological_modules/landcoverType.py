@@ -314,34 +314,17 @@ class landcoverType(object):
             # In such a case, it may be better to turn off the root fractioning feature, as there is limited depth
             # in the third soil layer to hold water, while having a significant fraction of the rootss.
             # TODO: Extend soil depths to match maximum root depths
+            
+            rootFrac = np.tile(globals.inZero,(self.var.soilLayers,1))
+            fractionroot12 = self.var.rootDepth[0][i] / (self.var.rootDepth[0][i] + self.var.rootDepth[1][i] )
+            rootFrac[0] = fractionroot12 * self.var.rootFraction1[i]
+            rootFrac[1] = (1 - fractionroot12) * self.var.rootFraction1[i]
+            rootFrac[2] = 1.0 - self.var.rootFraction1[i]
 
-            if 'rootFrac' in binding:
-                if cbinding('rootFrac') == 'False':
-                    rootFrac = False
-                else:
-                    rootFrac = True
-            else:
-                rootFrac = True
-
-            if rootFrac == False:
-
-                # scaleRootFractions
-                rootFrac = np.tile(globals.inZero,(self.var.soilLayers,1))
-
+            if not checkOption('rootFrac'):
                 root_depth_sum = self.var.rootDepth[0][i] + self.var.rootDepth[1][i] + self.var.rootDepth[2][i]
-
                 for layer in range(3):
                     rootFrac[layer] = self.var.rootDepth[layer][i] / root_depth_sum
-
-            else:
-
-                # scaleRootFractions
-                rootFrac = np.tile(globals.inZero,(self.var.soilLayers,1))
-                fractionroot12 = self.var.rootDepth[0][i] / (self.var.rootDepth[0][i] + self.var.rootDepth[1][i] )
-                rootFrac[0] = fractionroot12 * self.var.rootFraction1[i]
-                rootFrac[1] = (1 - fractionroot12) * self.var.rootFraction1[i]
-                rootFrac[2] = 1.0 - self.var.rootFraction1[i]
-
 
             rootFracSum = np.sum(rootFrac,axis=0)
 
@@ -401,29 +384,9 @@ class landcoverType(object):
 
 
             for coverType in self.var.coverTypes:
-
-                if 'Forest_1km' in binding:
-                    if i == 0:  # Forest
-                        self.var.fracVegCover[i] = loadmap('Forest_1km')
-
-                    elif i == 2:
-                        self.var.fracVegCover[i] = globals.inZero.copy()  # *= self.var.riceWeight
-
-                    elif i == 3:  # Crop
-                        self.var.fracVegCover[i] = loadmap('Irr_1km')
-
-                    elif i == 4:  # Urban / Sealed
-                        self.var.fracVegCover[i] = loadmap('Urban_1km')
-                    elif i == 5:  # Urban / Sealed
-                        self.var.fracVegCover[i] = loadmap('Water_1km')
-                    else:
-                        self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
-
-                else:
-                    self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
-
+                
+                self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
                 i += 1
-
 
 
             # for Xiaogang's agent model
