@@ -38,7 +38,7 @@
 
 
 # True is the tests for this section should be done
-runtest: Rhine_30min; True; global_30min; True; global_5min; True; Rhine_5min; True
+runtest: Rhine_30min; True; global_30min; True; global_5min; False; Rhine_5min; True
 # True is test should compare last discharge with given number, False is test should look for -no error- execution of run
 test_value: False
 

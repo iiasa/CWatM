@@ -169,10 +169,9 @@ def config():
   config = open('test_py_catwm1.txt')
   return config
 
-@pytest.mark.parametrize("info, descript, changes, adds, setting, testvalue, outvalue", sets[runs[0]])
-def test_0_without(info, descript, changes, adds, setting, testvalue, outvalue):
+def test_0_without():
 
-    print('\n ===== ',info,' =====')
+    print('\n ===== CWATM without settingsfile =====')
     print (" Setting file: NONE")
 
     success = run_cwatm.usage()
