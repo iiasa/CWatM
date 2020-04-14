@@ -343,7 +343,7 @@ class groundwater_modflow(object):
             self.var.modflowWaterLevel[self.var.modflowWaterLevel < 0] = np.nan
             # print('ModFlow storage variations from Water levels [mm]:', np.round(np.nansum(((self.var.modflowWaterLevel-previoushead) * self.var.res_ModFlow * self.var.res_ModFlow * self.var.poro))/46000000000*1000))
             self.var.GWVolumeVariation = np.nansum((self.var.modflowWaterLevel - previoushead) * self.var.poro) * self.var.res_ModFlow * self.var.res_ModFlow
-
+            self.var.modflowPumpingM = globals.inZero.copy()
 
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(
