@@ -178,7 +178,8 @@ class groundwater_modflow(object):
             soildepth_modflow[np.isnan(soildepth_modflow)] = 1.0
             soildepth_modflow[soildepth_modflow < 1e-20] = 1.0
             soildepth_modflow = soildepth_modflow.reshape(domain['nrow'], domain['ncol'])
-            self.var.waterTable3 = topography - soildepth_modflow
+            self.var.waterTable3 = topography - soildepth_modflow -0.05
+            self.var.modflowtotalSoilThickness = soildepth_modflow + 0.05
 
             self.var.botm = np.full((self.var.nlay + 1, domain['nrow'], domain['ncol']), topography)
             self.var.botm[0] = self.var.waterTable3
