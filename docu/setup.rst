@@ -40,17 +40,9 @@ Installing
 
 Finally the model can be installed with pip.
 
-First download (or clone) the repository from https://github.com/CWatM/CWatM. Then change to directory where setup.py is located (e.g., :code:`cd CwatM`) and run
-
 .. code-block:: python
 
-   pip install .
-
-Or in editable mode:
-
-.. code-block:: python
-
-   pip install -e .
+   pip install git+git://github.com/CWatM/CWatM
 
 
 C++ libraries
@@ -120,11 +112,9 @@ To compile with g++::
 Test the Python version
 -------------------------
 
-Obtain the file run_cwatm.py from the repository or the download directory (See: :ref:`rst_setupdoc`).
+Run from the command line::
 
-Run::
-
-    python run_cwatm.py 
+    cwatm 
 
 The output should be::
 
@@ -142,30 +132,21 @@ The output should be::
 Run the Python version
 -----------------------------
 
-Obtain the file run_cwatm.py from the repository or the download directory (See: :ref:`rst_setupdoc`).
+Run from the command line::
 
-.. warning:: The model needs a settings file as an argument. See: :ref:`rst_settingdoc` 
-
-**Windows**
-
-python run_cwatm.py settingsfile flags
+    cwatm settingsfile flags
 
 example::
 
-   python run_cwatm.py settings1.ini
-   or with more information and an overview of computational runtime
-   python run_cwatm.py settings1.ini -l -t
+   cwatm settings1.ini
+
+or with more information and an overview of computational runtime::
+
+   cwatm settings1.ini -l -t
 	
 .. warning:: If python is not set in the environment path, the full path of python has to be used
 
-
-**Linux**
-
-run_cwatm.py settingsfile flags
-
-example::
-
-    run_cwatm.py settings1.ini -l -t
+.. warning:: The model needs a settings file as an argument. See: :ref:`rst_settingdoc` 
 	
 Flags
 *****
@@ -228,9 +209,9 @@ Test the data
 
 example::
 
-   cwatm.py settings1.ini -c
+   cwatm settings1.ini -c
    or
-   cwatm.py settings1.ini -c > checkdata.txt 
+   cwatm settings1.ini -c > checkdata.txt 
 
 A list is created with::
 
