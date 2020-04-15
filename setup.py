@@ -1,7 +1,8 @@
 from setuptools import setup
 from cwatm import __version__, __author__, __email__
 
-setup(name='CWatM',
+setup(
+      name='CWatM',
       version=__version__,
       description='',
       url='https://github.com/CWatM',
@@ -32,6 +33,8 @@ setup(name='CWatM',
             'scipy',
             'netCDF4',
             'gdal',
-            'pyflow'
+            'pyflow',
+            'pytest',
+            'pytest-html'
       ]
 )
