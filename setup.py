@@ -1,10 +1,18 @@
 from setuptools import setup
+from pathlib import Path
 from cwatm import __version__, __author__, __email__
 
 setup(
       name='CWatM',
       version=__version__,
-      description='',
+      description='The Community Water Model: An open source hydrological model',
+      long_description=Path("README.md").read_text(encoding="utf-8"),
+      long_description_content_type="text/x-rst",
+      license='GPLv3',
+      classifiers=[
+            'License :: OSI Approved :: GNU General Public License v3',
+            'Operating System :: OS Independent',
+      ],
       url='https://github.com/CWatM',
       author=__author__,
       author_email=__email__,
