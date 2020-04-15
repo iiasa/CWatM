@@ -142,8 +142,6 @@ def parse_configuration(settingsFileName):
                     option[opt] = config.getint(sec, opt)
                     #msg = "Value in: \"" + sec +", " + opt + "\" is not True or False!"
                     #raise CWATMError(msg)
-
-
             else:
                 # Check if config line = output line
                 if opt.lower()[0:4] == "out_":
@@ -169,7 +167,7 @@ def parse_configuration(settingsFileName):
      # Output directory is stored in a separat global array
 
 
-def read_metanetcdf(metaxml,name):
+def read_metanetcdf(metaxml, name):
     """
     Read the metadata for netcdf output files
     unit, long name, standard name and additional information

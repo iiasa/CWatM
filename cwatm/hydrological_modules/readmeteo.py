@@ -18,9 +18,9 @@ class readmeteo(object):
     reads all meteorological data from netcdf4 files
     """
 
-    def __init__(self, readmeteo_variable):
-        self.var = readmeteo_variable
-
+    def __init__(self, model):
+        self.model = model
+        self.var = model.var
 
     def initial(self):
         """
@@ -110,7 +110,7 @@ class readmeteo(object):
         """
 
         # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
-        if not self.var.meteomapsscale:
+        if not self.model.meteomapsscale:
             down1 = np.kron(input, np.ones((6, 6)))
             down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
             down3 = compressArray(down2)
@@ -159,7 +159,7 @@ class readmeteo(object):
         reso = maskmapAttr['reso_mask_meteo']
         resoint = int(reso)
 
-        if self.var.meteomapsscale:
+        if self.model.meteomapsscale:
             if downscale == 0:
                 return input
             else:
@@ -174,8 +174,8 @@ class readmeteo(object):
         else:
             if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
                 wc1 = readnetcdf2(downscaleName, dateVar['currDate'], useDaily='month', compress = False, cut = False)
-                wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]
-                #wc2 = wc1[cutmapGlobal[2] * resoint:cutmapGlobal[3] * resoint, cutmapGlobal[0] * resoint:cutmapGlobal[1] * resoint]
+                wc2 = wc1[self.glob.cutmap[2]*resoint:self.glob.cutmap[3]*resoint, self.glob.cutmap[0]*resoint:self.glob.cutmap[1]*resoint]
+                #wc2 = wc1[self.glob.cutmap[2] * resoint:self.glob.cutmap[3] * resoint, self.glob.cutmap[0] * resoint:self.glob.cutmap[1] * resoint]
                 rows = wc2.shape[0]
                 cols = wc2.shape[1]
                 wc3 =  wc2.reshape(rows//resoint,resoint,cols//resoint,resoint)
@@ -228,12 +228,10 @@ class readmeteo(object):
             # TODO in initial there could be a check if temperature > 200 -> automatic change to Kelvin
             ZeroKelvin = 273.15
 
-        self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale, modflowSteady = modflow) * self.var.DtDay * self.var.con_precipitation
+        self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.model.meteomapsscale, modflowSteady = modflow) * self.var.DtDay * self.var.con_precipitation
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
 
-
-
-        if self.var.meteodown:
+        if self.model.meteodown:
             self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
         else:
             self.var.Precipitation = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
@@ -245,15 +243,14 @@ class readmeteo(object):
         if Flags['check']:
             checkmap(self.var.preMaps, "", self.var.Precipitation, True, True, self.var.Precipitation)
 
-
         #self.var.Tavg = readnetcdf2('TavgMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
 
         tzero = 0
         if checkOption('TemperatureInKelvin'):
             tzero = ZeroKelvin
-        self.var.Tavg = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.var.meteomapsscale, modflowSteady = modflow)
+        self.var.Tavg = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.model.meteomapsscale, modflowSteady = modflow)
 
-        if self.var.meteodown:
+        if self.model.meteodown:
             self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
         else:
             self.var.Tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=0)
@@ -281,8 +278,8 @@ class readmeteo(object):
         if checkOption('calc_evaporation'):
 
             #self.var.TMin = readnetcdf2('TminMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
-            self.var.TMin = readmeteodata('TminMaps',dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale)
-            if self.var.meteodown:
+            self.var.TMin = readmeteodata('TminMaps',dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.model.meteomapsscale)
+            if self.model.meteodown:
                 self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=1)
             else:
                 self.var.TMin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=0)
@@ -290,8 +287,8 @@ class readmeteo(object):
             if Flags['check']: checkmap('TminMaps', "", self.var.Tmin, True, True, self.var.Tmin)
 
             #self.var.TMax = readnetcdf2('TmaxMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
-            self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale)
-            if self.var.meteodown:
+            self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.model.meteomapsscale)
+            if self.model.meteodown:
                 self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=1)
             else:
                 self.var.TMax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=0)
@@ -300,28 +297,28 @@ class readmeteo(object):
 
 
             #self.var.Psurf = readnetcdf2('PSurfMaps', dateVar['currDate'], addZeros = True, meteo = True)
-            self.var.Psurf = readmeteodata('PSurfMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+            self.var.Psurf = readmeteodata('PSurfMaps', dateVar['currDate'], addZeros=True, mapsscale = self.model.meteomapsscale)
             self.var.Psurf = self.downscaling2(self.var.Psurf)
                 # Instantaneous surface pressure[Pa]
             #self.var.Wind = readnetcdf2('WindMaps', dateVar['currDate'], addZeros = True, meteo = True)
-            self.var.Wind = readmeteodata('WindMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+            self.var.Wind = readmeteodata('WindMaps', dateVar['currDate'], addZeros=True, mapsscale = self.model.meteomapsscale)
             self.var.Wind = self.downscaling2(self.var.Wind)
                 # wind speed maps at 10m [m/s]
             #self.var.Rsds = readnetcdf2('RSDSMaps', dateVar['currDate'], addZeros = True, meteo = True)
-            self.var.Rsds = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+            self.var.Rsds = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.model.meteomapsscale)
             self.var.Rsds = self.downscaling2(self.var.Rsds)
                 # radiation surface downwelling shortwave maps [W/m2]
             #self.var.Rsdl = readnetcdf2('RSDLMaps', dateVar['currDate'], addZeros = True, meteo = True)
-            self.var.Rsdl = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+            self.var.Rsdl = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.model.meteomapsscale)
             self.var.Rsdl = self.downscaling2(self.var.Rsdl)
                 # radiation surface downwelling longwave maps [W/m2]
             if returnBool('useHuss'):
                 #self.var.Qair = readnetcdf2('QAirMaps', dateVar['currDate'], addZeros = True, meteo = True)
-                self.var.Qair = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
+                self.var.Qair = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True, mapsscale =self.model.meteomapsscale)
                 # 2 m istantaneous specific humidity[kg / kg]
             else:
                 #self.var.Qair = readnetcdf2('RhsMaps', dateVar['currDate'], addZeros = True, meteo = True)
-                self.var.Qair = readmeteodata('RhsMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
+                self.var.Qair = readmeteodata('RhsMaps', dateVar['currDate'], addZeros=True, mapsscale =self.model.meteomapsscale)
             self.var.Qair = self.downscaling2(self.var.Qair)
                 #
 

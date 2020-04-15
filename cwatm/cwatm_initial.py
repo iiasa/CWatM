@@ -9,39 +9,58 @@
 # -------------------------------------------------------------------------
 
 
-from cwatm.hydrological_modules.miscInitial import *
-from cwatm.hydrological_modules.initcondition import *
+from cwatm.hydrological_modules.miscInitial import miscInitial
+from cwatm.hydrological_modules.initcondition import initcondition
 
-from cwatm.hydrological_modules.readmeteo import *
-from cwatm.hydrological_modules.evaporationPot import *
-from cwatm.hydrological_modules.inflow import *
-from cwatm.hydrological_modules.snow_frost import *
-from cwatm.hydrological_modules.soil import *
-from cwatm.hydrological_modules.landcoverType import *
-from cwatm.hydrological_modules.sealed_water import *
-from cwatm.hydrological_modules.evaporation import *
-from cwatm.hydrological_modules.groundwater import *
-from cwatm.hydrological_modules.groundwater_modflow.groundwater_modflow import *
+from cwatm.hydrological_modules.readmeteo import readmeteo
+from cwatm.hydrological_modules.evaporationPot import evaporationPot
+from cwatm.hydrological_modules.inflow import inflow
+from cwatm.hydrological_modules.snow_frost import snow_frost
+from cwatm.hydrological_modules.soil import soil
+from cwatm.hydrological_modules.landcoverType import landcoverType
+from cwatm.hydrological_modules.sealed_water import sealed_water
+from cwatm.hydrological_modules.evaporation import evaporation
+from cwatm.hydrological_modules.groundwater import groundwater
+from cwatm.hydrological_modules.groundwater_modflow.groundwater_modflow import groundwater_modflow
+from cwatm.hydrological_modules.waterdemand import waterdemand
+from cwatm.hydrological_modules.capillarRise import capillarRise
+from cwatm.hydrological_modules.interception import interception
+from cwatm.hydrological_modules.runoff_concentration import runoff_concentration
+from cwatm.hydrological_modules.lakes_res_small import lakes_res_small
+from cwatm.hydrological_modules.waterbalance import waterbalance
+from cwatm.hydrological_modules.environflow import environflow
+from cwatm.hydrological_modules.routing_reservoirs.routing_kinematic import routing_kinematic
+from cwatm.hydrological_modules.lakes_reservoirs import lakes_reservoirs
+from cwatm.hydrological_modules.waterquality1 import waterquality1
 
-from cwatm.hydrological_modules.waterdemand import *
-from cwatm.hydrological_modules.capillarRise import *
-from cwatm.hydrological_modules.interception import *
-from cwatm.hydrological_modules.runoff_concentration import *
-from cwatm.hydrological_modules.lakes_res_small import *
-
-from cwatm.hydrological_modules.waterbalance import *
-from cwatm.hydrological_modules.environflow import *
-
-from cwatm.hydrological_modules.routing_reservoirs.routing_kinematic import *
-from cwatm.hydrological_modules.lakes_reservoirs import *
-from cwatm.hydrological_modules.waterquality1 import *
-
-# --------------------------------------------
-
-#from cwatm.management_modules.data_handling import *
 from cwatm.management_modules.output import *
 import os, glob
 
+
+class Variables:
+    def load_initial(self, name, default=0.0, number=None):
+        """
+        First it is checked if the initial value is given in the settings file
+
+        * if it is <> None it is used directly
+        * if None it is loaded from the init netcdf file
+
+        :param name: Name of the init value
+        :param default: default value -> default is 0.0
+        :param number: in case of snow or runoff concentration several layers are included: number = no of the layer
+        :return: spatial map or value of initial condition
+        """
+
+        if number is not None:
+            name = name + str(number)
+
+        if self.loadInit:
+            return readnetcdfInitial(self.initLoadFile, name)
+        else:
+            return default
+
+class Config:
+    pass
 
 
 class CWATModel_ini(DynamicModel):
@@ -61,42 +80,36 @@ class CWATModel_ini(DynamicModel):
 
         DynamicModel.__init__(self)
 
+        self.var = Variables()
+        self.conf = Config()
+
         # ----------------------------------------
         # include output of tss and maps
-
         self.output_module = outputTssMap(self)
 
         # include all the hydrological modules
         self.misc_module = miscInitial(self)
         self.init_module = initcondition(self)
         self.waterbalance_module = waterbalance(self)
-
         self.readmeteo_module = readmeteo(self)
         self.environflow_module = environflow(self)
-
         self.evaporationPot_module = evaporationPot(self)
         self.inflow_module = inflow(self)
-        self.snowfrost_module = snow(self)
+        self.snowfrost_module = snow_frost(self)
         self.soil_module = soil(self)
         self.landcoverType_module = landcoverType(self)
         self.evaporation_module = evaporation(self)
         self.groundwater_module = groundwater(self)
         self.groundwater_modflow_module = groundwater_modflow(self)
-
         self.waterdemand_module = waterdemand(self)
         self.capillarRise_module = capillarRise(self)
         self.interception_module = interception(self)
         self.sealed_water_module = sealed_water(self)
         self.runoff_concentration_module = runoff_concentration(self)
         self.lakes_res_small_module = lakes_res_small(self)
-
         self.routing_kinematic_module = routing_kinematic(self)
         self.lakes_reservoirs_module = lakes_reservoirs(self)
         self.waterquality1 = waterquality1(self)
-
-        # include output of tss and maps
-        self.output_module = outputTssMap(self)
-        # ----------------------------------------------------------------
 
         ## MakMap: the maskmap is flexible e.g. col,row,x1,y1  or x1,x2,y1,y2
         # set the maskmap
@@ -122,7 +135,6 @@ class CWATModel_ini(DynamicModel):
         latldd, lonldd, cell, invcellldd = readCoord(nameldd)
         maskmapAttr['reso_mask_meteo'] = round(invcellldd / invcellmeteo)
 
-
         # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
         self.meteomapsscale = True
         if invcellmeteo != invcellldd:
@@ -143,8 +155,6 @@ class CWATModel_ini(DynamicModel):
         if self.meteodown:
             check_clim = checkMeteo_Wordclim(namemeteo, cbinding('downscale_wordclim_prec'))
 
-
-
         # in case other mapsets are used e.g. Cordex RCM meteo data
         if (latldd != latmeteo) or (lonldd != lonmeteo):
             cutmapFine[0], cutmapFine[1], cutmapFine[2], cutmapFine[3], cutmapVfine[0], cutmapVfine[1], cutmapVfine[2], cutmapVfine[3] = mapattrNetCDFMeteo(namemeteo)
@@ -155,7 +165,6 @@ class CWATModel_ini(DynamicModel):
             # downscaling wordlclim maps
             for i in range(4): cutmapGlobal[i] = cutmapFine[i]
 
-
             if not(check_clim):
                # for downscaling it is always cut from the global map
                 if (latldd != latmeteo) or (lonldd != lonmeteo):
@@ -163,9 +172,6 @@ class CWATModel_ini(DynamicModel):
                     cutmapGlobal[2] = int(cutmap[2] / maskmapAttr['reso_mask_meteo'])
                     cutmapGlobal[1] = int(cutmap[1] / maskmapAttr['reso_mask_meteo']+0.999)
                     cutmapGlobal[3] = int(cutmap[3] / maskmapAttr['reso_mask_meteo']+0.999)
-
-
-
 
         if checkOption('writeNetcdfStack') or checkOption('writeNetcdf'):
             # if NetCDF is writen, the pr.nc is read to get the metadata
@@ -199,8 +205,6 @@ class CWATModel_ini(DynamicModel):
         self.landcoverType_module.initial()
         self.groundwater_module.initial()
 
-
-
         self.runoff_concentration_module.initial()
         self.lakes_res_small_module.initial()
 
@@ -209,7 +213,6 @@ class CWATModel_ini(DynamicModel):
             self.lakes_reservoirs_module.initWaterbodies()
             self.lakes_reservoirs_module.initial_lakes()
             self.lakes_reservoirs_module.initial_reservoirs()
-
 
         self.waterdemand_module.initial()
         self.waterbalance_module.initial()

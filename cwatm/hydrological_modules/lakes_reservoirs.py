@@ -11,8 +11,6 @@
 from cwatm.management_modules.data_handling import *
 from cwatm.hydrological_modules.routing_reservoirs.routing_sub import *
 
-
-
 from cwatm.management_modules.globals import *
 
 
@@ -75,13 +73,9 @@ class lakes_reservoirs(object):
 
     """
 
-    def __init__(self, lakes_reservoirs_variable):
-        self.var = lakes_reservoirs_variable
-
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initWaterbodies(self):
         """
@@ -191,7 +185,7 @@ class lakes_reservoirs(object):
             # initial only the big arrays are set to 0, the  initial values are loaded inside the subrouines of lakes and reservoirs
             self.var.reslakeoutflow = globals.inZero.copy()
             self.var.lakeVolume = globals.inZero.copy()
-            self.var.outLake = self.var.init_module.load_initial("outLake")
+            self.var.outLake = self.var.load_initial("outLake")
 
             self.var.lakeStorage = globals.inZero.copy()
             self.var.lakeInflow = globals.inZero.copy()
@@ -224,20 +218,20 @@ class lakes_reservoirs(object):
         self.var.lakeFactorSqr = np.square(self.var.lakeFactor)
         # for faster calculation inside dynamic section
 
-        lakeInflowIni = self.var.init_module.load_initial("lakeInflow")  # inflow in m3/s estimate
+        lakeInflowIni = self.var.load_initial("lakeInflow")  # inflow in m3/s estimate
         if not (isinstance(lakeInflowIni, np.ndarray)):
            self.var.lakeInflowOldC = self.var.lakeDis0C.copy()
         else:
            self.var.lakeInflowOldC = np.compress(self.var.compress_LR, lakeInflowIni)
 
-        lakeVolumeIni = self.var.init_module.load_initial("lakeStorage")
+        lakeVolumeIni = self.var.load_initial("lakeStorage")
         if not (isinstance(lakeVolumeIni, np.ndarray)):
             self.var.lakeVolumeM3C = self.var.lakeAreaC * np.sqrt(self.var.lakeInflowOldC / self.var.lakeAC)
         else:
             self.var.lakeVolumeM3C = np.compress(self.var.compress_LR, lakeVolumeIni)
         self.var.lakeStorageC = self.var.lakeVolumeM3C.copy()
 
-        lakeOutflowIni = self.var.init_module.load_initial("lakeOutflow")
+        lakeOutflowIni = self.var.load_initial("lakeOutflow")
         if not (isinstance(lakeOutflowIni, np.ndarray)):
             lakeStorageIndicator = np.maximum(0.0,self.var.lakeVolumeM3C / self.var.dtRouting + self.var.lakeInflowOldC / 2)
             # SI = S/dt + Q/2
@@ -282,7 +276,7 @@ class lakes_reservoirs(object):
         self.var.deltaLF = self.var.floodLimitC - self.var.normLimitC
         self.var.deltaNFL = self.var.floodLimitC - self.var.norm_floodLimitC
 
-        reservoirStorageIni = self.var.init_module.load_initial("reservoirStorage")
+        reservoirStorageIni = self.var.load_initial("reservoirStorage")
         if not (isinstance(reservoirStorageIni, np.ndarray)):
             self.var.reservoirFillC = self.var.normLimitC.copy()
             # Initial reservoir fill (fraction of total storage, [-])

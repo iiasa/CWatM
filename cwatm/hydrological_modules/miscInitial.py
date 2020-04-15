@@ -22,11 +22,10 @@ class miscInitial(object):
         Only used in the initial phase.
     """
 
-    def __init__(self, misc_variable):
-        self.var = misc_variable
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
 
     def initial(self):
         """

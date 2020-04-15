@@ -17,15 +17,11 @@ class evaporation(object):
     Calculate potential evaporation and pot. transpiration
     """
 
-    def __init__(self, evaporation_variable):
+    def __init__(self, model):
         """The constructor evaporation"""
-        self.var = evaporation_variable
-
-
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-
+        self.var = model.var
+        self.model = model
+        
     def dynamic(self, coverType, No):
         """
         Dynamic part of the soil module

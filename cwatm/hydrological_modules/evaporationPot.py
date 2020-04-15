@@ -24,11 +24,11 @@ class evaporationPot(object):
 
     """
 
-    def __init__(self, evaporationPot_variable):
+    def __init__(self, model):
         """The constructor evaporationPot"""
-        self.var = evaporationPot_variable
-
-
+        self.var = model.var
+        self.model = model
+        
     def initial(self):
         """
         Initial part of evaporation type module

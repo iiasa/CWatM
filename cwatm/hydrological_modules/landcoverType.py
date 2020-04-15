@@ -21,11 +21,9 @@ class landcoverType(object):
     This routine calls the soil routine for each land cover type
     """
 
-    def __init__(self, landcoverType_variable):
-        self.var = landcoverType_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     # noinspection PyTypeChecker
     def initial(self):
@@ -108,7 +106,7 @@ class landcoverType(object):
             self.var.minInterceptCap.append(loadmap(coverType + "_minInterceptCap"))
             # init values
             if coverType in ['forest', 'grassland', 'irrPaddy', 'irrNonPaddy','sealed']:
-                self.var.interceptStor[i] = self.var.init_module.load_initial(coverType + "_interceptStor")
+                self.var.interceptStor[i] = self.var.load_initial(coverType + "_interceptStor")
 
             # summarize the following initial storages:
             self.var.sum_interceptStor += self.var.fracVegCover[i] * self.var.interceptStor[i]
@@ -280,10 +278,10 @@ class landcoverType(object):
 
 
             # init values
-            #self.var.interflow[i] = self.var.init_module.load_initial(coverType + "_interflow")
-            self.var.w1[i] = self.var.init_module.load_initial(coverType + "_w1",default = self.var.wwp1[i])
-            self.var.w2[i] = self.var.init_module.load_initial(coverType + "_w2",default = self.var.wwp2[i])
-            self.var.w3[i] = self.var.init_module.load_initial(coverType + "_w3",default = self.var.wwp3[i])
+            #self.var.interflow[i] = self.var.load_initial(coverType + "_interflow")
+            self.var.w1[i] = self.var.load_initial(coverType + "_w1",default = self.var.wwp1[i])
+            self.var.w2[i] = self.var.load_initial(coverType + "_w2",default = self.var.wwp2[i])
+            self.var.w3[i] = self.var.load_initial(coverType + "_w3",default = self.var.wwp3[i])
 
             soilVars = ['w1', 'w2', 'w3']
             for variable in soilVars:
@@ -292,7 +290,7 @@ class landcoverType(object):
                     vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
             # for paddy irrigation flooded paddy fields
-            self.var.topwater = self.var.init_module.load_initial("topwater", default= 0.) * globals.inZero.copy()
+            self.var.topwater = self.var.load_initial("topwater", default= 0.) * globals.inZero.copy()
             self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
             self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
 
@@ -509,15 +507,14 @@ class landcoverType(object):
                 usecovertype = 2   # exclude irrigation
             # calculate evaporation and transpiration for soil land cover types (not for sealed and water covered areas)
             if coverNo < usecovertype:
-                self.var.evaporation_module.dynamic(coverType, coverNo)
-            self.var.interception_module.dynamic(coverType, coverNo)
+                self.model.evaporation_module.dynamic(coverType, coverNo)
+            self.model.interception_module.dynamic(coverType, coverNo)
             coverNo += 1
-
 
         # -----------------------------------------------------------
         # Calculate  water available for infiltration
         # *********  WATER Demand   *************************
-        self.var.waterdemand_module.dynamic()
+        self.model.waterdemand_module.dynamic()
 
         # Calculate soil
         coverNo = 0
@@ -528,10 +525,10 @@ class landcoverType(object):
                 usecovertype = 2   # exclude irrgation
 
             if coverNo < usecovertype:
-                self.var.soil_module.dynamic(coverType, coverNo)
+                self.model.soil_module.dynamic(coverType, coverNo)
             if coverNo > 3:
                 # calculate for openwater and sealed area
-                self.var.sealed_water_module.dynamic(coverType, coverNo)
+                self.model.sealed_water_module.dynamic(coverType, coverNo)
             coverNo += 1
 
 
