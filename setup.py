@@ -36,5 +36,8 @@ setup(
             'pyflow',
             'pytest',
             'pytest-html'
-      ]
+      ],
+      entry_points={
+            'console_scripts': ['cwatm=cwatm.run_cwatm:main']
+      }
 )
