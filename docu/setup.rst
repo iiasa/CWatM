@@ -6,128 +6,78 @@ Setup of the model
 .. contents:: 
     :depth: 4
 
-Setup
-=====
+.. _rst_setupdoc:
+
+Setup python verion
+======================
 	
-Requirements
-------------
+Python
+---------------
 
-Python version
-**************
+Requirements are a 64-bit `Python 3.7.x or 3.8.x version <https://www.python.org/downloads/>`_
 
-NEW from 2019 on:
-Requirements are a 64 bit `Python 3.7.x or 3.8.x version <https://www.python.org/downloads/release/python-372/>`_
-
-Reason for this step:
-
-* Python 2.7 support ended in 2019
-* We will be able to provide a better error handling
-* We are able to provide an executable of CWATM for Windows
-
-
-.. warning:: a 32 bit version is not able to handle the data requirements!
+.. warning:: a 32-bit version is not able to handle the data requirements!
 
 .. warning:: CWATM is tested for Python 3.7 and 3.8 and will for sure not work with Python versions lower than 3.6. We recommend using Python 3.7 or 3.8
 
-Libraries
-*********
+External libraries
+-------------------
 
 These external libraries are needed:
 
-* `Numpy <http://www.numpy.org>`_
-* `Scipy <https://www.scipy.org>`_
+* `NumPy <http://www.numpy.org>`_
+* `SciPy <https://www.scipy.org>`_
 * `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
 * `GDAL <http://www.gdal.org>`_
-* `Flopy <https://www.usgs.gov/software/flopy-python-package-creating-running-and-post-processing-modflow-based-models>`_
+* `FloPy <https://www.usgs.gov/software/flopy-python-package-creating-running-and-post-processing-modflow-based-models>`_
+* `pytest <https://docs.pytest.org/en/latest/>`_
+* `pytest-html <https://pypi.org/project/pytest-html/>`_
 
-**Windows**
-
-The five libraries can be installed with pip or
-downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
+The seven libraries can be installed with conda, pip or downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
 
 Installing
-**********
+------------
 
-Finally the model can be installed with pip:
+Finally the model can be installed with pip.
+
+First download (or clone) the repository from https://github.com/CWatM/CWatM. Then change to directory where setup.py is located (e.g., :code:`cd CwatM`) and run
 
 .. code-block:: python
 
-   pip install https://github.com/CWatM/CWatM
+   pip install .
 
 Or in editable mode:
 
 .. code-block:: python
 
-   pip install -e https://github.com/CWatM/CWatM
-
-
-Windows executeable Python version
-**********************************
-
-| A CWATM executable cwatm.exe can be used instead of the Python version
-
-* ADVANTAGE: You can run it without installing or knowledge of Python
-* DISADVANTAGE 1: You cannot see the source code or change it 
-* DISADVANTAGE 2: We do not update this version as often as the Python version
-
-* It is done with cx_freeze library 
-* It includes all Python libraries
-
-.. note::
-    | A cwatmexe.zip (around 300 MB with all Python libraries) is stored on:
-    | `Source code on Github repository of CWATM <https://github.com/CWatM/CWatM>`_
-    | `Executable cwatmexe.zip on Github repository of CWATM <https://github.com/CWatM/CWatM/blob/version091/cwatmexe.zip>`_
-
-.. note::
-    | We recommend using the Python 3.7.x version, 
-    | but if you not experienced in Python or have problems installing CWATM, please use the executable version.     
-    | Either start it in DOS box (command cmd), or use the batch file cwatmbat.bat to start it
-
-
-.. todo::
-    We will put a whole example of 30 deg Rhine basin with all necessary data in another zip file. Just for an easier start.
-
-PCRaster
-******** 
-
-| CWATM is not using anything from PCRaster
-| But the general idea of PCraster to split the hydrological modules in a initial | part and a dynamic part is still used
-
-| Anyway PCRaster is a great tool
-| PCRASTER from Faculty of Geosciences, Utrecht University, The Netherlands
-| `Webpage of PCRaster <http://pcraster.geo.uu.nl>`_
-
-| Reference:
-| Karssenberg, D., Schmitz, O., Salamon, P., de Jong, K., and Bierkens, M. F. P.: A software framework for construction of process-based stochastic spatio-temporal models and data assimilation, Environmental Modelling & Software 25(4), 489-502, 2010. doi: 10.1016/j.envsoft.2009.10.004
-
+   pip install -e .
 
 
 C++ libraries
--------------
+----------------
 
-For the computational time demanding parts e.g. routing,
-CWATM comes with a C++ library
+For the computational time demanding parts e.g. routing, CWATM comes with a C++ library. A pre-compiled version is included for Windows and Linux. Normally, you don't have to do anything and the pre-compiled version should just work.
 
-Compiled versions
-*****************
+Pre-compiled C++ libraries
+****************************
 
 | **Windows and CYGWIN_NT-6.1**
 | a compiled version is provided and CWATM is detecting automatically which system is running and which compiled version is needed
 
 | **Linux**
-| For Cygwin linux a compiled version *t5cyg.so* is provided in *../source/hydrological_modules/routing_reservoirs/* for version CYGWIN_NT-6.1.
+| For Cygwin linux a compiled version *t5cyg.so* is provided in *../cwatm/hydrological_modules/routing_reservoirs/* for version CYGWIN_NT-6.1.
 | If you use another cygwin version please compile it by yourself and name it *t5_linux.so*
 
-For Linux Ubuntu a compiled version is provided as *t5_linux.so*. The file is in *../source/hydrological_modules/routing_reservoirs/* 
+For Linux Ubuntu a compiled version is provided as *t5_linux.so*. The file is in *../cwatm/hydrological_modules/routing_reservoirs/* 
 
 .. note::
     If you use another Linux version or the compiled version is not working or you have a compiler which produce faster executables please compile a version on your own.
 
 
 Compiling a version
-*******************
+*****************************
 
-C++ sourcecode is in *../source/hydrological_modules/routing_reservoirs/t5.cpp*
+C++ sourcecode is in *../cwatm/hydrological_modules/routing_reservoirs/t5.cpp*
 
 .. note::
     A compiled version is already provided for Windows and Linux.
@@ -149,7 +99,7 @@ To compile with Microsoft Visual Studio 14.0::
 .. note::
 
     We used Visual Studio, because it seems to be computational faster
-	| the libray used with Windows is named *t5.dll*, if you generate a libray *t5.so* the filename in **../source/management_modules/globals.py** has to be changed!
+	| the libray used with Windows is named *t5.dll*, if you generate a libray *t5.so* the filename in **../cwatm/management_modules/globals.py** has to be changed!
 
 **Linux**
 
@@ -167,13 +117,14 @@ To compile with g++::
 .. warning:: Please rename your compiled version to t5_linux.so! At the moment the file t5_linux.so is compiled with Ubuntu Linux
 
 
-Test the model
---------------
+Test the Python version
+-------------------------
 
-**Windows and Linux**
+Obtain the file run_cwatm.py from the repository or the download directory (See: :ref:`rst_setupdoc`).
 
-python <modelpath>/cwatm.py 
+Run::
 
+    python run_cwatm.py 
 
 The output should be::
 
@@ -182,21 +133,16 @@ The output should be::
    Authors: ...
    Version: ...
    Date: ...
-   
 	
 .. warning:: If python is not set in the environment path, the full path of python has to be used
 
-.. warning:: Please use the right version of CWATM with the right version of Python (either 2.7 or 3.7)
+.. warning:: Please use the right version of CWATM with the right version of Python (either 3.7 or 3.8)
 
 
+Run the Python version
+-----------------------------
 
-Running the model
-=================
-
-Start the model
----------------
-
-Download and run run_cwatm.py
+Obtain the file run_cwatm.py from the repository or the download directory (See: :ref:`rst_setupdoc`).
 
 .. warning:: The model needs a settings file as an argument. See: :ref:`rst_settingdoc` 
 
@@ -236,16 +182,37 @@ example::
     -t --printtime   the computation time for hydrological modules are printed
 	-w --warranty    copyright and warranty information
 
-	
 
-Settings file
-*************
-	
-The setup of the setings file is shown in the next chapter.
-	
+Windows executeable Python version
+===================================
+
+| A CWATM executable cwatm.exe can be used instead of the Python version
+
+* ADVANTAGE: You can run it without installing or knowledge of Python
+* DISADVANTAGE 1: You cannot see the source code or change it 
+* DISADVANTAGE 2: We do not update this version as often as the Python version
+
+* It is done with cx_freeze library 
+* It includes all Python libraries
+
+.. note::
+    | A cwatmexe.zip (around 300 MB with all Python libraries) is stored on:
+    | `Source code on Github repository of CWATM <https://github.com/CWatM/CWatM>`_
+    | `Executable cwatmexe.zip on Github repository of CWATM <https://github.com/CWatM/CWatM/blob/version091/cwatmexe.zip>`_
+
+.. note::
+    | We recommend using the Python 3.7.x version, 
+    | but if you not experienced in Python or have problems installing CWATM, please use the executable version.     
+    | Either start it in DOS box (command cmd), or use the batch file cwatmbat.bat to start it
+
+
+.. todo::
+    We will put a whole example of 30 deg Rhine basin with all necessary data in another zip file. Just for an easier start.
+
+
 	
 NetCDF meta data 
-****************
+=================
 
 The format for spatial data for output data is netCDF.
 In the meta data file information can be added  e.g. a description of the parameter
@@ -253,9 +220,8 @@ In the meta data file information can be added  e.g. a description of the parame
 .. note:: It is not necessary to change this file! This is an option to put additional information into output maps
 
 
-
 Test the data
-=============
+==================
 
 | The model is only as good as the data!
 | To give out a list of data and to check the data the model can run a check.
@@ -577,7 +543,7 @@ In the settings file the name and location of the metadata file is given.
    [NETCDF_ATTRIBUTES]
    institution = IIASA
    title = Global Water Model - WATCH WDFEI
-   metaNetcdfFile = $(FILE_PATHS:PathRoot)/CWATM/source/metaNetcdf.xml
+   metaNetcdfFile = $(FILE_PATHS:PathRoot)/cwatm/metaNetcdf.xml
 
 
 .. _rst_meta:
