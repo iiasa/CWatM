@@ -12,7 +12,7 @@ from cwatm.management_modules.configuration import globalFlags, settingsfile, ve
 from cwatm.management_modules.data_handling import Flags, cbinding
 from cwatm.management_modules.timestep import checkifDate
 from cwatm.management_modules.dynamicModel import ModelFrame
-from cwatm.cwatm import CWATModel
+from cwatm.cwatm_model import CWATModel
 from cwatm import __author__, __version__, __date__, __copyright__, __maintainer__, __status__
 # ---------------------------
 
@@ -184,21 +184,7 @@ def headerinfo():
         print("-----------------------------------------------------------")
 
 
-# ==================================================
-# ============== MAIN ==============================
-# ==================================================
-def main():
-
-    if len(sys.argv) < 2:
-        usage()
-        return
-    else:
-        CWatM_Path = os.path.dirname(sys.argv[0])
-        CWatM_Path = os.path.abspath(CWatM_Path)
-
-    settings = sys.argv[1]
-    args = sys.argv[2:]
-
+def main(settings, args):
     success = False
     if Flags['test']: globalclear()
 
@@ -213,3 +199,22 @@ def main():
 
     #if Flags['test']:
     return success, last_dis
+
+
+def run_from_command_line():
+    if len(sys.argv) < 2:
+        usage()
+        return
+    else:
+        CWatM_Path = os.path.dirname(sys.argv[0])
+        CWatM_Path = os.path.abspath(CWatM_Path)
+    main(sys.argv[1],sys.argv[2:])
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        usage()
+    else:
+        CWatM_Path = os.path.dirname(sys.argv[0])
+        CWatM_Path = os.path.abspath(CWatM_Path)
+        main(sys.argv[1],sys.argv[2:])
