@@ -44,6 +44,9 @@ Finally the model can be installed with pip.
 
    pip install git+git://github.com/CWatM/CWatM
 
+or directly downloaded via **'clone or download'** from: https://github.com/CWatM/CWatM
+
+and installing them in a folder.
 
 C++ libraries
 ----------------
@@ -114,7 +117,9 @@ Test the Python version
 
 Run from the command line::
 
-    cwatm 
+    cwatm
+    or
+    python cwatm.py if you installed CWatM not with pip
 
 The output should be::
 
