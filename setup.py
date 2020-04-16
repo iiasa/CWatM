@@ -2,6 +2,7 @@ from setuptools import setup
 from pathlib import Path
 from cwatm import __version__, __author__, __email__
 
+
 setup(
       name='CWatM',
       version=__version__,
