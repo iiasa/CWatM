@@ -46,6 +46,6 @@ setup(
             'pytest-html'
       ],
       entry_points={
-            'console_scripts': ['cwatm=cwatm.cwatm:run_from_command_line']
+            'console_scripts': ['cwatm=cwatm.run_cwatm:run_from_command_line']
       }
 )
