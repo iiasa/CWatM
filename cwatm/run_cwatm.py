@@ -187,7 +187,17 @@ def headerinfo():
 # ==================================================
 # ============== MAIN ==============================
 # ==================================================
-def main(settings,args):
+def main():
+
+    if len(sys.argv) < 2:
+        usage()
+        return
+    else:
+        CWatM_Path = os.path.dirname(sys.argv[0])
+        CWatM_Path = os.path.abspath(CWatM_Path)
+
+    settings = sys.argv[1]
+    args = sys.argv[2:]
 
     success = False
     if Flags['test']: globalclear()
@@ -203,13 +213,3 @@ def main(settings,args):
 
     #if Flags['test']:
     return success, last_dis
-
-
-
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        usage()
-    else:
-        CWatM_Path = os.path.dirname(sys.argv[0])
-        CWatM_Path = os.path.abspath(CWatM_Path)
-        main(sys.argv[1],sys.argv[2:])

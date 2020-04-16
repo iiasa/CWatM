@@ -163,7 +163,6 @@ Source code description
 .. toctree::
    :maxdepth: 4
 
-   cwatm3
    cwatm_dynamic
    cwatm_initial
    hydrological_modules
