@@ -207,7 +207,7 @@ html_short_title = 'CWAT Model'
 # of the sidebar.
 #
 #html_logo = '_static/CWATM1.jpg'
-html_logo = '_static/cwatmlogo1.png'
+html_logo = '_static/CWatM_logo.png'
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
@@ -333,7 +333,7 @@ latex_documents = [
 # the title page.
 #
 #latex_logo = '_static/CWATM1.jpg'
-latex_logo = '_static/cwatmlogo1.png'
+latex_logo = '_static/CWatM_logo.png'
  
 latex_use_modindex = True
 latex_show_pagerefs = True

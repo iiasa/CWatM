@@ -1,3 +1,44 @@
+#!/usr/bin/env python3.7
+
+"""
+::
+
+ -------------------------------------------------
+ ######## ##          ##  ####  ######  ##    ##
+ ##       ##          ## ##  ##   ##   ####  ####
+ ##        ##        ##  ##  ##   ##   ## #### ##
+ ##        ##   ##   ## ########  ##  ##   ##   ##
+ ##         ## #### ##  ##    ##  ##  ##        ##
+ ##         ####  #### ##      ## ## ##          ##
+ ##########  ##    ##  ##      ## ## ##          ##
+
+ Community WATer Model
+
+
+CWATM is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+any later version.
+
+CWATM is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details
+<http://www.gnu.org/licenses/>.
+
+# --------------------------------------------------
+"""
+
+__author__ = "WATER Program, IIASA"
+__version__ = "Version: 1.04"
+__date__ = "16/04/2020"
+__copyright__ = "Copyright 2016, IIASA"
+__maintainer__ = "Peter Burek"
+__status__ = "Development"
+
+# to work with some versions of Linux  - a workaround with pyexpat is needed
+from pyexpat import *
+
 import os
 import sys
 import numpy as np
@@ -6,14 +47,13 @@ import glob
 import sys
 import time
 import datetime
-from pyexpat import *
 
 from cwatm.management_modules.configuration import globalFlags, settingsfile, versioning, platform1, parse_configuration, read_metanetcdf, dateVar, CWATMRunInfo, outputDir, timeMesSum, timeMesString, globalclear
 from cwatm.management_modules.data_handling import Flags, cbinding
 from cwatm.management_modules.timestep import checkifDate
 from cwatm.management_modules.dynamicModel import ModelFrame
-from cwatm.cwatm import CWATModel
-from cwatm import __author__, __version__, __date__, __copyright__, __maintainer__, __status__
+from cwatm.cwatm_model import CWATModel
+
 # ---------------------------
 
 
@@ -184,11 +224,7 @@ def headerinfo():
         print("-----------------------------------------------------------")
 
 
-# ==================================================
-# ============== MAIN ==============================
-# ==================================================
-def main(settings,args):
-
+def main(settings, args):
     success = False
     if Flags['test']: globalclear()
 
@@ -204,6 +240,15 @@ def main(settings,args):
     #if Flags['test']:
     return success, last_dis
 
+
+def run_from_command_line():
+    if len(sys.argv) < 2:
+        usage()
+        return
+    else:
+        CWatM_Path = os.path.dirname(sys.argv[0])
+        CWatM_Path = os.path.abspath(CWatM_Path)
+    main(sys.argv[1],sys.argv[2:])
 
 
 if __name__ == "__main__":

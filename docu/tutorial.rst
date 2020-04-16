@@ -114,9 +114,8 @@ Test the Python model version
 
 Please try::
 
-   python <modelpath>/cwatm.py 
-   or:
-   python <modelpath>/cwatm3.py  (for the Python3.7 version)
+
+   python <modelpath>/run_cwatm.py  (for the Python3.7 version)
    or:
    <modelpath>/cwatm  (for the .exe version)
 
@@ -144,7 +143,7 @@ Error because you did not run it with Python
 
 if the model is causing an error with look like this::
 
-   File "cwatm3.py", line 116
+   File "run_cwatm.py", line 116
    print("%-6s %10s %11s\n" %("Step","Date","Discharge"), end=' ')
    SyntaxError: invalid syntax
 

@@ -56,7 +56,7 @@ are in the **management_modules** folder.
 		compound=true
 		overlap=false
 		graph [layout = neato]
-		node [shape=circle,style=filled,fillcolor=red,fixedsize=true,width=1.3,fontsize=23] cwatm3;
+		node [shape=circle,style=filled,fillcolor=red,fixedsize=true,width=1.3,fontsize=23] cwatm_model;
 		node [shape=box,style = filled,fillcolor=Tomato,fontsize=14,width=3] dynamicModel; 
 		node [shape=box,style=filled,fillcolor=orange,fontsize=14,width=2] data_handling; configuration; globals; messages; output; replace_pcr; timestep; checks;
 		
@@ -74,11 +74,11 @@ are in the **management_modules** folder.
 		node [shape=circle,style=filled,fillcolor=RoyalBlue,fixedsize=true,width=1.0] routing_kinematic; runoff_concentration; lakes_reservoirs; lakes_res_small
 		node [shape=circle,style=filled,fillcolor=RoyalBlue,fixedsize=true,width=0.8] routing_sub; "t5.dll"
 
-		cwatm3 -> dynamicModel[color=red,penwidth=3.5];
+		cwatm_model -> dynamicModel[color=red,penwidth=3.5];
 		dynamicModel -> cwatm_initial[color=Tomato,penwidth=2.5];
 		dynamicModel -> cwatm_dynamic[color=Tomato,penwidth=2.5];
-		cwatm3 -> globals
-		cwatm3 -> configuration
+		cwatm_model -> globals
+		cwatm_model -> configuration
 		
 		cwatm_initial -> miscInitial[color=RoyalBlue3];
 		cwatm_initial -> initcondition[color=RoyalBlue3];
@@ -154,7 +154,7 @@ Figure 2: Graphical profile of CWATM run for Rhine catchment from 1/1/190-31/12/
 
 .. note::
    | Figure created with:
-   | python -m cProfile -o  l1.pstats cwatm3.py settings1.ini -l   
+   | python -m cProfile -o  l1.pstats run_cwatm.py settings1.ini -l   
    | gprof2dot -f pstats l1.pstats | dot -T png -o callgraph.png
 
 Source code description
@@ -163,7 +163,8 @@ Source code description
 .. toctree::
    :maxdepth: 4
 
-   cwatm3
+   run_cwatm
+   cwatm_model
    cwatm_dynamic
    cwatm_initial
    hydrological_modules

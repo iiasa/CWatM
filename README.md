@@ -3,7 +3,7 @@
 IIASA
 13rd April 2018
 
-CWatM represents one of the new key elements of IIASA’s Water program to assess water supply, water demand and environmental needs at global and regional level. The hydrologic model is open source and flexible to link in different aspects of the water energy food nexus. CWATM will be a basis to develop a next-generation global hydro-economic modeling and will be coupled to the existing IIASA models like MESSAGE and GLOBIOM
+CWatM represents one of the new key elements of IIASAâ€™s Water program to assess water supply, water demand and environmental needs at global and regional level. The hydrologic model is open source and flexible to link in different aspects of the water energy food nexus. CWATM will be a basis to develop a next-generation global hydro-economic modeling and will be coupled to the existing IIASA models like MESSAGE and GLOBIOM
 
 http://www.iiasa.ac.at/cwatm
 
@@ -28,7 +28,7 @@ The Community Water Model will help to develop a next-generation hydro-economic 
 
 ## The Nexus framework of IIASA
 
-In the nexus framework – water, energy, food, ecosystem - CWatM will be coupled to the existing IIASA models including the Integrated Assessment Model MESSAGE and the global land and ecosystem model GLOBIOM in order to realize an improved assessments of water-energy-food-ecosystem nexus and associated feedback.
+In the nexus framework â€“ water, energy, food, ecosystem - CWatM will be coupled to the existing IIASA models including the Integrated Assessment Model MESSAGE and the global land and ecosystem model GLOBIOM in order to realize an improved assessments of water-energy-food-ecosystem nexus and associated feedback.
 
 <p align="center">
   <img src="docu/_static/nexus.jpg" width="350" title="IIASA nexus">

@@ -34,13 +34,13 @@
 #   5.3 with some 'exotic output
 
 # ------------------------------------------------------------------------------------
-# --html=report.html --settingsfile=test_py_catwm1.txt
+# --html=report.html --settingsfile=test_py_cwatm1.txt
 
 
 # True is the tests for this section should be done
 runtest: Rhine_30min; False; global_30min; False; global_5min; False; Rhine_5min; False
 # True is test should compare last discharge with given number, False is test should look for -no error- execution of run
-test_value: True
+test_value: False
 
 # ---------------------
 # 30 min versions

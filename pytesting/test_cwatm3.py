@@ -108,6 +108,9 @@ for line in tin:
                         noskip[runs[i]] = False
                         if s[i*2+1].upper() == "TRUE":
                             noskip[runs[i]] = True
+
+
+
                 if first == "test_value":
                     if secon.upper() == "TRUE":
                         tvalue = True
@@ -170,7 +173,6 @@ def config():
   return config
 
 def test_0_without():
-
     print('\n ===== CWATM without settingsfile =====')
     print (" Setting file: NONE")
 
