@@ -1,6 +1,5 @@
 from cwatm.cwatm_initial import CWATModel_ini
 from cwatm.cwatm_dynamic import CWATModel_dyn
-import glob
 
 class CWATModel(CWATModel_ini, CWATModel_dyn):
     """
