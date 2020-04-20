@@ -485,38 +485,6 @@ class lakes_reservoirs(object):
             reservoirOutflow = np.where(self.var.reservoirFillC > self.var.norm_floodLimitC, reservoirOutflow3, reservoirOutflow)
             reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4, reservoirOutflow)
 
-            
-            
-            # This is a development inspired by the Upper Bhima basin. 
-            # If reservoirs are closed off to the river system at some point, i.e. the reservoirs stop releasing water into the rivers
-            # When this feature is activated, for the months specified the reservoirs do not relase water into the river.
-            # TODO: put beginnning and end month in Settings file. 
-
-            if "sometimes_closed" in binding:
-
-                if cbinding("sometimes_closed") == 'True':
-                    sometimes_closed = True
-                    sometimes_closed_start = int(cbinding('sometimes_closed_start'))
-                    sometimes_closed_end = int(cbinding('sometimes_closed_end'))
-                else:
-                    sometimes_closed = False
-            else:
-                sometimes_closed = False
-                
-            if sometimes_closed == True:
-                month = int(dateVar['currDatestr'].split('/')[1])
-
-                if sometimes_closed_end <= sometimes_closed_start:
-                    if month >= sometimes_closed_start or month <= sometimes_closed_end:
-                        #only override if there is a possibility of flooding
-                        reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4, 0.0)
-
-                elif sometimes_closed_start < sometimes_closed_end:
-                    if month >= sometimes_closed_start and month <= sometimes_closed_end:
-
-                        reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4,
-                                                    0.0)
-
             temp = np.minimum(reservoirOutflow, np.maximum(inflowC, self.var.normQC))
 
             reservoirOutflow = np.where((reservoirOutflow > 1.2 * inflowC) &
@@ -619,7 +587,8 @@ class lakes_reservoirs(object):
 
         self.var.sumEvapWaterBodyC += EvapWaterBodyC # in [m3]
         self.var.sumlakeResInflow += inflowCorrC
-        self.var.sumlakeResOutflow = self.var.sumlakeResOutflow  + self.var.lakeOutflowC * self.var.dtRouting
+        self.var.sumlakeResOutflow += outflowC
+        #self.var.sumlakeResOutflow = self.var.sumlakeResOutflow  + self.var.lakeOutflowC * self.var.dtRouting
 
         # decompress to normal maskarea size waterbalance
         if self.var.noRoutingSteps == (NoRoutingExecuted + 1):
