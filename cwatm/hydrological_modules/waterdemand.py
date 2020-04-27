@@ -136,6 +136,8 @@ class waterdemand(object):
             self.var.modflowPumpingM = globals.inZero.copy()
             self.var.modflowDepth2 = 0
             self.var.modflowTopography = 0
+            self.var.leakage = globals.inZero.copy()
+            self.var.pumping = globals.inZero.copy()
 
         else:  # no water demand
 

@@ -129,8 +129,9 @@ def modflow_transient(self,compteur):
             ## Groundwater demand from CWatM installs wells in each Modflow cell
 
             # Groundwater pumping demand from the CWatM waterdemand module, will be decompressed to 2D array
-            # using the sumed up (over e.g 7 days groundwater pumping demand)
-            pump1 = decompress(self.var.modflowPumpingM)
+            # using the summed up (over e.g 7 days groundwater pumping demand)
+            pump1 = decompress2(self.var.modflowPumpingM)
+
             # CWatM 2D groundwater pumping array is converted into Modflow 2D array
             pumping = indexes['Weight'] * pump1[indexes['CWATMindex']] * self.var.res_ModFlow * self.var.res_ModFlow
 
