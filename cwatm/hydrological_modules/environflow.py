@@ -62,7 +62,7 @@ class environflow(object):
         self.var.MMF = 1
         self.var.MQ90 = 1
         self.var.EF_VMF = 1
-        self.var.EF_VMF_LIH = 1
+
 
 
 
@@ -129,10 +129,9 @@ class environflow(object):
             ## A.V.Pastor et al.(2014): Accounting for environmental flow requirements in global water assessments, Hydrol Earth Syst Sci, 18, p5041-5059
 
             self.var.EF_VMF = np.empty(shape=[12, maskinfo['mapC'][0]])
-            self.var.EF_VMF_LIH = np.empty(shape=[12, maskinfo['mapC'][0]])
             for i in range(12):
                 self.var.EF_VMF[i] = np.where(self.var.MMF[i] <= (0.4 * self.var.MAF), 0.6 * self.var.MMF[i] ,np.where(self.var.MMF[i] > (0.8 * self.var.MAF), 0.3 * self.var.MMF[i] ,0.45 * self.var.MMF[i]))
-                self.var.EF_VMF_LIH[i] = np.where(self.var.MMF[i] <= (0.4 * self.var.MAF), 0, np.where(self.var.MMF[i] > (0.8 * self.var.MAF), 2, 1))
+
 
 
 

@@ -480,9 +480,6 @@ def getmeta(key,varname,alternative):
 def metaNetCDF():
     """
     get the map metadata from precipitation netcdf maps
-
-
-
     """
 
     try:
@@ -1612,7 +1609,7 @@ def checkOption(inBinding):
     if test:
         return option[inBinding]
     else:
-        closest = difflib.get_close_matches(inBinding, list(option.keys()))
+        close = difflib.get_close_matches(inBinding, list(option.keys()))
         if close:
             closest = close[0]
             with open(settingsfile[0]) as f:

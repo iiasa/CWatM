@@ -333,12 +333,16 @@ def checkifDate(start,end,spinup,name):
     #dateVar['dateStart'] = begin + datetime.timedelta(days=dateVar['intSpin']-1)
 
     d1 = datenum(begin)
-    dateVar['dateStart'] = numdate(d1, dateVar['intSpin']-1)
+    startint = int(d1 + dateVar['intSpin'] -1)
+    dateVar['dateStart'] = numdate(startint)
+
 
     dateVar['diffdays'] = dateVar['intEnd'] - dateVar['intSpin'] + 1
     #dateVar['dateEnd'] = dateVar['dateStart'] + datetime.timedelta(days=dateVar['diffdays']-1)
     d1 = datenum(dateVar['dateStart'])
-    dateVar['dateEnd'] = numdate(d1, dateVar['diffdays']-1)
+    endint = int(d1 + dateVar['diffdays'])
+    dateVar['dateEnd'] = numdate(endint, -1)
+
 
     dateVar['curr'] = 0
     dateVar['currwrite'] = 0
@@ -356,10 +360,10 @@ def checkifDate(start,end,spinup,name):
     #dates = np.arange(dateVar['dateStart'], dateVar['dateEnd']+ datetime.timedelta(days=1), datetime.timedelta(days = 1)).astype(datetime.datetime)
     #for d in dates:
 
-    d1 = datenum(begin)
-    for dint in range(dateVar['intStart'] - 1, dateVar['intEnd']):
-        d = numdate(d1, dint)
-        dnext = numdate(d1, dint + 1)
+
+    for dint in range(startint, endint):
+        d = numdate(dint)
+        dnext = numdate(dint, 1)
         #if d.day == calendar.monthrange(d.year, d.month)[1]:
         if d.month != dnext.month:
             if d.month == 12:
@@ -442,15 +446,13 @@ def timestep_dynamic(self):
     #dateVar['doy'] = (dateVar['currDate'] - firstdoy).days + 1
     firstdoyInt = datenum(firstdoy)
     dateVar['doy'] = int(datevarInt  - firstdoyInt + 1)
-
     dateVar['10day'] = int((dateVar['doy']-1)/10)
 
     dateVar['laststep'] = False
-    if (dateVar['intStart'] + dateVar['curr']) == dateVar['intEnd']: dateVar['laststep'] = True
-    if (d1 + dateVar['curr']) == dateVar['intEnd']: dateVar['laststep'] = True
+    if (dateVar['intStart'] + dateVar['curr']) == dateVar['intEnd']:
+        dateVar['laststep'] = True
 
     dateVar['currStart'] = dateVar['curr'] + 1
-
     dateVar['curr'] += 1
     # count currwrite only after spin time
     if dateVar['curr'] >= dateVar['intSpin']:

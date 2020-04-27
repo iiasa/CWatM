@@ -138,7 +138,7 @@ Methodology
 Flow through the channel is simulated using the kinematic wave equations. The basic equations used are the equations of continuity and momentum. 
 The continuity equation is:
 
-:math:`{\delta Q \over{\delta x}} + {\delta A \over{\delta t}} = q` 
+:math:`{\frac{\delta Q}{\delta x}} + {\frac{\delta A }{\delta t}} = q` 
 
 | where:
 | Q: channel discharge [m3 s-1], 
@@ -151,7 +151,7 @@ The momentum equation can also be expressed as (Chow et al., 1988):
 
 The coefficients α and β are calculated by putting in Manning's equation
 
-:math:`Q = A v = \frac{AR^{2/3} \sqrt{So}}{n}} = {A^{5/3} \sqrt{So} \over{n P^{2/3}}}` 
+:math:`Q = A v = \frac{AR^{2/3} \sqrt{So}}{n} = \frac{A^{5/3} \sqrt{So}}{n P^{2/3}}` 
 
 | where:
 | v: velocity [m/s]
@@ -161,7 +161,7 @@ The coefficients α and β are calculated by putting in Manning's equation
 
 Solving this for α and β gives:
 
-:math:`\alpha = (\frac{nP^{2/3}}{\sqrt{So}}})^\beta` and  :math:`\beta = 0.6` 
+:math:`\alpha = (\frac{nP^{2/3}}{\sqrt{So}})^\beta` and  :math:`\beta = 0.6` 
 
 | To calculate α CWATM uses static maps of:
 | P: wetted perimeter approximated in CWATM: P = channel width + 2 * channel bankful depth
@@ -245,7 +245,7 @@ Discharge for bankful discharge is assumed to be two times the average discharge
   
 :math:`Q = 2 * Qavg` 
 
-:math:`Q = {A^{5/3} \sqrt{So} \over{n P^{2/3}}}  ≈ {Wh^{5/3} \sqrt{So} \over{n (1.01W)^{2/3}}}` 
+:math:`Q = \frac{A^{5/3} \sqrt{So}}{n P^{2/3}} \approx \frac{Wh^{5/3} \sqrt{So}}{n (1.01W)^{2/3}}` 
 
 | Where:
 | W: Channel width
@@ -268,7 +268,7 @@ Soil and soil hydraulic properties
 
 Modeling of unsaturated flow and transport processes can be done with the 1D Richard equation, which requires a high spatial and temporal distribution of the soil hydraulic properties
 
-:math:`{\delta \Theta \over{\delta t}} = {\delta \over{\delta z}}[K(\Theta({\delta h(\Theta) \over{\delta z}}-1)]-S(\Theta)`  (1D Richard equation)
+:math:`\frac{\delta \Theta}{\delta t} = \frac{\delta}{\delta z}[K(\Theta(\frac{\delta h(\Theta)}{\delta z}-1)]-S(\Theta)`  (1D Richard equation)
 
 | Where:
 | θ: soil volumetric moisture content [L3/L3]  
@@ -280,13 +280,13 @@ Modeling of unsaturated flow and transport processes can be done with the 1D Ric
 
 With the simplification the 1D Richard equation e.g.  flow of soil moisture is entirely gravitu-driven and matrix potential gradient is zero this implies a flow tha tis always in downward direction at a rate that equals the conductivity of the soil. The relationship can now be described with the model of Mualem (1976) [#]_ and with the van Genuchten model (1980) [#]_ equation.
 
-:math:`K(\Theta) = K_s({\Theta - \Theta_r \over{\Theta_s - \Theta_r}})^{0.5} \lbrace 1-[1-({\Theta - \Theta_r \over{\Theta_s - \Theta_r}})^{1/m}]^{m} \rbrace^{2}`  (Van Genuchten equation)
+:math:`K(\Theta) = K_s(\frac{\Theta - \Theta_r}{\Theta_s - \Theta_r})^{0.5} \lbrace 1-[1-(\frac{\Theta - \Theta_r}{\Theta_s - \Theta_r})^{1/m}]^{m} \rbrace^{2}`  (Van Genuchten equation)
 
 | Where:
 | Ks: saturated conductivity of the soil [cm/d-1]
 | K(θ): unsaturated conductivity
 | :math:`\Theta` :math:`\Theta_s` :math:`\Theta_r` : actual, maximum and residual amounts of moisture in the soil [mm]
-| m: is calculated from the pore-size index :math:`\lambda` : :math:`m = {\lambda \over{\lambda + 1}}` 
+| m: is calculated from the pore-size index :math:`\lambda` : :math:`m = \frac{\lambda}{\lambda + 1}` 
 
 The soil hydraulic parameter :math:`\Theta_s` :math:`\Theta_r` :math:`\lambda` and :math:`K_s` are needed to simulated soil water transport for the van Genuchten model.
 

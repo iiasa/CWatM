@@ -192,25 +192,26 @@ class landcoverType(object):
 
         # Van Genuchten n and m coefficients
         # GenuN1=Lambda+1
-        genuN1 = [x + 1 for x in self.var.lambda1]
-        genuN2 = [x + 1 for x in self.var.lambda2]
-        genuN3 = [x + 1 for x in self.var.lambda3]
-        # self.var.GenuM1=Lambda1/GenuN1
-        self.var.genuM1 = [x / y for x, y in zip(self.var.lambda1, genuN1)]
-        self.var.genuM2 = [x / y for x, y in zip(self.var.lambda2, genuN2)]
-        self.var.genuM3 = [x / y for x, y in zip(self.var.lambda3, genuN3)]
-        # self.var.GenuInvM1=1/self.var.GenuM1
-        self.var.genuInvM1 = [1 / x for x in self.var.genuM1]
-        self.var.genuInvM2 = [1 / x for x in self.var.genuM2]
-        self.var.genuInvM3 = [1 / x for x in self.var.genuM3]
-        # self.var.GenuInvN1=1/GenuN1
-        self.var.genuInvN1 = [1 / x for x in genuN1]
-        self.var.genuInvN2 = [1 / x for x in genuN2]
-        self.var.genuInvN3 = [1 / x for x in genuN3]
-        # InvAlpha1=1/Alpha1
-        self.var.invAlpha1 = [1 / x for x in self.var.alpha1]
-        self.var.invAlpha2 = [1 / x for x in self.var.alpha2]
-        self.var.invAlpha3 = [1 / x for x in self.var.alpha3]
+        with np.errstate(invalid='ignore', divide='ignore'):
+            genuN1 = [x + 1 for x in self.var.lambda1]
+            genuN2 = [x + 1 for x in self.var.lambda2]
+            genuN3 = [x + 1 for x in self.var.lambda3]
+            # self.var.GenuM1=Lambda1/GenuN1
+            self.var.genuM1 = [x / y for x, y in zip(self.var.lambda1, genuN1)]
+            self.var.genuM2 = [x / y for x, y in zip(self.var.lambda2, genuN2)]
+            self.var.genuM3 = [x / y for x, y in zip(self.var.lambda3, genuN3)]
+            # self.var.GenuInvM1=1/self.var.GenuM1
+            self.var.genuInvM1 = [1 / x for x in self.var.genuM1]
+            self.var.genuInvM2 = [1 / x for x in self.var.genuM2]
+            self.var.genuInvM3 = [1 / x for x in self.var.genuM3]
+            # self.var.GenuInvN1=1/GenuN1
+            self.var.genuInvN1 = [1 / x for x in genuN1]
+            self.var.genuInvN2 = [1 / x for x in genuN2]
+            self.var.genuInvN3 = [1 / x for x in genuN3]
+            # InvAlpha1=1/Alpha1
+            self.var.invAlpha1 = [1 / x for x in self.var.alpha1]
+            self.var.invAlpha2 = [1 / x for x in self.var.alpha2]
+            self.var.invAlpha3 = [1 / x for x in self.var.alpha3]
 
 
         soilVars2 = ['ws1','ws2','ws3','wres1','wres2','wres3','wrange1','wrange2','wrange3','wfc1','wfc2','wfc3','wwp1','wwp2','wwp3','kunSatFC12','kunSatFC23']

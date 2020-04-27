@@ -34,233 +34,319 @@
 #   5.3 with some 'exotic output
 
 # ------------------------------------------------------------------------------------
-# --html=report.html --settingsfile=test_py_catwm1.txt
+# Execute
+# pytest test_cwatm3.py --html=C:/work/CWATM/report1.html --settingsfile=test_py_catwm2.txt --cwatm=C:/work/CWATM/run_cwatm.py
 
 
 # True is the tests for this section should be done
-runtest: Rhine_30min; True; global_30min; False; global_5min; False; Rhine_5min; False
+runtest: Rhine_30min  True
+runtest: global_30min True
+runtest: Rhine_5min   True
+runtest: global_5min  False
+
 # True is test should compare last discharge with given number, False is test should look for -no error- execution of run
 test_value: True
 
 # ---------------------
 # 30 min versions
     # Rhine
-	base: ./settings/30min/rhine_30min/settings_rhine_30min.ini
+	base_setting: ./settings/30min/rhine_30min/settings_rhine_30min.ini
 	name: Rhine_30min
+	path_system: P:/
+	path_root: ./
+	path_init: ./init
+	path_out: ./output/rhine
+	path_maps: P:/watmodel/CWATM/cwatm_input
+	path_meteo: M:/climate/Isi-Mip2/wfdei
+	
        # 1st Rhine 30min
         header:      Rhine_30min_1
         description: 1st Rhine 30min basic version
-        set_save:    ./settings/30min/rhine_30min/settings_rhine_30min_01.ini
+        set_save:    settings_rhine_30min_01.ini
         changes:     
         adds:        
         last_value:  4.22
-	
+       # 2nd setup Rhine
+        header:      Rhine_30min_2
+        description: 2nd Rhine 30min with box as mask and basic outputs
+        set_save:    settings_rhine_30min_02.ini
+        changes:     MaskMap = 14 12 0.5 5.0 52.0
+        adds:        OUT_TSS_Daily = discharge; OUT_MAP_Daily = discharge
+        last_value:  4.22
+       # 3rd setup Rhine
+        header:      Rhine_30min_3
+        description: 3rd Rhine 30min with location as mask
+        set_save:    settings_rhine_30min_03.ini
+        changes:     MaskMap = 6.25 51.75 
+        adds:        OUT_TSS_Daily = discharge
+        last_value:  4.22		
+       # 4th setup Rhine
+        header:      Rhine_30min_4
+        description: 4th Rhine 30min with routing off and storing EWRef, ETRef
+        set_save:    settings_rhine_30min_04.ini
+        changes:     includeRouting = False; StepEnd = 730 
+        adds:        OUT_MAP_Daily = ETRef, EWRef
+        last_value:  4.20	
+       # 5h setup Rhine
+        header:      Rhine_30min_5
+        description: 5th Rhine 30min with using stored EWRef, ETREF
+        set_save:    settings_rhine_30min_05.ini
+        changes:     calc_evaporation = False; StepEnd = 365
+        adds:        UT_TSS_Daily = discharge
+        last_value:  4549.75	
+	   # 6th setup Rhine
+        header:      Rhine_30min_6
+        description: 6th Rhine 30min with irrigation to runoff TRUE
+        set_save:    settings_rhine_30min_06.ini
+        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True
+        adds:        OUT_TSS_Daily = discharge; OUT_MAP_Daily = discharge
+        last_value:  16.62
+       # 7th setup Rhine
+        header:      Rhine_30min_7
+        description: 7th Rhine 30min with waterdemand TRUE
+        set_save:    settings_rhine_30min_07.ini
+        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 40
+        adds:        OUT_TSS_Daily = discharge
+        last_value:  443.03		
+       # 8th setup Rhine
+        header:      Rhine_30min_8
+        description: 8th Rhine 30min waterdemand TRUE, SpinUp, and save initial
+        set_save:    settings_rhine_30min_08.ini
+        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 366; SpinUp = 20/01/2009; save_initial = True; StepInit = 31/12/2009 
+        adds:        OUT_TSS_Daily = discharge
+        last_value:  1624.14	
+       # 9th setup Rhine
+        header:      Rhine_30min_9
+        description: 9th Rhine 30min waterdemand TRUE, load initial
+        set_save:    settings_rhine_30min_09.ini
+        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 100; SpinUp = 30; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine_20091231.nc  
+        adds:        OUT_TSS_Daily = discharge
+        last_value:  1553.59		
+       # 10th setup Rhine
+        header:      Rhine_30min_10
+        description: 10th Rhine 30min with lot of output
+        set_save:    settings_rhine_30min_10.ini
+        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 732; SpinUp = 01/10/2009; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine_20091231.nc  
+        adds:        OUT_TSS_Daily = discharge; OUT_TSS_MonthAvg = discharge; OUT_TSS_AnnualAvg = discharge; OUT_TSS_AnnualTot = runoff; OUT_Map_Daily = discharge; OUT_Map_MonthAvg = discharge, Precipitation, runoff; OUT_Map_AnnualAvg = discharge; OUT_MAP_TotalAvg = discharge, baseflow
+        last_value:  1656.99	
+       # 11th setup Rhine
+        header:      Rhine_30min_11
+        description: 11th Rhine 30min with more exotic output
+        set_save:    settings_rhine_30min_11.ini
+        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 400; SpinUp = 20/01/2009; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine_20091231.nc  
+        adds:        OUT_TSS_AreaSum_MonthTot = Precipitation, runoff; OUT_TSS_AreaAvg_MonthTot = Precipitation; OUT_Map_MonthAvg = reservoirStorage, Tavg; OUT_MAP_TotalTot = Precipitation
+        last_value:  1032.73	
 
 # -----------------------------
-
     # Global
-	base: ./settings/30min/global_30min/settings_global_30min.ini
+	base_setting: ./settings/30min/global_30min/settings_global_30min.ini
 	name: global_30min
+	path_out: ./output/global
+	
        # 1st global 30min
         header:      Global_30min_1
         description: 1st global 30min basic version
-        set_save:    ./settings/30min/global_30min/settings_global_30min_01.ini
+        set_save:    settings_global_30min_01.ini
         changes:     
         adds:        
-        last_value:  10
+        last_value:  1864.96
        # 2th setup global
         header:      Global_30min_4
         description: 2nd global 30min with routing off and storing EWRef, ETRef
-        set_save:    ./settings/30min/global_30min/settings_global_30min_02.ini
+        set_save:    settings_global_30min_02.ini
         changes:     includeRouting = False; StepEnd = 732 
         adds:        OUT_MAP_Daily = ETRef, EWRef
-        last_value:  10	
+        last_value:  5895.42	
        # 3h setup global
         header:      Global_30min_3
         description: 3rd global 30min with using stored EWRef, ETREF and map as gauges
-        set_save:    ./settings/30min/global_30min/settings_global_30min_03.ini
+        set_save:    settings_global_30min_03.ini
         changes:     calc_evaporation = False; StepEnd = 40; Gauges  = $(FILE_PATHS:PathMaps)/areamaps/station1263.map
         adds:        UT_TSS_Daily = discharge
-        last_value:  10	
+        last_value:  178.63	
 	   # 4th setup global
         header:      global_30min_4
         description: 4th global 30min with irrigation to runoff TRUE
-        set_save:    ./settings/30min/global_30min/settings_global_30min_04.ini
+        set_save:    settings_global_30min_04.ini
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True
         adds:        OUT_TSS_Daily = discharge; OUT_MAP_Daily = discharge
-        last_value:  10
+        last_value:  1555.02
        # 5th setup global
         header:      Global_30min_5
         description: 7th global 30min with waterdemand TRUE
-        set_save:    ./settings/30min/global_30min/settings_global_30min_05.ini
+        set_save:    settings_global_30min_05.ini
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 40
         adds:        OUT_TSS_Daily = discharge
-        last_value:  10		
+        last_value:  3140.29		
        # 6th setup global
         header:      Global_30min_6
         description: 8th global 30min waterdemand TRUE, SpinUp, and save initial
-        set_save:    ./settings/30min/global_30min/settings_global_30min_06.ini
+        set_save:    settings_global_30min_06.ini
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 30; SpinUp = 15/01/2009; save_initial = True; StepInit = 20/01/2009 
         adds:        OUT_TSS_Daily = discharge
-        last_value:  10	
+        last_value:  995.47
        # 7th setup global
         header:      Global_30min_7
         description: 9th global 30min waterdemand TRUE, load initial
-        set_save:    ./settings/30min/global_30min/settings_global_30min_07.ini
-        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 100; SpinUp = 15; load_initial = True; initLoad = $(FILE_PATHS:PathRoot)/init/global_20090120.nc  
+        set_save:    settings_global_30min_07.ini
+        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 100; SpinUp = 15; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/global_20090120.nc  
         adds:        OUT_TSS_Daily = discharge
-        last_value:  10			
+        last_value:  150228.10			
        # 8th setup global
         header:      Global_30min_8
         description: 8th global 30min with lot of output
-        set_save:    ./settings/30min/global_30min/settings_global_30min_08.ini
-        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 732; SpinUp = 15/01/2009; load_initial = True; initLoad = $(FILE_PATHS:PathRoot)/init/global_20090120.nc  
+        set_save:    settings_global_30min_08.ini
+        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 732; SpinUp = 15/01/2009; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/global_20090120.nc  
         adds:        OUT_TSS_Daily = discharge; OUT_TSS_MonthAvg = discharge; OUT_TSS_AnnualAvg = discharge; OUT_TSS_AnnualTot = runoff; OUT_Map_MonthAvg = discharge, Precipitation, runoff; OUT_Map_AnnualAvg = discharge; OUT_MAP_TotalAvg = discharge, baseflow
-        last_value:  10	
+        last_value:  93642.42	
 
 # -----------------------------
 # -----------------------------
 
 # 5 min versions
     # Rhine
-	base: ./settings/5min/rhine_5min/settings_rhine_5min.ini
+	base_setting: ./settings/5min/rhine_5min/settings_rhine_5min.ini
 	name: Rhine_5min
+	path_out: ./output/rhine
+	path_maps: P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf
+	
        # 1st Rhine 5min
         header:      Rhine_5min_1
         description: 1st Rhine 5min basic version
-        set_save:    ./settings/5min/rhine_5min/settings_rhine_5min_01.ini
+        set_save:    settings_rhine_5min_01.ini
         changes:     
         adds:        
-        last_value:  10
+        last_value:  6.23
        # 2nd setup Rhine
         header:      Rhine_5min_2
         description: 2nd Rhine 5min with box as mask and basic outputs
-        set_save:    ./settings/5min/rhine_5min/settings_rhine_5min_02.ini
+        set_save:    settings_rhine_5min_02.ini
         changes:     MaskMap =  77 68 0.0833333333333 5.41666666666 52.0
         adds:        OUT_TSS_Daily = discharge; OUT_MAP_Daily = discharge
-        last_value:  10
+        last_value:  6.23
        # 3rd setup Rhine
         header:      Rhine_5min_3
         description: 3rd Rhine 5min with location as mask
-        set_save:    ./settings/5min/rhine_5min/settings_rhine_5min_03.ini
+        set_save:    settings_rhine_5min_03.ini
         changes:     MaskMap = 6.11 51.84
         adds:        OUT_TSS_Daily = discharge
-        last_value:  10		
+        last_value:  6.23
        # 4th setup Rhine
         header:      Rhine_5min_4
         description: 4th Rhine 5min with routing off and storing EWRef, ETRef
-        set_save:    ./settings/5min/rhine_5min/settings_rhine_5min_04.ini
+        set_save:    settings_rhine_5min_04.ini
         changes:     includeRouting = False; StepEnd = 400 
         adds:        OUT_MAP_Daily = ETRef, EWRef
-        last_value:  10	
+        last_value:  5.83
        # 5h setup Rhine
         header:      Rhine_5min_5
         description: 5th Rhine 5min with using stored EWRef, ETREF
-        set_save:    ./settings/5min/rhine_5min/settings_rhine_5min_05.ini
+        set_save:    settings_rhine_5min_05.ini
         changes:     calc_evaporation = False
         adds:        UT_TSS_Daily = discharge
-        last_value:  10	
+        last_value:  6.23
 	   # 6th setup Rhine
         header:      Rhine_5min_6
         description: 6th Rhine 5min with irrigation to runoff TRUE and gauges as maps
-        set_save:    ./settings/5min/rhine_5min/settings_rhine_5min_06.ini
+        set_save:    settings_rhine_5min_06.ini
         changes:     calc_evaporation = False; Gauges= $(FILE_PATHS:PathMaps)/areamaps/rhine_station6.map; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True
         adds:        OUT_TSS_Daily = discharge; OUT_MAP_Daily = discharge
-        last_value:  10
+        last_value:  14.36
        # 7th setup Rhine
         header:      Rhine_5min_7
         description: 7th Rhine 5min with waterdemand TRUE
-        set_save:    ./settings/5min/rhine_5min/settings_rhine_5min_07.ini
+        set_save:    settings_rhine_5min_07.ini
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 40
         adds:        OUT_TSS_Daily = discharge
-        last_value:  10		
+        last_value:  1627.78
        # 8th setup Rhine
         header:      Rhine_5min_8
         description: 8th Rhine 5min waterdemand TRUE, SpinUp, and save initial
-        set_save:    ./settings/5min/rhine_5min/settings_rhine_5min_08.ini
+        set_save:    settings_rhine_5min_08.ini
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 40; SpinUp = 20/01/1979; save_initial = True; StepInit = 31/01/1979  
         adds:        OUT_TSS_Daily = discharge
-        last_value:  10	
+        last_value:  1627.78
        # 9th setup Rhine
         header:      Rhine_5min_9
         description: 9th Rhine 5min waterdemand TRUE, load initial
-        set_save:    ./settings/5min/rhine_5min/settings_rhine_5min_09.ini
-        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 40; SpinUp = 20/01/1979; load_initial = True; initLoad = $(FILE_PATHS:PathRoot)/init/Rhine5min_19790131.nc  
+        set_save:    settings_rhine_5min_09.ini
+        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 40; SpinUp = 20/01/1979; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine5min_19790131.nc  
         adds:        OUT_TSS_Daily = discharge
-        last_value:  10			
+        last_value:  2895.04
        # 10th setup Rhine
         header:      Rhine_5min_10
         description: 10th Rhine 5min with lot of output
-        set_save:    ./settings/5min/rhine_5min/settings_rhine_5min_10.ini
-        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 400; SpinUp = 20/01/1979; load_initial = True; initLoad = $(FILE_PATHS:PathRoot)/init/Rhine5min_19790131.nc  
+        set_save:    settings_rhine_5min_10.ini
+        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 400; SpinUp = 20/01/1979; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine5min_19790131.nc  
         adds:        OUT_TSS_Daily = discharge; OUT_TSS_MonthAvg = discharge; OUT_TSS_AnnualAvg = discharge; OUT_TSS_AnnualTot = runoff; OUT_Map_Daily = discharge; OUT_Map_MonthAvg = discharge, Precipitation, runoff; OUT_Map_AnnualAvg = discharge; OUT_MAP_TotalAvg = discharge, baseflow
-        last_value:  10	
+        last_value:  3045.40
        # 11th setup Rhine
         header:      Rhine_5min_11
         description: 11th Rhine 5min with more exotic output
-        set_save:    ./settings/5min/rhine_5min/settings_rhine_5min_11.ini
-        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 400; SpinUp = 20/01/1979; load_initial = True; initLoad = $(FILE_PATHS:PathRoot)/init/Rhine5min_19790131.nc  
+        set_save:    settings_rhine_5min_11.ini
+        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 400; SpinUp = 20/01/1979; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine5min_19790131.nc  
         adds:        OUT_TSS_AreaSum_MonthTot = Precipitation, runoff; OUT_TSS_AreaAvg_MonthTot = Precipitation; OUT_Map_MonthAvg = reservoirStorage, Tavg; OUT_MAP_TotalTot = Precipitation
-        last_value:  10				
+        last_value:  3045.40
 
 # -----------------------------
     # global
-	base: ./settings/5min/global_5min/settings_global_5min.ini
+	base_setting: ./settings/5min/global_5min/settings_global_5min.ini
 	name: global_5min
+	path_out: ./output/global
+	
        # 1st global 5min
         header:      global_5min_1
         description: 1st global 5min basic version
-        set_save:    ./settings/5min/global_5min/settings_global_5min_01.ini
+        set_save:    settings_global_5min_01.ini
         changes:     
         adds:        
-        last_value:  10
+        last_value:  7.96
        # 2nd setup global
         header:      global_5min_2
         description: 2nd global 5min with box as mask and basic outputs
-        set_save:    ./settings/5min/global_5min/settings_global_5min_02.ini
+        set_save:    settings_global_5min_02.ini
         changes:     MaskMap = 4320 1800 0.083333333 -180. 90.
         adds:        OUT_TSS_Daily = discharge; OUT_MAP_Daily = discharge
-        last_value:  10
+        last_value:  7.96
        # 3th setup global
         header:      global_5min_3
         description: 3th global 5min with routing off and storing EWRef, ETRef
-        set_save:    ./settings/5min/global_5min/settings_global_5min_03.ini
+        set_save:    settings_global_5min_03.ini
         changes:     includeRouting = False; StepEnd = 100 
         adds:        OUT_MAP_Daily = ETRef, EWRef
-        last_value:  10	
+        last_value:  8.57
        # 4h setup global
         header:      global_5min_4
         description: 4th global 5min with using stored EWRef, ETREF
-        set_save:    ./settings/5min/global_5min/settings_global_5min_04.ini
+        set_save:    settings_global_5min_04.ini
         changes:     calc_evaporation = False
         adds:        OUT_TSS_Daily = discharge
-        last_value:  10	
+        last_value:  7.96	
 	   # 5th setup global
         header:      global_5min_5
         description: 5th global 5min with irrigation to runoff TRUE 
-        set_save:    ./settings/5min/global_5min/settings_global_5min_05.ini
+        set_save:    settings_global_5min_05.ini
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True
         adds:        OUT_TSS_Daily = discharge; OUT_MAP_Daily = discharge
-        last_value:  10
+        last_value:  18.98
        # 6th setup global
         header:      global_5min_6
         description: 6th global 5min with waterdemand TRUE
-        set_save:    ./settings/5min/global_5min/settings_global_5min_06.ini
+        set_save:    settings_global_5min_06.ini
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 40
         adds:        OUT_TSS_Daily = discharge
-        last_value:  10		
+        last_value:  227.02
        # 7th setup global
         header:      global_5min_7
         description: 7th global 5min waterdemand TRUE, SpinUp, and save initial
-        set_save:    ./settings/5min/global_5min/settings_global_5min_07.ini
+        set_save:    settings_global_5min_07.ini
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 40; SpinUp = 10/01/1990; save_initial = True; StepInit = 31/01/1990  
         adds:        OUT_TSS_Daily = discharge
-        last_value:  10	
+        last_value:  227.02
        # 8th setup global
         header:      global_5min_8
         description: 8th global 5min waterdemand TRUE, load initial, long run
-        set_save:    ./settings/5min/global_5min/settings_global_5min_08.ini
-        changes:     includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 400; SpinUp = 10/01/1990; load_initial = True; initLoad = $(FILE_PATHS:PathRoot)/init/global5min_19900131.nc  
+        set_save:    settings_global_5min_08.ini
+        changes:     includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 400; SpinUp = 10/01/1990; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/global5min_19900131.nc  
         adds:        OUT_TSS_Daily = discharge
-        last_value:  10						
-				
+        last_value:  2130.26
