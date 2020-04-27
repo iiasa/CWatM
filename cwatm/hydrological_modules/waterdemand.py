@@ -41,10 +41,11 @@ class waterdemand(object):
         """
 
         if checkOption('includeWaterDemand'):
-            if 'usingAllocSegments' in binding:
-                if checkOption('usingAllocSegments'):
-                   self.var.allocSegments = loadmap('allocSegments').astype(np.int)
-                   self.var.segmentArea = np.where(self.var.allocSegments > 0, npareatotal(self.var.cellArea, self.var.allocSegments), self.var.cellArea)
+
+            #if 'usingAllocSegments' in binding:
+            #    if checkOption('usingAllocSegments'):
+            #       self.var.allocSegments = loadmap('allocSegments').astype(np.int)
+            #       self.var.segmentArea = np.where(self.var.allocSegments > 0, npareatotal(self.var.cellArea, self.var.allocSegments), self.var.cellArea)
 
             # -------------------------------------------
             # partitioningGroundSurfaceAbstraction
@@ -138,28 +139,28 @@ class waterdemand(object):
 
         else:  # no water demand
 
-            self.var.nonIrrReturnFlowFraction = 0
-            self.var.nonFossilGroundwaterAbs = 0
-            self.var.nonIrruse = 0
-            self.var.act_indDemand = 0
-            self.var.act_domDemand = 0
-            self.var.act_livDemand = 0
-            self.var.nonIrrDemand = 0
-            self.var.totalIrrDemand = 0
-            self.var.totalWaterDemand = 0
-            self.var.act_irrWithdrawal = 0
-            self.var.act_nonIrrWithdrawal = 0
-            self.var.act_totalWaterWithdrawal = 0
-            self.var.act_indConsumption = 0
-            self.var.act_domConsumption = 0
-            self.var.act_livConsumption = 0
-            self.var.act_nonIrrConsumption = 0
-            self.var.act_totalIrrConsumption = 0
-            self.var.act_totalWaterConsumption = 0
-            self.var.unmetDemand = 0
-            self.var.addtoevapotrans = 0
-            self.var.returnflowIrr = 0
-            self.var.returnFlow = 0
+            self.var.nonIrrReturnFlowFraction = globals.inZero.copy()
+            self.var.nonFossilGroundwaterAbs = globals.inZero.copy()
+            self.var.nonIrruse = globals.inZero.copy()
+            self.var.act_indDemand = globals.inZero.copy()
+            self.var.act_domDemand = globals.inZero.copy()
+            self.var.act_livDemand = globals.inZero.copy()
+            self.var.nonIrrDemand = globals.inZero.copy()
+            self.var.totalIrrDemand = globals.inZero.copy()
+            self.var.totalWaterDemand = globals.inZero.copy()
+            self.var.act_irrWithdrawal = globals.inZero.copy()
+            self.var.act_nonIrrWithdrawal = globals.inZero.copy()
+            self.var.act_totalWaterWithdrawal = globals.inZero.copy()
+            self.var.act_indConsumption = globals.inZero.copy()
+            self.var.act_domConsumption = globals.inZero.copy()
+            self.var.act_livConsumption = globals.inZero.copy()
+            self.var.act_nonIrrConsumption = globals.inZero.copy()
+            self.var.act_totalIrrConsumption = globals.inZero.copy()
+            self.var.act_totalWaterConsumption = globals.inZero.copy()
+            self.var.unmetDemand = globals.inZero.copy()
+            self.var.addtoevapotrans = globals.inZero.copy()
+            self.var.returnflowIrr = globals.inZero.copy()
+            self.var.returnFlow = globals.inZero.copy()
             self.var.unmetDemandPaddy = globals.inZero.copy()
             self.var.unmetDemandNonpaddy = globals.inZero.copy()
             self.var.ind_efficiency = 1.
@@ -168,6 +169,9 @@ class waterdemand(object):
             self.var.modflowPumping = 0
             self.var.modflowDepth2 = 0
             self.var.modflowTopography = 0
+            self.var.act_bigLakeResAbst = globals.inZero.copy()
+            self.var.leakage = globals.inZero.copy()
+            self.var.pumping = globals.inZero.copy()
 
 
 
@@ -632,11 +636,9 @@ class waterdemand(object):
             self.var.act_irrConsumption[2] = divideValues(self.var.act_irrPaddyWithdrawal, self.var.fracVegCover[2]) * self.var.efficiencyPaddy
             self.var.act_irrConsumption[3] = divideValues(self.var.act_irrNonpaddyWithdrawal, self.var.fracVegCover[3]) * self.var.efficiencyNonpaddy
 
-
-            if checkOption('demand2pumping'):
-
-                self.var.modflowPumpingM += act_gw
-                self.var.Pumping_daily = act_gw
+            self.var.pumping = act_gw
+            if 'demand2pumping' in binding:
+                if checkOption('demand2pumping'): self.var.modflowPumpingM += act_gw
 
 
             self.var.act_indWithdrawal = frac_industry * self.var.act_nonIrrWithdrawal
