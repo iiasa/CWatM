@@ -549,6 +549,11 @@ class soil(object):
         #self.var.actTransTotal[No] =  np.sum(actTrans, axis=0)
         self.var.actTransTotal[No] = ta1 + ta2 + ta3
 
+        self.var.actTransTotal_forest = self.var.actTransTotal[0] * self.var.fracVegCover[0]
+        self.var.actTransTotal_grasslands = self.var.actTransTotal[1] * self.var.fracVegCover[1]
+        self.var.actTransTotal_paddy = self.var.actTransTotal[2]*self.var.fracVegCover[2]
+        self.var.actTransTotal_nonpaddy = self.var.actTransTotal[3]*self.var.fracVegCover[3]
+
         self.var.before = self.var.actualET[No].copy()
 
         # total actual evaporation + transpiration

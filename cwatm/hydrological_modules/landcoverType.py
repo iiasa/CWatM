@@ -322,10 +322,11 @@ class landcoverType(object):
             rootFrac[1] = (1 - fractionroot12) * self.var.rootFraction1[i]
             rootFrac[2] = 1.0 - self.var.rootFraction1[i]
 
-            if not checkOption('rootFrac'):
-                root_depth_sum = self.var.rootDepth[0][i] + self.var.rootDepth[1][i] + self.var.rootDepth[2][i]
-                for layer in range(3):
-                    rootFrac[layer] = self.var.rootDepth[layer][i] / root_depth_sum
+            if 'rootFrac' in binding:
+                if not checkOption('rootFrac'):
+                    root_depth_sum = self.var.rootDepth[0][i] + self.var.rootDepth[1][i] + self.var.rootDepth[2][i]
+                    for layer in range(3):
+                        rootFrac[layer] = self.var.rootDepth[layer][i] / root_depth_sum
 
             rootFracSum = np.sum(rootFrac,axis=0)
 
