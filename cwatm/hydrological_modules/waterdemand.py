@@ -41,10 +41,10 @@ class waterdemand(object):
         """
 
         if checkOption('includeWaterDemand'):
-            
-            if checkOption('usingAllocSegments'):
-               self.var.allocSegments = loadmap('allocSegments').astype(np.int)
-               self.var.segmentArea = np.where(self.var.allocSegments > 0, npareatotal(self.var.cellArea, self.var.allocSegments), self.var.cellArea)
+            if 'usingAllocSegments' in binding:
+                if checkOption('usingAllocSegments'):
+                   self.var.allocSegments = loadmap('allocSegments').astype(np.int)
+                   self.var.segmentArea = np.where(self.var.allocSegments > 0, npareatotal(self.var.cellArea, self.var.allocSegments), self.var.cellArea)
 
             # -------------------------------------------
             # partitioningGroundSurfaceAbstraction
@@ -441,115 +441,116 @@ class waterdemand(object):
                 # remaining is taken from groundwater if possible
                 remainNeed2 = pot_SurfaceAbstract - self.var.act_SurfaceWaterAbstract
 
-                if checkOption('using_reservoir_command_areas'):  # checkOption('usingAllocSegments2'):
+                if 'using_reservoir_command_areas' in binding:
+                    if checkOption('using_reservoir_command_areas'):  # checkOption('usingAllocSegments2'):
 
-                    # ABOUT
-                    #
-                    # The command area of a reservoir is the area that can receive water from this reservoir, through canals or other means.
-                    # Performed above, each cell has attempted to satisfy its demands with local water using in-cell channel, lake, and reservoir storage.
-                    # The remaining demand within each command area is totaled and requested from the associated reservoir.
-                    # The reservoir offers this water up to a daily maximum relating to the available storage in the reservoir, defined in the Reservoir_releases_input_file.
-                    #
-                    # SETTINGS FILE AND INPUTS
+                        # ABOUT
+                        #
+                        # The command area of a reservoir is the area that can receive water from this reservoir, through canals or other means.
+                        # Performed above, each cell has attempted to satisfy its demands with local water using in-cell channel, lake, and reservoir storage.
+                        # The remaining demand within each command area is totaled and requested from the associated reservoir.
+                        # The reservoir offers this water up to a daily maximum relating to the available storage in the reservoir, defined in the Reservoir_releases_input_file.
+                        #
+                        # SETTINGS FILE AND INPUTS
 
-                    # -Activating
-                    # In the OPTIONS section towards the beginning of the settings file, add/set
-                    # using_reservoir_command_areas = True
+                        # -Activating
+                        # In the OPTIONS section towards the beginning of the settings file, add/set
+                        # using_reservoir_command_areas = True
 
-                    # - Command areas raster map
-                    # Anywhere after the OPTIONS section (in WATERDEMAND, for example), add/set reservoir_command_areas to a path holding...
-                    # information about the command areas. This Command areas raster map should assign the same positive integer coding to each cell within the same segment.
-                    # All other cells must Nan values, or values <= 0.
+                        # - Command areas raster map
+                        # Anywhere after the OPTIONS section (in WATERDEMAND, for example), add/set reservoir_command_areas to a path holding...
+                        # information about the command areas. This Command areas raster map should assign the same positive integer coding to each cell within the same segment.
+                        # All other cells must Nan values, or values <= 0.
 
-                    # -Optional inputs
-                    #
-                    # Anywhere after the OPTIONS section, add/set Reservoir_releases_input_file to a path holding information about irrigation releases.
-                    # This should be a raster map (netCDF) of 366 values determining the maximum fraction of available storage to be used for meeting water demand...
-                    # in the associated command area on the day of the year. If this is not included, a value of 0.01 will be assumed,
-                    # i.e. 1% of the reservoir storage can be at most released into the command area on each day.
+                        # -Optional inputs
+                        #
+                        # Anywhere after the OPTIONS section, add/set Reservoir_releases_input_file to a path holding information about irrigation releases.
+                        # This should be a raster map (netCDF) of 366 values determining the maximum fraction of available storage to be used for meeting water demand...
+                        # in the associated command area on the day of the year. If this is not included, a value of 0.01 will be assumed,
+                        # i.e. 1% of the reservoir storage can be at most released into the command area on each day.
 
-                    ## Command area total demand
-                    #
-                    # The remaining demand within each command area [M3] is put into a map where each cell in the command area holds this total demand
-                    demand_Segment = np.where(self.var.reservoir_command_areas > 0,
-                                              npareatotal(remainNeed2 * self.var.cellArea,
-                                                          self.var.reservoir_command_areas),
-                                              0)  # [M3]
+                        ## Command area total demand
+                        #
+                        # The remaining demand within each command area [M3] is put into a map where each cell in the command area holds this total demand
+                        demand_Segment = np.where(self.var.reservoir_command_areas > 0,
+                                                  npareatotal(remainNeed2 * self.var.cellArea,
+                                                              self.var.reservoir_command_areas),
+                                                  0)  # [M3]
 
-                    ## Reservoir associated with the Command Area
-                    #
-                    # If there is more than one reservoir in a command area, the storage of the reservoir with maximum storage in this time-step is chosen.
-                    # The map resStorageTotal_alloc holds this maximum reservoir storage within a command area in all cells within that command area
+                        ## Reservoir associated with the Command Area
+                        #
+                        # If there is more than one reservoir in a command area, the storage of the reservoir with maximum storage in this time-step is chosen.
+                        # The map resStorageTotal_alloc holds this maximum reservoir storage within a command area in all cells within that command area
 
-                    reservoirStorageM3 = globals.inZero.copy()
-                    np.put(reservoirStorageM3, self.var.decompress_LR, self.var.reservoirStorageM3C)
-                    resStorageTotal_alloc = np.where(self.var.reservoir_command_areas > 0,
-                                                     npareamaximum(reservoirStorageM3,
-                                                                   self.var.reservoir_command_areas), 0)  # [M3]
+                        reservoirStorageM3 = globals.inZero.copy()
+                        np.put(reservoirStorageM3, self.var.decompress_LR, self.var.reservoirStorageM3C)
+                        resStorageTotal_alloc = np.where(self.var.reservoir_command_areas > 0,
+                                                         npareamaximum(reservoirStorageM3,
+                                                                       self.var.reservoir_command_areas), 0)  # [M3]
 
-                    # In the map resStorageTotal_allocC, the maximum storage from each allocation segment is held in all reservoir cells within that allocation segment.
-                    # We now correct to remove the reservoirs that are not this maximum-storage-reservoir for the command area.
-                    resStorageTotal_allocC = np.compress(self.var.compress_LR, resStorageTotal_alloc)
-                    resStorageTotal_allocC = np.multiply(resStorageTotal_allocC == self.var.reservoirStorageM3C,
-                                                         resStorageTotal_allocC)
+                        # In the map resStorageTotal_allocC, the maximum storage from each allocation segment is held in all reservoir cells within that allocation segment.
+                        # We now correct to remove the reservoirs that are not this maximum-storage-reservoir for the command area.
+                        resStorageTotal_allocC = np.compress(self.var.compress_LR, resStorageTotal_alloc)
+                        resStorageTotal_allocC = np.multiply(resStorageTotal_allocC == self.var.reservoirStorageM3C,
+                                                             resStorageTotal_allocC)
 
-                    # The rules for the maximum amount of water to be released for irrigation are found for the chosen maximum-storage reservoir in each command area
-                    day_of_year = dateVar['currDate'].timetuple().tm_yday
+                        # The rules for the maximum amount of water to be released for irrigation are found for the chosen maximum-storage reservoir in each command area
+                        day_of_year = dateVar['currDate'].timetuple().tm_yday
 
-                    if 'Reservoir_releases_input_file' in binding:
-                        resStorage_maxFracForIrrigation = readnetcdf2('Reservoir_releases_input_file', day_of_year,
-                                                                      useDaily='DOY', value='Fraction of Volume')
-                    else:
-                        resStorage_maxFracForIrrigation = 0.01 + globals.inZero.copy()
+                        if 'Reservoir_releases_input_file' in binding:
+                            resStorage_maxFracForIrrigation = readnetcdf2('Reservoir_releases_input_file', day_of_year,
+                                                                          useDaily='DOY', value='Fraction of Volume')
+                        else:
+                            resStorage_maxFracForIrrigation = 0.01 + globals.inZero.copy()
 
-                    # resStorage_maxFracForIrrigationC holds the fractional rules found for each reservoir, so we must null those that are not the maximum-storage reservoirs
-                    resStorage_maxFracForIrrigationC = np.compress(self.var.compress_LR,
-                                                                   resStorage_maxFracForIrrigation)
-                    resStorage_maxFracForIrrigationC = np.multiply(
-                        resStorageTotal_allocC == self.var.reservoirStorageM3C, resStorage_maxFracForIrrigationC)
-                    np.put(resStorage_maxFracForIrrigation, self.var.decompress_LR, resStorage_maxFracForIrrigationC)
+                        # resStorage_maxFracForIrrigationC holds the fractional rules found for each reservoir, so we must null those that are not the maximum-storage reservoirs
+                        resStorage_maxFracForIrrigationC = np.compress(self.var.compress_LR,
+                                                                       resStorage_maxFracForIrrigation)
+                        resStorage_maxFracForIrrigationC = np.multiply(
+                            resStorageTotal_allocC == self.var.reservoirStorageM3C, resStorage_maxFracForIrrigationC)
+                        np.put(resStorage_maxFracForIrrigation, self.var.decompress_LR, resStorage_maxFracForIrrigationC)
 
-                    resStorage_maxFracForIrrigation_CA = np.where(self.var.reservoir_command_areas > 0,
-                                                                  npareamaximum(resStorage_maxFracForIrrigation,
-                                                                                self.var.reservoir_command_areas), 0)
+                        resStorage_maxFracForIrrigation_CA = np.where(self.var.reservoir_command_areas > 0,
+                                                                      npareamaximum(resStorage_maxFracForIrrigation,
+                                                                                    self.var.reservoir_command_areas), 0)
 
-                    if 'Water_conveyance_efficiency' in binding:
-                        Water_conveyance_efficiency = loadmap('Water_conveyance_efficiency')
-                    else:
-                        Water_conveyance_efficiency = 1.0
+                        if 'Water_conveyance_efficiency' in binding:
+                            Water_conveyance_efficiency = loadmap('Water_conveyance_efficiency')
+                        else:
+                            Water_conveyance_efficiency = 1.0
 
-                    act_bigLakeResAbst_alloc = np.minimum(resStorage_maxFracForIrrigation_CA * resStorageTotal_alloc,
-                                                          demand_Segment / Water_conveyance_efficiency)  # [M3]
+                        act_bigLakeResAbst_alloc = np.minimum(resStorage_maxFracForIrrigation_CA * resStorageTotal_alloc,
+                                                              demand_Segment / Water_conveyance_efficiency)  # [M3]
 
-                    ResAbstractFactor = np.where(resStorageTotal_alloc > 0,
-                                                 divideValues(act_bigLakeResAbst_alloc, resStorageTotal_alloc),
-                                                 0)  # fraction of water abstracted versus water available for total segment reservoir volumes
-                    # Compressed version needs to be corrected as above
-                    ResAbstractFactorC = np.compress(self.var.compress_LR, ResAbstractFactor)
-                    ResAbstractFactorC = np.multiply(resStorageTotal_allocC == self.var.reservoirStorageM3C,
-                                                     ResAbstractFactorC)
+                        ResAbstractFactor = np.where(resStorageTotal_alloc > 0,
+                                                     divideValues(act_bigLakeResAbst_alloc, resStorageTotal_alloc),
+                                                     0)  # fraction of water abstracted versus water available for total segment reservoir volumes
+                        # Compressed version needs to be corrected as above
+                        ResAbstractFactorC = np.compress(self.var.compress_LR, ResAbstractFactor)
+                        ResAbstractFactorC = np.multiply(resStorageTotal_allocC == self.var.reservoirStorageM3C,
+                                                         ResAbstractFactorC)
 
-                    self.var.lakeStorageC -= self.var.reservoirStorageM3C * ResAbstractFactorC
-                    self.var.lakeVolumeM3C -= self.var.reservoirStorageM3C * ResAbstractFactorC
-                    self.var.lakeResStorageC -= self.var.reservoirStorageM3C * ResAbstractFactorC
-                    self.var.reservoirStorageM3C -= self.var.reservoirStorageM3C * ResAbstractFactorC
+                        self.var.lakeStorageC -= self.var.reservoirStorageM3C * ResAbstractFactorC
+                        self.var.lakeVolumeM3C -= self.var.reservoirStorageM3C * ResAbstractFactorC
+                        self.var.lakeResStorageC -= self.var.reservoirStorageM3C * ResAbstractFactorC
+                        self.var.reservoirStorageM3C -= self.var.reservoirStorageM3C * ResAbstractFactorC
 
-                    self.var.lakeResStorage = globals.inZero.copy()
-                    np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
+                        self.var.lakeResStorage = globals.inZero.copy()
+                        np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
 
-                    metRemainSegment = np.where(demand_Segment > 0,
-                                                divideValues(act_bigLakeResAbst_alloc * Water_conveyance_efficiency,
-                                                             demand_Segment), 0)  # by definition <= 1
+                        metRemainSegment = np.where(demand_Segment > 0,
+                                                    divideValues(act_bigLakeResAbst_alloc * Water_conveyance_efficiency,
+                                                                 demand_Segment), 0)  # by definition <= 1
 
-                    self.var.leakageC_daily = resStorageTotal_allocC * ResAbstractFactorC * (
-                                1 - Water_conveyance_efficiency)
-                    self.var.leakageC += self.var.leakageC_daily
-                    self.var.leakageC_daily_segments = np.sum(self.var.leakageC_daily) + globals.inZero
+                        self.var.leakageC_daily = resStorageTotal_allocC * ResAbstractFactorC * (
+                                    1 - Water_conveyance_efficiency)
+                        self.var.leakageC += self.var.leakageC_daily
+                        self.var.leakageC_daily_segments = np.sum(self.var.leakageC_daily) + globals.inZero
 
-                    self.var.act_bigLakeResAbst += remainNeed2 * metRemainSegment
-                    self.var.act_SurfaceWaterAbstract += remainNeed2 * metRemainSegment
+                        self.var.act_bigLakeResAbst += remainNeed2 * metRemainSegment
+                        self.var.act_SurfaceWaterAbstract += remainNeed2 * metRemainSegment
 
-                    ## End of using_reservoir_command_areas
+                        ## End of using_reservoir_command_areas
 
 
             # real surface water abstraction can be lower, because not all demand can be done from surface water
