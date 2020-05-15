@@ -278,10 +278,11 @@ def checkifDate(start,end,spinup,name):
     """
 
     #begin = Calendar(ctbinding('CalendarDayStart'))
-
-    name = glob.glob(os.path.normpath(name))[0]
-    if not name:
+    try:
+        name = glob.glob(os.path.normpath(name))[0]
+    except:
         raise CWATMFileError(name, sname='PrecipitationMaps')
+
     nf1 = Dataset(name, 'r')
     try:
         dateVar['calendar'] = nf1.variables['time'].calendar
@@ -292,7 +293,7 @@ def checkifDate(start,end,spinup,name):
     nf1.close()
 
     unitconv1 = ["DAYS","HOUR","MINU","SECO"]
-    unitconv2 = [1,24,144086400]
+    unitconv2 = [1,24,1440,86400]
     unitconv3 = dateVar['unit'] [:4].upper()
     try:
         dateVar['unitConv'] = unitconv2[unitconv1.index(unitconv3)]

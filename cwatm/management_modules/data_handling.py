@@ -823,21 +823,31 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
                 raise CWATMFileError(filename, msg, sname=maps)
             nctime = nf1.variables['time']
 
-            datestart = num2date(nctime[0],units=nctime.units,calendar=nctime.calendar)
-            #datestart = num2date(nctime[0], units=nctime.units, calendar='proleptic_gregorian')
+            unitconv1 = ["DAYS", "HOUR", "MINU", "SECO"]
+            unitconv2 = [1, 24, 1440, 86400]
+            try:
+                unitconv3 = nctime.units[:4].upper()
+                datediv = unitconv2[unitconv1.index(unitconv3)]
+            except:
+                datediv = 1
+
+            datestart = num2date(nctime[0] ,units=nctime.units,calendar=nctime.calendar)
+
             # sometime daily records have a strange hour to start with -> it is changed to 0:00 to haqve the same record
             datestart = datestart.replace(hour=0, minute=0)
             dateend = num2date(nctime[-1], units=nctime.units, calendar=nctime.calendar)
 
-            datestartint = int(nctime[0])
-            dateendint = int(nctime[-1])
+            datestartint = int(nctime[0]) // datediv
+            dateendint = int(nctime[-1]) // datediv
 
-            #dateend = num2date(nctime[-1], units=nctime.units, calendar='proleptic_gregorian')
             dateend = dateend.replace(hour=0, minute=0)
             #if dateVar['leapYear'] > 0:
             startint = int(date2num(dateVar[startcheck],nctime.units,calendar=nctime.calendar))
             start = num2date(startint, units=nctime.units, calendar=nctime.calendar)
+            startint = startint // datediv
+
             endint = int(date2num(end, nctime.units, calendar=nctime.calendar))
+            endint = endint // datediv
 
             #else:
             #    start = dateVar[startcheck]
@@ -856,7 +866,7 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
                     #start = dateend + datetime.timedelta(days=1)
                     #start = start.replace(hour=0, minute=0)
                     startint = dateendint + 1
-                    start = num2date(startint, units=nctime.units, calendar=nctime.calendar)
+                    start = num2date(startint * datediv, units=nctime.units, calendar=nctime.calendar)
 
             else:
                 if (datestartint >= startint) and (datestartint < endint ):
@@ -867,7 +877,7 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
                     #start = dateend + datetime.timedelta(days=1)
                     #start = start.replace(hour=0, minute=0)
                     startint = dateendint + 1
-                    start = num2date(startint, units=nctime.units, calendar=nctime.calendar)
+                    start = num2date(startint * datediv, units=nctime.units, calendar=nctime.calendar)
 
             nf1.close()
         meteofiles[maps] =  meteolist
@@ -913,6 +923,10 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     warnings.filterwarnings("ignore")
     if value == "None":
         value = list(nf1.variables.items())[-1][0]  # get the last variable name
+        if value in ["lon","lat","time"]:
+            for i in range(2,5):
+               value = list(nf1.variables.items())[-i][0]
+               if not(value in ["lon","lat","time"]) : break
 
     # check if mask = map size -> if yes do not cut the map
     cutcheckmask = maskinfo['shape'][0] * maskinfo['shape'][1]
@@ -1362,9 +1376,6 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
             mapnp = np.where(coverresult[1], mapnp, np.nan)
         else:
             mapnp = mapnp.reshape(maskinfo['shape'])
-
-    #date_time[posCnt] = date2num(timeStamp, date_time.units, date_time.calendar)
-
 
     if flagTime:
         nf1.variables[varname][posCnt -1, :, :] = mapnp

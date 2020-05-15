@@ -142,17 +142,15 @@ def modflow_transient(self,compteur):
 
     if self.var.GW_pumping:
 
-        if 'demand2pumping' in binding:
-            if cbinding('demand2pumping') == 'True':
-                demand2pumping = True
-            else:
-                demand2pumping = False
-        else:
-            demand2pumping = False
+        demand2pumping = False
+        if "demand2pumping" in binding:
+            demand2pumping = returnBool('demand2pumping')
 
         if demand2pumping == False:
             pumping_data = cbinding('Pumping_input_file')
             pumping_data = np.load(pumping_data)
+            Wells = []
+            self.var.GW_pumping = False
 
         else:
 
