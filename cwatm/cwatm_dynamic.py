@@ -58,7 +58,7 @@ class CWATModel_dyn(DynamicModel):
         """ up to here it was fun, now the real stuff starts
         """
 
-        if not(self.modflow and self.modflowsteady):
+        if not(self.var.modflow and self.var.modflowsteady):
 
             if checkOption('calc_environflow') and (returnBool('calc_ef_afterRun')  == False):
                 # if only the dis is used for calculation of EF
@@ -88,7 +88,7 @@ class CWATModel_dyn(DynamicModel):
 
             # ***** READ land use fraction maps***************************
 
-            self.landcoverType_module.dynamic_fracIrrigation(init = dateVar['newYear'], dynamic = self.dynamicLandcover)
+            self.landcoverType_module.dynamic_fracIrrigation(init = dateVar['newYear'], dynamic = self.var.dynamicLandcover)
             self.capillarRise_module.dynamic()
             timemeasure("Soil 1.Part")  # 4. timing
 
@@ -96,7 +96,7 @@ class CWATModel_dyn(DynamicModel):
             self.landcoverType_module.dynamic()
             timemeasure("Soil main")  # 5. timing
 
-            if self.modflow:
+            if self.var.modflow:
                 self.groundwater_modflow_module.dynamic_transient()
             self.groundwater_module.dynamic()
             timemeasure("Groundwater")  # 7. timing
@@ -138,20 +138,15 @@ class CWATModel_dyn(DynamicModel):
                     timeMesSum.append(timeMes[i] - timeMes[0])
                 else: timeMesSum[i] += timeMes[i] - timeMes[0]
 
-
-
-            self.sumsum_directRunoff +=  self.sum_directRunoff
-            self.sumsum_Runoff += self.sum_directRunoff
-            self.sumsum_Precipitation += self.Precipitation
-            self.sumsum_gwRecharge += self.sum_gwRecharge
-            runoff = self.baseflow + self.sum_landSurfaceRunoff
-            self.sumsum_Runoff += runoff
-
-
+            self.var.sumsum_directRunoff += self.var.sum_directRunoff
+            self.var.sumsum_Runoff += self.var.sum_directRunoff
+            self.var.sumsum_Precipitation += self.var.Precipitation
+            self.var.sumsum_gwRecharge += self.var.sum_gwRecharge
+            runoff = self.var.baseflow + self.var.sum_landSurfaceRunoff
+            self.var.sumsum_Runoff += runoff
 
             #print self.sum_directRunoff,  self.sum_interflowTotal, self.sum_landSurfaceRunoff, self.baseflow, runoff
             #print self.sumsum_Precipitation, self.sumsum_Runoff
-
 
               #report(decompress(self.var.sum_potTranspiration), "c:\work\output/trans.map")
               #r eport(decompress(self.var.directRunoff[3 ]), "c:\work\output\dir.map")
@@ -173,8 +168,6 @@ class CWATModel_dyn(DynamicModel):
             for compteur in range(1,self.Ndays_steady+1):
             #for compteur in range(1, 1 + 1):
 
-
-
                 if compteur == 1:
                     self.readmeteo_module.dynamic()
                     self.evaporationPot_module.dynamic()
@@ -185,7 +178,7 @@ class CWATModel_dyn(DynamicModel):
                     self.SnowMelt = self.Precipitation * 0
                     self.Snow = self.Precipitation * 0
                     self.FrostIndex = self.Precipitation * 0
-                    self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'], dynamic=self.dynamicLandcover)
+                    self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'], dynamic=self.var.var.dynamicLandcover)
 
                     # initial run of soil to get recharge in steady state
                     for days in range(365):

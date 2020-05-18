@@ -16,12 +16,10 @@ class groundwater(object):
     GROUNDWATER
     """
 
-    def __init__(self, groundwater_variable):
-        self.var = groundwater_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
+        
     def initial(self):
         """
         Initial part of the groundwater module
@@ -51,7 +49,7 @@ class groundwater(object):
 
 
         # initial conditions
-        self.var.storGroundwater = self.var.init_module.load_initial('storGroundwater')
+        self.var.storGroundwater = self.var.load_initial('storGroundwater')
         self.var.storGroundwater = np.maximum(0.0, self.var.storGroundwater) + globals.inZero
 
         # for water demand to have some initial value

@@ -19,11 +19,9 @@ class soil(object):
     Caclulation vertical transfer of water based on Arno scheme
     """
 
-    def __init__(self, soil_variable):
-        self.var = soil_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """

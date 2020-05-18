@@ -17,12 +17,9 @@ class initcondition(object):
     all initial condition can be stored at the end of a run to be used as a **warm** start for a following up run
     """
 
-    def __init__(self, initcondition_variable):
-        self.var = initcondition_variable
-
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """
@@ -48,7 +45,6 @@ class initcondition(object):
             for i in range(10):
                 initCondVar.append("runoff_conc" + str(i + 1))
                 initCondVarValue.append("runoff_conc[" + str(i) + "]")
-
 
         # soil / landcover
         i = 0
@@ -102,8 +98,6 @@ class initcondition(object):
                 initCondVar.extend(Var1)
                 initCondVarValue.extend(Var2)
 
-
-
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # Load init file - a single file can be loaded - needs path and file name
         self.var.loadInit = returnBool('load_initial')
@@ -127,36 +121,6 @@ class initcondition(object):
             #    dd = datetoInt(d, dateVar['dateBegin'])
             #    dateVar['intInit'].append(datetoInt(d, dateVar['dateBegin']))
 
-
-
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-
-    def load_initial(self,name,default = 0.0,number = None):
-        """
-        First it is checked if the initial value is given in the settings file
-
-        * if it is <> None it is used directly
-        * if None it is loaded from the init netcdf file
-
-        :param name: Name of the init value
-        :param default: default value -> default is 0.0
-        :param number: in case of snow or runoff concentration several layers are included: number = no of the layer
-        :return: spatial map or value of initial condition
-        """
-
-        if number is not None:
-            name = name + str(number)
-
-        if self.var.loadInit:
-            return readnetcdfInitial(self.var.initLoadFile, name)
-        else:
-            return default
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-
     def dynamic(self):
         """
         Dynamic part of the initcondition module
@@ -167,10 +131,7 @@ class initcondition(object):
         """
 
         if self.var.saveInit:
-
             if  dateVar['curr'] in dateVar['intInit']:
-
-
                 #self.var.avgDischarge = self.var.discharge
                 #self.var.waterBodyStorage = globals.inZero.copy()
 
