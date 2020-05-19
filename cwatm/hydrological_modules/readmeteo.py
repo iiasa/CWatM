@@ -174,8 +174,8 @@ class readmeteo(object):
         else:
             if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
                 wc1 = readnetcdf2(downscaleName, dateVar['currDate'], useDaily='month', compress = False, cut = False)
-                wc2 = wc1[self.glob.cutmap[2]*resoint:self.glob.cutmap[3]*resoint, self.glob.cutmap[0]*resoint:self.glob.cutmap[1]*resoint]
-                #wc2 = wc1[self.glob.cutmap[2] * resoint:self.glob.cutmap[3] * resoint, self.glob.cutmap[0] * resoint:self.glob.cutmap[1] * resoint]
+                wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]
+                #wc2 = wc1[cutmapGlobal[2] * resoint:cutmapGlobal[3] * resoint, cutmapGlobal[0] * resoint:cutmapGlobal[1] * resoint]
                 rows = wc2.shape[0]
                 cols = wc2.shape[1]
                 wc3 =  wc2.reshape(rows//resoint,resoint,cols//resoint,resoint)

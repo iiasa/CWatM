@@ -178,7 +178,7 @@ class CWATModel_dyn(DynamicModel):
                     self.SnowMelt = self.Precipitation * 0
                     self.Snow = self.Precipitation * 0
                     self.FrostIndex = self.Precipitation * 0
-                    self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'], dynamic=self.var.var.dynamicLandcover)
+                    self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'], dynamic=self.var.dynamicLandcover)
 
                     # initial run of soil to get recharge in steady state
                     for days in range(365):
