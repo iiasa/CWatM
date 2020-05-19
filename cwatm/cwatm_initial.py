@@ -54,8 +54,8 @@ class Variables:
         if number is not None:
             name = name + str(number)
 
-        if self.var.loadInit:
-            return readnetcdfInitial(self.var.initLoadFile, name)
+        if self.loadInit:
+            return readnetcdfInitial(self.initLoadFile, name)
         else:
             return default
 
