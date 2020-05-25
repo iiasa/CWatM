@@ -31,6 +31,18 @@ class soil(object):
 
         * Initialize all the hydraulic properties of soil
         * Set soil depth
+        
+        **Global variables**
+        * **self.var.soilLayers** Number of soil layers Unit: - Appears: soil
+        * **self.var.percolationImp** Fraction of area where percolation to groundwater is impeded    Unit: -       Appears: soil, waterdemand
+        
+        =======================  =============================================  =======  ===========
+        Variable [self.var]      Description                                    Unit     Appears in
+        =======================  =============================================  =======  ===========
+        soilLayers               Number of soil layers Unit                     -        soil
+        percolationImp           Fraction of area where percolation to groundwater is impeded  -  soil,waterdemand
+        =======================  =============================================  =======  ===========
+
         """
 
         self.var.soilLayers = 3
