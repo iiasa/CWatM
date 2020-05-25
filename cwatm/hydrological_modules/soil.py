@@ -35,7 +35,9 @@ class soil(object):
         **Global variables**
         * **self.var.soilLayers** Number of soil layers Unit: - Appears: soil
         * **self.var.percolationImp** Fraction of area where percolation to groundwater is impeded    Unit: -       Appears: soil, waterdemand
-        
+
+        **Global variables**
+
         =======================  =============================================  =======  ===========
         Variable [self.var]      Description                                    Unit     Appears in
         =======================  =============================================  =======  ===========
