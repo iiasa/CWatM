@@ -122,70 +122,18 @@ class CWATModel_ini(DynamicModel):
             area = np.sum(loadmap('CellArea')) * 1e-6
             print("Number of cells in catchment: %6i = %7.0f km2" %(np.sum(mask2D),area))
 
-        name = cbinding('PrecipitationMaps')
-        nameall = glob.glob(os.path.normpath(name))
-        if not nameall:
-            raise CWATMFileError(name, sname='PrecipitationMaps')
-        namemeteo = nameall[0]
-        latmeteo, lonmeteo, cell, invcellmeteo = readCoordNetCDF(namemeteo)
+        # reading of the metainformation of variables to put into output netcdfs
+        metaNetCDF()
 
-        nameldd = cbinding('Ldd')
-        #nameldd = os.path.splitext(nameldd)[0] + '.nc'
-        #latldd, lonldd, cell, invcellldd = readCoordNetCDF(nameldd)
-        latldd, lonldd, cell, invcellldd = readCoord(nameldd)
-        maskmapAttr['reso_mask_meteo'] = round(invcellldd / invcellmeteo)
+        # if the final results map should be cover up with some mask:
+        if "coverresult" in binding:
+            coverresult[0] = returnBool('coverresult')
+            if coverresult[0]:
+                cover = loadmap('covermap', compress = False)
+                cover[cover > 1] = False
+                cover[cover == 1] = True
+                coverresult[1] = cover
 
-        # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
-        self.meteomapsscale = True
-        if invcellmeteo != invcellldd:
-            if (not(Flags['quiet'])) and (not(Flags['veryquiet'])) and (not(Flags['check'])):
-                msg = "Resolution of meteo forcing is " + str(maskmapAttr['reso_mask_meteo']) + " times higher than base maps."
-                print(msg)
-            self.meteomapsscale = False
-
-        cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(nameldd)
-        for i in range(4): cutmapFine[i] = cutmap[i]
-
-        # for downscaling meteomaps , Wordclim data at a finer resolution is used
-        # here it is necessary to clip the wordclim data so that they fit to meteo dataset
-        self.meteodown = False
-        if "usemeteodownscaling" in binding:
-            self.meteodown = returnBool('usemeteodownscaling')
-
-        if self.meteodown:
-            check_clim = checkMeteo_Wordclim(namemeteo, cbinding('downscale_wordclim_prec'))
-
-        # in case other mapsets are used e.g. Cordex RCM meteo data
-        if (latldd != latmeteo) or (lonldd != lonmeteo):
-            cutmapFine[0], cutmapFine[1], cutmapFine[2], cutmapFine[3], cutmapVfine[0], cutmapVfine[1], cutmapVfine[2], cutmapVfine[3] = mapattrNetCDFMeteo(namemeteo)
-
-        if not self.meteomapsscale:
-            # if the cellsize of the spatial dataset e.g. ldd, soil etc is not the same as the meteo maps than:
-            cutmapFine[0], cutmapFine[1],cutmapFine[2],cutmapFine[3],cutmapVfine[0], cutmapVfine[1],cutmapVfine[2],cutmapVfine[3]  = mapattrNetCDFMeteo(namemeteo)
-            # downscaling wordlclim maps
-            for i in range(4): cutmapGlobal[i] = cutmapFine[i]
-
-            if not(check_clim):
-               # for downscaling it is always cut from the global map
-                if (latldd != latmeteo) or (lonldd != lonmeteo):
-                    cutmapGlobal[0] = int(cutmap[0] / maskmapAttr['reso_mask_meteo'])
-                    cutmapGlobal[2] = int(cutmap[2] / maskmapAttr['reso_mask_meteo'])
-                    cutmapGlobal[1] = int(cutmap[1] / maskmapAttr['reso_mask_meteo']+0.999)
-                    cutmapGlobal[3] = int(cutmap[3] / maskmapAttr['reso_mask_meteo']+0.999)
-
-        if checkOption('writeNetcdfStack') or checkOption('writeNetcdf'):
-            # if NetCDF is writen, the pr.nc is read to get the metadata
-            # like projection
-            metaNetCDF()
-
-            if "coverresult" in binding:
-                coverresult[0] = returnBool('coverresult')
-                if coverresult[0]:
-                    cover = loadmap('covermap', compress = False)
-                    cover[cover > 1] = False
-                    cover[cover == 1] = True
-                    coverresult[1] = cover
-                    #coverresult[1] = np.ma.array(cover, mask = covermask)
 
         # run intial misc to get all global variables
         self.misc_module.initial()
