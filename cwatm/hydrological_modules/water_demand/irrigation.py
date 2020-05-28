@@ -2,6 +2,7 @@ from cwatm.management_modules import globals
 from cwatm.management_modules.data_handling import returnBool, binding, cbinding, loadmap
 import numpy as np
 
+
 class waterdemand_irrigation:
     def __init__(self, model):
         self.var = model.var
