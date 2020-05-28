@@ -111,29 +111,13 @@ class CWATModel_ini(DynamicModel):
         self.lakes_reservoirs_module = lakes_reservoirs(self)
         self.waterquality1 = waterquality1(self)
 
+        # ----------------------------------------
         ## MakMap: the maskmap is flexible e.g. col,row,x1,y1  or x1,x2,y1,y2
         # set the maskmap
-        self.MaskMap, point, lenmask = loadsetclone('MaskMap')
-
-        if lenmask == 2:
-            print ("Create catchment from point and river network")
-            mask2D, xleft, yup = self.routing_kinematic_module.catchment(point)
-            self.MaskMap = maskfrompoint(mask2D, xleft, yup) + 1
-            area = np.sum(loadmap('CellArea')) * 1e-6
-            print("Number of cells in catchment: %6i = %7.0f km2" %(np.sum(mask2D),area))
+        self.MaskMap = loadsetclone(self,'MaskMap')
 
         # reading of the metainformation of variables to put into output netcdfs
         metaNetCDF()
-
-        # if the final results map should be cover up with some mask:
-        if "coverresult" in binding:
-            coverresult[0] = returnBool('coverresult')
-            if coverresult[0]:
-                cover = loadmap('covermap', compress = False)
-                cover[cover > 1] = False
-                cover[cover == 1] = True
-                coverresult[1] = cover
-
 
         # run intial misc to get all global variables
         self.misc_module.initial()

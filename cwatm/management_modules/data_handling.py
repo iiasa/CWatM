@@ -125,7 +125,7 @@ def setmaskmapAttr(x,y,col,row,cell):
     maskmapAttr['invcell'] = invcell
 
 
-def loadsetclone(name):
+def loadsetclone(self,name):
     """
     load the maskmap and set as clone
 
@@ -248,10 +248,25 @@ def loadsetclone(name):
 
     outpoints = 0
     if len(coord) == 2:
-       outpoints = valuecell( coord, filename)
+       outpoints = valuecell(coord, filename)
        outpoints[outpoints < 0] = 0
 
-    return mapC, outpoints, len(coord)
+       print("Create catchment from point and river network")
+       mask2D, xleft, yup = self.routing_kinematic_module.catchment(outpoints)
+       mapC = maskfrompoint(mask2D, xleft, yup) + 1
+       area = np.sum(loadmap('CellArea')) * 1e-6
+       print("Number of cells in catchment: %6i = %7.0f km2" % (np.sum(mask2D), area))
+
+    # if the final results map should be cover up with some mask:
+    if "coverresult" in binding:
+        coverresult[0] = returnBool('coverresult')
+        if coverresult[0]:
+            cover = loadmap('covermap', compress=False)
+            cover[cover > 1] = False
+            cover[cover == 1] = True
+            coverresult[1] = cover
+
+    return mapC
 
 
 def maskfrompoint(mask2D,xleft,yup):
@@ -466,7 +481,7 @@ def getmeta(key,varname,alternative):
     variable metaNetcdfVar
 
     :param key: key
-    :param varname: variable name eg self.var.Precipitation
+    :param varname: variable name eg self_.var_.Precipitation
     :return: metadata information
     """
 
@@ -1513,7 +1528,7 @@ def report(name,valueIn,compr=True):
     ::
 
         Example:
-        > report(c:/temp/ksat1.map, self.var.ksat1)
+        > report(c:/temp/ksat1.map, self_.var_.ksat1)
 
     """
 
