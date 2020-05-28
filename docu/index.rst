@@ -13,7 +13,7 @@
 ------------
 
 ######################
-Community Water Modell
+Community Water Model
 ######################
 
 
