@@ -528,6 +528,14 @@ class soil(object):
         # ---------------------------------------------------------------------------------------------
         # total actual transpiration
         self.var.actTransTotal[No] = ta1 + ta2 + ta3
+
+        self.var.actTransTotal_forest = self.var.actTransTotal[0] * self.var.fracVegCover[0]
+        self.var.actTransTotal_grasslands = self.var.actTransTotal[1] * self.var.fracVegCover[1]
+        self.var.actTransTotal_paddy = self.var.actTransTotal[2]*self.var.fracVegCover[2]
+        self.var.actTransTotal_nonpaddy = self.var.actTransTotal[3]*self.var.fracVegCover[3]
+
+        self.var.before = self.var.actualET[No].copy()
+
         # total actual evaporation + transpiration
         self.var.actualET[No] = self.var.actualET[No] + self.var.actBareSoilEvap[No] + self.var.openWaterEvap[No] + self.var.actTransTotal[No]
         #  actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water evaporation, therefore self.var.totalPotET[No] is adjusted

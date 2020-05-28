@@ -56,6 +56,11 @@ class groundwater(object):
         tresholdStorGroundwater = 0.00005  # 0.05 mm
         self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater,0.0)
 
+        self.var.pumping_actual = globals.inZero.copy()
+        self.var.capillar = globals.inZero.copy()
+        self.var.baseflow = globals.inZero.copy()
+        self.var.gwstore = globals.inZero.copy()
+
         #PB for Bejing
         #self.var.area1 = loadmap('MaskMap')
         #ii = 1

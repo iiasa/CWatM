@@ -84,14 +84,14 @@ def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, rec
 
             ### Add the pumping case - PUMPING WELL PACKAGE
             ## first we will consider constant pumping rates along the simulation, so pumping_data is only a 2D array
+
             if self.var.GW_pumping:
                 wel_sp = []
-                print('number of pumping wells :', len(pumping_datas))
                 for kk in range(len(pumping_datas)):  # adding each pumping well to the package
                     wel_sp.append([0, pumping_datas[kk][0], pumping_datas[kk][1], pumping_datas[kk][2]])   # Multiply pumping_datas[kk][2] by StepSize if flow is in m3/day, currently in m3/7days, pumping < 0 implies abstraction
                     # Pumping [m3/timestep] in the first layer
-                wel = flopy.modflow.ModflowWel(mf, stress_period_data=wel_sp)
-                # the well path has to be defined in the .nam file
+                if wel_sp != []:
+                    wel = flopy.modflow.ModflowWel(mf, stress_period_data=wel_sp)
 
             ## OUTPUT CONTROL
             oc = flopy.modflow.ModflowOc(mf, stress_period_data=None)
@@ -109,13 +109,15 @@ def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, rec
                 wel_sp = []
                 for kk in range(len(pumping_datas)):  # adding each pumping well to the package
                     wel_sp.append([0, pumping_datas[kk][0], pumping_datas[kk][1], pumping_datas[kk][2]]) # Multiply pumping_datas[kk][2] by StepSize if flow is in m3/day, currently in m3/7days, pumping < 0 implies abstraction
-                wel = flopy.modflow.ModflowWel(mf, stress_period_data=wel_sp)  # the well path has to be defined in the .nam file
+
+                if wel_sp != []:
+                    wel = flopy.modflow.ModflowWel(mf, stress_period_data=wel_sp)  # the well path has to be defined in the .nam file
 
             rch = flopy.modflow.ModflowRch(mf, nrchop=3, rech=recharge)
 
             rch.write_file(check=True)
             bas.write_file(check=True)
-            if self.var.GW_pumping: wel.write_file()
+            if (self.var.GW_pumping and  wel_sp != []): wel.write_file()
             #mf.write_input()
 
             # modify the nam file:
@@ -125,7 +127,7 @@ def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, rec
             nam_file.close()
 
             files = [rch.fn_path,bas.fn_path,pathname+'.nam']
-            if self.var.GW_pumping: files.append(wel.fn_path)
+            if (self.var.GW_pumping and  wel_sp != []): files.append(wel.fn_path)
             check_if_close(files)
 
 
