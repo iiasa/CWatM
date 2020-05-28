@@ -77,9 +77,9 @@ settingsfile = []
 global maskinfo,zeromap,modelSteps,xmlstring,geotrans
 # noinspection PyRedeclaration
 maskinfo = {}
-modelSteps=[]
-xmlstring=[]
-geotrans=[]
+modelSteps = []
+xmlstring = []
+geotrans = []
 
 global binding, option, FlagName, Flags, ReportSteps, FilterSteps, EnsMembers, outputDir
 global MMaskMap, maskmapAttr, bigmapAttr, cutmap, cutmapGlobal, cutmapFine, cutmapVfine, metadataNCDF
