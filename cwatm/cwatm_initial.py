@@ -22,7 +22,7 @@ from cwatm.hydrological_modules.sealed_water import sealed_water
 from cwatm.hydrological_modules.evaporation import evaporation
 from cwatm.hydrological_modules.groundwater import groundwater
 from cwatm.hydrological_modules.groundwater_modflow.groundwater_modflow import groundwater_modflow
-from cwatm.hydrological_modules.waterdemand import waterdemand
+from cwatm.hydrological_modules.water_demand import water_demand
 from cwatm.hydrological_modules.capillarRise import capillarRise
 from cwatm.hydrological_modules.interception import interception
 from cwatm.hydrological_modules.runoff_concentration import runoff_concentration
@@ -101,7 +101,7 @@ class CWATModel_ini(DynamicModel):
         self.evaporation_module = evaporation(self)
         self.groundwater_module = groundwater(self)
         self.groundwater_modflow_module = groundwater_modflow(self)
-        self.waterdemand_module = waterdemand(self)
+        self.waterdemand_module = water_demand(self)
         self.capillarRise_module = capillarRise(self)
         self.interception_module = interception(self)
         self.sealed_water_module = sealed_water(self)

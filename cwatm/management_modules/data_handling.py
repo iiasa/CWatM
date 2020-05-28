@@ -269,7 +269,7 @@ def loadsetclone(self,name):
     return mapC
 
 
-def maskfrompoint(mask2D,xleft,yup):
+def maskfrompoint(mask2D, xleft, yup):
     """
     load a static map either value or pc raster map or netcdf
 
@@ -601,8 +601,6 @@ def readCoordNetCDF(name,check = True):
     lon = round(lon0 - cell / 2,8)
     lat = round(lat0 + cell / 2,8)
 
-
-
     return lat,lon, cell,invcell
 
 def readCalendar(name):
@@ -679,7 +677,7 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
 
     return check
 
-def mapattrNetCDF(name, check = True):
+def mapattrNetCDF(name, check=True):
     """
     get the 4 corners of a netcdf map to cut the map
     defines the rectangular of the mask map inside the netcdf map

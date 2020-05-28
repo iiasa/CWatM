@@ -32,7 +32,7 @@ GNU General Public License for more details
 import sys
 
 from cwatm import __author__, __version__, __date__, __copyright__, __maintainer__, __status__
-from cwatm.run_cwatm import main, parse_args
+from cwatm.run_cwatm import main, parse_args, usage
 
 if __name__ == "__main__":
     settings, args = parse_args()
