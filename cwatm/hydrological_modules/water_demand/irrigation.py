@@ -1,7 +1,6 @@
 from cwatm.management_modules import globals
 from cwatm.management_modules.data_handling import returnBool, binding, cbinding, loadmap
 import numpy as np
-import numba as nb
 
 class waterdemand_irrigation:
     def __init__(self, model):
