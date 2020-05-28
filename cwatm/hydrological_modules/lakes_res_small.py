@@ -29,13 +29,9 @@ class lakes_res_small(object):
 
     """
 
-    def __init__(self, lakes_res_small_variable):
-        self.var = lakes_res_small_variable
-
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """
@@ -77,10 +73,10 @@ class lakes_res_small(object):
             self.var.smalllakeFactorSqr = np.square(self.var.smalllakeFactor)
             # for faster calculation inside dynamic section
 
-            self.var.smalllakeInflowOld = self.var.init_module.load_initial("smalllakeInflow",self.var.smalllakeDis0)  # inflow in m3/s estimate
+            self.var.smalllakeInflowOld = self.var.load_initial("smalllakeInflow",self.var.smalllakeDis0)  # inflow in m3/s estimate
             
             old = self.var.smalllakeArea * np.sqrt(self.var.smalllakeInflowOld / self.var.smalllakeA)
-            self.var.smalllakeVolumeM3 = self.var.init_module.load_initial("smalllakeStorage",old)
+            self.var.smalllakeVolumeM3 = self.var.load_initial("smalllakeStorage",old)
 
 
             smalllakeStorageIndicator = np.maximum(0.0,self.var.smalllakeVolumeM3 / self.var.DtSec + self.var.smalllakeInflowOld / 2)
@@ -89,7 +85,7 @@ class lakes_res_small(object):
             # solution of quadratic equation
             # 1. storage volume is increase proportional to elevation
             #  2. Q= a *H **2.0  (if you choose Q= a *H **1.5 you have to solve the formula of Cardano)
-            self.var.smalllakeOutflow = self.var.init_module.load_initial("smalllakeOutflow", out)
+            self.var.smalllakeOutflow = self.var.load_initial("smalllakeOutflow", out)
 
             # lake storage ini
             self.var.smalllakeLevel = divideValues(self.var.smalllakeVolumeM3, self.var.smalllakeArea)

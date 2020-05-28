@@ -18,13 +18,9 @@ class sealed_water(object):
     calculated runoff from impermeable surface (sealed) and into water bodies
     """
 
-    def __init__(self, sealed_water_variable):
-        self.var = sealed_water_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-
- 
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def dynamic(self,coverType, No):
         """

@@ -147,7 +147,7 @@ def CWATMexe(settings):
     print(current_time.isoformat())
 
     # return with last value and true for successfull run for pytest
-    return(True, CWATM.firstout)
+    return(True, CWATM.var.firstout)
 
 
 # ==================================================

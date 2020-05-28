@@ -11,7 +11,6 @@
 from cwatm.management_modules.data_handling import *
 
 
-
 class waterquality1(object):
 
     """
@@ -20,9 +19,9 @@ class waterquality1(object):
     calculates water quality variables e.g. travel time, velocity, water temperature
     """
 
-    def __init__(self, waterquality1_variable):
-        self.var = waterquality1_variable
-
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """

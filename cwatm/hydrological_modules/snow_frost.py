@@ -11,7 +11,7 @@
 from cwatm.management_modules.data_handling import *
 
 
-class snow(object):
+class snow_frost(object):
 
     """
     RAIN AND SNOW
@@ -23,11 +23,11 @@ class snow(object):
 	
     """
 
-    def __init__(self, snow_variable):
-        self.var = snow_variable
 
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
+
 
     def initial(self):
         """
@@ -40,6 +40,7 @@ class snow(object):
         self.var.numberSnowLayersFloat = loadmap('NumberSnowLayers')    # default 3
         self.var.numberSnowLayers = int(self.var.numberSnowLayersFloat)
         self.var.glaciertransportZone = int(loadmap('GlacierTransportZone'))  # default 1 -> highest zone is transported to middle zone
+
 
 
         # Difference between (average) air temperature at average elevation of
@@ -88,7 +89,7 @@ class snow(object):
         # SnowCover1 is the highest zone
         self.var.SnowCoverS = []
         for i in range(self.var.numberSnowLayers):
-            self.var.SnowCoverS.append(self.var.init_module.load_initial("SnowCover",number = i+1))
+            self.var.SnowCoverS.append(self.var.load_initial("SnowCover",number = i+1))
 
         # initial snow depth in elevation zones A, B, and C, respectively  [mm]
         self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / self.var.numberSnowLayersFloat + globals.inZero
@@ -105,7 +106,7 @@ class snow(object):
         self.var.FrostIndexThreshold = loadmap('FrostIndexThreshold')
         self.var.SnowWaterEquivalent = loadmap('SnowWaterEquivalent')
 
-        self.var.FrostIndex = self.var.init_module.load_initial('FrostIndex')
+        self.var.FrostIndex = self.var.load_initial('FrostIndex')
 
         self.var.extfrostindex = False
         if "morefrost" in binding:
@@ -231,6 +232,7 @@ class snow(object):
                 [self.var.prevSnowCover],   # prev storage
                 [self.var.SnowCover],
                 "Snow1", False)
+
 
         # ---------------------------------------------------------------------------------
         # Dynamic part of frost index

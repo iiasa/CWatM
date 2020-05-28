@@ -9,13 +9,8 @@
 # -------------------------------------------------------------------------
 
 
-import xml.dom.minidom
-import datetime
-import time as xtime
 import os
 import sys
-
-from .globals import *
 
 
 class CWATMError(Exception):
@@ -51,10 +46,10 @@ class CWATMFileError(CWATMError):
     :return: prints out a message about file error
 
     """
-    def __init__(self, filename,msg="",sname = ""):
+    def __init__(self, filename, msg="", sname=""):
         # don't show the error code, lines etc.
         sys.tracebacklimit = 0
-        path,name = os.path.split(filename)
+        path, name = os.path.split(filename)
         if os.path.exists(path):
             text1 = "In  \"" + sname + "\"\n"
             text1 += "path: "+ path + " exists\nbut filename: "+name+ " does not\n"

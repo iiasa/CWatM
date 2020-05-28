@@ -32,11 +32,9 @@ class soil(object):
     
     """
 
-    def __init__(self, soil_variable):
-        self.var = soil_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """

@@ -19,8 +19,9 @@ class waterbalance(object):
     * produce an annual overview - income, outcome storage
     """
 
-    def __init__(self, waterbalance_variable):
-        self.var = waterbalance_variable
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
