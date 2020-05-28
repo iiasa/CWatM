@@ -16,11 +16,9 @@ class interception(object):
     INTERCEPTION
     """
 
-    def __init__(self, interception_variable):
-        self.var = interception_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     # noinspection PyTypeChecker
     def dynamic(self,coverType, No):

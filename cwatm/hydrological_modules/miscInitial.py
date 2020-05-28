@@ -22,11 +22,10 @@ class miscInitial(object):
         Only used in the initial phase.
     """
 
-    def __init__(self, misc_variable):
-        self.var = misc_variable
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
 
     def initial(self):
         """
@@ -60,9 +59,6 @@ class miscInitial(object):
             # - Maps are in some equal-area projection
             # - Length units meters
             # - All grid cells have the same size
-
-            # Length of pixel [m]
-            #self.var.PixelLength = celllength()
 
             # Area of pixel [m2]
             self.var.cellArea=np.empty(maskinfo['mapC'])

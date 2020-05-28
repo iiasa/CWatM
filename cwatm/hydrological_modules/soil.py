@@ -14,16 +14,27 @@ from cwatm.management_modules.data_handling import *
 class soil(object):
 
     """
-    SOIL
+    **SOIL**
 
-    Caclulation vertical transfer of water based on Arno scheme
+
+    Calculation vertical transfer of water based on Arno scheme
+
+    **Global variables**
+    
+    ==========================  ========================================================================================  =========  ==============================
+    Variable [self.var]         Description                                                                               Unit       Appears in
+    ==========================  ========================================================================================  =========  ==============================
+    soilLayers                  Number of soil layers Unit                                                                --         soil
+    percolationImp              Fraction of area where percolation to groundwater is impeded                              --         soil,waterdemand
+    ==========================  ========================================================================================  =========  ==============================
+    
+    **Functions**
+    
     """
 
-    def __init__(self, soil_variable):
-        self.var = soil_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """
@@ -31,17 +42,11 @@ class soil(object):
 
         * Initialize all the hydraulic properties of soil
         * Set soil depth
+
         """
 
         self.var.soilLayers = 3
         # --- Topography -----------------------------------------------------
-        #self.var.tanslope = loadmap('tanslope')
-        #self.var.slopeLength = loadmap('slopeLength')
-
-
-        #self.var.tanslope = np.maximum(self.var.tanslope, 0.00001)
-        # setting slope >= 0.00001 to prevent 0 value
-
         # maps of relative elevation above flood plains
         dzRel = ['dzRel0001','dzRel0005',
                  'dzRel0010','dzRel0020','dzRel0030','dzRel0040','dzRel0050',
@@ -344,11 +349,7 @@ class soil(object):
         #availWaterPlant1 = np.maximum(0., self.var.w1[No] - self.var.wwp1[No]) * self.var.rootDepth[0][No]
         #availWaterPlant2 = np.maximum(0., self.var.w2[No] - self.var.wwp2[No]) * self.var.rootDepth[1][No]
         #availWaterPlant3 = np.maximum(0., self.var.w3[No] - self.var.wwp3[No]) * self.var.rootDepth[2][No]
-        #self.var.readAvlWater = availWaterPlant1 + availWaterPlant2 + availWaterPlant3
-
-
-
-
+        #readAvlWater = availWaterPlant1 + availWaterPlant2 + availWaterPlant3
 
         # Percolation -----------------------------------------------
         if No == 0:
@@ -520,33 +521,12 @@ class soil(object):
         self.var.w3[No] = self.var.w3[No] + self.var.perc2to3[No] - self.var.perc3toGW[No]
 
         # Compute the amount of water that could not infiltrate and add this water to the surface runoff
-       # self.var.infiltration[No] = self.var.infiltration[No] - np.maximum(self.var.w1[No] - self.var.ws1[No], 0.0)
-       # self.var.directRunoff[No] = self.var.directRunoff[No] + np.maximum(self.var.w1[No] - self.var.ws1[No], 0.0)
-       # self.var.w1[No] = np.minimum(self.var.w1[No], self.var.ws1[No])
-
         self.var.theta1[No] = self.var.w1[No] / self.var.rootDepth[0][No]
         self.var.theta2[No] = self.var.w2[No] / self.var.rootDepth[1][No]
         self.var.theta3[No] = self.var.w3[No] / self.var.rootDepth[2][No]
 
-
-
-
-
-
-
         # ---------------------------------------------------------------------------------------------
-        # Calculate interflow
-        #self.var.interflow[No] = self.var.percolationImp * (perc[1] + self.var.capRiseFromGW[No] - (self.var.perc3toGW[No] + capRise[1]))
-        #self.var.interflow[No] = np.maximum(0.0, self.var.interflow[No])
-
-
-
-
-
-
         # total actual transpiration
-        #self.var.actTransTotal[No] = actTrans[0] + actTrans[1] + actTrans[2]
-        #self.var.actTransTotal[No] =  np.sum(actTrans, axis=0)
         self.var.actTransTotal[No] = ta1 + ta2 + ta3
 
         self.var.actTransTotal_forest = self.var.actTransTotal[0] * self.var.fracVegCover[0]
@@ -558,19 +538,9 @@ class soil(object):
 
         # total actual evaporation + transpiration
         self.var.actualET[No] = self.var.actualET[No] + self.var.actBareSoilEvap[No] + self.var.openWaterEvap[No] + self.var.actTransTotal[No]
-        #self.var.actualET[No] = self.var.actualET[No] + self.var.actBareSoilEvap[No] + self.var.actTransTotal[No]
-
-
         #  actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water evaporation, therefore self.var.totalPotET[No] is adjusted
         self.var.totalPotET[No] = np.maximum(self.var.totalPotET[No], self.var.actualET[No])
-
-
-        # net percolation between upperSoilStores (positive indicating downward direction)
-        #elf.var.netPerc[No] = perc[0] - capRise[0]
-        #self.var.netPercUpper[No] = perc[1] - capRise[1]
-
         # groundwater recharge
-        #self.var.gwRecharge[No] = self.var.perc3toGW[No] - self.var.capRiseFromGW[No] + self.var.prefFlow[No]
         toGWorInterflow = self.var.perc3toGW[No] + self.var.prefFlow[No]
         self.var.interflow[No] = self.var.percolationImp * toGWorInterflow
 
@@ -579,14 +549,6 @@ class soil(object):
         else:
             self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow - self.var.capRiseFromGW[No]
 
-
-
-
-        # landSurfaceRunoff (needed for routing)
-        #self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflowTotal[No]
-
-        #if (dateVar['curr'] == 121) and (No==2):
-        #    ii=1
         """
         if checkOption('calcWaterBalance'):
             self.var.waterbalance_module.waterBalanceCheck(

@@ -35,11 +35,9 @@ class runoff_concentration(object):
 
     """
 
-    def __init__(self, runoff_concentration_variable):
-        self.var = runoff_concentration_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """
@@ -61,7 +59,6 @@ class runoff_concentration(object):
 
             # --- Topography -----------------------------------------------------
             tanslope = loadmap('tanslope')
-            # self.var.slopeLength = loadmap('slopeLength')
             # setting slope >= 0.00001 to prevent 0 value
             tanslope = np.maximum(tanslope, 0.00001)
 
@@ -122,7 +119,7 @@ class runoff_concentration(object):
             #self.var.runoff_conc = np.tile(globals.inZero, (self.var.maxtime_runoff_conc, 1))
             self.var.runoff_conc = np.tile(globals.inZero,(max,1))
             for i in range(self.var.maxtime_runoff_conc):
-                self.var.runoff_conc[i] = self.var.init_module.load_initial("runoff_conc", number = i+1)
+                self.var.runoff_conc[i] = self.var.load_initial("runoff_conc", number = i+1)
 
 
 

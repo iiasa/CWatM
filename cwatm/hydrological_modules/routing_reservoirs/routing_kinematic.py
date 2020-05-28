@@ -21,9 +21,10 @@ class routing_kinematic(object):
     routing using the kinematic wave
     """
 
-    def __init__(self, routing_kinematic_variable):
-        self.var = routing_kinematic_variable
-        self.lakes_reservoirs_module = lakes_reservoirs(self.var)
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
+        self.lakes_reservoirs_module = lakes_reservoirs(model)
 
     def catchment(self, point):
         """
@@ -171,17 +172,17 @@ class routing_kinematic(object):
         # channel water volume [m3]
         # Initialise water volume in kinematic wave channels [m3]
         channelStorageIni = self.var.totalCrossSectionArea * self.var.chanLength * 0.1
-        self.var.channelStorage = self.var.init_module.load_initial("channelStorage", default = channelStorageIni)
+        self.var.channelStorage = self.var.load_initial("channelStorage", default = channelStorageIni)
 
         # Initialise discharge at kinematic wave pixels (note that InvBeta is
         # simply 1/beta, computational efficiency!)
         #self.var.chanQKin = np.where(self.var.channelAlpha > 0, (self.var.totalCrossSectionArea / self.var.channelAlpha) ** self.var.invbeta, 0.)
         dischargeIni = (self.var.channelStorage * self.var.invchanLength * self.var.invchannelAlpha) ** self.var.invbeta
-        self.var.discharge = self.var.init_module.load_initial("discharge", default=dischargeIni)
+        self.var.discharge = self.var.load_initial("discharge", default=dischargeIni)
         #self.var.chanQKin = chanQKinIni
 
         #self.var.riverbedExchange = globals.inZero.copy()
-        self.var.riverbedExchange = self.var.init_module.load_initial("riverbedExchange", default = globals.inZero.copy())
+        self.var.riverbedExchange = self.var.load_initial("riverbedExchange", default = globals.inZero.copy())
         #self.var.discharge = self.var.chanQKin.copy()
 
 

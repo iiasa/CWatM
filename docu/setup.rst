@@ -35,6 +35,12 @@ These external libraries are needed:
 
 The seven libraries can be installed with conda, pip or downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
 
+.. warning::
+
+    Installing gdal via pip causes sometimes problems. We recommend downloading the library from `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_ as GDAL-3.0.4-cp37-cp37m-win_amd64.whl and installing them as: 
+	
+	pip install C:/Users/XXXXX/Downloads/GDAL-3.0.4-cp37-cp37m-win_amd64.whl
+
 Installing
 ------------
 

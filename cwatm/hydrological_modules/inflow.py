@@ -19,11 +19,10 @@ class inflow(object):
     If option "inflow" is set to 1 the inflow hydrograph code is used otherwise dummy code is used
     """
 
-    def __init__(self, inflow_variable):
-        self.var = inflow_variable
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
     def initial(self):
         """
         Initial part of the inflow module

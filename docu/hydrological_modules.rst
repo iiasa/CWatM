@@ -120,7 +120,7 @@ Hydrology II - from soil to river
 soil module
 -----------
 
-** Calculate fluxes in 3 layer soil**
+**Calculate fluxes in 3 layer soil**
 
 .. automodule:: cwatm.hydrological_modules.soil
     :members:

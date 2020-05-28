@@ -27,12 +27,10 @@ class waterdemand(object):
     Agricultural water demand based on water need by plants
     """
 
-    def __init__(self, waterdemand_variable):
-        self.var = waterdemand_variable
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
-    # --------------------------------------------------------------------------
-    # --------------------------------------------------------------------------
-    # --------------------------------------------------------------------------
     def initial(self):
         """
         Initial part of the water demand module
@@ -116,8 +114,8 @@ class waterdemand(object):
                 self.var.cut_ef_map = returnBool('cut_ef_map')
 
             # init unmetWaterDemand -> to calculate actual one the the unmet water demand from previous day is needed
-            self.var.unmetDemandPaddy = self.var.init_module.load_initial('unmetDemandPaddy', default = globals.inZero.copy())
-            self.var.unmetDemandNonpaddy = self.var.init_module.load_initial('unmetDemandNonpaddy', default = globals.inZero.copy())
+            self.var.unmetDemandPaddy = self.var.load_initial('unmetDemandPaddy', default = globals.inZero.copy())
+            self.var.unmetDemandNonpaddy = self.var.load_initial('unmetDemandNonpaddy', default = globals.inZero.copy())
             # in case fossil water abstraction is allowed this will be filled
             self.var.unmetDemand = globals.inZero.copy()
 

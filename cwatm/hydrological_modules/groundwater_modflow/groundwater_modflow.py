@@ -15,11 +15,9 @@ class groundwater_modflow(object):
     GROUNDWATER MODFLOW 
     """
 
-    def __init__(self, groundwater_modflow_variable):
-        self.var = groundwater_modflow_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """

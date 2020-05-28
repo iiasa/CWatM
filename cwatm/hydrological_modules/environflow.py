@@ -20,10 +20,10 @@ class environflow(object):
     calculates environmental flow
     """
 
-    def __init__(self, environflow_variable):
-        self.var = environflow_variable
-
-
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
+        
     def initial(self):
         """
         Initial part of environmental flow
