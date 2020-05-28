@@ -171,10 +171,7 @@ class initcondition(object):
             if  dateVar['curr'] in dateVar['intInit']:
 
 
-                #self.var.avgDischarge = self.var.discharge
-                #self.var.waterBodyStorage = globals.inZero.copy()
-
-                #saveFile = self.var.saveInitFile + "_" + dateVar['currDate'].strftime("%Y%m%d") +".nc"
+               #saveFile = self.var.saveInitFile + "_" + dateVar['currDate'].strftime("%Y%m%d") +".nc"
                 saveFile = self.var.saveInitFile + "_" + "%02d%02d%02d.nc" % (dateVar['currDate'].year, dateVar['currDate'].month, dateVar['currDate'].day)
                 initVar=[]
                 i = 0

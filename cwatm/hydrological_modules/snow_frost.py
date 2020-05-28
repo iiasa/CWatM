@@ -42,13 +42,10 @@ class snow(object):
         self.var.glaciertransportZone = int(loadmap('GlacierTransportZone'))  # default 1 -> highest zone is transported to middle zone
 
 
-        self.var.TotalPrecipitation = globals.inZero.copy()
-
         # Difference between (average) air temperature at average elevation of
         # pixel and centers of upper- and lower elevation zones [deg C]
-        # ElevationStD:   Standard Deviation of the DEM from Bodis (2009)
-        # 0.9674:    Quantile of the normal distribution: u(0,833)=0.9674
-        #              to split the pixel in 3 equal parts.
+        # ElevationStD:   Standard Deviation of the DEM
+        # 0.9674:    Quantile of the normal distribution: u(0,833)=0.9674 to split the pixel in 3 equal parts.
         # for different number of layers
         #  Number: 2 ,3, 4, 5, 6, 7, ,8, 9, 10
         dn = {}
@@ -108,9 +105,6 @@ class snow(object):
         self.var.FrostIndexThreshold = loadmap('FrostIndexThreshold')
         self.var.SnowWaterEquivalent = loadmap('SnowWaterEquivalent')
 
-        # FrostIndexInit=ifthen(defined(self.var.MaskMap),scalar(loadmap('FrostIndexInitValue')))
-
-        #self.var.FrostIndex = loadmap('FrostIndexIni')
         self.var.FrostIndex = self.var.init_module.load_initial('FrostIndex')
 
         self.var.extfrostindex = False
@@ -238,15 +232,11 @@ class snow(object):
                 [self.var.SnowCover],
                 "Snow1", False)
 
-        #map = decompress( self.var.TotalPrecipitation)
-        #report(map, 'C:\work\output\out3.map')
-
         # ---------------------------------------------------------------------------------
         # Dynamic part of frost index
         self.var.Kfrost = np.where(self.var.Tavg < 0, 0.08, 0.5)
         FrostIndexChangeRate = -(1 - self.var.Afrost) * self.var.FrostIndex - self.var.Tavg * \
             np.exp(-0.4 * 100 * self.var.Kfrost * np.minimum(1.0,self.var.SnowCover / self.var.SnowWaterEquivalent))
-        # FrostIndexChangeRate=self.var.AfrostIndex - self.var.Tavg*      pc raster.exp(self.var.Kfrost*self.var.SnowCover*self.var.InvSnowWaterEquivalent)
         # Rate of change of frost index (expressed as rate, [degree days/day])
         self.var.FrostIndex = np.maximum(self.var.FrostIndex + FrostIndexChangeRate * self.var.DtDay, 0)
         # frost index in soil [degree days] based on Molnau and Bissel (1983, A Continuous Frozen Ground Index for Flood

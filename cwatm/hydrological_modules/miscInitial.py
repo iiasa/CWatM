@@ -61,9 +61,6 @@ class miscInitial(object):
             # - Length units meters
             # - All grid cells have the same size
 
-            # Length of pixel [m]
-            #self.var.PixelLength = celllength()
-
             # Area of pixel [m2]
             self.var.cellArea=np.empty(maskinfo['mapC'])
             self.var.cellArea.fill(self.var.cellLength ** 2)

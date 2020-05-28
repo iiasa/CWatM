@@ -61,7 +61,6 @@ class runoff_concentration(object):
 
             # --- Topography -----------------------------------------------------
             tanslope = loadmap('tanslope')
-            # self.var.slopeLength = loadmap('slopeLength')
             # setting slope >= 0.00001 to prevent 0 value
             tanslope = np.maximum(tanslope, 0.00001)
 

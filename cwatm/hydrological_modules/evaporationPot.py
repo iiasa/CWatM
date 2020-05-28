@@ -38,7 +38,7 @@ class evaporationPot(object):
             Only run if *calc_evaporation* is True
         """
 
-        self.var.sumETRef = globals.inZero.copy()
+        #self.var.sumETRef = globals.inZero.copy()
         self.var.cropCorrect = loadmap('crop_correct')
 
         if checkOption('calc_evaporation'):
