@@ -50,7 +50,10 @@ class CWATMFileError(CWATMError):
         # don't show the error code, lines etc.
         sys.tracebacklimit = 0
         path, name = os.path.split(filename)
-        if os.path.exists(path):
+        if os.path.exists(filename):
+            text1 = "In  \"" + sname + "\"\n"
+            text1 += "filename: "+ filename + " exists, but an error was raised"
+        elif os.path.exists(path):
             text1 = "In  \"" + sname + "\"\n"
             text1 += "path: "+ path + " exists\nbut filename: "+name+ " does not\n"
             text1 +="file name extension can be .nc4 or .nc\n"
