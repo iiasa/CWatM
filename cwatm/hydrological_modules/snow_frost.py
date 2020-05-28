@@ -11,7 +11,7 @@
 from cwatm.management_modules.data_handling import *
 
 
-class snow(object):
+class snow_frost(object):
 
     """
     RAIN AND SNOW
@@ -23,11 +23,9 @@ class snow(object):
 	
     """
 
-    def __init__(self, snow_variable):
-        self.var = snow_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """
@@ -91,7 +89,7 @@ class snow(object):
         # SnowCover1 is the highest zone
         self.var.SnowCoverS = []
         for i in range(self.var.numberSnowLayers):
-            self.var.SnowCoverS.append(self.var.init_module.load_initial("SnowCover",number = i+1))
+            self.var.SnowCoverS.append(self.var.load_initial("SnowCover",number = i+1))
 
         # initial snow depth in elevation zones A, B, and C, respectively  [mm]
         self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / self.var.numberSnowLayersFloat + globals.inZero
@@ -111,7 +109,7 @@ class snow(object):
         # FrostIndexInit=ifthen(defined(self.var.MaskMap),scalar(loadmap('FrostIndexInitValue')))
 
         #self.var.FrostIndex = loadmap('FrostIndexIni')
-        self.var.FrostIndex = self.var.init_module.load_initial('FrostIndex')
+        self.var.FrostIndex = self.var.load_initial('FrostIndex')
 
         self.var.extfrostindex = False
         if "morefrost" in binding:

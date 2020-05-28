@@ -17,10 +17,9 @@ class capillarRise(object):
     calculate cell fraction influenced by capillary rise
     """
 
-    def __init__(self, capillarRise_variable):
-        self.var = capillarRise_variable
-
-    # --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def dynamic(self):
         """

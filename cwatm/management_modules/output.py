@@ -34,10 +34,9 @@ class outputTssMap(object):
     Class: Output of time series and map
     """
 
-    def __init__(self, out_variable):
-        self.var = out_variable
-
-
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """
