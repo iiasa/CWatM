@@ -14,6 +14,30 @@ from cwatm.management_modules.data_handling import *
 class groundwater(object):
     """
     GROUNDWATER
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    storGroundwater       simulated groundwater storage                                                     m        
+    specificYield         groundwater reservoir parameters (if ModFlow is not used) used to compute ground  m        
+    recessionCoeff        groundwater storage times this coefficient gives baseflow                         --       
+    kSatAquifer           groundwater reservoir parameters (if ModFlow is not used), could be used to comp  m day-1  
+    load_initial                                                                                                     
+    readAvlStorGroundwat  same as storGroundwater but equal to 0 when inferior to a treshold                m        
+    pumping_actual                                                                                                   
+    capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
+    baseflow              simulated baseflow (= groundwater discharge to river)                             m        
+    gwstore                                                                                                          
+    prestorGroundwater    storGroundwater at the beginning of each step                                     m        
+    nonFossilGroundwater  groundwater abstraction which is sustainable and not using fossil resources       m        
+    sum_gwRecharge        groundwater recharge                                                              m        
+    waterbalance_module                                                                                              
+    ====================  ================================================================================  =========
+
+    **Functions**
+
     """
 
     def __init__(self, model):
@@ -37,8 +61,6 @@ class groundwater(object):
 
         self.var.specificYield = loadmap('specificYield')
         self.var.kSatAquifer = loadmap('kSatAquifer')
-
-        #report("C:/work/output2/ksat.map", self.var.kSatAquifer)
 
         # init calculation recession coefficient, speciefic yield, ksatAquifer
         self.var.recessionCoeff = np.maximum(5.e-4,self.var.recessionCoeff)
@@ -74,8 +96,6 @@ class groundwater(object):
         Calculate groundweater storage and baseflow
         """
 
-        #self.var.sum_gwRecharge = readnetcdf2("C:/work/output2/sum_gwRecharge_daily.nc", dateVar['currDate'], addZeros=True, cut = False, usefilename = True )
-
         if checkOption('calcWaterBalance'):
             self.var.prestorGroundwater = self.var.storGroundwater.copy()
 
@@ -89,8 +109,8 @@ class groundwater(object):
 
 
         # get riverbed infiltration from the previous time step (from routing)
-        #self.var.surfaceWaterInf = self.var.riverbedExchange * self.var.InvCellArea
-        #self.var.storGroundwater = self.var.storGroundwater + self.var.surfaceWaterInf
+        #self_.var_.surfaceWaterInf = self.var._riverbedExchange * self.var.InvCellArea
+        #self.var.storGroundwater = self.var.storGroundwater + self_.var_.surfaceWaterInf
 
         # get net recharge (percolation-capRise) and update storage:
         self.var.storGroundwater = np.maximum(0., self.var.storGroundwater + self.var.sum_gwRecharge)
@@ -117,40 +137,40 @@ class groundwater(object):
         #aream =  npareatotal(self.var.cellArea,area)
 
         gwstor = self.var.storGroundwater * self.var.MtoM3 / diff
-        self.var.sumgwstor = npareatotal(gwstor,area)
+        self_.var.sumgwstor = npareatotal(gwstor,area)
 
-        pf = self.var.sum_prefFlow * self.var.MtoM3 / diff
-        self.var.sumpf = npareatotal(pf,area)
+        pf = self_.var.sum_prefFlow * self.var.MtoM3 / diff
+        self_.var.sumpf = npareatotal(pf,area)
 
         perc = self.var.sum_perc3toGW * self.var.MtoM3 / diff
-        self.var.sumperc = npareatotal(perc,area)
+        self_.var.sumperc = npareatotal(perc,area)
 
-        cap = self.var.sum_capRiseFromGW * self.var.MtoM3 / diff
-        self.var.sumcap = npareatotal(cap,area)
+        cap = self_.var.sum_capRiseFromGW * self.var.MtoM3 / diff
+        self_.var.sumcap = npareatotal(cap,area)
 
-
-
-        gw = self.var.sum_gwRecharge * self.var.MtoM3 / diff
-        self.var.sumgw = npareatotal(gw,area)
 
 
         gw = self.var.sum_gwRecharge * self.var.MtoM3 / diff
-        self.var.sumgw = npareatotal(gw,area)
+        self_.var.sumgw = npareatotal(gw,area)
+
+
+        gw = self.var.sum_gwRecharge * self.var.MtoM3 / diff
+        self._var.sumgw = npareatotal(gw,area)
 
 
         #pr = self.var.Precipitation * self.var.MtoM3 / diff
-        #self.var.sumpr = npareatotal(pr,area)
-        self.var.avgpr = npareaaverage(self.var.Precipitation, area)
+        #self.var._sumpr = npareatotal(pr,area)
+        self.var._avgpr = npareaaverage(self.var.Precipitation, area)
         run = (self.var.sum_landSurfaceRunoff + self.var.baseflow) * self.var.MtoM3 / diff
-        self.var.sumrunoff = npareatotal(run,area)
+        self.var._sumrunoff = npareatotal(run,area)
         et = self.var.totalET * self.var.MtoM3 / diff
-        self.var.sumtotalET = npareatotal(et, area)
+        self_.var.sumtotalET = npareatotal(et, area)
 
         etpot = self.var.ETRef * self.var.MtoM3 / diff
-        self.var.sumETRef = npareatotal(etpot, area)
+        self_.var.sumETRef = npareatotal(etpot, area)
 
         base = self.var.baseflow * self.var.MtoM3 / diff
-        self.var.sumbaseflow = npareatotal(base, area)
+        self_.var.sumbaseflow = npareatotal(base, area)
         """
 
 

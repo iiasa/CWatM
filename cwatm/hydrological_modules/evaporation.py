@@ -15,6 +15,16 @@ class evaporation(object):
     """
     Evaporation module
     Calculate potential evaporation and pot. transpiration
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    cropKC                crop coefficient for each of the 4 different land cover types (forest, irrigated  --       
+    ====================  ================================================================================  =========
+
+    **Functions**
+
     """
 
     def __init__(self, model):

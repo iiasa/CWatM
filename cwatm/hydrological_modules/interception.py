@@ -14,6 +14,28 @@ from cwatm.management_modules.data_handling import *
 class interception(object):
     """
     INTERCEPTION
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    waterbalance_module                                                                                              
+    interceptCap          interception capacity of vegetation                                               m        
+    minInterceptCap       Maximum interception read from file for forest and grassland land cover           m        
+    interceptStor         simulated vegetation interception storage                                         m        
+    Rain                  Precipitation less snow                                                           m        
+    availWaterInfiltrati  quantity of water reaching the soil after interception, more snowmelt             m        
+    SnowMelt              total snow melt from all layers                                                   m        
+    twothird              2/3                                                                               --       
+    interceptEvap         simulated evaporation from water intercepted by vegetation                        m        
+    potTranspiration      Potential transpiration (after removing of evaporation)                           m        
+    EWRef                 potential evaporation rate from water surface                                     m        
+    actualET              simulated evapotranspiration from soil, flooded area and vegetation               m        
+    snowEvap              total evaporation from snow for a snow layers                                     m        
+    ====================  ================================================================================  =========
+
+    **Functions**
+
     """
 
     def __init__(self, model):

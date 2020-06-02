@@ -19,6 +19,122 @@ class landcoverType(object):
     runs the 6 land cover types through soil procedures
 
     This routine calls the soil routine for each land cover type
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    maxGWCapRise          influence of capillary rise above groundwater level                               m        
+    load_initial                                                                                                     
+    baseflow              simulated baseflow (= groundwater discharge to river)                             m        
+    sum_gwRecharge        groundwater recharge                                                              m        
+    waterbalance_module                                                                                              
+    coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
+    minInterceptCap       Maximum interception read from file for forest and grassland land cover           m        
+    interceptStor         simulated vegetation interception storage                                         m        
+    Rain                  Precipitation less snow                                                           m        
+    SnowMelt              total snow melt from all layers                                                   m        
+    snowEvap              total evaporation from snow for a snow layers                                     m        
+    cellArea              Cell area [m�] of each simulated mesh                                                      
+    dynamicLandcover                                                                                                 
+    soilLayers            Number of soil layers                                                             --       
+    landcoverSum                                                                                                     
+    totalET               Total evapotranspiration for each cell including all landcover types              m        
+    act_SurfaceWaterAbst                                                                                             
+    sum_interceptStor     Total of simulated vegetation interception storage including all landcover types  m        
+    fracVegCover          Fraction of area covered by the corresponding landcover type                               
+    minCropKC             minimum crop factor (default 0.2)                                                 --       
+    minTopWaterLayer                                                                                                 
+    rootFraction1                                                                                                    
+    maxRootDepth                                                                                                     
+    rootDepth                                                                                                        
+    soildepth             Thickness of the first soil layer                                                 m        
+    soildepth12           Total thickness of layer 2 and 3                                                  m        
+    KSat1                                                                                                            
+    KSat2                                                                                                            
+    KSat3                                                                                                            
+    alpha1                                                                                                           
+    alpha2                                                                                                           
+    alpha3                                                                                                           
+    lambda1                                                                                                          
+    lambda2                                                                                                          
+    lambda3                                                                                                          
+    thetas1                                                                                                          
+    thetas2                                                                                                          
+    thetas3                                                                                                          
+    thetar1                                                                                                          
+    thetar2                                                                                                          
+    thetar3                                                                                                          
+    genuM1                                                                                                           
+    genuM2                                                                                                           
+    genuM3                                                                                                           
+    genuInvM1                                                                                                        
+    genuInvM2                                                                                                        
+    genuInvM3                                                                                                        
+    genuInvN1                                                                                                        
+    genuInvN2                                                                                                        
+    genuInvN3                                                                                                        
+    invAlpha1                                                                                                        
+    invAlpha2                                                                                                        
+    invAlpha3                                                                                                        
+    ws1                   Maximum storage capacity in layer 1                                               m        
+    ws2                   Maximum storage capacity in layer 2                                               m        
+    ws3                   Maximum storage capacity in layer 3                                               m        
+    wres1                 Residual storage capacity in layer 1                                              m        
+    wres2                 Residual storage capacity in layer 2                                              m        
+    wres3                 Residual storage capacity in layer 3                                              m        
+    wrange1                                                                                                          
+    wrange2                                                                                                          
+    wrange3                                                                                                          
+    wfc1                  Soil moisture at field capacity in layer 1                                                 
+    wfc2                  Soil moisture at field capacity in layer 2                                                 
+    wfc3                  Soil moisture at field capacity in layer 3                                                 
+    wwp1                  Soil moisture at wilting point in layer 1                                                  
+    wwp2                  Soil moisture at wilting point in layer 2                                                  
+    wwp3                  Soil moisture at wilting point in layer 3                                                  
+    kUnSat3FC                                                                                                        
+    kunSatFC12                                                                                                       
+    kunSatFC23                                                                                                       
+    cropCoefficientNC_fi                                                                                             
+    interceptCapNC_filen                                                                                             
+    coverFractionNC_file                                                                                             
+    w1                    Simulated water storage in the layer 1                                            m        
+    w2                    Simulated water storage in the layer 2                                            m        
+    w3                    Simulated water storage in the layer 3                                            m        
+    topwater              quantity of water above the soil (flooding)                                       m        
+    sum_topwater          quantity of water on the soil (flooding) (weighted sum for all landcover types)   m        
+    totalSto              Total soil,snow and vegetation storage for each cell including all landcover typ  m        
+    SnowCover             snow cover (sum over all layers)                                                  m        
+    sum_w1                                                                                                           
+    sum_w2                                                                                                           
+    sum_w3                                                                                                           
+    arnoBetaOro                                                                                                      
+    ElevationStD                                                                                                     
+    arnoBeta                                                                                                         
+    adjRoot                                                                                                          
+    maxtopwater           maximum heigth of topwater                                                        m        
+    landcoverSumSum                                                                                                  
+    totAvlWater                                                                                                      
+    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days�)                                       
+    presumed_sum_gwRecha  Previous groundwater recharge [m/timestep] (used for the ModFlow version)         m        
+    sumed_sum_gwRecharge                                                                                             
+    pretotalSto           Previous totalSto                                                                 m        
+    sum_actTransTotal                                                                                                
+    sum_actBareSoilEvap                                                                                              
+    sum_openWaterEvap                                                                                                
+    sum_interceptEvap                                                                                                
+    addtoevapotrans                                                                                                  
+    sum_runoff            Runoff above the soil, more interflow, including all landcover types              m        
+    sum_directRunoff                                                                                                 
+    sum_interflow                                                                                                    
+    Precipitation         Precipitation (input for the model)                                               m        
+    GWVolumeVariation                                                                                                
+    sum_availWaterInfilt                                                                                             
+    ====================  ================================================================================  =========
+
+    **Functions**
+
     """
 
     def __init__(self, model):

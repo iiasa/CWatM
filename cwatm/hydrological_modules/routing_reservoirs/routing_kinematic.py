@@ -19,6 +19,83 @@ class routing_kinematic(object):
     ROUTING
 
     routing using the kinematic wave
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    load_initial                                                                                                     
+    waterbalance_module                                                                                              
+    QInM3Old              Inflow from previous day                                                          m3       
+    inflowM3              inflow to basin                                                                   m3       
+    DtSec                 number of seconds per timestep (default = 86400)                                  s        
+    EWRef                 potential evaporation rate from water surface                                     m        
+    waterBodyID           lakes/reservoirs map with a single ID for each lake/reservoir                     --       
+    UpArea1               upstream area of a grid cell                                                      m2       
+    dirUp                 river network in upstream direction                                               --       
+    lddCompress           compressed river network (without missing values)                                 --       
+    dirupLen_LR           number of bifurcation upstream lake/reservoir                                     --       
+    dirupID_LR            index river upstream lake/reservoir                                               --       
+    dirDown_LR            river network direktion downstream lake/reservoir                                 --       
+    lendirDown_LR         number of river network connections lake/reservoir                                --       
+    compress_LR           boolean map as mask map for compressing lake/reservoir                            --       
+    lakeArea              area of each lake/reservoir                                                       m2       
+    lakeEvaFactor         a factor which increases evaporation from lake because of wind                    --       
+    lakeEvaFactorC        compressed map of a factor which increases evaporation from lake because of wind  --       
+    EvapWaterBodyM                                                                                                   
+    lakeResInflowM                                                                                                   
+    lakeResOutflowM                                                                                                  
+    dtRouting             number of seconds per routing timestep                                            s        
+    lakeResStorage                                                                                                   
+    evapWaterBodyC                                                                                                   
+    sumLakeEvapWaterBody                                                                                             
+    noRoutingSteps                                                                                                   
+    sumResEvapWaterBodyC                                                                                             
+    discharge             discharge                                                                         m3/s     
+    runoff                                                                                                           
+    cellArea              Cell area [m�] of each simulated mesh                                                      
+    downstruct                                                                                                       
+    prelakeResStorage                                                                                                
+    act_SurfaceWaterAbst                                                                                             
+    fracVegCover          Fraction of area covered by the corresponding landcover type                               
+    openWaterEvap         Simulated evaporation from open areas                                             m        
+    catchmentAll                                                                                                     
+    chanLength                                                                                                       
+    totalCrossSectionAre                                                                                             
+    dirupLen                                                                                                         
+    dirupID                                                                                                          
+    catchment                                                                                                        
+    dirDown                                                                                                          
+    lendirDown                                                                                                       
+    UpArea                                                                                                           
+    beta                                                                                                             
+    chanMan                                                                                                          
+    chanGrad                                                                                                         
+    chanWidth                                                                                                        
+    chanDepth                                                                                                        
+    invbeta                                                                                                          
+    invchanLength                                                                                                    
+    invdtRouting                                                                                                     
+    totalCrossSectionAre                                                                                             
+    chanWettedPerimeterA                                                                                             
+    alpPower                                                                                                         
+    channelAlpha                                                                                                     
+    invchannelAlpha                                                                                                  
+    channelStorage                                                                                                   
+    riverbedExchange                                                                                                 
+    sumbalance                                                                                                       
+    prechannelStorage                                                                                                
+    EvapoChannel                                                                                                     
+    QDelta                                                                                                           
+    act_bigLakeResAbst                                                                                               
+    act_smallLakeResAbst                                                                                             
+    returnFlow                                                                                                       
+    sumsideflow                                                                                                      
+    inflowDt                                                                                                         
+    ====================  ================================================================================  =========
+
+    **Functions**
+
     """
 
     def __init__(self, model):

@@ -33,6 +33,30 @@ class runoff_concentration(object):
     http://stackoverflow.com/questions/24040984/transformation-using-triangular-weighting-function-in-python
 
 
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    load_initial                                                                                                     
+    baseflow              simulated baseflow (= groundwater discharge to river)                             m        
+    coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
+    runoff                                                                                                           
+    fracVegCover          Fraction of area covered by the corresponding landcover type                               
+    sum_interflow                                                                                                    
+    runoff_peak           peak time of runoff in seconds for each land use class                            s        
+    tpeak_interflow       peak time of interflow                                                            s        
+    tpeak_baseflow        peak time of baseflow                                                             s        
+    maxtime_runoff_conc   maximum time till all flow is at the outlet                                       s        
+    runoff_conc           runoff after concentration - triangular-weighting method                          m        
+    sum_landSurfaceRunof  Runoff concentration above the soil more interflow including all landcover types  m        
+    landSurfaceRunoff     Runoff concentration above the soil more interflow                                m        
+    directRunoff          Simulated surface runoff                                                          m        
+    interflow             Simulated flow reaching runoff instead of groundwater                             m        
+    ====================  ================================================================================  =========
+
+    **Functions**
+
     """
 
     def __init__(self, model):

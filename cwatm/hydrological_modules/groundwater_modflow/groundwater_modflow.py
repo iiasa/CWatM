@@ -13,6 +13,59 @@ from cwatm.management_modules.data_handling import *
 class groundwater_modflow(object):
     """
     GROUNDWATER MODFLOW 
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
+    baseflow              simulated baseflow (= groundwater discharge to river)                             m        
+    gwstore                                                                                                          
+    sum_gwRecharge        groundwater recharge                                                              m        
+    waterbalance_module                                                                                              
+    cellArea              Cell area [m�] of each simulated mesh                                                      
+    soildepth12           Total thickness of layer 2 and 3                                                  m        
+    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days�)                                       
+    sumed_sum_gwRecharge                                                                                             
+    GWVolumeVariation                                                                                                
+    modflowsteady         True if modflow_steadystate = True in settings file                               --       
+    modflowexe            Path to the ModFlow.exe file                                                      --       
+    PathModflow           Path to the ModFlow folder where input data and ModFlow runs are stored           --       
+    PathModflowOutput     Path to the ModFlow folder where ModFlow runs are stored                          --       
+    res_ModFlow           Chosen ModFlow model resolution                                                            
+    Ndays_steady          Number of steady state run before the transient simulation                        --       
+    nlay                  Number of ModFlow layers                                                          --       
+    actual_thick          Array (nlays, nrows, ncols) of layers thickness                                   m        
+    coef                  A coefficient defined by the user to artificially increase layer thickness                 
+    delv2                 Array (nlays, nrows, ncols) of layers thickness times coef                        m        
+    riverPercentage       Array (nrows, ncol) defining the percentage of rivers on each ModFlow cell                 
+    hk0                   Array (nrows, ncol) defining the groundwater permeability [m/s]                            
+    poro                  Array (nrows, ncol) defining the groundwater porosity []                                   
+    basin                 Array (nrows, ncol) defining wich cells are active (1 or 0)                                
+    waterTable3           Array (nrows, ncol) defining DRAIN altitude [masl] on each cell                   m        
+    modflowtotalSoilThic  Array (nrows, ncol) used to compute water table depth in post-processing          m        
+    botm                  Array (nlays+1, nrows, ncols) of layers top and botm [masl]                       m        
+    nameModflowModel      Name of the ModFlow model (used for ModFlow output)                                        
+    steady_previous       True if a previous simulated map is used to defined the initial water table                
+    head                  Simulated ModFlow water level [masl]                                              m        
+    GW_pumping                                                                                                       
+    modflow_text_to_writ                                                                                             
+    modflow_compteur      Counts each day relatively to the chosen ModFlow timestep, allow to run ModFlow            
+    writeerror                                                                                                       
+    nameerrorfile                                                                                                    
+    storGroundwater1                                                                                                 
+    modflowStorGW                                                                                                    
+    modflowWaterLevel     Simulated ModFlow water level [masl]                                                       
+    sumstorGW                                                                                                        
+    sumstorGW2                                                                                                       
+    pregwstore                                                                                                       
+    prestorGroundwater1                                                                                              
+    modflowPumpingM                                                                                                  
+    ====================  ================================================================================  =========
+
+    **Functions**
+
     """
 
     def __init__(self, model):

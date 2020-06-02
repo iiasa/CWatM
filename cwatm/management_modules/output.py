@@ -32,6 +32,23 @@ class outputTssMap(object):
 
     """
     Class: Output of time series and map
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    dirUp                 river network in upstream direction                                               --       
+    discharge             discharge                                                                         m3/s     
+    cellArea              Cell area [m�] of each simulated mesh                                                      
+    sampleAdresses                                                                                                   
+    noOutpoints                                                                                                      
+    evalCatch                                                                                                        
+    catcharea                                                                                                        
+    firstout                                                                                                         
+    ====================  ================================================================================  =========
+
+    **Functions**
+
     """
 
     def __init__(self, model):

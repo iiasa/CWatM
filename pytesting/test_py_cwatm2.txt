@@ -42,7 +42,7 @@
 runtest: Rhine_30min  True
 runtest: global_30min True
 runtest: Rhine_5min   True
-runtest: global_5min  False
+runtest: global_5min  True
 
 # True is test should compare last discharge with given number, False is test should look for -no error- execution of run
 test_value: True

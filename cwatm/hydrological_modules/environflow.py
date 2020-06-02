@@ -18,6 +18,21 @@ class environflow(object):
     ENVIRONMENTAL FLOW
 
     calculates environmental flow
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    cut_ef_map            if TRUE calculated maps of environmental flow are cut to the extend of the area   --       
+    MAF                   Mean of discharge for all days                                                    m3/s     
+    Q90                   10% of the lowest discharge for all days                                          m3/s     
+    MMF                   Mean of discharge for each month separately                                       m3/s     
+    MQ90                  10% of lowest discharge for each month separately                                 m3/s     
+    EF_VMF                EF requirement with Variable Monthly Flow: Pastor et al.(2014): Accounting for e  m3/s     
+    ====================  ================================================================================  =========
+
+    **Functions**
+
     """
 
     def __init__(self, model):

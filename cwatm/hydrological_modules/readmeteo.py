@@ -16,6 +16,52 @@ class readmeteo(object):
     READ METEOROLOGICAL DATA
 
     reads all meteorological data from netcdf4 files
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    EWRef                 potential evaporation rate from water surface                                     m        
+    Precipitation         Precipitation (input for the model)                                               m        
+    DtDay                 seconds in a timestep (default=86400)                                             s        
+    con_precipitation     conversion factor for precipitation                                               --       
+    con_e                 conversion factor for evaporation                                                 --       
+    meteomapsscale        if meteo maps have the same extend as the other spatial static maps -> meteomaps  --       
+    meteodown             if meteo maps should be downscaled                                                --       
+    modflowsteady         True if modflow_steadystate = True in settings file                               --       
+    preMaps               choose between steady state precipitation maps for steady state modflow or norma  --       
+    tempMaps              choose between steady state temperature maps for steady state modflow or normal   --       
+    evaTMaps              choose between steady state ETP water maps for steady state modflow or normal ma  --       
+    eva0Maps              choose between steady state ETP reference maps for steady state modflow or norma  --       
+    wc2_tavg              High resolution WorldClim map for average temperature                             K        
+    wc4_tavg              upscaled to low resolution WorldClim map for average temperature                  K        
+    wc2_tmin              High resolution WorldClim map for min temperature                                 K        
+    wc4_tmin              upscaled to low resolution WorldClim map for min temperature                      K        
+    wc2_tmax              High resolution WorldClim map for max temperature                                 K        
+    wc4_tmax              upscaled to low resolution WorldClim map for max temperature                      K        
+    wc2_prec              High resolution WorldClim map for precipitation                                   m        
+    wc4_prec              upscaled to low resolution WorldClim map for precipitation                        m        
+    demAnomaly            digital elevation model anomaly (high resolution - low resolution)                m        
+    demHigh               digital elevation model high resolution                                           m        
+    Tavg                  average air Temperature (input for the model)                                     K        
+    prec                  precipitation in m                                                                m        
+    temp                  average temperature in Celsius deg                                                C�       
+    TMin                  minimum air temperature                                                           K        
+    Tmin                  minimum temperature in Celsius deg                                                C�       
+    TMax                  maximum air temperature                                                           K        
+    Tmax                  maximum temperature in celsius deg                                                C�       
+    Psurf                 Instantaneous surface pressure                                                    Pa       
+    Wind                  wind speed                                                                        m/s      
+    Rsds                  short wave downward surface radiation fluxes                                      W/m2     
+    Rsdl                  long wave downward surface radiation fluxes                                       W/m2     
+    Qair                  specific humidity                                                                 kg/kg    
+    WtoMJ                 Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6                    --       
+    ETRef                 potential evapotranspiration rate from reference crop                             m        
+    ====================  ================================================================================  =========
+
+    **Functions**
+
     """
 
     def __init__(self, model):
@@ -297,7 +343,7 @@ class readmeteo(object):
         #self.var.Precipitation = self.var.Precipitation * 1000
 
         self.var.prec = self.var.Precipitation / self.var.con_precipitation
-        # precipitation (conversion to [mm] per time step)  `
+        # precipitation (conversion to [m] per time step)  `
         if Flags['check']:
             checkmap(self.var.preMaps, "", self.var.Precipitation, True, True, self.var.Precipitation)
 

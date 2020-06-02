@@ -21,6 +21,51 @@ class snow_frost(object):
 
     Variables *snow* and *rain* at end of this module are the pixel-average snowfall and rain
 	
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    load_initial                                                                                                     
+    waterbalance_module                                                                                              
+    Rain                  Precipitation less snow                                                           m        
+    SnowMelt              total snow melt from all layers                                                   m        
+    SnowCover             snow cover (sum over all layers)                                                  m        
+    ElevationStD                                                                                                     
+    Precipitation         Precipitation (input for the model)                                               m        
+    DtDay                 seconds in a timestep (default=86400)                                             s        
+    Tavg                  average air Temperature (input for the model)                                     K        
+    numberSnowLayersFloa                                                                                             
+    numberSnowLayers      Number of snow layers (up to 10)                                                  --       
+    glaciertransportZone  Number of layers which can be mimiced as glacier transport zone                   --       
+    deltaInvNorm          Quantile of the normal distribution (for different numbers of snow layers)        --       
+    DeltaTSnow            Temperature lapse rate x std. deviation of elevation                              C�       
+    SnowDayDegrees        day of the year to degrees: 360/365.25 = 0.9856                                   --       
+    summerSeasonStart     day when summer season starts = 165                                               --       
+    IceDayDegrees         days of summer (15th June-15th Sept.) to degree: 180/(259-165)                    --       
+    SnowSeason            seasonal melt factor                                                              m C�-1 da
+    TempSnow              Average temperature at which snow melts                                           C�       
+    SnowFactor            Multiplier applied to precipitation that falls as snow                            --       
+    SnowMeltCoef          Snow melt coefficient - default: 0.004                                            --       
+    IceMeltCoef           Ice melt coefficnet - default  0.007                                              --       
+    TempMelt              Average temperature at which snow melts                                           C�       
+    SnowCoverS            snow cover for each layer                                                         m        
+    Kfrost                Snow depth reduction coefficient, (HH, p. 7.28)                                   m-1      
+    Afrost                Daily decay coefficient, (Handbook of Hydrology, p. 7.28)                         --       
+    FrostIndexThreshold   Degree Days Frost Threshold (stops infiltration, percolation and capillary rise)  --       
+    SnowWaterEquivalent   Snow water equivalent, (based on snow density of 450 kg/m3) (e.g. Tarboton and L  --       
+    FrostIndex            FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Index for Floo  --       
+    extfrostindex         Flag for second frostindex                                                        --       
+    FrostIndexThreshold2  FrostIndex2 - Molnau and Bissel (1983), A Continuous Frozen Ground Index for Flo           
+    frostInd1             forstindex 1                                                                               
+    frostInd2             frostindex 2                                                                               
+    frostindexS           array for frostindex                                                                       
+    prevSnowCover         snow cover of previous day (only for water balance)                               m        
+    Snow                  Snow (equal to a part of Precipitation)                                           m        
+    ====================  ================================================================================  =========
+
+    **Functions**
+
     """
 
 

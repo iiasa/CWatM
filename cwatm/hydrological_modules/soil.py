@@ -19,17 +19,93 @@ class soil(object):
 
     Calculation vertical transfer of water based on Arno scheme
 
+    
     **Global variables**
-    
-    ==========================  ========================================================================================  =========  ==============================
-    Variable [self.var]         Description                                                                               Unit       Appears in
-    ==========================  ========================================================================================  =========  ==============================
-    soilLayers                  Number of soil layers Unit                                                                --         soil
-    percolationImp              Fraction of area where percolation to groundwater is impeded                              --         soil,waterdemand
-    ==========================  ========================================================================================  =========  ==============================
-    
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    storGroundwater       simulated groundwater storage                                                     m        
+    capRiseFrac           fraction of a grid cell where capillar rise may happen                            m        
+    cropKC                crop coefficient for each of the 4 different land cover types (forest, irrigated  --       
+    capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
+    availWaterInfiltrati  quantity of water reaching the soil after interception, more snowmelt             m        
+    potTranspiration      Potential transpiration (after removing of evaporation)                           m        
+    EWRef                 potential evaporation rate from water surface                                     m        
+    actualET              simulated evapotranspiration from soil, flooded area and vegetation               m        
+    soilLayers            Number of soil layers                                                             --       
+    fracVegCover          Fraction of area covered by the corresponding landcover type                               
+    rootDepth                                                                                                        
+    soildepth             Thickness of the first soil layer                                                 m        
+    soildepth12           Total thickness of layer 2 and 3                                                  m        
+    KSat1                                                                                                            
+    KSat2                                                                                                            
+    KSat3                                                                                                            
+    genuM1                                                                                                           
+    genuM2                                                                                                           
+    genuM3                                                                                                           
+    genuInvM1                                                                                                        
+    genuInvM2                                                                                                        
+    genuInvM3                                                                                                        
+    ws1                   Maximum storage capacity in layer 1                                               m        
+    ws2                   Maximum storage capacity in layer 2                                               m        
+    ws3                   Maximum storage capacity in layer 3                                               m        
+    wres1                 Residual storage capacity in layer 1                                              m        
+    wres2                 Residual storage capacity in layer 2                                              m        
+    wres3                 Residual storage capacity in layer 3                                              m        
+    wrange1                                                                                                          
+    wrange2                                                                                                          
+    wrange3                                                                                                          
+    wfc1                  Soil moisture at field capacity in layer 1                                                 
+    wfc2                  Soil moisture at field capacity in layer 2                                                 
+    wfc3                  Soil moisture at field capacity in layer 3                                                 
+    wwp1                  Soil moisture at wilting point in layer 1                                                  
+    wwp2                  Soil moisture at wilting point in layer 2                                                  
+    wwp3                  Soil moisture at wilting point in layer 3                                                  
+    kunSatFC12                                                                                                       
+    kunSatFC23                                                                                                       
+    w1                    Simulated water storage in the layer 1                                            m        
+    w2                    Simulated water storage in the layer 2                                            m        
+    w3                    Simulated water storage in the layer 3                                            m        
+    topwater              quantity of water above the soil (flooding)                                       m        
+    arnoBeta                                                                                                         
+    adjRoot                                                                                                          
+    maxtopwater           maximum heigth of topwater                                                        m        
+    directRunoff          Simulated surface runoff                                                          m        
+    interflow             Simulated flow reaching runoff instead of groundwater                             m        
+    openWaterEvap         Simulated evaporation from open areas                                             m        
+    actTransTotal         Total actual transpiration from the three soil layers                             m        
+    actBareSoilEvap       Simulated evaporation from the first soil layer                                   m        
+    FrostIndexThreshold   Degree Days Frost Threshold (stops infiltration, percolation and capillary rise)  --       
+    FrostIndex            FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Index for Floo  --       
+    percolationImp        Fraction of area covered by the corresponding landcover type                      m        
+    cropGroupNumber       soil water depletion fraction, Van Diepen et al., 1988: WOFOST 6.0, p.86, Dooren  --       
+    cPrefFlow             Factor influencing preferential flow (flow from surface to GW)                    --       
+    act_irrConsumption    actual irrgation water consumption                                                m        
+    potBareSoilEvap       potential bare soil evaporation (calculated with minus snow evaporation)          m        
+    totalPotET            Potential evaporation per land use class                                          m        
+    rws                   Transpiration reduction factor (in case of water stress)                          --       
+    prefFlow              Flow going directly from rainfall to groundwater                                  m        
+    infiltration          Water actually infiltrating the soil                                              m        
+    capRiseFromGW         Simulated capillary rise from groundwater                                         m        
+    NoSubSteps            Number of sub steps to calculate soil percolation                                 --       
+    perc1to2              Simulated water flow from soil layer 1 to soil layer 2                            m        
+    perc2to3              Simulated water flow from soil layer 2 to soil layer 3                            m        
+    perc3toGW             Simulated water flow from soil layer 3 to groundwater                             m        
+    theta1                fraction of water in soil compartment 1 for each land use class                   --       
+    theta2                fraction of water in soil compartment 2 for each land use class                   --       
+    theta3                fraction of water in soil compartment 3 for each land use class                   --       
+    actTransTotal_forest                                                                                             
+    actTransTotal_grassl                                                                                             
+    actTransTotal_paddy                                                                                              
+    actTransTotal_nonpad                                                                                             
+    before                                                                                                           
+    gwRecharge            groundwater recharge                                                              m        
+    ====================  ================================================================================  =========
+
     **Functions**
-    
+
     """
 
     def __init__(self, model):

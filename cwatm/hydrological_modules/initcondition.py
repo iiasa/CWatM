@@ -15,6 +15,20 @@ class initcondition(object):
     """
     READ/WRITE INITIAL CONDITIONS
     all initial condition can be stored at the end of a run to be used as a **warm** start for a following up run
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
+    loadInit              Flag: if true initial conditions are loaded                                       --       
+    initLoadFile          load file name of the initial condition data                                      --       
+    saveInit              Flag: if true initial conditions are saved                                        --       
+    saveInitFile          save file name of the initial condition data                                      --       
+    ====================  ================================================================================  =========
+
+    **Functions**
+
     """
 
 
