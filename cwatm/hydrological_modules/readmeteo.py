@@ -16,12 +16,23 @@ class readmeteo(object):
     READ METEOROLOGICAL DATA
 
     reads all meteorological data from netcdf4 files
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
     modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    TMin                  minimum air temperature                                                           K        
+    TMax                  maximum air temperature                                                           K        
+    Psurf                 Instantaneous surface pressure                                                    Pa       
+    Qair                  specific humidity                                                                 kg/kg    
+    Tavg                  average air Temperature (input for the model)                                     K        
+    Rsdl                  long wave downward surface radiation fluxes                                       W/m2     
+    Rsds                  short wave downward surface radiation fluxes                                      W/m2     
+    Wind                  wind speed                                                                        m/s      
+    ETRef                 potential evapotranspiration rate from reference crop                             m        
     EWRef                 potential evaporation rate from water surface                                     m        
     Precipitation         Precipitation (input for the model)                                               m        
     DtDay                 seconds in a timestep (default=86400)                                             s        
@@ -44,24 +55,14 @@ class readmeteo(object):
     wc4_prec              upscaled to low resolution WorldClim map for precipitation                        m        
     demAnomaly            digital elevation model anomaly (high resolution - low resolution)                m        
     demHigh               digital elevation model high resolution                                           m        
-    Tavg                  average air Temperature (input for the model)                                     K        
     prec                  precipitation in m                                                                m        
-    temp                  average temperature in Celsius deg                                                C�       
-    TMin                  minimum air temperature                                                           K        
-    Tmin                  minimum temperature in Celsius deg                                                C�       
-    TMax                  maximum air temperature                                                           K        
-    Tmax                  maximum temperature in celsius deg                                                C�       
-    Psurf                 Instantaneous surface pressure                                                    Pa       
-    Wind                  wind speed                                                                        m/s      
-    Rsds                  short wave downward surface radiation fluxes                                      W/m2     
-    Rsdl                  long wave downward surface radiation fluxes                                       W/m2     
-    Qair                  specific humidity                                                                 kg/kg    
+    temp                  average temperature in Celsius deg                                                C°       
+    Tmin                  minimum temperature in Celsius deg                                                C°       
+    Tmax                  maximum temperature in celsius deg                                                C°       
     WtoMJ                 Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6                    --       
-    ETRef                 potential evapotranspiration rate from reference crop                             m        
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

@@ -19,6 +19,8 @@ class landcoverType(object):
     runs the 6 land cover types through soil procedures
 
     This routine calls the soil routine for each land cover type
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
@@ -36,7 +38,7 @@ class landcoverType(object):
     Rain                  Precipitation less snow                                                           m        
     SnowMelt              total snow melt from all layers                                                   m        
     snowEvap              total evaporation from snow for a snow layers                                     m        
-    cellArea              Cell area [m�] of each simulated mesh                                                      
+    cellArea              Cell area [m²] of each simulated mesh                                                      
     dynamicLandcover                                                                                                 
     soilLayers            Number of soil layers                                                             --       
     landcoverSum                                                                                                     
@@ -116,7 +118,7 @@ class landcoverType(object):
     maxtopwater           maximum heigth of topwater                                                        m        
     landcoverSumSum                                                                                                  
     totAvlWater                                                                                                      
-    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days�)                                       
+    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days…)                                       
     presumed_sum_gwRecha  Previous groundwater recharge [m/timestep] (used for the ModFlow version)         m        
     sumed_sum_gwRecharge                                                                                             
     pretotalSto           Previous totalSto                                                                 m        
@@ -134,7 +136,6 @@ class landcoverType(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

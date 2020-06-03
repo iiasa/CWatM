@@ -31,7 +31,9 @@ from decimal import Decimal
 class outputTssMap(object):
 
     """
-    Class: Output of time series and map
+    Output of time series and map
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
@@ -39,7 +41,7 @@ class outputTssMap(object):
     ====================  ================================================================================  =========
     dirUp                 river network in upstream direction                                               --       
     discharge             discharge                                                                         m3/s     
-    cellArea              Cell area [m�] of each simulated mesh                                                      
+    cellArea              Cell area [m²] of each simulated mesh                                                      
     sampleAdresses                                                                                                   
     noOutpoints                                                                                                      
     evalCatch                                                                                                        
@@ -48,7 +50,6 @@ class outputTssMap(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

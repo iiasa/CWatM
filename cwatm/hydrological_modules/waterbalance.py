@@ -17,6 +17,8 @@ class waterbalance(object):
     
     * check if water balnace per time step is ok ( = 0)
     * produce an annual overview - income, outcome storage
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
@@ -31,7 +33,6 @@ class waterbalance(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

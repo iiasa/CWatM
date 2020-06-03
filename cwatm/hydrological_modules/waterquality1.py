@@ -17,15 +17,17 @@ class waterquality1(object):
     WATER QUALITY 1
 
     calculates water quality variables e.g. travel time, velocity, water temperature
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
+    Tavg                  average air Temperature (input for the model)                                     K        
     DtSec                 number of seconds per timestep (default = 86400)                                  s        
     discharge             discharge                                                                         m3/s     
-    cellArea              Cell area [m�] of each simulated mesh                                                      
-    Tavg                  average air Temperature (input for the model)                                     K        
+    cellArea              Cell area [m²] of each simulated mesh                                                      
     waterquality                                                                                                     
     celllenght                                                                                                       
     downdist                                                                                                         
@@ -38,7 +40,6 @@ class waterquality1(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):
@@ -130,7 +131,7 @@ class waterquality1(object):
           # Total water level [m]
 
           # Water-Air temperature relationship based on Morrill et al. (2005), Mohseni et al. (1998), van Vliet et al. (2012)
-          # Water Temperature (°C)
+          # Water Temperature (Ãƒâ€šÃ‚Â°C)
           # Water Temperature equation parameters
 
           WTalpha = 28.0
@@ -147,6 +148,6 @@ class waterquality1(object):
           #WaterTemperature = 3.0 + (28-3)/(1+exp(0.18*(14-AirTemperature)));
           self.var.waterTemperature = WTmu + (WTalpha - WTmu)/(1 + np.exp(WTgamma * (WTbeta -  self.var.Tavg)))
              # Water-Air temperature relationship based on Morrill et al. (2005)
-             # Water Temperature (°C)
+             # Water Temperature (Ãƒâ€šÃ‚Â°C)
 
           i =1

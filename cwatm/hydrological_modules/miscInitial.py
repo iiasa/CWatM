@@ -20,6 +20,8 @@ class miscInitial(object):
 
     Note:
         Only used in the initial phase.
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
@@ -29,7 +31,7 @@ class miscInitial(object):
     twothird              2/3                                                                               --       
     MtoM3                 Coefficient to change units                                                       --       
     InvDtSec                                                                                                         
-    cellArea              Cell area [m�] of each simulated mesh                                                      
+    cellArea              Cell area [m²] of each simulated mesh                                                      
     cellLength            length of a grid cell                                                             m        
     InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
     DtDay                 seconds in a timestep (default=86400)                                             s        
@@ -42,7 +44,6 @@ class miscInitial(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

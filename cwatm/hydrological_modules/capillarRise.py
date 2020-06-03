@@ -13,7 +13,7 @@ from cwatm.management_modules.data_handling import *
 
 class capillarRise(object):
     """
-    CAPPILAR RISE
+    CAPILLAR RISE
     calculate cell fraction influenced by capillary rise
 
     **Global variables**
@@ -41,7 +41,6 @@ class capillarRise(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

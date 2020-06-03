@@ -15,9 +15,9 @@ import flopy
 import flopy.utils.binaryfile as bf
 import time
 
-
 def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, recharge, pumping_datas=[]):
-        """This function runs ModFlow in transient state and save automatically hydraulic heads in the model (with the namemodel)
+        """
+        This function runs ModFlow in transient state and save automatically hydraulic heads in the model (with the namemodel)
         and the drain's flow ie the capillary rise for CWATM
         Input arguments:
         namemodel: Rhine+No
@@ -25,7 +25,8 @@ def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, rec
         properties: topography, porosity, permeability maps and the grid definition
         WaterTable3: water level in the third CWATM layer, used to compute the flow from ModFlow to CWATM
         output_name: name of the drained flow values, to be imported next in CWATM
-        return also the volume that exit from ModFLow on the total area"""
+        return also the volume that exit from ModFLow on the total area
+        """
 
         def check_if_close(files):
             # sometime modflow does not start because the writing has not finished

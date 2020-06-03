@@ -19,7 +19,7 @@ class soil(object):
 
     Calculation vertical transfer of water based on Arno scheme
 
-    
+
     **Global variables**
 
     ====================  ================================================================================  =========
@@ -29,10 +29,10 @@ class soil(object):
     storGroundwater       simulated groundwater storage                                                     m        
     capRiseFrac           fraction of a grid cell where capillar rise may happen                            m        
     cropKC                crop coefficient for each of the 4 different land cover types (forest, irrigated  --       
+    EWRef                 potential evaporation rate from water surface                                     m        
     capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
     availWaterInfiltrati  quantity of water reaching the soil after interception, more snowmelt             m        
     potTranspiration      Potential transpiration (after removing of evaporation)                           m        
-    EWRef                 potential evaporation rate from water surface                                     m        
     actualET              simulated evapotranspiration from soil, flooded area and vegetation               m        
     soilLayers            Number of soil layers                                                             --       
     fracVegCover          Fraction of area covered by the corresponding landcover type                               
@@ -105,7 +105,6 @@ class soil(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

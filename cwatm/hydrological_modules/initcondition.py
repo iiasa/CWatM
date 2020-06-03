@@ -15,6 +15,8 @@ class initcondition(object):
     """
     READ/WRITE INITIAL CONDITIONS
     all initial condition can be stored at the end of a run to be used as a **warm** start for a following up run
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
@@ -28,7 +30,6 @@ class initcondition(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
 

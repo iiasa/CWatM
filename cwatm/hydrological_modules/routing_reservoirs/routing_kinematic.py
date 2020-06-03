@@ -19,17 +19,19 @@ class routing_kinematic(object):
     ROUTING
 
     routing using the kinematic wave
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
+    EWRef                 potential evaporation rate from water surface                                     m        
     load_initial                                                                                                     
     waterbalance_module                                                                                              
     QInM3Old              Inflow from previous day                                                          m3       
     inflowM3              inflow to basin                                                                   m3       
     DtSec                 number of seconds per timestep (default = 86400)                                  s        
-    EWRef                 potential evaporation rate from water surface                                     m        
     waterBodyID           lakes/reservoirs map with a single ID for each lake/reservoir                     --       
     UpArea1               upstream area of a grid cell                                                      m2       
     dirUp                 river network in upstream direction                                               --       
@@ -53,7 +55,7 @@ class routing_kinematic(object):
     sumResEvapWaterBodyC                                                                                             
     discharge             discharge                                                                         m3/s     
     runoff                                                                                                           
-    cellArea              Cell area [m�] of each simulated mesh                                                      
+    cellArea              Cell area [m²] of each simulated mesh                                                      
     downstruct                                                                                                       
     prelakeResStorage                                                                                                
     act_SurfaceWaterAbst                                                                                             
@@ -95,7 +97,6 @@ class routing_kinematic(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

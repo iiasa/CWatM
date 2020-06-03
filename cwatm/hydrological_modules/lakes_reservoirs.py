@@ -157,13 +157,12 @@ class lakes_reservoirs(object):
     InvDtSec                                                                                                         
     discharge             discharge                                                                         m3/s     
     runoff                                                                                                           
-    cellArea              Cell area [m�] of each simulated mesh                                                      
+    cellArea              Cell area [m²] of each simulated mesh                                                      
     downstruct                                                                                                       
     prelakeResStorage                                                                                                
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

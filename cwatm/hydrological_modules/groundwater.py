@@ -14,6 +14,8 @@ from cwatm.management_modules.data_handling import *
 class groundwater(object):
     """
     GROUNDWATER
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
@@ -37,7 +39,6 @@ class groundwater(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

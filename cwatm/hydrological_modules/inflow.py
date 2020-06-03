@@ -17,6 +17,8 @@ class inflow(object):
     """
     READ INFLOW HYDROGRAPHS (OPTIONAL)
     If option "inflow" is set to 1 the inflow hydrograph code is used otherwise dummy code is used
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
@@ -32,7 +34,6 @@ class inflow(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

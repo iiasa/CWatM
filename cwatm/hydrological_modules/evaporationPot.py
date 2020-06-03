@@ -22,10 +22,38 @@ class evaporationPot(object):
         http://www.fao.org/docrep/X0490E/x0490e06.htm  http://www.fao.org/docrep/X0490E/x0490e06.htm
         https://ec.europa.eu/jrc/en/publication/eur-scientific-and-technical-research-reports/lisvap-evaporation-pre-processor-lisflood-water-balance-and-flood-simulation-model
 
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    cropCorrect           calibrated factor of crop KC factor                                               --       
+    pet_modus             Flag: index which ETP approach is used e.g. 1 for Penman-Monteith                 --       
+    AlbedoCanopy          Albedo of vegetation canopy (FAO,1998) default =0.23                              --       
+    AlbedoSoil            Albedo of bare soil surface (Supit et. al. 1994) default = 0.15                   --       
+    AlbedoWater           Albedo of water surface (Supit et. al. 1994) default = 0.05                       --       
+    co2                                                                                                              
+    TMin                  minimum air temperature                                                           K        
+    TMax                  maximum air temperature                                                           K        
+    Psurf                 Instantaneous surface pressure                                                    Pa       
+    Qair                  specific humidity                                                                 kg/kg    
+    Tavg                  average air Temperature (input for the model)                                     K        
+    Rsdl                  long wave downward surface radiation fluxes                                       W/m2     
+    albedoLand            albedo from land surface (from GlobAlbedo database)                               --       
+    albedoOpenWater       albedo from open water surface (from GlobAlbedo database)                         --       
+    Rsds                  short wave downward surface radiation fluxes                                      W/m2     
+    Wind                  wind speed                                                                        m/s      
+    ETRef                 potential evapotranspiration rate from reference crop                             m        
+    EWRef                 potential evaporation rate from water surface                                     m        
+    ====================  ================================================================================  =========
+
+    **Functions**
     """
 
     def __init__(self, model):
-        """The constructor evaporationPot"""
+        """
+        The constructor evaporationPot
+        """
         self.var = model.var
         self.model = model
         
@@ -62,10 +90,10 @@ class evaporationPot(object):
         1: Penman Monteith
         2: Milly and Dunne method
         P. C. D. Milly* and K. A. Dunne, 2016: Potential evapotranspiration and continental drying, Nature Climate Change, DOI: 10.1038/NCLIMATE3046
-        Energy only PET: ET=0.8(Rn −G)   equation 8
+        Energy only PET: ET=0.8(Rn âˆ’G)   equation 8
         3: Yang et al. Penman Montheith correction method
         Yang, Y., Roderick, M. L., Zhang, S., McVicar, T. R., and Donohue, R. J.: Hydrologic implications of vegetation response to elevated CO2 in climate projections, Nat. Clim. Change, 9, 44-48, 10.1038/s41558-018-0361-0, 2019.
-        Equation 14: where the term 2.×41−40([CO]2 −300) accounts for changing [CO2] on rs
+        Equation 14: where the term 2.Ã—41âˆ’40([CO]2 âˆ’300) accounts for changing [CO2] on rs
 
 
 
@@ -171,7 +199,7 @@ class evaporationPot(object):
         if self.var.pet_modus == 1:
             denominator = Delta + Psycon *(1 + 0.34 * self.var.Wind)
         else:
-            # Yang et al.Penman Montheith correction method:  term 2.×41−40([CO]2 −300) accounts for changing [CO2] on rs.
+            # Yang et al.Penman Montheith correction method:  term 2.Ã—41âˆ’40([CO]2 âˆ’300) accounts for changing [CO2] on rs.
             denominator = Delta + Psycon * (1 + self.var.Wind*(0.34+0.00024*(self.var.co2-300.)))
 
         numerator1 = Delta / denominator
@@ -210,7 +238,7 @@ class evaporationPot(object):
         Dynamic part of the potential evaporation module
         2: Milly and Dunne method
         P. C. D. Milly* and K. A. Dunne, 2016: Potential evapotranspiration and continental drying, Nature Climate Change, DOI: 10.1038/NCLIMATE3046
-        Energy only PET = 0.8(Rn −G)   equation 8
+        Energy only PET = 0.8(Rn âˆ’G)   equation 8
 
         """
         LatHeatVap = 2.501 - 0.002361 * self.var.Tavg

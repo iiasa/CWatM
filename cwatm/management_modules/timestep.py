@@ -21,7 +21,6 @@ from netCDF4 import Dataset,num2date,date2num,date2index
 
 import difflib  # to check the closest word in settingsfile, if an error occurs
 
-
 def datenum(date):
     """
     converts date to a int number based on the calender and unit of the netcdf file

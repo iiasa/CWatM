@@ -15,7 +15,6 @@ import xlrd
 
 from hydrological_modules.groundwater_modflow.ModFlow_modelV5 import ModFlow_modelV5
 
-
 def decompress(map):
     """
     Decompressing map from 1D to 2D with missing values

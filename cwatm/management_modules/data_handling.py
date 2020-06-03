@@ -34,8 +34,6 @@ from osgeo import osr
 from gdalconst import *
 import warnings
 
-
-
 def valuecell( coordx, coordstr, returnmap = True):
     """
     to put a value into a raster map -> invert of cellvalue, map is converted into a numpy array first

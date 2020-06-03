@@ -1,14 +1,74 @@
+# -------------------------------------------------------------------------
+# Name:        Waterdemand modules
+# Purpose:
+#
+# Author:      PB, YS, MS, JdB
+#
+# Created:     15/07/2016
+# Copyright:   (c) PB 2016
+# -------------------------------------------------------------------------
+
 from cwatm.management_modules import globals
 from cwatm.management_modules.data_handling import returnBool, binding, cbinding, loadmap
 import numpy as np
 
 
 class waterdemand_irrigation:
+    """
+    WATERDEMAND
+
+    calculating water demand - irrigation
+    Agricultural water demand based on water need by plants
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    cropKC                crop coefficient for each of the 4 different land cover types (forest, irrigated  --       
+    load_initial                                                                                                     
+    availWaterInfiltrati  quantity of water reaching the soil after interception, more snowmelt             m        
+    fracVegCover          Fraction of area covered by the corresponding landcover type                               
+    ws1                   Maximum storage capacity in layer 1                                               m        
+    ws2                   Maximum storage capacity in layer 2                                               m        
+    wfc1                  Soil moisture at field capacity in layer 1                                                 
+    wfc2                  Soil moisture at field capacity in layer 2                                                 
+    wwp1                  Soil moisture at wilting point in layer 1                                                  
+    wwp2                  Soil moisture at wilting point in layer 2                                                  
+    w1                    Simulated water storage in the layer 1                                            m        
+    w2                    Simulated water storage in the layer 2                                            m        
+    topwater              quantity of water above the soil (flooding)                                       m        
+    arnoBeta                                                                                                         
+    maxtopwater           maximum heigth of topwater                                                        m        
+    totAvlWater                                                                                                      
+    InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
+    totalPotET            Potential evaporation per land use class                                          m        
+    unmetDemandPaddy                                                                                                 
+    unmetDemandNonpaddy                                                                                              
+    unmetDemand                                                                                                      
+    efficiencyPaddy                                                                                                  
+    efficiencyNonpaddy                                                                                               
+    returnfractionIrr                                                                                                
+    alphaDepletion                                                                                                   
+    pot_irrConsumption                                                                                               
+    irrDemand                                                                                                        
+    totalIrrDemand                                                                                                   
+    ====================  ================================================================================  =========
+
+    **Functions**
+    """
+
     def __init__(self, model):
         self.var = model.var
         self.model = model
 
     def initial(self):
+        """
+        Initial part of the water demand module
+        irrigation
+
+        """
+
         # init unmetWaterDemand -> to calculate actual one the the unmet water demand from previous day is needed
         self.var.unmetDemandPaddy = self.var.load_initial('unmetDemandPaddy', default=globals.inZero.copy())
         self.var.unmetDemandNonpaddy = self.var.load_initial('unmetDemandNonpaddy', default=globals.inZero.copy())
@@ -28,6 +88,13 @@ class waterdemand_irrigation:
             self.var.alphaDepletion = 0.6
 
     def dynamic(self):
+        """
+        Dynamic part of the water demand module
+
+        * calculate the fraction of water from surface water vs. groundwater
+        * get non-Irrigation water demand and its return flow fraction
+        """
+
         # Paddy irrigation -> No = 2
         # Non paddy irrigation -> No = 3
 

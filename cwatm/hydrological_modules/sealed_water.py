@@ -16,16 +16,18 @@ class sealed_water(object):
     Sealed and open water runoff
 
     calculated runoff from impermeable surface (sealed) and into water bodies
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
     modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    EWRef                 potential evaporation rate from water surface                                     m        
     capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
     waterbalance_module                                                                                              
     availWaterInfiltrati  quantity of water reaching the soil after interception, more snowmelt             m        
-    EWRef                 potential evaporation rate from water surface                                     m        
     actualET              simulated evapotranspiration from soil, flooded area and vegetation               m        
     directRunoff          Simulated surface runoff                                                          m        
     openWaterEvap         Simulated evaporation from open areas                                             m        
@@ -34,7 +36,6 @@ class sealed_water(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

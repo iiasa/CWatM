@@ -22,7 +22,7 @@ from cwatm.hydrological_modules.sealed_water import sealed_water
 from cwatm.hydrological_modules.evaporation import evaporation
 from cwatm.hydrological_modules.groundwater import groundwater
 from cwatm.hydrological_modules.groundwater_modflow.groundwater_modflow import groundwater_modflow
-from cwatm.hydrological_modules.water_demand import water_demand
+from cwatm.hydrological_modules.water_demand.water_demand import water_demand
 from cwatm.hydrological_modules.capillarRise import capillarRise
 from cwatm.hydrological_modules.interception import interception
 from cwatm.hydrological_modules.runoff_concentration import runoff_concentration

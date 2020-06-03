@@ -20,9 +20,8 @@ class CWATMError(Exception):
 
     :param Warning: class CWATMError
     :return: prints out a message about an error
-
-
     """
+
     def __init__(self, msg):
 
         # don't show the error code, lines etc.

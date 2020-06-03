@@ -1,13 +1,54 @@
+# -------------------------------------------------------------------------
+# Name:        Waterdemand modules
+# Purpose:
+#
+# Author:      PB, YS, MS, JdB
+#
+# Created:     15/07/2016
+# Copyright:   (c) PB 2016
+# -------------------------------------------------------------------------
+
 from cwatm.management_modules import globals
 import numpy as np
 from cwatm.management_modules.data_handling import returnBool, binding, cbinding, loadmap, readnetcdf2, divideValues
 
 class waterdemand_domestic:
+    """
+    WATERDEMAND domestic
+
+    calculating water demand -
+    domenstic based on precalculated maps
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
+    M3toM                 Coefficient to change units                                                       --       
+    domesticTime                                                                                                     
+    domWithdrawalVar                                                                                                 
+    domConsumptionVar                                                                                                
+    domesticDemand                                                                                                   
+    pot_domesticConsumpt                                                                                             
+    dom_efficiency                                                                                                   
+    demand_unit                                                                                                      
+    ====================  ================================================================================  =========
+
+    **Functions**
+    """
+
+
     def __init__(self, model):
         self.var = model.var
         self.model = model
 
     def initial(self):
+        """
+        Initial part of the water demand module
+
+        """
+
         if "domesticTimeMonthly" in binding:
             if returnBool('domesticTimeMonthly'):
                 self.var.domesticTime = 'monthly'
@@ -26,6 +67,12 @@ class waterdemand_domestic:
             self.var.domConsumptionVar = "domesticNettoDemand"
 
     def dynamic(self):
+        """
+        Dynamic part of the water demand module - domestic
+        read monthly (or yearly) water demand from netcdf and transform (if necessary) to [m/day]
+
+        """
+
         if self.var.domesticTime == 'monthly':
             new = 'newMonth'
         else:

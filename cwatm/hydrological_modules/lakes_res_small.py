@@ -27,19 +27,20 @@ class lakes_res_small(object):
         Using the **Modified Puls approach** to calculate retention of a lake
         See also: LISFLOOD manual Annex 3 (Burek et al. 2013)
 
+
     **Global variables**
 
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
+    EWRef                 potential evaporation rate from water surface                                     m        
     load_initial                                                                                                     
     waterbalance_module                                                                                              
     DtSec                 number of seconds per timestep (default = 86400)                                  s        
-    EWRef                 potential evaporation rate from water surface                                     m        
     lakeEvaFactor         a factor which increases evaporation from lake because of wind                    --       
     InvDtSec                                                                                                         
     runoff                                                                                                           
-    cellArea              Cell area [m�] of each simulated mesh                                                      
+    cellArea              Cell area [m²] of each simulated mesh                                                      
     smallpart                                                                                                        
     smalllakeArea                                                                                                    
     smalllakeDis0                                                                                                    
@@ -61,7 +62,6 @@ class lakes_res_small(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

@@ -15,6 +15,8 @@ class evaporation(object):
     """
     Evaporation module
     Calculate potential evaporation and pot. transpiration
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
@@ -24,7 +26,6 @@ class evaporation(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

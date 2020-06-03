@@ -18,6 +18,8 @@ class environflow(object):
     ENVIRONMENTAL FLOW
 
     calculates environmental flow
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
@@ -32,7 +34,6 @@ class environflow(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):

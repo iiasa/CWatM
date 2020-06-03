@@ -10,8 +10,6 @@
 
 import numpy as np
 
-
-  
 # ------------------------ all this area commands
 #              np.take(np.bincount(AreaID,weights=Values),AreaID)     #     areasum
 #                (np.bincount(b, a) / np.bincount(b))[b]              # areaaverage

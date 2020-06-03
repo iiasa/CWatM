@@ -13,6 +13,8 @@ from cwatm.management_modules.data_handling import *
 class groundwater_modflow(object):
     """
     GROUNDWATER MODFLOW 
+
+
     **Global variables**
 
     ====================  ================================================================================  =========
@@ -24,9 +26,9 @@ class groundwater_modflow(object):
     gwstore                                                                                                          
     sum_gwRecharge        groundwater recharge                                                              m        
     waterbalance_module                                                                                              
-    cellArea              Cell area [m�] of each simulated mesh                                                      
+    cellArea              Cell area [m²] of each simulated mesh                                                      
     soildepth12           Total thickness of layer 2 and 3                                                  m        
-    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days�)                                       
+    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days…)                                       
     sumed_sum_gwRecharge                                                                                             
     GWVolumeVariation                                                                                                
     modflowsteady         True if modflow_steadystate = True in settings file                               --       
@@ -65,7 +67,6 @@ class groundwater_modflow(object):
     ====================  ================================================================================  =========
 
     **Functions**
-
     """
 
     def __init__(self, model):
