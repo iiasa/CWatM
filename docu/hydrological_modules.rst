@@ -163,14 +163,63 @@ runoff_concentration module
 
 Hydrology III - Socio-economic - Water demand
 =============================================
-	
-	
-waterdemand module
-------------------
+
+water_demand.water_demand
+-------------------------
 
 **Calculate water demand from different sectors**
 
-.. automodule:: cwatm.hydrological_modules.waterdemand
+.. automodule:: cwatm.hydrological_modules.water_demand.water_demand
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+water_demand.domestic
+---------------------
+
+**Read water demand for domestic**
+
+.. automodule:: cwatm.hydrological_modules.water_demand.domestic
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+water_demand.industry
+---------------------
+
+**Read water demand for industry**
+
+.. automodule:: cwatm.hydrological_modules.water_demand.industry
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+water_demand.livestock
+----------------------
+
+**Read water demand for livestock**
+
+.. automodule:: cwatm.hydrological_modules.water_demand.livestock
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+water_demand.irrigation
+-----------------------
+
+**Calculate water demand for irrigation**
+
+.. automodule:: cwatm.hydrological_modules.water_demand.irrigation
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+water_demand.environmental_flow
+-------------------------------
+
+**Read water demand for environmental flow**
+
+.. automodule:: cwatm.hydrological_modules.water_demand.environmental_flow
     :members:
     :undoc-members:
     :show-inheritance:

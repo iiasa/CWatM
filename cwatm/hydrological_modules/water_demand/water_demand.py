@@ -17,7 +17,7 @@ from cwatm.hydrological_modules.water_demand.domestic import waterdemand_domesti
 from cwatm.hydrological_modules.water_demand.industry import waterdemand_industry
 from cwatm.hydrological_modules.water_demand.livestock import waterdemand_livestock
 from cwatm.hydrological_modules.water_demand.irrigation import waterdemand_irrigation
-from cwatm.hydrological_modules.water_demand.environmental_flow import waterdemand_environmental_flow
+from cwatm.hydrological_modules.water_demand.environmental_need import waterdemand_environmental_need
 
 class water_demand:
     """
@@ -132,7 +132,7 @@ class water_demand:
         self.industry = waterdemand_industry(model)
         self.livestock = waterdemand_livestock(model)
         self.irrigation = waterdemand_irrigation(model)
-        self.environmental_flow = waterdemand_environmental_flow(model)
+        self.environmental_need = waterdemand_environmental_need(model)
 
     def initial(self):
         """
@@ -147,7 +147,7 @@ class water_demand:
             self.industry.initial()
             self.livestock.initial()
             self.irrigation.initial()
-            self.environmental_flow.initial()
+            self.environmental_need.initial()
             
             #if 'usingAllocSegments' in binding:
             # if checkOption('usingAllocSegments'):
@@ -249,7 +249,7 @@ class water_demand:
             self.industry.dynamic()
             self.livestock.dynamic()
             self.irrigation.dynamic()
-            self.environmental_flow.dynamic()
+            self.environmental_need.dynamic()
 
             if globals.dateVar['newStart'] or globals.dateVar['newMonth']:
                 # total (potential) non irrigation water demand

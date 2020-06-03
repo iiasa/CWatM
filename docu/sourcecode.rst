@@ -68,8 +68,8 @@ are in the **management_modules** folder.
 
 		node [shape=circle,style=filled,fillcolor=DodgerBlue,fixedsize=true,width=1.0]  soil; evaporation;capillarRise;groundwater;
 		
-
-		node [shape=circle,style=filled,fillcolor=MediumOrchid,fixedsize=true,width=1.0] waterbalance; waterdemand; environflow
+		node [shape=circle,style=filled,fillcolor=MediumOrchid,fixedsize=true,width=1.0] waterbalance; environflow
+        node [shape=circle,style=filled,fillcolor=MediumOrchid,fixedsize=true,width=1.0] water_demand; environmental_need, domestic, industry, irrigation, livestock
 
 		node [shape=circle,style=filled,fillcolor=RoyalBlue,fixedsize=true,width=1.0] routing_kinematic; runoff_concentration; lakes_reservoirs; lakes_res_small
 		node [shape=circle,style=filled,fillcolor=RoyalBlue,fixedsize=true,width=0.8] routing_sub; "t5.dll"
@@ -94,7 +94,7 @@ are in the **management_modules** folder.
 		cwatm_initial -> evaporation[color=RoyalBlue3];
 		cwatm_initial -> environflow[color=RoyalBlue3];
 		cwatm_initial -> groundwater[color=RoyalBlue3];
-		cwatm_initial -> waterdemand[color=RoyalBlue3];		
+		cwatm_initial -> water_demand[color=RoyalBlue3];		
 		cwatm_initial -> routing_kinematic[color=RoyalBlue3];
 
 		cwatm_dynamic -> landcoverType[color=MidnightBlue];
@@ -112,9 +112,15 @@ are in the **management_modules** folder.
 		cwatm_dynamic -> capillarRise[color=MidnightBlue];
 		cwatm_dynamic -> groundwater[color=MidnightBlue];
 		cwatm_dynamic -> interception[color=MidnightBlue];
-		cwatm_dynamic -> waterdemand[color=MidnightBlue];		
+		cwatm_dynamic -> water_demand[color=MidnightBlue];		
 		cwatm_dynamic -> routing_kinematic[color=MidnightBlue];
 		cwatm_dynamic -> waterbalance[color=MidnightBlue];
+        
+        water_demand -> domestic[color=MidnightBlue];
+        water_demand -> industry[color=MidnightBlue];
+        water_demand -> livestock[color=MidnightBlue];
+        water_demand -> irrigation[color=MidnightBlue];
+        water_demand -> environmental_need[color=MidnightBlue];
 
 		routing_kinematic -> lakes_reservoirs[color=MidnightBlue];
 		routing_kinematic -> routing_sub[color=MidnightBlue];
@@ -132,7 +138,7 @@ are in the **management_modules** folder.
 		output -> timestep[penwidth=0.5, style=dashed, arrowsize =0]
 		readmeteo -> checks[penwidth=0.5, style=dashed, arrowsize =0]
 		
-		waterdemand -> replace_pcr[penwidth=0.5, style=dashed, arrowsize =0]
+		water_demand -> replace_pcr[penwidth=0.5, style=dashed, arrowsize =0]
 		waterbalance -> replace_pcr[penwidth=0.5, style=dashed, arrowsize =0]
 		routing_kinematic -> replace_pcr[penwidth=0.5, style=dashed, arrowsize =0]
 		lakes_reservoirs -> replace_pcr[penwidth=0.5, style=dashed, arrowsize =0]

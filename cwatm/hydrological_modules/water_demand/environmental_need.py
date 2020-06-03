@@ -11,12 +11,12 @@
 from cwatm.management_modules import globals
 from cwatm.management_modules.data_handling import returnBool, binding, readnetcdf2
 
-class waterdemand_environmental_flow:
+class waterdemand_environmental_need:
     """
-    WATERDEMAND environment
+    WATERDEMAND environment_need
 
     calculating water demand -
-    environment based on precalculated maps done before in CWatM
+    environmental need based on precalculated maps done before in CWatM
 
     **Global variables**
 

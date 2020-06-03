@@ -8,11 +8,8 @@
 # Copyright:   (c) PB 2016
 # -------------------------------------------------------------------------
 
-
-
 import os, glob
 import calendar
-
 
 #import numpy as np
 from . import globals
@@ -24,7 +21,6 @@ from cwatm.management_modules.messages import *
 import difflib  # to check the closest word in settingsfile, if an error occurs
 import math
 from cwatm.management_modules.dynamicModel import *
-
 
 from netCDF4 import Dataset,num2date,date2num,date2index
 #from netcdftime import utime
@@ -479,7 +475,7 @@ def getmeta(key,varname,alternative):
     variable metaNetcdfVar
 
     :param key: key
-    :param varname: variable name eg self_.var_.Precipitation
+    :param varname: variable name e.g. self.var.Precipitation
     :return: metadata information
     """
 
