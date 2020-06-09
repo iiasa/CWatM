@@ -161,7 +161,6 @@ def GNU():
 
     """
 
-    print('hello')
     print('CWatM - Community Water Model')
     print('Authors: ', __author__)
     print('Version: ', __version__)
