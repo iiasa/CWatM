@@ -117,7 +117,6 @@ class CWATModel_dyn(DynamicModel):
             # Groundwater + soil + lake and reservoir storage + channel storage
             self.var.tws = self.var.storGroundwater + self.var.totalSto + self.var.lakeReservoirStorage + self.var.channelStorage
 
-
             # *******  Calculate CUMULATIVE MASS BALANCE ERROR  **********
             # self.waterbalance_module.dynamic()
 
