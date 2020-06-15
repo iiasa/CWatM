@@ -271,6 +271,9 @@ class lakes_res_small(object):
 
             self.var.runoff = self.var.smallLakeout + (1-self.var.smallpart) * self.var.runoff    # back to [m]  # with and without in m3
 
+            #Sum off lake and reservoirs and small lakes
+            self.var.lakeReservoirStorage = self.var.lakeResStorage + self.var.smalllakeStorage
+
 
             # ------------------------------------------------------------
             #report(decompress(runoff_LR), "C:\work\output3/run.map")
@@ -284,6 +287,10 @@ class lakes_res_small(object):
                     "smalllake1", False)
 
             return
+
+        else:
+            # Sum off lake and reservoirs and small lakes - here without small lakes
+            self.var.lakeReservoirStorage = self.var.lakeResStorage
 
 
 

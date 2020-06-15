@@ -113,6 +113,10 @@ class CWATModel_dyn(DynamicModel):
 
             self.waterquality1.dynamic()
 
+            # calculate Total water storage (tws) as a sum of
+            # Groundwater + soil + lake and reservoir storage + channel storage
+            self.var.tws = self.var.storGroundwater + self.var.totalSto + self.var.lakeReservoirStorage + self.var.channelStorage
+
 
             # *******  Calculate CUMULATIVE MASS BALANCE ERROR  **********
             # self.waterbalance_module.dynamic()
@@ -138,12 +142,13 @@ class CWATModel_dyn(DynamicModel):
                     timeMesSum.append(timeMes[i] - timeMes[0])
                 else: timeMesSum[i] += timeMes[i] - timeMes[0]
 
-            self.var.sumsum_directRunoff += self.var.sum_directRunoff
-            self.var.sumsum_Runoff += self.var.sum_directRunoff
-            self.var.sumsum_Precipitation += self.var.Precipitation
-            self.var.sumsum_gwRecharge += self.var.sum_gwRecharge
-            runoff = self.var.baseflow + self.var.sum_landSurfaceRunoff
-            self.var.sumsum_Runoff += runoff
+
+            #self.var.sumsum_directRunoff += self.var.sum_directRunoff
+            #self.var.sumsum_Runoff += self.var.sum_directRunoff
+            #self.var.sumsum_Precipitation += self.var.Precipitation
+            #self.var.sumsum_gwRecharge += self.var.sum_gwRecharge
+            #runoff = self.var.baseflow + self.var.sum_landSurfaceRunoff
+            #self.var.sumsum_Runoff += runoff
 
             #print self.sum_directRunoff,  self.sum_interflowTotal, self.sum_landSurfaceRunoff, self.baseflow, runoff
             #print self.sumsum_Precipitation, self.sumsum_Runoff

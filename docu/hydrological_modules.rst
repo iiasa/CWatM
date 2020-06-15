@@ -214,12 +214,12 @@ water_demand.irrigation
     :undoc-members:
     :show-inheritance:
 
-water_demand.environmental_flow
+water_demand.environmental_need
 -------------------------------
 
-**Read water demand for environmental flow**
+**Read water for environmental need**
 
-.. automodule:: cwatm.hydrological_modules.water_demand.environmental_flow
+.. automodule:: cwatm.hydrological_modules.water_demand.environmental_need
     :members:
     :undoc-members:
     :show-inheritance:

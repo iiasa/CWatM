@@ -409,8 +409,8 @@ class landcoverType(object):
             # for paddy irrigation flooded paddy fields
             self.var.topwater = self.var.load_initial("topwater", default= 0.) * globals.inZero.copy()
             self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
-            self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
-
+            self.var.sum_soil = self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
+            self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_soil
 
             # Improved Arno's scheme parameters: Hageman and Gates 2003
             # arnoBeta defines the shape of soil water capacity distribution curve as a function of  topographic variability
@@ -458,9 +458,9 @@ class landcoverType(object):
             self.var.maxtopwater = loadmap('irrPaddy_maxtopwater')
 
 
-        self.var.landcoverSumSum = ['directRunoff', 'totalPotET', 'potTranspiration', "Precipitation", 'ETRef','gwRecharge','Runoff']
-        for variable in self.var.landcoverSumSum:
-            vars(self.var)["sumsum_" + variable] = globals.inZero.copy()
+        #self.var.landcoverSumSum = ['directRunoff', 'totalPotET', 'potTranspiration', "Precipitation", 'ETRef','gwRecharge','Runoff']
+        #for variable in self.var.landcoverSumSum:
+        #    vars(self.var)["sumsum_" + variable] = globals.inZero.copy()
 
         # for irrigation of non paddy -> No =3
         totalWaterPlant1 = np.maximum(0., self.var.wfc1[3] - self.var.wwp1[3]) #* self.var.rootDepth[0][3]

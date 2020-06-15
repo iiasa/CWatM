@@ -493,8 +493,9 @@ class lakes_reservoirs(object):
                 np.put(self.var.lakeInflow, self.var.decompress_LR, self.var.lakeInflowOldC)
                 np.put(self.var.lakeOutflow, self.var.decompress_LR, self.var.lakeOutflowC)
 
-
-
+            # Water balance
+            if self.var.noRoutingSteps == (NoRoutingExecuted + 1):
+                np.put(self.var.lakeStorage, self.var.decompress_LR, self.var.lakeStorageC)
 
             if checkOption('calcWaterBalance'):
                 self.var.waterbalance_module.waterBalanceCheck(
@@ -593,7 +594,7 @@ class lakes_reservoirs(object):
             # New reservoir fill
 
             #if  (self.var.noRoutingSteps == (NoRoutingExecuted + 1)):
-            if self.var.saveInit and (self.var.noRoutingSteps == (NoRoutingExecuted + 1)):
+            if self.var.noRoutingSteps == (NoRoutingExecuted + 1):
                 np.put(self.var.reservoirStorage, self.var.decompress_LR, self.var.reservoirStorageM3C)
 
 
@@ -604,10 +605,6 @@ class lakes_reservoirs(object):
                     [oldres / self.var.dtRouting],  # prev storage
                     [self.var.reservoirStorageM3C /self.var.dtRouting],
                     "res1", False)
-
-
-
-
 
             return qResOutM3DtC
 

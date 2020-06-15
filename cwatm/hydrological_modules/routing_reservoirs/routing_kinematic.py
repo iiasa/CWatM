@@ -462,6 +462,9 @@ class routing_kinematic(object):
 
         self.var.channelStorage = self.var.channelAlpha * self.var.chanLength * Qnew ** self.var.beta
 
+        # discharge only at the outlets to sea or endorheic lakes, otherwise value is 0.
+        self.var.dis_outlet = np.where(self.var.lddCompress == 5, self.var.discharge, 0.)
+
 
         if checkOption('inflow'):
              self.var.QInM3Old = self.var.inflowM3.copy()
