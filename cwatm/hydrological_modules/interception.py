@@ -102,7 +102,7 @@ class interception(object):
         #    ii=1
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                [self.var.Rain, self.var.SnowMelt],  # In
                [self.var.availWaterInfiltration[No], self.var.interceptEvap[No]],  # Out
                [prevState],  # prev storage

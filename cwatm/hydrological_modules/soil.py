@@ -624,10 +624,10 @@ class soil(object):
         else:
             self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow - self.var.capRiseFromGW[No]
 
-        """
+
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No], self.var.irrConsumption[No]],  # In  water demand included in availwater
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No], self.var.act_irrConsumption[No]],  # In  water demand included in availwater
                 [self.var.directRunoff[No],self.var.perc3toGW[No], self.var.prefFlow[No] ,
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [ preStor1, preStor2, preStor3,pretopwater],  # prev storage
@@ -636,8 +636,8 @@ class soil(object):
 
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.irrConsumption[No]],  # In
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.availWaterInfiltration[No], self.var.act_irrConsumption[No]],  # In
                 [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No],
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [ preStor1, preStor2, preStor3,pretopwater],  # prev storage
@@ -646,14 +646,14 @@ class soil(object):
             # openWaterEvap in because it is taken from availWater directly, out because it taken out immediatly. It is not a soil process indeed
 
         if option['calcWaterBalance']:
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.irrConsumption[No],self.var.snowEvap,self.var.interceptEvap[No]],  # In
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.availWaterInfiltration[No], self.var.act_irrConsumption[No],self.var.snowEvap,self.var.interceptEvap[No]],  # In
                 [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No],
                  self.var.actualET[No]],  # Out
                 [preStor1, preStor2, preStor3,pretopwater],  # prev storage
                 [self.var.w1[No], self.var.w2[No], self.var.w3[No],self.var.topwater],
                 "Soil_AllSoil", False)
-        """
+
 
 
 

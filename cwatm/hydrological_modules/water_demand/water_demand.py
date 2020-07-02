@@ -227,6 +227,7 @@ class water_demand:
             self.var.act_bigLakeResAbst = globals.inZero.copy()
             self.var.leakage = globals.inZero.copy()
             self.var.pumping = globals.inZero.copy()
+            self.var.unmet_lost = 0
 
     def dynamic(self):
         """
@@ -339,7 +340,9 @@ class water_demand:
                     self.var.act_smallLakeResAbst = 0
 
                 # available surface water is from river network + large/small lake & reservoirs
+                self.var.act_channelAbst = self.var.act_SurfaceWaterAbstract.copy()
                 self.var.act_SurfaceWaterAbstract = self.var.act_SurfaceWaterAbstract + self.var.act_bigLakeResAbst + self.var.act_smallLakeResAbst
+
                 # remaining is taken from groundwater if possible
                 remainNeed2 = pot_SurfaceAbstract - self.var.act_SurfaceWaterAbstract
 
@@ -547,89 +550,125 @@ class water_demand:
 
             self.var.act_nonIrrConsumption = self.var.act_domConsumption + self.var.act_indConsumption + self.var.act_livConsumption
             self.var.act_totalIrrConsumption = self.var.fracVegCover[2] * self.var.act_irrConsumption[2] + self.var.fracVegCover[3] * self.var.act_irrConsumption[3]
+            self.var.act_paddyConsumption = self.var.fracVegCover[2] * self.var.act_irrConsumption[2]
+            self.var.act_nonpaddyConsumption = self.var.fracVegCover[3] * self.var.act_irrConsumption[3]
+
 
             self.var.totalWaterDemand = self.var.fracVegCover[2] * self.var.irrDemand[2] + self.var.fracVegCover[3] * self.var.irrDemand[3] + self.var.nonIrrDemand
             self.var.act_totalWaterWithdrawal = self.var.act_nonIrrWithdrawal + self.var.act_irrWithdrawal
             self.var.act_totalWaterConsumption = self.var.act_nonIrrConsumption + self.var.act_totalIrrConsumption
 
-            #if (dateVar['curr'] == 1):
-            #    ii = 1
-            #self.var.sumirrConsumption = self.var.fracVegCover[2] * self.var.irrConsumption[2] + self.var.fracVegCover[3] * self.var.irrConsumption[3]
-            #self.var.waterDemand =  self.var.act_irrPaddyDemand  + self.var.act_irrNonpaddyDemand + self.var.nonIrrDemand
-            #self.var.waterWithdrawal = self.var.act_nonIrrDemand + self.var.act_irrDemand
-
-            unmet_div_ww = 1. - np.maximum(1, divideValues(self.var.unmetDemand, self.var.act_totalWaterWithdrawal))
-
-            #Sum up loss
-            #sumIrrLoss = self.var.fracVegCover[2] * (self.var.irrDemand[2] - self.var.irrConsumption[2]) +  self.var.fracVegCover[3] * (self.var.irrDemand[3] - self.var.irrConsumption[3])
+            # --- calculate return flow
+            #Sum up loss - difference between withdrawn and consumed - split into return flow and evaporation
             sumIrrLoss = self.var.act_irrWithdrawal - self.var.act_totalIrrConsumption
-            #sumIrrLoss = self.var.act_irrPaddyDemand - (self.var.fracVegCover[2] * self.var.irrConsumption[2]) +
+
             self.var.returnflowIrr =  self.var.returnfractionIrr * sumIrrLoss
-            self.var.addtoevapotrans = (1- self.var.returnfractionIrr) * sumIrrLoss * unmet_div_ww
+            self.var.addtoevapotrans = (1- self.var.returnfractionIrr) * sumIrrLoss
+            self.var.returnflowNonIrr  = self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrWithdrawal
+
+            # limit return flow to not put all fossil groundwater back into the system, because
+            # it can lead to higher river discharge than without water demand, as water is taken from fossil groundwater (out of system)
+            unmet_div_ww = 1. - np.minimum(1, divideValues(self.var.unmetDemand, self.var.act_totalWaterWithdrawal))
+            self.var.unmet_lost = ( self.var.returnflowIrr + self.var.returnflowNonIrr +  self.var.addtoevapotrans) * (1-unmet_div_ww)
+
+            #self.var.waterDemandLost = self.var.act_totalWaterConsumption + self.var.addtoevapotrans
+            self.var.unmet_lostirr = ( self.var.returnflowIrr  +  self.var.addtoevapotrans) * (1-unmet_div_ww)
+            self.var.unmet_lostNonirr = self.var.returnflowNonIrr * (1-unmet_div_ww)
+
+            self.var.returnflowIrr = self.var.returnflowIrr * unmet_div_ww
+            self.var.addtoevapotrans = self.var.addtoevapotrans * unmet_div_ww
+            self.var.returnflowNonIrr =  self.var.returnflowNonIrr * unmet_div_ww
 
             # returnflow to river and to evapotranspiration
-            self.var.returnFlow = self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrWithdrawal + self.var.returnflowIrr
-            self.var.returnFlow = self.var.returnFlow * unmet_div_ww
-
-            self.var.waterDemandLost = self.var.act_totalWaterConsumption + self.var.addtoevapotrans 
+            self.var.returnFlow = self.var.returnflowIrr + self.var.returnflowNonIrr
+            self.var.waterabstraction = self.var.nonFossilGroundwaterAbs + self.var.unmetDemand + self.var.act_SurfaceWaterAbstract
 
 
-            #self.var.waterDemandLostarea = npareatotal(self.var.waterDemandLost, self.var.allocSegments)
-            # This is done in landcover.py, therefore it is out commented
-            #self.var.totalET += self.var.addtoevapotrans
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.act_irrWithdrawal],  # In
+                [self.var.act_totalIrrConsumption,self.var.unmet_lostirr,self.var.addtoevapotrans,self.var.returnflowIrr],  # Out
+                [globals.inZero],
+                [globals.inZero],
+                "Waterdemand5a", False)
 
 
-            """
-            area = self.var.area1.astype(np.int64)
-            diff = 1000000000.
-            irrDemand = self.var.act_irrDemand * self.var.MtoM3 / diff
-            self.var.sum_IrrDemand = npareatotal(irrDemand, area)
-            withd = self.var.act_totalWaterWithdrawal * self.var.MtoM3 / diff
-            self.var.sum_waterWithdrawal = npareatotal(withd, area)
-            """
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.act_nonIrrWithdrawal],  # In
+                [self.var.act_nonIrrConsumption , self.var.returnflowNonIrr, self.var.unmet_lostNonirr],  # Out
+                [globals.inZero],
+                [globals.inZero],
+                "Waterdemand5b", False)
 
-            nonIrrReturn = self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrWithdrawal
-            self.var.nonIrruse = self.var.act_nonIrrWithdrawal - nonIrrReturn
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.ind_efficiency * frac_industry * self.var.act_nonIrrWithdrawal],  # In
+                [self.var.act_indConsumption],  # Out
+                [globals.inZero],
+                [globals.inZero],
+                "Waterdemand5c", False)
 
+            self.model.waterbalance_module.waterBalanceCheck(
+                [ self.var.act_indWithdrawal],  # In
+                [self.var.act_indConsumption/ self.var.ind_efficiency],  # Out
+                [globals.inZero],
+                [globals.inZero],
+                "Waterdemand5d", False)
+
+
+            # ----------------------------------------------------------------
             if checkOption('calcWaterBalance'):
-                self.var.waterbalance_module.waterBalanceCheck(
+                self.model.waterbalance_module.waterBalanceCheck(
                     [self.var.act_irrWithdrawal],  # In
-                    [self.var.act_totalIrrConsumption, self.var.returnflowIrr,self.var.addtoevapotrans],  # Out
+                    [self.var.act_totalIrrConsumption, self.var.returnflowIrr,self.var.unmet_lostirr,self.var.addtoevapotrans],  # Out
                     [globals.inZero],
                     [globals.inZero],
                     "Waterlossdemand1", False)
 
-                self.var.waterbalance_module.waterBalanceCheck(
+                self.model.waterbalance_module.waterBalanceCheck(
                     [self.var.nonIrrDemand, self.var.totalIrrDemand],  # In
                     [self.var.nonFossilGroundwaterAbs, self.var.unmetDemand, self.var.act_SurfaceWaterAbstract],  # Out
                     [globals.inZero],
                     [globals.inZero],
                     "Waterdemand1", False)
+                if checkOption('includeWaterBodies'):
+                    self.model.waterbalance_module.waterBalanceCheck(
+                        [self.var.act_SurfaceWaterAbstract],  # In
+                        [ self.var.act_bigLakeResAbst,self.var.act_smallLakeResAbst, self.var.act_channelAbst],  # Out
+                        [globals.inZero],
+                        [globals.inZero],
+                        "Waterdemand1b", False)
 
-                self.var.waterbalance_module.waterBalanceCheck(
+
+                self.model.waterbalance_module.waterBalanceCheck(
                     [self.var.nonFossilGroundwaterAbs, self.var.unmetDemand, self.var.act_SurfaceWaterAbstract],  # In
                     [self.var.act_totalWaterWithdrawal],  # Out
                     [globals.inZero],
                     [globals.inZero],
                     "Waterdemand2", False)
 
-                self.var.waterbalance_module.waterBalanceCheck(
+                self.model.waterbalance_module.waterBalanceCheck(
                     [self.var.act_totalWaterWithdrawal],  # In
-                    [self.var.act_irrPaddyDemand, self.var.act_irrNonpaddyDemand, self.var.act_nonIrrWithdrawal],  # Out
+                    [self.var.act_irrPaddyWithdrawal, self.var.act_irrNonpaddyWithdrawal, self.var.act_nonIrrWithdrawal],  # Out
                     [globals.inZero],
                     [globals.inZero],
                     "Waterdemand3", False)
 
-                self.var.waterbalance_module.waterBalanceCheck(
+                self.model.waterbalance_module.waterBalanceCheck(
                     [self.var.act_totalWaterWithdrawal],  # In
-                    [self.var.act_totalIrrConsumption,self.var.returnflowIrr,self.var.addtoevapotrans, self.var.nonIrruse, nonIrrReturn],  # Out
+                    [self.var.act_totalIrrConsumption, self.var.act_nonIrrConsumption, self.var.addtoevapotrans, self.var.returnflowIrr, self.var.returnflowNonIrr, self.var.unmet_lost],  # Out
                     [globals.inZero],
                     [globals.inZero],
                     "Waterdemand4", False)
 
-                self.var.waterbalance_module.waterBalanceCheck(
+                self.model.waterbalance_module.waterBalanceCheck(
                     [self.var.act_totalWaterWithdrawal],  # In
-                    [self.var.act_totalIrrConsumption,self.var.returnFlow,self.var.addtoevapotrans, self.var.nonIrruse],  # Out
+                    [self.var.act_totalIrrConsumption, self.var.act_nonIrrConsumption, self.var.addtoevapotrans, self.var.returnFlow, self.var.unmet_lost ],  # Out
                     [globals.inZero],
                     [globals.inZero],
                     "Waterdemand5", False)
+
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [self.var.act_totalWaterWithdrawal],  # In
+                    [self.var.waterabstraction],  # Out
+                    [globals.inZero],
+                    [globals.inZero],
+                    "Waterdemand level1", False)

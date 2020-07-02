@@ -271,7 +271,7 @@ class snow_frost(object):
 
         # DEBUG Snow
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.Snow],  # In
                 [self.var.SnowMelt],  # Out
                 [self.var.prevSnowCover],   # prev storage

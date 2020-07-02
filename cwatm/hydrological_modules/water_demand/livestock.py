@@ -80,7 +80,7 @@ class waterdemand_livestock:
                 self.var.livestockDemand = readnetcdf2('livestockWaterDemandFile', globals.dateVar['currDate'], self.var.domesticTime, value=self.var.livVar)
                 # avoid small values (less than 1 m3):
                 self.var.livestockDemand = np.where(self.var.livestockDemand > self.var.InvCellArea, self.var.livestockDemand, 0.0)
-                self.var.pot_livestockConsumption =  self.var.livestockDemand # the same, it is not a copy!
+                self.var.pot_livestockConsumption =  self.var.livestockDemand
                 self.var.liv_efficiency = 1.
 
                 # transform from mio m3 per year (or month) to m/day if necessary - if demand_unit = False -> transdform from mio m3 per month or year
@@ -90,6 +90,7 @@ class waterdemand_livestock:
                     else:
                         timediv = globals.dateVar['daysInYear']
                     self.var.livestockDemand = self.var.livestockDemand * 1000000 * self.var.M3toM / timediv
+                    self.var.pot_livestockConsumption = self.var.livestockDemand
 
         else:
             self.var.livestockDemand = 0.

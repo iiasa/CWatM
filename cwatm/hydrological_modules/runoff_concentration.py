@@ -33,11 +33,6 @@ class runoff_concentration(object):
     http://stackoverflow.com/questions/24040984/transformation-using-triangular-weighting-function-in-python
 
 
-
-
-
-
-
     **Global variables**
 
     ====================  ================================================================================  =========
@@ -149,6 +144,12 @@ class runoff_concentration(object):
             for i in range(self.var.maxtime_runoff_conc):
                 self.var.runoff_conc[i] = self.var.load_initial("runoff_conc", number = i+1)
 
+            self.var.gridcell_storage = np.sum(self.var.runoff_conc[:],0)
+
+        else:
+            self.var.gridcell_storage = 0
+
+
 
 
 
@@ -196,50 +197,63 @@ class runoff_concentration(object):
             return flow_conc
 
         self.var.sum_landSurfaceRunoff = globals.inZero.copy()
-        #self.var.sum_directRunoff = globals.inZero.copy()
 
-        if not(checkOption('includeRunoffConcentration')):
-
-
-            for No in range(6):
-                #self.var.sum_directRunoff += self.var.fracVegCover[No] * self.var.directRunoff[No]
-                self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflow[No]
-                self.var.sum_landSurfaceRunoff += self.var.fracVegCover[No] * self.var.landSurfaceRunoff[No]
-
-            self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow
+        for No in range(6):
+            #self.var.sum_directRunoff += self.var.fracVegCover[No] * self.var.directRunoff[No]
+            self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflow[No]
+            self.var.sum_landSurfaceRunoff += self.var.fracVegCover[No] * self.var.landSurfaceRunoff[No]
+        self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow
 
 
-        # -------------------------------------------------------
-        # runoff concentration: triangular-weighting method
-        else:
+        if checkOption('includeRunoffConcentration'):
+            # -------------------------------------------------------
+            # runoff concentration: triangular-weighting method
+
+            if checkOption('calcWaterBalance'):
+                self.var.prergridcell = self.var.gridcell_storage.copy()
+
             # shifting array
             self.var.runoff_conc = np.roll(self.var.runoff_conc, -1,axis=0)
             self.var.runoff_conc[self.var.maxtime_runoff_conc-1] = globals.inZero
-
-
 
             for No in range(6):
                #self.var.runoff_conc = runoff_concentration(self.var.maxtime_runoff_conc,self.var.runoff_peak[No],self.var.fracVegCover[No] ,self.var.directRunoff[No], self.var.runoff_conc)
                lib2.runoffConc(self.var.runoff_conc, self.var.runoff_peak[No],self.var.fracVegCover[No] ,self.var.directRunoff[No],self.var.maxtime_runoff_conc,maskinfo['mapC'][0])
 
-
             # interflow time of concentration
             #self.var.runoff_conc = runoff_concentration(self.var.maxtime_runoff_conc, self.var.tpeak_interflow, 1.0, self.var.sum_interflow, self.var.runoff_conc)
             lib2.runoffConc(self.var.runoff_conc, self.var.tpeak_interflow,globals.inZero +1 ,self.var.sum_interflow,self.var.maxtime_runoff_conc,maskinfo['mapC'][0])
-
-            self.var.sum_landSurfaceRunoff = self.var.runoff_conc[0].copy()
+            #self.var.sum_landSurfaceRunoff = self.var.runoff_conc[0].copy()
 
             # baseflow time of concentration
-
-            #self.var.runoff_conc = runoff_concentration(self.var.maxtime_runoff_conc, self.var.tpeak_baseflow, 1.0, self.var.baseflow, self.var.runoff_conc)
             lib2.runoffConc(self.var.runoff_conc, self.var.tpeak_baseflow,globals.inZero +1 ,self.var.baseflow,self.var.maxtime_runoff_conc,maskinfo['mapC'][0])
-
-
+            #self.var.baseflow = self.var.runoff_conc[0] - self.var.sum_landSurfaceRunoff
             # -------------------------------------------------------------------------------
             #  --- from routing module -------
-            #runoff from landSurface cells (unit: m)
-            #self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow
+            # runoff from landSurface cells (unit: m)
+
+            # storage in each grid cell. Total runoff - runoff for the timestep
+            self.var.gridcell_storage = self.var.gridcell_storage - self.var.runoff_conc[0] + self.var.runoff
+            sumnewrunoff = self.var.runoff.copy()
             self.var.runoff = self.var.runoff_conc[0].copy()
+
+            if checkOption('calcWaterBalance'):
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [sumnewrunoff],  # In
+                    [self.var.runoff_conc[0]],  # Out
+                    [self.var.prergridcell],  # prev storage
+                    [self.var.gridcell_storage],
+                    "runoff-conc1", False)
+
+            if checkOption('calcWaterBalance'):
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [self.var.sum_landSurfaceRunoff, self.var.baseflow],  # In
+                    [self.var.runoff_conc[0]],  # Out
+                    [self.var.prergridcell],  # prev storage
+                    [self.var.gridcell_storage],
+                    "runoff-conc2", False)
+
+
 
 
 

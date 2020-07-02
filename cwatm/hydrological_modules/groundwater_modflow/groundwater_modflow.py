@@ -399,7 +399,7 @@ class groundwater_modflow(object):
             self.var.modflowPumpingM = globals.inZero.copy()
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.sumed_sum_gwRecharge],  # In
                 [self.var.baseflow, self.var.capillar ],  # Out
                 [self.var.prestorGroundwater1],  # prev storage
@@ -407,7 +407,7 @@ class groundwater_modflow(object):
                 "Ground1", True)
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.sumed_sum_gwRecharge],            # In
                 [self.var.baseflow,self.var.capillar],      # Out
                 [self.var.pregwstore],                      # prev storage

@@ -113,9 +113,21 @@ class CWATModel_dyn(DynamicModel):
 
             self.waterquality1.dynamic()
 
-            # calculate Total water storage (tws) as a sum of
-            # Groundwater + soil + lake and reservoir storage + channel storage
-            self.var.tws = self.var.storGroundwater + self.var.totalSto + self.var.lakeReservoirStorage + self.var.channelStorage
+            # calculate Total water storage (tws) [m] as a sum of
+            # Groundwater [m] + soil [m] + lake and reservoir storage [m3] + channel storage [m3]
+            # [m3] >> [m] --> * InvCellArea
+
+            self.var.totalET_WB = self.var.EvapoChannel
+            if checkOption('includeWaterBodies'):
+                self.var.tws = self.var.storGroundwater + self.var.totalSto + self.var.lakeReservoirStorage * self.var.InvCellArea + self.var.channelStorage * self.var.InvCellArea
+                self.var.totalET_WB = self.var.totalET_WB + self.var.totalET + self.var.EvapWaterBodyM
+                if returnBool('useSmallLakes'):
+                    self.var.totalET_WB = self.var.totalET_WB + self.var.smallevapWaterBody
+            else:
+                self.var.tws = self.var.storGroundwater + self.var.totalSto + self.var.channelStorage * self.var.InvCellArea
+
+            if checkOption('includeRunoffConcentration'):
+                self.var.tws = self.var.tws + self.var.gridcell_storage
 
             # *******  Calculate CUMULATIVE MASS BALANCE ERROR  **********
             # self.waterbalance_module.dynamic()

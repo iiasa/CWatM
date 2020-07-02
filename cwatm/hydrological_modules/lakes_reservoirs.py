@@ -289,6 +289,8 @@ class lakes_reservoirs(object):
             self.var.lakeResInflowM = globals.inZero.copy()
             self.var.lakeResOutflowM = globals.inZero.copy()
 
+            if checkOption('calcWaterBalance'):
+                self.var.lakedaycorrect = globals.inZero.copy()
 
 
     def initial_lakes(self):
@@ -337,7 +339,6 @@ class lakes_reservoirs(object):
         self.var.lakeLevelC = self.var.lakeVolumeM3C / self.var.lakeAreaC
 
 
-
     def initial_reservoirs(self):
         """
         Initial part of the reservoir module
@@ -346,7 +347,6 @@ class lakes_reservoirs(object):
         See Also:
             LISFLOOD manual Annex 1: (Burek et al. 2013)
         """
-
         #  Conservative, normal and flood storage limit (fraction of total storage, [-])
         self.var.conLimitC = np.compress(self.var.compress_LR, loadmap('conservativeStorageLimit') + globals.inZero)
         self.var.normLimitC = np.compress(self.var.compress_LR, loadmap('normalStorageLimit') + globals.inZero)
@@ -435,7 +435,7 @@ class lakes_reservoirs(object):
             """
             Lake routine to calculate lake outflow
 
-            :param inflowC: inflow to lakes and reservoirs
+            :param inflowC: inflow to lakes and reservoirs [m3]
             :param NoRoutingExecuted: actual number of routing substep
             :return: QLakeOutM3DtC - lake outflow in [m3] per subtime step
             """
@@ -453,6 +453,12 @@ class lakes_reservoirs(object):
             # Lake inflow in [m3/s]
             lakeInflowC = inflowC / self.var.dtRouting
 
+
+            # just for day to day waterbalance -> get X as difference
+            # lakeIn = in + X ->  (in + old) * 0.5 = in + X  ->   in + old = 2in + 2X -> in - 2in +old = 2x
+            # -> (old - in) * 0.5 = X
+            lakedaycorrectC = 0.5 * (inflowC/ self.var.dtRouting - self.var.lakeInflowOldC) * self.var.dtRouting  # [m3]
+
             self.var.lakeIn = (lakeInflowC + self.var.lakeInflowOldC) * 0.5
             # for Modified Puls Method: (S2/dtime + Qout2/2) = (S1/dtime + Qout1/2) - Qout1 + (Qin1 + Qin2)/2
             #  here: (Qin1 + Qin2)/2
@@ -463,7 +469,7 @@ class lakes_reservoirs(object):
             # lakestorage - evaporation from lakes
 
             self.var.lakeInflowOldC = lakeInflowC.copy()
-            # Qin2 becomes Qin1 for the next time step
+            # Qin2 becomes Qin1 for the next time step [m3/s]
 
             lakeStorageIndicator = np.maximum(0.0,self.var.lakeVolumeM3C / self.var.dtRouting - 0.5 * self.var.lakeOutflowC + self.var.lakeIn)
             # here S1/dtime - Qout1/2 + LakeIn , so that is the right part of the equation above
@@ -477,9 +483,7 @@ class lakes_reservoirs(object):
             self.var.lakeVolumeM3C = (lakeStorageIndicator - self.var.lakeOutflowC * 0.5) * self.var.dtRouting
             # Lake storage
 
-
             self.var.lakeStorageC += self.var.lakeIn * self.var.dtRouting - QLakeOutM3DtC - self.var.lakeEvapWaterBodyC
-
 
             if self.var.noRoutingSteps == (NoRoutingExecuted + 1):
                 self.var.lakeLevelC = self.var.lakeVolumeM3C / self.var.lakeAreaC
@@ -498,12 +502,29 @@ class lakes_reservoirs(object):
                 np.put(self.var.lakeStorage, self.var.decompress_LR, self.var.lakeStorageC)
 
             if checkOption('calcWaterBalance'):
-                self.var.waterbalance_module.waterBalanceCheck(
-                    [self.var.lakeIn],  # In
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [self.var.lakeIn],  # In [m3/s]
                     [self.var.lakeOutflowC ,self.var.lakeEvapWaterBodyC /self.var.dtRouting]  ,  # Out  self.var.evapWaterBodyC
                     [oldlake / self.var.dtRouting],  # prev storage
                     [self.var.lakeStorageC /self.var.dtRouting],
                     "lake", False)
+
+            if checkOption('calcWaterBalance'):
+                np.put(self.var.lakedaycorrect, self.var.decompress_LR, lakedaycorrectC)
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [inflowC / self.var.dtRouting  ],  # In [m3/s]
+                    [self.var.lakeOutflowC ,self.var.lakeEvapWaterBodyC /self.var.dtRouting, lakedaycorrectC / self.var.dtRouting ]  ,  # Out  self.var.evapWaterBodyC
+                    [oldlake / self.var.dtRouting],  # prev storage
+                    [self.var.lakeStorageC /self.var.dtRouting],
+                    "lake2", False)
+
+            if checkOption('calcWaterBalance'):
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [inflowC],  # In [m3/s]
+                    [QLakeOutM3DtC ,self.var.lakeEvapWaterBodyC, lakedaycorrectC]  ,  # Out  self.var.evapWaterBodyC
+                    [oldlake],  # prev storage
+                    [self.var.lakeStorageC],
+                    "lake3", False)
 
 
             return QLakeOutM3DtC
@@ -527,8 +548,6 @@ class lakes_reservoirs(object):
 
             if checkOption('calcWaterBalance'):
                 oldres = self.var.reservoirStorageM3C.copy()
-
-
 
             # QResInM3Dt = inflowC
             # Reservoir inflow in [m3] per timestep
@@ -559,12 +578,9 @@ class lakes_reservoirs(object):
             # Reservoir outflow [m3/s] if ReservoirFill gt FloodStorageLimit
             # Depending on ReservoirFill the reservoir outflow equals ReservoirOutflow1, ReservoirOutflow2,
             # ReservoirOutflow3 or ReservoirOutflow4
-            
 
-                
             reservoirOutflow = reservoirOutflow1.copy()
-           
-                
+
             reservoirOutflow = np.where(self.var.reservoirFillC > 2 * self.var.conLimitC, reservoirOutflow2, reservoirOutflow)
             reservoirOutflow = np.where(self.var.reservoirFillC > self.var.normLimitC, self.var.normQC, reservoirOutflow)
             reservoirOutflow = np.where(self.var.reservoirFillC > self.var.norm_floodLimitC, reservoirOutflow3, reservoirOutflow)
@@ -588,7 +604,6 @@ class lakes_reservoirs(object):
 
             self.var.reservoirStorageM3C = np.maximum(0.0,self.var.reservoirStorageM3C)
 
-
             # New reservoir storage [m3]
             self.var.reservoirFillC = self.var.reservoirStorageM3C / self.var.resVolumeC
             # New reservoir fill
@@ -599,7 +614,7 @@ class lakes_reservoirs(object):
 
 
             if checkOption('calcWaterBalance'):
-                self.var.waterbalance_module.waterBalanceCheck(
+                self.model.waterbalance_module.waterBalanceCheck(
                     [inflowC /self.var.dtRouting],  # In
                     [qResOutM3DtC /self.var.dtRouting ,self.var.resEvapWaterBodyC /self.var.dtRouting]  ,  # Out  self.var.evapWaterBodyC
                     [oldres / self.var.dtRouting],  # prev storage
@@ -608,17 +623,13 @@ class lakes_reservoirs(object):
 
             return qResOutM3DtC
 
-
-
         # ---------------------------------------------------------------------------------------------
         # ---------------------------------------------------------------------------------------------
         # lake and reservoirs
 
-
         if checkOption('calcWaterBalance'):
             prereslake = self.var.lakeResStorageC.copy()
             prelake = self.var.lakeStorageC.copy()
-
 
         # ----------
         # inflow lakes
@@ -630,7 +641,6 @@ class lakes_reservoirs(object):
         # outflow lakes res -> inflow ldd_LR
         # 1. out = upstream1(self_.var.downstruct, self_.var.outflow)
 
-
         # collect discharge from above waterbodies
         dis_LR = upstream1(self.var.downstruct_LR, self.var.discharge)
         # only where lakes are and unit convered to [m]
@@ -640,8 +650,6 @@ class lakes_reservoirs(object):
         inflow = npareatotal(dis_LR + self.var.runoff * self.var.cellArea , self.var.waterBodyID)
         # only once at the outlet
         inflow = np.where(self.var.waterBodyOut > 0, inflow, 0.) / self.var.noRoutingSteps + self.var.outLake
-
-
 
         # calculate total inflow into lakes and compress it to waterbodie outflow point
         # inflow to lake is discharge from upstream network + runoff directly into lake + outflow from upstream lakes
@@ -665,7 +673,6 @@ class lakes_reservoirs(object):
 
         self.var.lakeResStorageC = np.where(self.var.waterBodyTypCTemp == 0, 0., np.where(self.var.waterBodyTypCTemp == 1,self.var.lakeStorageC,self.var.reservoirStorageM3C ))
 
-
         self.var.sumEvapWaterBodyC += EvapWaterBodyC # in [m3]
         self.var.sumlakeResInflow += inflowCorrC
         self.var.sumlakeResOutflow += outflowC
@@ -683,23 +690,10 @@ class lakes_reservoirs(object):
             np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
         # ------------------------------------------------------------
 
-
-
-        # decompress to normal maskarea size
-        # np.put(self.var.reslakeinflow,self.var.decompress_LR,inflowCorrC)
-
-
         np.put(self.var.reslakeoutflow,self.var.decompress_LR,outflowC)
         lakeResOutflowDis = npareatotal(self.var.reslakeoutflow, self.var.waterBodyID) / (self.var.DtSec / self.var.noRoutingSteps)
         # shift outflow 1 cell downstream
         out1 = upstream1(self.var.downstruct, self.var.reslakeoutflow)
-
-
-
-        #if (dateVar['curr'] == 100):
-        #    ii =1
-
-
         # everything with is not going to another lake is output to river network
         outLdd = np.where(self.var.waterBodyID > 0, 0, out1)
 
@@ -711,7 +705,7 @@ class lakes_reservoirs(object):
         self.var.outLake = np.where(self.var.waterBodyOut > 0, outLakein, 0.)
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [inflowCorrC],                   # In
                 [outflowC, EvapWaterBodyC],   # Out  EvapWaterBodyC
                 [prereslake],                 # prev storage
@@ -720,7 +714,7 @@ class lakes_reservoirs(object):
 
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.sumlakeResInflow],  # In
                 [self.var.sumlakeResOutflow , self.var.sumEvapWaterBodyC]  ,  # Out  self.var.evapWaterBodyC
                 [np.compress(self.var.compress_LR, self.var.prelakeResStorage)] ,  # prev storage
@@ -729,23 +723,14 @@ class lakes_reservoirs(object):
 
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.lakeResInflowM],  # In
                 [self.var.lakeResOutflowM , self.var.EvapWaterBodyM]  ,  # Out  self.var.evapWaterBodyC
                 [self.var.prelakeResStorage / self.var.cellArea] ,  # prev storage
                 [self.var.lakeResStorage / self.var.cellArea],
                 "lake3", False)
 
-
-
-
-
-
-
-
         #report(decompress(runoff_LR), "C:\work\output3/run.map")
-
-
 
         return outLdd, lakeResOutflowDis
 

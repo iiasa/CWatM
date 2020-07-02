@@ -71,7 +71,7 @@ class sealed_water(object):
             self.var.actualET[No] = self.var.actualET[No] +  self.var.openWaterEvap[No]
 
         if checkOption('calcWaterBalance') and (No>3):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.availWaterInfiltration[No] ],  # In
                 [self.var.directRunoff[No], self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [globals.inZero],  # prev storage

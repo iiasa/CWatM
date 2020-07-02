@@ -255,7 +255,7 @@ def loadsetclone(self,name):
     if "coverresult" in binding:
         coverresult[0] = returnBool('coverresult')
         if coverresult[0]:
-            cover = loadmap('covermap', compress=False)
+            cover = loadmap('covermap', compress=False, cut = False)
             cover[cover > 1] = False
             cover[cover == 1] = True
             coverresult[1] = cover

@@ -185,7 +185,6 @@ class evaporationPot(object):
             RNAWater = np.maximum(((1 - self.var.AlbedoWater) * self.var.Rsds - RLN) / LatHeatVap, 0.0)
             # net absorbed radiation of water surface
 
-
         VapPressDef = np.maximum(ESat - EAct, 0.0)
         Delta = ((4098.0 * ESat) / ((self.var.Tavg + 237.3)**2))
         # slope of saturated vapour pressure curve [mbar/deg C]

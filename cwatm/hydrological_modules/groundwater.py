@@ -178,7 +178,7 @@ class groundwater(object):
 
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.sum_gwRecharge ],            # In
                 [self.var.baseflow,self.var.nonFossilGroundwaterAbs],           # Out
                 [self.var.prestorGroundwater],                                  # prev storage

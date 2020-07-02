@@ -85,7 +85,7 @@ class waterdemand_irrigation:
         if "alphaDepletion" in binding:
             self.var.alphaDepletion = loadmap('alphaDepletion')
         else:
-            self.var.alphaDepletion = 0.6
+            self.var.alphaDepletion = 0.8
 
     def dynamic(self):
         """

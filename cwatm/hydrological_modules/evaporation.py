@@ -89,7 +89,7 @@ class evaporation(object):
 
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.Precipitation],  # In
                 [self.var.Rain,self.var.SnowMelt,self.var.snowEvap],  # Out
                 [self.var.prevSnowCover],   # prev storage

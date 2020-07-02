@@ -135,11 +135,6 @@ class lakes_res_small(object):
                 self.var.minsmalllakeVolumeM3 = 9.e99
 
 
-
-
-
-
-
    # ------------------ End init ------------------------------------------------------------------------------------
    # ----------------------------------------------------------------------------------------------------------------
 
@@ -177,13 +172,20 @@ class lakes_res_small(object):
             #    ii = 1
 
             inflowM3S = inflow / self.var.DtSec
+
+            # just for day to day waterbalance -> get X as difference
+            # lakeIn = in + X ->  (in + old) * 0.5 = in + X  ->   in + old = 2in + 2X -> in - 2in +old = 2x
+            # -> (old - in) * 0.5 = X
+            self.var.smallLakedaycorrect = 0.5 * (self.var.smalllakeInflowOld * self.var.DtSec - inflow) / self.var.cellArea
+
             # Lake inflow in [m3/s]
             lakeIn = (inflowM3S + self.var.smalllakeInflowOld) * 0.5
             # for Modified Puls Method: (S2/dtime + Qout2/2) = (S1/dtime + Qout1/2) - Qout1 + (Qin1 + Qin2)/2
             # here: (Qin1 + Qin2)/2
-            self.var.smallLakeIn = lakeIn * self.var.DtSec /self.var.cellArea  # in [m]
+            self.var.smallLakeIn = lakeIn * self.var.DtSec / self.var.cellArea  # in [m]
 
             self.var.smallevapWaterBody = self.var.lakeEvaFactor * self.var.EWRef * self.var.smalllakeArea
+
             self.var.smallevapWaterBody = np.where((self.var.smalllakeVolumeM3 - self.var.smallevapWaterBody) > 0., self.var.smallevapWaterBody, self.var.smalllakeVolumeM3)
             self.var.smalllakeVolumeM3 = self.var.smalllakeVolumeM3 - self.var.smallevapWaterBody
             # lakestorage - evaporation from lakes
@@ -214,13 +216,28 @@ class lakes_res_small(object):
 
 
             if checkOption('calcWaterBalance'):
-                self.var.waterbalance_module.waterBalanceCheck(
-                    [self.var.smallLakeIn],  # In
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [inflow/self.var.cellArea ],  # In [m3]
+                    [QsmallLakeOut / self.var.cellArea ,self.var.smallevapWaterBody ]  ,  # Out
+                    [self.var.preSmalllakeStorage / self.var.cellArea, self.var.smallLakedaycorrect],  # prev storage
+                    [self.var.smalllakeStorage / self.var.cellArea],
+                    "smalllake1", False)
+
+            if checkOption('calcWaterBalance'):
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [self.var.smallLakeIn],  # In [m]
                     [QsmallLakeOut / self.var.cellArea ,self.var.smallevapWaterBody ]  ,  # Out
                     [self.var.preSmalllakeStorage / self.var.cellArea],  # prev storage
                     [self.var.smalllakeStorage / self.var.cellArea],
-                    "smalllake", False)
+                    "smalllake2", False)
 
+            if checkOption('calcWaterBalance'):
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [inflow],  # In [m3]
+                    [lakeIn * self.var.DtSec]  ,  # Out
+                    [self.var.smallLakedaycorrect * self.var.cellArea],  # prev storage
+                    [],
+                    "smalllake3", False)
 
 
             return QsmallLakeOut
@@ -235,8 +252,8 @@ class lakes_res_small(object):
         # Small lake and reservoirs
 
         if checkOption('includeWaterBodies') and returnBool('useSmallLakes'):
-
-
+            if checkOption('calcWaterBalance'):
+                runoffold = self.var.runoff.copy()
 
             # check years
             if dateVar['newStart'] or dateVar['newYear']:
@@ -265,32 +282,46 @@ class lakes_res_small(object):
             # runoff to the lake as a part of the cell basin
             inflow = self.var.smallpart * self.var.runoff * self.var.cellArea  # inflow in m3
             self.var.smallLakeout = dynamic_smalllakes(inflow) / self.var.cellArea     # back to [m]
-
-            self.var.smallLakeDiff =   self.var.smallpart * self.var.runoff - self.var.smallLakeIn
-            self.var.smallrunoffDiff = self.var.smallpart * self.var.runoff - self.var.smallLakeout
-
             self.var.runoff = self.var.smallLakeout + (1-self.var.smallpart) * self.var.runoff    # back to [m]  # with and without in m3
 
             #Sum off lake and reservoirs and small lakes
             self.var.lakeReservoirStorage = self.var.lakeResStorage + self.var.smalllakeStorage
 
-
             # ------------------------------------------------------------
             #report(decompress(runoff_LR), "C:\work\output3/run.map")
 
             if checkOption('calcWaterBalance'):
-                self.var.waterbalance_module.waterBalanceCheck(
-                    [self.var.smallLakeIn],  # In
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [self.var.smallLakeIn],  # In [m]
                     [self.var.smallLakeout,  self.var.smallevapWaterBody],  # Out
                     [self.var.preSmalllakeStorage / self.var.cellArea],  # prev storage
                     [self.var.smalllakeStorage / self.var.cellArea],
                     "smalllake1", False)
 
+            if checkOption('calcWaterBalance'):
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [inflow/self.var.cellArea,self.var.smallLakedaycorrect ],  # In [m]
+                    [self.var.smallLakeout ,self.var.smallevapWaterBody ]  ,  # Out
+                    [self.var.preSmalllakeStorage / self.var.cellArea],  # prev storage
+                    [self.var.smalllakeStorage / self.var.cellArea],
+                    "smalllake7", False)
+
+            if checkOption('calcWaterBalance'):
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [runoffold,  self.var.smallLakedaycorrect ],  # In [m]
+                    [self.var.runoff ,self.var.smallevapWaterBody ]  ,  # Out
+                    [self.var.preSmalllakeStorage / self.var.cellArea],  # prev storage
+                    [self.var.smalllakeStorage / self.var.cellArea],
+                    "smalllake8", False)
+
+
             return
 
         else:
-            # Sum off lake and reservoirs and small lakes - here without small lakes
-            self.var.lakeReservoirStorage = self.var.lakeResStorage
+            self.var.smallrunoffDiff = 0
+            if checkOption('includeWaterBodies'):
+                # Sum off lake and reservoirs and small lakes - here without small lakes
+                self.var.lakeReservoirStorage = self.var.lakeResStorage
 
 
 

@@ -360,6 +360,7 @@ def checkifDate(start,end,spinup,name):
     #dates = np.arange(dateVar['dateStart'], dateVar['dateEnd']+ datetime.timedelta(days=1), datetime.timedelta(days = 1)).astype(datetime.datetime)
     #for d in dates:
 
+    # mid of month days
 
     for dint in range(startint, endint):
         d = numdate(dint)
@@ -371,6 +372,12 @@ def checkifDate(start,end,spinup,name):
             else:
                 dateVar['checked'].append(1)
         else:
+            # mark mid of month day
+            #if d.month == 2 and d.day==14:
+            #    dateVar['checked'].append(-1)
+            #if d.month != 2 and d.day==15:
+            #    dateVar['checked'].append(-1)
+
             dateVar['checked'].append(0)
 
     dateVar['diffMonth'] = dateVar['checked'].count(1) + dateVar['checked'].count(2)
