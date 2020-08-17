@@ -116,15 +116,24 @@ class CWATModel_dyn(DynamicModel):
             # calculate Total water storage (tws) [m] as a sum of
             # Groundwater [m] + soil [m] + lake and reservoir storage [m3] + channel storage [m3]
             # [m3] >> [m] --> * InvCellArea
+            if (checkOption('includeRouting')):
+                self.var.totalET_WB = self.var.EvapoChannel
+                if checkOption('includeWaterBodies'):
+                    if returnBool('useSmallLakes'):
+                        # Sum off lake and reservoirs and small lakes
+                       self.var.lakeReservoirStorage = self.var.lakeResStorage + self.var.smalllakeStorage
+                    else:
+                        # Sum off lake and reservoirs - here without small lakes
+                        self.var.lakeReservoirStorage = self.var.lakeResStorage
 
-            self.var.totalET_WB = self.var.EvapoChannel
-            if checkOption('includeWaterBodies'):
-                self.var.tws = self.var.storGroundwater + self.var.totalSto + self.var.lakeReservoirStorage * self.var.InvCellArea + self.var.channelStorage * self.var.InvCellArea
-                self.var.totalET_WB = self.var.totalET_WB + self.var.totalET + self.var.EvapWaterBodyM
-                if returnBool('useSmallLakes'):
-                    self.var.totalET_WB = self.var.totalET_WB + self.var.smallevapWaterBody
+                    self.var.tws = self.var.storGroundwater + self.var.totalSto + self.var.lakeReservoirStorage * self.var.InvCellArea + self.var.channelStorage * self.var.InvCellArea
+                    self.var.totalET_WB = self.var.totalET_WB + self.var.totalET + self.var.EvapWaterBodyM
+                    if returnBool('useSmallLakes'):
+                        self.var.totalET_WB = self.var.totalET_WB + self.var.smallevapWaterBody
+                else:
+                    self.var.tws = self.var.storGroundwater + self.var.totalSto + self.var.channelStorage * self.var.InvCellArea
             else:
-                self.var.tws = self.var.storGroundwater + self.var.totalSto + self.var.channelStorage * self.var.InvCellArea
+                self.var.tws = self.var.storGroundwater + self.var.totalSto
 
             if checkOption('includeRunoffConcentration'):
                 self.var.tws = self.var.tws + self.var.gridcell_storage

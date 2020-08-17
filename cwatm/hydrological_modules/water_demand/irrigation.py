@@ -85,7 +85,7 @@ class waterdemand_irrigation:
         if "alphaDepletion" in binding:
             self.var.alphaDepletion = loadmap('alphaDepletion')
         else:
-            self.var.alphaDepletion = 0.8
+            self.var.alphaDepletion = 0.7
 
     def dynamic(self):
         """
@@ -172,6 +172,6 @@ class waterdemand_irrigation:
         self.var.irrDemand[No] = self.var.pot_irrConsumption[No] / self.var.efficiencyNonpaddy
 
         # Sum up irrigation water demand with area fraction
-        self.irrPaddyDemand = self.var.fracVegCover[2] * self.var.irrDemand[2]
-        self.irrNonpaddyDemand = self.var.fracVegCover[3] * self.var.irrDemand[3]
-        self.var.totalIrrDemand = self.irrPaddyDemand + self.irrNonpaddyDemand
+        self.var.irrPaddyDemand = self.var.fracVegCover[2] * self.var.irrDemand[2]
+        self.var.irrNonpaddyDemand = self.var.fracVegCover[3] * self.var.irrDemand[3]
+        self.var.totalIrrDemand = self.var.irrPaddyDemand + self.var.irrNonpaddyDemand

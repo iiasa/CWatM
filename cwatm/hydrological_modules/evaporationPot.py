@@ -33,14 +33,14 @@ class evaporationPot(object):
     AlbedoSoil            Albedo of bare soil surface (Supit et. al. 1994) default = 0.15                   --       
     AlbedoWater           Albedo of water surface (Supit et. al. 1994) default = 0.05                       --       
     co2                                                                                                              
+    albedoLand            albedo from land surface (from GlobAlbedo database)                               --       
+    albedoOpenWater       albedo from open water surface (from GlobAlbedo database)                         --       
     TMin                  minimum air temperature                                                           K        
     TMax                  maximum air temperature                                                           K        
     Psurf                 Instantaneous surface pressure                                                    Pa       
     Qair                  specific humidity                                                                 kg/kg    
     Tavg                  average air Temperature (input for the model)                                     K        
     Rsdl                  long wave downward surface radiation fluxes                                       W/m2     
-    albedoLand            albedo from land surface (from GlobAlbedo database)                               --       
-    albedoOpenWater       albedo from open water surface (from GlobAlbedo database)                         --       
     Rsds                  short wave downward surface radiation fluxes                                      W/m2     
     Wind                  wind speed                                                                        m/s      
     ETRef                 potential evapotranspiration rate from reference crop                             m        
@@ -190,7 +190,7 @@ class evaporationPot(object):
         # slope of saturated vapour pressure curve [mbar/deg C]
         Psycon = 0.665E-3 * self.var.Psurf
         # psychrometric constant [kPa C-1]
-        # http://www.fao.org/docrep/ X0490E/ x0490e07.htm  Equation 8
+        # http://www.fao.org/docrep/X0490E/x0490e07.htm  Equation 8
         # see http://www.fao.org/docrep/X0490E/x0490e08.htm#penman%20monteith%20equation
 
         windpart = 900 * self.var.Wind / (self.var.Tavg + 273.16)
@@ -320,3 +320,4 @@ class evaporationPot(object):
         # potential reference evapotranspiration rate [m/day]  # from mm to m with 0.001
         # potential evaporation rate from a bare soil surface [m/day]
         self.var.EWRef = RNANWater * 0.001
+

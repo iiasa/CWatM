@@ -40,13 +40,13 @@ class outputTssMap(object):
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
     dirUp                 river network in upstream direction                                               --       
-    discharge             discharge                                                                         m3/s     
     cellArea              Cell area [m²] of each simulated mesh                                                      
     sampleAdresses                                                                                                   
     noOutpoints                                                                                                      
     evalCatch                                                                                                        
     catcharea                                                                                                        
     firstout                                                                                                         
+    discharge             discharge                                                                         m3/s     
     ====================  ================================================================================  =========
 
     **Functions**

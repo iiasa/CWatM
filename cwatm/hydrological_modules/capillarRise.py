@@ -21,10 +21,6 @@ class capillarRise(object):
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    modflow               Flag: True if modflow_coupling = True in settings file                            --       
-    storGroundwater       simulated groundwater storage                                                     m        
-    specificYield         groundwater reservoir parameters (if ModFlow is not used) used to compute ground  m        
-    maxGWCapRise          influence of capillary rise above groundwater level                               m        
     dzRel0100             map of relative elevation above flood plains (max elevation above plain)          m        
     dzRel0090             map of relative elevation above flood plains (90% elevation above plain)          m        
     dzRel0080             map of relative elevation above flood plains (80% elevation above plain)          m        
@@ -38,6 +34,10 @@ class capillarRise(object):
     dzRel0005             map of relative elevation above flood plains (5% elevation above plain)           m        
     dzRel0001             map of relative elevation above flood plains (1% elevation above plain)           m        
     capRiseFrac           fraction of a grid cell where capillar rise may happen                            m        
+    storGroundwater       simulated groundwater storage                                                     m        
+    specificYield         groundwater reservoir parameters (if ModFlow is not used) used to compute ground  m        
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    maxGWCapRise          influence of capillary rise above groundwater level                               m        
     ====================  ================================================================================  =========
 
     **Functions**

@@ -24,6 +24,10 @@ class readmeteo(object):
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
     modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    modflowsteady         True if modflow_steadystate = True in settings file                               --       
+    DtDay                 seconds in a timestep (default=86400)                                             s        
+    con_precipitation     conversion factor for precipitation                                               --       
+    con_e                 conversion factor for evaporation                                                 --       
     TMin                  minimum air temperature                                                           K        
     TMax                  maximum air temperature                                                           K        
     Psurf                 Instantaneous surface pressure                                                    Pa       
@@ -35,12 +39,8 @@ class readmeteo(object):
     ETRef                 potential evapotranspiration rate from reference crop                             m        
     EWRef                 potential evaporation rate from water surface                                     m        
     Precipitation         Precipitation (input for the model)                                               m        
-    DtDay                 seconds in a timestep (default=86400)                                             s        
-    con_precipitation     conversion factor for precipitation                                               --       
-    con_e                 conversion factor for evaporation                                                 --       
     meteomapsscale        if meteo maps have the same extend as the other spatial static maps -> meteomaps  --       
     meteodown             if meteo maps should be downscaled                                                --       
-    modflowsteady         True if modflow_steadystate = True in settings file                               --       
     preMaps               choose between steady state precipitation maps for steady state modflow or norma  --       
     tempMaps              choose between steady state temperature maps for steady state modflow or normal   --       
     evaTMaps              choose between steady state ETP water maps for steady state modflow or normal ma  --       
@@ -84,12 +84,12 @@ class readmeteo(object):
         if not nameall:
             raise CWATMFileError(name, sname='PrecipitationMaps')
         namemeteo = nameall[0]
-        latmeteo, lonmeteo, cell, invcellmeteo = readCoordNetCDF(namemeteo)
+        latmeteo, lonmeteo, cell, invcellmeteo, rows, cols = readCoordNetCDF(namemeteo)
 
         nameldd = cbinding('Ldd')
         #nameldd = os.path.splitext(nameldd)[0] + '.nc'
-        #latldd, lonldd, cell, invcellldd = readCoordNetCDF(nameldd)
-        latldd, lonldd, cell, invcellldd = readCoord(nameldd)
+        #latldd, lonldd, cell, invcellldd, row, cols = readCoordNetCDF(nameldd)
+        latldd, lonldd, cell, invcellldd, rows, cols = readCoord(nameldd)
         maskmapAttr['reso_mask_meteo'] = round(invcellldd / invcellmeteo)
 
         # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True

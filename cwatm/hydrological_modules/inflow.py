@@ -27,10 +27,10 @@ class inflow(object):
     sampleInflow          location of inflow point                                                          lat/lon  
     noinflowpoints        number of inflow points                                                           --       
     inflowTs              inflow time series data                                                           m3/s     
-    QInM3Old              Inflow from previous day                                                          m3       
     totalQInM3            total inflow over time (for mass balance calculation)                             m3       
     inflowM3              inflow to basin                                                                   m3       
     DtSec                 number of seconds per timestep (default = 86400)                                  s        
+    QInM3Old              Inflow from previous day                                                          m3       
     ====================  ================================================================================  =========
 
     **Functions**

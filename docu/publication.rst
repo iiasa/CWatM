@@ -9,9 +9,9 @@ Publication
 Please cite when using CWatM
 ============================
 
-Burek, P., Satoh, Y., Kahil, T., Tang, T., Greve, P., Smilovic, M., Guillaumot, L., and Wada, Y.: Development of the Community Water Model (CWatM v1.04) A high-resolution hydrological model for global and regional assessment of integrated water resources management, Geosci. Model Dev. Discuss., https://doi.org/10.5194/gmd-2019-214, in review, 2019. 
+Burek, P., Satoh, Y., Kahil, T., Tang, T., Greve, P., Smilovic, M., Guillaumot, L., Zhao, F., and Wada, Y.: Development of the Community Water Model (CWatM v1.04) - a high-resolution hydrological model for global and regional assessment of integrated water resources management, Geosci. Model Dev., 13, 3267–3298, https://doi.org/10.5194/gmd-13-3267-2020, 2020.
  
-`Link to paper in Geoscientific Model Development <https://www.geosci-model-dev-discuss.net/gmd-2019-214>`_
+`Link to paper in Geoscientific Model Development <https://gmd.copernicus.org/articles/13/3267/2020>`_
 
 Publication using CWatM
 =======================

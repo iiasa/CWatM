@@ -22,11 +22,11 @@ class initcondition(object):
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
     loadInit              Flag: if true initial conditions are loaded                                       --       
     initLoadFile          load file name of the initial condition data                                      --       
     saveInit              Flag: if true initial conditions are saved                                        --       
     saveInitFile          save file name of the initial condition data                                      --       
+    coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
     ====================  ================================================================================  =========
 
     **Functions**

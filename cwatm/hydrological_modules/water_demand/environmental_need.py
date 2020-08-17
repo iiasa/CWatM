@@ -65,4 +65,4 @@ class waterdemand_environmental_need:
                 self.var.envFlowm3s = readnetcdf2('EnvironmentalFlowFile', globals.dateVar['currDate'], "month", cut=self.var.cut_ef_map) # in [m3/s]
                 self.var.envFlow = self.var.M3toM  * self.var.channelAlpha * self.var.chanLength * self.var.envFlowm3s ** 0.6 # in [m]
         else:
-            self.var.envFlow = 0.0
+            self.var.envFlow = 0.00001  # 0.01mm

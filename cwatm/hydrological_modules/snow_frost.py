@@ -27,15 +27,15 @@ class snow_frost(object):
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    Tavg                  average air Temperature (input for the model)                                     K        
     load_initial                                                                                                     
-    waterbalance_module                                                                                              
+    DtDay                 seconds in a timestep (default=86400)                                             s        
+    Tavg                  average air Temperature (input for the model)                                     K        
+    Precipitation         Precipitation (input for the model)                                               m        
     Rain                  Precipitation less snow                                                           m        
     SnowMelt              total snow melt from all layers                                                   m        
     SnowCover             snow cover (sum over all layers)                                                  m        
     ElevationStD                                                                                                     
-    Precipitation         Precipitation (input for the model)                                               m        
-    DtDay                 seconds in a timestep (default=86400)                                             s        
+    prevSnowCover         snow cover of previous day (only for water balance)                               m        
     numberSnowLayersFloa                                                                                             
     numberSnowLayers      Number of snow layers (up to 10)                                                  --       
     glaciertransportZone  Number of layers which can be mimiced as glacier transport zone                   --       
@@ -61,7 +61,6 @@ class snow_frost(object):
     frostInd1             forstindex 1                                                                               
     frostInd2             frostindex 2                                                                               
     frostindexS           array for frostindex                                                                       
-    prevSnowCover         snow cover of previous day (only for water balance)                               m        
     Snow                  Snow (equal to a part of Precipitation)                                           m        
     ====================  ================================================================================  =========
 

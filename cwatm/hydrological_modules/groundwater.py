@@ -21,7 +21,6 @@ class groundwater(object):
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    modflow               Flag: True if modflow_coupling = True in settings file                            --       
     storGroundwater       simulated groundwater storage                                                     m        
     specificYield         groundwater reservoir parameters (if ModFlow is not used) used to compute ground  m        
     recessionCoeff        groundwater storage times this coefficient gives baseflow                         --       
@@ -29,13 +28,13 @@ class groundwater(object):
     load_initial                                                                                                     
     readAvlStorGroundwat  same as storGroundwater but equal to 0 when inferior to a treshold                m        
     pumping_actual                                                                                                   
+    prestorGroundwater    storGroundwater at the beginning of each step                                     m        
+    sum_gwRecharge        groundwater recharge                                                              m        
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    gwstore                                                                                                          
     capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
     baseflow              simulated baseflow (= groundwater discharge to river)                             m        
-    gwstore                                                                                                          
-    prestorGroundwater    storGroundwater at the beginning of each step                                     m        
     nonFossilGroundwater  groundwater abstraction which is sustainable and not using fossil resources       m        
-    sum_gwRecharge        groundwater recharge                                                              m        
-    waterbalance_module                                                                                              
     ====================  ================================================================================  =========
 
     **Functions**
@@ -76,8 +75,8 @@ class groundwater(object):
         self.var.storGroundwater = np.maximum(0.0, self.var.storGroundwater) + globals.inZero
 
         # for water demand to have some initial value
-        tresholdStorGroundwater = 0.00005  # 0.05 mm
-        self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater,0.0)
+        tresholdStorGroundwater = 0.00001  # 0.01 mm
+        self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater - tresholdStorGroundwater,0.0)
 
         self.var.pumping_actual = globals.inZero.copy()
         self.var.capillar = globals.inZero.copy()
@@ -125,8 +124,8 @@ class groundwater(object):
         # PS: baseflow must be calculated at the end (to ensure the availability of storGroundwater to support nonFossilGroundwaterAbs)
 
         # to avoid small values and to avoid excessive abstractions from dry groundwater
-        tresholdStorGroundwater = 0.00005  # 0.05 mm
-        self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater,0.0)
+        tresholdStorGroundwater = 0.00001  # 0.01 mm
+        self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater, self.var.storGroundwater - tresholdStorGroundwater,0.0)
 
 
         """

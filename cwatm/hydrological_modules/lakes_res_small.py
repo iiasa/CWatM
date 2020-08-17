@@ -33,14 +33,7 @@ class lakes_res_small(object):
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    EWRef                 potential evaporation rate from water surface                                     m        
     load_initial                                                                                                     
-    waterbalance_module                                                                                              
-    DtSec                 number of seconds per timestep (default = 86400)                                  s        
-    lakeEvaFactor         a factor which increases evaporation from lake because of wind                    --       
-    InvDtSec                                                                                                         
-    runoff                                                                                                           
-    cellArea              Cell area [m²] of each simulated mesh                                                      
     smallpart                                                                                                        
     smalllakeArea                                                                                                    
     smalllakeDis0                                                                                                    
@@ -54,11 +47,17 @@ class lakes_res_small(object):
     smalllakeStorage                                                                                                 
     minsmalllakeVolumeM3                                                                                             
     preSmalllakeStorage                                                                                              
+    smallLakedaycorrect                                                                                              
     smallLakeIn                                                                                                      
     smallevapWaterBody                                                                                               
     smallLakeout                                                                                                     
-    smallLakeDiff                                                                                                    
     smallrunoffDiff                                                                                                  
+    DtSec                 number of seconds per timestep (default = 86400)                                  s        
+    InvDtSec                                                                                                         
+    cellArea              Cell area [m²] of each simulated mesh                                                      
+    EWRef                 potential evaporation rate from water surface                                     m        
+    lakeEvaFactor         a factor which increases evaporation from lake because of wind                    --       
+    runoff                                                                                                           
     ====================  ================================================================================  =========
 
     **Functions**
@@ -284,9 +283,6 @@ class lakes_res_small(object):
             self.var.smallLakeout = dynamic_smalllakes(inflow) / self.var.cellArea     # back to [m]
             self.var.runoff = self.var.smallLakeout + (1-self.var.smallpart) * self.var.runoff    # back to [m]  # with and without in m3
 
-            #Sum off lake and reservoirs and small lakes
-            self.var.lakeReservoirStorage = self.var.lakeResStorage + self.var.smalllakeStorage
-
             # ------------------------------------------------------------
             #report(decompress(runoff_LR), "C:\work\output3/run.map")
 
@@ -319,10 +315,6 @@ class lakes_res_small(object):
 
         else:
             self.var.smallrunoffDiff = 0
-            if checkOption('includeWaterBodies'):
-                # Sum off lake and reservoirs and small lakes - here without small lakes
-                self.var.lakeReservoirStorage = self.var.lakeResStorage
-
 
 
 # --------------------------------------------------------------------------

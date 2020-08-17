@@ -26,23 +26,18 @@ class landcoverType(object):
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    modflow               Flag: True if modflow_coupling = True in settings file                            --       
-    maxGWCapRise          influence of capillary rise above groundwater level                               m        
     load_initial                                                                                                     
-    baseflow              simulated baseflow (= groundwater discharge to river)                             m        
     sum_gwRecharge        groundwater recharge                                                              m        
-    waterbalance_module                                                                                              
-    coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days…)                                       
+    sumed_sum_gwRecharge                                                                                             
+    GWVolumeVariation                                                                                                
+    snowEvap              total evaporation from snow for a snow layers                                     m        
+    maxGWCapRise          influence of capillary rise above groundwater level                               m        
     minInterceptCap       Maximum interception read from file for forest and grassland land cover           m        
     interceptStor         simulated vegetation interception storage                                         m        
-    Rain                  Precipitation less snow                                                           m        
-    SnowMelt              total snow melt from all layers                                                   m        
-    snowEvap              total evaporation from snow for a snow layers                                     m        
-    cellArea              Cell area [m²] of each simulated mesh                                                      
     dynamicLandcover                                                                                                 
-    soilLayers            Number of soil layers                                                             --       
     landcoverSum                                                                                                     
-    totalET               Total evapotranspiration for each cell including all landcover types              m        
     act_SurfaceWaterAbst                                                                                             
     sum_interceptStor     Total of simulated vegetation interception storage including all landcover types  m        
     fracVegCover          Fraction of area covered by the corresponding landcover type                               
@@ -51,8 +46,6 @@ class landcoverType(object):
     rootFraction1                                                                                                    
     maxRootDepth                                                                                                     
     rootDepth                                                                                                        
-    soildepth             Thickness of the first soil layer                                                 m        
-    soildepth12           Total thickness of layer 2 and 3                                                  m        
     KSat1                                                                                                            
     KSat2                                                                                                            
     KSat3                                                                                                            
@@ -101,38 +94,52 @@ class landcoverType(object):
     cropCoefficientNC_fi                                                                                             
     interceptCapNC_filen                                                                                             
     coverFractionNC_file                                                                                             
-    w1                    Simulated water storage in the layer 1                                            m        
-    w2                    Simulated water storage in the layer 2                                            m        
-    w3                    Simulated water storage in the layer 3                                            m        
-    topwater              quantity of water above the soil (flooding)                                       m        
     sum_topwater          quantity of water on the soil (flooding) (weighted sum for all landcover types)   m        
-    totalSto              Total soil,snow and vegetation storage for each cell including all landcover typ  m        
-    SnowCover             snow cover (sum over all layers)                                                  m        
+    sum_soil                                                                                                         
     sum_w1                                                                                                           
     sum_w2                                                                                                           
     sum_w3                                                                                                           
+    totalSto              Total soil,snow and vegetation storage for each cell including all landcover typ  m        
     arnoBetaOro                                                                                                      
-    ElevationStD                                                                                                     
     arnoBeta                                                                                                         
     adjRoot                                                                                                          
     maxtopwater           maximum heigth of topwater                                                        m        
-    landcoverSumSum                                                                                                  
     totAvlWater                                                                                                      
-    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days…)                                       
     presumed_sum_gwRecha  Previous groundwater recharge [m/timestep] (used for the ModFlow version)         m        
-    sumed_sum_gwRecharge                                                                                             
     pretotalSto           Previous totalSto                                                                 m        
-    sum_actTransTotal                                                                                                
     sum_actBareSoilEvap                                                                                              
     sum_openWaterEvap                                                                                                
-    sum_interceptEvap                                                                                                
     addtoevapotrans                                                                                                  
     sum_runoff            Runoff above the soil, more interflow, including all landcover types              m        
     sum_directRunoff                                                                                                 
     sum_interflow                                                                                                    
-    Precipitation         Precipitation (input for the model)                                               m        
-    GWVolumeVariation                                                                                                
     sum_availWaterInfilt                                                                                             
+    sum_capRiseFromGW     capillar rise from groundwater to 3rd soil layer (summed up for all land cover c  m        
+    sum_act_irrConsumpti                                                                                             
+    sum_perc3toGW         percolation from 3rd soil layer to groundwater (summed up for all land cover cla  m        
+    sum_prefFlow          preferential flow from soil to groundwater (summed up for all land cover classes  m        
+    act_irrWithdrawal                                                                                                
+    act_nonIrrConsumptio                                                                                             
+    returnFlow                                                                                                       
+    cellArea              Cell area [m²] of each simulated mesh                                                      
+    baseflow              simulated baseflow (= groundwater discharge to river)                             m        
+    Precipitation         Precipitation (input for the model)                                               m        
+    coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
+    Rain                  Precipitation less snow                                                           m        
+    SnowMelt              total snow melt from all layers                                                   m        
+    SnowCover             snow cover (sum over all layers)                                                  m        
+    ElevationStD                                                                                                     
+    prevSnowCover         snow cover of previous day (only for water balance)                               m        
+    soilLayers            Number of soil layers                                                             --       
+    soildepth             Thickness of the first soil layer                                                 m        
+    soildepth12           Total thickness of layer 2 and 3                                                  m        
+    w1                    Simulated water storage in the layer 1                                            m        
+    w2                    Simulated water storage in the layer 2                                            m        
+    w3                    Simulated water storage in the layer 3                                            m        
+    topwater              quantity of water above the soil (flooding)                                       m        
+    totalET               Total evapotranspiration for each cell including all landcover types              m        
+    sum_actTransTotal                                                                                                
+    sum_interceptEvap                                                                                                
     ====================  ================================================================================  =========
 
     **Functions**

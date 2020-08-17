@@ -26,42 +26,44 @@ class routing_kinematic(object):
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    EWRef                 potential evaporation rate from water surface                                     m        
     load_initial                                                                                                     
-    waterbalance_module                                                                                              
-    QInM3Old              Inflow from previous day                                                          m3       
     inflowM3              inflow to basin                                                                   m3       
-    DtSec                 number of seconds per timestep (default = 86400)                                  s        
     waterBodyID           lakes/reservoirs map with a single ID for each lake/reservoir                     --       
-    UpArea1               upstream area of a grid cell                                                      m2       
     dirUp                 river network in upstream direction                                               --       
-    lddCompress           compressed river network (without missing values)                                 --       
     dirupLen_LR           number of bifurcation upstream lake/reservoir                                     --       
     dirupID_LR            index river upstream lake/reservoir                                               --       
     dirDown_LR            river network direktion downstream lake/reservoir                                 --       
     lendirDown_LR         number of river network connections lake/reservoir                                --       
     compress_LR           boolean map as mask map for compressing lake/reservoir                            --       
     lakeArea              area of each lake/reservoir                                                       m2       
-    lakeEvaFactor         a factor which increases evaporation from lake because of wind                    --       
     lakeEvaFactorC        compressed map of a factor which increases evaporation from lake because of wind  --       
     EvapWaterBodyM                                                                                                   
     lakeResInflowM                                                                                                   
     lakeResOutflowM                                                                                                  
-    dtRouting             number of seconds per routing timestep                                            s        
     lakeResStorage                                                                                                   
+    downstruct                                                                                                       
+    act_SurfaceWaterAbst                                                                                             
+    fracVegCover          Fraction of area covered by the corresponding landcover type                               
+    returnFlow                                                                                                       
+    DtSec                 number of seconds per timestep (default = 86400)                                  s        
+    cellArea              Cell area [m²] of each simulated mesh                                                      
+    EWRef                 potential evaporation rate from water surface                                     m        
+    QInM3Old              Inflow from previous day                                                          m3       
+    UpArea1               upstream area of a grid cell                                                      m2       
+    lddCompress           compressed river network (without missing values)                                 --       
+    lakeEvaFactor         a factor which increases evaporation from lake because of wind                    --       
+    dtRouting             number of seconds per routing timestep                                            s        
     evapWaterBodyC                                                                                                   
     sumLakeEvapWaterBody                                                                                             
     noRoutingSteps                                                                                                   
     sumResEvapWaterBodyC                                                                                             
     discharge             discharge                                                                         m3/s     
-    runoff                                                                                                           
-    cellArea              Cell area [m²] of each simulated mesh                                                      
-    downstruct                                                                                                       
     prelakeResStorage                                                                                                
-    act_SurfaceWaterAbst                                                                                             
-    fracVegCover          Fraction of area covered by the corresponding landcover type                               
-    openWaterEvap         Simulated evaporation from open areas                                             m        
     catchmentAll                                                                                                     
+    sumsideflow                                                                                                      
+    EvapoChannel                                                                                                     
+    prechannelStorage                                                                                                
+    channelStorage                                                                                                   
     chanLength                                                                                                       
     totalCrossSectionAre                                                                                             
     dirupLen                                                                                                         
@@ -83,17 +85,14 @@ class routing_kinematic(object):
     alpPower                                                                                                         
     channelAlpha                                                                                                     
     invchannelAlpha                                                                                                  
-    channelStorage                                                                                                   
     riverbedExchange                                                                                                 
-    sumbalance                                                                                                       
-    prechannelStorage                                                                                                
-    EvapoChannel                                                                                                     
     QDelta                                                                                                           
     act_bigLakeResAbst                                                                                               
     act_smallLakeResAbst                                                                                             
-    returnFlow                                                                                                       
-    sumsideflow                                                                                                      
     inflowDt                                                                                                         
+    dis_outlet                                                                                                       
+    runoff                                                                                                           
+    openWaterEvap         Simulated evaporation from open areas                                             m        
     ====================  ================================================================================  =========
 
     **Functions**

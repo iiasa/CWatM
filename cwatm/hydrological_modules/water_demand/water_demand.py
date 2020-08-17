@@ -19,6 +19,11 @@ from cwatm.hydrological_modules.water_demand.livestock import waterdemand_livest
 from cwatm.hydrological_modules.water_demand.irrigation import waterdemand_irrigation
 from cwatm.hydrological_modules.water_demand.environmental_need import waterdemand_environmental_need
 
+
+#PB1507
+from cwatm.management_modules.data_handling import *
+
+
 class water_demand:
     """
     WATERDEMAND
@@ -186,12 +191,32 @@ class water_demand:
             if "demand_unit" in binding:
                 self.var.demand_unit = returnBool('demand_unit')
 
+            # allocation zone
+            # regular grid inside the 2d array
+            # inner grid size
+            inner = 1
+            if "allocation_area" in binding:
+                inner = int(loadmap('allocation_area'))
+
+            latldd, lonldd, cell, invcellldd, rows, cols = readCoord(cbinding('Ldd'))
+            try:
+                filename = os.path.splitext(cbinding('Ldd'))[0] + '.nc'
+                cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check=False)
+            except:
+                cut0, cut1, cut2, cut3 = mapattrTiff(gdal.Open(filename, GA_ReadOnly))
+
+            arr = np.kron(np.arange(rows // inner * cols // inner).reshape((rows // inner, cols // inner)), np.ones((inner, inner)))
+            arr = arr[cut2:cut3, cut0:cut1].astype(int)
+            self.var.allocation_zone = compressArray(arr)
+
+
             self.var.modflowPumping = globals.inZero.copy()
             self.var.modflowPumpingM = globals.inZero.copy()
             self.var.modflowDepth2 = 0
             self.var.modflowTopography = 0
             self.var.leakage = globals.inZero.copy()
             self.var.pumping = globals.inZero.copy()
+
 
         else:  # no water demand
             self.var.nonIrrReturnFlowFraction = globals.inZero.copy()
@@ -272,11 +297,12 @@ class water_demand:
             # ----------------------------------------------------
             # WATER AVAILABILITY
 
-            # to avoid small values and to avoid surface water abstractions from dry channels (>= 0.5mm)
-            self.var.readAvlChannelStorageM = np.where(self.var.channelStorage < (0.0005 * self.var.cellArea), 0., self.var.channelStorage)  # in [m3]
-            # coversersion m3 -> m # minus environmental flow
-            self.var.readAvlChannelStorageM = self.var.readAvlChannelStorageM * self.var.M3toM  # in [m]
-            self.var.readAvlChannelStorageM = np.maximum(0.,self.var.readAvlChannelStorageM - self.var.envFlow)
+            # to avoid small values and to avoid surface water abstractions from dry channels (>= 0.01mm)
+            #self.var.readAvlChannelStorageM = np.where(self.var.channelStorage < (0.0005 * self.var.cellArea), 0., self.var.channelStorage)  # in [m3]
+
+            # conversion m3 -> m # minus environmental flow
+            self.var.readAvlChannelStorageM = np.maximum(0.,self.var.channelStorage * self.var.M3toM - self.var.envFlow) # in [m]
+
 
             #-------------------------------------
             # WATER DEMAND vs. WATER AVAILABILITY
@@ -289,6 +315,7 @@ class water_demand:
 
             # only local surface water abstraction is allowed (network is only within a cell)
             self.var.act_SurfaceWaterAbstract = np.minimum(self.var.readAvlChannelStorageM, pot_SurfaceAbstract)
+            self.var.act_channelAbst = self.var.act_SurfaceWaterAbstract.copy()
             # if surface water is not sufficient it is taken from groundwater
 
             if checkOption('includeWaterBodies'):
@@ -298,15 +325,17 @@ class water_demand:
 
                 # first from big Lakes and reservoirs, big lakes cover several gridcells
                 # collect all water demand from lake pixels of the same id
+
                 remainNeedBig = npareatotal(remainNeed, self.var.waterBodyID)
+                # not only the lakes and reservoirs but the command areas around water bodies e.g. here a buffer
+                remainNeedBig = npareatotal(remainNeed, self.var.waterBodyBuffer)
                 remainNeedBigC = np.compress(self.var.compress_LR, remainNeedBig)
 
                 # Storage of a big lake
                 lakeResStorageC = np.where(self.var.waterBodyTypCTemp == 0, 0.,
                             np.where(self.var.waterBodyTypCTemp == 1, self.var.lakeStorageC, self.var.reservoirStorageM3C)) / self.var.MtoM3C
-                minlake = np.maximum(0., 0.05*lakeResStorageC) #reasonable but arbitrary limit
 
-
+                minlake = np.maximum(0., 0.98*lakeResStorageC) #reasonable but arbitrary limit
                 act_bigLakeAbstC = np.minimum(minlake , remainNeedBigC)
                 # substract from both, because it is sorted by self.var.waterBodyTypCTemp
                 self.var.lakeStorageC = self.var.lakeStorageC - act_bigLakeAbstC * self.var.MtoM3C
@@ -321,7 +350,10 @@ class water_demand:
                 # and back to the big array
                 bigLakesFactor = globals.inZero.copy()
                 np.put(bigLakesFactor, self.var.decompress_LR, bigLakesFactorC)
-                bigLakesFactorAllaroundlake = npareamaximum(bigLakesFactor, self.var.waterBodyID)
+
+                #bigLakesFactorAllaroundlake = npareamaximum(bigLakesFactor, self.var.waterBodyID)
+                bigLakesFactorAllaroundlake = npareamaximum(bigLakesFactor, self.var.waterBodyBuffer)
+
                 # abstraction from big lakes is partioned to the users around the lake
                 self.var.act_bigLakeResAbst = remainNeed * bigLakesFactorAllaroundlake
 
@@ -330,7 +362,7 @@ class water_demand:
                 #minlake = np.maximum(0.,self.var.smalllakeStorage - self.var.minsmalllakeStorage) * self.var.M3toM
 
                 if returnBool('useSmallLakes'):
-                    minlake = np.maximum(0.,self.var.smalllakeStorage) * self.var.M3toM
+                    minlake = np.maximum(0.,0.98 * self.var.smalllakeStorage) * self.var.M3toM
                     self.var.act_smallLakeResAbst = np.minimum(minlake, remainNeed1)
                     #self.var.actLakeResAbst = np.minimum(0.5 * self.var.smalllakeStorageM3 * self.var.M3toM, remainNeed)
                     # act_smallLakesres is substracted from small lakes storage
@@ -340,8 +372,10 @@ class water_demand:
                     self.var.act_smallLakeResAbst = 0
 
                 # available surface water is from river network + large/small lake & reservoirs
-                self.var.act_channelAbst = self.var.act_SurfaceWaterAbstract.copy()
                 self.var.act_SurfaceWaterAbstract = self.var.act_SurfaceWaterAbstract + self.var.act_bigLakeResAbst + self.var.act_smallLakeResAbst
+
+                # check for rounding issues
+                self.var.act_SurfaceWaterAbstract = np.minimum(totalDemand,self.var.act_SurfaceWaterAbstract)
 
                 # remaining is taken from groundwater if possible
                 remainNeed2 = pot_SurfaceAbstract - self.var.act_SurfaceWaterAbstract
@@ -458,22 +492,18 @@ class water_demand:
                         ## End of using_reservoir_command_areas
 
 
-            # real surface water abstraction can be lower, because not all demand can be done from surface water
-            act_swAbstractionFraction = divideValues(self.var.act_SurfaceWaterAbstract, totalDemand)
             # remaining is taken from groundwater if possible
             self.var.pot_GroundwaterAbstract = totalDemand - self.var.act_SurfaceWaterAbstract
-
-
-            # calculate renewableAvlWater (non-fossil groundwater and channel) - environmental flow
-            self.var.renewableAvlWater = self.var.readAvlStorGroundwater + self.var.readAvlChannelStorageM
-
-            self.var.nonFossilGroundwaterAbs = np.minimum(self.var.readAvlStorGroundwater, self.var.pot_GroundwaterAbstract)
-
+            self.var.nonFossilGroundwaterAbs = np.maximum(0.,np.minimum(self.var.readAvlStorGroundwater, self.var.pot_GroundwaterAbstract))
+            # calculate renewableAvlWater_local (non-fossil groundwater and channel) - environmental flow
+            #self.var.renewableAvlWater_local = self.var.readAvlStorGroundwater + self.var.readAvlChannelStorageM
 
             # if limitAbstraction from groundwater is True
             # fossil gwAbstraction and water demand may be reduced
             # variable to reduce/limit groundwater abstraction (> 0 if limitAbstraction = True)
             if checkOption('limitAbstraction'):
+                # real surface water abstraction can be lower, because not all demand can be done from surface water
+                act_swAbstractionFraction = divideValues(self.var.act_SurfaceWaterAbstract, totalDemand)
                 # Fossil groundwater abstraction is not allowed
                 # allocation rule here: domestic& industry > irrigation > paddy
 
@@ -525,14 +555,66 @@ class water_demand:
             else:
                 # Fossil groundwater abstractions are allowed (act = pot)
                 self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
+
+                # using allocation from abstraction zone
+                # this might be a regualr grid e.g. 2x2 for 0.5 deg
+                left_sf = self.var.readAvlChannelStorageM - self.var.act_channelAbst
+                # sum demand, surface water - local used, groundwater - local use, not satisfied for allocation zone
+                zoneDemand = npareatotal(self.var.unmetDemand,self.var.allocation_zone)
+                zone_sf_avail = npareatotal(left_sf, self.var.allocation_zone)
+
+                # zone abstraction is minimum of availability and demand
+                zone_sf_abstraction = np.minimum(zoneDemand,zone_sf_avail)
+                # water taken from surface zone and allocated to cell demand
+                cell_sf_abstraction = np.maximum(0.,divideValues(left_sf,zone_sf_avail) * zone_sf_abstraction)
+                cell_sf_allocation = np.maximum(0.,divideValues(self.var.unmetDemand, zoneDemand) * zone_sf_abstraction)
+
+                # sum up with other abstraction
+                self.var.act_SurfaceWaterAbstract = self.var.act_SurfaceWaterAbstract + cell_sf_abstraction
+                self.var.act_channelAbst = self.var.act_channelAbst +  cell_sf_abstraction
+
+
+
+                # new potential groundwater abstraction
+                self.var.pot_GroundwaterAbstract = np.maximum(0.,self.var.pot_GroundwaterAbstract - cell_sf_allocation)
+                left_gw_demand = np.maximum(0.,self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs)
+                left_gw_avail = self.var.readAvlStorGroundwater - self.var.nonFossilGroundwaterAbs
+                zone_gw_avail = npareatotal(left_gw_avail, self.var.allocation_zone)
+
+                # for groundwater substract demand which is fulfilled by surface zone, calc abstraction and what is left.
+                #zone_gw_demand = npareatotal(left_gw_demand, self.var.allocation_zone)
+                zone_gw_demand = zoneDemand -  zone_sf_abstraction
+                zone_gw_abstraction = np.minimum(zone_gw_demand,zone_gw_avail)
+                #zone_unmetdemand = np.maximum(0., zone_gw_demand - zone_gw_abstraction)
+
+                # water taken from groundwater zone and allocated to cell demand
+                cell_gw_abstraction = np.maximum(0.,divideValues(left_gw_avail,zone_gw_avail) * zone_gw_abstraction)
+                cell_gw_allocation = np.maximum(0.,divideValues(left_gw_demand,zone_gw_demand) * zone_gw_abstraction)
+
+                self.var.unmetDemand = np.maximum(0.,left_gw_demand - cell_gw_allocation)
+                self.var.nonFossilGroundwaterAbs = self.var.nonFossilGroundwaterAbs + cell_gw_abstraction
+
+                #self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
+                ## end of zonal abstraction
+
+                # unmet demand is again checked for water from channels and abstraction from surface is increased
+                #channelAbs2 = np.minimum(self.var.readAvlChannelStorageM - self.var.act_channelAbst, self.var.unmetDemand)
+                #self.var.act_SurfaceWaterAbstract = self.var.act_SurfaceWaterAbstract + channelAbs2
+                #self.var.act_channelAbst = self.var.act_channelAbst +  channelAbs2
+                #self.var.unmetDemand = self.var.unmetDemand - channelAbs2
+                #self.var.pot_GroundwaterAbstract = self.var.pot_GroundwaterAbstract - channelAbs2
+
+
+
+
                 self.var.act_nonIrrWithdrawal = self.var.nonIrrDemand
                 self.var.act_irrWithdrawal = self.var.totalIrrDemand
 
                 act_gw = self.var.pot_GroundwaterAbstract
-
                 self.var.act_irrNonpaddyWithdrawal = self.var.fracVegCover[3] * self.var.irrDemand[3]
                 self.var.act_irrPaddyWithdrawal = self.var.fracVegCover[2] * self.var.irrDemand[2]
 
+            ## End of limit extraction if, then
 
             self.var.act_irrConsumption[2] = divideValues(self.var.act_irrPaddyWithdrawal, self.var.fracVegCover[2]) * self.var.efficiencyPaddy
             self.var.act_irrConsumption[3] = divideValues(self.var.act_irrNonpaddyWithdrawal, self.var.fracVegCover[3]) * self.var.efficiencyNonpaddy

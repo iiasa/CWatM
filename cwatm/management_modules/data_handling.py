@@ -520,9 +520,11 @@ def readCoord(name):
     except:
         nc = False
     if nc:
-        lat, lon, cell, invcell = readCoordNetCDF(namenc)
+        lat, lon, cell, invcell, rows, cols = readCoordNetCDF(namenc)
     else:
         raster = gdal.Open(name)
+        rows = raster.RasterYSize
+        cols = raster.RasterXSize
         gt = raster.GetGeoTransform()
 
         cell = gt[1]
@@ -536,7 +538,7 @@ def readCoord(name):
         lat = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
 
 
-    return lat,lon, cell,invcell
+    return lat, lon, cell, invcell, rows, cols
 
 
 def readCoordNetCDF2(name,check = True):
@@ -581,6 +583,9 @@ def readCoordNetCDF(name,check = True):
         # if subroutine is called already from inside a try command
         nf1 = Dataset(name, 'r')
 
+    rows = nf1.variables['lat'].shape[0]
+    cols = nf1.variables['lon'].shape[0]
+
     lon0 = nf1.variables['lon'][0]
     lon1 = nf1.variables['lon'][1]
     lat0 = nf1.variables['lat'][0]
@@ -595,7 +600,7 @@ def readCoordNetCDF(name,check = True):
     lon = round(lon0 - cell / 2,8)
     lat = round(lat0 + cell / 2,8)
 
-    return lat,lon, cell,invcell
+    return lat,lon, cell,invcell,rows,cols
 
 def readCalendar(name):
     nf1 = Dataset(name, 'r')
@@ -683,7 +688,7 @@ def mapattrNetCDF(name, check=True):
     :raises if cell size is different: :meth:`management_modules.messages.CWATMError`
     """
 
-    lat, lon, cell, invcell = readCoord(name)
+    lat, lon, cell, invcell, rows, cols = readCoord(name)
 
     if maskmapAttr['invcell'] != invcell:
         msg = "Cell size different in maskmap: " + \
@@ -710,7 +715,7 @@ def mapattrNetCDFMeteo(name, check = True):
     :return: cut0,cut1,cut2,cut3,cut4,cut5,cut6,cut7
     """
 
-    lat, lon, cell, invcell = readCoordNetCDF(name, check)
+    lat, lon, cell, invcell, rows, cols = readCoordNetCDF(name, check)
 
     # x0,xend, y0,yend - borders of fine resolution map
     lon0 = maskmapAttr['x']
@@ -1508,7 +1513,7 @@ def writeIniNetcdf(netfile,varlist, inputlist):
 # --------------------------------------------------------------------------------------------
 # report .tif and .maps
 
-def report(name,valueIn,compr=True):
+def report(valueIn,name,compr=True):
     """
     For debugging: Save the 2D array as .map or .tif
 
@@ -1524,7 +1529,6 @@ def report(name,valueIn,compr=True):
 
     """
 
-
     filename = os.path.splitext(name)
     pcmap = False
     if filename[1] == ".map":   pcmap = True
@@ -1533,6 +1537,7 @@ def report(name,valueIn,compr=True):
         value = decompress(valueIn)
     else:
         value = valueIn
+    value = value.data
 
     checkint = value.dtype.char in np.typecodes['AllInteger']
     ny, nx = value.shape

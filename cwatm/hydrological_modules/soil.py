@@ -25,20 +25,16 @@ class soil(object):
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    modflow               Flag: True if modflow_coupling = True in settings file                            --       
-    storGroundwater       simulated groundwater storage                                                     m        
     capRiseFrac           fraction of a grid cell where capillar rise may happen                            m        
     cropKC                crop coefficient for each of the 4 different land cover types (forest, irrigated  --       
-    EWRef                 potential evaporation rate from water surface                                     m        
-    capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
+    storGroundwater       simulated groundwater storage                                                     m        
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
     availWaterInfiltrati  quantity of water reaching the soil after interception, more snowmelt             m        
+    interceptEvap         simulated evaporation from water intercepted by vegetation                        m        
     potTranspiration      Potential transpiration (after removing of evaporation)                           m        
-    actualET              simulated evapotranspiration from soil, flooded area and vegetation               m        
-    soilLayers            Number of soil layers                                                             --       
+    snowEvap              total evaporation from snow for a snow layers                                     m        
     fracVegCover          Fraction of area covered by the corresponding landcover type                               
     rootDepth                                                                                                        
-    soildepth             Thickness of the first soil layer                                                 m        
-    soildepth12           Total thickness of layer 2 and 3                                                  m        
     KSat1                                                                                                            
     KSat2                                                                                                            
     KSat3                                                                                                            
@@ -65,20 +61,26 @@ class soil(object):
     wwp3                  Soil moisture at wilting point in layer 3                                                  
     kunSatFC12                                                                                                       
     kunSatFC23                                                                                                       
+    arnoBeta                                                                                                         
+    adjRoot                                                                                                          
+    maxtopwater           maximum heigth of topwater                                                        m        
+    capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
+    EWRef                 potential evaporation rate from water surface                                     m        
+    FrostIndexThreshold   Degree Days Frost Threshold (stops infiltration, percolation and capillary rise)  --       
+    FrostIndex            FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Index for Floo  --       
+    actualET              simulated evapotranspiration from soil, flooded area and vegetation               m        
+    soilLayers            Number of soil layers                                                             --       
+    soildepth             Thickness of the first soil layer                                                 m        
+    soildepth12           Total thickness of layer 2 and 3                                                  m        
     w1                    Simulated water storage in the layer 1                                            m        
     w2                    Simulated water storage in the layer 2                                            m        
     w3                    Simulated water storage in the layer 3                                            m        
     topwater              quantity of water above the soil (flooding)                                       m        
-    arnoBeta                                                                                                         
-    adjRoot                                                                                                          
-    maxtopwater           maximum heigth of topwater                                                        m        
     directRunoff          Simulated surface runoff                                                          m        
     interflow             Simulated flow reaching runoff instead of groundwater                             m        
     openWaterEvap         Simulated evaporation from open areas                                             m        
     actTransTotal         Total actual transpiration from the three soil layers                             m        
     actBareSoilEvap       Simulated evaporation from the first soil layer                                   m        
-    FrostIndexThreshold   Degree Days Frost Threshold (stops infiltration, percolation and capillary rise)  --       
-    FrostIndex            FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Index for Floo  --       
     percolationImp        Fraction of area covered by the corresponding landcover type                      m        
     cropGroupNumber       soil water depletion fraction, Van Diepen et al., 1988: WOFOST 6.0, p.86, Dooren  --       
     cPrefFlow             Factor influencing preferential flow (flow from surface to GW)                    --       

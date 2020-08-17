@@ -20,14 +20,11 @@ class groundwater_modflow(object):
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    modflow               Flag: True if modflow_coupling = True in settings file                            --       
-    capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
-    baseflow              simulated baseflow (= groundwater discharge to river)                             m        
-    gwstore                                                                                                          
+    head                  Simulated ModFlow water level [masl]                                              m        
+    modflowStorGW                                                                                                    
     sum_gwRecharge        groundwater recharge                                                              m        
-    waterbalance_module                                                                                              
-    cellArea              Cell area [m²] of each simulated mesh                                                      
-    soildepth12           Total thickness of layer 2 and 3                                                  m        
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    gwstore                                                                                                          
     modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days…)                                       
     sumed_sum_gwRecharge                                                                                             
     GWVolumeVariation                                                                                                
@@ -50,20 +47,22 @@ class groundwater_modflow(object):
     botm                  Array (nlays+1, nrows, ncols) of layers top and botm [masl]                       m        
     nameModflowModel      Name of the ModFlow model (used for ModFlow output)                                        
     steady_previous       True if a previous simulated map is used to defined the initial water table                
-    head                  Simulated ModFlow water level [masl]                                              m        
     GW_pumping                                                                                                       
     modflow_text_to_writ                                                                                             
     modflow_compteur      Counts each day relatively to the chosen ModFlow timestep, allow to run ModFlow            
     writeerror                                                                                                       
     nameerrorfile                                                                                                    
     storGroundwater1                                                                                                 
-    modflowStorGW                                                                                                    
     modflowWaterLevel     Simulated ModFlow water level [masl]                                                       
     sumstorGW                                                                                                        
     sumstorGW2                                                                                                       
     pregwstore                                                                                                       
     prestorGroundwater1                                                                                              
     modflowPumpingM                                                                                                  
+    cellArea              Cell area [m²] of each simulated mesh                                                      
+    capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
+    baseflow              simulated baseflow (= groundwater discharge to river)                             m        
+    soildepth12           Total thickness of layer 2 and 3                                                  m        
     ====================  ================================================================================  =========
 
     **Functions**
