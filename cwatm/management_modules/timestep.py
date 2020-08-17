@@ -21,7 +21,6 @@ from netCDF4 import Dataset,num2date,date2num,date2index
 
 import difflib  # to check the closest word in settingsfile, if an error occurs
 
-
 def datenum(date):
     """
     converts date to a int number based on the calender and unit of the netcdf file
@@ -278,10 +277,11 @@ def checkifDate(start,end,spinup,name):
     """
 
     #begin = Calendar(ctbinding('CalendarDayStart'))
-
-    name = glob.glob(os.path.normpath(name))[0]
-    if not name:
+    try:
+        name = glob.glob(os.path.normpath(name))[0]
+    except:
         raise CWATMFileError(name, sname='PrecipitationMaps')
+
     nf1 = Dataset(name, 'r')
     try:
         dateVar['calendar'] = nf1.variables['time'].calendar
@@ -292,7 +292,7 @@ def checkifDate(start,end,spinup,name):
     nf1.close()
 
     unitconv1 = ["DAYS","HOUR","MINU","SECO"]
-    unitconv2 = [1,24,144086400]
+    unitconv2 = [1,24,1440,86400]
     unitconv3 = dateVar['unit'] [:4].upper()
     try:
         dateVar['unitConv'] = unitconv2[unitconv1.index(unitconv3)]
@@ -360,6 +360,7 @@ def checkifDate(start,end,spinup,name):
     #dates = np.arange(dateVar['dateStart'], dateVar['dateEnd']+ datetime.timedelta(days=1), datetime.timedelta(days = 1)).astype(datetime.datetime)
     #for d in dates:
 
+    # mid of month days
 
     for dint in range(startint, endint):
         d = numdate(dint)
@@ -371,6 +372,12 @@ def checkifDate(start,end,spinup,name):
             else:
                 dateVar['checked'].append(1)
         else:
+            # mark mid of month day
+            #if d.month == 2 and d.day==14:
+            #    dateVar['checked'].append(-1)
+            #if d.month != 2 and d.day==15:
+            #    dateVar['checked'].append(-1)
+
             dateVar['checked'].append(0)
 
     dateVar['diffMonth'] = dateVar['checked'].count(1) + dateVar['checked'].count(2)
@@ -414,6 +421,12 @@ def date2indexNew(date, nctime, calendar, select='nearest', name =""):
             msg = " - " + date.strftime('%Y') + " is later then the last dataset in " + name + " -"
             msg += " instead last year dataset is used"
             print(CWATMWarning(msg))
+        if value < min(nctime[:]):
+            value = min(nctime[:])
+            msg = " - " + date.strftime('%Y') + " is earlier then the first dataset in " + name + " -"
+            msg += " instead first year dataset is used"
+            print(CWATMWarning(msg))
+
 
         index = np.where(nctime[:] == value)[0][0]
     else:

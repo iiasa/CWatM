@@ -20,13 +20,36 @@ class miscInitial(object):
 
     Note:
         Only used in the initial phase.
+
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    DtSec                 number of seconds per timestep (default = 86400)                                  s        
+    twothird              2/3                                                                               --       
+    MtoM3                 Coefficient to change units                                                       --       
+    InvDtSec                                                                                                         
+    cellArea              Cell area [m²] of each simulated mesh                                                      
+    cellLength            length of a grid cell                                                             m        
+    InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
+    DtDay                 seconds in a timestep (default=86400)                                             s        
+    InvDtDay              inverse seconds in a timestep (default=86400)                                     s-1      
+    MMtoM                 Coefficient to change units                                                       --       
+    MtoMM                 Coefficient to change units                                                       --       
+    M3toM                 Coefficient to change units                                                       --       
+    con_precipitation     conversion factor for precipitation                                               --       
+    con_e                 conversion factor for evaporation                                                 --       
+    ====================  ================================================================================  =========
+
+    **Functions**
     """
 
-    def __init__(self, misc_variable):
-        self.var = misc_variable
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
 
     def initial(self):
         """
@@ -60,9 +83,6 @@ class miscInitial(object):
             # - Maps are in some equal-area projection
             # - Length units meters
             # - All grid cells have the same size
-
-            # Length of pixel [m]
-            #self.var.PixelLength = celllength()
 
             # Area of pixel [m2]
             self.var.cellArea=np.empty(maskinfo['mapC'])

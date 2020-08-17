@@ -27,15 +27,45 @@ class lakes_res_small(object):
         Using the **Modified Puls approach** to calculate retention of a lake
         See also: LISFLOOD manual Annex 3 (Burek et al. 2013)
 
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    load_initial                                                                                                     
+    smallpart                                                                                                        
+    smalllakeArea                                                                                                    
+    smalllakeDis0                                                                                                    
+    smalllakeA                                                                                                       
+    smalllakeFactor                                                                                                  
+    smalllakeFactorSqr                                                                                               
+    smalllakeInflowOld                                                                                               
+    smalllakeVolumeM3                                                                                                
+    smalllakeOutflow                                                                                                 
+    smalllakeLevel                                                                                                   
+    smalllakeStorage                                                                                                 
+    minsmalllakeVolumeM3                                                                                             
+    preSmalllakeStorage                                                                                              
+    smallLakedaycorrect                                                                                              
+    smallLakeIn                                                                                                      
+    smallevapWaterBody                                                                                               
+    smallLakeout                                                                                                     
+    smallrunoffDiff                                                                                                  
+    DtSec                 number of seconds per timestep (default = 86400)                                  s        
+    InvDtSec                                                                                                         
+    cellArea              Cell area [m²] of each simulated mesh                                                      
+    EWRef                 potential evaporation rate from water surface                                     m        
+    lakeEvaFactor         a factor which increases evaporation from lake because of wind                    --       
+    runoff                                                                                                           
+    ====================  ================================================================================  =========
+
+    **Functions**
     """
 
-    def __init__(self, lakes_res_small_variable):
-        self.var = lakes_res_small_variable
-
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """
@@ -77,10 +107,10 @@ class lakes_res_small(object):
             self.var.smalllakeFactorSqr = np.square(self.var.smalllakeFactor)
             # for faster calculation inside dynamic section
 
-            self.var.smalllakeInflowOld = self.var.init_module.load_initial("smalllakeInflow",self.var.smalllakeDis0)  # inflow in m3/s estimate
+            self.var.smalllakeInflowOld = self.var.load_initial("smalllakeInflow",self.var.smalllakeDis0)  # inflow in m3/s estimate
             
             old = self.var.smalllakeArea * np.sqrt(self.var.smalllakeInflowOld / self.var.smalllakeA)
-            self.var.smalllakeVolumeM3 = self.var.init_module.load_initial("smalllakeStorage",old)
+            self.var.smalllakeVolumeM3 = self.var.load_initial("smalllakeStorage",old)
 
 
             smalllakeStorageIndicator = np.maximum(0.0,self.var.smalllakeVolumeM3 / self.var.DtSec + self.var.smalllakeInflowOld / 2)
@@ -89,7 +119,7 @@ class lakes_res_small(object):
             # solution of quadratic equation
             # 1. storage volume is increase proportional to elevation
             #  2. Q= a *H **2.0  (if you choose Q= a *H **1.5 you have to solve the formula of Cardano)
-            self.var.smalllakeOutflow = self.var.init_module.load_initial("smalllakeOutflow", out)
+            self.var.smalllakeOutflow = self.var.load_initial("smalllakeOutflow", out)
 
             # lake storage ini
             self.var.smalllakeLevel = divideValues(self.var.smalllakeVolumeM3, self.var.smalllakeArea)
@@ -102,11 +132,6 @@ class lakes_res_small(object):
                 self.var.minsmalllakeVolumeM3 = loadmap('minStorage')
             else:
                 self.var.minsmalllakeVolumeM3 = 9.e99
-
-
-
-
-
 
 
    # ------------------ End init ------------------------------------------------------------------------------------
@@ -146,13 +171,20 @@ class lakes_res_small(object):
             #    ii = 1
 
             inflowM3S = inflow / self.var.DtSec
+
+            # just for day to day waterbalance -> get X as difference
+            # lakeIn = in + X ->  (in + old) * 0.5 = in + X  ->   in + old = 2in + 2X -> in - 2in +old = 2x
+            # -> (old - in) * 0.5 = X
+            self.var.smallLakedaycorrect = 0.5 * (self.var.smalllakeInflowOld * self.var.DtSec - inflow) / self.var.cellArea
+
             # Lake inflow in [m3/s]
             lakeIn = (inflowM3S + self.var.smalllakeInflowOld) * 0.5
             # for Modified Puls Method: (S2/dtime + Qout2/2) = (S1/dtime + Qout1/2) - Qout1 + (Qin1 + Qin2)/2
             # here: (Qin1 + Qin2)/2
-            self.var.smallLakeIn = lakeIn * self.var.DtSec /self.var.cellArea  # in [m]
+            self.var.smallLakeIn = lakeIn * self.var.DtSec / self.var.cellArea  # in [m]
 
             self.var.smallevapWaterBody = self.var.lakeEvaFactor * self.var.EWRef * self.var.smalllakeArea
+
             self.var.smallevapWaterBody = np.where((self.var.smalllakeVolumeM3 - self.var.smallevapWaterBody) > 0., self.var.smallevapWaterBody, self.var.smalllakeVolumeM3)
             self.var.smalllakeVolumeM3 = self.var.smalllakeVolumeM3 - self.var.smallevapWaterBody
             # lakestorage - evaporation from lakes
@@ -183,13 +215,28 @@ class lakes_res_small(object):
 
 
             if checkOption('calcWaterBalance'):
-                self.var.waterbalance_module.waterBalanceCheck(
-                    [self.var.smallLakeIn],  # In
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [inflow/self.var.cellArea ],  # In [m3]
+                    [QsmallLakeOut / self.var.cellArea ,self.var.smallevapWaterBody ]  ,  # Out
+                    [self.var.preSmalllakeStorage / self.var.cellArea, self.var.smallLakedaycorrect],  # prev storage
+                    [self.var.smalllakeStorage / self.var.cellArea],
+                    "smalllake1", False)
+
+            if checkOption('calcWaterBalance'):
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [self.var.smallLakeIn],  # In [m]
                     [QsmallLakeOut / self.var.cellArea ,self.var.smallevapWaterBody ]  ,  # Out
                     [self.var.preSmalllakeStorage / self.var.cellArea],  # prev storage
                     [self.var.smalllakeStorage / self.var.cellArea],
-                    "smalllake", False)
+                    "smalllake2", False)
 
+            if checkOption('calcWaterBalance'):
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [inflow],  # In [m3]
+                    [lakeIn * self.var.DtSec]  ,  # Out
+                    [self.var.smallLakedaycorrect * self.var.cellArea],  # prev storage
+                    [],
+                    "smalllake3", False)
 
 
             return QsmallLakeOut
@@ -204,8 +251,8 @@ class lakes_res_small(object):
         # Small lake and reservoirs
 
         if checkOption('includeWaterBodies') and returnBool('useSmallLakes'):
-
-
+            if checkOption('calcWaterBalance'):
+                runoffold = self.var.runoff.copy()
 
             # check years
             if dateVar['newStart'] or dateVar['newYear']:
@@ -234,26 +281,40 @@ class lakes_res_small(object):
             # runoff to the lake as a part of the cell basin
             inflow = self.var.smallpart * self.var.runoff * self.var.cellArea  # inflow in m3
             self.var.smallLakeout = dynamic_smalllakes(inflow) / self.var.cellArea     # back to [m]
-
-            self.var.smallLakeDiff =   self.var.smallpart * self.var.runoff - self.var.smallLakeIn
-            self.var.smallrunoffDiff = self.var.smallpart * self.var.runoff - self.var.smallLakeout
-
             self.var.runoff = self.var.smallLakeout + (1-self.var.smallpart) * self.var.runoff    # back to [m]  # with and without in m3
-
 
             # ------------------------------------------------------------
             #report(decompress(runoff_LR), "C:\work\output3/run.map")
 
             if checkOption('calcWaterBalance'):
-                self.var.waterbalance_module.waterBalanceCheck(
-                    [self.var.smallLakeIn],  # In
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [self.var.smallLakeIn],  # In [m]
                     [self.var.smallLakeout,  self.var.smallevapWaterBody],  # Out
                     [self.var.preSmalllakeStorage / self.var.cellArea],  # prev storage
                     [self.var.smalllakeStorage / self.var.cellArea],
                     "smalllake1", False)
 
+            if checkOption('calcWaterBalance'):
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [inflow/self.var.cellArea,self.var.smallLakedaycorrect ],  # In [m]
+                    [self.var.smallLakeout ,self.var.smallevapWaterBody ]  ,  # Out
+                    [self.var.preSmalllakeStorage / self.var.cellArea],  # prev storage
+                    [self.var.smalllakeStorage / self.var.cellArea],
+                    "smalllake7", False)
+
+            if checkOption('calcWaterBalance'):
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [runoffold,  self.var.smallLakedaycorrect ],  # In [m]
+                    [self.var.runoff ,self.var.smallevapWaterBody ]  ,  # Out
+                    [self.var.preSmalllakeStorage / self.var.cellArea],  # prev storage
+                    [self.var.smalllakeStorage / self.var.cellArea],
+                    "smalllake8", False)
+
+
             return
 
+        else:
+            self.var.smallrunoffDiff = 0
 
 
 # --------------------------------------------------------------------------

@@ -15,17 +15,24 @@ class evaporation(object):
     """
     Evaporation module
     Calculate potential evaporation and pot. transpiration
+
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    cropKC                crop coefficient for each of the 4 different land cover types (forest, irrigated  --       
+    ====================  ================================================================================  =========
+
+    **Functions**
     """
 
-    def __init__(self, evaporation_variable):
+    def __init__(self, model):
         """The constructor evaporation"""
-        self.var = evaporation_variable
-
-
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-
+        self.var = model.var
+        self.model = model
+        
     def dynamic(self, coverType, No):
         """
         Dynamic part of the soil module
@@ -82,7 +89,7 @@ class evaporation(object):
 
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.Precipitation],  # In
                 [self.var.Rain,self.var.SnowMelt,self.var.snowEvap],  # Out
                 [self.var.prevSnowCover],   # prev storage

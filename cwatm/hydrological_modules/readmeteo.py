@@ -16,11 +16,58 @@ class readmeteo(object):
     READ METEOROLOGICAL DATA
 
     reads all meteorological data from netcdf4 files
+
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    modflowsteady         True if modflow_steadystate = True in settings file                               --       
+    DtDay                 seconds in a timestep (default=86400)                                             s        
+    con_precipitation     conversion factor for precipitation                                               --       
+    con_e                 conversion factor for evaporation                                                 --       
+    TMin                  minimum air temperature                                                           K        
+    TMax                  maximum air temperature                                                           K        
+    Psurf                 Instantaneous surface pressure                                                    Pa       
+    Qair                  specific humidity                                                                 kg/kg    
+    Tavg                  average air Temperature (input for the model)                                     K        
+    Rsdl                  long wave downward surface radiation fluxes                                       W/m2     
+    Rsds                  short wave downward surface radiation fluxes                                      W/m2     
+    Wind                  wind speed                                                                        m/s      
+    ETRef                 potential evapotranspiration rate from reference crop                             m        
+    EWRef                 potential evaporation rate from water surface                                     m        
+    Precipitation         Precipitation (input for the model)                                               m        
+    meteomapsscale        if meteo maps have the same extend as the other spatial static maps -> meteomaps  --       
+    meteodown             if meteo maps should be downscaled                                                --       
+    preMaps               choose between steady state precipitation maps for steady state modflow or norma  --       
+    tempMaps              choose between steady state temperature maps for steady state modflow or normal   --       
+    evaTMaps              choose between steady state ETP water maps for steady state modflow or normal ma  --       
+    eva0Maps              choose between steady state ETP reference maps for steady state modflow or norma  --       
+    wc2_tavg              High resolution WorldClim map for average temperature                             K        
+    wc4_tavg              upscaled to low resolution WorldClim map for average temperature                  K        
+    wc2_tmin              High resolution WorldClim map for min temperature                                 K        
+    wc4_tmin              upscaled to low resolution WorldClim map for min temperature                      K        
+    wc2_tmax              High resolution WorldClim map for max temperature                                 K        
+    wc4_tmax              upscaled to low resolution WorldClim map for max temperature                      K        
+    wc2_prec              High resolution WorldClim map for precipitation                                   m        
+    wc4_prec              upscaled to low resolution WorldClim map for precipitation                        m        
+    demAnomaly            digital elevation model anomaly (high resolution - low resolution)                m        
+    demHigh               digital elevation model high resolution                                           m        
+    prec                  precipitation in m                                                                m        
+    temp                  average temperature in Celsius deg                                                C°       
+    Tmin                  minimum temperature in Celsius deg                                                C°       
+    Tmax                  maximum temperature in celsius deg                                                C°       
+    WtoMJ                 Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6                    --       
+    ====================  ================================================================================  =========
+
+    **Functions**
     """
 
-    def __init__(self, readmeteo_variable):
-        self.var = readmeteo_variable
-
+    def __init__(self, model):
+        self.model = model
+        self.var = model.var
 
     def initial(self):
         """
@@ -28,6 +75,64 @@ class readmeteo(object):
 
         read multiple file of input
         """
+
+        # fit meteorological forcing data to size and resolution of mask map
+        #-------------------------------------------------------------------
+
+        name = cbinding('PrecipitationMaps')
+        nameall = glob.glob(os.path.normpath(name))
+        if not nameall:
+            raise CWATMFileError(name, sname='PrecipitationMaps')
+        namemeteo = nameall[0]
+        latmeteo, lonmeteo, cell, invcellmeteo, rows, cols = readCoordNetCDF(namemeteo)
+
+        nameldd = cbinding('Ldd')
+        #nameldd = os.path.splitext(nameldd)[0] + '.nc'
+        #latldd, lonldd, cell, invcellldd, row, cols = readCoordNetCDF(nameldd)
+        latldd, lonldd, cell, invcellldd, rows, cols = readCoord(nameldd)
+        maskmapAttr['reso_mask_meteo'] = round(invcellldd / invcellmeteo)
+
+        # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
+        self.var.meteomapsscale = True
+        if invcellmeteo != invcellldd:
+            if (not(Flags['quiet'])) and (not(Flags['veryquiet'])) and (not(Flags['check'])):
+                msg = "Resolution of meteo forcing is " + str(maskmapAttr['reso_mask_meteo']) + " times higher than base maps."
+                print(msg)
+            self.var.meteomapsscale = False
+
+        cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(nameldd)
+        for i in range(4): cutmapFine[i] = cutmap[i]
+
+        # for downscaling meteomaps , Wordclim data at a finer resolution is used
+        # here it is necessary to clip the wordclim data so that they fit to meteo dataset
+        self.var.meteodown = False
+        if "usemeteodownscaling" in binding:
+            self.var.meteodown = returnBool('usemeteodownscaling')
+
+        if self.var.meteodown:
+            check_clim = checkMeteo_Wordclim(namemeteo, cbinding('downscale_wordclim_prec'))
+
+        # in case other mapsets are used e.g. Cordex RCM meteo data
+        if (latldd != latmeteo) or (lonldd != lonmeteo):
+            cutmapFine[0], cutmapFine[1], cutmapFine[2], cutmapFine[3], cutmapVfine[0], cutmapVfine[1], cutmapVfine[2], cutmapVfine[3] = mapattrNetCDFMeteo(namemeteo)
+
+        if not self.var.meteomapsscale:
+            # if the cellsize of the spatial dataset e.g. ldd, soil etc is not the same as the meteo maps than:
+            cutmapFine[0], cutmapFine[1],cutmapFine[2],cutmapFine[3],cutmapVfine[0], cutmapVfine[1],cutmapVfine[2],cutmapVfine[3]  = mapattrNetCDFMeteo(namemeteo)
+            # downscaling wordlclim maps
+            for i in range(4): cutmapGlobal[i] = cutmapFine[i]
+
+            if not(check_clim):
+               # for downscaling it is always cut from the global map
+                if (latldd != latmeteo) or (lonldd != lonmeteo):
+                    cutmapGlobal[0] = int(cutmap[0] / maskmapAttr['reso_mask_meteo'])
+                    cutmapGlobal[2] = int(cutmap[2] / maskmapAttr['reso_mask_meteo'])
+                    cutmapGlobal[1] = int(cutmap[1] / maskmapAttr['reso_mask_meteo']+0.999)
+                    cutmapGlobal[3] = int(cutmap[3] / maskmapAttr['reso_mask_meteo']+0.999)
+
+        # -------------------------------------------------------------------
+
+
 
         # test if ModFlow is in the settingsfile
         # if not, use default without Modflow
@@ -231,8 +336,6 @@ class readmeteo(object):
         self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale, modflowSteady = modflow) * self.var.DtDay * self.var.con_precipitation
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
 
-
-
         if self.var.meteodown:
             self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
         else:
@@ -241,10 +344,9 @@ class readmeteo(object):
         #self.var.Precipitation = self.var.Precipitation * 1000
 
         self.var.prec = self.var.Precipitation / self.var.con_precipitation
-        # precipitation (conversion to [mm] per time step)  `
+        # precipitation (conversion to [m] per time step)  `
         if Flags['check']:
             checkmap(self.var.preMaps, "", self.var.Precipitation, True, True, self.var.Precipitation)
-
 
         #self.var.Tavg = readnetcdf2('TavgMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
 

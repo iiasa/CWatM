@@ -16,15 +16,30 @@ class sealed_water(object):
     Sealed and open water runoff
 
     calculated runoff from impermeable surface (sealed) and into water bodies
+
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    availWaterInfiltrati  quantity of water reaching the soil after interception, more snowmelt             m        
+    capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
+    EWRef                 potential evaporation rate from water surface                                     m        
+    actualET              simulated evapotranspiration from soil, flooded area and vegetation               m        
+    directRunoff          Simulated surface runoff                                                          m        
+    openWaterEvap         Simulated evaporation from open areas                                             m        
+    actTransTotal         Total actual transpiration from the three soil layers                             m        
+    actBareSoilEvap       Simulated evaporation from the first soil layer                                   m        
+    ====================  ================================================================================  =========
+
+    **Functions**
     """
 
-    def __init__(self, sealed_water_variable):
-        self.var = sealed_water_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
-
- 
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def dynamic(self,coverType, No):
         """
@@ -55,7 +70,7 @@ class sealed_water(object):
             self.var.actualET[No] = self.var.actualET[No] +  self.var.openWaterEvap[No]
 
         if checkOption('calcWaterBalance') and (No>3):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.availWaterInfiltration[No] ],  # In
                 [self.var.directRunoff[No], self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [globals.inZero],  # prev storage

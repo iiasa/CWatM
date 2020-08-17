@@ -9,13 +9,8 @@
 # -------------------------------------------------------------------------
 
 
-import xml.dom.minidom
-import datetime
-import time as xtime
 import os
 import sys
-
-from .globals import *
 
 
 class CWATMError(Exception):
@@ -25,9 +20,8 @@ class CWATMError(Exception):
 
     :param Warning: class CWATMError
     :return: prints out a message about an error
-
-
     """
+
     def __init__(self, msg):
 
         # don't show the error code, lines etc.
@@ -51,11 +45,14 @@ class CWATMFileError(CWATMError):
     :return: prints out a message about file error
 
     """
-    def __init__(self, filename,msg="",sname = ""):
+    def __init__(self, filename, msg="", sname=""):
         # don't show the error code, lines etc.
         sys.tracebacklimit = 0
-        path,name = os.path.split(filename)
-        if os.path.exists(path):
+        path, name = os.path.split(filename)
+        if os.path.exists(filename):
+            text1 = "In  \"" + sname + "\"\n"
+            text1 += "filename: "+ filename + " exists, but an error was raised"
+        elif os.path.exists(path):
             text1 = "In  \"" + sname + "\"\n"
             text1 += "path: "+ path + " exists\nbut filename: "+name+ " does not\n"
             text1 +="file name extension can be .nc4 or .nc\n"

@@ -13,13 +13,64 @@ from cwatm.management_modules.data_handling import *
 class groundwater_modflow(object):
     """
     GROUNDWATER MODFLOW 
+
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    head                  Simulated ModFlow water level [masl]                                              m        
+    modflowStorGW                                                                                                    
+    sum_gwRecharge        groundwater recharge                                                              m        
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    gwstore                                                                                                          
+    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days…)                                       
+    sumed_sum_gwRecharge                                                                                             
+    GWVolumeVariation                                                                                                
+    modflowsteady         True if modflow_steadystate = True in settings file                               --       
+    modflowexe            Path to the ModFlow.exe file                                                      --       
+    PathModflow           Path to the ModFlow folder where input data and ModFlow runs are stored           --       
+    PathModflowOutput     Path to the ModFlow folder where ModFlow runs are stored                          --       
+    res_ModFlow           Chosen ModFlow model resolution                                                            
+    Ndays_steady          Number of steady state run before the transient simulation                        --       
+    nlay                  Number of ModFlow layers                                                          --       
+    actual_thick          Array (nlays, nrows, ncols) of layers thickness                                   m        
+    coef                  A coefficient defined by the user to artificially increase layer thickness                 
+    delv2                 Array (nlays, nrows, ncols) of layers thickness times coef                        m        
+    riverPercentage       Array (nrows, ncol) defining the percentage of rivers on each ModFlow cell                 
+    hk0                   Array (nrows, ncol) defining the groundwater permeability [m/s]                            
+    poro                  Array (nrows, ncol) defining the groundwater porosity []                                   
+    basin                 Array (nrows, ncol) defining wich cells are active (1 or 0)                                
+    waterTable3           Array (nrows, ncol) defining DRAIN altitude [masl] on each cell                   m        
+    modflowtotalSoilThic  Array (nrows, ncol) used to compute water table depth in post-processing          m        
+    botm                  Array (nlays+1, nrows, ncols) of layers top and botm [masl]                       m        
+    nameModflowModel      Name of the ModFlow model (used for ModFlow output)                                        
+    steady_previous       True if a previous simulated map is used to defined the initial water table                
+    GW_pumping                                                                                                       
+    modflow_text_to_writ                                                                                             
+    modflow_compteur      Counts each day relatively to the chosen ModFlow timestep, allow to run ModFlow            
+    writeerror                                                                                                       
+    nameerrorfile                                                                                                    
+    storGroundwater1                                                                                                 
+    modflowWaterLevel     Simulated ModFlow water level [masl]                                                       
+    sumstorGW                                                                                                        
+    sumstorGW2                                                                                                       
+    pregwstore                                                                                                       
+    prestorGroundwater1                                                                                              
+    modflowPumpingM                                                                                                  
+    cellArea              Cell area [m²] of each simulated mesh                                                      
+    capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
+    baseflow              simulated baseflow (= groundwater discharge to river)                             m        
+    soildepth12           Total thickness of layer 2 and 3                                                  m        
+    ====================  ================================================================================  =========
+
+    **Functions**
     """
 
-    def __init__(self, groundwater_modflow_variable):
-        self.var = groundwater_modflow_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """
@@ -111,9 +162,6 @@ class groundwater_modflow(object):
             top = np.loadtxt(cbinding('topo_modflow'))
             # "Topo.txt" is created by the ProjMapToModFlow function
             topography = top.reshape(domain['nrow'], domain['ncol'])
-            self.var.botm = np.full((self.var.nlay + 1, domain['nrow'], domain['ncol']), topography)
-            for il in range(1, self.var.nlay + 1):
-                self.var.botm[il] = self.var.botm[il - 1] - self.var.delv2[0]
 
             ## Uploading river percentage of each ModFlow cell computed by Matlab Topotoolbox on a finner topography map ##
             #  print("Calculate River percentage")
@@ -177,12 +225,17 @@ class groundwater_modflow(object):
             soildepth12 = maskinfo['maskall'].copy()
             soildepth12[~maskinfo['maskflat']] = self.var.soildepth12[:]
             # CWATM 2D array is comverted to Modflow 2D array
-            soildepth_modflow = indexes['Weight'] * soildepth12[indexes['CWATMindex']]
+            soildepth_modflow = soildepth12[indexes['CWATMindex']]
             soildepth_modflow[np.isnan(soildepth_modflow)] = 1.0
             soildepth_modflow[soildepth_modflow < 1e-20] = 1.0
             soildepth_modflow = soildepth_modflow.reshape(domain['nrow'], domain['ncol'])
-            self.var.waterTable3 = topography - soildepth_modflow
+            self.var.waterTable3 = topography - soildepth_modflow -0.05
+            self.var.modflowtotalSoilThickness = soildepth_modflow + 0.05
 
+            self.var.botm = np.full((self.var.nlay + 1, domain['nrow'], domain['ncol']), topography)
+            self.var.botm[0] = self.var.waterTable3
+            for il in range(1, self.var.nlay + 1):
+                self.var.botm[il] = self.var.botm[il - 1] - self.var.delv2[0]
 
             taille = np.zeros(indexes['Weight2'].shape)
             h = np.bincount(indexes['CWATMindex'], np.ones(indexes['CWATMindex'].shape)).astype(int)
@@ -342,10 +395,10 @@ class groundwater_modflow(object):
             self.var.modflowWaterLevel[self.var.modflowWaterLevel < 0] = np.nan
             # print('ModFlow storage variations from Water levels [mm]:', np.round(np.nansum(((self.var.modflowWaterLevel-previoushead) * self.var.res_ModFlow * self.var.res_ModFlow * self.var.poro))/46000000000*1000))
             self.var.GWVolumeVariation = np.nansum((self.var.modflowWaterLevel - previoushead) * self.var.poro) * self.var.res_ModFlow * self.var.res_ModFlow
-
+            self.var.modflowPumpingM = globals.inZero.copy()
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.sumed_sum_gwRecharge],  # In
                 [self.var.baseflow, self.var.capillar ],  # Out
                 [self.var.prestorGroundwater1],  # prev storage
@@ -353,7 +406,7 @@ class groundwater_modflow(object):
                 "Ground1", True)
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.sumed_sum_gwRecharge],            # In
                 [self.var.baseflow,self.var.capillar],      # Out
                 [self.var.pregwstore],                      # prev storage

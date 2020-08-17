@@ -14,16 +14,104 @@ from cwatm.management_modules.data_handling import *
 class soil(object):
 
     """
-    SOIL
+    **SOIL**
 
-    Caclulation vertical transfer of water based on Arno scheme
+
+    Calculation vertical transfer of water based on Arno scheme
+
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    capRiseFrac           fraction of a grid cell where capillar rise may happen                            m        
+    cropKC                crop coefficient for each of the 4 different land cover types (forest, irrigated  --       
+    storGroundwater       simulated groundwater storage                                                     m        
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    availWaterInfiltrati  quantity of water reaching the soil after interception, more snowmelt             m        
+    interceptEvap         simulated evaporation from water intercepted by vegetation                        m        
+    potTranspiration      Potential transpiration (after removing of evaporation)                           m        
+    snowEvap              total evaporation from snow for a snow layers                                     m        
+    fracVegCover          Fraction of area covered by the corresponding landcover type                               
+    rootDepth                                                                                                        
+    KSat1                                                                                                            
+    KSat2                                                                                                            
+    KSat3                                                                                                            
+    genuM1                                                                                                           
+    genuM2                                                                                                           
+    genuM3                                                                                                           
+    genuInvM1                                                                                                        
+    genuInvM2                                                                                                        
+    genuInvM3                                                                                                        
+    ws1                   Maximum storage capacity in layer 1                                               m        
+    ws2                   Maximum storage capacity in layer 2                                               m        
+    ws3                   Maximum storage capacity in layer 3                                               m        
+    wres1                 Residual storage capacity in layer 1                                              m        
+    wres2                 Residual storage capacity in layer 2                                              m        
+    wres3                 Residual storage capacity in layer 3                                              m        
+    wrange1                                                                                                          
+    wrange2                                                                                                          
+    wrange3                                                                                                          
+    wfc1                  Soil moisture at field capacity in layer 1                                                 
+    wfc2                  Soil moisture at field capacity in layer 2                                                 
+    wfc3                  Soil moisture at field capacity in layer 3                                                 
+    wwp1                  Soil moisture at wilting point in layer 1                                                  
+    wwp2                  Soil moisture at wilting point in layer 2                                                  
+    wwp3                  Soil moisture at wilting point in layer 3                                                  
+    kunSatFC12                                                                                                       
+    kunSatFC23                                                                                                       
+    arnoBeta                                                                                                         
+    adjRoot                                                                                                          
+    maxtopwater           maximum heigth of topwater                                                        m        
+    capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
+    EWRef                 potential evaporation rate from water surface                                     m        
+    FrostIndexThreshold   Degree Days Frost Threshold (stops infiltration, percolation and capillary rise)  --       
+    FrostIndex            FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Index for Floo  --       
+    actualET              simulated evapotranspiration from soil, flooded area and vegetation               m        
+    soilLayers            Number of soil layers                                                             --       
+    soildepth             Thickness of the first soil layer                                                 m        
+    soildepth12           Total thickness of layer 2 and 3                                                  m        
+    w1                    Simulated water storage in the layer 1                                            m        
+    w2                    Simulated water storage in the layer 2                                            m        
+    w3                    Simulated water storage in the layer 3                                            m        
+    topwater              quantity of water above the soil (flooding)                                       m        
+    directRunoff          Simulated surface runoff                                                          m        
+    interflow             Simulated flow reaching runoff instead of groundwater                             m        
+    openWaterEvap         Simulated evaporation from open areas                                             m        
+    actTransTotal         Total actual transpiration from the three soil layers                             m        
+    actBareSoilEvap       Simulated evaporation from the first soil layer                                   m        
+    percolationImp        Fraction of area covered by the corresponding landcover type                      m        
+    cropGroupNumber       soil water depletion fraction, Van Diepen et al., 1988: WOFOST 6.0, p.86, Dooren  --       
+    cPrefFlow             Factor influencing preferential flow (flow from surface to GW)                    --       
+    act_irrConsumption    actual irrgation water consumption                                                m        
+    potBareSoilEvap       potential bare soil evaporation (calculated with minus snow evaporation)          m        
+    totalPotET            Potential evaporation per land use class                                          m        
+    rws                   Transpiration reduction factor (in case of water stress)                          --       
+    prefFlow              Flow going directly from rainfall to groundwater                                  m        
+    infiltration          Water actually infiltrating the soil                                              m        
+    capRiseFromGW         Simulated capillary rise from groundwater                                         m        
+    NoSubSteps            Number of sub steps to calculate soil percolation                                 --       
+    perc1to2              Simulated water flow from soil layer 1 to soil layer 2                            m        
+    perc2to3              Simulated water flow from soil layer 2 to soil layer 3                            m        
+    perc3toGW             Simulated water flow from soil layer 3 to groundwater                             m        
+    theta1                fraction of water in soil compartment 1 for each land use class                   --       
+    theta2                fraction of water in soil compartment 2 for each land use class                   --       
+    theta3                fraction of water in soil compartment 3 for each land use class                   --       
+    actTransTotal_forest                                                                                             
+    actTransTotal_grassl                                                                                             
+    actTransTotal_paddy                                                                                              
+    actTransTotal_nonpad                                                                                             
+    before                                                                                                           
+    gwRecharge            groundwater recharge                                                              m        
+    ====================  ================================================================================  =========
+
+    **Functions**
     """
 
-    def __init__(self, soil_variable):
-        self.var = soil_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """
@@ -31,17 +119,11 @@ class soil(object):
 
         * Initialize all the hydraulic properties of soil
         * Set soil depth
+
         """
 
         self.var.soilLayers = 3
         # --- Topography -----------------------------------------------------
-        #self.var.tanslope = loadmap('tanslope')
-        #self.var.slopeLength = loadmap('slopeLength')
-
-
-        #self.var.tanslope = np.maximum(self.var.tanslope, 0.00001)
-        # setting slope >= 0.00001 to prevent 0 value
-
         # maps of relative elevation above flood plains
         dzRel = ['dzRel0001','dzRel0005',
                  'dzRel0010','dzRel0020','dzRel0030','dzRel0040','dzRel0050',
@@ -344,11 +426,7 @@ class soil(object):
         #availWaterPlant1 = np.maximum(0., self.var.w1[No] - self.var.wwp1[No]) * self.var.rootDepth[0][No]
         #availWaterPlant2 = np.maximum(0., self.var.w2[No] - self.var.wwp2[No]) * self.var.rootDepth[1][No]
         #availWaterPlant3 = np.maximum(0., self.var.w3[No] - self.var.wwp3[No]) * self.var.rootDepth[2][No]
-        #self.var.readAvlWater = availWaterPlant1 + availWaterPlant2 + availWaterPlant3
-
-
-
-
+        #readAvlWater = availWaterPlant1 + availWaterPlant2 + availWaterPlant3
 
         # Percolation -----------------------------------------------
         if No == 0:
@@ -520,52 +598,26 @@ class soil(object):
         self.var.w3[No] = self.var.w3[No] + self.var.perc2to3[No] - self.var.perc3toGW[No]
 
         # Compute the amount of water that could not infiltrate and add this water to the surface runoff
-       # self.var.infiltration[No] = self.var.infiltration[No] - np.maximum(self.var.w1[No] - self.var.ws1[No], 0.0)
-       # self.var.directRunoff[No] = self.var.directRunoff[No] + np.maximum(self.var.w1[No] - self.var.ws1[No], 0.0)
-       # self.var.w1[No] = np.minimum(self.var.w1[No], self.var.ws1[No])
-
         self.var.theta1[No] = self.var.w1[No] / self.var.rootDepth[0][No]
         self.var.theta2[No] = self.var.w2[No] / self.var.rootDepth[1][No]
         self.var.theta3[No] = self.var.w3[No] / self.var.rootDepth[2][No]
 
-
-
-
-
-
-
         # ---------------------------------------------------------------------------------------------
-        # Calculate interflow
-        #self.var.interflow[No] = self.var.percolationImp * (perc[1] + self.var.capRiseFromGW[No] - (self.var.perc3toGW[No] + capRise[1]))
-        #self.var.interflow[No] = np.maximum(0.0, self.var.interflow[No])
-
-
-
-
-
-
         # total actual transpiration
-        #self.var.actTransTotal[No] = actTrans[0] + actTrans[1] + actTrans[2]
-        #self.var.actTransTotal[No] =  np.sum(actTrans, axis=0)
         self.var.actTransTotal[No] = ta1 + ta2 + ta3
+
+        self.var.actTransTotal_forest = self.var.actTransTotal[0] * self.var.fracVegCover[0]
+        self.var.actTransTotal_grasslands = self.var.actTransTotal[1] * self.var.fracVegCover[1]
+        self.var.actTransTotal_paddy = self.var.actTransTotal[2]*self.var.fracVegCover[2]
+        self.var.actTransTotal_nonpaddy = self.var.actTransTotal[3]*self.var.fracVegCover[3]
 
         self.var.before = self.var.actualET[No].copy()
 
         # total actual evaporation + transpiration
         self.var.actualET[No] = self.var.actualET[No] + self.var.actBareSoilEvap[No] + self.var.openWaterEvap[No] + self.var.actTransTotal[No]
-        #self.var.actualET[No] = self.var.actualET[No] + self.var.actBareSoilEvap[No] + self.var.actTransTotal[No]
-
-
         #  actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water evaporation, therefore self.var.totalPotET[No] is adjusted
         self.var.totalPotET[No] = np.maximum(self.var.totalPotET[No], self.var.actualET[No])
-
-
-        # net percolation between upperSoilStores (positive indicating downward direction)
-        #elf.var.netPerc[No] = perc[0] - capRise[0]
-        #self.var.netPercUpper[No] = perc[1] - capRise[1]
-
         # groundwater recharge
-        #self.var.gwRecharge[No] = self.var.perc3toGW[No] - self.var.capRiseFromGW[No] + self.var.prefFlow[No]
         toGWorInterflow = self.var.perc3toGW[No] + self.var.prefFlow[No]
         self.var.interflow[No] = self.var.percolationImp * toGWorInterflow
 
@@ -575,17 +627,9 @@ class soil(object):
             self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow - self.var.capRiseFromGW[No]
 
 
-
-
-        # landSurfaceRunoff (needed for routing)
-        #self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflowTotal[No]
-
-        #if (dateVar['curr'] == 121) and (No==2):
-        #    ii=1
-        """
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No], self.var.irrConsumption[No]],  # In  water demand included in availwater
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.availWaterInfiltration[No], self.var.capRiseFromGW[No], self.var.act_irrConsumption[No]],  # In  water demand included in availwater
                 [self.var.directRunoff[No],self.var.perc3toGW[No], self.var.prefFlow[No] ,
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [ preStor1, preStor2, preStor3,pretopwater],  # prev storage
@@ -594,8 +638,8 @@ class soil(object):
 
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.irrConsumption[No]],  # In
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.availWaterInfiltration[No], self.var.act_irrConsumption[No]],  # In
                 [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No],
                  self.var.actTransTotal[No], self.var.actBareSoilEvap[No], self.var.openWaterEvap[No]],  # Out
                 [ preStor1, preStor2, preStor3,pretopwater],  # prev storage
@@ -604,14 +648,14 @@ class soil(object):
             # openWaterEvap in because it is taken from availWater directly, out because it taken out immediatly. It is not a soil process indeed
 
         if option['calcWaterBalance']:
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.irrConsumption[No],self.var.snowEvap,self.var.interceptEvap[No]],  # In
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.availWaterInfiltration[No], self.var.act_irrConsumption[No],self.var.snowEvap,self.var.interceptEvap[No]],  # In
                 [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No],
                  self.var.actualET[No]],  # Out
                 [preStor1, preStor2, preStor3,pretopwater],  # prev storage
                 [self.var.w1[No], self.var.w2[No], self.var.w3[No],self.var.topwater],
                 "Soil_AllSoil", False)
-        """
+
 
 
 

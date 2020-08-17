@@ -19,13 +19,135 @@ class landcoverType(object):
     runs the 6 land cover types through soil procedures
 
     This routine calls the soil routine for each land cover type
+
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    load_initial                                                                                                     
+    sum_gwRecharge        groundwater recharge                                                              m        
+    modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days…)                                       
+    sumed_sum_gwRecharge                                                                                             
+    GWVolumeVariation                                                                                                
+    snowEvap              total evaporation from snow for a snow layers                                     m        
+    maxGWCapRise          influence of capillary rise above groundwater level                               m        
+    minInterceptCap       Maximum interception read from file for forest and grassland land cover           m        
+    interceptStor         simulated vegetation interception storage                                         m        
+    dynamicLandcover                                                                                                 
+    landcoverSum                                                                                                     
+    act_SurfaceWaterAbst                                                                                             
+    sum_interceptStor     Total of simulated vegetation interception storage including all landcover types  m        
+    fracVegCover          Fraction of area covered by the corresponding landcover type                               
+    minCropKC             minimum crop factor (default 0.2)                                                 --       
+    minTopWaterLayer                                                                                                 
+    rootFraction1                                                                                                    
+    maxRootDepth                                                                                                     
+    rootDepth                                                                                                        
+    KSat1                                                                                                            
+    KSat2                                                                                                            
+    KSat3                                                                                                            
+    alpha1                                                                                                           
+    alpha2                                                                                                           
+    alpha3                                                                                                           
+    lambda1                                                                                                          
+    lambda2                                                                                                          
+    lambda3                                                                                                          
+    thetas1                                                                                                          
+    thetas2                                                                                                          
+    thetas3                                                                                                          
+    thetar1                                                                                                          
+    thetar2                                                                                                          
+    thetar3                                                                                                          
+    genuM1                                                                                                           
+    genuM2                                                                                                           
+    genuM3                                                                                                           
+    genuInvM1                                                                                                        
+    genuInvM2                                                                                                        
+    genuInvM3                                                                                                        
+    genuInvN1                                                                                                        
+    genuInvN2                                                                                                        
+    genuInvN3                                                                                                        
+    invAlpha1                                                                                                        
+    invAlpha2                                                                                                        
+    invAlpha3                                                                                                        
+    ws1                   Maximum storage capacity in layer 1                                               m        
+    ws2                   Maximum storage capacity in layer 2                                               m        
+    ws3                   Maximum storage capacity in layer 3                                               m        
+    wres1                 Residual storage capacity in layer 1                                              m        
+    wres2                 Residual storage capacity in layer 2                                              m        
+    wres3                 Residual storage capacity in layer 3                                              m        
+    wrange1                                                                                                          
+    wrange2                                                                                                          
+    wrange3                                                                                                          
+    wfc1                  Soil moisture at field capacity in layer 1                                                 
+    wfc2                  Soil moisture at field capacity in layer 2                                                 
+    wfc3                  Soil moisture at field capacity in layer 3                                                 
+    wwp1                  Soil moisture at wilting point in layer 1                                                  
+    wwp2                  Soil moisture at wilting point in layer 2                                                  
+    wwp3                  Soil moisture at wilting point in layer 3                                                  
+    kUnSat3FC                                                                                                        
+    kunSatFC12                                                                                                       
+    kunSatFC23                                                                                                       
+    cropCoefficientNC_fi                                                                                             
+    interceptCapNC_filen                                                                                             
+    coverFractionNC_file                                                                                             
+    sum_topwater          quantity of water on the soil (flooding) (weighted sum for all landcover types)   m        
+    sum_soil                                                                                                         
+    sum_w1                                                                                                           
+    sum_w2                                                                                                           
+    sum_w3                                                                                                           
+    totalSto              Total soil,snow and vegetation storage for each cell including all landcover typ  m        
+    arnoBetaOro                                                                                                      
+    arnoBeta                                                                                                         
+    adjRoot                                                                                                          
+    maxtopwater           maximum heigth of topwater                                                        m        
+    totAvlWater                                                                                                      
+    presumed_sum_gwRecha  Previous groundwater recharge [m/timestep] (used for the ModFlow version)         m        
+    pretotalSto           Previous totalSto                                                                 m        
+    sum_actBareSoilEvap                                                                                              
+    sum_openWaterEvap                                                                                                
+    addtoevapotrans                                                                                                  
+    sum_runoff            Runoff above the soil, more interflow, including all landcover types              m        
+    sum_directRunoff                                                                                                 
+    sum_interflow                                                                                                    
+    sum_availWaterInfilt                                                                                             
+    sum_capRiseFromGW     capillar rise from groundwater to 3rd soil layer (summed up for all land cover c  m        
+    sum_act_irrConsumpti                                                                                             
+    sum_perc3toGW         percolation from 3rd soil layer to groundwater (summed up for all land cover cla  m        
+    sum_prefFlow          preferential flow from soil to groundwater (summed up for all land cover classes  m        
+    act_irrWithdrawal                                                                                                
+    act_nonIrrConsumptio                                                                                             
+    returnFlow                                                                                                       
+    cellArea              Cell area [m²] of each simulated mesh                                                      
+    baseflow              simulated baseflow (= groundwater discharge to river)                             m        
+    Precipitation         Precipitation (input for the model)                                               m        
+    coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
+    Rain                  Precipitation less snow                                                           m        
+    SnowMelt              total snow melt from all layers                                                   m        
+    SnowCover             snow cover (sum over all layers)                                                  m        
+    ElevationStD                                                                                                     
+    prevSnowCover         snow cover of previous day (only for water balance)                               m        
+    soilLayers            Number of soil layers                                                             --       
+    soildepth             Thickness of the first soil layer                                                 m        
+    soildepth12           Total thickness of layer 2 and 3                                                  m        
+    w1                    Simulated water storage in the layer 1                                            m        
+    w2                    Simulated water storage in the layer 2                                            m        
+    w3                    Simulated water storage in the layer 3                                            m        
+    topwater              quantity of water above the soil (flooding)                                       m        
+    totalET               Total evapotranspiration for each cell including all landcover types              m        
+    sum_actTransTotal                                                                                                
+    sum_interceptEvap                                                                                                
+    ====================  ================================================================================  =========
+
+    **Functions**
     """
 
-    def __init__(self, landcoverType_variable):
-        self.var = landcoverType_variable
-
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     # noinspection PyTypeChecker
     def initial(self):
@@ -87,7 +209,7 @@ class landcoverType(object):
         self.var.landcoverSum = ['interceptStor', 'interflow',
                          'directRunoff', 'totalPotET', 'potTranspiration', 'availWaterInfiltration',
                          'interceptEvap', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTransTotal', 'gwRecharge',
-                          'openWaterEvap','capRiseFromGW','perc3toGW','prefFlow', 'actualET']
+                          'openWaterEvap','capRiseFromGW','perc3toGW','prefFlow', 'actualET', 'act_irrConsumption']
         for variable in self.var.landcoverSum: vars(self.var)["sum_"+variable] = globals.inZero.copy()
 
         # for three soil layers
@@ -108,7 +230,7 @@ class landcoverType(object):
             self.var.minInterceptCap.append(loadmap(coverType + "_minInterceptCap"))
             # init values
             if coverType in ['forest', 'grassland', 'irrPaddy', 'irrNonPaddy','sealed']:
-                self.var.interceptStor[i] = self.var.init_module.load_initial(coverType + "_interceptStor")
+                self.var.interceptStor[i] = self.var.load_initial(coverType + "_interceptStor")
 
             # summarize the following initial storages:
             self.var.sum_interceptStor += self.var.fracVegCover[i] * self.var.interceptStor[i]
@@ -280,10 +402,10 @@ class landcoverType(object):
 
 
             # init values
-            #self.var.interflow[i] = self.var.init_module.load_initial(coverType + "_interflow")
-            self.var.w1[i] = self.var.init_module.load_initial(coverType + "_w1",default = self.var.wwp1[i])
-            self.var.w2[i] = self.var.init_module.load_initial(coverType + "_w2",default = self.var.wwp2[i])
-            self.var.w3[i] = self.var.init_module.load_initial(coverType + "_w3",default = self.var.wwp3[i])
+            #self.var.interflow[i] = self.var.load_initial(coverType + "_interflow")
+            self.var.w1[i] = self.var.load_initial(coverType + "_w1",default = self.var.wwp1[i])
+            self.var.w2[i] = self.var.load_initial(coverType + "_w2",default = self.var.wwp2[i])
+            self.var.w3[i] = self.var.load_initial(coverType + "_w3",default = self.var.wwp3[i])
 
             soilVars = ['w1', 'w2', 'w3']
             for variable in soilVars:
@@ -292,10 +414,10 @@ class landcoverType(object):
                     vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
             # for paddy irrigation flooded paddy fields
-            self.var.topwater = self.var.init_module.load_initial("topwater", default= 0.) * globals.inZero.copy()
+            self.var.topwater = self.var.load_initial("topwater", default= 0.) * globals.inZero.copy()
             self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
-            self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
-
+            self.var.sum_soil = self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
+            self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_soil
 
             # Improved Arno's scheme parameters: Hageman and Gates 2003
             # arnoBeta defines the shape of soil water capacity distribution curve as a function of  topographic variability
@@ -315,34 +437,18 @@ class landcoverType(object):
             # In such a case, it may be better to turn off the root fractioning feature, as there is limited depth
             # in the third soil layer to hold water, while having a significant fraction of the rootss.
             # TODO: Extend soil depths to match maximum root depths
+            
+            rootFrac = np.tile(globals.inZero,(self.var.soilLayers,1))
+            fractionroot12 = self.var.rootDepth[0][i] / (self.var.rootDepth[0][i] + self.var.rootDepth[1][i] )
+            rootFrac[0] = fractionroot12 * self.var.rootFraction1[i]
+            rootFrac[1] = (1 - fractionroot12) * self.var.rootFraction1[i]
+            rootFrac[2] = 1.0 - self.var.rootFraction1[i]
 
             if 'rootFrac' in binding:
-                if cbinding('rootFrac') == 'False':
-                    rootFrac = False
-                else:
-                    rootFrac = True
-            else:
-                rootFrac = True
-
-            if rootFrac == False:
-
-                # scaleRootFractions
-                rootFrac = np.tile(globals.inZero,(self.var.soilLayers,1))
-
-                root_depth_sum = self.var.rootDepth[0][i] + self.var.rootDepth[1][i] + self.var.rootDepth[2][i]
-
-                for layer in range(3):
-                    rootFrac[layer] = self.var.rootDepth[layer][i] / root_depth_sum
-
-            else:
-
-                # scaleRootFractions
-                rootFrac = np.tile(globals.inZero,(self.var.soilLayers,1))
-                fractionroot12 = self.var.rootDepth[0][i] / (self.var.rootDepth[0][i] + self.var.rootDepth[1][i] )
-                rootFrac[0] = fractionroot12 * self.var.rootFraction1[i]
-                rootFrac[1] = (1 - fractionroot12) * self.var.rootFraction1[i]
-                rootFrac[2] = 1.0 - self.var.rootFraction1[i]
-
+                if not checkOption('rootFrac'):
+                    root_depth_sum = self.var.rootDepth[0][i] + self.var.rootDepth[1][i] + self.var.rootDepth[2][i]
+                    for layer in range(3):
+                        rootFrac[layer] = self.var.rootDepth[layer][i] / root_depth_sum
 
             rootFracSum = np.sum(rootFrac,axis=0)
 
@@ -359,9 +465,9 @@ class landcoverType(object):
             self.var.maxtopwater = loadmap('irrPaddy_maxtopwater')
 
 
-        self.var.landcoverSumSum = ['directRunoff', 'totalPotET', 'potTranspiration', "Precipitation", 'ETRef','gwRecharge','Runoff']
-        for variable in self.var.landcoverSumSum:
-            vars(self.var)["sumsum_" + variable] = globals.inZero.copy()
+        #self.var.landcoverSumSum = ['directRunoff', 'totalPotET', 'potTranspiration', "Precipitation", 'ETRef','gwRecharge','Runoff']
+        #for variable in self.var.landcoverSumSum:
+        #    vars(self.var)["sumsum_" + variable] = globals.inZero.copy()
 
         # for irrigation of non paddy -> No =3
         totalWaterPlant1 = np.maximum(0., self.var.wfc1[3] - self.var.wwp1[3]) #* self.var.rootDepth[0][3]
@@ -402,29 +508,9 @@ class landcoverType(object):
 
 
             for coverType in self.var.coverTypes:
-
-                if 'Forest_1km' in binding:
-                    if i == 0:  # Forest
-                        self.var.fracVegCover[i] = loadmap('Forest_1km')
-
-                    elif i == 2:
-                        self.var.fracVegCover[i] = globals.inZero.copy()  # *= self.var.riceWeight
-
-                    elif i == 3:  # Crop
-                        self.var.fracVegCover[i] = loadmap('Irr_1km')
-
-                    elif i == 4:  # Urban / Sealed
-                        self.var.fracVegCover[i] = loadmap('Urban_1km')
-                    elif i == 5:  # Urban / Sealed
-                        self.var.fracVegCover[i] = loadmap('Water_1km')
-                    else:
-                        self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
-
-                else:
-                    self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
-
+                
+                self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
                 i += 1
-
 
 
             # for Xiaogang's agent model
@@ -509,15 +595,14 @@ class landcoverType(object):
                 usecovertype = 2   # exclude irrigation
             # calculate evaporation and transpiration for soil land cover types (not for sealed and water covered areas)
             if coverNo < usecovertype:
-                self.var.evaporation_module.dynamic(coverType, coverNo)
-            self.var.interception_module.dynamic(coverType, coverNo)
+                self.model.evaporation_module.dynamic(coverType, coverNo)
+            self.model.interception_module.dynamic(coverType, coverNo)
             coverNo += 1
-
 
         # -----------------------------------------------------------
         # Calculate  water available for infiltration
         # *********  WATER Demand   *************************
-        self.var.waterdemand_module.dynamic()
+        self.model.waterdemand_module.dynamic()
 
         # Calculate soil
         coverNo = 0
@@ -528,17 +613,11 @@ class landcoverType(object):
                 usecovertype = 2   # exclude irrgation
 
             if coverNo < usecovertype:
-                self.var.soil_module.dynamic(coverType, coverNo)
+                self.model.soil_module.dynamic(coverType, coverNo)
             if coverNo > 3:
                 # calculate for openwater and sealed area
-                self.var.sealed_water_module.dynamic(coverType, coverNo)
+                self.model.sealed_water_module.dynamic(coverType, coverNo)
             coverNo += 1
-
-
-
-
-
-
 
 
         # aggregated variables by fraction of land cover
@@ -558,10 +637,12 @@ class landcoverType(object):
                     vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
 
+
         self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
         self.var.totalET = self.var.sum_actTransTotal + self.var.sum_actBareSoilEvap + self.var.sum_openWaterEvap + self.var.sum_interceptEvap + self.var.snowEvap + self.var.addtoevapotrans
         # addtoevapotrans: part of water demand which is lost due to evaporation
-        self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
+        self.var.sum_soil = self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
+        self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_soil
         self.var.sum_runoff = self.var.sum_directRunoff + self.var.sum_interflow
 
         ### Printing the soil+GW water balance (considering no pumping), without the surface part
@@ -581,7 +662,7 @@ class landcoverType(object):
         #    ii=1
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.Rain,self.var.SnowMelt],  # In
                 [self.var.sum_availWaterInfiltration,self.var.sum_interceptEvap],  # Out
                 [preIntStor],   # prev storage
@@ -589,22 +670,20 @@ class landcoverType(object):
                 "InterAll", False)
 
 
-        """
-
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.sum_availWaterInfiltration,self.var.sum_capRiseFromGW, self.var.sumirrConsumption],                             # In
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.sum_availWaterInfiltration,self.var.sum_capRiseFromGW, self.var.sum_act_irrConsumption],       # In
                 [self.var.sum_directRunoff,self.var.sum_perc3toGW, self.var.sum_prefFlow,
-                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap],                                                                # Out
-                [pretop,preStor1,preStor2,preStor3],                                       # prev storage
+                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap],             # Out
+                [pretop,preStor1,preStor2,preStor3],                                                      # prev storage
                 [self.var.sum_w1, self.var.sum_w2, self.var.sum_w3,self.var.sum_topwater],
                 "Soil_sum1", False)
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Rain,self.var.SnowMelt,self.var.sumirrConsumption],                             # In
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.Rain,self.var.SnowMelt, self.var.sum_act_irrConsumption],                             # In
                 [self.var.sum_directRunoff,self.var.sum_interflow,self.var.sum_gwRecharge,
-                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap,self.var.sum_interceptEvap],                                                                # Out
+                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap,self.var.sum_interceptEvap],  # Out
                 [pretop,preStor1,preStor2,preStor3,preIntStor],                                       # prev storage
                 [self.var.sum_w1, self.var.sum_w2, self.var.sum_w3,self.var.sum_interceptStor,self.var.sum_topwater],
                 "Soil_sum111", False)
@@ -612,19 +691,19 @@ class landcoverType(object):
 
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation,self.var.sumirrConsumption],                             # In
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation, self.var.sum_act_irrConsumption],                             # In
                 [self.var.sum_directRunoff,self.var.sum_interflow,self.var.sum_gwRecharge,
-                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap,self.var.sum_interceptEvap,self.var.snowEvap],                                                                # Out
+                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap,self.var.sum_openWaterEvap,self.var.sum_interceptEvap,self.var.snowEvap],  # Out
                 [pretop,preStor1,preStor2,preStor3,preIntStor,self.var.prevSnowCover],                                       # prev storage
                 [self.var.sum_w1, self.var.sum_w2, self.var.sum_w3,self.var.sum_interceptStor,self.var.SnowCover,self.var.sum_topwater],
                 "Soil_sum2", False)
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation,self.var.sumirrConsumption],                             # In
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation, self.var.sum_act_irrConsumption],                             # In
                 [self.var.sum_directRunoff,self.var.sum_interflow,self.var.sum_gwRecharge,
-                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap],                                                                # Out
+                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap],   # Out
                 [self.var.pretotalSto],                                       # prev storage
                 [self.var.totalSto],
                 "Soil_sum2b", False)
@@ -632,21 +711,22 @@ class landcoverType(object):
 
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation,self.var.waterWithdrawal],                             # In
+            self.model.waterbalance_module.waterBalanceCheck(
+                [self.var.Precipitation,self.var.act_irrWithdrawal],                             # In
                 [self.var.sum_directRunoff,self.var.sum_interflow,self.var.sum_gwRecharge,
-                 self.var.totalET, self.var.nonIrruse,self.var.returnFlow ],                                                                # Out
+                 self.var.totalET,self.var.act_nonIrrConsumption,self.var.returnFlow ],                   # Out
                 [self.var.pretotalSto],                                       # prev storage
                 [self.var.totalSto],
-                "Soil_sum3", True)
+                "Soil_sum3", False)  #  -> something wrong
 
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.Precipitation],                             # In
                 [self.var.sum_runoff,self.var.sum_gwRecharge,self.var.totalET ],  # out
                 [self.var.pretotalSto],                                       # prev storage
                 [self.var.totalSto],
-                "Soil_sum4", True)
+                "Soil_sum4", False)
+
 
 
 
@@ -660,7 +740,3 @@ class landcoverType(object):
         #report(decompress(self.var.sumsum_Precipitation), "c:\work\output\Prsum.map")
         #report(decompress(self.var.sumsum_gwRecharge), "c:\work\output\gwrsum.map")
         
-        """
-
-
-

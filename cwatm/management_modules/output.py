@@ -31,13 +31,30 @@ from decimal import Decimal
 class outputTssMap(object):
 
     """
-    Class: Output of time series and map
+    Output of time series and map
+
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    dirUp                 river network in upstream direction                                               --       
+    cellArea              Cell area [m²] of each simulated mesh                                                      
+    sampleAdresses                                                                                                   
+    noOutpoints                                                                                                      
+    evalCatch                                                                                                        
+    catcharea                                                                                                        
+    firstout                                                                                                         
+    discharge             discharge                                                                         m3/s     
+    ====================  ================================================================================  =========
+
+    **Functions**
     """
 
-    def __init__(self, out_variable):
-        self.var = out_variable
-
-
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
     def initial(self):
         """

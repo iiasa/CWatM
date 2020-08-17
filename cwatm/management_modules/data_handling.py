@@ -8,11 +8,8 @@
 # Copyright:   (c) PB 2016
 # -------------------------------------------------------------------------
 
-
-
 import os, glob
 import calendar
-
 
 #import numpy as np
 from . import globals
@@ -25,7 +22,6 @@ import difflib  # to check the closest word in settingsfile, if an error occurs
 import math
 from cwatm.management_modules.dynamicModel import *
 
-
 from netCDF4 import Dataset,num2date,date2num,date2index
 #from netcdftime import utime
 
@@ -33,8 +29,6 @@ import gdal
 from osgeo import osr
 from gdalconst import *
 import warnings
-
-
 
 def valuecell( coordx, coordstr, returnmap = True):
     """
@@ -125,7 +119,7 @@ def setmaskmapAttr(x,y,col,row,cell):
     maskmapAttr['invcell'] = invcell
 
 
-def loadsetclone(name):
+def loadsetclone(self,name):
     """
     load the maskmap and set as clone
 
@@ -248,13 +242,28 @@ def loadsetclone(name):
 
     outpoints = 0
     if len(coord) == 2:
-       outpoints = valuecell( coord, filename)
+       outpoints = valuecell(coord, filename)
        outpoints[outpoints < 0] = 0
 
-    return mapC, outpoints, len(coord)
+       print("Create catchment from point and river network")
+       mask2D, xleft, yup = self.routing_kinematic_module.catchment(outpoints)
+       mapC = maskfrompoint(mask2D, xleft, yup) + 1
+       area = np.sum(loadmap('CellArea')) * 1e-6
+       print("Number of cells in catchment: %6i = %7.0f km2" % (np.sum(mask2D), area))
+
+    # if the final results map should be cover up with some mask:
+    if "coverresult" in binding:
+        coverresult[0] = returnBool('coverresult')
+        if coverresult[0]:
+            cover = loadmap('covermap', compress=False, cut = False)
+            cover[cover > 1] = False
+            cover[cover == 1] = True
+            coverresult[1] = cover
+
+    return mapC
 
 
-def maskfrompoint(mask2D,xleft,yup):
+def maskfrompoint(mask2D, xleft, yup):
     """
     load a static map either value or pc raster map or netcdf
 
@@ -466,7 +475,7 @@ def getmeta(key,varname,alternative):
     variable metaNetcdfVar
 
     :param key: key
-    :param varname: variable name eg self.var.Precipitation
+    :param varname: variable name e.g. self.var.Precipitation
     :return: metadata information
     """
 
@@ -511,9 +520,11 @@ def readCoord(name):
     except:
         nc = False
     if nc:
-        lat, lon, cell, invcell = readCoordNetCDF(namenc)
+        lat, lon, cell, invcell, rows, cols = readCoordNetCDF(namenc)
     else:
         raster = gdal.Open(name)
+        rows = raster.RasterYSize
+        cols = raster.RasterXSize
         gt = raster.GetGeoTransform()
 
         cell = gt[1]
@@ -527,7 +538,7 @@ def readCoord(name):
         lat = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
 
 
-    return lat,lon, cell,invcell
+    return lat, lon, cell, invcell, rows, cols
 
 
 def readCoordNetCDF2(name,check = True):
@@ -572,6 +583,9 @@ def readCoordNetCDF(name,check = True):
         # if subroutine is called already from inside a try command
         nf1 = Dataset(name, 'r')
 
+    rows = nf1.variables['lat'].shape[0]
+    cols = nf1.variables['lon'].shape[0]
+
     lon0 = nf1.variables['lon'][0]
     lon1 = nf1.variables['lon'][1]
     lat0 = nf1.variables['lat'][0]
@@ -586,9 +600,7 @@ def readCoordNetCDF(name,check = True):
     lon = round(lon0 - cell / 2,8)
     lat = round(lat0 + cell / 2,8)
 
-
-
-    return lat,lon, cell,invcell
+    return lat,lon, cell,invcell,rows,cols
 
 def readCalendar(name):
     nf1 = Dataset(name, 'r')
@@ -664,7 +676,7 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
 
     return check
 
-def mapattrNetCDF(name, check = True):
+def mapattrNetCDF(name, check=True):
     """
     get the 4 corners of a netcdf map to cut the map
     defines the rectangular of the mask map inside the netcdf map
@@ -676,7 +688,7 @@ def mapattrNetCDF(name, check = True):
     :raises if cell size is different: :meth:`management_modules.messages.CWATMError`
     """
 
-    lat, lon, cell, invcell = readCoord(name)
+    lat, lon, cell, invcell, rows, cols = readCoord(name)
 
     if maskmapAttr['invcell'] != invcell:
         msg = "Cell size different in maskmap: " + \
@@ -703,7 +715,7 @@ def mapattrNetCDFMeteo(name, check = True):
     :return: cut0,cut1,cut2,cut3,cut4,cut5,cut6,cut7
     """
 
-    lat, lon, cell, invcell = readCoordNetCDF(name, check)
+    lat, lon, cell, invcell, rows, cols = readCoordNetCDF(name, check)
 
     # x0,xend, y0,yend - borders of fine resolution map
     lon0 = maskmapAttr['x']
@@ -823,21 +835,31 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
                 raise CWATMFileError(filename, msg, sname=maps)
             nctime = nf1.variables['time']
 
-            datestart = num2date(nctime[0],units=nctime.units,calendar=nctime.calendar)
-            #datestart = num2date(nctime[0], units=nctime.units, calendar='proleptic_gregorian')
+            unitconv1 = ["DAYS", "HOUR", "MINU", "SECO"]
+            unitconv2 = [1, 24, 1440, 86400]
+            try:
+                unitconv3 = nctime.units[:4].upper()
+                datediv = unitconv2[unitconv1.index(unitconv3)]
+            except:
+                datediv = 1
+
+            datestart = num2date(nctime[0] ,units=nctime.units,calendar=nctime.calendar)
+
             # sometime daily records have a strange hour to start with -> it is changed to 0:00 to haqve the same record
             datestart = datestart.replace(hour=0, minute=0)
             dateend = num2date(nctime[-1], units=nctime.units, calendar=nctime.calendar)
 
-            datestartint = int(nctime[0])
-            dateendint = int(nctime[-1])
+            datestartint = int(nctime[0]) // datediv
+            dateendint = int(nctime[-1]) // datediv
 
-            #dateend = num2date(nctime[-1], units=nctime.units, calendar='proleptic_gregorian')
             dateend = dateend.replace(hour=0, minute=0)
             #if dateVar['leapYear'] > 0:
             startint = int(date2num(dateVar[startcheck],nctime.units,calendar=nctime.calendar))
             start = num2date(startint, units=nctime.units, calendar=nctime.calendar)
+            startint = startint // datediv
+
             endint = int(date2num(end, nctime.units, calendar=nctime.calendar))
+            endint = endint // datediv
 
             #else:
             #    start = dateVar[startcheck]
@@ -856,7 +878,7 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
                     #start = dateend + datetime.timedelta(days=1)
                     #start = start.replace(hour=0, minute=0)
                     startint = dateendint + 1
-                    start = num2date(startint, units=nctime.units, calendar=nctime.calendar)
+                    start = num2date(startint * datediv, units=nctime.units, calendar=nctime.calendar)
 
             else:
                 if (datestartint >= startint) and (datestartint < endint ):
@@ -867,7 +889,7 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
                     #start = dateend + datetime.timedelta(days=1)
                     #start = start.replace(hour=0, minute=0)
                     startint = dateendint + 1
-                    start = num2date(startint, units=nctime.units, calendar=nctime.calendar)
+                    start = num2date(startint * datediv, units=nctime.units, calendar=nctime.calendar)
 
             nf1.close()
         meteofiles[maps] =  meteolist
@@ -913,6 +935,10 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     warnings.filterwarnings("ignore")
     if value == "None":
         value = list(nf1.variables.items())[-1][0]  # get the last variable name
+        if value in ["lon","lat","time"]:
+            for i in range(2,5):
+               value = list(nf1.variables.items())[-i][0]
+               if not(value in ["lon","lat","time"]) : break
 
     # check if mask = map size -> if yes do not cut the map
     cutcheckmask = maskinfo['shape'][0] * maskinfo['shape'][1]
@@ -1363,9 +1389,6 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
         else:
             mapnp = mapnp.reshape(maskinfo['shape'])
 
-    #date_time[posCnt] = date2num(timeStamp, date_time.units, date_time.calendar)
-
-
     if flagTime:
         nf1.variables[varname][posCnt -1, :, :] = mapnp
     else:
@@ -1490,7 +1513,7 @@ def writeIniNetcdf(netfile,varlist, inputlist):
 # --------------------------------------------------------------------------------------------
 # report .tif and .maps
 
-def report(name,valueIn,compr=True):
+def report(valueIn,name,compr=True):
     """
     For debugging: Save the 2D array as .map or .tif
 
@@ -1502,10 +1525,9 @@ def report(name,valueIn,compr=True):
     ::
 
         Example:
-        > report(c:/temp/ksat1.map, self.var.ksat1)
+        > report(c:/temp/ksat1.map, self_.var_.ksat1)
 
     """
-
 
     filename = os.path.splitext(name)
     pcmap = False
@@ -1515,6 +1537,7 @@ def report(name,valueIn,compr=True):
         value = decompress(valueIn)
     else:
         value = valueIn
+    value = value.data
 
     checkint = value.dtype.char in np.typecodes['AllInteger']
     ny, nx = value.shape
@@ -1609,7 +1632,7 @@ def checkOption(inBinding):
     if test:
         return option[inBinding]
     else:
-        closest = difflib.get_close_matches(inBinding, list(option.keys()))
+        close = difflib.get_close_matches(inBinding, list(option.keys()))
         if close:
             closest = close[0]
             with open(settingsfile[0]) as f:

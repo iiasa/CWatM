@@ -14,6 +14,7 @@
 
  Community WATer Model
 
+
 CWATM is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -28,18 +29,12 @@ GNU General Public License for more details
 # --------------------------------------------------
 """
 
-__author__ = "WATER Program, IIASA"
-__version__ = "Version: 1.04"
-__date__ = "16/04/2020"
-__copyright__ = "Copyright 2016, IIASA"
-__maintainer__ = "Peter Burek"
-__status__ = "Development"
+from cwatm import __author__, __version__, __date__, __copyright__, __maintainer__, __status__
 
 # to work with some versions of Linux  - a workaround with pyexpat is needed
 from pyexpat import *
 
 import os
-import sys
 import numpy as np
 # to work with some versions of Linux  - a workaround with pyexpat is needed
 import glob
@@ -152,7 +147,7 @@ def CWATMexe(settings):
     print(current_time.isoformat())
 
     # return with last value and true for successfull run for pytest
-    return(True, CWATM.firstout)
+    return(True, CWATM.var.firstout)
 
 
 # ==================================================
@@ -239,21 +234,18 @@ def main(settings, args):
     #if Flags['test']:
     return success, last_dis
 
+def parse_args():
+    if len(sys.argv) < 2:
+        usage()
+        sys.exit(0)
+    else:
+        return sys.argv[1],sys.argv[2:]
+
 
 def run_from_command_line():
-    if len(sys.argv) < 2:
-        usage()
-        return
-    else:
-        CWatM_Path = os.path.dirname(sys.argv[0])
-        CWatM_Path = os.path.abspath(CWatM_Path)
-    main(sys.argv[1],sys.argv[2:])
-
+    settings, args = parse_args()
+    main(settings, args)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        usage()
-    else:
-        CWatM_Path = os.path.dirname(sys.argv[0])
-        CWatM_Path = os.path.abspath(CWatM_Path)
-        main(sys.argv[1],sys.argv[2:])
+    settings, args = parse_args()
+    main(settings, args)

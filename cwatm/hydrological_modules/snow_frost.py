@@ -11,7 +11,7 @@
 from cwatm.management_modules.data_handling import *
 
 
-class snow(object):
+class snow_frost(object):
 
     """
     RAIN AND SNOW
@@ -20,14 +20,58 @@ class snow(object):
     snow zones 1 -7 which each occupy a part of the pixel surface
 
     Variables *snow* and *rain* at end of this module are the pixel-average snowfall and rain
-	
+
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    load_initial                                                                                                     
+    DtDay                 seconds in a timestep (default=86400)                                             s        
+    Tavg                  average air Temperature (input for the model)                                     K        
+    Precipitation         Precipitation (input for the model)                                               m        
+    Rain                  Precipitation less snow                                                           m        
+    SnowMelt              total snow melt from all layers                                                   m        
+    SnowCover             snow cover (sum over all layers)                                                  m        
+    ElevationStD                                                                                                     
+    prevSnowCover         snow cover of previous day (only for water balance)                               m        
+    numberSnowLayersFloa                                                                                             
+    numberSnowLayers      Number of snow layers (up to 10)                                                  --       
+    glaciertransportZone  Number of layers which can be mimiced as glacier transport zone                   --       
+    deltaInvNorm          Quantile of the normal distribution (for different numbers of snow layers)        --       
+    DeltaTSnow            Temperature lapse rate x std. deviation of elevation                              C°       
+    SnowDayDegrees        day of the year to degrees: 360/365.25 = 0.9856                                   --       
+    summerSeasonStart     day when summer season starts = 165                                               --       
+    IceDayDegrees         days of summer (15th June-15th Sept.) to degree: 180/(259-165)                    --       
+    SnowSeason            seasonal melt factor                                                              m C°-1 da
+    TempSnow              Average temperature at which snow melts                                           C°       
+    SnowFactor            Multiplier applied to precipitation that falls as snow                            --       
+    SnowMeltCoef          Snow melt coefficient - default: 0.004                                            --       
+    IceMeltCoef           Ice melt coefficnet - default  0.007                                              --       
+    TempMelt              Average temperature at which snow melts                                           C°       
+    SnowCoverS            snow cover for each layer                                                         m        
+    Kfrost                Snow depth reduction coefficient, (HH, p. 7.28)                                   m-1      
+    Afrost                Daily decay coefficient, (Handbook of Hydrology, p. 7.28)                         --       
+    FrostIndexThreshold   Degree Days Frost Threshold (stops infiltration, percolation and capillary rise)  --       
+    SnowWaterEquivalent   Snow water equivalent, (based on snow density of 450 kg/m3) (e.g. Tarboton and L  --       
+    FrostIndex            FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Index for Floo  --       
+    extfrostindex         Flag for second frostindex                                                        --       
+    FrostIndexThreshold2  FrostIndex2 - Molnau and Bissel (1983), A Continuous Frozen Ground Index for Flo           
+    frostInd1             forstindex 1                                                                               
+    frostInd2             frostindex 2                                                                               
+    frostindexS           array for frostindex                                                                       
+    Snow                  Snow (equal to a part of Precipitation)                                           m        
+    ====================  ================================================================================  =========
+
+    **Functions**
     """
 
-    def __init__(self, snow_variable):
-        self.var = snow_variable
 
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
+
 
     def initial(self):
         """
@@ -42,13 +86,11 @@ class snow(object):
         self.var.glaciertransportZone = int(loadmap('GlacierTransportZone'))  # default 1 -> highest zone is transported to middle zone
 
 
-        self.var.TotalPrecipitation = globals.inZero.copy()
 
         # Difference between (average) air temperature at average elevation of
         # pixel and centers of upper- and lower elevation zones [deg C]
-        # ElevationStD:   Standard Deviation of the DEM from Bodis (2009)
-        # 0.9674:    Quantile of the normal distribution: u(0,833)=0.9674
-        #              to split the pixel in 3 equal parts.
+        # ElevationStD:   Standard Deviation of the DEM
+        # 0.9674:    Quantile of the normal distribution: u(0,833)=0.9674 to split the pixel in 3 equal parts.
         # for different number of layers
         #  Number: 2 ,3, 4, 5, 6, 7, ,8, 9, 10
         dn = {}
@@ -91,7 +133,7 @@ class snow(object):
         # SnowCover1 is the highest zone
         self.var.SnowCoverS = []
         for i in range(self.var.numberSnowLayers):
-            self.var.SnowCoverS.append(self.var.init_module.load_initial("SnowCover",number = i+1))
+            self.var.SnowCoverS.append(self.var.load_initial("SnowCover",number = i+1))
 
         # initial snow depth in elevation zones A, B, and C, respectively  [mm]
         self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / self.var.numberSnowLayersFloat + globals.inZero
@@ -108,10 +150,7 @@ class snow(object):
         self.var.FrostIndexThreshold = loadmap('FrostIndexThreshold')
         self.var.SnowWaterEquivalent = loadmap('SnowWaterEquivalent')
 
-        # FrostIndexInit=ifthen(defined(self.var.MaskMap),scalar(loadmap('FrostIndexInitValue')))
-
-        #self.var.FrostIndex = loadmap('FrostIndexIni')
-        self.var.FrostIndex = self.var.init_module.load_initial('FrostIndex')
+        self.var.FrostIndex = self.var.load_initial('FrostIndex')
 
         self.var.extfrostindex = False
         if "morefrost" in binding:
@@ -231,22 +270,19 @@ class snow(object):
 
         # DEBUG Snow
         if checkOption('calcWaterBalance'):
-            self.var.waterbalance_module.waterBalanceCheck(
+            self.model.waterbalance_module.waterBalanceCheck(
                 [self.var.Snow],  # In
                 [self.var.SnowMelt],  # Out
                 [self.var.prevSnowCover],   # prev storage
                 [self.var.SnowCover],
                 "Snow1", False)
 
-        #map = decompress( self.var.TotalPrecipitation)
-        #report(map, 'C:\work\output\out3.map')
 
         # ---------------------------------------------------------------------------------
         # Dynamic part of frost index
         self.var.Kfrost = np.where(self.var.Tavg < 0, 0.08, 0.5)
         FrostIndexChangeRate = -(1 - self.var.Afrost) * self.var.FrostIndex - self.var.Tavg * \
             np.exp(-0.4 * 100 * self.var.Kfrost * np.minimum(1.0,self.var.SnowCover / self.var.SnowWaterEquivalent))
-        # FrostIndexChangeRate=self.var.AfrostIndex - self.var.Tavg*      pc raster.exp(self.var.Kfrost*self.var.SnowCover*self.var.InvSnowWaterEquivalent)
         # Rate of change of frost index (expressed as rate, [degree days/day])
         self.var.FrostIndex = np.maximum(self.var.FrostIndex + FrostIndexChangeRate * self.var.DtDay, 0)
         # frost index in soil [degree days] based on Molnau and Bissel (1983, A Continuous Frozen Ground Index for Flood

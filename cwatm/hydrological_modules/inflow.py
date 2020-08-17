@@ -17,13 +17,29 @@ class inflow(object):
     """
     READ INFLOW HYDROGRAPHS (OPTIONAL)
     If option "inflow" is set to 1 the inflow hydrograph code is used otherwise dummy code is used
+
+
+    **Global variables**
+
+    ====================  ================================================================================  =========
+    Variable [self.var]   Description                                                                       Unit     
+    ====================  ================================================================================  =========
+    sampleInflow          location of inflow point                                                          lat/lon  
+    noinflowpoints        number of inflow points                                                           --       
+    inflowTs              inflow time series data                                                           m3/s     
+    totalQInM3            total inflow over time (for mass balance calculation)                             m3       
+    inflowM3              inflow to basin                                                                   m3       
+    DtSec                 number of seconds per timestep (default = 86400)                                  s        
+    QInM3Old              Inflow from previous day                                                          m3       
+    ====================  ================================================================================  =========
+
+    **Functions**
     """
 
-    def __init__(self, inflow_variable):
-        self.var = inflow_variable
+    def __init__(self, model):
+        self.var = model.var
+        self.model = model
 
-# --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
     def initial(self):
         """
         Initial part of the inflow module
