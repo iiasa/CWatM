@@ -340,6 +340,10 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
             #nf1 = Dataset(filename, 'r')
             value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
+            if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+                msg = "Latitude is in wrong order\n"
+                raise CWATMFileError(filename, msg)
+
             if not timestepInit:
                 #with np.errstate(invalid='ignore'):
                 with warnings.catch_warnings():
@@ -946,11 +950,21 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     cutcheck = True
     if cutcheckmask == cutcheckmap: cutcheck = False
 
+    #checkif latitude is reversed
+    turn_latitude = False
+    if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+        turn_latitude = True
+        mapnp = nf1.variables[value][idx].astype(np.float64)
+        mapnp = np.flipud(mapnp)
 
     if cutcheck:
-        mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]].astype(np.float64)
+        if turn_latitude:
+            mapnp = mapnp[cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]]
+        else:
+            mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]].astype(np.float64)
     else:
-        mapnp = nf1.variables[value][idx].astype(np.float64)
+        if not(turn_latitude):
+            mapnp = nf1.variables[value][idx].astype(np.float64)
     try:
         mapnp.mask.all()
         mapnp = mapnp.data
@@ -1069,11 +1083,24 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
             if meteo: inputcounter[value] = idx
 
 
-    #mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
+    #checkif latitude is reversed
+    turn_latitude = False
+    try:
+        if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+           turn_latitude = True
+           mapnp = nf1.variables[value][idx].astype(np.float64)
+           mapnp = np.flipud(mapnp)
+    except:
+       ii = 1
+
     if cut:
-        mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
+        if turn_latitude:
+            mapnp = mapnp[cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
+        else:
+            mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
     else:
-        mapnp = nf1.variables[value][idx].astype(np.float64)
+        if not(turn_latitude):
+            mapnp = nf1.variables[value][idx].astype(np.float64)
     try:
         mapnp.mask.all()
         mapnp = mapnp.data
@@ -1116,6 +1143,10 @@ def readnetcdfWithoutTime(name, value="None"):
     if value == "None":
         value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
+    if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+        msg = "Latitude is in wrong order\n"
+        raise CWATMFileError(filename, msg)
+
     mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
     nf1.close()
 
@@ -1148,6 +1179,10 @@ def readnetcdfInitial(name, value,default = 0.0):
     if value in list(nf1.variables.keys()):
         try:
             #mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
+            if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+                msg = "Latitude is in wrong order\n"
+                raise CWATMFileError(filename, msg)
+
             mapnp = (nf1.variables[value][:].astype(np.float64))
             nf1.close()
             mapC = compressArray(mapnp, name=filename)

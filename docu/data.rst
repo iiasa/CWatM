@@ -85,6 +85,13 @@ Mask map
 
 Figure 1: Mask map for the Rhine basin at 5' showing in addition 6 stations
 
+.. warning::
+
+    Make sure any cell defined in the mask map has a value (not NaN!) in the following map. A missing value in a cell will lead to a missing value in the result maps from the process this map is linked to. 
+    
+    The routing process will carry this missing value downstream!
+
+
 Landsurface
 -----------
 
