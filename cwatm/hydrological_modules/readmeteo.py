@@ -204,7 +204,7 @@ class readmeteo(object):
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
-    def downscaling1(self,input, downscale = 0):
+    #def downscaling1(self,input, downscale = 0):
         """
         Downscaling based on elevation correction for temperature and pressure
 
@@ -213,7 +213,7 @@ class readmeteo(object):
         :return: input - downscaled input data
 
         """
-
+        """
         # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
         if not self.var.meteomapsscale:
             down1 = np.kron(input, np.ones((6, 6)))
@@ -238,7 +238,7 @@ class readmeteo(object):
                 sealevelpressure = down3 / factor1
                 input = sealevelpressure * factor2
         return input
-
+        """
 
     def downscaling2(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, downscale = 0):
         """

@@ -168,9 +168,9 @@ class runoff_concentration(object):
             the time demanding part is calculated in a c++ library
 
         """
-
+        """
         def runoff_concentration(lagtime, peak, fraction,flow, flow_conc):
-            """
+        
             Part which is transferred to C++ for computational speed
 
             :param lagtime:
@@ -179,7 +179,6 @@ class runoff_concentration(object):
             :param flow:
             :param flow_conc:
             :return:
-            """
 
             areaFractionOld = 0.0
             div = 2 * np.power(peak, 2)
@@ -197,6 +196,7 @@ class runoff_concentration(object):
 
                 flow_conc[lag] += fraction * flow * areaFraction
             return flow_conc
+        """
 
         self.var.sum_landSurfaceRunoff = globals.inZero.copy()
 
