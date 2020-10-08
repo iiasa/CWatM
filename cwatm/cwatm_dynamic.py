@@ -64,7 +64,9 @@ class CWATModel_dyn(DynamicModel):
                 # if only the dis is used for calculation of EF
                 self.environflow_module.dynamic()
                 self.output_module.dynamic(ef = True)
-                sys.exit("done with Environmental Flow")
+                header = "\n\n ======================== CWATM ONLY EF calculation===========\n"
+                print(header + "done with Environmental Flow\n")
+                sys.exit(400)
 
 
             self.readmeteo_module.dynamic()

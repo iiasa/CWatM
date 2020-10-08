@@ -53,7 +53,7 @@ class environflow(object):
                 try:
                     t = outMap['output_out_map_daily']
                 except:
-                    msg = "OUT_MAP_Daily = discharge may be not defined in [OUTPUT] \n in the settings file: \"" + ssettingsfile[0] + "\"\n"
+                    msg = "Error 128: OUT_MAP_Daily = discharge may be not defined in [OUTPUT] \n in the settings file: \"" + settingsfile[0] + "\"\n"
                     raise CWATMError(msg)
 
                 for map in outMap['output_out_map_daily']:
@@ -116,7 +116,7 @@ class environflow(object):
                 try:
                     nf1 = Dataset(filename, 'r')
                 except:
-                    msg = "Netcdf map stacks: \n"
+                    msg = "Error 219: Netcdf map stacks: \n"
                     raise CWATMFileError(filename, msg, sname=name)
 
                 value = list(nf1.variables.items())[-1][0]  # get the last variable name
@@ -147,6 +147,7 @@ class environflow(object):
             self.var.EF_VMF = np.empty(shape=[12, maskinfo['mapC'][0]])
             for i in range(12):
                 self.var.EF_VMF[i] = np.where(self.var.MMF[i] <= (0.4 * self.var.MAF), 0.6 * self.var.MMF[i] ,np.where(self.var.MMF[i] > (0.8 * self.var.MAF), 0.3 * self.var.MMF[i] ,0.45 * self.var.MMF[i]))
+            ii = 1
 
 
 

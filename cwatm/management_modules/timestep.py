@@ -64,12 +64,10 @@ def ctbinding(inBinding):
     else:
         closest = difflib.get_close_matches(inBinding, list(binding.keys()))
         if not closest: closest = ["- no match -"]
-        msg = "===== Timing in the section: [TIME-RELATED_CONSTANTS] is wrong! =====\n"
+        msg = "Error 118: ===== Timing in the section: [TIME-RELATED_CONSTANTS] is wrong! =====\n"
         msg += "No key with the name: \"" + inBinding + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
         msg += "Closest key to the required one is: \""+ closest[0] + "\""
         raise CWATMError(msg)
-
-
 
 def timemeasure(name,loops=0, update = False, sample = 1):
     """
@@ -126,10 +124,10 @@ def Calendar(input,errorNo = 0):
             date = datetime.datetime.strptime(d, formatstr)
         except:
             if errorNo == 0:
-                msg = "Either date in StepStart is not a date or in SpinUp or StepEnd it is neither a number or a date!"
+                msg = "Error 119: Either date in StepStart is not a date or in SpinUp or StepEnd it is neither a number or a date!"
                 raise CWATMError(msg)
             elif errorNo == 1:
-                msg = "First date in StepInit is neither a number or a date!"
+                msg = "Error 120: First date in StepInit is neither a number or a date!"
                 raise CWATMError(msg)
             elif errorNo > 1:
                 return -99999
@@ -211,14 +209,14 @@ def datetosaveInit(initdates,begin,end):
         # check if it a row of dates
         if date1 == -99999:
             if not(d[-1] in ["d", "m","y"]):
-                msg = "Second value in StepInit is indicating a repetition of year(y), month(m) or day(d) \n"
+                msg = "Error 121: Second value in StepInit is not a bumber or date nor indicating a repetition of year(y), month(m) or day(d) \n"
                 msg +="e.g. 2y for every 2 years or 6m for every 6 month"
                 raise CWATMError(msg)
             else:
                 try:
                     add = int(d[0:-1])
                 except:
-                    msg = "Second value in StepInit is not an integer + 'y' or 'm' or 'd'"
+                    msg = "Error 122: Third value in StepInit is not an integer after 'y' or 'm' or 'd'"
                     raise CWATMError(msg)
                 #start = begin + datetime.timedelta(days=dateVar['intInit'][0]-1)
                 d1 = datenum(begin)
@@ -280,7 +278,8 @@ def checkifDate(start,end,spinup,name):
     try:
         name = glob.glob(os.path.normpath(name))[0]
     except:
-        raise CWATMFileError(name, sname='PrecipitationMaps')
+        msg = "Error 215: Cannot find precipitation maps\n"
+        raise CWATMFileError(name,msg, sname='PrecipitationMaps')
 
     nf1 = Dataset(name, 'r')
     try:
@@ -303,7 +302,7 @@ def checkifDate(start,end,spinup,name):
     if type(startdate) is datetime.datetime:
         begin = startdate
     else:
-        msg = "\"StepStart = " + ctbinding('StepStart') + "\"\n"
+        msg = "Error 123: \"StepStart = " + ctbinding('StepStart') + "\"\n"
         msg += "StepStart has to be a valid date!"
         raise CWATMError(msg)
 
@@ -319,13 +318,13 @@ def checkifDate(start,end,spinup,name):
     if (dateVar['intStart']<0) or (dateVar['intEnd']<0) or ((dateVar['intEnd']-dateVar['intStart'])<0):
         #strBegin = begin.strftime("%d/%m/%Y")
         strBegin = date2str(begin)
-        msg="Start Date: "+strStart+" and/or end date: "+ strEnd + " are wrong!\n or smaller than the first time step date: "+strBegin
+        msg="Error 124: Start Date: "+strStart+" and/or end date: "+ strEnd + " are wrong!\n or smaller than the first time step date: "+strBegin
         raise CWATMError(msg)
 
     if (dateVar['intSpin'] < dateVar['intStart']) or (dateVar['intSpin'] > dateVar['intEnd']):
         #strBegin = begin.strftime("%d/%m/%Y")
         strBegin = date2str(begin)
-        msg="Spin Date: "+strSpin + " is wrong!\n or smaller/bigger than the first/last time step date: "+strBegin+ " - "+ strEnd
+        msg="Error 125: Spin Date: "+strSpin + " is wrong!\n or smaller/bigger than the first/last time step date: "+strBegin+ " - "+ strEnd
         raise CWATMError(msg)
 
     dateVar['currDate'] = begin
@@ -496,15 +495,3 @@ def timestep_dynamic(self):
     dateVar['daysInYear'] = d2year - d1year
 
     return
-
-
-
-
-
-
-
-
-
-
-
-

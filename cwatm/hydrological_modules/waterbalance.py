@@ -265,7 +265,7 @@ class waterbalance(object):
                 [self.var.sum_directRunoff, self.var.sum_interflow, self.var.sum_gwRecharge,self.var.totalET],  # Out
                 [self.var.pretotalSto],  # prev storage
                 [self.var.totalSto],
-                "Soil_all", False)
+                "Soil_all", True)
 
 
             self.model.waterbalance_module.waterBalanceCheck(
@@ -397,7 +397,7 @@ class waterbalance(object):
             # print "%10.8f %10.8f %10.8f " % (income[10], out[10], store[10]),
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        """
+
 
         if checkOption('sumWaterBalance'):
 
@@ -406,8 +406,9 @@ class waterbalance(object):
                 [self.var.act_totalWaterWithdrawal],  # Out
                 [globals.inZero],
                 [globals.inZero],
-                "WaterdemandSum", False)
+                "WaterdemandSum", True)
 
+            """
             self.model.waterbalance_module.waterBalanceCheckSum(
                 [self.var.Precipitation, self.var.surfaceWaterInf,self.var.sumIrrDemand,self.var.nonIrrReturnFlow],    # In
                 [self.var.totalET,   self.var.localQW, self.var.riverbedExchange * self.var.InvCellArea, self.var.nonFossilGroundwaterAbs, self.var.act_SurfaceWaterAbstract],

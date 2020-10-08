@@ -8,8 +8,8 @@ Setup of the model
 
 .. _rst_setupdoc:
 
-Setup python verion
-======================
+Setup python version
+====================
 	
 Python
 ---------------

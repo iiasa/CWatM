@@ -13,7 +13,7 @@ import os
 import sys
 
 
-class CWATMError(Exception):
+class CWATMError(Warning):
     """
     The error handling class
     prints out an error
@@ -27,13 +27,14 @@ class CWATMError(Exception):
         # don't show the error code, lines etc.
         sys.tracebacklimit = 0
         header = "\n\n ========================== CWATM ERROR =============================\n"
+
+        print (header + msg +"\n")
+
         try:
-           self._msg = header + msg +"\n" +  sys.exc_info()[1].message
-           print(self._msg)
+            errornumber = int(msg[6:9])
         except:
-           self._msg = header + msg +"\n"
-    def __str__(self):
-        return self._msg
+            errornumber = 100
+        sys.exit(errornumber)
 
 
 class CWATMFileError(CWATMError):
@@ -62,7 +63,14 @@ class CWATMFileError(CWATMError):
             text1 += "\npath: "+ path + " does not exists\n"
 
         header = "\n\n ======================== CWATM FILE ERROR ===========================\n"
-        self._msg = header + msg + text1
+        print (header + msg + text1 +"\n")
+
+        try:
+            errornumber = int(msg[6:9])
+        except:
+            errornumber = 100
+        sys.exit(errornumber)
+
 
 class CWATMWarning(Warning):
     """

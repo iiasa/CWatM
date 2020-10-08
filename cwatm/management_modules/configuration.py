@@ -57,7 +57,7 @@ class ExtParser(configparser.ConfigParser):
              closest = difflib.get_close_matches(option, list(binding.keys()))
              if not closest: closest = ["- no match -"]
              #msg = "No key with the name: \"" + option +" in " + section + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
-             msg = "Closest key to the required one is: \"" + closest[0] + "\""
+             msg = "Error 116: Closest key to the required one is: \"" + closest[0] + "\""
              raise CWATMError(msg)
 
 
@@ -125,7 +125,8 @@ def parse_configuration(settingsFileName):
         return out, check
 
     if not(os.path.isfile(settingsFileName)):
-        raise CWATMFileError(settingsFileName)
+        msg = "Error 302: Settingsfile not found!\n"
+        raise CWATMFileError(settingsFileName,msg)
     config = ExtParser()
     config.optionxform = str
     config.sections()
@@ -140,8 +141,6 @@ def parse_configuration(settingsFileName):
                     option[opt] = config.getboolean(sec, opt)
                 except:
                     option[opt] = config.getint(sec, opt)
-                    #msg = "Value in: \"" + sec +", " + opt + "\" is not True or False!"
-                    #raise CWATMError(msg)
             else:
                 # Check if config line = output line
                 if opt.lower()[0:4] == "out_":
@@ -180,7 +179,7 @@ def read_metanetcdf(metaxml, name):
         try:
             metaparse = xml.dom.minidom.parse(metaxml)
         except:
-            msg = "Error using option file: " + metaxml
+            msg = "Error 303: using option file: " + metaxml
             raise CWATMError(msg)
     else:
         msg = "Cannot find option file: " + metaxml +"\n"
@@ -192,13 +191,13 @@ def read_metanetcdf(metaxml, name):
             msg += "Using file: " + metaxml + " instead."
             print(CWATMWarning(msg))
         else:
-            msg = "Cannot find option file: " + metaxml
+            msg = "Error 304: Cannot find alternative option file: " + metaxml
             raise CWATMFileError(metaxml, msg, sname = name)
 
         try:
             metaparse = xml.dom.minidom.parse(metaxml)
         except:
-            msg = "Error using option file: " + metaxml
+            msg = "Error 305: Error using alternative option file: " + metaxml
             raise CWATMError(msg)
 
     # running through all output variable

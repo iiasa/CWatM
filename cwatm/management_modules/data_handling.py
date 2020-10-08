@@ -46,7 +46,7 @@ def valuecell( coordx, coordstr, returnmap = True):
         try:
             coord.append(float(xy))
         except:
-            msg = "Gauges: " + xy + " in " + coordstr + " is not a coordinate"
+            msg = "Error 101: Gauges in settings file: " + xy + " in " + coordstr + " is not a coordinate"
             raise CWATMError(msg)
 
 
@@ -76,7 +76,7 @@ def valuecell( coordx, coordstr, returnmap = True):
 
             print("%2s %-17s %10s %8s" % ("No", "Name", "time[s]", "%"))
 
-            msg = "Coordinates: x = " + str(coord[i * 2]) + '  y = ' + str(
+            msg = "Error 102: Coordinates: x = " + str(coord[i * 2]) + '  y = ' + str(
                 coord[i * 2 + 1]) + " of gauge is outside mask map\n\n"
             msg += box
             msg +="\nPlease have a look at \"MaskMap\" or \"Gauges\""
@@ -162,8 +162,7 @@ def loadsetclone(self,name):
             y1 = nf1.variables['lat'][0]
             ylast = nf1.variables['lat'][-1]
             # swap to make y1 the biggest number
-            if y1 < ylast:
-                y1, ylast = ylast, y1
+            if y1 < ylast:  y1, ylast = ylast, y1
 
             cellSize = np.abs(x2 - x1)
             invcell = round(1/cellSize)
@@ -200,7 +199,7 @@ def loadsetclone(self,name):
                 flagmap = True
 
             except:
-                raise CWATMFileError(filename, sname=name)
+                raise CWATMFileError(filename,msg = "Error 201: File reading Error\n", sname=name)
 
 
 
@@ -209,7 +208,7 @@ def loadsetclone(self,name):
 
 
     else:
-        msg = "Maskmap: " + filename + " is not a valid mask map nor valid coordinates nor valid point\n"
+        msg = "Error 103: Maskmap: " + filename + " is not a valid mask map nor valid coordinates nor valid point\n"
         msg +="Or there is a whitespace or undefined character in Maskmap"
         raise CWATMError(msg)
 
@@ -274,7 +273,7 @@ def maskfrompoint(mask2D, xleft, yup):
     """
 
     if xleft == -1:
-        msg = "MaskMap point does not have a valid value in the river network (LDD)"
+        msg = "Error 104: MaskMap point does not have a valid value in the river network (LDD)"
         raise CWATMError(msg)
 
     x = xleft * maskmapAttr['cell'] + maskmapAttr['x']
@@ -341,7 +340,7 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
             value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
             if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
-                msg = "Latitude is in wrong order\n"
+                msg = "Error 202: Latitude is in wrong order\n"
                 raise CWATMFileError(filename, msg)
 
             if not timestepInit:
@@ -361,7 +360,7 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
                     else: timestepI = int(timestepI) -1
 
                     if not(timestepI in nf1.variables['time'][:]):
-                        msg = "time step " + str(int(timestepI)+1)+" not stored in "+ filename
+                        msg = "Error 105: time step " + str(int(timestepI)+1)+" not stored in "+ filename
                         raise CWATMError(msg)
                     itime = np.where(nf1.variables['time'][:] == timestepI)[0][0]
                     if cut:
@@ -389,7 +388,8 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
                         cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
                         mapnp = mapnp[cut2:cut3, cut0:cut1]
             except:
-                raise CWATMFileError(filename,sname=name)
+                msg = "Error 203: File does not exists"
+                raise CWATMFileError(filename,msg,sname=name)
 
         try:
             if any(maskinfo) and compress: mapnp.mask = maskinfo['mask']
@@ -423,14 +423,16 @@ def compressArray(map, name="None", zeros = 0.):
     :param zeros: add zeros (default= 0) if values of map are to big or too small
     :return: Compressed 1D array
     """
-
+    if map.shape != maskinfo['mask'].shape:
+        msg = "Error 105: " + name + " has less different shape than area or ldd \n"
+        raise CWATMError(msg)
 
     mapnp1 = np.ma.masked_array(map, maskinfo['mask'])
     mapC = np.ma.compressed(mapnp1)
     # if fill: mapC[np.isnan(mapC)]=0
     if name != "None":
         if np.max(np.isnan(mapC)):
-            msg = name + " has less valid pixels than area or ldd \n"
+            msg = "Error 106:" + name + " has less valid pixels than area or ldd \n"
             raise CWATMError(msg)
             # test if map has less valid pixel than area.map (or ldd)
     # if a value is bigger or smaller than 1e20, -1e20 than the standard value is taken
@@ -503,7 +505,7 @@ def metaNetCDF():
            metadataNCDF[var] = nf1.variables[var].__dict__
         nf1.close()
     except:
-        msg = "Trying to get metadata from netcdf \n"
+        msg = "Error 204: Trying to get metadata from netcdf\n"
         raise CWATMFileError(cbinding('PrecipitationMaps'),msg)
 
 
@@ -544,28 +546,6 @@ def readCoord(name):
 
     return lat, lon, cell, invcell, rows, cols
 
-
-def readCoordNetCDF2(name,check = True):
-
-
-    if check:
-        try:
-            nf1 = Dataset(name, 'r')
-        except:
-            msg = "Checking netcdf map \n"
-            raise CWATMFileError(name,msg)
-    else:
-        # if subroutine is called already from inside a try command
-        nf1 = Dataset(name, 'r')
-
-    lons = nf1.variables['lon'][:]
-    lats = nf1.variables['lat'][:]
-    nf1.close()
-    return lats, lons
-
-
-
-
 def readCoordNetCDF(name,check = True):
     """
     reads the map attributes col, row etc from a netcdf map
@@ -581,7 +561,7 @@ def readCoordNetCDF(name,check = True):
         try:
             nf1 = Dataset(name, 'r')
         except:
-            msg = "Checking netcdf map \n"
+            msg = "Error 205: Checking netcdf map \n"
             raise CWATMFileError(name,msg)
     else:
         # if subroutine is called already from inside a try command
@@ -626,7 +606,7 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
     try:
         nf1 = Dataset(meteodata, 'r')
     except:
-        msg = "Checking netcdf map \n"
+        msg = "Error 206: Checking netcdf map \n"
         raise CWATMFileError(meteodata, msg)
 
     lonM0 = nf1.variables['lon'][0]
@@ -649,7 +629,7 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
     try:
         nf1 = Dataset(wordclimdata, 'r')
     except:
-        msg = "Checking netcdf map \n"
+        msg = "Error 207: Checking netcdf map \n"
         raise CWATMFileError(wordclimdata, msg)
 
     lonW0 = nf1.variables['lon'][0]
@@ -695,7 +675,7 @@ def mapattrNetCDF(name, check=True):
     lat, lon, cell, invcell, rows, cols = readCoord(name)
 
     if maskmapAttr['invcell'] != invcell:
-        msg = "Cell size different in maskmap: " + \
+        msg = "Error 107: Cell size different in maskmap: " + \
             binding['MaskMap'] + " and: " + name
         raise CWATMError(msg)
 
@@ -790,11 +770,13 @@ def mapattrTiff(nf2):
 
     # getgeotransform only delivers single precision!
     cellSize = 1 / invcell
-    x1 = 1/round(1/(x1-int(x1)),4) + int(x1)
-    y1 = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
+    if (x1-int(x1)) != 0:
+        x1 = 1/round(1/(x1-int(x1)),4) + int(x1)
+    if (y1-int(y1)) != 0:
+        y1 = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
 
     if maskmapAttr['invcell'] != invcell:
-        msg = "Cell size different in maskmap: " + \
+        msg = "Error 108: Cell size different in maskmap: " + \
             binding['MaskMap']
         raise CWATMError(msg)
 
@@ -826,7 +808,8 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
         name = cbinding(maps)
         nameall = glob.glob(os.path.normpath(name))
         if not nameall:
-            raise CWATMFileError(name, sname=maps)
+            msg ="Error 208: File missing \n"
+            raise CWATMFileError(name,msg, sname=maps)
         nameall.sort()
         meteolist = {}
         startfile = 0
@@ -835,7 +818,7 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
             try:
                 nf1 = Dataset(filename, 'r')
             except:
-                msg = "Netcdf map stacks:" + filename +"\n"
+                msg = "Error 209: Netcdf map stacks: " + filename +"\n"
                 raise CWATMFileError(filename, msg, sname=maps)
             nctime = nf1.variables['time']
 
@@ -927,13 +910,13 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
             filename =  os.path.normpath(meteoInfo[0])
         except:
             date1 = "%02d/%02d/%02d" % (date.day, date.month, date.year)
-            msg = "Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date1 + ": \n"
+            msg = "Error 210: Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date1 + ": \n"
             raise CWATMError(msg)
 
     try:
        nf1 = Dataset(filename, 'r')
     except:
-        msg = "Netcdf map stacks: \n"
+        msg = "Error 211: Netcdf map stacks: \n"
         raise CWATMFileError(filename,msg, sname = name)
 
     warnings.filterwarnings("ignore")
@@ -980,7 +963,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
 
     if mapsscale:  # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
         if maskinfo['shapeflat'][0]!= mapnp.size:
-            msg = name + " has less or more valid pixels than the mask map \n"
+            msg = "Error 109: " + name + " has less or more valid pixels than the mask map \n"
             msg += "if it is the ET maps, it might be from another run with different mask. Please look at the option: calc_evaporation"
             raise CWATMWarning(msg)
 
@@ -1040,7 +1023,7 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
     try:
        nf1 = Dataset(filename, 'r')
     except:
-        msg = "Netcdf map stacks: \n"
+        msg = "Error 212: Netcdf map stacks: \n"
         raise CWATMFileError(filename,msg, sname = namebinding)
 
     if value == "None":
@@ -1114,7 +1097,7 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
         return mapnp
 
     if maskinfo['shapeflat'][0]!= mapnp.size:
-        msg = name + " has less or more valid pixels than the mask map \n"
+        msg = "Error 110: " + name + " has less or more valid pixels than the mask map \n"
         msg += "if it is the ET maps, it might be from another run with different mask. Please look at the option: calc_evaporation"
         raise CWATMWarning(msg)
 
@@ -1138,13 +1121,13 @@ def readnetcdfWithoutTime(name, value="None"):
     try:
        nf1 = Dataset(filename, 'r')
     except:
-        msg = "Netcdf map stacks: \n"
+        msg = "Error 213: Netcdf map stacks: \n"
         raise CWATMFileError(filename,msg)
     if value == "None":
         value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
     if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
-        msg = "Latitude is in wrong order\n"
+        msg = "Error 111: Latitude is in wrong order\n"
         raise CWATMFileError(filename, msg)
 
     mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
@@ -1174,13 +1157,13 @@ def readnetcdfInitial(name, value,default = 0.0):
     try:
        nf1 = Dataset(filename, 'r')
     except:
-        msg = "Netcdf Initial file: \n"
+        msg = "Error 214: Netcdf Initial file: \n"
         raise CWATMFileError(filename,msg)
     if value in list(nf1.variables.keys()):
         try:
             #mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
             if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
-                msg = "Latitude is in wrong order\n"
+                msg = "Error 112: Latitude is in wrong order\n"
                 raise CWATMFileError(filename, msg)
 
             mapnp = (nf1.variables[value][:].astype(np.float64))
@@ -1190,28 +1173,23 @@ def readnetcdfInitial(name, value,default = 0.0):
                 checkmap(value, filename, mapnp, True, True, mapC)
             a = globals.inZero
             if mapC.shape != globals.inZero.shape:
-                raise Exception
+                msg = "Error 113: map shape is different than mask shape\n"
+                raise CWATMError(msg)
             return mapC
         except:
             #nf1.close()
-            msg ="===== Problem reading initial data ====== \n"
+            msg ="Error 114: ===== Problem reading initial data ====== \n"
             msg += "Initial value: " + value + " is has not the same shape as the mask map\n"
             msg += "Maybe put\"load_initial = False\""
-            print(CWATMError(msg))
-            sys.exit()
+            raise CWATMError(msg)
+
     else:
         nf1.close()
-        msg = "Initial value: " + value + " is not included in: " + name + " - using default: " + str(default)
+        msg = "Warning: Initial value: " + value + " is not included in: " + name + " - using default: " + str(default)
         print(CWATMWarning(msg))
         return default
 
-
-
-
-
-
 # --------------------------------------------------------------------------------------------
-
 
 def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, flag,flagTime, nrdays=None, dateunit="days"):
     """
@@ -1634,27 +1612,8 @@ def returnBool(inBinding):
     if btrue or bfalse:
         return btrue
     else:
-        msg = "Value in: \"" + inBinding + "\" is not True or False! \nbut: " + b
+        msg = "Error 115: Value in: \"" + inBinding + "\" is not True or False! \nbut: " + b
         raise CWATMError(msg)
-
-
-def checkOptionOptinal(inBinding):
-    """
-    Test if parameter is a boolean and return an error message if not, and the boolean if everything is ok
-
-    :param inBinding: parameter in settings file
-    :return: boolean of inBinding
-    """
-
-    b = cbinding(inBinding)
-    btrue = b.lower() in ("yes", "true", "t", "1")
-    bfalse = b.lower() in ("no", "false", "f", "0")
-    if btrue or bfalse:
-        return btrue
-    else:
-        msg = "Value in: \"" + inBinding + "\" is not True or False! \nbut: " + b
-        raise CWATMError(msg)
-
 
 def checkOption(inBinding):
     """
@@ -1681,7 +1640,7 @@ def checkOption(inBinding):
         else:
             closest = "- no match -"
 
-        msg = "No key with the name: \"" + inBinding + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
+        msg = "Error 116: No key with the name: \"" + inBinding + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
         msg += "Closest key to the required one is: \""+ closest + "\""
         msg += lineclosest
         raise CWATMError(msg)
@@ -1713,7 +1672,7 @@ def cbinding(inBinding):
         else:
             closest = "- no match -"
 
-        msg = "No key with the name: \"" + inBinding + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
+        msg = "Error 117: No key with the name: \"" + inBinding + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
         msg += "Closest key to the required one is: \""+ closest + "\"\n"
         msg += lineclosest
         raise CWATMError(msg)

@@ -93,6 +93,7 @@ for line in tin:
     line1 = line.lstrip()
     if len(line1)> 0:
         if line1[0] != "#":
+            print (line1)
             first ,secon = line1.split(': ')
             first = first.lstrip().strip()
             secon = secon.lstrip().strip()
@@ -147,7 +148,11 @@ for line in tin:
                 if first == "adds":
                     s = [x.lstrip().strip() for x in secon.split(';')]
                     adds1.append(s)
-                if first == "last_value": values1.append(float(secon))
+                if first == "last_value":
+                    try:
+                        values1.append(float(secon))
+                    except:
+                        values1.append(secon[6:9])
                 if first == "base_setting":    # finish the setting when next one is in
 
                     # join to modelruns if it is not skip
@@ -194,12 +199,25 @@ def cwatm(info, model):
     print(" Changes: ", model[2])
     print(" Adds: ", model[3], '\n')
 
-    success, last_dis = run_cwatm.main(model[4], ['-l'])
-    assert success
-    if model[5]:
-        minvalue = model[6] * 0.99
-        maxvalue = model[6] * 1.01
-        assert (minvalue <= last_dis <= maxvalue)
+    if model[4].find("error")> -1:
+        # test for error testing
+        with pytest.raises(SystemExit,  match=model[6]) as pyt:
+            run_cwatm.main(model[4], ['-q'])
+
+    elif  model[4].find("checkmap")> -1:
+        # test for check
+        success, last_dis = run_cwatm.main(model[4], ['-c'])
+        assert success
+
+    else:
+        # test for normal model run:
+        success, last_dis = run_cwatm.main(model[4], ['-l'])
+        assert success
+        if model[5]:
+            minvalue = model[6] * 0.99
+            maxvalue = model[6] * 1.01
+            assert (minvalue <= last_dis <= maxvalue)
+
 
 
 
@@ -214,6 +232,8 @@ def test_cwatm_without_settings(info):
     success = run_cwatm.usage()
     assert success
 
+
+ii = 1
 @pytest.mark.parametrize("info, model", models)
 def test_cwatm(info, model): cwatm(info, model)
 
