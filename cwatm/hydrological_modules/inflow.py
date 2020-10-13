@@ -99,9 +99,9 @@ class inflow(object):
                     inflowPoints = loadmap(where, local=localGauges).astype(np.int64)
                 else:
                     if len(coord) == 1:
-                        msg = "Checking output-points file\n"
+                        msg = "Error 216: Checking output-points file\n"
                     else:
-                        msg = "Coordinates are not pairs\n"
+                        msg = "Error 127: Coordinates are not pairs\n"
                     raise CWATMFileError(inflowPointsMap, msg, sname="Gauges")
 
 
@@ -128,7 +128,7 @@ class inflow(object):
                     for i in range(no):
                         line = file.readline().strip('\n')
                         if line in inflowNames:
-                            msg = line  + " in: " + filename + " is used already"
+                            msg = "Error 217:" + line  + " in: " + filename + " is used already"
                             raise CWATMError(msg)
 
                         inflowNames.append(line)
@@ -136,6 +136,7 @@ class inflow(object):
                     file.close()
                     skiplines = 3 + no
                 except:
+                    msg = "Error 218: Mistake reading inflow file\n"
                     raise CWATMFileError(os.path.join(inDir,name), sname=name)
 
                 tempTssData = np.genfromtxt(filename, skip_header=skiplines, names=names, usecols=names[1:], filling_values=0.0)

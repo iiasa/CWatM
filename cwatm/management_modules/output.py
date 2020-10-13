@@ -105,7 +105,7 @@ class outputTssMap(object):
                                 #info.append(TimeoutputTimeseries2(name, self.var, outpoints, noHeader=False))
                                 info.append(name)
                         else:
-                            msg = "Checking output file path \n"
+                            msg = "Error 220: Checking output file path \n"
                             raise CWATMFileError(outDir[sec], msg)
                         info.append(var)
                         if ismap: info.append(False)  # flag set False for initial writing if it is a map
@@ -142,9 +142,9 @@ class outputTssMap(object):
                 outpoints = loadmap(where, local = localGauges).astype(np.int64)
             else:
                 if len(coord) == 1:
-                    msg = "Checking output-points file\n"
+                    msg = "Error 221: Checking output-points file\n"
                 else:
-                    msg = "Coordinates are not pairs\n"
+                    msg = "Error 129: Coordinates are not pairs\n"
                 raise CWATMFileError(outpoints, msg, sname="Gauges")
 
             # self.var.Tss[tss] = TimeoutputTimeseries(cbinding(tss), self.var, outpoints, noHeader=Flags['noheader'])
@@ -201,11 +201,11 @@ class outputTssMap(object):
         # check if timing of output is in outputTypTss  (globals.py)
         for out in list(outTss.keys()):
             if not(out.split('_')[-1] in outputTypTss):
-                msg = "Output is not possible!\n"
+                msg = "Error 130: Output is not possible!\n"
                 msg += "\""+out +"\" is not one of these: daily, monthend, monthtot, monthavg, annualend, annualtot, annualavg"
                 raise CWATMError(msg)
             if not(out.split('_')[-2] in outputTypTss2):
-                msg = "Output is not possible!\n"
+                msg = "Error 131: Output is not possible!\n"
                 msg += "\""+out +"\" is not one of these: TSS for point value, AreaSum for sum of area, AreaAvg for average of area"
                 raise CWATMError(msg)
 
@@ -243,7 +243,7 @@ class outputTssMap(object):
             if not (vari in space):
                 closest = difflib.get_close_matches(vari, space)
                 if not closest: closest = ["- no match -"]
-                msg = "Variable \"" + vari + "\" is not defined in \""+ name+"\"\n"
+                msg = "Error 132: Variable \"" + vari + "\" is not defined in \""+ name+"\"\n"
                 msg += "Closest variable to this name is: \"" + closest[0] + "\""
                 raise CWATMError(msg)
 

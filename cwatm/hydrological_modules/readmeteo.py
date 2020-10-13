@@ -82,7 +82,8 @@ class readmeteo(object):
         name = cbinding('PrecipitationMaps')
         nameall = glob.glob(os.path.normpath(name))
         if not nameall:
-            raise CWATMFileError(name, sname='PrecipitationMaps')
+            msg = "Error 215: In readmeteo, cannot find precipitation maps "
+            raise CWATMFileError(name, msg, sname='PrecipitationMaps')
         namemeteo = nameall[0]
         latmeteo, lonmeteo, cell, invcellmeteo, rows, cols = readCoordNetCDF(namemeteo)
 
@@ -389,7 +390,8 @@ class readmeteo(object):
             else:
                 self.var.TMin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=0)
 
-            if Flags['check']: checkmap('TminMaps', "", self.var.Tmin, True, True, self.var.Tmin)
+            if Flags['check']:
+                checkmap('TminMaps', "", self.var.TMin, True, True, self.var.TMin)
 
             #self.var.TMax = readnetcdf2('TmaxMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
             self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale)
@@ -398,7 +400,7 @@ class readmeteo(object):
             else:
                 self.var.TMax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=0)
 
-            if Flags['check']: checkmap('TmaxMaps', "", self.var.Tmax, True, True, self.var.Tmax)
+            if Flags['check']: checkmap('TmaxMaps', "", self.var.TMax, True, True, self.var.TMax)
 
 
             #self.var.Psurf = readnetcdf2('PSurfMaps', dateVar['currDate'], addZeros = True, meteo = True)
