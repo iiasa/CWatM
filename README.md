@@ -9,7 +9,7 @@ http://www.iiasa.ac.at/cwatm
 
 
 <p align="center">
-  <img src="docu/_static/CWatM_logo.png" width="200" title="CWatM">
+  <img src="docu/CWatM_logo.png" width="200" title="CWatM">
 </p>
 
 
@@ -18,7 +18,7 @@ http://www.iiasa.ac.at/cwatm
 The Community Water Model (CWatM) will be designed for the purpose to assess water availability, water demand and environmental needs. It includes an accounting of how future water demands will evolve in response to socioeconomic change and how water availability will change in response to climate.
 
 <p align="center">
-  <img src="docu/Hydrological-model2.jpg" width="450" title="Schematic view of processes">
+  <img src="docu/Hydrological-model2.jpg" width="650" title="Schematic view of processes">
 </p>
 Figure 1: Schematic view of CWatM processes
 
