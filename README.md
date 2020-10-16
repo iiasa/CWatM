@@ -48,16 +48,8 @@ Figure 3: IIASA model nexus
 
 Our vision for the short to medium term work is to introduce water quality (e.g., salinization in deltas and eutrophication associated with mega cities) into CWatM and to consider qualitative and quantitative measures of transboundary river and groundwater governance into an integrated modelling framework.
 
-## Contact CWatM
-
-http://www.iiasa.ac.at/cwatm 
-
-wfas.info@iiasa.ac.at
-
-Our vision for the short to medium term work is to introduce water quality (e.g., salinization in deltas and eutrophication associated with mega cities) into CWatM and to consider qualitative and quantitative measures of transboundary river and groundwater governance into an integrated modelling framework.
-
 
 ## Link to full model documentation
 
-https://cwatm.github.io/
+https://cwatm.iiasa.ac.at/
 
