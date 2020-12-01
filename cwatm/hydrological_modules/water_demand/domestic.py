@@ -66,12 +66,13 @@ class waterdemand_domestic:
         else:
             self.var.domConsumptionVar = "domesticNettoDemand"
 
-    def dynamic(self):
+    def dynamic(self,wd_date):
         """
         Dynamic part of the water demand module - domestic
         read monthly (or yearly) water demand from netcdf and transform (if necessary) to [m/day]
 
         """
+
 
         if self.var.domesticTime == 'monthly':
             new = 'newMonth'
@@ -79,8 +80,8 @@ class waterdemand_domestic:
             new = 'newYear'
         
         if globals.dateVar['newStart'] or globals.dateVar[new]:
-            self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', globals.dateVar['currDate'], self.var.domesticTime, value=self.var.domWithdrawalVar)
-            self.var.pot_domesticConsumption = readnetcdf2('domesticWaterDemandFile', globals.dateVar['currDate'], self.var.domesticTime, value=self.var.domConsumptionVar)
+            self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.domWithdrawalVar)
+            self.var.pot_domesticConsumption = readnetcdf2('domesticWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.domConsumptionVar)
             # avoid small values (less than 1 m3):
             self.var.domesticDemand = np.where(self.var.domesticDemand > self.var.InvCellArea, self.var.domesticDemand, 0.0)
             self.var.pot_domesticConsumption = np.where(self.var.pot_domesticConsumption > self.var.InvCellArea, self.var.pot_domesticConsumption, 0.0)

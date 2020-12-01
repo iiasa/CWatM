@@ -209,7 +209,7 @@ def datetosaveInit(initdates,begin,end):
         # check if it a row of dates
         if date1 == -99999:
             if not(d[-1] in ["d", "m","y"]):
-                msg = "Error 121: Second value in StepInit is not a bumber or date nor indicating a repetition of year(y), month(m) or day(d) \n"
+                msg = "Error 121: Second value in StepInit is not a number or date nor indicating a repetition of year(y), month(m) or day(d) \n"
                 msg +="e.g. 2y for every 2 years or 6m for every 6 month"
                 raise CWATMError(msg)
             else:
@@ -246,7 +246,10 @@ def datetosaveInit(initdates,begin,end):
                     if date2 > end:
                         break
                     else:
-                        int1 = (date2 - begin).days + 1
+                        #int1 = (date2 - begin).days + 1
+                        d1 = datenum(date2)
+                        d2 = datenum(begin)
+                        int1 = int(d1 - d2) + 1
                         dateVar['intInit'].append(int1)
                         dd.append(date2)
                         j += 1
@@ -254,7 +257,10 @@ def datetosaveInit(initdates,begin,end):
 
 
         if type(date1) is datetime.datetime:
-            int1 = (date1 - begin).days + 1
+            #int1 = (date1 - begin).days + 1
+            d1 = datenum(date1)
+            d2 = datenum(begin)
+            int1 = int(d1 - d2) + 1
         else:
             int1 = int(date1)
         dateVar['intInit'].append(int1)

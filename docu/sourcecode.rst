@@ -9,10 +9,10 @@ Source code
 Source code on Github
 =====================
 
-| The source code of CWATM is freely available under the GNU General Public License. 
+| The source code of CWatM is freely available under the GNU General Public License. 
 | Please see its :ref:`rst_terms`
 
-   `Source code on Github repository of CWATM <https://github.com/CWatM/CWatM>`_
+   `Source code on Github repository of CWatM <https://github.com/CWatM/CWatM>`_
 
 | Please use the actual Python 3.7 version
 | From 2019 we are not maintaining the Python 2.7 version
@@ -38,16 +38,16 @@ Source code
         Community WATer Model
         --------------------------------------------------
 
-Modules of CWATM
+Modules of CWatM
 ----------------
 
-The source code of CWATM has a modular structure. Modules for data handling, output, reading as parsing the setting files
+The source code of CWatM has a modular structure. Modules for data handling, output, reading as parsing the setting files
 are in the **management_modules** folder.
 
 | Modules for hydrological processes e.g. snow, soil, groundwater etc. are located in the folder **hydrological_modules**.
 | The kinematic routing and the C++ routines (for speeding up the computational time) are in the folder **hydrological_modules/routing_reservoirs**.
-| Fig. 1 shows the modules of CWATM and their connections
-| Fig. 2 shows a profile with of the workflow and timing of CWATM.
+| Fig. 1 shows the modules of CWatM and their connections
+| Fig. 2 shows a profile with of the workflow and timing of CWatM.
 
 
 .. graphviz::
@@ -147,13 +147,13 @@ are in the **management_modules** folder.
 	}
 
 
-Figure 1: Schematic graph of CWATM modules
+Figure 1: Schematic graph of CWatM modules
 
 
 .. image:: _static/callgraph.png
     :width: 900px
 
-Figure 2: Graphical profile of CWATM run for Rhine catchment from 1/1/190-31/12/2010
+Figure 2: Graphical profile of CWatM run for Rhine catchment from 1/1/190-31/12/2010
 
 
 
@@ -179,7 +179,7 @@ Source code description
 Download Manual as pdf
 ======================
 
-:download:`CWATM_MANUAL.pdf<_static/CWATM.pdf>`
+:download:`CWatM_MANUAL.pdf<_static/CWatM.pdf>`
 
 
 Global dataset
@@ -190,7 +190,7 @@ Global dataset
 | We will give you access to our ftp server
 
 
-Contact CWATM
+Contact CWatM
 =============
 
 | `www.iiasa.ac.at/cwatm <http://www.iiasa.ac.at/cwatm>`_ 
@@ -199,9 +199,9 @@ Contact CWATM
 Remarks
 =======
 
-We as developers belief that CWATM should be utilize to encourage ideas and to advance hydrological, environmental science and stimulate integration into other science disciplines.
+We as developers belief that CWatM should be utilize to encourage ideas and to advance hydrological, environmental science and stimulate integration into other science disciplines.
 
-CWATM is based on existing knowledge of hydrology realized with Python and C++. Especially ideas from HBV, PCR-GLOBE, LISFLOOD, H08, MatSiro, WaterGAP are used for inspiration.
+CWatM is based on existing knowledge of hydrology realized with Python and C++. Especially ideas from HBV, PCR-GLOBE, LISFLOOD, H08, MatSiro, WaterGAP are used for inspiration.
 
 **Your support is more then welcome and highly appreciated**
 **Have fun!**

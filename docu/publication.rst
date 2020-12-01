@@ -13,6 +13,16 @@ Burek, P., Satoh, Y., Kahil, T., Tang, T., Greve, P., Smilovic, M., Guillaumot, 
  
 `Link to paper in Geoscientific Model Development <https://gmd.copernicus.org/articles/13/3267/2020>`_
 
+
+Manual of CWatM (version 1.05, October 2020)
+
+Burek, P., Smilovic, M., Guillaumot, L., de Bruijn, J., Greve, P., Satoh, Y., Islaam, A., Virgen-Urcelay, A., Tang, T., Kahil, T., and Wada, Y.: Community Water Model CWatM Manual, Laxenburg, Austria, IIASA Report, 2020.
+
+`Link to manual <http://pure.iiasa.ac.at/id/eprint/16802/>`_
+
+
+
+
 Publication using CWatM
 =======================
 
@@ -26,13 +36,13 @@ Publication using CWatM
 Presentation CWatM
 ==================
 
-#. Burek P (2018). Global Hydrological Model Community Water Model (CWATM). In: Indus Basin Knowledge Forum (IBKF), 31 May-2 June 2018, Laxenburg, Austria. 
+#. Burek P (2018). Global Hydrological Model Community Water Model (CWatM). In: Indus Basin Knowledge Forum (IBKF), 31 May-2 June 2018, Laxenburg, Austria. 
 #. Burek P , Kahil T, Parkinson S, Satoh Y, & Wada Y (2018). Integrated modeling for assessing water-energy-land nexus - Application of a hydrological and hydro-economic modeling framework for the Zambezi basin. In: Japan Geoscience Union Meeting 2018, 20-24 May, 2018, Chiba, Japan. 
 #. Burek P , Satoh Y, Greve P, Kahil T, Byers E , Langan S , & Wada Y (2018). Improving Water Resources Management on Global and Region Scales – Evaluating Strategies for Water Futures with the IIASA’s Community Water Model. In: American Geo-Sciences Union Fall Meeting, 11-15 December, New Orleans, USA. 
 #. Palazzo A , van Dijk M, Willaarts B, Magnuszewski P, Mayor Rodriguez B, Burek P , Kahil T, Tang T , et al. (2018). Integrated solutions for water, energy, and land nexus management the Zambezi Basin: stakeholder engagement and modeling. In: 3rd Zambezi Basin Stakeholders’ forum: Water-Energy-Food-Ecosystems (WEFE) Nexus for Socio-Economic Benefits in the Zambezi River Basin, 8-9 October 2018, Lilongwe, Malawi. 
 #. Tang T , Strokal M, Wada Y , Burek P , Kroeze C, van Vliet M, & Langan S (2018). Sources and export of nutrients in the Zambezi River basin: status and future trend. In: International Conference Water Science for Impact, 16-18 October 2018, Wageningen, Netherlands. 
-#. Burek P , Satoh Y, Greve P, Kahil T, & Wada Y (2017). The CommunityWater Model (CWATM) / Development of a community driven global water model. In: European Geosciences Union (EGU) General Assembly 2017, 23–28 April 2017, Vienna, Austria. 
-#. Burek P, Satoh Y, Greve P, Kahil T, Wada Y (2017). The Community Water Model (CWATM) / Development of a community driven global water model. In: European Geosciences Union (EGU) General Assembly 2017, 23–28 April 2017, Vienna, Austria - `Poster <http://pure.iiasa.ac.at/14536/1/Cwat_poster.pdf>`_
+#. Burek P , Satoh Y, Greve P, Kahil T, & Wada Y (2017). The CommunityWater Model (CWatM) / Development of a community driven global water model. In: European Geosciences Union (EGU) General Assembly 2017, 23–28 April 2017, Vienna, Austria. 
+#. Burek P, Satoh Y, Greve P, Kahil T, Wada Y (2017). The Community Water Model (CWatM) / Development of a community driven global water model. In: European Geosciences Union (EGU) General Assembly 2017, 23–28 April 2017, Vienna, Austria - `Poster <http://pure.iiasa.ac.at/14536/1/Cwat_poster.pdf>`_
 
 
 Additional selected publications
@@ -50,23 +60,34 @@ Additional selected publications
 
 
 
-
+.. _rst_developer:
 
 Developer
 =========
 
-
 Research Scholars, Water Program, IIASA
 
-.. _rst_developer:
+CWatM started in April 2016
 
-Peter Burek, Yusuke Satoh, Peter Greve, Mikhail Smilovic, Alejandra Virgen-Urcelay
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| **Leading WAT Program:**
+| Bill Cosgrove and Peter Burek (2016), Simon Langan (2016-2019), Yoshihide Wada (2019-2020)
+| **Hydrology and Programming:** 
+| Peter Burek (2016-), Yoshihide Wada(2016-), Yusuke Satoh(2016-), Peter Greve(2017-), Mikhail Smilovic(2018-), Luca Guillaumot(2018-), Jens de Bruijn(2019-)
+| **Interface to Water Quality and Hydro-economic modeling:**
+| Taher Kahil (2016-), Ting Tang (2018-)
+| **GIS:** 
+| Alejandra Virgen-Urcelay (2018)
+| **Design of CWatM schematic view:**
+| Adam Islaam (2019)
+| **Intro video:** 
+| Junko Mochizuki (2019)
 
-| Hydrology and Programming: Peter Burek, Yusuke Satoh, Peter Greve, Mikhail Smilovic
-| GIS: Alejandra Virgen-Urcelay
-| Design of CWatM schematic view: Adam Islaam
-| Intro video: Junko Mochizuki
+| **Contribution from:**
+| Fang Zhao,  East China Normal University, China 
+| Mengu Wang, Wageningen University, The Netherlands
+| Wenting Yang, Tsinghua University, China
+| Xiaogang He, Anjuli Figueroa, Stanford University, USA
+
 
 .. figure:: _static/rooftop.jpg
     :width: 700px

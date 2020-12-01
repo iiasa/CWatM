@@ -8,13 +8,13 @@ Example Zambezi
 Zambezi basin
 -------------
 
-The hydrological model CWATM is intended to be scalable and can be applied over finer spatial scales (e.g., basin). CWATM has been calibrated for the Zambezi, using six sub catchments and measured discharge
+The hydrological model CWatM is intended to be scalable and can be applied over finer spatial scales (e.g., basin). CWatM has been calibrated for the Zambezi, using six sub catchments and measured discharge
 
 
 Assessment of water stress
 --------------------------
 
-The CWATM calibrated model is used to assess water scarcity till 2050 in the Zambezi basin. Water resources at each grid cell are depended of climate, of water managements (e.g. reservoirs) and of water use for irrigation, livestock, domestic or industry.
+The CWatM calibrated model is used to assess water scarcity till 2050 in the Zambezi basin. Water resources at each grid cell are depended of climate, of water managements (e.g. reservoirs) and of water use for irrigation, livestock, domestic or industry.
 For each cell (at 5 arcmin ~ 9x9 km2) and for aggregated regions water resources can be related to water demand from different sectors. Results from the distributed hydrological model CWatM are aggregated to 21 sub-basins. 
 
 

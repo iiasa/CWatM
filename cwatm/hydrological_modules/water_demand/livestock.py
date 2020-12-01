@@ -67,7 +67,7 @@ class waterdemand_livestock:
         else:
             self.var.uselivestock = False
 
-    def dynamic(self):
+    def dynamic(self,wd_date):
         """
         Dynamic part of the water demand module - livestock
         read monthly (or yearly) water demand from netcdf and transform (if necessary) to [m/day]
@@ -77,7 +77,7 @@ class waterdemand_livestock:
             new = 'newYear'
             if self.var.livestockTime == 'monthly': new = 'newMonth'
             if globals.dateVar['newStart'] or globals.dateVar[new]:
-                self.var.livestockDemand = readnetcdf2('livestockWaterDemandFile', globals.dateVar['currDate'], self.var.domesticTime, value=self.var.livVar)
+                self.var.livestockDemand = readnetcdf2('livestockWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.livVar)
                 # avoid small values (less than 1 m3):
                 self.var.livestockDemand = np.where(self.var.livestockDemand > self.var.InvCellArea, self.var.livestockDemand, 0.0)
                 self.var.pot_livestockConsumption =  self.var.livestockDemand

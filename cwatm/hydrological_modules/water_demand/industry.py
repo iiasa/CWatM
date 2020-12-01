@@ -63,7 +63,7 @@ class waterdemand_industry:
         else:
             self.var.indConsumptionVar = "industryNettoDemand"
 
-    def dynamic(self):
+    def dynamic(self,wd_date):
         """
         Dynamic part of the water demand module - industry
         read monthly (or yearly) water demand from netcdf and transform (if necessary) to [m/day]
@@ -75,8 +75,8 @@ class waterdemand_industry:
             new = 'newYear'
 
         if globals.dateVar['newStart'] or globals.dateVar[new]:
-            self.var.industryDemand = readnetcdf2('industryWaterDemandFile', globals.dateVar['currDate'], self.var.industryTime, value=self.var.indWithdrawalVar)
-            self.var.pot_industryConsumption = readnetcdf2('industryWaterDemandFile', globals.dateVar['currDate'], self.var.industryTime, value=self.var.indConsumptionVar)
+            self.var.industryDemand = readnetcdf2('industryWaterDemandFile', wd_date, self.var.industryTime, value=self.var.indWithdrawalVar)
+            self.var.pot_industryConsumption = readnetcdf2('industryWaterDemandFile', wd_date, self.var.industryTime, value=self.var.indConsumptionVar)
             self.var.industryDemand = np.where(self.var.industryDemand > self.var.InvCellArea, self.var.industryDemand, 0.0)
             self.var.pot_industryConsumption = np.where(self.var.pot_industryConsumption > self.var.InvCellArea, self.var.pot_industryConsumption, 0.0)
             self.var.ind_efficiency = divideValues(self.var.pot_industryConsumption, self.var.industryDemand)

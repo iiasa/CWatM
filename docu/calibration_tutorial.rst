@@ -10,7 +10,7 @@ Calibration tutorial
 What you need
 =============
 
-Python 2.7.x 64 bit and a running CWATM (libraries netCDF4, numpy, scipy, GDAL)
+Python 2.7.x 64 bit and a running CWatM (libraries netCDF4, numpy, scipy, GDAL)
 In addition: **library deap**
 
 Calibration is using a distributed evolutionary algorithms in python: DEAP library
@@ -25,7 +25,7 @@ You can install it with:
 Pip install deap (you might change into the folder ../python/Scripts/)
 
 *	Make sure that python 2.7.x is working
-*	Make sure that CWATM is running in non calibration mode
+*	Make sure that CWatM is running in non calibration mode
 *	For some of the following steps it is easier to have PCRaster installed: http://pcraster.geo.uu.nl/
 
 
@@ -42,9 +42,9 @@ Running calibration
 
     [FILE_PATHS]
     #-------------------------------------------------------
-    PathRoot = P:/watmodel/CWATM/calibration_tutorial
+    PathRoot = P:/watmodel/CWatM/calibration_tutorial
     PathOut = $(PathRoot)/output
-    PathMaps = $(PathRoot)/CWATM_data/cwatm_input
+    PathMaps = $(PathRoot)/CWatM_data/cwatm_input
     PathMeteo = $(PathRoot)/climate
 
 5. in observed_data/yukon2001.cvs you find the observed data::
@@ -81,7 +81,7 @@ Running it on your computer
 
 It will be really slow on Windows using data on the the server – next step run it on your PC
 
-* copy the whole folder P:\watmodel\CWATM\calibration_tutorial to your PC (only 15 GB) 
+* copy the whole folder P:\watmodel\CWatM\calibration_tutorial to your PC (only 15 GB) 
 * (but maybe you have already parts of it on your computer – like the big climate input files)
 * Make it work on your computer::
 
@@ -156,7 +156,7 @@ Creating an initial netcdf file for warm start
 It is best to have a long warm up phase especially for groundwater:
 See also: https://cwatm.github.io/setup.html#initialisation
 
-You can run CWATM for a couple of years (20 years or more) and store the last days storage values in a file. This file can be read in to enable a ‘warm” start
+You can run CWatM for a couple of years (20 years or more) and store the last days storage values in a file. This file can be read in to enable a ‘warm” start
 
 * change use_multiprocessing = 0 in settings.txt
 * Delete catchments but keep the empty folder
@@ -167,14 +167,14 @@ You can run CWATM for a couple of years (20 years or more) and store the last da
 
 * Change load_initial = True to load_initial = False
 * save_initial = True
-* initSave = $(FILE_PATHS:PathRoot)/CWATM_init/testx
+* initSave = $(FILE_PATHS:PathRoot)/CWatM_init/testx
 * StepInit = 31/01/1996   (change it to a date 1 month after your StepStart)
 * Run runpy00_001.bat
 
-:raw-html:`&rarr;` There should be a file ./CWATM_init/testx_19960131.nc
+:raw-html:`&rarr;` There should be a file ./CWatM_init/testx_19960131.nc
 
 * Change to: load_initial = True 
-* initLoad =  $(FILE_PATHS:PathRoot)/CWATM_init/testx_19960131.nc
+* initLoad =  $(FILE_PATHS:PathRoot)/CWatM_init/testx_19960131.nc
 * 	Run runpy00_001.bat
 
 :raw-html:`&rarr;`	If it work then it used the initial file you generate before (that was just a test)
@@ -185,30 +185,30 @@ You can run CWATM for a couple of years (20 years or more) and store the last da
 * StepEnd =  31/12/2013
 * load_initial = False
 * save_initial = True
-* initSave = $(FILE_PATHS:PathRoot)/CWATM_init/station_name
+* initSave = $(FILE_PATHS:PathRoot)/CWatM_init/station_name
 * StepInit = 31/12/2013
 * Run runpy00_001.bat
 
-:raw-html:`&rarr;`	This should have generated a file ./CWATM_init/station_name_20131231.nc
+:raw-html:`&rarr;`	This should have generated a file ./CWatM_init/station_name_20131231.nc
 
 **And again:**
 
 * StepStart = 1/1/1961 (some 20 years or longer)
 * StepEnd =  31/12/1995 (a day before your normal running day)
 * load_initial = True
-* initLoad =  $(FILE_PATHS:PathRoot)/CWATM_init/station_name_20131231.nc
+* initLoad =  $(FILE_PATHS:PathRoot)/CWatM_init/station_name_20131231.nc
 * save_initial = True
-* initSave = $(FILE_PATHS:PathRoot)/CWATM_init/station_name
+* initSave = $(FILE_PATHS:PathRoot)/CWatM_init/station_name
 * StepInit = 31/12/1995  (a day before your running day)
 * Run runpy00_001.bat
 
-:raw-html:`&rarr;` This should have generated a file ./CWATM_init/station_name_19951231.nc
+:raw-html:`&rarr;` This should have generated a file ./CWatM_init/station_name_19951231.nc
 
 **And last part:**
 
 * Change StepStart and StepEnd back to original values
 * load_initial = True
-* initLoad =  $(FILE_PATHS:PathRoot)/CWATM_init/station_name_19951231.nc
+* initLoad =  $(FILE_PATHS:PathRoot)/CWatM_init/station_name_19951231.nc
 * save_initial = False
 * Run runpy00_001.bat
 
@@ -223,16 +223,16 @@ Cutting out a catchment as mask map
 ===================================
 
 See the .doc file in 
-P:\watmodel\CWATM\calibration_tutorial\calibration\tools\cut_catchment\
+P:\watmodel\CWatM\calibration_tutorial\calibration\tools\cut_catchment\
 For a description:
 
 **Requirements:** PCRASTER:
 
 We do no need the python version, I think downloading, extracting and setting of the paths in 
-P:\watmodel\CWATM\calibration_tutorial\calibration\tools\cut_catchment\catch\config_win.ini
+P:\watmodel\CWatM\calibration_tutorial\calibration\tools\cut_catchment\catch\config_win.ini
 Creating the 2 potential evaporation files in advance
 
-Potential evaporation is Calculated with Penman-Monteith in CWATM, but it is not part of the calibration = there is no change in pot. Evaporation. In order to make the calibration computational faster the results of pot evaporation could be stored and used every time.
+Potential evaporation is Calculated with Penman-Monteith in CWatM, but it is not part of the calibration = there is no change in pot. Evaporation. In order to make the calibration computational faster the results of pot evaporation could be stored and used every time.
 
 For the 30min this is done already as global map set, but for the 5min these files become too big. So they have to be produced for each basin separately
 
@@ -412,7 +412,7 @@ Figure 3 Sub-basin map with a unique identifier for each subbasin
 4. The settings file settings.txt has to be changed::
 
     [DEFAULT]
-    Root = P:/watmodel/CWATM/calibration/calibration_zambezi
+    Root = P:/watmodel/CWatM/calibration/calibration_zambezi
     # root directory where all subbasin are in
     .
     [Catchments]
@@ -421,7 +421,7 @@ Figure 3 Sub-basin map with a unique identifier for each subbasin
     # the order has to be the same as in the region map
     .
     [region]
-    regionmap = P:/watmodel/CWATM/calibration_tutorial/calibration/CreateCalibrationMaps/zambezi_regions.map
+    regionmap = P:/watmodel/CWatM/calibration_tutorial/calibration/CreateCalibrationMaps/zambezi_regions.map
     # region map, the order has to be the same a [Catchment]
     .
     [Path]
@@ -429,7 +429,7 @@ Figure 3 Sub-basin map with a unique identifier for each subbasin
     SubCatchmentPath = %(Root)s/catchments
     ParamRanges = %(Root)s/Join/ParamRanges.csv
     .
-    Result = P:/watmodel/CWATM/calibration_tutorial/calibration/CreateCalibrationMaps/results
+    Result = P:/watmodel/CWatM/calibration_tutorial/calibration/CreateCalibrationMaps/results
     # here are the results
     .
     PCRHOME = C:\PCRaster\bin
@@ -438,40 +438,6 @@ Figure 3 Sub-basin map with a unique identifier for each subbasin
 
 5. Run python CAL_5_PARAMETER_MAPS.py
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-Calibration parameters
-======================
-
-| **Snow**
-| 1.	Snowmelt coefficient in [m/C deg/day]  as a degree-day factor
-| **Evapotranspiration**
-| 2.	Crop factor as an adjustment to crop evapotranspiration
-| **Soil**
-| 3.	Soil depth factor: a factor for the overall soil depth of soil layer 1 and 2
-| 4.	Preferential bypass flow: empirical shape parameter of the preferential flow relation
-| 5.	Infiltration capacity parameter: empirical shape parameter b of the ARNO model
-| **Groundwater**
-| 6.	Interflow factor: factor to  adjust the amount which percolates from interflow to groundwater
-| 7.	Recession coefficient factor: factor to adjust the base flow recession constant (the contribution from groundwater to baseflow)
-| **Routing**
-| 8.	Runoff concentration factor: a factor for the concentration time of run-off in each grid-cell
-| 9.	Channel Manning's n factor: a factor roughness in channel routing 
-| 10.	Channel, lake and river evaporation factor: factor to adjust open water evaporation
-| **Reservoir & lakes**
-| 11.	Normal storage limit: the fraction of storage capacity used as normal storage limit
-| 12.	Lake A factor : factor to channel width and weir coefficient as a part of the Poleni weir equation
 
 
 Calibration tool structure

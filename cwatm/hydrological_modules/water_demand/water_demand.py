@@ -153,7 +153,14 @@ class water_demand:
             self.livestock.initial()
             self.irrigation.initial()
             self.environmental_need.initial()
-            
+
+            # if waterdemand is fixed:
+            self.var.waterdemandFixed = False
+            if "waterdemandFixed" in binding:
+                if returnBool('waterdemandFixed'):
+                    self.var.waterdemandFixed = True
+                    self.var.waterdemandFixedYear = loadmap('waterdemandFixedYear')
+
             #if 'usingAllocSegments' in binding:
             # if checkOption('usingAllocSegments'):
             #    self.var.allocSegments = loadmap('allocSegments').astype(np.int)
@@ -271,9 +278,15 @@ class water_demand:
             # ----------------------------------------------------
             # WATER DEMAND
 
-            self.domestic.dynamic()
-            self.industry.dynamic()
-            self.livestock.dynamic()
+            # Fix year of water demand on predefined year
+            wd_date = globals.dateVar['currDate']
+            if self.var.waterdemandFixed:
+                wd_date = wd_date.replace(day = 1)
+                wd_date = wd_date.replace(year = self.var.waterdemandFixedYear)
+
+            self.domestic.dynamic(wd_date)
+            self.industry.dynamic(wd_date)
+            self.livestock.dynamic(wd_date)
             self.irrigation.dynamic()
             self.environmental_need.dynamic()
 

@@ -360,7 +360,7 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
                     else: timestepI = int(timestepI) -1
 
                     if not(timestepI in nf1.variables['time'][:]):
-                        msg = "Error 105: time step " + str(int(timestepI)+1)+" not stored in "+ filename
+                        msg = "Error 105 time step " + str(int(timestepI)+1)+" not stored in "+ filename
                         raise CWATMError(msg)
                     itime = np.where(nf1.variables['time'][:] == timestepI)[0][0]
                     if cut:
@@ -424,7 +424,7 @@ def compressArray(map, name="None", zeros = 0.):
     :return: Compressed 1D array
     """
     if map.shape != maskinfo['mask'].shape:
-        msg = "Error 105: " + name + " has less different shape than area or ldd \n"
+        msg = "Error 105: " + name + " has less a different shape than area or ldd \n"
         raise CWATMError(msg)
 
     mapnp1 = np.ma.masked_array(map, maskinfo['mask'])
@@ -1098,7 +1098,6 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
 
     if maskinfo['shapeflat'][0]!= mapnp.size:
         msg = "Error 110: " + name + " has less or more valid pixels than the mask map \n"
-        msg += "if it is the ET maps, it might be from another run with different mask. Please look at the option: calc_evaporation"
         raise CWATMWarning(msg)
 
     mapC = compressArray(mapnp, name=filename)

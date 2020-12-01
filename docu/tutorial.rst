@@ -23,7 +23,7 @@ Requirements are a 64 bit `Python 3.7.x version <https://www.python.org/download
 
 .. warning:: From 2019 on we are changing to Python37. We do not provide further support for Python 2.7
 
-.. warning:: CWATM is tested for Python 3.7 and will for sure not work with Python versions lower than 3.6. We recommend using Python 3.7
+.. warning:: CWatM is tested for Python 3.7, 3.8 and will for sure not work with Python versions lower than 3.6. We recommend using Python 3.7, 3.8
 
 Libraries
 *********
@@ -36,6 +36,13 @@ These external libraries are needed:
 * `GDAL <http://www.gdal.org>`_
 * `Flopy <https://www.usgs.gov/software/flopy-python-package-creating-running-and-post-processing-modflow-based-models>`_
 
+.. warning::
+
+    Installing GDAL via pip causes sometimes problems. We recommend downloading the library from `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_ as GDAL-3.0.4-cp37-cp37m-win_amd64.whl (or a later version depending on your Python version) and installing them as: 
+	
+	pip install C:/Users/XXXXX/Downloads/GDAL-3.0.4-cp37-cp37m-win_amd64.whl
+
+
 **Windows**
 
 The five libraries can be installed with pip or
@@ -46,8 +53,8 @@ Windows executeable Python version
 **********************************
 
 | The A cwatmexe.zip with all Python libraries and a test case (River Rhine)) is stored on:
-| `Source code on Github repository of CWATM <https://github.com/CWatM/CWatM>`_
-| `Executable cwatmexe.zip on Github repository of CWATM <https://github.com/CWatM/CWatM/blob/version091/cwatmexe.zip>`_
+| `Source code on Github repository of CWatM <https://github.com/CWatM/CWatM>`_
+| `Executable cwatmexe.zip on Github repository of CWatM <https://github.com/CWatM/CWatM/blob/version091/cwatmexe.zip>`_
 
 
 Test the executable model version
@@ -151,6 +158,30 @@ You run the model without the python command in front. Please use: python cwatm.
 (You may have to adjust the path to your python version and to cwatm.py).
 
 
+Error because python is not added to the PATH
+---------------------------------------------
+
+If executing python return an error like this
+
+   ‘python’ is not recognized as an internal or external command
+
+You need either need to add Python to the PATH Environmental Variable or you need to start Python with full path.
+
+   c:/path_to_python/python
+
+
+Error because the path has white spaces included
+------------------------------------------------
+
+It is also possible to use paths with white spaces or dots. An easy way to avoid this is using relative paths, but is is also possible with absolute paths::
+
+    "C:/Python 37/python" "C:/CWatM Hydrologic.modeling/CWatM/run_cwatm.py" "C:/CWatM Hydrologic.modeling/settings .rhine30min.ini" -l
+    
+    But in the settingsfile do not use apostrophe:
+    PathRoot = C:/CWatM Hydrologic.modeling
+   
+
+
 Error because the python libraries are installed incorrectly
 ------------------------------------------------------------
 
@@ -161,9 +192,6 @@ If the model is causing an error at this stage, please check the python librarie
     import scipy.ndimage
     import gdal
     import netCDF4
-
-
-
 
 Running the model 1
 ===================
@@ -181,10 +209,10 @@ The flag -l show the output on screen as date and discharge
 
 At this point you should receive this eror message::
 
-   ======================== CWATM FILE ERROR ===========================
-   Cannot find option file: d:/work/CWATM/source/metaNetcdf.xml In  "metaNetcdfFile"
-   searching: "d:/work/CWATM/source/metaNetcdf.xml"
-   path: d:/work/CWATM/source does not exists	
+   ======================== CWatM FILE ERROR ===========================
+   Cannot find option file: d:/work/CWatM/source/metaNetcdf.xml In  "metaNetcdfFile"
+   searching: "d:/work/CWatM/source/metaNetcdf.xml"
+   path: d:/work/CWatM/source does not exists	
 
 
 Downloading and installing the spatial dataset 
@@ -249,11 +277,20 @@ The information of pathes are stored in the settings file around line 80-100
     [NETCDF_ATTRIBUTES]
     institution = IIASA
     title = Global Water Model - WATCH WDFEI
-    metaNetcdfFile = $(FILE_PATHS:PathRoot)/CWATM/source/metaNetcdf.xml
+    metaNetcdfFile = $(FILE_PATHS:PathRoot)/CWatM/source/metaNetcdf.xml
 
 .. note:: Please change the pathes according to your file system
 
 .. _rst_output2:
+
+
+Error and exception handling
+===========================
+
+We try to make our program behave properly when encountering unexpected conditions. Therefore we caption a number of possible wrong inputs.
+
+If you get an output with an error number please look at :ref:`rst_error`
+
 
 Running the model 2
 ===================
@@ -266,14 +303,14 @@ If you type now::
 
 You should see::
 
-   E:\CWATM_rhine\source>python cwatm.py settings_rhine30min.ini -l
-   CWATM - Community Water Model  Version: 0.991  Date:  16/09/2017
+   E:\CWatM_rhine\source>python cwatm.py settings_rhine30min.ini -l
+   CWatM - Community Water Model  Version: 0.991  Date:  16/09/2017
    International Institute of Applied Systems Analysis (IIASA)
    Running under platform:  Windows
    -----------------------------------------------------------
-   CWATM Simulation Information and Setting
+   CWatM Simulation Information and Setting
    The simulation output as specified in the settings file: settings_rhine30min.ini
-   can be found in E:/CWATM_rhine/output
+   can be found in E:/CWatM_rhine/output
    Step         Date   Discharge
    1      01/01/1961        4.20
    2      02/01/1961        4.23
@@ -282,18 +319,18 @@ You should see::
 
 If you don't see this. Something went wrong and you might see this instead::
 
-   E:\CWATM_rhine\source>python cwatm.py settings_rhine30min.ini -l
-   CWATM - Community Water Model  Version: 0.991  Date:  16/09/2017
+   E:\CWatM_rhine\source>python cwatm.py settings_rhine30min.ini -l
+   CWatM - Community Water Model  Version: 0.991  Date:  16/09/2017
    International Institute of Applied Systems Analysis (IIASA)
    Running under platform:  Windows
    -----------------------------------------------------------
-   ERROR 4: `E:/CWATM_rhine/cwatm_input/routing/ldd.map' does not exist in the file system,
+   ERROR 4: `E:/CWatM_rhine/cwatm_input/routing/ldd.map' does not exist in the file system,
    and is not recognised as a supported dataset name.
-   management_modules.messages.CWATMFileError:
-   ======================== CWATM FILE ERROR ===========================
+   management_modules.messages.CWatMFileError:
+   ======================== CWatM FILE ERROR ===========================
    In  "Ldd"
-   searching: "E:/CWATM_rhine/cwatm_input/routing/ldd.map"
-   path: E:/CWATM_rhine/cwatm_input/routing does not exists
+   searching: "E:/CWatM_rhine/cwatm_input/routing/ldd.map"
+   path: E:/CWatM_rhine/cwatm_input/routing does not exists
 
 | The model tries to help you on finding the error.
 | In this case it is looking for the river network map ldd.map or ldd.nc or ldd.tif
@@ -302,7 +339,7 @@ If you don't see this. Something went wrong and you might see this instead::
 Here you might change::
 
    [FILE_PATHS]
-   PathRoot = E:/CWATM_rhine
+   PathRoot = E:/CWatM_rhine
    PathMaps = $(PathRoot)/cwatm_input
 
 or::
@@ -313,6 +350,7 @@ or::
 
 But many other error can occure too! Have fun.
 
+P.s. some error we captured and we give a hint. Please look at :ref:`rst_error`
 
 
 Changing parameters of the model
@@ -367,6 +405,7 @@ for example
 
 .. note:: For information how to adjust the output in the settings file see :ref:`rst_outputone`
 
+
 Time series as point infomation or catchment sum or average
 -----------------------------------------------------------
 
@@ -404,6 +443,10 @@ Most important output variables - a selection
    ... (to be continued)
 
 
+A list of all variables
+-----------------------
 
+We started a list of possible output variables. Please note that this list is under construction. We still need to fill in all descriptions and all units.
+You find this list at :ref:`rst_variables`
 
 

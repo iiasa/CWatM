@@ -69,7 +69,7 @@ napoleon_use_rtype = True
 math_number_all = False
 # 'sphinx.ext.imgmath'  instead of 'rst2pdf.pdfbuilder',
 
-pdf_documents = [('index', u'CWATM', u'CommunityWaterModel_V-1,1', u'Peter Burek'),]
+pdf_documents = [('index', u'CWatM', u'CommunityWaterModel_V-1,1', u'Peter Burek'),]
 # index - master document
 # rst2pdf - name of the generated pdf
 # Sample rst2pdf doc - title of the pdf
@@ -299,7 +299,7 @@ html_sidebars = { '**': ['globaltoc.html', 'relations.html'], }
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'CWATMdoc'
+htmlhelp_basename = 'CWatMdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -325,7 +325,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'CWATM.tex', u'CWATM Documentation',
+    (master_doc, 'CWatM.tex', u'CWatM Documentation',
      u'Peter Burek, IIASA WAT ', 'manual'),
 ]
 
@@ -409,8 +409,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'CWATM', u'CWATM Documentation',
-     author, 'CWATM', 'One line description of project.',
+    (master_doc, 'CWatM', u'CWatM Documentation',
+     author, 'CWatM', 'One line description of project.',
      'Miscellaneous'),
 ]
 

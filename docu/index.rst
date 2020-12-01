@@ -25,7 +25,7 @@ Community Water Model
 **Content:**
 		
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :numbered: 1
    
    intro
@@ -34,6 +34,8 @@ Community Water Model
    publication
    setup
    tutorial
+   errorHandling
+   listVariables
    results
 
    todo

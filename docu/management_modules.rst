@@ -52,7 +52,7 @@ management_modules.messages module
     :undoc-members:
     :show-inheritance:
 
-**Handling output of CWATM**
+**Handling output of CWatM**
 
 management_modules.output module
 --------------------------------

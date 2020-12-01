@@ -18,7 +18,7 @@ Requirements are a 64-bit `Python 3.7.x or 3.8.x version <https://www.python.org
 
 .. warning:: a 32-bit version is not able to handle the data requirements!
 
-.. warning:: CWATM is tested for Python 3.7 and 3.8 and will for sure not work with Python versions lower than 3.6. We recommend using Python 3.7 or 3.8
+.. warning:: CWatM is tested for Python 3.7 and 3.8 and will for sure not work with Python versions lower than 3.6. We recommend using Python 3.7 or 3.8
 
 External libraries
 -------------------
@@ -30,16 +30,18 @@ These external libraries are needed:
 * `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
 * `GDAL <http://www.gdal.org>`_
 * `FloPy <https://www.usgs.gov/software/flopy-python-package-creating-running-and-post-processing-modflow-based-models>`_
-* `pytest <https://docs.pytest.org/en/latest/>`_
-* `pytest-html <https://pypi.org/project/pytest-html/>`_
 
-The seven libraries can be installed with conda, pip or downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
+The five libraries can be installed with conda, pip or downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
 
 .. warning::
-
-    Installing gdal via pip causes sometimes problems. We recommend downloading the library from `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_ as GDAL-3.0.4-cp37-cp37m-win_amd64.whl and installing them as: 
-	
-	pip install C:/Users/XXXXX/Downloads/GDAL-3.0.4-cp37-cp37m-win_amd64.whl
+   | **Troublemaker GDAL**
+   | Installing GDAL via pip causes sometimes problems. We recommend downloading the library from
+   | `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_ 
+   | as GDAL-3.0.4-cp37-cp37m-win_amd64.whl (or a later version depending on your Python version) and installing them as: 
+   | pip install C:/Users/XXXXX/Downloads/GDAL-3.0.4-cp37-cp37m-win_amd64.whl
+   | 
+   | Sometimes problems occure if you have installed GDAL separately (or a software did, like QGIS)
+   
 
 Installing
 ------------
@@ -57,13 +59,13 @@ and installing them in a folder.
 C++ libraries
 ----------------
 
-For the computational time demanding parts e.g. routing, CWATM comes with a C++ library. A pre-compiled version is included for Windows and Linux. Normally, you don't have to do anything and the pre-compiled version should just work.
+For the computational time demanding parts e.g. routing, CWatM comes with a C++ library. A pre-compiled version is included for Windows and Linux. Normally, you don't have to do anything and the pre-compiled version should just work.
 
 Pre-compiled C++ libraries
 ****************************
 
 | **Windows and CYGWIN_NT-6.1**
-| a compiled version is provided and CWATM is detecting automatically which system is running and which compiled version is needed
+| a compiled version is provided and CWatM is detecting automatically which system is running and which compiled version is needed
 
 | **Linux**
 | For Cygwin linux a compiled version *t5cyg.so* is provided in *../cwatm/hydrological_modules/routing_reservoirs/* for version CYGWIN_NT-6.1.
@@ -118,14 +120,22 @@ To compile with g++::
 .. warning:: Please rename your compiled version to t5_linux.so! At the moment the file t5_linux.so is compiled with Ubuntu Linux
 
 
+Error and exeption handling
+---------------------------
+
+We try to make our program behave properly when encountering unexpected conditions. Therefore we caption a number of possible wrong inputs.
+
+If you get an output with an error number please look at :ref:`rst_error`
+
+
 Test the Python version
 -------------------------
 
 Run from the command line::
 
-    cwatm
+    run_cwatm
     or
-    python cwatm.py if you installed CWatM not with pip
+    python run_cwatm.py if you installed CWatM not with pip
 
 The output should be::
 
@@ -137,7 +147,7 @@ The output should be::
 	
 .. warning:: If python is not set in the environment path, the full path of python has to be used
 
-.. warning:: Please use the right version of CWATM with the right version of Python (either 3.7 or 3.8)
+.. warning:: Please use the right version of CWatM with the right version of Python (either 3.7 or 3.8)
 
 
 Run the Python version
@@ -145,19 +155,34 @@ Run the Python version
 
 Run from the command line::
 
-    cwatm settingsfile flags
+    run_cwatm settingsfile flags
+    or
+    python run_cwatm settingsfile flags
+    
+    
 
 example::
 
-   cwatm settings1.ini
+   python run_cwatm settings1.ini
 
 or with more information and an overview of computational runtime::
 
-   cwatm settings1.ini -l -t
+   python run_cwatm settings1.ini -l -t
 	
 .. warning:: If python is not set in the environment path, the full path of python has to be used
 
 .. warning:: The model needs a settings file as an argument. See: :ref:`rst_settingdoc` 
+
+
+.. note:: it is also possible to use paths with white spaces or dots. An easy way to avoid this is using relative paths, but is is also possible with absolute paths.
+
+::
+
+    "C:/Python 37/python" "C:/CWatM Hydrologic.modeling/CWatM/run_cwatm.py" "C:/CWatM Hydrologic.modeling/settings .rhine30min.ini" -l
+    
+    But in the settingsfile do not use apostrophe "" or '':
+    PathRoot = C:/CWatM Hydrologic.modeling
+   
 	
 Flags
 *****
@@ -175,10 +200,10 @@ example::
 	-w --warranty    copyright and warranty information
 
 
-Windows executeable Python version
+Windows executable Python version
 ===================================
 
-| A CWATM executable cwatm.exe can be used instead of the Python version
+| A CWatM executable cwatm.exe can be used instead of the Python version
 
 * ADVANTAGE: You can run it without installing or knowledge of Python
 * DISADVANTAGE 1: You cannot see the source code or change it 
@@ -189,12 +214,12 @@ Windows executeable Python version
 
 .. note::
     | A cwatmexe.zip (around 300 MB with all Python libraries) is stored on:
-    | `Source code on Github repository of CWATM <https://github.com/CWatM/CWatM>`_
-    | `Executable cwatmexe.zip on Github repository of CWATM <https://github.com/CWatM/CWatM/blob/version091/cwatmexe.zip>`_
+    | `Source code on Github repository of CWatM <https://github.com/CWatM/CWatM>`_
+    | `Executable cwatmexe.zip on Github repository of CWatM <https://github.com/CWatM/CWatM/blob/version091/cwatmexe.zip>`_
 
 .. note::
     | We recommend using the Python 3.7.x version, 
-    | but if you not experienced in Python or have problems installing CWATM, please use the executable version.     
+    | but if you not experienced in Python or have problems installing CWatM, please use the executable version.     
     | Either start it in DOS box (command cmd), or use the batch file cwatmbat.bat to start it
 
 
@@ -220,9 +245,9 @@ Test the data
 
 example::
 
-   cwatm settings1.ini -c
+   python run_cwatm settings1.ini -c
    or
-   cwatm settings1.ini -c > checkdata.txt 
+   python run_cwatm settings1.ini -c > checkdata.txt 
 
 A list is created with::
 
@@ -261,7 +286,7 @@ example::
 Settings file
 ===============
 
-The settings file is controlling the CWATM run
+The settings file is controlling the CWatM run
 
 .. literalinclude:: _static/settings1.ini
     :linenos:
@@ -550,7 +575,7 @@ Initialisation
 
 
 
-CWATM needs to have estimates of the initial state of the internal storage variables, e.g. the amount of water stored in snow, soil, groundwater etc.
+CWatM needs to have estimates of the initial state of the internal storage variables, e.g. the amount of water stored in snow, soil, groundwater etc.
 
 There are two possibilities:
 
@@ -558,23 +583,23 @@ There are two possibilities:
 
 2. The initial state is known from a previous run, where the variables are stored at a certain time step. This is called **warm start**
 
-The the **warm start** is usful for:
+The **warm start** is usful for:
 
 * using a long pre-run to find the steady-state storage of the groundwater storage and use it as initial value
 
 * using the stored variables to shorten the warm-up period
 
-* using the stored variables to restart every day with the values from the pre3vious day (forecasting mode)
+* using the stored variables to restart every day with the values from the previous day (forecasting mode)
 
 Example of soil moisture
 ------------------------
 
 The next figure shows the impact of different initial condition on the soil moisture of the lower soil.
-In one of the simulations the soil is initially almost ompletely saturated. In another simulation the soil is completely dry and the third simulation starts with initial conditions in between the two extremes.
+In one of the simulations the soil is initially almost completely saturated. In another simulation the soil is completely dry and the third simulation starts with initial conditions in between the two extremes.
 
 In the beginning the effect of different initial condition can be seen clearly. But after one year the three curves converge. The **memory** of the lower soil goes back for about one year.
 
-For all the initial condition apart from groundwater the memory is about 12 month. That means practically a spin-up of one year is sufficient to habve enough warm-up time.
+For all the initial condition apart from groundwater, lakes and reservoirs the memory is about 12 month. 
 
 
 
@@ -584,6 +609,7 @@ For all the initial condition apart from groundwater the memory is about 12 mont
 Figure: Simulation of soil moisture in the lower soil with different initial conditions
 
 For the groundwater zone a longer warm-up period is needed, because of the slow response of groundwater. Here a rather fast reacting groundwater storage is shown with the three curves coverge after two years.
+We propose a warm-up of several decades. The longer the better.
 
 .. figure:: _static/init_groundwater.jpg
     :width: 600px
@@ -620,7 +646,7 @@ In the settings file the option: **load_initial** has to be set on **False**
 Storing initial variables 
 -------------------------
 
-In the settings file the option **save_intitisal** has to be set to **True**
+In the settings file the option **save_initial** has to be set to **True**
 
 The name of the initial netCDF4 file has to be put in **initsave**
 
@@ -637,11 +663,11 @@ and one or more dates have to be specified in StepInit
 Warm start
 ----------
 
-CWATM can write internal variables to a netCDF file for choosen timesteps. These netCDF files can be used as the initial conditions for a suceeding simulation.
+CWatM can write internal variables to a netCDF file for choosen timesteps. These netCDF files can be used as the initial conditions for a suceeding simulation.
 
-This is useful for establishing a steady-state with a long-term run and then using this steady-state for succeding simulations or for an every day run (forecasting mode)
+This is useful for establishing a steady-state after a long-term run and then using this steady-state for succeding simulations or for an every day run (forecasting mode)
 
-.. warning:: If the parameters are changes after a run(especially the groundwater parameters) the stored initial values do not represent the conditions of the storage variables. Stored initial conditions should **not** be used as initial values for a model run with another set of parameters. If you do this during calibration, you will not be able to reproduce the calibration results!
+.. warning:: If the parameters are changed after a run(especially the groundwater, lakes and reservoir parameters) the stored initial values do not represent the conditions of the storage variables. Stored initial conditions should **not** be used as initial values for a model run with another set of parameters. If you do this during calibration, you will not be able to reproduce the calibration results!
 
 
 
@@ -708,7 +734,7 @@ Initial conditions
 Model Output
 ============
 
-An advantage of **CWATM** is the full flexibility of the output variables.
+An advantage of **CWatM** is the full flexibility of the output variables.
 
 - All parameters and variables can be used for output as maps or time series.
 - Even if the model is run at daily timestep, output can be daily, monthly, annual, at the end of a run
@@ -849,64 +875,5 @@ Output variables - starting a list
 | .
 | As output variable please use without self.var.
 
-::
-   
-   #Python_modul            Variable_name
-   capillarRise.py          self.var.capRiseFrac 
-   evaporationPot.py        self.var.AlbedoCanopy
-   evaporationPot.py        self.var.AlbedoSoil
-   evaporationPot.py        self.var.AlbedoWater
-   evaporationPot.py        self.var.ETRef
-   evaporationPot.py        self.var.EWRef
-   evaporation.py           self.var.potBareSoilEvap 
-   evaporation.py           self.var.snowEvap
-   evaporation.py           self.var.SnowMelt
-   evaporation.py           self.var.potBareSoilEvap 
-   evaporation.py           self.var.cropKC[No] 
-   evaporation.py           self.var.totalPotET[No] 
-   evaporation.py           self.var.potTranspiration[No]
-   groundwater.py           self.var.recessionCoeff 
-   groundwater.py           self.var.specificYield 
-   groundwater.py           self.var.kSatAquifer 
-   groundwater.py           self.var.storGroundwater 
-   groundwater.py           self.var.baseflow 
-   interception.py          self.var.interceptCap[No]  
-   interception.py          self.var.interceptStor[No] 
-   interception.py          self.var.availWaterInfiltration[No] 
-   interception.py          self.var.potTranspiration[No] 
-   interception.py          self.var.actualET[No] 
-   lakes_reservoirs.py      self.var.waterBodyID 
-   lakes_reservoirs.py      self.var.waterBodyOut
-   lakes_reservoirs.py      self.var.lakeArea
-   lakes_reservoirs.py      self.var.lakeDis0
-   lakes_reservoirs.py      self.var.lakeAC
-   lakes_reservoirs.py      self.var.lakeEvaFactor
-   lakes_reservoirs.py      self.var.reslakeoutflow
-   lakes_reservoirs.py      self.var.lakeVolume
-   lakes_reservoirs.py      self.var.lakeStorage
-   lakes_reservoirs.py      self.var.lakeInflow
-   lakes_reservoirs.py      self.var.lakeOutflow
-   lakes_reservoirs.py      self.var.reservoirStorage
-   lakes_reservoirs.py      self.var.lakeResStorage
-   lakes_reservoirs.py      self.var.sumlakeResInflow
-   lakes_reservoirs.py      self.var.sumlakeResOutflow
-   lakes_res_small.py       self.var.smalllakeArea
-   lakes_res_small.py       self.var.smalllakeDis0
-   lakes_res_small.py       self.var.smalllakeA
-   lakes_res_small.py       self.var.smalllakeFactor
-   lakes_res_small.py       self.var.smalllakeVolumeM3
-   lakes_res_small.py       self.var.smallevapWaterBodyStorage 
-   landcoverType.py         self.var.coverTypes
-   landcoverType.py         self.var.totalET
-   landcoverType.py         self.var.actSurfaceWaterAbstract
-   landcoverType.py         self.var.minInterceptCap
-   landcoverType.py         self.var.interceptStor[No]
-   landcoverType.py         self.var.sum_interceptStor
-   landcoverType.py         self.var.minCropKC
-   landcoverType.py         self.var.maxGWCapRise
-   ... (to be continued)
-
-
-
-
-
+We started a list of possible output variables. Please note that this list is under construction. We still need to fill in all descriptions and all units.
+You find this list at :ref:`rst_variables`

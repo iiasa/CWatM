@@ -77,7 +77,7 @@ Static data
 Mask map
 ---------
 
-* mask map or coordinates to model only regions or catchments
+* mask map or coordinates to model only regions or catchments (value in mask = 1)
 * maps or coordinates for station to print time series
 
 .. image:: _static/mask_rhine.jpg
@@ -119,8 +119,8 @@ The river drainage map or local drain direction (LDD) is the essential component
 The approach to find the flow direction is in theory quite simple:
 There are eight valid output directions relating to the eight adjacent cells into which flow could travel. This approach is commonly referred to as an eight-direction (D8) flow model. The direction from each cell to its steepest downslope neighbour is chosen as flow direction. If the flow direction for each cell is given, a raster of accumulated flow into each cell can be calculated. Figure 4 shows the steps from DEM to flow direction to flow accumulation. Flow direction is shown in PC-Raster coding of the direction (ArcGIS uses another coding).
 
-CWATM uses a local drainage direction map which defines the dominant flow direction in one of the eight neighboring grid cells (D8 flow model). This forms a river network from the springs to the mouth of a basin. To be compliant with the ISIMIP framework  the  0.5° drainage direction map (DDM30)  of (Döll and Lehner, 2002) [#]_ is used. For higher resolution e.g. 5’ different sources of river network maps are available e.g. HydroSheds (Lehner et al., 2008) [#]_ – DRT (Wu et al., 2011) [#]_ and CaMa-Flood (Yamazaki et al., 2009) [#]_. These approaches uses the same hydrological sound digital elevation model but differ in the upscaling methods. Zhao et al. (2017) [#]_ shows the importance of routing schemes and river networks in peak discharge simulation.
-For CWATM the DDM30 is used for 0.5° and DRT is used for 5'.
+CWatM uses a local drainage direction map which defines the dominant flow direction in one of the eight neighboring grid cells (D8 flow model). This forms a river network from the springs to the mouth of a basin. To be compliant with the ISIMIP framework  the  0.5° drainage direction map (DDM30)  of (Döll and Lehner, 2002) [#]_ is used. For higher resolution e.g. 5’ different sources of river network maps are available e.g. HydroSheds (Lehner et al., 2008) [#]_ – DRT (Wu et al., 2011) [#]_ and CaMa-Flood (Yamazaki et al., 2009) [#]_. These approaches uses the same hydrological sound digital elevation model but differ in the upscaling methods. Zhao et al. (2017) [#]_ shows the importance of routing schemes and river networks in peak discharge simulation.
+For CWatM the DDM30 is used for 0.5° and DRT is used for 5'.
 
 
 .. image:: _static/elevation_flowaccu.jpg
@@ -170,8 +170,8 @@ Solving this for α and β gives:
 
 :math:`\alpha = (\frac{nP^{2/3}}{\sqrt{So}})^\beta` and  :math:`\beta = 0.6` 
 
-| To calculate α CWATM uses static maps of:
-| P: wetted perimeter approximated in CWATM: P = channel width + 2 * channel bankful depth
+| To calculate α CWatM uses static maps of:
+| P: wetted perimeter approximated in CWatM: P = channel width + 2 * channel bankful depth
 | n: Manning’s coefficient
 | S0: gradient (slope) of the water surface: S0 = Δelevation/channel length
 
@@ -197,7 +197,7 @@ Figure x: Channel gradient at 5 in % or tan(α)'
 Manning’s roughness
 *******************
 
-Manning’s roughness coefficient (n) is one of the calibration parameter in CWATM. But on subbasin level an estimation of the spatial distribution of n is needed. n normally range between 0.025 (low land rivers) and 0.075 (mountainous rivers with a lot of vegetation, gravels). A low n = smooth surface results in a faster travel time and higher peaks. A high n = rough surface results in s slower travel time and lower peaks. Inspection of the riverbed will reveal characteristics related to roughness. A treatment of the use of Manning's coefficients is in McCuen (1998) [#]_. Below is a first-approximation of Manning's coefficients for some widely observed beds::
+Manning’s roughness coefficient (n) is one of the calibration parameter in CWatM. But on subbasin level an estimation of the spatial distribution of n is needed. n normally range between 0.025 (low land rivers) and 0.075 (mountainous rivers with a lot of vegetation, gravels). A low n = smooth surface results in a faster travel time and higher peaks. A high n = rough surface results in slower travel time and lower peaks. Inspection of the riverbed will reveal characteristics related to roughness. A treatment of the use of Manning's coefficients is in McCuen (1998) [#]_. Below is a first-approximation of Manning's coefficients for some widely observed beds::
 
 	n = 0.04 - 0.05		Mountain streams
 	n = 0.035 		    Winding, weedy streams
@@ -225,7 +225,7 @@ First the channel bottom width is calculated by a simply regression between upst
 
    Channel width=upstreamArea ×0.0032
 
-This first map is used to run CWATM to get an estimate on average discharge. 
+This first map is used to run CWatM to get an estimate on average discharge. 
 
 In the second step a regression formula from Pistocchi et al. 2006 [#]_ is used to calculate the channel bottom width with average discharge as regressor, because discharge seems to be better correlated to width than upstream area. This is quite obvious if you look at small alpine catchment with high precipitation and therefore high discharge and on the other side at big, almost semiarid catchments on the Iberian peninsula with low average discharge::
 
@@ -285,7 +285,7 @@ Modeling of unsaturated flow and transport processes can be done with the 1D Ric
 | z: vertical coordinate
 | S: source sink term [T-1] 
 
-With the simplification the 1D Richard equation e.g.  flow of soil moisture is entirely gravitu-driven and matrix potential gradient is zero this implies a flow tha tis always in downward direction at a rate that equals the conductivity of the soil. The relationship can now be described with the model of Mualem (1976) [#]_ and with the van Genuchten model (1980) [#]_ equation.
+With the simplification the 1D Richard equation e.g.  flow of soil moisture is entirely gravitu-driven and matrix potential gradient is zero this implies a flow tha tis always in downward direction at a rate that equals the conductivity of the soil. The relationship can now be described with the model of Mualem (1976) [#]_ and with the van Genuchten model (1980) [#]_ equation. Please find a full description of the modeled soil processes in `Burek et al. 2020 <https://gmd.copernicus.org/articles/13/3267/2020>`_
 
 :math:`K(\Theta) = K_s(\frac{\Theta - \Theta_r}{\Theta_s - \Theta_r})^{0.5} \lbrace 1-[1-(\frac{\Theta - \Theta_r}{\Theta_s - \Theta_r})^{1/m}]^{m} \rbrace^{2}`  (Van Genuchten equation)
 
@@ -324,7 +324,7 @@ Figure x: Bulk density second soil layer 5-30 cm  at 5'
 Pedotransfer function Rosetta3
 ******************************
 
-Parameters for the unsaturated zone is done by using a pedotransfer function. 
+Soil parameters required by CWatM are obtained from soil properties by using a pedotransfer function.
 
 A pedotransfer is used from Zhang and Schaap 2016 [#]_ to transfer the standard soil properties (soil texture, porosity, organic mater and bulk density) to the van Genuchten model parameters: :math:`\Theta_s` (maximal amount of moisture) :math:`\Theta_r` (residual amount of moisture) :math:`\lambda` (pore-size index) :math:`K_s` (saturated conductivity of the soil) and :math:`\alpha` (inverse of air entry suction)
 
@@ -367,10 +367,10 @@ Figure x: Recession constant GLIM: [1/day] at 5'
 Lakes and Reservoirs
 ********************
 
-The HydroLakes database http://www.hydrosheds.org/page/hydrolakes (Lehner et al. (2011) [#]_; Messager et al. (2016) [#]_, provides 1.4 million global lakes and reservoirs with a surface area of at least 10ha. CWATM differentiate between big lakes and reservoirs which are connected inside the river network and smaller lakes and reservoirs which are part of a single grid cell and part of the runoff concentration within a grid cell.  Therefore the HydroLakes database is separated into “big” lakes and reservoirs with an area ≥ 100 km2 or a upstream area ≥ 5000 km2 and “small” lakes which represents the non-big lakes. All lakes and reservoirs are combined at grid cell level but big lakes can have the expansion of several grid cells. Lakes bigger than 10000 km2 are shifted according to the ISIMIP protocol.
+The HydroLakes database http://www.hydrosheds.org/page/hydrolakes (Lehner et al. (2011) [#]_; Messager et al. (2016) [#]_, provides 1.4 million global lakes and reservoirs with a surface area of at least 10ha. CWatM differentiate between big lakes and reservoirs which are connected inside the river network and smaller lakes and reservoirs which are part of a single grid cell and part of the runoff concentration within a grid cell.  Therefore the HydroLakes database is separated into “big” lakes and reservoirs with an area ≥ 100 km2 or a upstream area ≥ 5000 km2 and “small” lakes which represents the non-big lakes. All lakes and reservoirs are combined at grid cell level but big lakes can have the expansion of several grid cells. Lakes bigger than 10000 km2 are shifted according to the ISIMIP protocol.
+Lake and reservoir (LR) data are specified by an id for each LR, type of LR (1 for lake, 2 for reservoir), area of LR, year of constraction of reservoir and average discharge at the outlet of LR.
 
-Water demand
-------------
+
 
 
 Temporal data for each year

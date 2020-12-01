@@ -130,7 +130,7 @@ test_value: False
         description: 10th Rhine 30min with lot of output
         set_save:    settings_rhine_30min_10.ini
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 732; SpinUp = 01/10/2009; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine_20091231.nc  
-        adds:        OUT_TSS_Daily = discharge; OUT_TSS_MonthAvg = discharge; OUT_TSS_AnnualAvg = discharge; OUT_TSS_AnnualTot = runoff; OUT_Map_Daily = discharge; OUT_Map_MonthAvg = discharge, Precipitation, runoff; OUT_Map_AnnualAvg = discharge; OUT_MAP_TotalAvg = discharge, baseflow
+        adds:        OUT_TSS_Daily = discharge; OUT_TSS_MonthAvg = discharge; OUT_TSS_AnnualAvg = discharge; OUT_TSS_AnnualTot = runoff; OUT_Map_Daily = discharge; OUT_Map_MonthAvg = discharge, Precipitation, runoff; OUT_Map_AnnualAvg = discharge; OUT_MAP_AnnualTot = runoff; OUT_MAP_AnnualEnd = runoff; OUT_MAP_TotalAvg = discharge, baseflow
         last_value:  1656.99	
        # 11th setup Rhine
         header:      Rhine_30min_11
@@ -191,7 +191,14 @@ test_value: False
         description: Additional tests 30min environmental flow
         set_save:    settings_rhineadd_30min_06.ini
         changes:     calc_environflow = True; StepEnd =  31/12/2010; calc_ef_afterRun = True
-        adds:        OUT_MAP_Daily = discharge; OUT_MAP_12month = MMF, MQ90, EF_VMF
+        adds:        OUT_MAP_Daily = discharge; OUT_MAP_12month = MMF, MQ90, EF_VMF; OUT_MAP_Once = MAF, Q90
+        last_value:  4.22
+       # 7st add 
+        header:      Rhine_30min_add_7
+        description: Additional tests 30min add output
+        set_save:    settings_rhineadd_30min_07.ini
+        changes:     StepEnd = 40
+        adds:        OUT_MAP_Daily = actualET[1]; OUT_TSS_monthend = discharge; OUT_TSS_totaltot = discharge; OUT_TSS_totalavg = discharge; OUT_MAP_monthend = discharge; OUT_MAP_monthtot = discharge;OUT_MAP_totaltot = discharge; OUT_MAP_totalavg = discharge; OUT_MAP_totalend = discharge
         last_value:  4.22
 
 # --- ERROR ------------------
@@ -416,7 +423,7 @@ test_value: False
         changes:     metaNetcdfFile = $(FILE_PATHS:PathRoot)/test_cwatm3.py
         adds:        
         last_value:  Error 303 - using option metaxml file
-       # -> error 304 is missing configuration line 194: optionfile not found
+       # -> error 304 is missing configuration line 194: optionfile not found -> see below error 33
        # -> error 305 is missing configuration line 194: optionfile cannot read
        
        # ---------------- output -----------------------------
@@ -454,7 +461,7 @@ test_value: False
         set_save:    settings_error_30min_30.ini
         changes:     
         adds:        OUT_TSS_AreaWrong_Daily = discharge
-        last_value:  Error 131 - OUT_TSS_AreaWrong_Daily is not one of these - TSS for point value AreaSum for sum of area, AreaAvg for average of are 
+        last_value:  Error 131 - OUT_TSS_AreaWrong_Daily is not one of these - TSS for point value AreaSum for sum of area, AreaAvg for average of area
        # 31st Error 132
         header:      Error_30min_31
         description: 31st failure 30min basic version - Error 132 
@@ -463,13 +470,20 @@ test_value: False
         adds:        OUT_TSS_Daily = dischargeWrong
         last_value:  Error 132 -  Variable is not defined in list of variables
 
-      # 32rd  Error 400 
+       # 32rd  Error 400 
         header:      Error_30min_32
-        description: 32st failure - here not a failure but exit bc environmental flow calc from existing - Error 400
+        description: 32nd failure - here not a failure but exit bc environmental flow calc from existing - Error 400
         set_save:    settings_error_30min_32.ini
         changes:     calc_environflow = True; StepEnd =  31/12/2010; calc_ef_afterRun = False; EFDis = $(FILE_PATHS:PathOut)/discharge_daily.nc
         adds:        OUT_MAP_12month = MMF, MQ90, EF_VMF
         last_value:  Error 400 - environmental flow calc from existing
+       # 33rd Error 304 
+        header:      Error_30min_33
+        description: 33rd failure 30min basic version - Error 304
+        set_save:    settings_error_30min_33.ini
+        changes:     metaNetcdfFile = $(FILE_PATHS:PathRoot)/xxxx.xml
+        adds:        
+        last_value:  Error 304 - optionfile not found metaNetcdf.xml
 
 # -----------------------------
     # Global
@@ -678,12 +692,12 @@ test_value: False
         adds:        OUT_TSS_Daily = discharge
         last_value:  227.02
        # 8th setup global
-       # header:      global_5min_8
-       # description: 8th global 5min waterdemand TRUE, load initial, long run
-       # set_save:    settings_global_5min_08.ini
-       # changes:     includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 400; SpinUp = 10/01/1990; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/global5min_19900131.nc  
-       # adds:        OUT_TSS_Daily = discharge
-       # last_value:  2130.26
+        header:      global_5min_8
+        description: 8th global 5min waterdemand TRUE, load initial, long run
+        set_save:    settings_global_5min_08.ini
+        changes:     includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 400; SpinUp = 10/01/1990; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/global5min_19900131.nc  
+        adds:        OUT_TSS_Daily = discharge
+        last_value:  2130.26
 
      
 # ------- CHECK ----------------------

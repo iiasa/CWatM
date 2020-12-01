@@ -5,7 +5,7 @@ Calibration tool
 
 
 | Calibration tool for hydrological models
-| in ../CWATM/calibration
+| in ../CWatM/calibration
 
 
 | using a distributed evolutionary algorithms in python: DEAP library
@@ -42,8 +42,8 @@ Further ideas for calibration
 - Using Budyko see (Greve et al. 2016)
 
 
-Calibration parameters
-======================
+Suggested Calibration parameters
+===============================
 
 | **Snow**
 | 1.	Snowmelt coefficient in [m/C deg/day]  as a degree-day factor
@@ -158,7 +158,7 @@ What is needed
 | **6.** run python calibration_single.py settings.txt
 
 
-Recommondations
+Recommendations
 ===============
 
 | **1.** Run the model first to store the pot. evaporation results

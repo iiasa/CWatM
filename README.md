@@ -1,10 +1,9 @@
 # Community Water Model (CWatM)
 
 IIASA
-13rd April 2018
+13rd October 2020
 
-
-CWatM represents one of the new key elements of IIASA's Water program to assess water supply, water demand and environmental needs at global and regional level. The hydrologic model is open source and flexible to link in different aspects of the water energy food nexus. CWATM will be a basis to develop a next-generation global hydro-economic modeling and will be coupled to the existing IIASA models like MESSAGE and GLOBIOM
+CWatM represents one of the new key elements of IIASAâ€™s Water program to assess water supply, water demand and environmental needs at global and regional level. The hydrologic model is open source and flexible to link in different aspects of the water energy food nexus. CWATM will be a basis to develop a next-generation global hydro-economic modeling and will be coupled to the existing IIASA models like MESSAGE and GLOBIOM
 
 http://www.iiasa.ac.at/cwatm
 
@@ -19,9 +18,17 @@ http://www.iiasa.ac.at/cwatm
 The Community Water Model (CWatM) will be designed for the purpose to assess water availability, water demand and environmental needs. It includes an accounting of how future water demands will evolve in response to socioeconomic change and how water availability will change in response to climate.
 
 <p align="center">
-  <img src="docu/_static/schematic_modules.jpg" width="450" title="Schematic modules">
+  <img src="docu/_static/Hydrological-model2.jpg" width="450" title="Schematic view of processes">
 </p>
-Figure 1: Schematic graph of CWatM modules
+Figure 1: Schematic view of CWatM processes
+
+Modules for hydrological processes e.g. snow, soil, groundwater etc. are located in the folder hydrological_modules.
+The kinematic routing and the C++ routines (for speeding up the computational time) are in the folder hydrological_modules/routing_reservoirs.
+
+<p align="center">
+  <img src="docu/_static/schematic_modules.jpg" width="650" title="Schematic modules">
+</p>
+Figure 2: Schematic graph of CWatM modules
 
 ## Next-generation global hydro-economic modeling framework
 
@@ -34,7 +41,7 @@ In the nexus framework â€“ water, energy, food, ecosystem - CWatM will be c
 <p align="center">
   <img src="docu/_static/nexus.jpg" width="350" title="IIASA nexus">
 </p>
-Figure 2: IIASA model nexus
+Figure 3: IIASA model nexus
 
 
 ## Short to medium vision
