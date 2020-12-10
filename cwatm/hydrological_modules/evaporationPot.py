@@ -93,7 +93,7 @@ class evaporationPot(object):
         Energy only PET: ET=0.8(Rn âˆ’G)   equation 8
         3: Yang et al. Penman Montheith correction method
         Yang, Y., Roderick, M. L., Zhang, S., McVicar, T. R., and Donohue, R. J.: Hydrologic implications of vegetation response to elevated CO2 in climate projections, Nat. Clim. Change, 9, 44-48, 10.1038/s41558-018-0361-0, 2019.
-        Equation 14: where the term 2.Ã—41âˆ’40([CO]2 âˆ’300) accounts for changing [CO2] on rs
+        Equation 14: where the term 2.14([CO]2 âˆ’300) accounts for changing [CO2] on rs
 
 
 

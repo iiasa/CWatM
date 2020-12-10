@@ -456,14 +456,6 @@ class soil(object):
         ## ----------------------------------------------------------
         # Capillar Rise
 
-        #head1 = np.where(satTerm1 > 0.,self.var.invAlpha1[NoSoil] * ((1 / satTerm1) ** self.var.genuInvM1[NoSoil] - 1) ** self.var.genuInvN1[NoSoil],1E+7)
-        #head2 = np.where(satTerm2 > 0.,self.var.invAlpha2[NoSoil] * ((1 / satTerm2) ** self.var.genuInvM2[NoSoil] - 1) ** self.var.genuInvN2[NoSoil],1E+7)
-        #head3 = np.where(satTerm3 > 0.,self.var.invAlpha3[NoSoil] * ((1 / satTerm3) ** self.var.genuInvM3[NoSoil] - 1) ** self.var.genuInvN3[NoSoil],1E+7)
-
-        #gradient1 = np.maximum(0., 2. * (head1 - head2) / (self.var.rootDepth[0][No] + self.var.rootDepth[1][No]) - 1.)
-        #gradient2 = np.maximum(0., 2. * (head2 - head3) / (self.var.rootDepth[1][No] + self.var.rootDepth[2][No]) - 1.)
-        #gradient3 = np.maximum(0., head3 / (self.var.rootDepth[2][No]))
-
         satTermFC1 = np.maximum(0., self.var.w1[No] - self.var.wres1[No]) / (self.var.wfc1[No] - self.var.wres1[No])
         satTermFC2 = np.maximum(0., self.var.w2[No] - self.var.wres2[No]) / (self.var.wfc2[No] - self.var.wres2[No])
         satTermFC3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No]) / (self.var.wfc3[No] - self.var.wres3[No])

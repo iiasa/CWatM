@@ -315,7 +315,7 @@ class landcoverType(object):
         # Van Genuchten n and m coefficients
         # GenuN1=Lambda+1
         with np.errstate(invalid='ignore', divide='ignore'):
-            genuN1 = [x + 1 for x in self.var.lambda1]
+            genuN1 = [x + 1 for x in self.var.lambda1]   # unit [-]
             genuN2 = [x + 1 for x in self.var.lambda2]
             genuN3 = [x + 1 for x in self.var.lambda3]
             # self.var.GenuM1=Lambda1/GenuN1
@@ -330,11 +330,6 @@ class landcoverType(object):
             self.var.genuInvN1 = [1 / x for x in genuN1]
             self.var.genuInvN2 = [1 / x for x in genuN2]
             self.var.genuInvN3 = [1 / x for x in genuN3]
-            # InvAlpha1=1/Alpha1
-            self.var.invAlpha1 = [1 / x for x in self.var.alpha1]
-            self.var.invAlpha2 = [1 / x for x in self.var.alpha2]
-            self.var.invAlpha3 = [1 / x for x in self.var.alpha3]
-
 
         soilVars2 = ['ws1','ws2','ws3','wres1','wres2','wres3','wrange1','wrange2','wrange3','wfc1','wfc2','wfc3','wwp1','wwp2','wwp3','kunSatFC12','kunSatFC23']
         for variable in soilVars2: vars(self.var)[variable] = []
@@ -343,33 +338,39 @@ class landcoverType(object):
         for coverType in self.var.coverTypes[:4]:
             j = 0
             if coverType != "forest": j = 1
-            self.var.ws1.append(self.var.thetas1[j] * self.var.rootDepth[0][i])
+            self.var.ws1.append(self.var.thetas1[j] * self.var.rootDepth[0][i])   # unit [m]
             self.var.ws2.append(self.var.thetas2[j] * self.var.rootDepth[1][i])
             self.var.ws3.append(self.var.thetas3[j] * self.var.rootDepth[2][i])
 
-            self.var.wres1.append(self.var.thetar1[j] * self.var.rootDepth[0][i])
+            self.var.wres1.append(self.var.thetar1[j] * self.var.rootDepth[0][i])  # unit [m] because of rootDepth [m]
             self.var.wres2.append(self.var.thetar2[j] * self.var.rootDepth[1][i])
             self.var.wres3.append(self.var.thetar3[j] * self.var.rootDepth[2][i])
 
-            self.var.wrange1.append(self.var.ws1[i] - self.var.wres1[i])
+            self.var.wrange1.append(self.var.ws1[i] - self.var.wres1[i])   # unit [m]
             self.var.wrange2.append(self.var.ws2[i] - self.var.wres2[i])
             self.var.wrange3.append(self.var.ws3[i] - self.var.wres3[i])
 
-            # Soil moisture at field capacity (pF2, 100 cm) [mm water slice]    # Mualem equation (van Genuchten, 1980)
+            # Soil moisture at field capacity (pF2, 100 cm) [cm water slice]    # Mualem equation (van Genuchten, 1980)
+            # see https://en.wikipedia.org/wiki/Water_retention_curve
+            # alpha in 1/cm * cm water slice e.g. 10**4.2  around 15000 cm water slice for wilting point
             self.var.wfc1.append(self.var.wres1[i] + self.var.wrange1[i] / ((1 + (self.var.alpha1[j] * 100) ** genuN1[j]) ** self.var.genuM1[j]))
             self.var.wfc2.append(self.var.wres2[i] + self.var.wrange2[i] / ((1 + (self.var.alpha2[j] * 100) ** genuN2[j]) ** self.var.genuM2[j]))
             self.var.wfc3.append(self.var.wres3[i] + self.var.wrange3[i] / ((1 + (self.var.alpha3[j] * 100) ** genuN3[j]) ** self.var.genuM3[j]))
 
-            # Soil moisture at wilting point (pF4.2, 10**4.2 cm) [mm water slice]    # Mualem equation (van Genuchten, 1980)
-            self.var.wwp1.append(self.var.wres1[i] + self.var.wrange1[i] / ((1 + (self.var.alpha1[j] * (10**4.2)) ** genuN1[j]) ** self.var.genuM1[j]))
+            # Soil moisture at wilting point (pF4.2, 10**4.2 cm) [cm water slice]    # Mualem equation (van Genuchten, 1980)
+            self.var.wwp1.append(self.var.wres1[i] + self.var.wrange1[i] / ((1 + (self.var.alpha1[j] * (10**4.2)) ** genuN1[j]) ** self.var.genuM1[j]))   # unit [m]
             self.var.wwp2.append(self.var.wres2[i] + self.var.wrange2[i] / ((1 + (self.var.alpha2[j] * (10**4.2)) ** genuN2[j]) ** self.var.genuM2[j]))
             self.var.wwp3.append(self.var.wres3[i] + self.var.wrange3[i] / ((1 + (self.var.alpha3[j] * (10**4.2)) ** genuN3[j]) ** self.var.genuM3[j]))
 
 
 
-            satTerm1FC = np.maximum(0., self.var.wfc1[i] - self.var.wres1[i]) / self.var.wrange1[i]
+            satTerm1FC = np.maximum(0., self.var.wfc1[i] - self.var.wres1[i]) / self.var.wrange1[i]  # unit [-]
             satTerm2FC = np.maximum(0., self.var.wfc2[i] - self.var.wres2[i]) / self.var.wrange2[i]
             satTerm3FC = np.maximum(0., self.var.wfc3[i] - self.var.wres3[i]) / self.var.wrange3[i]
+
+            # van Genuchten, Mualem equation see https://acsess.onlinelibrary.wiley.com/doi/epdf/10.2136/sssaj2000.643843x
+            # with Mualem (1976)  L = 0.5 -> np.sqrt(satTerm2FC)
+
             kUnSat1FC = self.var.KSat1[j] * np.sqrt(satTerm1FC) * np.square(1 - (1 - satTerm1FC ** self.var.genuInvM1[j]) ** self.var.genuM1[j])
             kUnSat2FC = self.var.KSat2[j] * np.sqrt(satTerm2FC) * np.square(1 - (1 - satTerm2FC ** self.var.genuInvM2[j]) ** self.var.genuM2[j])
             self.var.kUnSat3FC = self.var.KSat3[j] * np.sqrt(satTerm3FC) * np.square(1 - (1 - satTerm3FC ** self.var.genuInvM3[j]) ** self.var.genuM3[j])
