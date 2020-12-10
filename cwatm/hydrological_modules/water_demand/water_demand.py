@@ -556,13 +556,13 @@ class water_demand:
                 # calculate act_ water demand, because irr demand has still demand from previous day included
                 # if the demand from previous day is not fulfilled it is taken to the next day and so on
                 # if we do not correct we double account each day the demand from previous days
-                self.var.act_irrPaddyDemand = np.maximum(0, self.irrPaddyDemand - self.var.unmetDemandPaddy)
-                self.var.act_irrNonpaddyDemand = np.maximum(0, self.irrNonpaddyDemand - self.var.unmetDemandNonpaddy)
+                self.var.act_irrPaddyDemand = np.maximum(0, self.var.irrPaddyDemand - self.var.unmetDemandPaddy)
+                self.var.act_irrNonpaddyDemand = np.maximum(0, self.var.irrNonpaddyDemand - self.var.unmetDemandNonpaddy)
 
                 # unmet is either pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs or demand - withdrawal
                 self.var.unmetDemand = (self.var.totalIrrDemand - self.var.act_irrWithdrawal) + (self.var.nonIrrDemand - self.var.act_nonIrrWithdrawal)
-                self.var.unmetDemandPaddy = self.irrPaddyDemand - self.var.act_irrPaddyDemand
-                self.var.unmetDemandNonpaddy = self.irrNonpaddyDemand - self.var.act_irrNonpaddyDemand
+                self.var.unmetDemandPaddy = self.var.irrPaddyDemand - self.var.act_irrPaddyDemand
+                self.var.unmetDemandNonpaddy = self.var.irrNonpaddyDemand - self.var.act_irrNonpaddyDemand
 
 
             else:
