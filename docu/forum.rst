@@ -5,21 +5,8 @@ Forum
 Questions and answer forum
 --------------------------
 
-.. raw:: html
+We use a new forum directly on GitHub
 
+**Github Forum:** `https://github.com/iiasa/CWatM/discussions <https://github.com/iiasa/CWatM/discussions>`_
 
-   <iframe id="forum_embed"
-     src="javascript:void(0)"
-     scrolling="no"
-     frameborder="0"
-     width="900"
-     height="700">
-   </iframe>
-
-   <script type="text/javascript">
-     document.getElementById('forum_embed').src =
-        'https://groups.google.com/forum/embed/?place=forum/cwatm'
-        + '&showsearch=true&showpopout=true&showtabs=false'
-        + '&parenturl=' + encodeURIComponent(window.location.href);
-   </script>
-
+Please join us there!
