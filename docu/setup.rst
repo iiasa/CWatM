@@ -50,9 +50,9 @@ Finally the model can be installed with pip.
 
 .. code-block:: python
 
-   pip install git+git://github.com/CWatM/CWatM
+   pip install git+git://github.com/iiasa/CWatM
 
-or directly downloaded via **'clone or download'** from: https://github.com/CWatM/CWatM
+or directly downloaded via **'clone or download'** from: https://github.com/iiasa/CWatM
 
 and installing them in a folder.
 
@@ -214,8 +214,8 @@ Windows executable Python version
 
 .. note::
     | A cwatmexe.zip (around 300 MB with all Python libraries) is stored on:
-    | `Source code on Github repository of CWatM <https://github.com/CWatM/CWatM>`_
-    | `Executable cwatmexe.zip on Github repository of CWatM <https://github.com/CWatM/CWatM/blob/version091/cwatmexe.zip>`_
+    | `Source code on Github repository of CWatM <https://github.com/iiasa/CWatM>`_
+    | `Executable cwatmexe.zip on Github repository of CWatM <https://github.com/iiasa/CWatM/tree/version1.05/tutorial/CWATM_model>`_
 
 .. note::
     | We recommend using the Python 3.7.x version, 

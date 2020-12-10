@@ -143,7 +143,7 @@ Community Model
    :widths: 40, 50 
 
    "Programming Language","Python 3.x with some C++ for computational demanding processes e.g. river routing"
-   "Community driven","Open-source but lead by IIASA `GitHub repository <https://github.com/CWatM>`_"
+   "Community driven","Open-source but lead by IIASA `GitHub repository <https://github.com/iiasa/CWatM>`_"
    "Well documented","Documentation, automatic source code documentation `GitHub Docu <https://cwatm.github.io>`_"
    "Easy handling","Use of a setting file with all necessary information for the user  :ref:`rst_setting` and  :ref:`rst_metadata`"
    "Multi-platform","Python 3.x on Windows, Mac, Linux, Unix - to be used on different platforms (PC, clusters, super-computers)"

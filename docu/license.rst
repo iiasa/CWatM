@@ -711,7 +711,7 @@ Source code - Community Water Model
 | The source code of CWatM is freely available under the GNU General Public License. 
 | Please see its :ref:`rst_terms`
 
-   `Source code on Github repository of CWatM <https://github.com/CWatM/CWatM>`_
+   `Source code on Github repository of CWatM <https://github.com/iiasa/CWatM>`_
 
 | Please use the actual Python 3.7 version
 | From 2019 we are not maintaining the Python 2.7 version

@@ -53,8 +53,8 @@ Windows executeable Python version
 **********************************
 
 | The A cwatmexe.zip with all Python libraries and a test case (River Rhine)) is stored on:
-| `Source code on Github repository of CWatM <https://github.com/CWatM/CWatM>`_
-| `Executable cwatmexe.zip on Github repository of CWatM <https://github.com/CWatM/CWatM/blob/version091/cwatmexe.zip>`_
+| `Source code on Github repository of CWatM <https://github.com/iiasa/CWatM>`_
+| `Executable cwatmexe.zip on Github repository of CWatM <https://github.com/iiasa/CWatM/tree/version1.05/tutorial/CWATM_model>`_
 
 
 Test the executable model version
