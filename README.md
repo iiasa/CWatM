@@ -7,6 +7,14 @@
 [![size](https://img.shields.io/github/repo-size/iiasa/CWatM)](https://github.com/iiasa/CWatM)
 [![ReadTheDocs](https://readthedocs.org/projects/pyam-iamc/badge/?version=latest)](https://cwatm.iiasa.ac.at/)
 
+
+**Documentation on [https://cwatm.iiasa.ac.at](https://cwatm.iiasa.ac.at)**
+
+**Questions? Start a discussion on our [forum](https://github.com/iiasa/CWatM/discussions)**
+
+
+## Overview and scope
+
 CWatM represents one of the new key elements of IIASA's Water program to assess water supply, water demand and environmental needs at global and regional level. The hydrologic model is open source and flexible to link in different aspects of the water energy food nexus. CWATM will be a basis to develop a next-generation global hydro-economic modeling and will be coupled to the existing IIASA models like MESSAGE and GLOBIOM
 
 http://www.iiasa.ac.at/cwatm
