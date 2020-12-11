@@ -3,6 +3,7 @@
 [![latest](https://img.shields.io/github/last-commit/iiasa/CWatM)](https://github.com/iiasa/CWatM)
 [![license](https://img.shields.io/github/license/iiasa/CWatM?color=1)](https://github.com/iiasa/CWatM/blob/version1.05/LICENSE)
 [![pytest-37](https://github.com/IAMconsortium/pyam/workflows/pytest%20(3.7)/badge.svg?branch=master)](https://github.com/iiasa/CWatM)
+[![codecov](https://img.shields.io/codecov/c/github/iiasa/CWATM_priv?color=1&token=6HENTZM7SC)](https://codecov.io/gh/iiasa/CWATM_priv)
 [![size](https://img.shields.io/github/repo-size/iiasa/CWatM)](https://github.com/iiasa/CWatM)
 [![ReadTheDocs](https://readthedocs.org/projects/pyam-iamc/badge/?version=latest)](https://cwatm.iiasa.ac.at/)
 
