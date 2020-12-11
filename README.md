@@ -1,7 +1,14 @@
 # Community Water Model (CWatM)
 
+
+[![license](https://img.shields.io/github/license/iiasa/CWatM?color=1)](https://github.com/iiasa/CWATM_priv/blob/version1.05/LICENSE)
+[![pytest-37](https://github.com/IAMconsortium/pyam/workflows/pytest%20(3.7)/badge.svg?branch=master)](https://github.com/iiasa/CWATM_priv)
+[![codecov](https://img.shields.io/codecov/c/github/iiasa/CWATM_priv?color=1&token=6HENTZM7SC)](https://codecov.io/gh/iiasa/CWATM_priv)
+[![ReadTheDocs](https://readthedocs.org/projects/pyam-iamc/badge/?version=latest)](https://cwatm.iiasa.ac.at/)
+
+
 IIASA
-13rd October 2020
+
 
 CWatM represents one of the new key elements of IIASA's Water program to assess water supply, water demand and environmental needs at global and regional level. The hydrologic model is open source and flexible to link in different aspects of the water energy food nexus. CWATM will be a basis to develop a next-generation global hydro-economic modeling and will be coupled to the existing IIASA models like MESSAGE and GLOBIOM
 
