@@ -1,0 +1,4 @@
+language:
+  python
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -t 0cb88889-4e4c-4202-8626-7e397946891e
