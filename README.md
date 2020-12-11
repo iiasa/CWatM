@@ -3,9 +3,8 @@
 
 [![license](https://img.shields.io/github/license/iiasa/CWatM?color=1)](https://github.com/iiasa/CWATM_priv/blob/version1.05/LICENSE)
 [![pytest-37](https://github.com/IAMconsortium/pyam/workflows/pytest%20(3.7)/badge.svg?branch=master)](https://github.com/iiasa/CWATM_priv)
-[![codecov](https://img.shields.io/codecov/c/github/iiasa/CWATM_priv?color=1&token=6HENTZM7SC)](https://codecov.io/gh/iiasa/CWATM_priv)
+[![codecov](https://codecov.io/gh/iiasa/CWATM_priv/branch/develop/graph/badge.svg?token=6HENTZM7SC)](https://codecov.io/gh/iiasa/CWATM_priv)
 [![ReadTheDocs](https://readthedocs.org/projects/pyam-iamc/badge/?version=latest)](https://cwatm.iiasa.ac.at/)
-
 
 IIASA
 
