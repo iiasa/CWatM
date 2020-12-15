@@ -1,13 +1,9 @@
 Readme calibration
 ++++++++++++++++++
-
-
 PB 09/05/2017
-
 
 Calibration
 ===========
-
 
 Calibration tool for Hydrological models
 using a distributed evolutionary algorithms in python
@@ -60,7 +56,7 @@ What is needed
 6.) run python calibration_single.py settings.txt
 
 
-Recommondations
+Recommendations
 ===============
 
 1. Run the model first to store the pot. evaporation results
