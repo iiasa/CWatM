@@ -1,9 +1,6 @@
 language:
   python
-    - "3.7"
-    
-install:
-    - pip install -r requirements.txt    
-    
+    - 3.7
+
 after_script:
    - bash <(curl -s https://codecov.io/bash) -t 0cb88889-4e4c-4202-8626-7e397946891e
