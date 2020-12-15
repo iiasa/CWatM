@@ -1,11 +1,11 @@
 #-------------------------------------------------------------------------------
-# Name:        module1
+# Name:        tif2netcdf
 # Purpose:
 #
 # Author:      burekpe
 #
-# Created:     16/01/2015
-# Copyright:   (c) burekpe 2015
+# Created:     16/01/2016
+# Copyright:   (c) burekpe 2016
 #-------------------------------------------------------------------------------
 
 import numpy as np
