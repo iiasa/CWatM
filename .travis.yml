@@ -1,6 +1,6 @@
 language: python
 python:
-  - 3.8
+  - 3.7
 os:
 - linux  
 before_install:
@@ -9,7 +9,7 @@ before_install:
   
 install:
   - sudo apt-get -y install libproj-dev binutils gdal-bin libgdal-dev
-  - pip install gdal==2.2.3 --global-option=build_ext --global-option="-I/usr/include/gdal/"
+  - pip install gdal==3.0.3 --global-option=build_ext --global-option="-I/usr/include/gdal/"
   - pip install -r requirements.txt
 
 script:
