@@ -14,7 +14,6 @@ before_install:
   - sudo apt-get install python3-gdal
 
 install:
-  - echo \"Using gdal $(gdal-config --version)\";"
   - pip install --global-option=build_ext --global-option="-I/usr/include/gdal" GDAL==`gdal-config --version`
   - pip install -r requirements.txt
 
@@ -22,4 +21,7 @@ script:
   - python run_cwatm.py
   
 after_script:
+   - bash <(curl -s https://codecov.io/bash) -t 0cb88889-4e4c-4202-8626-7e397946891e
+
+after_failure:
    - bash <(curl -s https://codecov.io/bash) -t 0cb88889-4e4c-4202-8626-7e397946891e
