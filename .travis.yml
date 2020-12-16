@@ -1,6 +1,21 @@
-language:
-  python
-    - 3.7
+language: python
+python:
+  - 3.7
+os:
+- linux  
+  
+before_install:
+  - python --version
+  - pip install -U pip
+  - sudo apt-get install libgdal-dev libgdal1h libgdal1-dev
+  - export CFLAGS=$(gdal-config --cflags)
+  - pip install gdal
 
+install:
+  - pip install -r requirements.txt
+
+script:
+  - python run_cwatm.py
+  
 after_script:
    - bash <(curl -s https://codecov.io/bash) -t 0cb88889-4e4c-4202-8626-7e397946891e

@@ -21,6 +21,7 @@ setup(
             'cwatm.hydrological_modules',
             'cwatm.hydrological_modules.groundwater_modflow',
             'cwatm.hydrological_modules.routing_reservoirs',
+            'cwatm.hydrological_modules.water_demand',
             'cwatm.management_modules'
       ],
       package_data={
