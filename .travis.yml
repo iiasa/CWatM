@@ -13,8 +13,6 @@ before_install:
   - python -m pip install wheel
   - export PATH=$GDALINST/gdal-$GDALVERSION/bin:$PATH
   - export LD_LIBRARY_PATH=$GDALINST/gdal-$GDALVERSION/lib:$LD_LIBRARY_PATH
-  - . ./travis_scripts/proj_install.sh
-  - . ./travis_scripts/gdal_install.sh
   - export GDAL_DATA=$GDALINST/gdal-$GDALVERSION/share/gdal
   - export PROJ_LIB=$GDALINST/gdal-$GDALVERSION/share/proj
 
