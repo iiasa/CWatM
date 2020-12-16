@@ -3,15 +3,25 @@ python:
   - 3.7
 os:
 - linux  
+
+addons:
+  apt:
+    packages:
+    - libgdal-dev
   
 before_install:
-  - python --version
-  - pip install -U pip
-  - sudo apt-get install libgdal-dev libgdal1h libgdal1-dev
-  - export CFLAGS=$(gdal-config --cflags)
-  - pip install gdal
+  - python -m pip install wheel
+  - export PATH=$GDALINST/gdal-$GDALVERSION/bin:$PATH
+  - export LD_LIBRARY_PATH=$GDALINST/gdal-$GDALVERSION/lib:$LD_LIBRARY_PATH
+  - . ./travis_scripts/proj_install.sh
+  - . ./travis_scripts/gdal_install.sh
+  - export GDAL_DATA=$GDALINST/gdal-$GDALVERSION/share/gdal
+  - export PROJ_LIB=$GDALINST/gdal-$GDALVERSION/share/proj
 
 install:
+  - echo \"Using gdal $(gdal-config --version)\";"
+  - pip install GDAL==$(gdal-config --version)
+  - pip wheel -r requirements.txt  
   - pip install -r requirements.txt
 
 script:
