@@ -17,7 +17,6 @@ before_install:
   - export PROJ_LIB=$GDALINST/gdal-$GDALVERSION/share/proj
 
 install:
-  - echo \"Using gdal $(gdal-config --version)\";"
   - pip install GDAL==$(gdal-config --version)
   - pip wheel -r requirements.txt  
   - pip install -r requirements.txt
