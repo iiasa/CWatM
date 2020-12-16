@@ -10,15 +10,12 @@ addons:
     - libgdal-dev
   
 before_install:
-  - python -m pip install wheel
-  - export PATH=$GDALINST/gdal-$GDALVERSION/bin:$PATH
-  - export LD_LIBRARY_PATH=$GDALINST/gdal-$GDALVERSION/lib:$LD_LIBRARY_PATH
-  - export GDAL_DATA=$GDALINST/gdal-$GDALVERSION/share/gdal
-  - export PROJ_LIB=$GDALINST/gdal-$GDALVERSION/share/proj
+  - sudo apt-get install libgdal-dev
+  - sudo apt-get install python3-gdal
 
 install:
-  - pip install GDAL==$(gdal-config --version)
-  - pip wheel -r requirements.txt  
+  - echo \"Using gdal $(gdal-config --version)\";"
+  - pip install --global-option=build_ext --global-option="-I/usr/include/gdal" GDAL==`gdal-config --version`
   - pip install -r requirements.txt
 
 script:
