@@ -1,0 +1,1 @@
+Outputs for exercise 6 are created in this folder.
