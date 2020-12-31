@@ -15,7 +15,7 @@ import flopy
 import flopy.utils.binaryfile as bf
 import time
 
-def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, recharge, pumping_datas=[]):
+def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, recharge, GW_pumping, pumping_datas=[]):
         """
         This function runs ModFlow in transient state and save automatically hydraulic heads in the model (with the namemodel)
         and the drain's flow ie the capillary rise for CWATM

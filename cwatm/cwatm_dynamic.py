@@ -152,6 +152,7 @@ class CWATModel_dyn(DynamicModel):
 
             self.environflow_module.dynamic()
             # in case environmental flow is calculated last
+            # overFlo error from Flo Roemer
 
             self.output_module.dynamic()
             timemeasure("Output")  # 12. timing
@@ -192,7 +193,8 @@ class CWATModel_dyn(DynamicModel):
             #We also need to save variable states at the end (like storage in CWATM and ModFlow layers) to import them for the next step"""
 
             start1 = time.time()
-            for compteur in range(1,self.Ndays_steady+1):
+
+            for compteur in range(1,self.var.Ndays_steady+1):
             #for compteur in range(1, 1 + 1):
 
                 if compteur == 1:
@@ -200,15 +202,20 @@ class CWATModel_dyn(DynamicModel):
                     self.evaporationPot_module.dynamic()
                     #self.snowfrost_module.dynamic()
                     # for steady state no snow, because once there is snow -> no melt -> no recharge
-                    self.Rain = self.Precipitation
-                    self.SnowCover = self.Precipitation * 0
-                    self.SnowMelt = self.Precipitation * 0
-                    self.Snow = self.Precipitation * 0
-                    self.FrostIndex = self.Precipitation * 0
+                    self.var.Rain = self.var.Precipitation
+                    self.var.SnowCover = self.var.Precipitation * 0
+                    self.var.SnowMelt = self.var.Precipitation * 0
+                    self.var.Snow = self.var.Precipitation * 0
+                    self.var.FrostIndex = self.var.Precipitation * 0
                     self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'], dynamic=self.var.dynamicLandcover)
 
                     # initial run of soil to get recharge in steady state
-                    for days in range(365):
+                    try:
+                        no_days = self.var.init_days_of_soil
+                    except:
+                        no_days = 365
+
+                    for days in range(no_days):
                         self.landcoverType_module.dynamic()
                         print (days)
 
@@ -221,7 +228,9 @@ class CWATModel_dyn(DynamicModel):
                 print("   modflow -", time.time() - start2)
 
             print("runtime -", time.time() - start1)
-            ii =1
+
+            # for pytest set this to 0 to get a positive test
+            self.var.firstout = 0.
 
 
 

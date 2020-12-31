@@ -44,6 +44,7 @@ runtest: Rhine_30min_add  True
 runtest: Error_30min  True
 runtest: global_30min True
 runtest: Rhine_5min   True
+runtest: Rhine_5min_modflow   True
 runtest: global_5min  True
 runtest: Check_30min  True
 
@@ -635,6 +636,50 @@ test_value: False
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 400; SpinUp = 20/01/1979; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine5min_19790131.nc  
         adds:        OUT_TSS_AreaSum_MonthTot = Precipitation, runoff; OUT_TSS_AreaAvg_MonthTot = Precipitation; OUT_Map_MonthAvg = reservoirStorage, Tavg; OUT_MAP_TotalTot = Precipitation
         last_value:  3045.40
+
+# -----------------------------
+# 5 min versions - Groundwater modelflow
+    # Rhine
+	base_setting: ./settings/5min/rhine_5min_modflow/settings_rhine_5min_gw.ini
+	name: Rhine_5min_modflow
+	path_out: ./output/rhine
+	path_maps: P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf
+
+       # 1st Rhine 5min gw
+        header:      Rhine_5min_gw_1
+        description: 1st Rhine 5min basic version - groundwater 2000m steady
+        set_save:    settings_rhine_5min_gw_01.ini
+        changes:     
+        adds:        
+        last_value:  6.23
+       # 2nd setup Rhine 5min gw
+        header:      Rhine_5min_gw_2
+        description: 2nd Rhine 5min -  groundwater 2000m transient
+        set_save:    settings_rhine_5min_gw_02.ini
+        changes:     modflow_steadystate = False
+        adds:        OUT_TSS_Daily = discharge; OUT_MAP_Daily = discharge
+        last_value:  6.23
+        # 3rd setup Rhine 5min gw
+        header:      Rhine_5min_gw_3
+        description: 3rd Rhine 5min - groundwater 1000m steady
+        set_save:    settings_rhine_5min_gw_03.ini
+        changes:     res_ModFlow = 1000
+        adds:        
+        last_value:  6.23
+       # 4th setup Rhine 5min gw
+        header:      Rhine_5min_gw_4
+        description: 4th Rhine 5min - groundwater 1000m transient
+        set_save:    settings_rhine_5min_gw_04.ini
+        changes:     modflow_steadystate = False; res_ModFlow = 1000
+        adds:        OUT_TSS_Daily = discharge; OUT_MAP_Daily = discharge
+        last_value:  6.23       
+       # 5th setup Rhine 5min gw
+        header:      Rhine_5min_gw_5
+        description: 2nd Rhine 5min -  groundwater 2000m transient every 2 days
+        set_save:    settings_rhine_5min_gw_05.ini
+        changes:     modflow_steadystate = False; writeModflowError = False; thickness = 300; modflow_timestep = 2 
+        adds:        OUT_TSS_Daily = discharge; OUT_MAP_Daily = discharge
+        last_value:  6.23
 
 # -----------------------------
     # global
