@@ -116,6 +116,12 @@ class groundwater_modflow(object):
             self.var.modflow_timestep = int(loadmap('modflow_timestep'))
             self.var.Ndays_steady = int(loadmap('Ndays_steady'))
 
+            # number of days for initial run of soil to get recharge in steady state
+            self.var.init_days_of_soil = 365
+            if "modflow_init_days_of_soil" in binding:
+                self.var.init_days_of_soil = int(loadmap('modflow_init_days_of_soil'))
+
+
             #CWATMs resolution [degree]
             res_CWATM = maskmapAttr['cell']
             gridcellarea = self.var.cellArea

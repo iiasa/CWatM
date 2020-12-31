@@ -241,7 +241,7 @@ function filter_table(elem) {
 }
 </script>
     <h1>CWatM pytest report</h1>
-    <p>Report generated on 17-Oct-2020 at 00:59:10 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v2.0.1</p>
+    <p>Report generated on 30-Dec-2020 at 20:38:38 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v2.0.1</p>
     <h2>Environment</h2>
     <table id="environment">
       <tr>
@@ -267,13 +267,13 @@ function filter_table(elem) {
         <td>test_py_cwatm2.txt</td></tr>
       <tr>
         <td>PyTest</td>
-        <td>test_cwatm3.py</td></tr>
+        <td>test_cwatm3.py, tests/</td></tr>
       <tr>
         <td>Report</td>
-        <td>report222.html</td></tr></table>
+        <td>report111220.html</td></tr></table>
     <h2>CWatM Summary</h2>
-    <p>80 tests ran in 30445.00 seconds. </p>
-    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">80 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <p>85 tests ran in 30742.60 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="passed">85 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
     <h2>Results</h2>
     <table id="results-table">
       <thead id="results-table-head">
@@ -294,7 +294,7 @@ function filter_table(elem) {
  ===== CWATM without settingsfile =====
  Setting file: NONE
 CWatM - Community Water Model
-Authors:  Peter Burek, Yusuke Satoh, Peter Greve, Mikhail Smilovic, Jens de Bruijn
+Authors:  Peter Burek, Yusuke Satoh, Peter Greve, Mikhail Smilovic, Luca Guillaumot, Jens de Bruijn
 Version:  1.4
 Date:  19/02/2020
 Status:  Development
@@ -309,13 +309,13 @@ Status:  Development
     -h --noheader    .tss file have no header and start immediately with the time series
     -t --printtime   the computation time for hydrological modules are printed
     -w --warranty    copyright and warranty information
-
+    
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[1st Rhine 30min basic version-model0]</td>
-          <td class="col-duration">15.55</td></tr>
+          <td class="col-duration">11.58</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -323,9 +323,9 @@ Status:  Development
  Setting file:  ./settings/30min/rhine_30min\settings_rhine_30min_01.ini
  Description:  1st Rhine 30min basic version
  Changes:  [&#x27;&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -344,14 +344,14 @@ Step         Date   Discharge
 8      08/01/2009        4.18
 9      09/01/2009        4.20
 10     10/01/2009        4.22
-16:32:00.021773
-16:32:01.912283
+12:06:25.790134
+12:06:27.910423
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[2nd Rhine 30min with box as mask and basic outputs-model1]</td>
-          <td class="col-duration">1.27</td></tr>
+          <td class="col-duration">1.35</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -359,9 +359,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min\settings_rhine_30min_02.ini
  Description:  2nd Rhine 30min with box as mask and basic outputs
  Changes:  [&#x27;MaskMap = 14 12 0.5 5.0 52.0&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -380,14 +380,14 @@ Step         Date   Discharge
 8      08/01/2009        4.18
 9      09/01/2009        4.20
 10     10/01/2009        4.22
-16:32:02.381008
-16:32:03.177880
+12:06:28.443068
+12:06:29.276510
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[3rd Rhine 30min with location as mask-model2]</td>
-          <td class="col-duration">1.31</td></tr>
+          <td class="col-duration">1.39</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -395,9 +395,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min\settings_rhine_30min_03.ini
  Description:  3rd Rhine 30min with location as mask
  Changes:  [&#x27;MaskMap = 6.25 51.75&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -418,14 +418,14 @@ Step         Date   Discharge
 8      08/01/2009        4.18
 9      09/01/2009        4.20
 10     10/01/2009        4.22
-16:32:03.896553
-16:32:04.501057
+12:06:30.031896
+12:06:30.664791
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[4th Rhine 30min with routing off and storing EWRef, ETRef-model3]</td>
-          <td class="col-duration">77.10</td></tr>
+          <td class="col-duration">78.08</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -433,9 +433,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min\settings_rhine_30min_04.ini
  Description:  4th Rhine 30min with routing off and storing EWRef, ETRef
  Changes:  [&#x27;includeRouting = False&#x27;, &#x27;StepEnd = 730&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_MAP_Daily = ETRef, EWRef&#x27;]
+ Adds:  [&#x27;OUT_MAP_Daily = ETRef, EWRef&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -1174,14 +1174,14 @@ Step         Date   Discharge
 728    29/12/2010        4.20
 729    30/12/2010        4.20
 730    31/12/2010        4.20
-16:32:05.068619
-16:33:21.603223
+12:06:31.213017
+12:07:48.740376
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[5th Rhine 30min with using stored EWRef, ETREF-model4]</td>
-          <td class="col-duration">16.44</td></tr>
+          <td class="col-duration">17.06</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -1189,9 +1189,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min\settings_rhine_30min_05.ini
  Description:  5th Rhine 30min with using stored EWRef, ETREF
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;StepEnd = 365&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;UT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;UT_TSS_Daily = discharge&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -1565,14 +1565,14 @@ Step         Date   Discharge
 363    29/12/2009     3179.09
 364    30/12/2009     3718.70
 365    31/12/2009     4549.75
-16:33:26.185755
-16:33:38.044492
+12:07:53.669749
+12:08:05.801489
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[6th Rhine 30min with irrigation to runoff TRUE-model5]</td>
-          <td class="col-duration">6.52</td></tr>
+          <td class="col-duration">7.17</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -1580,9 +1580,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min\settings_rhine_30min_06.ini
  Description:  6th Rhine 30min with irrigation to runoff TRUE
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -1601,14 +1601,14 @@ Step         Date   Discharge
 8      08/01/2009       14.11
 9      09/01/2009       15.41
 10     10/01/2009       16.62
-16:33:43.700460
-16:33:44.559771
+12:08:12.133959
+12:08:12.983296
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[7th Rhine 30min with waterdemand TRUE-model6]</td>
-          <td class="col-duration">3.94</td></tr>
+          <td class="col-duration">3.65</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -1616,9 +1616,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min\settings_rhine_30min_07.ini
  Description:  7th Rhine 30min with waterdemand TRUE
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 40&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -1667,14 +1667,14 @@ Step         Date   Discharge
 38     07/02/2009      660.65
 39     08/02/2009      636.58
 40     09/02/2009      612.70
-16:33:45.340981
-16:33:48.512704
+12:08:13.607126
+12:08:16.635640
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[8th Rhine 30min waterdemand TRUE, SpinUp, and save initial-model7]</td>
-          <td class="col-duration">17.06</td></tr>
+          <td class="col-duration">16.92</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -1682,9 +1682,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min\settings_rhine_30min_08.ini
  Description:  8th Rhine 30min waterdemand TRUE, SpinUp, and save initial
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 366&#x27;, &#x27;SpinUp = 20/01/2009&#x27;, &#x27;save_initial = True&#x27;, &#x27;StepInit = 31/12/2009&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -2059,14 +2059,14 @@ Step         Date   Discharge
 364    30/12/2009     1928.35
 365    31/12/2009     2064.08
 366    01/01/2010     2247.68
-16:33:48.981411
-16:34:05.573123
+12:08:17.101666
+12:08:33.551734
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[9th Rhine 30min waterdemand TRUE, load initial-model8]</td>
-          <td class="col-duration">9.48</td></tr>
+          <td class="col-duration">10.05</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -2074,9 +2074,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min\settings_rhine_30min_09.ini
  Description:  9th Rhine 30min waterdemand TRUE, load initial
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 100&#x27;, &#x27;SpinUp = 30&#x27;, &#x27;load_initial = True&#x27;, &#x27;initLoad = $(FILE_PATHS:PathInit)/Rhine_20091231.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -2185,14 +2185,14 @@ Step         Date   Discharge
 98     08/04/2009     2094.96
 99     09/04/2009     2044.06
 100    10/04/2009     1997.07
-16:34:11.010359
-16:34:15.056994
+12:08:39.812533
+12:08:43.596892
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[10th Rhine 30min with lot of output-model9]</td>
-          <td class="col-duration">39.06</td></tr>
+          <td class="col-duration">38.15</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -2200,9 +2200,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min\settings_rhine_30min_10.ini
  Description:  10th Rhine 30min with lot of output
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 732&#x27;, &#x27;SpinUp = 01/10/2009&#x27;, &#x27;load_initial = True&#x27;, &#x27;initLoad = $(FILE_PATHS:PathInit)/Rhine_20091231.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_TSS_MonthAvg = discharge&#x27;, &#x27;OUT_TSS_AnnualAvg = discharge&#x27;, &#x27;OUT_TSS_AnnualTot = runoff&#x27;, &#x27;OUT_Map_Daily = discharge&#x27;, &#x27;OUT_Map_MonthAvg = discharge, Precipitation, runoff&#x27;, &#x27;OUT_Map_AnnualAvg = discharge&#x27;, &#x27;OUT_MAP_AnnualTot = runoff&#x27;, &#x27;OUT_MAP_AnnualEnd = runoff&#x27;, &#x27;OUT_MAP_TotalAvg = discharge, baseflow&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_TSS_MonthAvg = discharge&#x27;, &#x27;OUT_TSS_AnnualAvg = discharge&#x27;, &#x27;OUT_TSS_AnnualTot = runoff&#x27;, &#x27;OUT_Map_Daily = discharge&#x27;, &#x27;OUT_Map_MonthAvg = discharge, Precipitation, runoff&#x27;, &#x27;OUT_Map_AnnualAvg = discharge&#x27;, &#x27;OUT_MAP_AnnualTot = runoff&#x27;, &#x27;OUT_MAP_AnnualEnd = runoff&#x27;, &#x27;OUT_MAP_TotalAvg = discharge, baseflow&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -2943,14 +2943,14 @@ Step         Date   Discharge
 730    31/12/2010     2232.52
 731    01/01/2011     2170.47
 732    02/01/2011     2099.26
-16:34:16.056958
-16:34:54.112408
+12:08:44.537590
+12:09:21.742619
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[11th Rhine 30min with more exotic output-model10]</td>
-          <td class="col-duration">21.48</td></tr>
+          <td class="col-duration">22.66</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -2958,9 +2958,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min\settings_rhine_30min_11.ini
  Description:  11th Rhine 30min with more exotic output
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 400&#x27;, &#x27;SpinUp = 20/01/2009&#x27;, &#x27;load_initial = True&#x27;, &#x27;initLoad = $(FILE_PATHS:PathInit)/Rhine_20091231.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_AreaSum_MonthTot = Precipitation, runoff&#x27;, &#x27;OUT_TSS_AreaAvg_MonthTot = Precipitation&#x27;, &#x27;OUT_Map_MonthAvg = reservoirStorage, Tavg&#x27;, &#x27;OUT_MAP_TotalTot = Precipitation&#x27;]
+ Adds:  [&#x27;OUT_TSS_AreaSum_MonthTot = Precipitation, runoff&#x27;, &#x27;OUT_TSS_AreaAvg_MonthTot = Precipitation&#x27;, &#x27;OUT_Map_MonthAvg = reservoirStorage, Tavg&#x27;, &#x27;OUT_MAP_TotalTot = Precipitation&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -3369,14 +3369,14 @@ Step         Date   Discharge
 398    02/02/2010     1509.41
 399    03/02/2010     1476.21
 400    04/02/2010     1454.27
-16:34:59.578032
-16:35:15.608445
+12:09:27.370443
+12:09:44.400078
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[Additional tests 30min ETP 2-model11]</td>
-          <td class="col-duration">4.81</td></tr>
+          <td class="col-duration">5.45</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -3384,9 +3384,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min_add\settings_rhineadd_30min_01.ini
  Description:  Additional tests 30min ETP 2
  Changes:  [&#x27;PET_modus = 2&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -3405,14 +3405,14 @@ Step         Date   Discharge
 8      08/01/2009        4.25
 9      09/01/2009        4.28
 10     10/01/2009        4.33
-16:35:19.738974
-16:35:20.423249
+12:09:49.099007
+12:09:49.863189
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[Additional tests 30min ETP 4-model12]</td>
-          <td class="col-duration">1.03</td></tr>
+          <td class="col-duration">1.07</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -3420,9 +3420,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min_add\settings_rhineadd_30min_02.ini
  Description:  Additional tests 30min ETP 4
  Changes:  [&#x27;PET_modus = 4&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -3441,14 +3441,14 @@ Step         Date   Discharge
 8      08/01/2009        4.25
 9      09/01/2009        4.29
 10     10/01/2009        4.33
-16:35:20.910610
-16:35:21.457451
+12:09:50.343305
+12:09:50.929351
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[Additional tests 30min ETP 3-model13]</td>
-          <td class="col-duration">1.12</td></tr>
+          <td class="col-duration">1.18</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -3456,9 +3456,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min_add\settings_rhineadd_30min_03.ini
  Description:  Additional tests 30min ETP 3
  Changes:  [&#x27;PET_modus = 3&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;co2conc = $(FILE_PATHS:PathMaps)/RCP_CO2/rcp26.nc4&#x27;]
+ Adds:  [&#x27;co2conc = $(FILE_PATHS:PathMaps)/RCP_CO2/rcp26.nc4&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -3477,14 +3477,14 @@ Step         Date   Discharge
 8      08/01/2009        4.18
 9      09/01/2009        4.20
 10     10/01/2009        4.22
-16:35:21.941805
-16:35:22.582378
+12:09:51.446310
+12:09:52.112508
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[Additional tests 30min waterbalance-model14]</td>
-          <td class="col-duration">1.20</td></tr>
+          <td class="col-duration">1.30</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -3492,9 +3492,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min_add\settings_rhineadd_30min_04.ini
  Description:  Additional tests 30min waterbalance
  Changes:  [&#x27;calcWaterBalance = True&#x27;, &#x27;sumWaterBalance = True&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -3503,38 +3503,38 @@ CWATM Simulation Information and Setting
 The simulation output as specified in the settings file: ./output/rhine can be found in ./settings/30min/rhine_30min_add\settings_rhineadd_30min_04.ini
 
 Step         Date   Discharge
- 1      01/01/2009      Soil_all 0.00000000
+ 1      01/01/2009      Soil_all 0.00000000 
      WaterdemandSum 0.00000000
        4.20
-2      02/01/2009      Soil_all 0.00000000
+2      02/01/2009      Soil_all 0.00000000 
      WaterdemandSum 0.00000000
        4.19
-3      03/01/2009      Soil_all 0.00000000
+3      03/01/2009      Soil_all 0.00000000 
      WaterdemandSum 0.00000000
        4.18
-4      04/01/2009      Soil_all 0.00000000
+4      04/01/2009      Soil_all 0.00000000 
      WaterdemandSum 0.00000000
        4.17
-5      05/01/2009      Soil_all 0.00000000
+5      05/01/2009      Soil_all 0.00000000 
      WaterdemandSum 0.00000000
        4.17
-6      06/01/2009      Soil_all 0.00000000
+6      06/01/2009      Soil_all 0.00000000 
      WaterdemandSum 0.00000000
        4.16
-7      07/01/2009      Soil_all 0.00000000
+7      07/01/2009      Soil_all 0.00000000 
      WaterdemandSum 0.00000000
        4.16
-8      08/01/2009      Soil_all 0.00000000
+8      08/01/2009      Soil_all 0.00000000 
      WaterdemandSum 0.00000000
        4.18
-9      09/01/2009      Soil_all 0.00000000
+9      09/01/2009      Soil_all 0.00000000 
      WaterdemandSum 0.00000000
        4.20
-10     10/01/2009      Soil_all 0.00000000
+10     10/01/2009      Soil_all 0.00000000 
      WaterdemandSum 0.00000000
        4.22
-16:35:23.207362
-16:35:23.785440
+12:09:52.627541
+12:09:53.414063
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
@@ -3548,9 +3548,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min_add\settings_rhineadd_30min_05.ini
  Description:  Additional tests 30min waterquality
  Changes:  [&#x27;waterquality = True&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -3569,14 +3569,14 @@ Step         Date   Discharge
 8      08/01/2009        4.18
 9      09/01/2009        4.20
 10     10/01/2009        4.22
-16:35:24.363534
-16:35:24.957254
+12:09:53.953241
+12:09:54.586112
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[Additional tests 30min environmental flow-model16]</td>
-          <td class="col-duration">45.72</td></tr>
+          <td class="col-duration">46.94</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -3584,9 +3584,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min_add\settings_rhineadd_30min_06.ini
  Description:  Additional tests 30min environmental flow
  Changes:  [&#x27;calc_environflow = True&#x27;, &#x27;StepEnd =  31/12/2010&#x27;, &#x27;calc_ef_afterRun = True&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_MAP_Daily = discharge&#x27;, &#x27;OUT_MAP_12month = MMF, MQ90, EF_VMF&#x27;, &#x27;OUT_MAP_Once = MAF, Q90&#x27;]
+ Adds:  [&#x27;OUT_MAP_Daily = discharge&#x27;, &#x27;OUT_MAP_12month = MMF, MQ90, EF_VMF&#x27;, &#x27;OUT_MAP_Once = MAF, Q90&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -4325,14 +4325,14 @@ Step         Date   Discharge
 728    29/12/2010     2988.11
 729    30/12/2010     2837.24
 730    31/12/2010     2635.51
-16:35:25.488474
-16:36:10.677714
+12:09:55.187719
+12:10:41.525053
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[Additional tests 30min add output-model17]</td>
-          <td class="col-duration">7.83</td></tr>
+          <td class="col-duration">7.84</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4340,9 +4340,9 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min_add\settings_rhineadd_30min_07.ini
  Description:  Additional tests 30min add output
  Changes:  [&#x27;StepEnd = 40&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_MAP_Daily = actualET[1]&#x27;, &#x27;OUT_TSS_monthend = discharge&#x27;, &#x27;OUT_TSS_totaltot = discharge&#x27;, &#x27;OUT_TSS_totalavg = discharge&#x27;, &#x27;OUT_MAP_monthend = discharge&#x27;, &#x27;OUT_MAP_monthtot = discharge&#x27;, &#x27;OUT_MAP_totaltot = discharge&#x27;, &#x27;OUT_MAP_totalavg = discharge&#x27;, &#x27;OUT_MAP_totalend = discharge&#x27;]
+ Adds:  [&#x27;OUT_MAP_Daily = actualET[1]&#x27;, &#x27;OUT_TSS_monthend = discharge&#x27;, &#x27;OUT_TSS_totaltot = discharge&#x27;, &#x27;OUT_TSS_totalavg = discharge&#x27;, &#x27;OUT_MAP_monthend = discharge&#x27;, &#x27;OUT_MAP_monthtot = discharge&#x27;, &#x27;OUT_MAP_totaltot = discharge&#x27;, &#x27;OUT_MAP_totalavg = discharge&#x27;, &#x27;OUT_MAP_totalend = discharge&#x27;] 
 
-CWATM - Community Water Model  1.4  Date:  2020/10/16 09:52
+CWATM - Community Water Model  1.4  Date:  2020/12/30 11:44  
 International Institute of Applied Systems Analysis (IIASA)
 Running under platform:  Windows
 -----------------------------------------------------------
@@ -4391,14 +4391,14 @@ Step         Date   Discharge
 38     07/02/2009      413.99
 39     08/02/2009      407.90
 40     09/02/2009      407.69
-16:36:15.489979
-16:36:18.505481
+12:10:46.432264
+12:10:49.362457
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[1st failure 30min basic version - Error 101-model18]</td>
-          <td class="col-duration">0.47</td></tr>
+          <td class="col-duration">0.49</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4406,7 +4406,7 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/error_30min\settings_error_30min_01.ini
  Description:  1st failure 30min basic version - Error 101
  Changes:  [&#x27;Gauges = bad bad&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -4418,7 +4418,7 @@ Error 101: Gauges in settings file: bad in bad bad is not a coordinate
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[2nd failure 30min basic version - Error 102-model19]</td>
-          <td class="col-duration">0.47</td></tr>
+          <td class="col-duration">0.46</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4426,7 +4426,7 @@ Error 101: Gauges in settings file: bad in bad bad is not a coordinate
  Setting file:  ./settings/30min/error_30min\settings_error_30min_02.ini
  Description:  2nd failure 30min basic version - Error 102
  Changes:  [&#x27;Gauges = 6.25 21.75&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 No Name                 time[s]        %
 
@@ -4449,7 +4449,7 @@ Please have a look at &quot;MaskMap&quot; or &quot;Gauges&quot;
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[3rd failure 30min basic version - Error 201-model20]</td>
-          <td class="col-duration">0.03</td></tr>
+          <td class="col-duration">0.24</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4457,7 +4457,7 @@ Please have a look at &quot;MaskMap&quot; or &quot;Gauges&quot;
  Setting file:  ./settings/30min/error_30min\settings_error_30min_03.ini
  Description:  3rd failure 30min basic version - Error 201
  Changes:  [&#x27;MaskMap = bad30min.tif&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -4474,7 +4474,7 @@ path:  does not exists
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[4th failure 30min basic version - Error 103-model21]</td>
-          <td class="col-duration">0.03</td></tr>
+          <td class="col-duration">0.06</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4482,7 +4482,7 @@ path:  does not exists
  Setting file:  ./settings/30min/error_30min\settings_error_30min_04.ini
  Description:  4th failure 30min basic version - Error 103
  Changes:  [&#x27;MaskMap = 1 1 1 1 1 1&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -4495,7 +4495,7 @@ Or there is a whitespace or undefined character in Maskmap
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[5th failure 30min basic version - Error 104-model22]</td>
-          <td class="col-duration">0.33</td></tr>
+          <td class="col-duration">0.30</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4503,7 +4503,7 @@ Or there is a whitespace or undefined character in Maskmap
  Setting file:  ./settings/30min/error_30min\settings_error_30min_05.ini
  Description:  5th failure 30min basic version - Error 104
  Changes:  [&#x27;MaskMap = 6.25 71.75&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 Create catchment from point and river network
 
@@ -4516,7 +4516,7 @@ Error 104: MaskMap point does not have a valid value in the river network (LDD)
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[6th failure 30min basic version - Error 203-model23]</td>
-          <td class="col-duration">0.03</td></tr>
+          <td class="col-duration">0.02</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4524,7 +4524,7 @@ Error 104: MaskMap point does not have a valid value in the river network (LDD)
  Setting file:  ./settings/30min/error_30min\settings_error_30min_06.ini
  Description:  6th failure 30min basic version - Error 203
  Changes:  [&#x27;Ldd = bad&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -4540,7 +4540,7 @@ path:  does not exists
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[7th failure 30min basic version - Error 105-model24]</td>
-          <td class="col-duration">0.05</td></tr>
+          <td class="col-duration">0.06</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4548,12 +4548,12 @@ path:  does not exists
  Setting file:  ./settings/30min/error_30min\settings_error_30min_07.ini
  Description:  7th failure 30min basic version - Error 105
  Changes:  [&#x27;CellArea = $(FILE_PATHS:PathMaps)/areamaps/lobith.tif&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
  ========================== CWATM ERROR =============================
-Error 105: P:/watmodel/CWATM/cwatm_input/areamaps/lobith.tif has less a different shape than area or ldd
+Error 105: P:/watmodel/CWATM/cwatm_input/areamaps/lobith.tif has less a different shape than area or ldd 
 
 
 <br/></div></td></tr></tbody>
@@ -4561,7 +4561,7 @@ Error 105: P:/watmodel/CWATM/cwatm_input/areamaps/lobith.tif has less a differen
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[8th failure 30min basic version - Error 208-model25]</td>
-          <td class="col-duration">0.06</td></tr>
+          <td class="col-duration">0.07</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4569,12 +4569,12 @@ Error 105: P:/watmodel/CWATM/cwatm_input/areamaps/lobith.tif has less a differen
  Setting file:  ./settings/30min/error_30min\settings_error_30min_08.ini
  Description:  8th failure 30min basic version - Error 208
  Changes:  [&#x27;TavgMaps = $(FILE_PATHS:PathMeteo)/ttt*&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
  ======================== CWATM FILE ERROR ===========================
-Error 208: File missing
+Error 208: File missing 
 In  &quot;TavgMaps&quot;
 path: M:/climate/Isi-Mip2/wfdei exists
 but filename: ttt* does not
@@ -4594,12 +4594,12 @@ file name extension can be .nc4 or .nc
  Setting file:  ./settings/30min/error_30min\settings_error_30min_09.ini
  Description:  9th failure 30min basic version - Error 212
  Changes:  [&#x27;fractionLandcover = $(PathLandcover)/xxx.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
  ======================== CWATM FILE ERROR ===========================
-Error 212: Netcdf map stacks:
+Error 212: Netcdf map stacks: 
 In  &quot;fractionLandcover&quot;
 path: P:\watmodel\CWATM\cwatm_input\landsurface exists
 but filename: xxx.nc does not
@@ -4611,7 +4611,7 @@ file name extension can be .nc4 or .nc
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[10th failure 30min basic version - Error 213-model27]</td>
-          <td class="col-duration">0.17</td></tr>
+          <td class="col-duration">0.22</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4619,12 +4619,12 @@ file name extension can be .nc4 or .nc
  Setting file:  ./settings/30min/error_30min\settings_error_30min_10.ini
  Description:  10th failure 30min basic version - Error 213
  Changes:  [&#x27;relativeElevation = $(PathTopo)/xxx.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
  ======================== CWATM FILE ERROR ===========================
-Error 213: Netcdf map stacks:
+Error 213: Netcdf map stacks: 
 In  &quot;&quot;
 path: P:\watmodel\CWATM\cwatm_input\landsurface\topo exists
 but filename: xxx.nc does not
@@ -4636,7 +4636,7 @@ file name extension can be .nc4 or .nc
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[11st failure 30min basic version - Error 214-model28]</td>
-          <td class="col-duration">0.19</td></tr>
+          <td class="col-duration">0.20</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4644,12 +4644,12 @@ file name extension can be .nc4 or .nc
  Setting file:  ./settings/30min/error_30min\settings_error_30min_11.ini
  Description:  11st failure 30min basic version - Error 214
  Changes:  [&#x27;load_initial = True&#x27;, &#x27;initLoad = $(FILE_PATHS:PathInit)/xxx.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
  ======================== CWATM FILE ERROR ===========================
-Error 214: Netcdf Initial file:
+Error 214: Netcdf Initial file: 
 In  &quot;&quot;
 path: init exists
 but filename: xxx.nc does not
@@ -4661,7 +4661,7 @@ file name extension can be .nc4 or .nc
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[12nd failure 30min basic version - Error 215-model29]</td>
-          <td class="col-duration">0.03</td></tr>
+          <td class="col-duration">0.05</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4669,12 +4669,12 @@ file name extension can be .nc4 or .nc
  Setting file:  ./settings/30min/error_30min\settings_error_30min_12.ini
  Description:  12nd failure 30min basic version - Error 215
  Changes:  [&#x27;coverresult = FFFFF&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
  ========================== CWATM ERROR =============================
-Error 115: Value in: &quot;coverresult&quot; is not True or False!
+Error 115: Value in: &quot;coverresult&quot; is not True or False! 
 but: FFFFF
 
 <br/></div></td></tr></tbody>
@@ -4690,7 +4690,7 @@ but: FFFFF
  Setting file:  ./settings/30min/error_30min\settings_error_30min_13.ini
  Description:  13th failure 30min basic version - Error 119
  Changes:  [&#x27;StepStart = xxx&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -4702,7 +4702,7 @@ Error 119: Either date in StepStart is not a date or in SpinUp or StepEnd it is 
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[14th failure 30min basic version - Error 120-model31]</td>
-          <td class="col-duration">0.05</td></tr>
+          <td class="col-duration">0.04</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4710,7 +4710,7 @@ Error 119: Either date in StepStart is not a date or in SpinUp or StepEnd it is 
  Setting file:  ./settings/30min/error_30min\settings_error_30min_14.ini
  Description:  14th failure 30min basic version - Error 120
  Changes:  [&#x27;save_initial = True&#x27;, &#x27;StepInit = xxx&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -4722,7 +4722,7 @@ Error 120: First date in StepInit is neither a number or a date!
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[15th failure 30min basic version - Error 121-model32]</td>
-          <td class="col-duration">0.03</td></tr>
+          <td class="col-duration">0.06</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4730,12 +4730,12 @@ Error 120: First date in StepInit is neither a number or a date!
  Setting file:  ./settings/30min/error_30min\settings_error_30min_15.ini
  Description:  15th failure 30min basic version - Error 121
  Changes:  [&#x27;save_initial = True&#x27;, &#x27;StepInit = 31/12/2009 kkk&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
  ========================== CWATM ERROR =============================
-Error 121: Second value in StepInit is not a number or date nor indicating a repetition of year(y), month(m) or day(d)
+Error 121: Second value in StepInit is not a number or date nor indicating a repetition of year(y), month(m) or day(d) 
 e.g. 2y for every 2 years or 6m for every 6 month
 
 <br/></div></td></tr></tbody>
@@ -4743,7 +4743,7 @@ e.g. 2y for every 2 years or 6m for every 6 month
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[16th failure 30min basic version - Error 122-model33]</td>
-          <td class="col-duration">0.03</td></tr>
+          <td class="col-duration">0.04</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4751,7 +4751,7 @@ e.g. 2y for every 2 years or 6m for every 6 month
  Setting file:  ./settings/30min/error_30min\settings_error_30min_16.ini
  Description:  16th failure 30min basic version - Error 122
  Changes:  [&#x27;save_initial = True&#x27;, &#x27;StepInit = 31/12/2009 d kkk&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 d
 
@@ -4772,7 +4772,7 @@ Error 122: Third value in StepInit is not an integer after &#x27;y&#x27; or &#x2
  Setting file:  ./settings/30min/error_30min\settings_error_30min_17.ini
  Description:  17th failure 30min basic version - Error 215
  Changes:  [&#x27;PrecipitationMaps = $(FILE_PATHS:PathMeteo)/xxx*&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -4789,7 +4789,7 @@ file name extension can be .nc4 or .nc
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[18th failure 30min basic version - Error 123-model35]</td>
-          <td class="col-duration">0.02</td></tr>
+          <td class="col-duration">0.03</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4797,7 +4797,7 @@ file name extension can be .nc4 or .nc
  Setting file:  ./settings/30min/error_30min\settings_error_30min_18.ini
  Description:  18th failure 30min basic version - Error 123
  Changes:  [&#x27;StepStart = 1&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -4818,7 +4818,7 @@ StepStart has to be a valid date!
  Setting file:  ./settings/30min/error_30min\settings_error_30min_19.ini
  Description:  19th failure 30min basic version - Error 124
  Changes:  [&#x27;StepEnd = 01/01/2008&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -4839,7 +4839,7 @@ Error 124: Start Date: 01/01/2009 and/or end date: 01/01/2008 are wrong!
  Setting file:  ./settings/30min/error_30min\settings_error_30min_20.ini
  Description:  20th failure 30min basic version - Error 125
  Changes:  [&#x27;SpinUp =  1/01/1990&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -4852,7 +4852,7 @@ Error 125: Spin Date: 01/01/1990 is wrong!
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[21st failure 30min basic version - Error 117-model38]</td>
-          <td class="col-duration">0.19</td></tr>
+          <td class="col-duration">0.20</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4860,7 +4860,7 @@ Error 125: Spin Date: 01/01/1990 is wrong!
  Setting file:  ./settings/30min/error_30min\settings_error_30min_21.ini
  Description:  21st failure 30min basic version - Error 117
  Changes:  [&#x27;inflow = True&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -4882,7 +4882,7 @@ Closest key to the required one is: &quot;- no match -&quot;
  Setting file:  ./settings/30min/error_30min\settings_error_30min_22.ini
  Description:  22rd failure 30min basic version - Error 216
  Changes:  [&#x27;inflow = True&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;InLocal = True&#x27;]
+ Adds:  [&#x27;InLocal = True&#x27;] 
 
 
 
@@ -4898,7 +4898,7 @@ path: .//in does not exists
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[23nd failure 30min basic version - Error 127-model40]</td>
-          <td class="col-duration">0.17</td></tr>
+          <td class="col-duration">0.18</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4906,7 +4906,7 @@ path: .//in does not exists
  Setting file:  ./settings/30min/error_30min\settings_error_30min_23.ini
  Description:  23nd failure 30min basic version - Error 127
  Changes:  [&#x27;inflow = True&#x27;, &#x27;InflowPoints = 8.25 49.75 7.75&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;InLocal = True&#x27;]
+ Adds:  [&#x27;InLocal = True&#x27;] 
 
 
 
@@ -4922,7 +4922,7 @@ path:  does not exists
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[24th failure 30min basic version - Error 128-model41]</td>
-          <td class="col-duration">0.48</td></tr>
+          <td class="col-duration">0.60</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4930,12 +4930,12 @@ path:  does not exists
  Setting file:  ./settings/30min/error_30min\settings_error_30min_24.ini
  Description:  24th failure 30min basic version - Error 128
  Changes:  [&#x27;calc_environflow = True&#x27;, &#x27;calc_ef_afterRun = True&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
  ========================== CWATM ERROR =============================
-Error 128: OUT_MAP_Daily = discharge may be not defined in [OUTPUT]
+Error 128: OUT_MAP_Daily = discharge may be not defined in [OUTPUT] 
  in the settings file: &quot;./settings/30min/error_30min\settings_error_30min_24.ini&quot;
 
 
@@ -4944,7 +4944,7 @@ Error 128: OUT_MAP_Daily = discharge may be not defined in [OUTPUT]
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[25th failure 30min basic version - Error 303-model42]</td>
-          <td class="col-duration">0.03</td></tr>
+          <td class="col-duration">0.02</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4952,7 +4952,7 @@ Error 128: OUT_MAP_Daily = discharge may be not defined in [OUTPUT]
  Setting file:  ./settings/30min/error_30min\settings_error_30min_25.ini
  Description:  25th failure 30min basic version - Error 303
  Changes:  [&#x27;metaNetcdfFile = $(FILE_PATHS:PathRoot)/test_cwatm3.py&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -4964,7 +4964,7 @@ Error 303: using option file: .//test_cwatm3.py
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[26th failure 30min basic version - Error 220-model43]</td>
-          <td class="col-duration">0.52</td></tr>
+          <td class="col-duration">0.53</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4972,12 +4972,12 @@ Error 303: using option file: .//test_cwatm3.py
  Setting file:  ./settings/30min/error_30min\settings_error_30min_26.ini
  Description:  26th failure 30min basic version - Error 220
  Changes:  [&#x27;OUT_Dir = ./xxxx&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 
 
  ======================== CWATM FILE ERROR ===========================
-Error 220: Checking output file path
+Error 220: Checking output file path 
 In  &quot;&quot;
 path: . exists
 but filename: xxxx does not
@@ -4989,7 +4989,7 @@ file name extension can be .nc4 or .nc
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[27th failure 30min basic version - Error 221-model44]</td>
-          <td class="col-duration">0.52</td></tr>
+          <td class="col-duration">0.53</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -4997,7 +4997,7 @@ file name extension can be .nc4 or .nc
  Setting file:  ./settings/30min/error_30min\settings_error_30min_27.ini
  Description:  27th failure 30min basic version - Error 221
  Changes:  [&#x27;Gauges = bad&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -5013,7 +5013,7 @@ path:  does not exists
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[28th failure 30min basic version - Error 129-model45]</td>
-          <td class="col-duration">0.47</td></tr>
+          <td class="col-duration">0.50</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -5021,7 +5021,7 @@ path:  does not exists
  Setting file:  ./settings/30min/error_30min\settings_error_30min_28.ini
  Description:  28th failure 30min basic version - Error 129
  Changes:  [&#x27;Gauges = bad bad bad&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
@@ -5045,7 +5045,7 @@ path:  does not exists
  Setting file:  ./settings/30min/error_30min\settings_error_30min_29.ini
  Description:  29th failure 30min basic version - Error 130
  Changes:  [&#x27;&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Wrong = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Wrong = discharge&#x27;] 
 
 
 
@@ -5058,7 +5058,7 @@ Error 130: Output is not possible!
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[30th failure 30min basic version - Error 131-model47]</td>
-          <td class="col-duration">0.48</td></tr>
+          <td class="col-duration">0.52</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -5066,7 +5066,7 @@ Error 130: Output is not possible!
  Setting file:  ./settings/30min/error_30min\settings_error_30min_30.ini
  Description:  30th failure 30min basic version - Error 131
  Changes:  [&#x27;&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_AreaWrong_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_AreaWrong_Daily = discharge&#x27;] 
 
 
 
@@ -5079,7 +5079,7 @@ Error 131: Output is not possible!
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[31st failure 30min basic version - Error 132-model48]</td>
-          <td class="col-duration">0.67</td></tr>
+          <td class="col-duration">0.70</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -5087,7 +5087,7 @@ Error 131: Output is not possible!
  Setting file:  ./settings/30min/error_30min\settings_error_30min_31.ini
  Description:  31st failure 30min basic version - Error 132
  Changes:  [&#x27;&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = dischargeWrong&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = dischargeWrong&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -5106,7 +5106,7 @@ Closest variable to this name is: &quot;discharge&quot;
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[32nd failure - here not a failure but exit bc environmental flow calc from existing - Error 400-model49]</td>
-          <td class="col-duration">1.08</td></tr>
+          <td class="col-duration">1.29</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -5114,7 +5114,7 @@ Closest variable to this name is: &quot;discharge&quot;
  Setting file:  ./settings/30min/error_30min\settings_error_30min_32.ini
  Description:  32nd failure - here not a failure but exit bc environmental flow calc from existing - Error 400
  Changes:  [&#x27;calc_environflow = True&#x27;, &#x27;StepEnd =  31/12/2010&#x27;, &#x27;calc_ef_afterRun = False&#x27;, &#x27;EFDis = $(FILE_PATHS:PathOut)/discharge_daily.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_MAP_12month = MMF, MQ90, EF_VMF&#x27;]
+ Adds:  [&#x27;OUT_MAP_12month = MMF, MQ90, EF_VMF&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -5132,7 +5132,7 @@ done with Environmental Flow
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[33rd failure 30min basic version - Error 304-model50]</td>
-          <td class="col-duration">0.02</td></tr>
+          <td class="col-duration">0.05</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -5140,14 +5140,14 @@ done with Environmental Flow
  Setting file:  ./settings/30min/error_30min\settings_error_30min_33.ini
  Description:  33rd failure 30min basic version - Error 304
  Changes:  [&#x27;metaNetcdfFile = $(FILE_PATHS:PathRoot)/xxxx.xml&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 
  ======================== CWATM FILE ERROR ===========================
-Error 304: Cannot find alternative option file: c:\python37\lib\site-packages\pytest\cwatm\xxxx.xml In  &quot;xxxx.xml&quot;
-searching: &quot;c:\python37\lib\site-packages\pytest\cwatm\xxxx.xml&quot;
-path: c:\python37\lib\site-packages\pytest\cwatm does not exists
+Error 304: Cannot find alternative option file: C:\Python37\Scripts\cwatm\xxxx.xml In  &quot;xxxx.xml&quot;
+searching: &quot;C:\Python37\Scripts\cwatm\xxxx.xml&quot;
+path: C:\Python37\Scripts\cwatm does not exists
 
 
 <br/></div></td></tr></tbody>
@@ -5155,7 +5155,7 @@ path: c:\python37\lib\site-packages\pytest\cwatm does not exists
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[1st global 30min basic version-model51]</td>
-          <td class="col-duration">10.80</td></tr>
+          <td class="col-duration">10.52</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -5163,7 +5163,7 @@ path: c:\python37\lib\site-packages\pytest\cwatm does not exists
  Setting file:  ./settings/30min/global_30min\settings_global_30min_01.ini
  Description:  1st global 30min basic version
  Changes:  [&#x27;&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -5180,14 +5180,14 @@ Step         Date   Discharge
 8      08/01/2009     1771.52
 9      09/01/2009     1814.21
 10     10/01/2009     1864.96
-16:36:30.903491
-16:36:37.164149
+12:11:02.298292
+12:11:08.554984
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[2nd global 30min with routing off and storing EWRef, ETRef-model52]</td>
-          <td class="col-duration">274.85</td></tr>
+          <td class="col-duration">270.98</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -5195,7 +5195,7 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/global_30min\settings_global_30min_02.ini
  Description:  2nd global 30min with routing off and storing EWRef, ETRef
  Changes:  [&#x27;includeRouting = False&#x27;, &#x27;StepEnd = 732&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_MAP_Daily = ETRef, EWRef&#x27;]
+ Adds:  [&#x27;OUT_MAP_Daily = ETRef, EWRef&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -5934,14 +5934,14 @@ Step         Date   Discharge
 730    31/12/2010     5895.42
 731    01/01/2011     5895.42
 732    02/01/2011     5895.42
-16:36:38.787448
-16:41:12.018345
+12:11:10.343735
+12:15:39.538748
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[3rd global 30min with using stored EWRef, ETREF and map as gauges-model53]</td>
-          <td class="col-duration">26.30</td></tr>
+          <td class="col-duration">26.04</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -5949,7 +5949,7 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/global_30min\settings_global_30min_03.ini
  Description:  3rd global 30min with using stored EWRef, ETREF and map as gauges
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;StepEnd = 40&#x27;, &#x27;Gauges  = $(FILE_PATHS:PathMaps)/areamaps/station1263.map&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -5996,14 +5996,14 @@ Step         Date   Discharge
 38     07/02/2009      186.72
 39     08/02/2009      182.68
 40     09/02/2009      178.63
-16:41:19.239786
-16:41:38.315457
+12:15:47.384748
+12:16:05.575855
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[4th global 30min with irrigation to runoff TRUE-model54]</td>
-          <td class="col-duration">18.66</td></tr>
+          <td class="col-duration">19.10</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -6011,7 +6011,7 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/global_30min\settings_global_30min_04.ini
  Description:  4th global 30min with irrigation to runoff TRUE
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -6028,14 +6028,14 @@ Step         Date   Discharge
 8      08/01/2009     1598.77
 9      09/01/2009     1576.50
 10     10/01/2009     1555.02
-16:41:47.741544
-16:41:56.973859
+12:16:15.629514
+12:16:24.677138
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[7th global 30min with waterdemand TRUE-model55]</td>
-          <td class="col-duration">49.79</td></tr>
+          <td class="col-duration">48.95</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -6043,7 +6043,7 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/global_30min\settings_global_30min_05.ini
  Description:  7th global 30min with waterdemand TRUE
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 40&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -6090,14 +6090,14 @@ Step         Date   Discharge
 38     07/02/2009     2331.35
 39     08/02/2009     2709.02
 40     09/02/2009     3145.09
-16:42:07.004052
-16:42:46.766888
+12:16:34.949508
+12:17:13.633415
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[8th global 30min waterdemand TRUE, SpinUp, and save initial-model56]</td>
-          <td class="col-duration">40.74</td></tr>
+          <td class="col-duration">40.77</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -6105,7 +6105,7 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/global_30min\settings_global_30min_06.ini
  Description:  8th global 30min waterdemand TRUE, SpinUp, and save initial
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 30&#x27;, &#x27;SpinUp = 15/01/2009&#x27;, &#x27;save_initial = True&#x27;, &#x27;StepInit = 20/01/2009&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -6142,14 +6142,14 @@ Step         Date   Discharge
 28     28/01/2009      957.28
 29     29/01/2009      971.12
 30     30/01/2009      996.26
-16:42:57.657705
-16:43:27.510770
+12:17:25.106544
+12:17:54.406972
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[9th global 30min waterdemand TRUE, load initial-model57]</td>
-          <td class="col-duration">104.44</td></tr>
+          <td class="col-duration">103.07</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -6157,7 +6157,7 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/global_30min\settings_global_30min_07.ini
  Description:  9th global 30min waterdemand TRUE, load initial
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 100&#x27;, &#x27;SpinUp = 15&#x27;, &#x27;load_initial = True&#x27;, &#x27;initLoad = $(FILE_PATHS:PathInit)/global_20090120.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -6264,14 +6264,14 @@ Step         Date   Discharge
 98     08/04/2009   151494.77
 99     09/04/2009   151026.52
 100    10/04/2009   150256.52
-16:43:40.185126
-16:45:11.951793
+12:18:06.841966
+12:19:37.477203
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[8th global 30min with lot of output-model58]</td>
-          <td class="col-duration">710.24</td></tr>
+          <td class="col-duration">661.82</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -6279,7 +6279,7 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/global_30min\settings_global_30min_08.ini
  Description:  8th global 30min with lot of output
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 732&#x27;, &#x27;SpinUp = 15/01/2009&#x27;, &#x27;load_initial = True&#x27;, &#x27;initLoad = $(FILE_PATHS:PathInit)/global_20090120.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_TSS_MonthAvg = discharge&#x27;, &#x27;OUT_TSS_AnnualAvg = discharge&#x27;, &#x27;OUT_TSS_AnnualTot = runoff&#x27;, &#x27;OUT_Map_MonthAvg = discharge, Precipitation, runoff&#x27;, &#x27;OUT_Map_AnnualAvg = discharge&#x27;, &#x27;OUT_MAP_TotalAvg = discharge, baseflow&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_TSS_MonthAvg = discharge&#x27;, &#x27;OUT_TSS_AnnualAvg = discharge&#x27;, &#x27;OUT_TSS_AnnualTot = runoff&#x27;, &#x27;OUT_Map_MonthAvg = discharge, Precipitation, runoff&#x27;, &#x27;OUT_Map_AnnualAvg = discharge&#x27;, &#x27;OUT_MAP_TotalAvg = discharge, baseflow&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -7018,14 +7018,14 @@ Step         Date   Discharge
 730    31/12/2010    92185.13
 731    01/01/2011    92987.52
 732    02/01/2011    93642.22
-16:45:24.320546
-16:57:02.192213
+12:19:49.771299
+12:30:39.299889
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[1st Rhine 5min basic version-model59]</td>
-          <td class="col-duration">57.04</td></tr>
+          <td class="col-duration">13.79</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -7033,7 +7033,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/rhine_5min\settings_rhine_5min_01.ini
  Description:  1st Rhine 5min basic version
  Changes:  [&#x27;&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -7050,14 +7050,14 @@ Step         Date   Discharge
 8      08/01/1979        6.35
 9      09/01/1979        6.33
 10     10/01/1979        6.23
-16:57:37.849501
-16:57:59.232343
+12:30:46.162359
+12:30:53.092969
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[2nd Rhine 5min with box as mask and basic outputs-model60]</td>
-          <td class="col-duration">31.34</td></tr>
+          <td class="col-duration">5.45</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -7065,7 +7065,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/rhine_5min\settings_rhine_5min_02.ini
  Description:  2nd Rhine 5min with box as mask and basic outputs
  Changes:  [&#x27;MaskMap =  77 68 0.0833333333333 5.41666666666 52.0&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -7082,14 +7082,14 @@ Step         Date   Discharge
 8      08/01/1979        6.35
 9      09/01/1979        6.33
 10     10/01/1979        6.23
-16:58:20.960306
-16:58:30.572268
+12:30:56.270202
+12:30:58.538548
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[3rd Rhine 5min with location as mask-model61]</td>
-          <td class="col-duration">47.14</td></tr>
+          <td class="col-duration">18.54</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -7097,7 +7097,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/rhine_5min\settings_rhine_5min_03.ini
  Description:  3rd Rhine 5min with location as mask
  Changes:  [&#x27;MaskMap = 6.11 51.84&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 Create catchment from point and river network
 Number of cells in catchment:   2829 =  159387 km2
@@ -7116,14 +7116,14 @@ Step         Date   Discharge
 8      08/01/1979        6.35
 9      09/01/1979        6.33
 10     10/01/1979        6.23
-16:59:02.904517
-16:59:17.710468
+12:31:11.719943
+12:31:17.083095
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[4th Rhine 5min with routing off and storing EWRef, ETRef-model62]</td>
-          <td class="col-duration">119.82</td></tr>
+          <td class="col-duration">90.53</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -7131,7 +7131,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/rhine_5min\settings_rhine_5min_04.ini
  Description:  4th Rhine 5min with routing off and storing EWRef, ETRef
  Changes:  [&#x27;includeRouting = False&#x27;, &#x27;StepEnd = 400&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_MAP_Daily = ETRef, EWRef&#x27;]
+ Adds:  [&#x27;OUT_MAP_Daily = ETRef, EWRef&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -7538,14 +7538,14 @@ Step         Date   Discharge
 398    02/02/1980        5.83
 399    03/02/1980        5.83
 400    04/02/1980        5.83
-16:59:37.639336
-17:01:17.533130
+12:31:18.941517
+12:32:47.609430
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[5th Rhine 5min with using stored EWRef, ETREF-model63]</td>
-          <td class="col-duration">24.57</td></tr>
+          <td class="col-duration">7.44</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -7553,7 +7553,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/rhine_5min\settings_rhine_5min_05.ini
  Description:  5th Rhine 5min with using stored EWRef, ETREF
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;UT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;UT_TSS_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -7570,14 +7570,14 @@ Step         Date   Discharge
 8      08/01/1979        6.35
 9      09/01/1979        6.33
 10     10/01/1979        6.23
-17:01:32.197749
-17:01:42.120374
+12:32:53.895774
+12:32:55.052112
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[6th Rhine 5min with irrigation to runoff TRUE and gauges as maps-model64]</td>
-          <td class="col-duration">14.31</td></tr>
+          <td class="col-duration">4.36</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -7585,7 +7585,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/rhine_5min\settings_rhine_5min_06.ini
  Description:  6th Rhine 5min with irrigation to runoff TRUE and gauges as maps
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;Gauges= $(FILE_PATHS:PathMaps)/areamaps/rhine_station6.map&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -7602,14 +7602,14 @@ Step         Date   Discharge
 8      08/01/1979       12.56
 9      09/01/1979       13.68
 10     10/01/1979       14.36
-17:01:53.069978
-17:01:56.430041
+12:32:57.637121
+12:32:59.415822
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[7th Rhine 5min with waterdemand TRUE-model65]</td>
-          <td class="col-duration">18.28</td></tr>
+          <td class="col-duration">9.34</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -7617,7 +7617,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/rhine_5min\settings_rhine_5min_07.ini
  Description:  7th Rhine 5min with waterdemand TRUE
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 40&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -7664,14 +7664,14 @@ Step         Date   Discharge
 38     07/02/1979      773.35
 39     08/02/1979     1237.97
 40     09/02/1979     2012.03
-17:02:02.965496
-17:02:14.712694
+12:33:01.599390
+12:33:08.758245
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[8th Rhine 5min waterdemand TRUE, SpinUp, and save initial-model66]</td>
-          <td class="col-duration">41.33</td></tr>
+          <td class="col-duration">7.10</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -7679,7 +7679,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/rhine_5min\settings_rhine_5min_08.ini
  Description:  8th Rhine 5min waterdemand TRUE, SpinUp, and save initial
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 40&#x27;, &#x27;SpinUp = 20/01/1979&#x27;, &#x27;save_initial = True&#x27;, &#x27;StepInit = 31/01/1979&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -7726,14 +7726,14 @@ Step         Date   Discharge
 38     07/02/1979      773.35
 39     08/02/1979     1237.97
 40     09/02/1979     2012.03
-17:02:36.931758
-17:02:56.042357
+12:33:10.964484
+12:33:15.870937
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[9th Rhine 5min waterdemand TRUE, load initial-model67]</td>
-          <td class="col-duration">17.34</td></tr>
+          <td class="col-duration">7.42</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -7741,7 +7741,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/rhine_5min\settings_rhine_5min_09.ini
  Description:  9th Rhine 5min waterdemand TRUE, load initial
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 40&#x27;, &#x27;SpinUp = 20/01/1979&#x27;, &#x27;load_initial = True&#x27;, &#x27;initLoad = $(FILE_PATHS:PathInit)/Rhine5min_19790131.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -7788,14 +7788,14 @@ Step         Date   Discharge
 38     07/02/1979     1414.54
 39     08/02/1979     2487.58
 40     09/02/1979     3201.03
-17:03:07.689047
-17:03:13.383385
+12:33:18.625197
+12:33:23.307138
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[10th Rhine 5min with lot of output-model68]</td>
-          <td class="col-duration">68.05</td></tr>
+          <td class="col-duration">50.34</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -7803,7 +7803,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/rhine_5min\settings_rhine_5min_10.ini
  Description:  10th Rhine 5min with lot of output
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 400&#x27;, &#x27;SpinUp = 20/01/1979&#x27;, &#x27;load_initial = True&#x27;, &#x27;initLoad = $(FILE_PATHS:PathInit)/Rhine5min_19790131.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_TSS_MonthAvg = discharge&#x27;, &#x27;OUT_TSS_AnnualAvg = discharge&#x27;, &#x27;OUT_TSS_AnnualTot = runoff&#x27;, &#x27;OUT_Map_Daily = discharge&#x27;, &#x27;OUT_Map_MonthAvg = discharge, Precipitation, runoff&#x27;, &#x27;OUT_Map_AnnualAvg = discharge&#x27;, &#x27;OUT_MAP_TotalAvg = discharge, baseflow&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_TSS_MonthAvg = discharge&#x27;, &#x27;OUT_TSS_AnnualAvg = discharge&#x27;, &#x27;OUT_TSS_AnnualTot = runoff&#x27;, &#x27;OUT_Map_Daily = discharge&#x27;, &#x27;OUT_Map_MonthAvg = discharge, Precipitation, runoff&#x27;, &#x27;OUT_Map_AnnualAvg = discharge&#x27;, &#x27;OUT_MAP_TotalAvg = discharge, baseflow&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -8210,14 +8210,14 @@ Step         Date   Discharge
 398    02/02/1980     3140.00
 399    03/02/1980     3303.07
 400    04/02/1980     3406.43
-17:03:19.164317
-17:04:21.431755
+12:33:26.199399
+12:34:13.649479
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
           <td class="col-name">test_cwatm3.py::test_cwatm[11th Rhine 5min with more exotic output-model69]</td>
-          <td class="col-duration">51.94</td></tr>
+          <td class="col-duration">48.45</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -8225,7 +8225,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/rhine_5min\settings_rhine_5min_11.ini
  Description:  11th Rhine 5min with more exotic output
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 400&#x27;, &#x27;SpinUp = 20/01/1979&#x27;, &#x27;load_initial = True&#x27;, &#x27;initLoad = $(FILE_PATHS:PathInit)/Rhine5min_19790131.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_AreaSum_MonthTot = Precipitation, runoff&#x27;, &#x27;OUT_TSS_AreaAvg_MonthTot = Precipitation&#x27;, &#x27;OUT_Map_MonthAvg = reservoirStorage, Tavg&#x27;, &#x27;OUT_MAP_TotalTot = Precipitation&#x27;]
+ Adds:  [&#x27;OUT_TSS_AreaSum_MonthTot = Precipitation, runoff&#x27;, &#x27;OUT_TSS_AreaAvg_MonthTot = Precipitation&#x27;, &#x27;OUT_Map_MonthAvg = reservoirStorage, Tavg&#x27;, &#x27;OUT_MAP_TotalTot = Precipitation&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -8632,14 +8632,417 @@ Step         Date   Discharge
 398    02/02/1980     3140.00
 399    03/02/1980     3303.07
 400    04/02/1980     3406.43
-17:04:31.930422
-17:05:13.388049
+12:34:21.010166
+12:35:02.119073
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
-          <td class="col-name">test_cwatm3.py::test_cwatm[1st global 5min basic version-model70]</td>
-          <td class="col-duration">372.30</td></tr>
+          <td class="col-name">test_cwatm3.py::test_cwatm[1st Rhine 5min basic version - groundwater 2000m steady-model70]</td>
+          <td class="col-duration">35.34</td></tr>
+        <tr>
+          <td class="extra" colspan="3">
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
+ =====  Rhine_5min_gw_1  =====
+ Setting file:  ./settings/5min/rhine_5min_modflow\settings_rhine_5min_gw_01.ini
+ Description:  1st Rhine 5min basic version - groundwater 2000m steady
+ Changes:  [&#x27;&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
+ Adds:  [&#x27;&#x27;] 
+
+flopy is installed in c:\python37\lib\site-packages\flopy
+
+CWATM Simulation Information and Setting
+The simulation output as specified in the settings file: ./output/rhine can be found in ./settings/5min/rhine_5min_modflow\settings_rhine_5min_gw_01.ini
+
+Step         Date   Discharge
+ 1      01/01/1979 0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+   cwatm - 0.17821979522705078
+1 - 4.670938361609062 1.1432658672216496 0.0
+   modflow - 12.47797966003418
+   cwatm - 1.259855031967163
+2 - 4.670938361609062 1.1432658672216496 0.0
+   modflow - 0.7617299556732178
+   cwatm - 0.20057320594787598
+3 - 4.670938361609062 1.1432658672216496 0.0
+   modflow - 0.7267119884490967
+   cwatm - 0.21619749069213867
+4 - 4.670938361609062 1.1432658672216496 0.0
+   modflow - 0.72420334815979
+   cwatm - 0.19853973388671875
+5 - 4.670938361609062 1.1432658672216496 0.0
+   modflow - 0.7542779445648193
+   cwatm - 0.21617937088012695
+6 - 4.670938361609062 1.1432658672216496 0.0
+   modflow - 0.7060120105743408
+   cwatm - 0.16933321952819824
+7 - 4.670938361609062 1.1432658672216496 0.0
+   modflow - 0.7369120121002197
+   cwatm - 0.20053601264953613
+8 - 4.670938361609062 1.1432658672216496 0.0
+   modflow - 0.7211136817932129
+   cwatm - 0.1693251132965088
+9 - 4.670938361609062 1.1432658672216496 0.0
+   modflow - 0.6868691444396973
+   cwatm - 0.20059561729431152
+10 - 4.670938361609062 1.1432658672216496 0.0
+   modflow - 0.7252507209777832
+runtime - 24.75715970993042
+12:35:12.716762
+12:35:37.473922
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_cwatm3.py::test_cwatm[2nd Rhine 5min -  groundwater 2000m transient-model71]</td>
+          <td class="col-duration">34.31</td></tr>
+        <tr>
+          <td class="extra" colspan="3">
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
+ =====  Rhine_5min_gw_2  =====
+ Setting file:  ./settings/5min/rhine_5min_modflow\settings_rhine_5min_gw_02.ini
+ Description:  2nd Rhine 5min -  groundwater 2000m transient
+ Changes:  [&#x27;modflow_steadystate = False&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;] 
+
+
+CWATM Simulation Information and Setting
+The simulation output as specified in the settings file: ./output/rhine can be found in ./settings/5min/rhine_5min_modflow\settings_rhine_5min_gw_02.ini
+
+Step         Date   Discharge
+ 1      01/01/1979      375.25
+2      02/01/1979      407.85
+3      03/01/1979      431.41
+4      04/01/1979      448.94
+5      05/01/1979      469.85
+6      06/01/1979      496.58
+7      07/01/1979      525.76
+8      08/01/1979      551.13
+9      09/01/1979      566.07
+10     10/01/1979      567.96
+11     11/01/1979      559.03
+12     12/01/1979      544.04
+13     13/01/1979      527.39
+14     14/01/1979      510.12
+15     15/01/1979      492.36
+16     16/01/1979      476.23
+17     17/01/1979      467.66
+18     18/01/1979      476.26
+19     19/01/1979      514.73
+20     20/01/1979      586.26
+21     21/01/1979      662.89
+22     22/01/1979      711.96
+23     23/01/1979      733.28
+24     24/01/1979      745.87
+25     25/01/1979      771.01
+26     26/01/1979      820.64
+27     27/01/1979      895.84
+28     28/01/1979      997.60
+29     29/01/1979     1142.88
+30     30/01/1979     1331.48
+31     31/01/1979     1525.82
+32     01/02/1979     1678.42
+33     02/02/1979     1804.98
+34     03/02/1979     2011.28
+35     04/02/1979     2322.15
+36     05/02/1979     2767.27
+37     06/02/1979     3590.19
+38     07/02/1979     4966.38
+39     08/02/1979     5847.25
+40     09/02/1979     5899.62
+41     10/02/1979     5681.62
+42     11/02/1979     5407.63
+43     12/02/1979     5119.20
+44     13/02/1979     5042.11
+45     14/02/1979     5635.41
+46     15/02/1979     6921.95
+47     16/02/1979     7605.54
+48     17/02/1979     7386.04
+49     18/02/1979     6690.58
+50     19/02/1979     5886.91
+51     20/02/1979     5201.27
+52     21/02/1979     4679.03
+53     22/02/1979     4266.48
+54     23/02/1979     3908.00
+55     24/02/1979     3585.26
+56     25/02/1979     3303.34
+57     26/02/1979     3067.80
+58     27/02/1979     2876.54
+59     28/02/1979     2726.40
+60     01/03/1979     2620.54
+61     02/03/1979     2550.94
+62     03/03/1979     2537.57
+63     04/03/1979     2640.06
+64     05/03/1979     2930.50
+65     06/03/1979     3394.87
+66     07/03/1979     3715.58
+67     08/03/1979     3757.96
+68     09/03/1979     3794.36
+69     10/03/1979     4249.86
+70     11/03/1979     4884.60
+12:35:47.444469
+12:36:11.783740
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_cwatm3.py::test_cwatm[3rd Rhine 5min - groundwater 1000m steady-model72]</td>
+          <td class="col-duration">138.17</td></tr>
+        <tr>
+          <td class="extra" colspan="3">
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
+ =====  Rhine_5min_gw_3  =====
+ Setting file:  ./settings/5min/rhine_5min_modflow\settings_rhine_5min_gw_03.ini
+ Description:  3rd Rhine 5min - groundwater 1000m steady
+ Changes:  [&#x27;res_ModFlow = 1000&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
+ Adds:  [&#x27;&#x27;] 
+
+
+CWATM Simulation Information and Setting
+The simulation output as specified in the settings file: ./output/rhine can be found in ./settings/5min/rhine_5min_modflow\settings_rhine_5min_gw_03.ini
+
+Step         Date   Discharge
+ 1      01/01/1979 0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+   cwatm - 0.1784038543701172
+1 - 6.692719698977985 2.1870639246193733 -6.46
+   modflow - 73.88309097290039
+   cwatm - 1.2254836559295654
+2 - 6.692719698977985 2.1870639246193733 -6.46
+   modflow - 4.372373819351196
+   cwatm - 0.216172456741333
+3 - 6.692719698977985 2.1870639246193733 -6.46
+   modflow - 4.283694267272949
+   cwatm - 0.20054936408996582
+4 - 6.692719698977985 2.1870639246193733 -6.46
+   modflow - 4.4412336349487305
+   cwatm - 0.23180747032165527
+5 - 6.692719698977985 2.1870639246193733 -6.46
+   modflow - 4.297885894775391
+   cwatm - 0.2005462646484375
+6 - 6.692719698977985 2.1870639246193733 -6.46
+   modflow - 4.279883146286011
+   cwatm - 0.1940453052520752
+7 - 6.692719698977985 2.1870639246193733 -6.46
+   modflow - 4.308128595352173
+   cwatm - 0.21620559692382812
+8 - 6.692719698977985 2.1870639246193733 -6.46
+   modflow - 4.370990991592407
+   cwatm - 0.2005631923675537
+9 - 6.692719698977985 2.1870639246193733 -6.46
+   modflow - 4.278566122055054
+   cwatm - 0.2005631923675537
+10 - 6.692719698977985 2.1870639246193733 -6.46
+   modflow - 4.372934579849243
+runtime - 121.6843831539154
+12:36:28.286211
+12:38:29.970594
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_cwatm3.py::test_cwatm[4th Rhine 5min - groundwater 1000m transient-model73]</td>
+          <td class="col-duration">109.55</td></tr>
+        <tr>
+          <td class="extra" colspan="3">
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
+ =====  Rhine_5min_gw_4  =====
+ Setting file:  ./settings/5min/rhine_5min_modflow\settings_rhine_5min_gw_04.ini
+ Description:  4th Rhine 5min - groundwater 1000m transient
+ Changes:  [&#x27;modflow_steadystate = False&#x27;, &#x27;res_ModFlow = 1000&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;] 
+
+
+CWATM Simulation Information and Setting
+The simulation output as specified in the settings file: ./output/rhine can be found in ./settings/5min/rhine_5min_modflow\settings_rhine_5min_gw_04.ini
+
+Step         Date   Discharge
+ 1      01/01/1979      375.25
+2      02/01/1979      407.85
+3      03/01/1979      431.41
+4      04/01/1979      448.94
+5      05/01/1979      469.85
+6      06/01/1979      496.58
+7      07/01/1979      525.77
+8      08/01/1979      551.20
+9      09/01/1979      566.31
+10     10/01/1979      568.78
+11     11/01/1979      561.11
+12     12/01/1979      548.39
+13     13/01/1979      535.24
+14     14/01/1979      522.82
+15     15/01/1979      511.58
+16     16/01/1979      504.59
+17     17/01/1979      511.04
+18     18/01/1979      550.18
+19     19/01/1979      649.53
+20     20/01/1979      797.52
+21     21/01/1979      924.06
+22     22/01/1979     1003.37
+23     23/01/1979     1061.46
+24     24/01/1979     1128.67
+25     25/01/1979     1227.63
+26     26/01/1979     1365.91
+27     27/01/1979     1545.55
+28     28/01/1979     1760.26
+29     29/01/1979     1990.88
+30     30/01/1979     2203.60
+31     31/01/1979     2364.22
+32     01/02/1979     2475.15
+33     02/02/1979     2649.90
+34     03/02/1979     2969.21
+35     04/02/1979     3326.24
+36     05/02/1979     3822.50
+37     06/02/1979     4869.40
+38     07/02/1979     6273.84
+39     08/02/1979     6867.17
+40     09/02/1979     6775.82
+41     10/02/1979     6529.30
+42     11/02/1979     6257.16
+43     12/02/1979     5990.11
+44     13/02/1979     6041.14
+45     14/02/1979     6894.79
+46     15/02/1979     8198.58
+47     16/02/1979     8699.36
+48     17/02/1979     8354.54
+49     18/02/1979     7591.17
+50     19/02/1979     6750.18
+51     20/02/1979     6045.76
+52     21/02/1979     5510.78
+53     22/02/1979     5080.25
+54     23/02/1979     4702.22
+55     24/02/1979     4369.25
+56     25/02/1979     4087.66
+57     26/02/1979     3857.36
+58     27/02/1979     3672.74
+59     28/02/1979     3530.96
+60     01/03/1979     3434.90
+61     02/03/1979     3372.18
+62     03/03/1979     3373.87
+63     04/03/1979     3511.32
+64     05/03/1979     3866.94
+65     06/03/1979     4382.13
+66     07/03/1979     4727.77
+67     08/03/1979     4812.01
+68     09/03/1979     4974.00
+69     10/03/1979     5552.15
+70     11/03/1979     6063.66
+12:38:46.632400
+12:40:19.523270
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_cwatm3.py::test_cwatm[2nd Rhine 5min -  groundwater 2000m transient every 2 days-model74]</td>
+          <td class="col-duration">65.23</td></tr>
+        <tr>
+          <td class="extra" colspan="3">
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
+ =====  Rhine_5min_gw_5  =====
+ Setting file:  ./settings/5min/rhine_5min_modflow\settings_rhine_5min_gw_05.ini
+ Description:  2nd Rhine 5min -  groundwater 2000m transient every 2 days
+ Changes:  [&#x27;modflow_steadystate = False&#x27;, &#x27;writeModflowError = False&#x27;, &#x27;thickness = 300&#x27;, &#x27;modflow_timestep = 2&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;] 
+
+
+CWATM Simulation Information and Setting
+The simulation output as specified in the settings file: ./output/rhine can be found in ./settings/5min/rhine_5min_modflow\settings_rhine_5min_gw_05.ini
+
+Step         Date   Discharge
+ 1      01/01/1979      375.25
+2      02/01/1979      407.86
+3      03/01/1979      431.58
+4      04/01/1979      449.80
+5      05/01/1979      472.68
+6      06/01/1979      503.35
+7      07/01/1979      538.24
+8      08/01/1979      570.18
+9      09/01/1979      590.97
+10     10/01/1979      596.93
+11     11/01/1979      590.78
+12     12/01/1979      578.72
+13     13/01/1979      566.34
+14     14/01/1979      555.43
+15     15/01/1979      547.64
+16     16/01/1979      548.27
+17     17/01/1979      569.55
+18     18/01/1979      626.71
+19     19/01/1979      713.40
+20     20/01/1979      784.43
+21     21/01/1979      808.86
+22     22/01/1979      797.63
+23     23/01/1979      772.48
+24     24/01/1979      750.19
+25     25/01/1979      745.14
+26     26/01/1979      764.69
+27     27/01/1979      806.07
+28     28/01/1979      863.15
+29     29/01/1979      945.70
+30     30/01/1979     1062.27
+31     31/01/1979     1191.82
+32     01/02/1979     1307.62
+33     02/02/1979     1400.42
+34     03/02/1979     1518.71
+35     04/02/1979     1705.09
+36     05/02/1979     2029.97
+37     06/02/1979     2668.08
+38     07/02/1979     3871.45
+39     08/02/1979     4948.45
+40     09/02/1979     5154.32
+41     10/02/1979     4967.68
+42     11/02/1979     4699.12
+43     12/02/1979     4405.53
+44     13/02/1979     4232.39
+45     14/02/1979     4556.77
+46     15/02/1979     5726.05
+47     16/02/1979     6619.52
+48     17/02/1979     6558.70
+49     18/02/1979     5952.24
+50     19/02/1979     5194.33
+51     20/02/1979     4523.88
+52     21/02/1979     4006.10
+53     22/02/1979     3603.98
+54     23/02/1979     3264.48
+55     24/02/1979     2960.21
+56     25/02/1979     2688.61
+57     26/02/1979     2454.75
+58     27/02/1979     2259.74
+59     28/02/1979     2102.16
+60     01/03/1979     1985.01
+61     02/03/1979     1903.53
+62     03/03/1979     1872.72
+63     04/03/1979     1945.04
+64     05/03/1979     2181.86
+65     06/03/1979     2595.94
+66     07/03/1979     2898.17
+67     08/03/1979     2919.79
+68     09/03/1979     2872.27
+69     10/03/1979     3135.17
+70     11/03/1979     3760.36
+12:40:29.243391
+12:41:24.748787
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_cwatm3.py::test_cwatm[1st global 5min basic version-model75]</td>
+          <td class="col-duration">363.01</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -8647,7 +9050,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/global_5min\settings_global_5min_01.ini
  Description:  1st global 5min basic version
  Changes:  [&#x27;&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -8664,14 +9067,14 @@ Step         Date   Discharge
 8      08/01/1990        8.80
 9      09/01/1990        8.38
 10     10/01/1990        7.96
-17:06:39.531448
-17:11:25.567696
+12:42:34.043267
+12:47:27.608271
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
-          <td class="col-name">test_cwatm3.py::test_cwatm[2nd global 5min with box as mask and basic outputs-model71]</td>
-          <td class="col-duration">391.10</td></tr>
+          <td class="col-name">test_cwatm3.py::test_cwatm[2nd global 5min with box as mask and basic outputs-model76]</td>
+          <td class="col-duration">484.32</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -8679,7 +9082,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/global_5min\settings_global_5min_02.ini
  Description:  2nd global 5min with box as mask and basic outputs
  Changes:  [&#x27;MaskMap = 4320 1800 0.083333333 -180. 90.&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -8696,14 +9099,14 @@ Step         Date   Discharge
 8      08/01/1990        8.80
 9      09/01/1990        8.38
 10     10/01/1990        7.96
-17:13:05.964985
-17:17:56.807732
+12:50:34.365986
+12:55:32.266370
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
-          <td class="col-name">test_cwatm3.py::test_cwatm[3th global 5min with routing off and storing EWRef, ETRef-model72]</td>
-          <td class="col-duration">2263.22</td></tr>
+          <td class="col-name">test_cwatm3.py::test_cwatm[3th global 5min with routing off and storing EWRef, ETRef-model77]</td>
+          <td class="col-duration">2377.08</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -8711,7 +9114,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/global_5min\settings_global_5min_03.ini
  Description:  3th global 5min with routing off and storing EWRef, ETRef
  Changes:  [&#x27;includeRouting = False&#x27;, &#x27;StepEnd = 100&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_MAP_Daily = ETRef, EWRef&#x27;]
+ Adds:  [&#x27;OUT_MAP_Daily = ETRef, EWRef&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -8818,14 +9221,14 @@ Step         Date   Discharge
 98     08/04/1990        8.57
 99     09/04/1990        8.57
 100    10/04/1990        8.57
-17:19:42.968688
-17:55:40.149822
+12:59:03.444411
+13:35:09.533270
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
-          <td class="col-name">test_cwatm3.py::test_cwatm[4th global 5min with using stored EWRef, ETREF-model73]</td>
-          <td class="col-duration">378.76</td></tr>
+          <td class="col-name">test_cwatm3.py::test_cwatm[4th global 5min with using stored EWRef, ETREF-model78]</td>
+          <td class="col-duration">380.69</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -8833,7 +9236,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/global_5min\settings_global_5min_04.ini
  Description:  4th global 5min with using stored EWRef, ETREF
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -8850,14 +9253,14 @@ Step         Date   Discharge
 8      08/01/1990        8.80
 9      09/01/1990        8.38
 10     10/01/1990        7.96
-17:57:38.042828
-18:01:58.878050
+13:37:07.985362
+13:41:30.287074
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
-          <td class="col-name">test_cwatm3.py::test_cwatm[5th global 5min with irrigation to runoff TRUE-model74]</td>
-          <td class="col-duration">602.87</td></tr>
+          <td class="col-name">test_cwatm3.py::test_cwatm[5th global 5min with irrigation to runoff TRUE-model79]</td>
+          <td class="col-duration">598.24</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -8865,7 +9268,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/global_5min\settings_global_5min_05.ini
  Description:  5th global 5min with irrigation to runoff TRUE
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;, &#x27;OUT_MAP_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -8882,14 +9285,14 @@ Step         Date   Discharge
 8      08/01/1990       19.02
 9      09/01/1990       18.89
 10     10/01/1990       18.98
-18:04:43.627389
-18:12:02.092054
+13:44:08.939377
+13:51:28.533757
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
-          <td class="col-name">test_cwatm3.py::test_cwatm[6th global 5min with waterdemand TRUE-model75]</td>
-          <td class="col-duration">2170.61</td></tr>
+          <td class="col-name">test_cwatm3.py::test_cwatm[6th global 5min with waterdemand TRUE-model80]</td>
+          <td class="col-duration">2197.65</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -8897,7 +9300,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/global_5min\settings_global_5min_06.ini
  Description:  6th global 5min with waterdemand TRUE
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 40&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -8944,14 +9347,14 @@ Step         Date   Discharge
 38     07/02/1990      363.10
 39     08/02/1990      355.60
 40     09/02/1990      360.12
-18:15:30.728533
-18:48:12.792532
+13:55:23.765352
+14:28:06.235460
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
-          <td class="col-name">test_cwatm3.py::test_cwatm[7th global 5min waterdemand TRUE, SpinUp, and save initial-model76]</td>
-          <td class="col-duration">2182.78</td></tr>
+          <td class="col-name">test_cwatm3.py::test_cwatm[7th global 5min waterdemand TRUE, SpinUp, and save initial-model81]</td>
+          <td class="col-duration">2269.22</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -8959,7 +9362,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/global_5min\settings_global_5min_07.ini
  Description:  7th global 5min waterdemand TRUE, SpinUp, and save initial
  Changes:  [&#x27;calc_evaporation = False&#x27;, &#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 40&#x27;, &#x27;SpinUp = 10/01/1990&#x27;, &#x27;save_initial = True&#x27;, &#x27;StepInit = 31/01/1990&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -9006,14 +9409,14 @@ Step         Date   Discharge
 38     07/02/1990      363.10
 39     08/02/1990      355.60
 40     09/02/1990      360.12
-18:51:21.148767
-19:24:35.669322
+14:35:03.837874
+15:05:55.453109
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
-          <td class="col-name">test_cwatm3.py::test_cwatm[8th global 5min waterdemand TRUE, load initial, long run-model77]</td>
-          <td class="col-duration">20057.02</td></tr>
+          <td class="col-name">test_cwatm3.py::test_cwatm[8th global 5min waterdemand TRUE, load initial, long run-model82]</td>
+          <td class="col-duration">19944.26</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -9021,7 +9424,7 @@ Step         Date   Discharge
  Setting file:  ./settings/5min/global_5min\settings_global_5min_08.ini
  Description:  8th global 5min waterdemand TRUE, load initial, long run
  Changes:  [&#x27;includeIrrigation = True&#x27;, &#x27;preferentialFlow = True&#x27;, &#x27;CapillarRise = True&#x27;, &#x27;includeRunoffConcentration = True&#x27;, &#x27;includeWaterBodies = True&#x27;, &#x27;includeWaterDemand = True&#x27;, &#x27;StepEnd = 400&#x27;, &#x27;SpinUp = 10/01/1990&#x27;, &#x27;load_initial = True&#x27;, &#x27;initLoad = $(FILE_PATHS:PathInit)/global5min_19900131.nc&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/global&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;]
+ Adds:  [&#x27;OUT_TSS_Daily = discharge&#x27;] 
 
 
 CWATM Simulation Information and Setting
@@ -9428,14 +9831,14 @@ Step         Date   Discharge
 398    02/02/1991     2577.41
 399    03/02/1991     2539.75
 400    04/02/1991     2502.03
-19:28:56.634832
-00:58:52.829067
+15:09:31.567943
+20:38:19.747118
 <br/></div></td></tr></tbody>
       <tbody class="passed results-table-row">
         <tr>
           <td class="col-result">Passed</td>
-          <td class="col-name">test_cwatm3.py::test_cwatm[Check data 30min basic version-model78]</td>
-          <td class="col-duration">16.85</td></tr>
+          <td class="col-name">test_cwatm3.py::test_cwatm[Check data 30min basic version-model83]</td>
+          <td class="col-duration">12.71</td></tr>
         <tr>
           <td class="extra" colspan="3">
             <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>
@@ -9443,7 +9846,7 @@ Step         Date   Discharge
  Setting file:  ./settings/30min/rhine_30min\settings_checkmap_30min_01.ini
  Description:  Check data 30min basic version
  Changes:  [&#x27;&#x27;, &#x27;PathSystem = P:/&#x27;, &#x27;PathRoot = ./&#x27;, &#x27;PathInit = ./init&#x27;, &#x27;PathOut = ./output/rhine&#x27;, &#x27;PathMaps = P:/watmodel/CWATM/cwatm_input&#x27;, &#x27;PathMeteo = M:/climate/Isi-Mip2/wfdei&#x27;]
- Adds:  [&#x27;&#x27;]
+ Adds:  [&#x27;&#x27;] 
 
 ---------------------------------------------
 nonMV:     non missing value in 2D map
@@ -9462,27 +9865,27 @@ MaskMap                       M/cwatm_input/areamaps/rhine30min.tif           16
 Ldd                           odel/CWATM/cwatm_input/routing/ldd.nc           168          0      12x14      False          0          0        168       1.00       5.48       9.00
 Mask+Ldd                                                                       80          0      12x14       True          0         80          0       0.00       0.00       0.00
 CellArea                      CWATM/cwatm_input/routing/cellarea.nc            80          0      12x14       True          0          0         80   1.92E+09   2.02E+09   2.12E+09
-precipitation_coversion       86.4                                              -          -          -          -          -                 86.40
-evaporation_coversion         1.00                                              -          -          -          -          -                  1.00
-NumberSnowLayers              7                                                 -          -          -          -          -                  7.00
-crop_correct                  1.11                                              -          -          -          -          -                  1.11
-AlbedoCanopy                  0.23                                              -          -          -          -          -                  0.23
-AlbedoSoil                    0.15                                              -          -          -          -          -                  0.15
-AlbedoWater                   0.05                                              -          -          -          -          -                  0.05
-NumberSnowLayers              7                                                 -          -          -          -          -                  7.00
-GlacierTransportZone          3                                                 -          -          -          -          -                  3.00
+precipitation_coversion       86.4                                              -          -          -          -          -                 86.40           
+evaporation_coversion         1.00                                              -          -          -          -          -                  1.00           
+NumberSnowLayers              7                                                 -          -          -          -          -                  7.00           
+crop_correct                  1.11                                              -          -          -          -          -                  1.11           
+AlbedoCanopy                  0.23                                              -          -          -          -          -                  0.23           
+AlbedoSoil                    0.15                                              -          -          -          -          -                  0.15           
+AlbedoWater                   0.05                                              -          -          -          -          -                  0.05           
+NumberSnowLayers              7                                                 -          -          -          -          -                  7.00           
+GlacierTransportZone          3                                                 -          -          -          -          -                  3.00           
 ElevationStD                  watm_input/landsurface/topo/elvstd.nc            80          0      12x14       True          0          0         80      11.43     154.39     777.75
-TemperatureLapseRate          0.0065                                            -          -          -          -          -                  0.01
-SnowSeasonAdj                 0.001                                             -          -          -          -          -                  0.00
-TempSnow                      1.0                                               -          -          -          -          -                  1.00
-SnowFactor                    1.0                                               -          -          -          -          -                  1.00
-SnowMeltCoef                  0.0027                                            -          -          -          -          -                  0.00
-IceMeltCoef                   0.007                                             -          -          -          -          -                  0.01
-TempMelt                      1.0                                               -          -          -          -          -                  1.00
-Kfrost                        0.57                                              -          -          -          -          -                  0.57
-Afrost                        0.97                                              -          -          -          -          -                  0.97
-FrostIndexThreshold           56                                                -          -          -          -          -                 56.00
-SnowWaterEquivalent           0.45                                              -          -          -          -          -                  0.45
+TemperatureLapseRate          0.0065                                            -          -          -          -          -                  0.01           
+SnowSeasonAdj                 0.001                                             -          -          -          -          -                  0.00           
+TempSnow                      1.0                                               -          -          -          -          -                  1.00           
+SnowFactor                    1.0                                               -          -          -          -          -                  1.00           
+SnowMeltCoef                  0.0027                                            -          -          -          -          -                  0.00           
+IceMeltCoef                   0.007                                             -          -          -          -          -                  0.01           
+TempMelt                      1.0                                               -          -          -          -          -                  1.00           
+Kfrost                        0.57                                              -          -          -          -          -                  0.57           
+Afrost                        0.97                                              -          -          -          -          -                  0.97           
+FrostIndexThreshold           56                                                -          -          -          -          -                 56.00           
+SnowWaterEquivalent           0.45                                              -          -          -          -          -                  0.45           
 dzRel0001                     put\landsurface\topo\dzRel_hydro1k.nc            80          0      12x14       True          0          0         80   -1407.03    -207.58      56.60
 dzRel0005                     put\landsurface\topo\dzRel_hydro1k.nc            80          0      12x14       True          0          0         80   -1163.78    -190.98       1.12
 dzRel0010                     put\landsurface\topo\dzRel_hydro1k.nc            80          0      12x14       True          0          0         80   -1083.28    -167.93      22.35
@@ -9496,38 +9899,38 @@ dzRel0080                     put\landsurface\topo\dzRel_hydro1k.nc            8
 dzRel0090                     put\landsurface\topo\dzRel_hydro1k.nc            80          0      12x14       True          0          0         80      12.06     195.10    1009.72
 dzRel0100                     put\landsurface\topo\dzRel_hydro1k.nc            80          0      12x14       True          0          0         80      50.66     494.59    2531.20
 percolationImp                ut/landsurface/soil/percolationImp.nc            80          0      12x14       True          0          4         76       0.00       0.13       0.75
-factor_interflow              2.8                                               -          -          -          -          -                  2.80
+factor_interflow              2.8                                               -          -          -          -          -                  2.80           
 cropgroupnumber               l/CWATM/cwatm_input/others/cropgrp.nc            80          0      12x14       True          0          0         80       2.58       3.13       3.56
-preferentialFlowConstant      4.5                                               -          -          -          -          -                  4.50
+preferentialFlowConstant      4.5                                               -          -          -          -          -                  4.50           
 StorDepth1                    put/landsurface/soil/storageDepth1.nc            80          0      12x14       True          0          0         80       0.14       0.27       0.30
 StorDepth2                    put/landsurface/soil/storageDepth2.nc            80          0      12x14       True          0          0         80       0.57       1.10       1.20
-soildepth_factor              1.28                                              -          -          -          -          -                  1.28
+soildepth_factor              1.28                                              -          -          -          -          -                  1.28           
 fracforest                    nput\landsurface\fractionLandcover.nc            80          0      12x14       True          0          0         80       0.02       0.28       0.74
 fracgrassland                 nput\landsurface\fractionLandcover.nc            80          0      12x14       True          0          0         80       0.18       0.68       0.95
 fracirrPaddy                  nput\landsurface\fractionLandcover.nc            80          0      12x14       True          0         80          0       0.00       0.00       0.00
 fracirrNonPaddy               nput\landsurface\fractionLandcover.nc            80          0      12x14       True          0         29         51       0.00       0.01       0.13
 fracsealed                    nput\landsurface\fractionLandcover.nc            80          0      12x14       True          0          4         76       0.00       0.03       0.20
 fracwater                     nput\landsurface\fractionLandcover.nc            80          0      12x14       True          0         14         66       0.00       0.01       0.16
-forest_minInterceptCap        0.001                                             -          -          -          -          -                  0.00
-grassland_minInterceptCap     0.001                                             -          -          -          -          -                  0.00
-irrPaddy_minInterceptCap      0.001                                             -          -          -          -          -                  0.00
-irrNonPaddy_minInterceptCap   0.001                                             -          -          -          -          -                  0.00
-sealed_minInterceptCap        0.001                                             -          -          -          -          -                  0.00
-water_minInterceptCap         0.0                                               -          -          -          -          -                  0.00
-minCropKC                     0.2                                               -          -          -          -          -                  0.20
-minTopWaterLayer              0.0                                               -          -          -          -          -                  0.00
-maxGWCapRise                  5.0                                               -          -          -          -          -                  5.00
+forest_minInterceptCap        0.001                                             -          -          -          -          -                  0.00           
+grassland_minInterceptCap     0.001                                             -          -          -          -          -                  0.00           
+irrPaddy_minInterceptCap      0.001                                             -          -          -          -          -                  0.00           
+irrNonPaddy_minInterceptCap   0.001                                             -          -          -          -          -                  0.00           
+sealed_minInterceptCap        0.001                                             -          -          -          -          -                  0.00           
+water_minInterceptCap         0.0                                               -          -          -          -          -                  0.00           
+minCropKC                     0.2                                               -          -          -          -          -                  0.20           
+minTopWaterLayer              0.0                                               -          -          -          -          -                  0.00           
+maxGWCapRise                  5.0                                               -          -          -          -          -                  5.00           
 forest_rootFraction1          put/landcover/forest/rootFraction1.nc            80          0      12x14       True          0          0         80       0.63       0.81       0.91
-soildepth_factor              1.28                                              -          -          -          -          -                  1.28
+soildepth_factor              1.28                                              -          -          -          -          -                  1.28           
 forest_maxRootDepth           nput/landcover/forest/maxRootDepth.nc            80          0      12x14       True          0          0         80       1.00       1.00       1.00
 grassland_rootFraction1       /landcover/grassland/rootFraction1.nc            80          0      12x14       True          0          0         80       0.57       0.77       0.92
-soildepth_factor              1.28                                              -          -          -          -          -                  1.28
+soildepth_factor              1.28                                              -          -          -          -          -                  1.28           
 grassland_maxRootDepth        t/landcover/grassland/maxRootDepth.nc            80          0      12x14       True          0          0         80       0.50       0.50       0.50
 irrPaddy_rootFraction1        t/landcover/irrPaddy/rootFraction1.nc            80          0      12x14       True          0          0         80       0.86       0.97       0.98
-soildepth_factor              1.28                                              -          -          -          -          -                  1.28
+soildepth_factor              1.28                                              -          -          -          -          -                  1.28           
 irrPaddy_maxRootDepth         ut/landcover/irrPaddy/maxRootDepth.nc            80          0      12x14       True          0          0         80       0.50       0.50       0.50
 irrNonPaddy_rootFraction1     andcover/irrNonPaddy/rootFraction1.nc            80          0      12x14       True          0          0         80       0.69       0.88       0.90
-soildepth_factor              1.28                                              -          -          -          -          -                  1.28
+soildepth_factor              1.28                                              -          -          -          -          -                  1.28           
 irrNonPaddy_maxRootDepth      landcover/irrNonPaddy/maxRootDepth.nc            80          0      12x14       True          0          0         80       1.00       1.00       1.00
 forest_KSat1                  TM/cwatm_input/others/forest_ksat1.nc            80          0      12x14       True          0          0         80       2.26       3.03       3.86
 forest_KSat2                  TM/cwatm_input/others/forest_ksat2.nc            80          0      12x14       True          0          0         80       2.26       3.03       3.86
@@ -9561,36 +9964,36 @@ thetar2                       l/CWATM/cwatm_input/others/thetar2.nc            8
 thetar3                       l/CWATM/cwatm_input/others/thetar3.nc            80          0      12x14       True          0          0         80       0.09       0.10       0.11
 forest_rootFraction1          put/landcover/forest/rootFraction1.nc            80          0      12x14       True          0          0         80       0.63       0.81       0.91
 forest_maxRootDepth           nput/landcover/forest/maxRootDepth.nc            80          0      12x14       True          0          0         80       1.00       1.00       1.00
-arnoBeta_add                  0.19                                              -          -          -          -          -                  0.19
-forest_arnoBeta               0.2                                               -          -          -          -          -                  0.20
+arnoBeta_add                  0.19                                              -          -          -          -          -                  0.19           
+forest_arnoBeta               0.2                                               -          -          -          -          -                  0.20           
 grassland_rootFraction1       /landcover/grassland/rootFraction1.nc            80          0      12x14       True          0          0         80       0.57       0.77       0.92
 grassland_maxRootDepth        t/landcover/grassland/maxRootDepth.nc            80          0      12x14       True          0          0         80       0.50       0.50       0.50
-arnoBeta_add                  0.19                                              -          -          -          -          -                  0.19
-grassland_arnoBeta            0.0                                               -          -          -          -          -                  0.00
+arnoBeta_add                  0.19                                              -          -          -          -          -                  0.19           
+grassland_arnoBeta            0.0                                               -          -          -          -          -                  0.00           
 irrPaddy_rootFraction1        t/landcover/irrPaddy/rootFraction1.nc            80          0      12x14       True          0          0         80       0.86       0.97       0.98
 irrPaddy_maxRootDepth         ut/landcover/irrPaddy/maxRootDepth.nc            80          0      12x14       True          0          0         80       0.50       0.50       0.50
-arnoBeta_add                  0.19                                              -          -          -          -          -                  0.19
-irrPaddy_arnoBeta             0.2                                               -          -          -          -          -                  0.20
+arnoBeta_add                  0.19                                              -          -          -          -          -                  0.19           
+irrPaddy_arnoBeta             0.2                                               -          -          -          -          -                  0.20           
 irrNonPaddy_rootFraction1     andcover/irrNonPaddy/rootFraction1.nc            80          0      12x14       True          0          0         80       0.69       0.88       0.90
 irrNonPaddy_maxRootDepth      landcover/irrNonPaddy/maxRootDepth.nc            80          0      12x14       True          0          0         80       1.00       1.00       1.00
-arnoBeta_add                  0.19                                              -          -          -          -          -                  0.19
-irrNonPaddy_arnoBeta          0.2                                               -          -          -          -          -                  0.20
-irrPaddy_maxtopwater          0.05                                              -          -          -          -          -                  0.05
+arnoBeta_add                  0.19                                              -          -          -          -          -                  0.19           
+irrNonPaddy_arnoBeta          0.2                                               -          -          -          -          -                  0.20           
+irrPaddy_maxtopwater          0.05                                              -          -          -          -          -                  0.05           
 recessionCoeff                m_input/groundwater/recessionCoeff.nc            80          0      12x14       True          0          0         80       0.00       0.02       0.10
-recessionCoeff_factor         5.278                                             -          -          -          -          -                  5.28
+recessionCoeff_factor         5.278                                             -          -          -          -          -                  5.28           
 specificYield                 tm_input/groundwater/specificYield.nc            80          0      12x14       True          0          0         80       0.02       0.09       0.23
 kSatAquifer                   watm_input/groundwater/kSatAquifer.nc            80          0      12x14       True          0          0         80       0.00       0.11       1.34
 Ldd                           odel/CWATM/cwatm_input/routing/ldd.nc            80          0      12x14       True          0          0         80       1.00       5.45       9.00
-manningsN                     1.86                                              -          -          -          -          -                  1.86
-NoRoutingSteps                10                                                -          -          -          -          -                 10.00
-chanBeta                      0.6                                               -          -          -          -          -                  0.60
+manningsN                     1.86                                              -          -          -          -          -                  1.86           
+NoRoutingSteps                10                                                -          -          -          -          -                 10.00           
+chanBeta                      0.6                                               -          -          -          -          -                  0.60           
 chanMan                       tm_input/routing/kinematic/chanman.nc            80          0      12x14       True          0          0         80       0.03       0.04       0.07
 chanGrad                      m_input/routing/kinematic/changrad.nc            80          0      12x14       True          0          0         80       0.00       0.00       0.04
-chanGradMin                   0.0001                                            -          -          -          -          -                  0.00
+chanGradMin                   0.0001                                            -          -          -          -          -                  0.00           
 chanLength                    m_input/routing/kinematic/chanleng.nc            80          0      12x14       True          0          0         80   21914.27   38130.78   65169.66
 chanWidth                     atm_input/routing/kinematic/chanbw.nc            80          0      12x14       True          0          0         80      25.28     129.03     497.49
 chanDepth                     m_input/routing/kinematic/chanbnkf.nc            80          0      12x14       True          0          0         80       0.76       4.25      29.33
-lakeEvaFactor                 1.52                                              -          -          -          -          -                  1.52
+lakeEvaFactor                 1.52                                              -          -          -          -          -                  1.52           
 
 CWATM Simulation Information and Setting
 The simulation output as specified in the settings file: ./output/rhine can be found in ./settings/30min/rhine_30min\settings_checkmap_30min_01.ini
@@ -9622,6 +10025,6 @@ interceptcap                  r\forest\interceptCapForest_10days.nc            8
 kc                            nd\CropCoefficientGrassland_10days.nc            80          0      12x14       True          0          0         80       0.20       0.47       0.82
 interceptcap                  sland\interceptCapGrassland_10days.nc            80          0      12x14       True          0          0         80       0.00       0.00       0.00
        4.20
-00:59:08.538187
-00:59:10.334968
+20:38:30.969193
+20:38:32.547520
 <br/></div></td></tr></tbody></table></body></html>

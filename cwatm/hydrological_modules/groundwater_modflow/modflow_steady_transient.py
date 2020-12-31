@@ -10,10 +10,10 @@
 
 
 import numpy as np
-from management_modules.data_handling import *
-import xlrd
+from cwatm.management_modules.data_handling import *
+from cwatm.hydrological_modules.groundwater_modflow.ModFlow_modelV5 import ModFlow_modelV5
+#import xlrd
 
-from hydrological_modules.groundwater_modflow.ModFlow_modelV5 import ModFlow_modelV5
 
 def decompress(map):
     """
