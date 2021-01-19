@@ -101,6 +101,7 @@ def setmaskmapAttr(x,y,col,row,cell):
     """
     invcell = round(1/cell,0)
     # getgeotransform only delivers single precision!
+    if invcell == 0: invcell = 1/cell
     cell = 1 / invcell
     if (x-int(x)) != 0.:
         if abs(x - int(x)) > 1e9:
@@ -339,7 +340,7 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
             #nf1 = Dataset(filename, 'r')
             value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
-            if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+            if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
                 msg = "Error 202: Latitude is in wrong order\n"
                 raise CWATMFileError(filename, msg)
 
@@ -567,13 +568,22 @@ def readCoordNetCDF(name,check = True):
         # if subroutine is called already from inside a try command
         nf1 = Dataset(name, 'r')
 
-    rows = nf1.variables['lat'].shape[0]
-    cols = nf1.variables['lon'].shape[0]
+    if not('coordx' in maskmapAttr.keys()):
+        if 'lon' in nf1.variables.keys():
+            maskmapAttr['coordx'] = 'lon'
+            maskmapAttr['coordy'] = 'lat'
+        else:
+            maskmapAttr['coordx'] = 'x'
+            maskmapAttr['coordy'] = 'y'
 
-    lon0 = nf1.variables['lon'][0]
-    lon1 = nf1.variables['lon'][1]
-    lat0 = nf1.variables['lat'][0]
-    latlast = nf1.variables['lat'][-1]
+
+    rows = nf1.variables[maskmapAttr['coordy']].shape[0]
+    cols = nf1.variables[maskmapAttr['coordx']].shape[0]
+
+    lon0 = nf1.variables[maskmapAttr['coordx']][0]
+    lon1 = nf1.variables[maskmapAttr['coordx']][1]
+    lat0 = nf1.variables[maskmapAttr['coordy']][0]
+    latlast = nf1.variables[maskmapAttr['coordy']][-1]
     nf1.close()
     # swap to make lat0 the biggest number
     if lat0 < latlast:
@@ -581,6 +591,8 @@ def readCoordNetCDF(name,check = True):
 
     cell = round(np.abs(lon1 - lon0),8)
     invcell = round(1.0 / cell, 0)
+    if invcell == 0: invcell = 1./cell
+
     lon = round(lon0 - cell / 2,8)
     lat = round(lat0 + cell / 2,8)
 
@@ -739,8 +751,9 @@ def mapattrNetCDFMeteo(name, check = True):
     if celly < cut7:
         cut3 += 1
 
-    if cut1 > (360 * invcell): cut1 = int(360 * invcell)
-    if cut3 > (180 * invcell): cut3 = int(180 * invcell)
+    if maskmapAttr['coordy'] == 'lat':
+        if cut1 > (360 * invcell): cut1 = int(360 * invcell)
+        if cut3 > (180 * invcell): cut3 = int(180 * invcell)
 
 
 
@@ -935,7 +948,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
 
     #checkif latitude is reversed
     turn_latitude = False
-    if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+    if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
         turn_latitude = True
         mapnp = nf1.variables[value][idx].astype(np.float64)
         mapnp = np.flipud(mapnp)
@@ -1125,7 +1138,7 @@ def readnetcdfWithoutTime(name, value="None"):
     if value == "None":
         value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
-    if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+    if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
         msg = "Error 111: Latitude is in wrong order\n"
         raise CWATMFileError(filename, msg)
 
@@ -1160,8 +1173,8 @@ def readnetcdfInitial(name, value,default = 0.0):
         raise CWATMFileError(filename,msg)
     if value in list(nf1.variables.keys()):
         try:
-            #mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
-            if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+
+            if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
                 msg = "Error 112: Latitude is in wrong order\n"
                 raise CWATMFileError(filename, msg)
 

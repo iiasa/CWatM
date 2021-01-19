@@ -110,6 +110,7 @@ class readmeteo(object):
         if "usemeteodownscaling" in binding:
             self.var.meteodown = returnBool('usemeteodownscaling')
 
+        check_clim = False
         if self.var.meteodown:
             check_clim = checkMeteo_Wordclim(namemeteo, cbinding('downscale_wordclim_prec'))
 
@@ -456,27 +457,23 @@ class readmeteo(object):
         # if pot evaporation is already precalulated
         else:
 
-            """
-            # in case ET_ref is cut to local area there is an optional flag in settings which checks this
-            # if it is not sert the standart is used
-            try:
-                if returnBool('cutET'):
-                    cutET = True
-                else: cutET = False
-            except:
-                cutET = False
-            """
+            # in case ET_ref is the same resolution as the other meteo input map, there is an optional flag in settings which checks this
+            ETsamePr = False
+            if "ETsamePr" in binding:
+                if returnBool('ETsamePr'):
+                    ETsamePr = True
 
-            #self.var.ETRef = readmeteodata('ETMaps', dateVar['currDate'], addZeros=True) * self.var.DtDay * self.var.con_e
-            self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True, mapsscale = True, modflowSteady = modflow) * self.var.DtDay * self.var.con_e
-            #self.var.ETRef = downscaling2(self.var.ETRef)
-            # daily reference evaporation (conversion to [m] per time step)
-            #self.var.EWRef = readmeteodata('E0Maps', dateVar['currDate'], addZeros=True) * self.var.DtDay * self.var.con_e
-            self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True, mapsscale = True, modflowSteady = modflow) * self.var.DtDay * self.var.con_e
-            #self.var.EWRef = downscaling2(self.var.EWRef)
-            # potential evaporation rate from water surface (conversion to [m] per time step)
-            # self.var.ESRef = (self.var.EWRef + self.var.ETRef)/2
-            # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
+            if ETsamePr:
+                self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale, modflowSteady=modflow) * self.var.DtDay * self.var.con_e
+                self.var.ETRef = self.downscaling2(self.var.ETRef, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
+
+                self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale, modflowSteady=modflow) * self.var.DtDay * self.var.con_e
+                self.var.EWRef = self.downscaling2(self.var.EWRef, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
+            else:
+                self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True, mapsscale = True, modflowSteady = modflow) * self.var.DtDay * self.var.con_e
+                self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True, mapsscale = True, modflowSteady = modflow) * self.var.DtDay * self.var.con_e
+                # potential evaporation rate from water surface (conversion to [m] per time step)
+                # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
 
 
 

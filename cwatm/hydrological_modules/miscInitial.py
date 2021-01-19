@@ -86,7 +86,8 @@ class miscInitial(object):
 
             # Area of pixel [m2]
             self.var.cellArea=np.empty(maskinfo['mapC'])
-            self.var.cellArea.fill(self.var.cellLength ** 2)
+            self.var.cellArea.fill(maskmapAttr['cell'] ** 2)
+            ii =1
 
 #            self.var.PixelArea = spatial(self.var.PixelArea)
             # Convert to spatial expresion (otherwise this variable cannnot be
