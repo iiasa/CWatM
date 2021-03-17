@@ -424,10 +424,11 @@ def compressArray(map, name="None", zeros = 0.):
     :param zeros: add zeros (default= 0) if values of map are to big or too small
     :return: Compressed 1D array
     """
+    """
     if map.shape != maskinfo['mask'].shape:
         msg = "Error 105: " + name + " has less a different shape than area or ldd \n"
         raise CWATMError(msg)
-
+    """
     mapnp1 = np.ma.masked_array(map, maskinfo['mask'])
     mapC = np.ma.compressed(mapnp1)
     # if fill: mapC[np.isnan(mapC)]=0
@@ -1036,7 +1037,8 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
     try:
        nf1 = Dataset(filename, 'r')
     except:
-        msg = "Error 212: Netcdf map stacks: \n"
+        print('hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh')
+        msg = "Error 212: Netcdf map stacksggggg: \n"
         raise CWATMFileError(filename,msg, sname = namebinding)
 
     if value == "None":
@@ -1232,10 +1234,10 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
             row = domain['nrow']
             col = domain['ncol']
             metadataNCDF['modflow_x'] = {}
-            metadataNCDF['modflow_x']['standard_name'] = 'UTM_X'
+            metadataNCDF['modflow_x']['standard_name'] = 'X'
             metadataNCDF['modflow_x']['units'] = 'm'
             metadataNCDF['modflow_y'] = {}
-            metadataNCDF['modflow_y']['standard_name'] = 'UTM_Y'
+            metadataNCDF['modflow_y']['standard_name'] = 'Y'
             metadataNCDF['modflow_y']['units'] = 'm'
 
 
@@ -1314,8 +1316,8 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
 
         # Fill variables
         if modflow:
-            lats = np.arange(domain['north'], domain['south'] - 1, domain['cellsize'] * -1)
-            lons =  np.arange(domain['west'], domain['east']+1, domain['cellsize'])
+            lats = np.arange(domain['north'], domain['south'] - 1, domain['rowsize'] * -1)
+            lons =  np.arange(domain['west'], domain['east']+1, domain['colsize'])
             #lons =  np.linspace(domain['north'] , domain['south'], col, endpoint=False)
             latitude[:] = lats
             longitude[:] = lons

@@ -41,10 +41,8 @@ class lakes_res_small(object):
     smalllakeFactor                                                                                                  
     smalllakeFactorSqr                                                                                               
     smalllakeInflowOld                                                                                               
-    smalllakeVolumeM3                                                                                                
     smalllakeOutflow                                                                                                 
     smalllakeLevel                                                                                                   
-    smalllakeStorage                                                                                                 
     minsmalllakeVolumeM3                                                                                             
     preSmalllakeStorage                                                                                              
     smallLakedaycorrect                                                                                              
@@ -54,10 +52,12 @@ class lakes_res_small(object):
     smallrunoffDiff                                                                                                  
     DtSec                 number of seconds per timestep (default = 86400)                                  s        
     InvDtSec                                                                                                         
-    cellArea              Cell area [m²] of each simulated mesh                                                      
+    cellArea              Area of cell                                                                      m2       
     EWRef                 potential evaporation rate from water surface                                     m        
     lakeEvaFactor         a factor which increases evaporation from lake because of wind                    --       
     runoff                                                                                                           
+    smalllakeVolumeM3                                                                                                
+    smalllakeStorage                                                                                                 
     ====================  ================================================================================  =========
 
     **Functions**

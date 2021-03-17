@@ -53,12 +53,8 @@ class readmeteo(object):
     wc4_tmax              upscaled to low resolution WorldClim map for max temperature                      K        
     wc2_prec              High resolution WorldClim map for precipitation                                   m        
     wc4_prec              upscaled to low resolution WorldClim map for precipitation                        m        
-    demAnomaly            digital elevation model anomaly (high resolution - low resolution)                m        
-    demHigh               digital elevation model high resolution                                           m        
     prec                  precipitation in m                                                                m        
-    temp                  average temperature in Celsius deg                                                C°       
-    Tmin                  minimum temperature in Celsius deg                                                C°       
-    Tmax                  maximum temperature in celsius deg                                                C°       
+    temp                  average temperature in Celsius deg                                                Celcius d
     WtoMJ                 Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6                    --       
     ====================  ================================================================================  =========
 

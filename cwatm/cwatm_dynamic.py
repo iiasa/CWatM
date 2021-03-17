@@ -99,7 +99,7 @@ class CWATModel_dyn(DynamicModel):
             timemeasure("Soil main")  # 5. timing
 
             if self.var.modflow:
-                self.groundwater_modflow_module.dynamic_transient()
+                self.groundwater_modflow_module.dynamic()
             self.groundwater_module.dynamic()
             timemeasure("Groundwater")  # 7. timing
 

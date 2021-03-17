@@ -24,13 +24,13 @@ class waterdemand_domestic:
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
-    M3toM                 Coefficient to change units                                                       --       
     domesticTime                                                                                                     
     domWithdrawalVar                                                                                                 
     domConsumptionVar                                                                                                
     domesticDemand                                                                                                   
     pot_domesticConsumpt                                                                                             
+    InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
+    M3toM                 Coefficient to change units                                                       --       
     dom_efficiency                                                                                                   
     demand_unit                                                                                                      
     ====================  ================================================================================  =========
@@ -48,7 +48,7 @@ class waterdemand_domestic:
         Initial part of the water demand module
 
         """
-
+        print('hhhhhhhhhhhhhhere')
         if "domesticTimeMonthly" in binding:
             if returnBool('domesticTimeMonthly'):
                 self.var.domesticTime = 'monthly'
@@ -73,13 +73,14 @@ class waterdemand_domestic:
 
         """
 
-
+        print('here')
         if self.var.domesticTime == 'monthly':
             new = 'newMonth'
         else:
             new = 'newYear'
         
         if globals.dateVar['newStart'] or globals.dateVar[new]:
+            print('dddddddddddddddddddddddddddddddddddddddddddddddddddd')
             self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.domWithdrawalVar)
             self.var.pot_domesticConsumption = readnetcdf2('domesticWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.domConsumptionVar)
             # avoid small values (less than 1 m3):

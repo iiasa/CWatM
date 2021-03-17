@@ -25,7 +25,7 @@ class groundwater_modflow(object):
     sum_gwRecharge        groundwater recharge                                                              m        
     modflow               Flag: True if modflow_coupling = True in settings file                            --       
     gwstore                                                                                                          
-    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days…)                                       
+    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days, etc.)                                  
     sumed_sum_gwRecharge                                                                                             
     GWVolumeVariation                                                                                                
     modflowsteady         True if modflow_steadystate = True in settings file                               --       
@@ -34,6 +34,7 @@ class groundwater_modflow(object):
     PathModflowOutput     Path to the ModFlow folder where ModFlow runs are stored                          --       
     res_ModFlow           Chosen ModFlow model resolution                                                            
     Ndays_steady          Number of steady state run before the transient simulation                        --       
+    init_days_of_soil                                                                                                
     nlay                  Number of ModFlow layers                                                          --       
     actual_thick          Array (nlays, nrows, ncols) of layers thickness                                   m        
     coef                  A coefficient defined by the user to artificially increase layer thickness                 
@@ -58,11 +59,11 @@ class groundwater_modflow(object):
     sumstorGW2                                                                                                       
     pregwstore                                                                                                       
     prestorGroundwater1                                                                                              
-    modflowPumpingM                                                                                                  
-    cellArea              Cell area [m²] of each simulated mesh                                                      
+    cellArea              Area of cell                                                                      m2       
     capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
     baseflow              simulated baseflow (= groundwater discharge to river)                             m        
     soildepth12           Total thickness of layer 2 and 3                                                  m        
+    modflowPumpingM                                                                                                  
     ====================  ================================================================================  =========
 
     **Functions**

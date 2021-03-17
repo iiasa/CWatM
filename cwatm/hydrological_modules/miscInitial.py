@@ -31,8 +31,7 @@ class miscInitial(object):
     twothird              2/3                                                                               --       
     MtoM3                 Coefficient to change units                                                       --       
     InvDtSec                                                                                                         
-    cellArea              Cell area [m²] of each simulated mesh                                                      
-    cellLength            length of a grid cell                                                             m        
+    cellArea              Area of cell                                                                      m2       
     InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
     DtDay                 seconds in a timestep (default=86400)                                             s        
     InvDtDay              inverse seconds in a timestep (default=86400)                                     s-1      
