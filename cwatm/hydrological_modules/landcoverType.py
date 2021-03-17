@@ -579,8 +579,11 @@ class landcoverType(object):
 
             # LUCA: specific test fr Burgenland 80 percent of grassland is converted into irr non paddy
             # because self.var.fracVegCover[3] = 0 currently
-            self.var.fracVegCover[3] = 0.8*self.var.fracVegCover[1]
-            self.var.fracVegCover[1] = 0.2 * self.var.fracVegCover[1]
+
+            if "Burgenland" in option:
+                if checkOption('Burgenland'):
+                    self.var.fracVegCover[3] = 0.8*self.var.fracVegCover[1]
+                    self.var.fracVegCover[1] = 0.2 * self.var.fracVegCover[1]
 
             # correction of grassland if sum is not 1.0
             sum = np.sum(self.var.fracVegCover,axis=0)

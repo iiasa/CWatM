@@ -48,7 +48,7 @@ class waterdemand_domestic:
         Initial part of the water demand module
 
         """
-        print('hhhhhhhhhhhhhhere')
+
         if "domesticTimeMonthly" in binding:
             if returnBool('domesticTimeMonthly'):
                 self.var.domesticTime = 'monthly'
@@ -73,14 +73,13 @@ class waterdemand_domestic:
 
         """
 
-        print('here')
         if self.var.domesticTime == 'monthly':
             new = 'newMonth'
         else:
             new = 'newYear'
         
         if globals.dateVar['newStart'] or globals.dateVar[new]:
-            print('dddddddddddddddddddddddddddddddddddddddddddddddddddd')
+
             self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.domWithdrawalVar)
             self.var.pot_domesticConsumption = readnetcdf2('domesticWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.domConsumptionVar)
             # avoid small values (less than 1 m3):

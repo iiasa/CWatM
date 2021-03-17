@@ -217,7 +217,6 @@ class waterdemand_irrigation:
         #print('-----------------------------self.var.irrDemand[3]---------: ', np.mean(self.var.irrDemand[3]))
         #print('-----------------------------self.var.irrNonpaddyDemand---------: ', np.mean(self.var.irrNonpaddyDemand))
         self.var.totalIrrDemand = self.var.irrPaddyDemand + self.var.irrNonpaddyDemand
-        print('self.var.totalIrrDemand : ', np.mean(self.var.totalIrrDemand))
 
         #if globals.dateVar['newStart'] or globals.dateVar['newMonth']:
 #
