@@ -399,25 +399,7 @@ class landcoverType(object):
             self.var.kunSatFC23.append(np.sqrt(kUnSat2FC * self.var.kUnSat3FC))
 
             i += 1
-        #print('-----------------------------self.var.thetas2[1] in landcover---------: ',
-        #      np.mean(self.var.thetas2[1]))
 
-        #print('-----------------------------self.var.ws2[3] in landcover---------: ',
-        #   np.mean(self.var.ws2[3]))
-        #print('-----------------------------self.var.rootDepth[1][3] in landcover---------: ',
-        #   np.mean(self.var.rootDepth[1][3]))
-        #print('-----------------------------self.var.wfc2 in landcover---------: ',
-        #      np.mean(self.var.wfc2[3]))
-        #print('-----------------------------self.var.wres2[3] in landcover---------: ',
-        #      np.mean(self.var.wres2[3]))
-        #print('-----------------------------self.var.rootDepth[1][3] in landcover---------: ',
-        #      np.mean(self.var.rootDepth[1][3]))
-        #print('-----------------------------self.var.thetar2[1] in landcover---------: ',
-        #      np.mean(self.var.thetar2[1]))
-        #print('-----------------------------self.var.wrange2[3] in landcover---------: ',
-        #      np.mean(self.var.wrange2[3]))
-        #print('-----------------------------self.var.thetar2[1] in landcover---------: ',
-        #      np.mean(self.var.thetar2[1]))
 
         i = 0
         for coverType in self.var.coverTypes[:4]:
@@ -448,7 +430,10 @@ class landcoverType(object):
 
             if self.var.modflow: # it is better to start with a humid soil to avoid too much pumping at the begining because of the irrigation demand
                 start_soil_humid = 0.75
-                print('Soil moisture is filled at ', 100*start_soil_humid, ' % at the begining')
+                if 'start_soil_humid' in binding:
+                    start_soil_humid = loadmap('start_soil_humid')
+                if i == 0:
+                    print('=> Soil moisture is filled at ', 100*start_soil_humid, ' % at the begining')
                 self.var.w1[i] = self.var.load_initial(coverType + "_w1", default=self.var.wwp1[i] + start_soil_humid*(self.var.wfc1[i]-self.var.wwp1[i]))
                 self.var.w2[i] = self.var.load_initial(coverType + "_w2", default=self.var.wwp2[i] + start_soil_humid*(self.var.wfc2[i]-self.var.wwp2[i]))
                 self.var.w3[i] = self.var.load_initial(coverType + "_w3", default=self.var.wwp3[i] + start_soil_humid*(self.var.wfc3[i]-self.var.wwp3[i]))
@@ -520,11 +505,6 @@ class landcoverType(object):
         totalWaterPlant2 = np.maximum(0., self.var.wfc2[3] - self.var.wwp2[3]) #* self.var.rootDepth[1][3]
         #totalWaterPlant3 = np.maximum(0., self.var.wfc3[3] - self.var.wwp3[3]) * self.var.rootDepth[2][3]
         self.var.totAvlWater = totalWaterPlant1 + totalWaterPlant2 #+ totalWaterPlant3
-        #print('-----------------------------totalWaterPlant1 in landcover---------: ',
-        #      np.mean(totalWaterPlant1))
-        #print('-----------------------------totalWaterPlant2 in landcover---------: ',
-        #      np.mean(totalWaterPlant2))
-        #print('-----------------------------self.var.totAvlWater in landcover---------: ', np.mean(self.var.totAvlWater))
 
 
     # --------------------------------------------------------------------------
@@ -579,6 +559,7 @@ class landcoverType(object):
 
             # LUCA: specific test fr Burgenland 80 percent of grassland is converted into irr non paddy
             # because self.var.fracVegCover[3] = 0 currently
+            print('FOR BURGENLAND WE SPECIFIED MANUALLY IRRIGATED AREA')
             self.var.fracVegCover[3] = 0.8*self.var.fracVegCover[1]
             self.var.fracVegCover[1] = 0.2 * self.var.fracVegCover[1]
 
@@ -641,10 +622,11 @@ class landcoverType(object):
             pretop = self.var.sum_topwater
 
         ### To compute water balance for modflow
-        if self.var.modflow:
-            if (dateVar['curr'] - int(dateVar['curr'] / self.var.modflow_timestep) * self.var.modflow_timestep) == 1 and \
-                    dateVar['curr'] > self.var.modflow_timestep:  # if it is the first step of the week
-                self.var.presumed_sum_gwRecharge = self.var.sumed_sum_gwRecharge.copy()
+        # Currently, only daily time scale is implemented for this version')
+        #if self.var.modflow:
+            #if (dateVar['curr'] - int(dateVar['curr'] / self.var.modflow_timestep) * self.var.modflow_timestep) == 1 and \
+            #        dateVar['curr'] > self.var.modflow_timestep:  # if it is the first step of the week
+            #    self.var.presumed_sum_gwRecharge = self.var.sumed_sum_gwRecharge.copy()
                 # stormodf = np.nansum((self.var.presumed_sum_gwRecharge/self.var.modflow_timestep-self.var.capillar-self.var.baseflow) * self.var.cellArea) # From ModFlow during the previous step
                 # stormodf = self.var.GWVolumeVariation / self.var.modflow_timestep # GW volume change from the previous ModFlow run (difference betwwen water levels times porosity)
         self.var.pretotalSto = self.var.totalSto.copy()
@@ -693,14 +675,14 @@ class landcoverType(object):
 
         if self.var.modflow:
             # computing leakage from rivers (if modflow coupling is used)
-            # leakage depends on water bodies storage, water bodies fraction, modflow saturated area and permeability
-            leakageriver_factor = loadmap('leakageriver_permea')  # in m/day
-            self.var.riverbedExchangeM = np.minimum(leakageriver_factor * np.maximum(self.var.fracVegCover[5], 0) *
-                                                    ((1 - self.var.capriseindex + 0.25) // 1),0.80 * self.var.readAvlChannelStorageM)  # leakage in m/d
+
+            # leakage depends on water bodies storage, water bodies fraction and modflow saturated area
+            self.var.riverbedExchangeM = np.minimum(self.var.leakageriver_factor * np.maximum(self.var.fracVegCover[5], 0) *
+                                                    ((1 - self.var.capriseindex + 0.25) // 1),
+                                                    0.80 * self.var.readAvlChannelStorageM)  # leakage in m/d
             self.var.riverbedExchangeM = np.where(self.var.riverbedExchangeM > self.var.InvCellArea,
                                                        self.var.riverbedExchangeM, 0)  # to avoid too small values
 
-            #
             # if there is a lake in this cell, there is no leakage
             self.var.riverbedExchangeM = np.where(self.var.waterBodyID > 0, 0., self.var.riverbedExchangeM)
             self.var.riverbedExchangeM3 = self.var.riverbedExchangeM * self.var.cellArea  # converting leakage in m3
@@ -718,129 +700,59 @@ class landcoverType(object):
             self.var.sum_gwRecharge += self.var.riverbedExchangeM
 
             if checkOption('includeWaterBodies'):
-                # computing leakage from lakes and reservoirs to groundwater
-                #leakagelake_factor = 0.1
-                #lakesExchangeM = self.var.permeability * np.maximum(self.var.fracVegCover[5], 0) * ((1 - 0 + 0.25) // 1) * leakagelake_factor # leakage in m/d
-                #remainNeedBig = npareatotal(lakesExchangeM, self.var.waterBodyID)
-                #print('remainNeedBig ', np.shape(remainNeedBig))
-                #remainNeedBigC = np.compress(self.var.compress_LR, remainNeedBig)
-                #print('remainNeedBigC ', np.shape(remainNeedBigC))
-
-                # Storage of a big lake
-                """lakeResStorageC = np.where(self.var.waterBodyTypCTemp == 0, 0.,
-                                           np.where(self.var.waterBodyTypCTemp == 1, self.var.lakeStorageC,
-                                                    self.var.reservoirStorageM3C)) / self.var.MtoM3C  # in meter """
-                #self.var.reservoirStorageM3 = globals.inZero.copy()
-                #np.put(self.var.reservoirStorageM3, self.var.decompress_LR, self.var.reservoirStorageM3C)
-                #print('shape self.var.waterBodyTypTemp : ', np.shape(self.var.waterBodyTypTemp))
-                #print('shape self.var.lakeStorage : ', np.shape(self.var.lakeStorage))
-                #print('shape self.var.resStorage : ', np.shape(self.var.resStorage))
-                #print('shape self.var.MtoM3C : ', np.shape(self.var.MtoM3C))
-                #print('MtoM3 :' ,np.nanmean(self.var.MtoM3))
 
                 # first, lakes variable need to be extended to their area and not only to the discharge point
-                #lakeIDbyArea = np.unique(self.var.lakeArea)
                 lakeIDbyID = np.unique(self.var.waterBodyID)
-                #lakeIDbyArea = np.zeros(np.shape(lakeIDbyID))
-                #print(lakeIDbyID)
-                #import matplotlib.pyplot as plt
-                #plt.figure()
-                #plt.imshow(np.reshape(
-                #    decompress(self.var.waterBodyID), (62, 58)))
-                #plt.show()
-                #for id in range(len(lakeIDbyID)):
-                #    if lakeIDbyID[id] != 0:
-                #        print(id, lakeIDbyID[id])
-                #        print(self.var.lakeArea[self.var.waterBodyID == lakeIDbyID[id]])
-                #        lakeIDbyArea[id] = self.var.lakeArea[self.var.waterBodyID == lakeIDbyID[id]]
 
                 lakestor_id = np.copy(self.var.lakeStorage)
                 resstor_id = np.copy(self.var.resStorage)
-                for id in range(len(lakeIDbyID)):
+                for id in range(len(lakeIDbyID)):  # for each lake or reservoir
                     if lakeIDbyID[id] != 0:
                         temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.lakeStorage > 0, 1, 0), 0)  # Looking for the discharge point of the lake
                         if np.sum(temp_map) == 0:  # try reservoir
-                            temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.resStorage > 0, 1, 0), 0)  # Looking for the discharge point of the lake
-                        discharge_point = np.nanargmax(temp_map)
+                            temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.resStorage > 0, 1, 0), 0)  # Looking for the discharge point of the reservoir
+                        discharge_point = np.nanargmax(temp_map)  # Index of the cell where the lake outlet is stored
                         if self.var.waterBodyTypTemp[discharge_point] != 0:
-                            #import matplotlib.pyplot as plt
-                            #if discharge_point == 2468:
-                            #    plt.figure()
-                            #    plt.imshow(np.reshape(decompress(np.where(self.var.waterBodyID == lakeIDbyID[id], self.var.cellArea, 0)), (62, 58)))
-                            if self.var.waterBodyTypTemp[discharge_point] == 1:
+
+                            if self.var.waterBodyTypTemp[discharge_point] == 1:  # this is a lake
+                                # computing the lake area
                                 area_stor = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id], self.var.cellArea, 0))  # required to keep mass balance rigth
+                                # computing the lake storage in meter and put this value in each cell including the lake
                                 lakestor_id = np.where(self.var.waterBodyID == lakeIDbyID[id],
                                                        self.var.lakeStorage[discharge_point] / area_stor, lakestor_id)  # in meter
-                                #if discharge_point == 2468:
-                                #    plt.figure()
-                                #    plt.imshow(np.reshape(
-                                #        decompress(lakestor_id), (62, 58)))
-                                #    plt.figure()
-                                #    plt.imshow(np.reshape(
-                                #        decompress(np.where(self.var.waterBodyID == lakeIDbyID[id], self.var.lakeStorage[discharge_point] / area_stor, 0)), (62, 58)))
-                                #    plt.figure()
-                                #    plt.imshow(np.reshape(
-                                #        decompress(self.var.lakeStorage), (62, 58)))
-                                #    print('new : ', discharge_point, ' , stor : ', self.var.lakeStorage[discharge_point])
-                            else:
+
+                            else:  # this is a reservoir
+                                # computing the reservoir area
                                 area_stor = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id], self.var.cellArea, 0))  # required to keep mass balance rigth
+                                # computing the reservoir storage in meter and put this value in each cell including the reservoir
                                 resstor_id = np.where(self.var.waterBodyID == lakeIDbyID[id],
                                                        self.var.resStorage[discharge_point] / area_stor, resstor_id)  # in meter
-                                #if discharge_point == 2468:
-                                #    plt.figure()
-                                #    plt.imshow(np.reshape(
-                                #        decompress(resstor_id),
-                                #        (62, 58)))
-                            #if discharge_point == 2468:
-                            #    plt.show()
-                #import matplotlib.pyplot as plt
-                #plt.figure()
-                #plt.imshow(np.reshape(decompress(lakestor_id),(62,58)))
-                #plt.figure()
-                #plt.imshow(np.reshape(decompress(resstor_id),(62,58)))
 
-                #lakeResStorage = np.where(self.var.waterBodyTypTemp == 0, 0.,
-                #                           np.where(self.var.waterBodyTypTemp == 1, self.var.lakeStorage,
-                #                                    self.var.resStorage)) / self.var.MtoM3  # in meter
+                # Gathering lakes and reservoirs in the same array
                 lakeResStorage = np.where(self.var.waterBodyTypTemp == 0, 0., np.where(self.var.waterBodyTypTemp == 1,
-                                                                                       lakestor_id, resstor_id)) # / self.var.cellArea  # in meter
-                #print('shape lakeResStorage : ', np.shape(lakeResStorage))
-                #plt.figure()
-                #plt.imshow(np.reshape(decompress(self.var.waterBodyTypTemp),(62,58)))
-                #plt.figure()
-                #plt.imshow(np.reshape(decompress(lakeResStorage),(62,58)))
+                                                                                       lakestor_id, resstor_id))  # in meter
 
                 minlake = np.maximum(0., 0.98 * lakeResStorage)  # reasonable but arbitrary limit
-                print('minlake', np.nanmax(minlake))
-                # leakage depends on water bodies storage, water bodies fraction, modflow saturated area and permeability
-                leakagelake_factor = loadmap('leakagelake_permea')  # in m/day
-                lakebedExchangeM_temp = np.minimum(leakagelake_factor * np.maximum(self.var.fracVegCover[5], 0) *
-                                                   ((1 - self.var.capriseindex + 0.25) // 1), minlake)  # leakage in m/d
-                print('lakebedExchangeM_temp', np.nanmax(lakebedExchangeM_temp))
-                #import matplotlib.pyplot as plt
-                #plt.figure()
-                #plt.imshow(np.reshape(decompress(((1 - self.var.capriseindex + 0.25) // 1)),(62,58)))
-                #plt.figure()
-                #plt.imshow(np.reshape(decompress(minlake),(62,58)))
-                #plt.figure()
-                #plt.imshow(np.reshape(decompress(lakebedExchangeM_temp),(62,58)))
-                #plt.show()
 
-                # Now, leakage is converted again from lakes area to discharge point
+                # leakage depends on water bodies storage, water bodies fraction and modflow saturated area
+                lakebedExchangeM_temp = np.minimum(self.var.leakagelake_factor * np.maximum(self.var.fracVegCover[5], 0) *
+                                                   ((1 - self.var.capriseindex + 0.25) // 1), minlake)  # leakage in m/d
+
+                # Now, leakage is converted again from the lake/reservoir area to discharge point to be removed from the lake/reservoir store
                 self.var.lakebedExchangeM = np.zeros(np.shape(self.var.cellArea))
-                for id in range(len(lakeIDbyID)):
+                for id in range(len(lakeIDbyID)):  # for each lake or reservoir
                     if lakeIDbyID[id] != 0:
                         temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.lakeStorage > 0, 1, 0), 0)  # Looking for the discharge point of the lake
                         if np.sum(temp_map) == 0:  # try reservoir
-                            temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.resStorage > 0, 1, 0), 0)  # Looking for the discharge point of the lake
-                        discharge_point = np.nanargmax(temp_map)
+                            temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.resStorage > 0, 1, 0), 0)  # Looking for the discharge point of the reservoir
+                        discharge_point = np.nanargmax(temp_map)  # Index of the cell where the lake outlet is stored
+                    # Converting the lake/reservoir leakage from meter to cubic meter and put this value in the cell corresponding to the outlet
                     self.var.lakebedExchangeM[discharge_point] = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id],
-                                                                                                        lakebedExchangeM_temp*self.var.cellArea, 0))  # in m3
+                                                                                                        lakebedExchangeM_temp * self.var.cellArea, 0))  # in m3
                 self.var.lakebedExchangeM = self.var.lakebedExchangeM / self.var.MtoM3  # in meter
-                # compressed version
+
+                # compressed version for lakes and reservoirs
                 lakeExchangeM = np.compress(self.var.compress_LR, self.var.lakebedExchangeM)
-                #print('shape lakeExchangeM : ', np.shape(lakeExchangeM))
-                #print('Sum lakes leakage after compressing in m3 : ', np.nansum(lakeExchangeM * self.var.MtoM3C))
 
                 # substract from both, because it is sorted by self.var.waterBodyTypCTemp
                 self.var.lakeStorageC = self.var.lakeStorageC - lakeExchangeM * self.var.MtoM3C
@@ -849,23 +761,10 @@ class landcoverType(object):
 
                 # and from the combined one for waterbalance issues
                 self.var.lakeResStorageC = self.var.lakeResStorageC - lakeExchangeM * self.var.MtoM3C
-                #print('shape self.var.lakeResStorageC : ', np.shape(self.var.lakeResStorageC))
-                #print('Sum lakes storage compressed in m3 : ', np.nansum(self.var.lakeResStorageC))
                 self.var.lakeResStorage = globals.inZero.copy()
                 np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
-                #print('shape self.var.lakeResStorage : ', np.shape(self.var.lakeResStorage))
-                #print('Sum lakes storage uncompressed in m3 : ', np.nansum(self.var.lakeResStorage))
-                #import matplotlib.pyplot as plt
-                #plt.figure()
-                #plt.imshow(np.reshape(decompress((1 - self.var.capriseindex + 0.25) // 1), (62,58)))
-                #plt.figure()
-                #plt.imshow(np.reshape(decompress(np.log10(minlake)), (62,58)))
-                #plt.figure()
-                #plt.imshow(np.reshape(decompress(np.log10(lakebedExchangeM_temp)), (62,58)))
-                #plt.figure()
-                #plt.imshow(np.reshape(decompress(self.var.capillar), (62,58)))
-                #plt.show()
 
+                # adding leakage from lakes and reservoirs to the groundwater recharge
                 self.var.sum_gwRecharge += lakebedExchangeM_temp
 
         soilVars = ['w1','w2','w3']
@@ -889,7 +788,9 @@ class landcoverType(object):
             if self.var.modflow:
                 if dateVar['curr'] > self.var.modflow_timestep:  # from the second step
                     storcwat = np.sum((self.var.totalSto - self.var.pretotalSto) * self.var.cellArea)  # Daily CWAT storage variations
-                    cwatbudg = np.sum((self.var.Precipitation - self.var.sum_runoff - self.var.totalET + self.var.presumed_sum_gwRecharge / self.var.modflow_timestep - self.var.sum_gwRecharge - self.var.baseflow) * self.var.cellArea)  # Inputs-Outputs (baseflow comes from the previous ModFlow model)
+                    #cwatbudg = np.sum((self.var.Precipitation - self.var.sum_runoff - self.var.totalET + self.var.presumed_sum_gwRecharge / self.var.modflow_timestep - self.var.sum_gwRecharge - self.var.baseflow) * self.var.cellArea)  # Inputs-Outputs (baseflow comes from the previous ModFlow model)
+                    cwatbudg = np.sum((self.var.Precipitation - self.var.sum_runoff - self.var.totalET + self.var.sum_gwRecharge - self.var.sum_gwRecharge - self.var.baseflow) * self.var.cellArea)  # Inputs-Outputs (baseflow comes from the previous ModFlow model)
+
                     print('CWatM-ModFlow water balance error [%]: ',
                           round(100 * (cwatbudg - storcwat - self.var.GWVolumeVariation / self.var.modflow_timestep) /
                                 (0.5 * cwatbudg + 0.5 * storcwat + 0.5 * self.var.GWVolumeVariation / self.var.modflow_timestep) * 100) / 100)

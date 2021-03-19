@@ -157,15 +157,21 @@ class water_demand:
         Set the water allocation
         """
 
+        # This variable has no impact if includeWaterDemand is False
+        self.var.includeIndusDomesDemand = False  # True if all demands are taken into account, if not only irrigation is considered
+        print('=> BURGENLAND SPECIFIC : Not only irrigation is taken into account ? ', self.var.includeIndusDomesDemand)
+
         if checkOption('includeWaterDemand'):
 
-            if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                print('=> All water demands are taken into account')
                 self.domestic.initial()
                 self.industry.initial()
                 self.livestock.initial()
                 self.irrigation.initial()
                 self.environmental_need.initial()
-            else:  # only irrigation
+            else:  # only irrigation is considered
+                print('=> Only irrigation is considered as water demand')
                 self.irrigation.initial()
                 self.environmental_need.initial()
 
@@ -302,7 +308,7 @@ class water_demand:
 
         if self.var.modflow:
 
-            if checkOption('includeWaterDemand'):
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.environmental_need.dynamic()
             else:
                 self.var.envFlow = 0.00001  # 0.01mm
@@ -317,33 +323,6 @@ class water_demand:
             self.var.readAvlChannelStorageM = self.var.readAvlChannelStorageM * self.var.M3toM  # in [m]
             self.var.readAvlChannelStorageM = np.maximum(0., self.var.readAvlChannelStorageM - self.var.envFlow)
 
-            """if checkOption('includeWaterBodies'):
-                # computing leakage from lakes and reservoirs to groundwater
-
-                # Storage of a big lake
-                lakeResStorageC = np.where(self.var.waterBodyTypCTemp == 0, 0.,
-                                           np.where(self.var.waterBodyTypCTemp == 1, self.var.lakeStorageC,
-                                                    self.var.reservoirStorageM3C)) / self.var.MtoM3C  # in meter
-
-                minlake = np.maximum(0., 0.98 * lakeResStorageC)  # reasonable but arbitrary limit
-
-                # leakage depends on water bodies storage, water bodies fraction, modflow saturated area and permeability
-                leakagelake_factor = 0.1
-                lakesExchangeM = np.minimum(
-                    self.var.permeability * (60 * 60 * 24) * np.maximum(self.var.fracVegCover[5], 0) *
-                    ((1 - 0 + 0.25) // 1) * leakagelake_factor, minlake)  # leakage in m/d
-
-                # substract from both, because it is sorted by self.var.waterBodyTypCTemp
-                self.var.lakeStorageC = self.var.lakeStorageC - lakesExchangeM * self.var.MtoM3C
-                self.var.lakeVolumeM3C = self.var.lakeVolumeM3C - lakesExchangeM * self.var.MtoM3C
-                self.var.reservoirStorageM3C = self.var.reservoirStorageM3C - lakesExchangeM * self.var.MtoM3C
-
-                # and from the combined one for waterbalance issues
-                self.var.lakeResStorageC = self.var.lakeResStorageC - lakesExchangeM * self.var.MtoM3C
-                self.var.lakeResStorage = globals.inZero.copy()
-                np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
-
-                self.var.sum_gwRecharge += self.var.riverbedExchangeM"""
 
         if checkOption('includeWaterDemand'):
 
@@ -360,7 +339,7 @@ class water_demand:
                 wd_date = wd_date.replace(day = 1)
                 wd_date = wd_date.replace(year = self.var.waterdemandFixedYear)
 
-            if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.domestic.dynamic(wd_date)
                 self.industry.dynamic(wd_date)
                 self.livestock.dynamic(wd_date)
@@ -371,7 +350,7 @@ class water_demand:
             #if not self.var.modflow:
                 self.environmental_need.dynamic()
 
-            if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 if globals.dateVar['newStart'] or globals.dateVar['newMonth']:
                     # total (potential) non irrigation water demand
                     self.var.nonIrrDemand = self.var.domesticDemand + self.var.industryDemand + self.var.livestockDemand
@@ -388,7 +367,7 @@ class water_demand:
                 # Sum up water demand
                 # totalDemand [m]: total maximum (potential) water demand: irrigation and non irrigation
                 totalDemand = self.var.nonIrrDemand + self.var.totalIrrDemand  # in [m]
-            else:  # only irrigation
+            else:  # only irrigation is considered
                 totalDemand = np.copy(self.var.totalIrrDemand)  # in [m]
                 #print('-----------------------------totalDemand---------: ', np.mean(totalDemand))
 
@@ -597,8 +576,8 @@ class water_demand:
             #self.var.renewableAvlWater_local = self.var.readAvlStorGroundwater + self.var.readAvlChannelStorageM
 
             if self.var.modflow:
-                # if available storage is too low, no pumping in this cell
-                self.var.availableGWStorageFraction =  loadmap('water_table_limit_for_pumping') # if 0.85 of the ModFlow cell is empty, we prevent pumping in this cell
+                # if available storage is too low, no pumping in this cell (defined in transient module)
+
                 # self.var.allowedPumping = np.maximum(self.var.groundwater_storage_available - (1-self.var.availableGWStorageFraction)*self.var.gwstorage_full, 0)
                 # self.var.nonFossilGroundwaterAbs = np.minimum(self.var.allowedPumping, self.var.pot_GroundwaterAbstract)  # gwstorage_cell
                 self.var.nonFossilGroundwaterAbs = np.where(self.var.groundwater_storage_available > (
@@ -614,7 +593,7 @@ class water_demand:
                 # Fossil groundwater abstraction is not allowed
                 # allocation rule here: domestic& industry > irrigation > paddy
 
-                if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+                if self.var.includeIndusDomesDemand:  # all demands are taken into account
                     # non-irrgated water demand: adjusted (and maybe increased) by gwabstration factor
                     # if nonirrgated water demand is higher than actual growndwater abstraction (wwhat is needed and what is stored in gw)
                     act_nonIrrWithdrawalGW = self.var.nonIrrDemand * (1 - act_swAbstractionFraction)
@@ -639,7 +618,7 @@ class water_demand:
                     self.var.act_irrPaddyWithdrawal = act_irrpaddySW + act_irrpaddyGW
 
                     act_gw = act_nonIrrWithdrawalGW + act_irrWithdrawalGW
-                else:  # just irrigation
+                else:  # only irrigation is considered
 
                     self.var.act_nonIrrWithdrawal = globals.inZero.copy()
 
@@ -678,9 +657,9 @@ class water_demand:
                 self.var.act_irrNonpaddyDemand = np.maximum(0, self.var.irrNonpaddyDemand - self.var.unmetDemandNonpaddy)
 
                 # unmet is either pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs or demand - withdrawal
-                if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+                if self.var.includeIndusDomesDemand:  # all demands are taken into account
                     self.var.unmetDemand = (self.var.totalIrrDemand - self.var.act_irrWithdrawal) + (self.var.nonIrrDemand - self.var.act_nonIrrWithdrawal)
-                else:
+                else:  # only irrigation is considered
                     self.var.unmetDemand = (self.var.totalIrrDemand - self.var.act_irrWithdrawal) - self.var.act_nonIrrWithdrawal
                 self.var.unmetDemandPaddy = self.var.irrPaddyDemand - self.var.act_irrPaddyDemand
                 self.var.unmetDemandNonpaddy = self.var.irrNonpaddyDemand - self.var.act_irrNonpaddyDemand
@@ -690,12 +669,10 @@ class water_demand:
                 # This is the case when using ModFlow coupling (limitation imposed previously)
                 if self.var.modflow:
                     # This is the case when using ModFlow coupling (limitation imposed previously)
-                    #print('self.var.pot_GroundwaterAbstract : ', np.mean(self.var.pot_GroundwaterAbstract))
                     # part of the groundwater demand unsatisfied
                     self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
-                    #print('                   self.var.unmetDemand : ', np.mean(self.var.unmetDemand))
 
-                    if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+                    if self.var.includeIndusDomesDemand:  # all demands are taken into account
                         self.var.act_nonIrrWithdrawal = np.copy(self.var.nonIrrDemand)
                     self.var.act_irrWithdrawal = np.copy(self.var.totalIrrDemand)
 
@@ -727,7 +704,6 @@ class water_demand:
                     self.var.act_channelAbst = self.var.act_channelAbst +  cell_sf_abstraction
 
 
-
                     # new potential groundwater abstraction
                     self.var.pot_GroundwaterAbstract = np.maximum(0.,self.var.pot_GroundwaterAbstract - cell_sf_allocation)
                     left_gw_demand = np.maximum(0.,self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs)
@@ -757,7 +733,7 @@ class water_demand:
                     #self.var.unmetDemand = self.var.unmetDemand - channelAbs2
                     #self.var.pot_GroundwaterAbstract = self.var.pot_GroundwaterAbstract - channelAbs2
 
-                    if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+                    if self.var.includeIndusDomesDemand:  # all demands are taken into account
                         self.var.act_nonIrrWithdrawal = np.copy(self.var.nonIrrDemand)
                     self.var.act_irrWithdrawal = np.copy(self.var.totalIrrDemand)
 
@@ -773,10 +749,10 @@ class water_demand:
             self.var.act_irrConsumption[3] = divideValues(self.var.act_irrNonpaddyWithdrawal, self.var.fracVegCover[3]) * self.var.efficiencyNonpaddy
 
             if self.var.modflow:
-                if self.var.GW_pumping:
+                if self.var.GW_pumping:  # pumping demand is sent to ModFlow (used in transient module)
                     self.var.modfPumpingM = np.copy(act_gw)
 
-            if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.act_indWithdrawal = frac_industry * self.var.act_nonIrrWithdrawal
                 self.var.act_domWithdrawal = frac_domestic * self.var.act_nonIrrWithdrawal
                 self.var.act_livWithdrawal = frac_livestock * self.var.act_nonIrrWithdrawal
@@ -785,17 +761,17 @@ class water_demand:
                 self.var.act_livConsumption = self.var.liv_efficiency * self.var.act_livWithdrawal
 
                 self.var.act_nonIrrConsumption = self.var.act_domConsumption + self.var.act_indConsumption + self.var.act_livConsumption
-            else:
+            else:  # only irrigation is considered
                 self.var.act_nonIrrConsumption = globals.inZero.copy()
             self.var.act_totalIrrConsumption = self.var.fracVegCover[2] * self.var.act_irrConsumption[2] + self.var.fracVegCover[3] * self.var.act_irrConsumption[3]
             self.var.act_paddyConsumption = self.var.fracVegCover[2] * self.var.act_irrConsumption[2]
             self.var.act_nonpaddyConsumption = self.var.fracVegCover[3] * self.var.act_irrConsumption[3]
 
-            if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.totalWaterDemand = self.var.fracVegCover[2] * self.var.irrDemand[2] + self.var.fracVegCover[3] * self.var.irrDemand[3] + self.var.nonIrrDemand
                 self.var.act_totalWaterWithdrawal = self.var.act_nonIrrWithdrawal + self.var.act_irrWithdrawal
                 self.var.act_totalWaterConsumption = self.var.act_nonIrrConsumption + self.var.act_totalIrrConsumption
-            else:  # only irrigation
+            else:  # only irrigation is considered
                 self.var.totalWaterDemand = self.var.fracVegCover[2] * self.var.irrDemand[2] + self.var.fracVegCover[3] * self.var.irrDemand[3]
                 self.var.act_totalWaterWithdrawal = np.copy(self.var.act_irrWithdrawal)
                 self.var.act_totalWaterConsumption = np.copy(self.var.act_totalIrrConsumption)
@@ -806,7 +782,7 @@ class water_demand:
 
             self.var.returnflowIrr =  self.var.returnfractionIrr * sumIrrLoss
             self.var.addtoevapotrans = (1- self.var.returnfractionIrr) * sumIrrLoss
-            if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.returnflowNonIrr  = self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrWithdrawal
 
             # limit return flow to not put all fossil groundwater back into the system, because
@@ -818,30 +794,30 @@ class water_demand:
 
             #self.var.unmet_lost = ( self.var.returnflowIrr + self.var.returnflowNonIrr +  self.var.addtoevapotrans) * (1-unmet_div_ww)
 
-            if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.unmet_lost = ( self.var.returnflowIrr + self.var.returnflowNonIrr +  self.var.addtoevapotrans) * (1-unmet_div_ww)
-            else:  # only irrigation
+            else:  # only irrigation is considered
                 self.var.unmet_lost = (self.var.returnflowIrr + self.var.addtoevapotrans) * (1 - unmet_div_ww)
 
 
             #self.var.waterDemandLost = self.var.act_totalWaterConsumption + self.var.addtoevapotrans
             self.var.unmet_lostirr = ( self.var.returnflowIrr  +  self.var.addtoevapotrans) * (1-unmet_div_ww)
-            if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.unmet_lostNonirr = self.var.returnflowNonIrr * (1-unmet_div_ww)
 
             self.var.returnflowIrr = self.var.returnflowIrr * unmet_div_ww
             self.var.addtoevapotrans = self.var.addtoevapotrans * unmet_div_ww
-            if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.returnflowNonIrr =  self.var.returnflowNonIrr * unmet_div_ww
 
             # returnflow to river and to evapotranspiration
-            if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.returnFlow = self.var.returnflowIrr + self.var.returnflowNonIrr
-            else:  # only irrigation
+            else:  # only irrigation is considered
                 self.var.returnFlow = self.var.returnflowIrr
             self.var.waterabstraction = self.var.nonFossilGroundwaterAbs + self.var.unmetDemand + self.var.act_SurfaceWaterAbstract
 
-            if checkOption('includeIndusDomesDemand'):  # all demands are taken into account
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.model.waterbalance_module.waterBalanceCheck(
                     [self.var.act_irrWithdrawal],  # In
                     [self.var.act_totalIrrConsumption,self.var.unmet_lostirr,self.var.addtoevapotrans,self.var.returnflowIrr],  # Out

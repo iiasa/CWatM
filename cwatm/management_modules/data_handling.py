@@ -914,6 +914,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     :raises if data is wrong: :meth:`management_modules.messages.CWATMError`
     :raises if meteo netcdf file cannot be opened: :meth:`management_modules.messages.CWATMFileError`
     """
+
     if modflowSteady:
         idx = 0
         filename = os.path.normpath(cbinding(name))
@@ -1037,8 +1038,7 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
     try:
        nf1 = Dataset(filename, 'r')
     except:
-        print('hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh')
-        msg = "Error 212: Netcdf map stacksggggg: \n"
+        msg = "Error 212: Netcdf map stacks: \n"
         raise CWATMFileError(filename,msg, sname = namebinding)
 
     if value == "None":

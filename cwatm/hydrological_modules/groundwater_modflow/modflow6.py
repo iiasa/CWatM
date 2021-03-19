@@ -23,6 +23,7 @@ class ModFlowSimulation:
         self,
         name,
         folder,
+        path_mf6dll,
         ndays,
         specific_storage,
         specific_yield,
@@ -44,6 +45,7 @@ class ModFlowSimulation:
     ):
         self.name = name.upper()  # MODFLOW requires the name to be uppercase
         self.folder = folder
+        self.dir_mf6dll = path_mf6dll
         self.nrow = nrow
         self.ncol = ncol
         self.rowsize = rowsize
@@ -86,9 +88,8 @@ class ModFlowSimulation:
             node_property_flow = flopy.mf6.ModflowGwfnpf(gwf, save_flows=True, icelltype=1, k=permeability)
 
             # MODIF LUCA
-            output_control = flopy.mf6.ModflowGwfoc(
-                gwf,
-                head_filerecord=f'{self.name}.hds',saverecord=[('HEAD', 'FREQUENCY', 10)])
+            output_control = flopy.mf6.ModflowGwfoc(gwf, head_filerecord=f'{self.name}.hds',
+                                                    saverecord=[('HEAD', 'FREQUENCY', 10)])
             #output_control = flopy.mf6.ModflowGwfoc(
             #    gwf,
             #    head_filerecord=f'{self.name}.hds',
@@ -138,7 +139,6 @@ class ModFlowSimulation:
 
             # MODIF LUCA
             drainage = np.zeros((self.basin.sum(), 5))  # Only i,j,k indices should be integer
-            #drainage = np.zeros((self.basin.sum(), 5), dtype=np.int32)
             drainage_locations = np.where(self.basin == True)  # only set wells where basin is True
             # 0: layer, 1: y-idx, 2: x-idx, 3: drainage altitude, 4: permeability
             drainage[:, 1] = drainage_locations[0]
@@ -146,8 +146,7 @@ class ModFlowSimulation:
             drainage[:, 3] = topography[drainage_locations]  # This one should not be an integer
             drainage[:, 4] = permeability[0, self.basin == True] * self.rowsize * self.colsize
             drainage = drainage.tolist()
-            # MODIF LUCA
-            drainage = [[int(i), int(j), int(k) ,l, m] for i, j, k, l, m in drainage]
+            drainage = [[int(i), int(j), int(k) ,l, m] for i, j, k, l, m in drainage]  # MODIF LUCA
 
             drainage = flopy.mf6.ModflowGwfdrn(gwf, maxbound=self.basin.sum(), stress_period_data=drainage,
                                         print_input=False, print_flows=False, save_flows=False)
@@ -171,18 +170,15 @@ class ModFlowSimulation:
         success = False
                 
         if platform.system() == 'Windows':
-            libary_name = 'libmf6.dll'
+            library_name = 'libmf6.dll'
         elif platform.system() == 'Linux':
-            libary_name = 'libmf6.so'
+            library_name = 'libmf6.so'
         else:
             raise ValueError(f'Platform {platform.system()} not recognized.')
 
         # modflow requires the real path (no symlinks etc.)
-        #library_path = os.path.realpath(os.path.join(self.folder, libary_name))
-        library_path = os.path.realpath(os.path.join(r'C:\Users\guillaumot\Documents\CWatM_ModFlow6_Jens\Preprocess\ModFlow_inputs_Burgenland\modflow_run', libary_name))
-        #library_path = 'C:\Users\guillaumot\Documents\CWatM_ModFlow6_Jens\Preprocess\ModFlow_inputs_Burgenland\modflow_run' + libary_name
+        library_path = os.path.realpath(os.path.join(self.dir_mf6dll, library_name))
         try:
-            print(library_path[:-11])
             self.mf6 = XmiWrapper(library_path)
         except Exception as e:
             print("Failed to load " + library_path)
