@@ -204,3 +204,4 @@ class waterdemand_irrigation:
         self.var.irrNonpaddyDemand = self.var.fracVegCover[3] * self.var.irrDemand[3]
         self.var.irrPaddyDemand = self.var.fracVegCover[2] * self.var.irrDemand[2]
         self.var.totalIrrDemand = self.var.irrPaddyDemand + self.var.irrNonpaddyDemand
+

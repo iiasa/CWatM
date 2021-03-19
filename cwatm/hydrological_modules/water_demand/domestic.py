@@ -79,6 +79,7 @@ class waterdemand_domestic:
             new = 'newYear'
         
         if globals.dateVar['newStart'] or globals.dateVar[new]:
+
             self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.domWithdrawalVar)
             self.var.pot_domesticConsumption = readnetcdf2('domesticWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.domConsumptionVar)
             # avoid small values (less than 1 m3):
