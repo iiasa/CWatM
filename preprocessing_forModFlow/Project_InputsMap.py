@@ -14,10 +14,10 @@ def Project_InputsMap(modflow_res, input_map, ncol_ModFlow, nrow_ModFlow, crs_mo
     """Function to project input maps generaly from finner resolution and in WGS84 coordinates
     to the ModFlow resolution and on UTM system, the user have to choose the good EPSG code for
     the studied basin, and also the resampling method.
-    arg1: res_ModFlow : choosen ModFlow resolution
+    arg1: res_ModFlow : choosen resolution
     arg2: input_map : input map to project (tif)
-    arg3: ncol_ModFlow : number of columns in ModFlow
-    arg4: nrow_ModFlow : number of rows in ModFlow
+    arg3: ncol_ModFlow : number of columns of the output DEM
+    arg4: nrow_ModFlow : number of rows of the output DEM
     arg5: crs_modflow : crs of the ModFlow grid (like {'init': 'EPSG:32643'} )
     arg6: modflow_affine : ModFlow grid information
     arg7: create_tif=No : the new map is directly returned as numpy array
@@ -41,4 +41,5 @@ def Project_InputsMap(modflow_res, input_map, ncol_ModFlow, nrow_ModFlow, crs_mo
                             crs=dst_crs) as dst:
             dst.write(destination, indexes=1)
         dst.close()
-    return destination
+    else:
+        return destination

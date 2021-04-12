@@ -1,7 +1,7 @@
 
-## This code works in virtual environment: C:\Users\guillaumot\Documents\CWatM_ModFlow_preprocess\GdalProj\Scripts\activate
+## I recommend to use a virtual environment where GDal should be installed: C:\Users\guillaumot\Documents\CWatM_ModFlow_preprocess\GdalProj\Scripts\activate
+## as well as the other packages
 ## Due to geopandas, GDAL versionning problem
-
 
 import subprocess
 import numpy as np
@@ -12,6 +12,10 @@ import geopandas as gpd
 #GDAL_POLYGONIZE = r"C:\Users\jadeb\Miniconda3\envs\abm\Scripts\gdal_polygonize.py"
 GDAL_POLYGONIZE = 'C:/Users/guillaumot/Documents/CWatM_ModFlow_preprocess/GdalProj/Lib/site-packages/osgeo/scripts/gdal_polygonize.py'
 assert os.path.exists(GDAL_POLYGONIZE)
+
+# these lines are necessary sometimes
+from shapely import speedups
+speedups.disable()
 
 def create_raster(gt, xsize, ysize, epsg, entrys_file, output_shp):
     """This function creates rasters from CWatM and grid informations in the aim to use them in QGIS.
@@ -42,6 +46,7 @@ def create_raster(gt, xsize, ysize, epsg, entrys_file, output_shp):
     #gdal.Polygonize(tif_file, -f, output_shp, shell=True)
 
     gdf = gpd.GeoDataFrame.from_file(os.path.join(entrys_file, output_shp))
+    #print('gdf.var :', gdf.var())
 
     def x():
         for _ in range(ysize):
@@ -55,7 +60,7 @@ def create_raster(gt, xsize, ysize, epsg, entrys_file, output_shp):
 
     xi = x()
     yi = y()
-
+    #print('gdf :', gdf)
     gdf['x'] = gdf['DN'].apply(lambda _: next(xi))
     gdf['y'] = gdf['DN'].apply(lambda _: next(yi))
 

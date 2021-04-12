@@ -19,18 +19,18 @@ import os
 
 
 def define_modflow_basinmask(res_ModFlow, namefile_map, entrys_file, modflow_crs, modflow_affine, ncol_ModFlow,
-                             nrow_ModFlow, nrow_CWatM, ncol_CWatM):
+                             nrow_ModFlow, ncol_CWatM, nrow_CWatM):
     """This function uses the mask map of the basin used in CWATM, so the basin is defined at CWATM resolution,
     here we project and interpolate at the choosen resolution the map for ModFlow regular grid.
     arg1: res_ModFlow : choosen ModFlow resolution
     arg2: namefile_map : basin mask defined for CWatM (tif file)
     arg3: entrys_file : path where new information are saved
-    arg4: modflow_crs : crs of the ModFlow grid (like {'init': 'EPSG:32643'} )
+    arg4: crs_modflow : crs of the ModFlow grid (like {'init': 'EPSG:32643'} )
     arg5: modflow_affine : ModFlow grid information
-    arg6: ncol_ModFlow : number of columns in ModFlow
-    arg7: nrow_ModFlow : number of rows in ModFlow
-    arg8: ncol_ModFlow : number of columns in CWatM
-    arg9: nrow_ModFlow : number of rows in CWatM
+    arg6: ncol_ModFlow : number of columns of the ModFlow model
+    arg7: nrow_ModFlow : number of rows of the ModFlow model
+    arg8: ncol_CWatM : number of columns of the CWatM model
+    arg9: nrow_CWatM : number of rows of the CwatM model
     """
 
     # First, the Excel File coming from QGIS is converted numpy matrices
@@ -40,10 +40,10 @@ def define_modflow_basinmask(res_ModFlow, namefile_map, entrys_file, modflow_crs
     if not os.path.exists(os.path.join(entrys_file, 'indices')):
         os.makedirs(os.path.join(entrys_file, 'indices'))
 
-    modflow_x = df['x'].to_numpy()  # ModFlow column
-    modflow_y = df['y'].to_numpy()  # ModFlow row
-    cwatm_x = df['x_2'].to_numpy()  # CWatM row
-    cwatm_y = df['y_2'].to_numpy()  # CWatM col
+    modflow_x = df['x_modflow'].to_numpy()  # ModFlow column
+    modflow_y = df['y_modflow'].to_numpy()  # ModFlow row
+    cwatm_x = df['x_cwatm'].to_numpy()  # CWatM row
+    cwatm_y = df['y_cwatm'].to_numpy()  # CWatM col
     area = df['area'].to_numpy()  # Area shared by each CWatM and ModFlow cell [m2]
 
     np.save(os.path.join(entrys_file, 'indices/modflow_x.npy'), modflow_x)

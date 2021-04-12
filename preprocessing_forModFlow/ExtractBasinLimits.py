@@ -7,12 +7,12 @@ Created on Wed Jan 16 13:42:29 2019
 
 # Import modules
 import numpy as np
-#import xarray as xr
-#from xarray import Dataset
-#import matplotlib.pyplot as plt
-#from scipy.interpolate import griddata
+import xarray as xr
+from xarray import Dataset
+import matplotlib.pyplot as plt
+from scipy.interpolate import griddata
 from rasterio import Affine
-#import netCDF4
+import netCDF4
 import pyproj
 import rasterio
 import os
@@ -23,10 +23,10 @@ def ExtractBasinLimits(res_ModFlow, cwatm_lon, cwatm_lat, wgs84, UTM):
     """This function uses the mask map of the basin used in CWATM, so the basin is defined at CWATM resolution,
     here we project and interpolate at the choosen resolution the map for ModFlow regular grid.
     arg1: res_ModFlow : choosen ModFlow resolution
-    arg2: CWatM longitudes (or X)
-    arg3: CWatM latitudes (or Y)
-    arg4: wgs84: CWatM coordinates system
-    arg5: UTM: ModFlow coordinates system
+    arg2: CWatM longitudes
+    arg3: CWatM latitudes
+    arg7: wgs84: CWatM coordinates system
+    arg8: UTM: ModFlow coordinates system
     """
     
     a, b = np.meshgrid(
