@@ -558,11 +558,11 @@ class landcoverType(object):
                 self.var.fracVegCover[3] = loadmap('nonpaddyfraction')
 
 
-            if "Burgenland" in option:
-                if checkOption('Burgenland'):
-                    print('FOR BURGENLAND WE SPECIFIED MANUALLY IRRIGATED AREA')
-                    self.var.fracVegCover[3] = 0.8*self.var.fracVegCover[1]
-                    self.var.fracVegCover[1] = 0.2 * self.var.fracVegCover[1]
+            #if "Burgenland" in option:
+            #    if checkOption('Burgenland'):
+            #        print('FOR BURGENLAND WE SPECIFIED MANUALLY IRRIGATED AREA')
+            #        self.var.fracVegCover[3] = 0.8*self.var.fracVegCover[1]
+            #        self.var.fracVegCover[1] = 0.2 * self.var.fracVegCover[1]
 
             # correction of grassland if sum is not 1.0
             sum = np.sum(self.var.fracVegCover,axis=0)
