@@ -73,22 +73,24 @@ class groundwater_modflow:
             cwatm_cell_area = self.corrected_cwatm_cell_area.ravel()
         else:
             # MODIF LUCA
-            #cwatm_cell_area = self.var.cellArea_uncompressed.ravel()
             cwatm_cell_area = self.var.cellArea.ravel()  # in m2
+
         # MODIF LUCA
         #array = (np.bincount(
         #    self.indices['CWatM_index'],
         #    weights=variable.ravel()[self.indices['ModFlow_index']] * self.indices['area'],
         #    minlength=self.var.mask.size
         #) / cwatm_cell_area).reshape(self.var.mask.shape).astype(variable.dtype)
+
+
         array = (np.bincount(
             self.indices['CWatM_index'],
             weights=variable.ravel()[self.indices['ModFlow_index']] * self.indices['area'],
             minlength=maskinfo['shape'][0]*maskinfo['shape'][1]
-        ) / cwatm_cell_area).reshape(maskinfo['shape']).astype(variable.dtype)
+        ) / decompress(cwatm_cell_area, nanvalue=0)).reshape(maskinfo['shape']).astype(variable.dtype)
         # MODIF LUCA
-        #array[self.var.mask == 1] = np.nan
         array[maskinfo['mask'] == 1] = np.nan
+
         return array
 
     def modflow2CWATMbis(self, variable, correct_boundary=False):
@@ -108,7 +110,7 @@ class groundwater_modflow:
             self.indices['CWatM_index'],
             weights=variable.ravel()[self.indices['ModFlow_index']] * self.indices['area'],
             minlength=maskinfo['shape'][0]*maskinfo['shape'][1]
-        ) / cwatm_cell_area).reshape(maskinfo['shape']).astype(variable.dtype)
+        ) / decompress(cwatm_cell_area,  nanvalue=0)).reshape(maskinfo['shape']).astype(variable.dtype)
         array[maskinfo['mask'] == 1] = np.nan
         return array
 
@@ -130,7 +132,7 @@ class groundwater_modflow:
 
         if self.var.modflow:
 
-            print('\n=> ModFlow is used. Currently, only daily time scale is implemented for this version\n')
+            print('\n=> ModFlow is used at daily timestep\n')
 
             modflow_directory = cbinding('PathGroundwaterModflow')
             modflow_directory_output = cbinding('PathGroundwaterModflowOutput')
@@ -207,10 +209,11 @@ class groundwater_modflow:
                 'ModFlow_index': np.array(modflow_y * self.domain['ncol'] + modflow_x),
                 'CWatM_index': np.array(cwatm_y * maskinfo['shape'][1] + cwatm_x)
             }
-            # MODIF LUCA
-            #indices_cell_area = np.bincount(self.indices['CWatM_index'], weights=self.indices['area'], minlength=self.var.mask.size)
-            #area_correction = (self.var.cellArea_uncompressed.ravel() / indices_cell_area)[self.indices['CWatM_index']]
-            #self.indices['area'] = self.indices['area'] * area_correction
+
+            indices_cell_area = np.bincount(self.indices['CWatM_index'], weights=self.indices['area'],
+                                            minlength=maskinfo['mapC'][0])
+            area_correction = (decompress(self.var.cellArea, nanvalue=0) / indices_cell_area)[self.indices['CWatM_index']]
+            self.indices['area'] = self.indices['area'] * area_correction
 
             # MODIF LUCA
             # Converting the CWatM soil thickness into ModFlow map, then soil thickness will be removed from topography
@@ -284,13 +287,14 @@ class groundwater_modflow:
             print('=> Groundwater pumping should be deactivated if includeWaterDemand is False')
 
             if self.var.GW_pumping:
-                print('=> THE PUMPING MAP SHOULD BE DEFINED BEFORE TO RUN THE MODEL AND BE THE SAME FOR ALL THE SIMULATION')
+                print('=> THE PUMPING MAP SHOULD BE DEFINED (In transient.py ALSO LINE 420) BEFORE TO RUN THE MODEL AND BE THE SAME FOR ALL THE SIMULATION')
                 # creating a mask to set up pumping wells, TO DO MANUALLY HERE OR TO IMPORT AS A MAP, because running the model with zero pumping rates every cells is consuming
                 self.wells_mask = np.copy(modflow_basin)
                 # for Burgenland we set up only one well for each CWATM cell (1*1km), thus only one well every ten ModFlow cells
+                # TODO NumOfModflowWellsInCWatMCell = 1 #Must be even or 1
                 for ir in range(self.domain['nrow']):
                     for ic in range(self.domain['ncol']):
-                        if int((ir+5.0)/10.0) - (ir+5.0)/10.0 == 0 and int((ic+5.0)/10.0) - (ic+5.0)/10.0 == 0:
+                        if modflow_basin[ir][ic] == 1: #and int((ir+5.0)/10.0) - (ir+5.0)/10.0 == 0 and int((ic+5.0)/10.0) - (ic+5.0)/10.0 == 0:
                             #if ir != 0 and ic != 0 and ir != self.domain['nrow']-1 and ic != self.domain['ncol']-1:
                             self.wells_mask[ir][ic] = True
                         else:
@@ -326,6 +330,8 @@ class groundwater_modflow:
                     pumpingloc=self.wells_mask,
                     verbose=True)
 
+
+
             else: # no pumping
                 # initializing the ModFlow6 model
                 self.modflow = ModFlowSimulation(
@@ -351,6 +357,7 @@ class groundwater_modflow:
                     pumpingloc=None,
                     verbose=True)
 
+
             # MODIF LUCA
             #self.corrected_cwatm_cell_area = self.get_corrected_cwatm_cell_area()
             #self.corrected_modflow_cell_area = self.get_corrected_modflow_cell_area()
@@ -360,7 +367,6 @@ class groundwater_modflow:
             self.var.capillar = globals.inZero.copy()
             self.var.baseflow = globals.inZero.copy()
 
-            # MODIF LUCA
             self.modflow_watertable = np.copy(head)  # water table will be also saved at modflow resolution
             # initial water table map is converting into CWatM map
             self.var.head = compressArray(self.modflow2CWATM(head))
@@ -408,14 +414,14 @@ class groundwater_modflow:
             # CWatM 2D groundwater pumping array is converted into Modflow 2D array
             # Pumping is given to ModFlow in m3 and < 0
             print('mean modflow pumping [m]: ', np.nanmean(self.var.modfPumpingM))
-            groundwater_abstraction = - self.CWATM2modflow(decompress(self.var.modfPumpingM)) * domain['rowsize'] * domain['colsize'] * 100
+            groundwater_abstraction = - self.CWATM2modflow(decompress(self.var.modfPumpingM)) * domain['rowsize'] * domain['colsize'] # BURGENLAND * 100 AND L428
             # * 100 because applied only in one ModFlow cell in Burgenland
 
             # give the information to ModFlow
             self.modflow.set_groundwater_abstraction(groundwater_abstraction)
 
             # LUCA: SPECIFIC FOR THE BURGENLAND TEST
-            groundwater_abstraction = groundwater_abstraction / 100
+            # groundwater_abstraction = groundwater_abstraction / 100
 
 
         # running ModFlow
@@ -447,6 +453,7 @@ class groundwater_modflow:
         capillar = groundwater_outflow * (1 - self.var.channel_ratio)  # We are still in ModFlow coordinate
         baseflow = groundwater_outflow * self.var.channel_ratio
 
+
         if self.var.writeerror:
             # Check the water balance: recharge = capillary + baseflow + storage change
             modflow_cell_area = self.domain['rowsize'] * self.domain['colsize']  # in m², for water balance computation
@@ -467,8 +474,11 @@ class groundwater_modflow:
             sumModFlowout = np.nansum((capillar + baseflow) * modflow_cell_area) # m3, for water balance computation
             sumModFlowin = np.nansum(groundwater_recharge_modflow * modflow_cell_area)  # m3, for water balance computation
 
+
+
         self.var.capillar = compressArray(self.modflow2CWATM(capillar))
         self.var.baseflow = compressArray(self.modflow2CWATM(baseflow))
+
         # computing saturated fraction of each CWatM cells (where water table >= soil bottom)
         self.var.capriseindex = compressArray(self.modflow2CWATMbis(capillar))  # initialized in landcoverType module
 
