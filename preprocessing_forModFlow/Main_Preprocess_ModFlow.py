@@ -55,14 +55,15 @@ np.seterr(divide='ignore', invalid='ignore')
 # =============================================================================
 
 # Files location
-basin_limits_tif_file = "Mask_Burgenland_1km.tif"  # Mask of the CWATM model ##
-Main_path = 'ModFlow_inputs'
+basin_limits_tif_file = "Upper_Bhima_mask.tif"  # Mask of the CWATM model ##
+
+Main_path = 'ModFlow_inputs2'
 Folder_initial_maps = 'Required_initial_maps/'  # This folder should contain the CWATM mask, area and the DEM that will be used for the ModFlow topography
 
-initial_dem_tif = 'FinalDEM_ExtendedBurgenland_10m.tif'  # This DEM will be used to create both the finer grid to compute the river percentage and the ModFlow grid
-initial_dem_system = {'init': 'EPSG:3035'}
-res_ModFlow = 100           # ModFlow model's resolution [m]
-res_ModFlow_finer = 50      # Resolution used to define the river percentage for each ModFlow cell [m]
+initial_dem_tif = 'srtm_90m_UpperBhimaV8.tif'  # This DEM will be used to create both the finer grid to compute the river percentage and the ModFlow grid
+initial_dem_system = {'init': 'EPSG:4326'}
+res_ModFlow = 500           # ModFlow model's resolution [m]
+res_ModFlow_finer = 250      # Resolution used to define the river percentage for each ModFlow cell [m]
 
 Outputs_file = os.path.join(Main_path, 'output')  # Contains at least one output map (like GW recharge) of CWatM and cellArea, in netcdf format
 Inputs_file = os.path.join(Main_path, f'{res_ModFlow}m/')   # Folder where input maps will be saved
@@ -76,14 +77,15 @@ name_finer_dem_tif = Inputs_file_finer + 'DEM_ModFlow_finer.tif'
 
 # Spatial resolution of the model
 stream_density = 1000      # in [m], stream_density^2 defines the minimal drainage area of rivers (function of the basin, climate...)
-res_CWATM = 1000    # CWAT model's resolution [m] or [degree] depending of the coordinates system
-
+res_CWATM = 0.00833333333    # CWAT model's resolution [m] or [degree] depending of the coordinates system
+res_ModFlow = res_ModFlow * 1.0
+print('ModFlow resolution [m]: ', res_ModFlow)
 # Projection: choose the good UTM grid IN FUNCTION OF THE BASIN !!!
-wgs84_cwatm = pyproj.Proj("+init=EPSG:3035")  # Projection system for the CWatM model
-cwatm_epsg = 3035
-UTM_modflow = pyproj.Proj("+init=EPSG:3035")  # Projection system for the ModFlow model
-modflow_crs = {'init': 'EPSG:3035'}  # EPSG should be th same than UTM_modflow
-modflow_epsg = 3035
+wgs84_cwatm = pyproj.Proj("+init=EPSG:4326")  # Projection system for the CWatM model
+cwatm_epsg = 4326
+UTM_modflow = pyproj.Proj("+init=EPSG:32643")  # Projection system for the ModFlow model
+modflow_crs = {'init': 'EPSG:32643'}  # EPSG should be th same than UTM_modflow
+modflow_epsg = 32643
 
 # Area [m2] of each CWatM cell: two options
 with rasterio.open(Folder_initial_maps + 'cellarea.tif', 'r') as src:
@@ -91,9 +93,11 @@ with rasterio.open(Folder_initial_maps + 'cellarea.tif', 'r') as src:
     cwatm_profile = src.profile
 
 # Loading model grid information
+nrow_CWatM, ncol_CWatM = cwatm_profile['height'], cwatm_profile['width']
+
+# If the CWatM grid is aleady defined in a cartesian system (x,y)
 #with rasterio.open(Folder_initial_maps + basin_limits_tif_file, 'r') as src:
 #    cwatm_profile = src.profile
-nrow_CWatM, ncol_CWatM = cwatm_profile['height'], cwatm_profile['width']
 #gridcellarea = res_CWATM*res_CWATM  # m2
 
 # =============================================================================
@@ -132,7 +136,6 @@ affine_modflow, ncol_ModFlow, nrow_ModFlow = ExtractBasinLimits(res_ModFlow, cwa
 
 # ======================================================================================================================
 # Creating raster files from ModFlow and CWatM grid information, then using QGIS to save the area in common of each cell
-
 cwatm_shapefile = 'CWatM_model_grid.shp'
 create_raster(cwatm_profile['transform'].to_gdal(), int(ncol_CWatM), int(nrow_CWatM), cwatm_epsg,
               Inputs_file, cwatm_shapefile)
@@ -141,26 +144,21 @@ create_raster(affine_modflow.to_gdal(), int(ncol_ModFlow), int(nrow_ModFlow), mo
               Inputs_file, modflow_shapefile)
 
 cwatm_shp = gpd.read_file(os.path.join(Inputs_file, cwatm_shapefile))
+crs_to_project = 'EPSG:' + str(int(modflow_epsg))
+cwatm_shp = cwatm_shp.to_crs(crs=crs_to_project, epsg=modflow_epsg)
 modflow_shp = gpd.read_file(os.path.join(Inputs_file, modflow_shapefile))
-#print('cwatm_shp : ', cwatm_shp)
-#print('modflow_shp : ', modflow_shp)
 cwatm_shp['geom'] = cwatm_shp.geometry
 
 intersect = gpd.sjoin(modflow_shp, cwatm_shp, how='inner', op='intersects', lsuffix='modflow', rsuffix='cwatm')
-#print('intersect : ', intersect)
+
 intersect['area'] = intersect.apply(lambda x: x.geom.intersection(x.geometry).area, axis=1)
-#intersect['area'] = intersect.apply(lambda x: x.population * (x.geom.intersection(x.geometry).area / x.geom.area), axis=1 )
-print('intersect : ', intersect)
+
 header = ["x_modflow", "y_modflow", "x_cwatm", "y_cwatm", "area"]
-#for ii in range(int(ncol_ModFlow*nrow_ModFlow)):
-#    if intersect.iloc[ii]['area'] == 0.0:
-#        intersect = intersect.drop([ii], axis=0)
-#        print(ii)
-intersect = intersect[intersect["area"] != 0.0]
+
+intersect = intersect[intersect["area"] > 1]  # if the area shared is < 1m^2, we do not take into account (because it means the cells overlap perfectly)
 intersect = intersect.sort_index()
 intersect.to_csv (Inputs_file + 'intersection.csv', index = True, header=True, columns = header)
 
-# import pdb; pdb.set_trace()
 
 # not necessary now
 #print(f"""
@@ -176,8 +174,7 @@ intersect.to_csv (Inputs_file + 'intersection.csv', index = True, header=True, c
 # ======================================================================================================================
 # Defining the basin mask for ModFlow
 define_modflow_basinmask(res_ModFlow, Folder_initial_maps + basin_limits_tif_file, Inputs_file, modflow_crs,
-                         affine_modflow, ncol_ModFlow, nrow_ModFlow, ncol_CWatM, nrow_CWatM)
-
+                         affine_modflow, ncol_ModFlow, nrow_ModFlow, ncol_CWatM, nrow_CWatM, gridcellarea)
 
 # ======================================================================================================================
 # Creating topographic map for ModFlow from tif file at finner resolution and saving it in text file

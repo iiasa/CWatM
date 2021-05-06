@@ -19,7 +19,7 @@ import os
 
 
 def define_modflow_basinmask(res_ModFlow, namefile_map, entrys_file, modflow_crs, modflow_affine, ncol_ModFlow,
-                             nrow_ModFlow, ncol_CWatM, nrow_CWatM):
+                             nrow_ModFlow, ncol_CWatM, nrow_CWatM, cwatmarea):
     """This function uses the mask map of the basin used in CWATM, so the basin is defined at CWATM resolution,
     here we project and interpolate at the choosen resolution the map for ModFlow regular grid.
     arg1: res_ModFlow : choosen ModFlow resolution
@@ -64,25 +64,73 @@ def define_modflow_basinmask(res_ModFlow, namefile_map, entrys_file, modflow_crs
     with rasterio.open(namefile_map) as src:
         mask_basin = src.read(1)  # Save basin cells values
 
-    #tempmask = np.invert(mask_basin.astype(np.bool))
-    tempmask = mask_basin.astype(np.bool)
+    tempmask = np.where(mask_basin == 255, 0.0, 1.0)
+
+    # Area in common need to be corrected because computed in a different system than cwatm cell area, IT WILL BE DONE AGAIN INSIDE THE MODEL
+    cwatmarea = np.where(mask_basin == 255, 0, cwatmarea)  # Just to be sure
+    indices_cell_area = np.bincount(CWatM_index, weights=area, minlength=np.shape(mask_basin)[0]*np.shape(mask_basin)[1])
+    area_correction = (cwatmarea.ravel() / indices_cell_area)[CWatM_index]
+    area = area * area_correction
+    # now if we sum areas we should have exactly the same
 
     # Looking at if the ModFlow cell is mainly out of the basin
     ratio_ModFlowcellarea = np.bincount(ModFlow_index, weights=tempmask.ravel()[CWatM_index] * area, minlength=nrow_ModFlow * ncol_ModFlow) / ModFlowcellarea
-    #ratio_ModFlowcellarea = ratio_ModFlowcellarea.reshape(nrow_ModFlow,
-                                                          #ncol_ModFlow)  # ModFlow grid representing recharge flow [m]
-    basin_limits = np.zeros(nrow_ModFlow * ncol_ModFlow, dtype=np.int32)
-    # Removing cell where more than 50 % of the area is out of the basin (defined by CWatN mask)
 
-    basin_limits[ratio_ModFlowcellarea > 0] = 1  # Cell = 0 will be INACTIVE in ModFlow simulation
+    basin_limits = np.zeros(nrow_ModFlow * ncol_ModFlow, dtype=np.int32)  # Creating the ModFlow basin/region mask
+    # Keeping ModFlow cells where more than 50 % of the area is inside the CWATM basin/region mask
+    basin_limits[ratio_ModFlowcellarea > 0.5] = 1  # Cell = 0 will be INACTIVE in ModFlow simulation
     basin_limits = basin_limits.reshape(nrow_ModFlow, ncol_ModFlow)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    print('\nCHECKING PROJECTION BETWEEN CWATM AND MODFLOW')
+
+    plt.figure()
+    plt.title('Map of the ratio (=1 if the ModFlow cell is fully inside the CWatM mask)')
+    plt.imshow(np.reshape(ratio_ModFlowcellarea, (nrow_ModFlow, ncol_ModFlow)))
+    plt.colorbar()
+    plt.show()
+
+    plt.figure()
+    variable = np.where(mask_basin == 255, 0, 1.0)
+    plt.imshow(variable)
+    plt.title('CWatM input like "recharge" for example (1 everywhere)')
+    plt.colorbar()
+
+    plt.figure()
+    array = (np.bincount(ModFlow_index, variable.ravel()[CWatM_index] * area, minlength=nrow_ModFlow * ncol_ModFlow) / ModFlowcellarea).reshape((nrow_ModFlow, ncol_ModFlow))
+    plt.imshow(array)
+    plt.title('CWatM input converted into ModFlow input (should be close from 1 everywhere unless on the edge)')
+    plt.colorbar()
+    plt.show()
+    print('\nTotal percentage error from CWatm to ModFlow : ', (np.nansum(array) - np.nansum(variable*cwatmarea/ModFlowcellarea)) / np.nansum(array) * 100)
+
+    plt.figure()
+    variable = np.where(basin_limits == 1, 1.0, 0)
+    plt.imshow(variable)
+    plt.title('ModFlow output like "baseflow" for example (1 everywhere)')
+    plt.colorbar()
+
+    plt.figure()
+    array = (np.bincount(CWatM_index, weights=variable.ravel()[ModFlow_index] * area, minlength=np.shape(mask_basin)[0]*np.shape(mask_basin)[1]) / cwatmarea.ravel()).reshape(np.shape(mask_basin)[0], np.shape(mask_basin)[1])
+    plt.imshow(array)
+    plt.title('ModFlow output converted into CWatM output (should be close from 1 everywhere unless on the edge)')
+    plt.colorbar()
+    plt.show()
+    print('\nTotal percentage error from ModFlow to CWatm: ', (np.nansum(variable) - np.nansum(array * cwatmarea) / ModFlowcellarea) / np.nansum(variable) * 100)
+
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # SAVING THE BASIN MASK IN TIF FORMAT
     with rasterio.open(os.path.join(entrys_file, 'modflow_basin.tif'), 'w', driver='GTiff', width=ncol_ModFlow,
                             height=nrow_ModFlow, count=1, dtype=np.int32, nodata=-1, transform=modflow_affine,
                             crs=modflow_crs) as dst:
          dst.write(basin_limits, 1)
 
     ## If we want plot the basin mask for ModFlow
+    plt.figure()
+    plt.imshow(tempmask, interpolation='none', cmap=plt.cm.BrBG)
+    plt.axis('equal')
+    plt.title('CWatM mask')
     plt.figure()
     plt.imshow(basin_limits, interpolation='none', cmap=plt.cm.BrBG)
     plt.axis('equal')
