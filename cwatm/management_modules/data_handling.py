@@ -774,13 +774,15 @@ def mapattrTiff(nf2):
     x1 = geotransform[0]
     y1 = geotransform[3]
 
-
-
     #maskmapAttr['col'] = nf2.RasterXSize
     #maskmapAttr['row'] = nf2.RasterYSize
     cellSize = geotransform[1]
 
-    invcell = round(1/cellSize,0)
+    #invcell = round(1/cellSize,0)
+    if cellSize > 0:
+        invcell = 1 / cellSize
+    else:
+        invcell = round(1/cellSize,0)
 
     # getgeotransform only delivers single precision!
     cellSize = 1 / invcell

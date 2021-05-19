@@ -14,7 +14,6 @@ def is_float(s):
     except ValueError:
         return False
 
-# MODIF LUCA
 def decompress(map, nanvalue=None):
     """
     Decompressing CWatM maps from 1D to 2D with missing values
@@ -29,6 +28,7 @@ def decompress(map, nanvalue=None):
         dmap.data[np.isnan(dmap.data)] = nanvalue
 
     return dmap.data
+
 
 class groundwater_modflow:
     def __init__(self, model):
@@ -65,9 +65,9 @@ class groundwater_modflow:
 
     def modflow2CWATM(self, variable, correct_boundary=False):
         """Converting flow [L/T] from 2D ModFLow map to 2D CWatM map"""
-        variable = variable.copy()
-        variable[self.modflow.basin == False] = 0
-        assert not (np.isnan(variable).any())
+        variable_copy = variable.copy()
+        variable_copy[self.modflow.basin == False] = 0
+        assert not (np.isnan(variable_copy).any())
         assert self.modflow.basin.dtype == np.bool
         if correct_boundary:
             cwatm_cell_area = self.corrected_cwatm_cell_area.ravel()
@@ -75,19 +75,11 @@ class groundwater_modflow:
             # MODIF LUCA
             cwatm_cell_area = self.var.cellArea.ravel()  # in m2
 
-        # MODIF LUCA
-        #array = (np.bincount(
-        #    self.indices['CWatM_index'],
-        #    weights=variable.ravel()[self.indices['ModFlow_index']] * self.indices['area'],
-        #    minlength=self.var.mask.size
-        #) / cwatm_cell_area).reshape(self.var.mask.shape).astype(variable.dtype)
-
-
         array = (np.bincount(
             self.indices['CWatM_index'],
-            weights=variable.ravel()[self.indices['ModFlow_index']] * self.indices['area'],
+            weights=variable_copy.ravel()[self.indices['ModFlow_index']] * self.indices['area'],
             minlength=maskinfo['shape'][0]*maskinfo['shape'][1]
-        ) / decompress(cwatm_cell_area, nanvalue=0)).reshape(maskinfo['shape']).astype(variable.dtype)
+        ) / decompress(cwatm_cell_area, nanvalue=0)).reshape(maskinfo['shape']).astype(variable_copy.dtype)
         # MODIF LUCA
         array[maskinfo['mask'] == 1] = np.nan
 
@@ -97,10 +89,10 @@ class groundwater_modflow:
         """Converting the 2D ModFLow capillary rise map into the fraction of area where capillary rise occurs
         in the 2D CWatM maps. return a fraction for each CWatM cell, input is the ModFlow capillary rise map
         the returned array is used to apply leakage from water bodies to the ModFlow layer"""
-        variable = variable.copy()
-        variable[self.modflow.basin == False] = 0
-        variable[variable > 0] = 1  # Each ModFlow cell is distinguished between producing or not producing capillary rise
-        assert not (np.isnan(variable).any())
+        variable_copy = variable.copy()
+        variable_copy[self.modflow.basin == False] = 0
+        variable_copy[variable_copy > 0] = 1  # Each ModFlow cell is distinguished between producing or not producing capillary rise
+        assert not (np.isnan(variable_copy).any())
         assert self.modflow.basin.dtype == np.bool
         if correct_boundary:
             cwatm_cell_area = self.corrected_cwatm_cell_area.ravel()
@@ -108,9 +100,9 @@ class groundwater_modflow:
             cwatm_cell_area = self.var.cellArea.ravel()  # in m2
         array = (np.bincount(
             self.indices['CWatM_index'],
-            weights=variable.ravel()[self.indices['ModFlow_index']] * self.indices['area'],
+            weights=variable_copy.ravel()[self.indices['ModFlow_index']] * self.indices['area'],
             minlength=maskinfo['shape'][0]*maskinfo['shape'][1]
-        ) / decompress(cwatm_cell_area,  nanvalue=0)).reshape(maskinfo['shape']).astype(variable.dtype)
+        ) / decompress(cwatm_cell_area,  nanvalue=0)).reshape(maskinfo['shape']).astype(variable_copy.dtype)
         array[maskinfo['mask'] == 1] = np.nan
         return array
 
@@ -397,12 +389,12 @@ class groundwater_modflow:
         
     def dynamic(self):
 
-        # MODIF LUCA
-        #groundwater_recharge_modflow = self.CWATM2modflow(decompress(groundwater_recharge, nanvalue=0), correct_boundary=False)
         # converting the CWatM recharge into ModFlow recharge (in meter)
-        groundwater_recharge_modflow = self.CWATM2modflow(decompress(self.var.sum_gwRecharge, nanvalue=0),
-                                                          correct_boundary=False)
-        #total_recharge_m3_modflow = np.nansum((groundwater_recharge_modflow * self.corrected_modflow_cell_area))
+        # we avoid recharge on saturated ModFlow cells, thus CWatM recharge is concentrated  on unsaturated cells
+        corrected_recharge = np.where(self.var.capriseindex == 1, 0, self.var.sum_gwRecharge / (1 - self.var.capriseindex))
+        groundwater_recharge_modflow = self.CWATM2modflow(decompress(corrected_recharge, nanvalue=0), correct_boundary=False)
+        groundwater_recharge_modflow = np.where(self.var.modflow_watertable - self.layer_boundaries[0] >= 0,
+                                                0, groundwater_recharge_modflow)
         # give the information to ModFlow
         self.modflow.set_recharge(groundwater_recharge_modflow)
 
@@ -446,7 +438,7 @@ class groundwater_modflow:
         # computing the groundwater outflow by re-computing water outflowing the aquifer through the DRAIN ModFlow package
         groundwater_outflow = np.where(head - self.layer_boundaries[0] >= 0,
                                        (head - self.layer_boundaries[0]) * self.coefficient * self.permeability[0],0)
-        #groundwater_outflow = compressArray(self.modflow2CWATM(groundwater_outflow))
+        groundwater_outflow2 = np.where(head - self.layer_boundaries[0] >= 0, 1.0, 0.0)  # For the next step, it will prevent recharge where ModFlow cells are saturated, even if there is no capillary rise (where h==topo)
 
         # MODIF LUCA
         # capillary rise and baseflow are allocated in fcuntion of the river percentage of each ModFlow cell
@@ -480,7 +472,7 @@ class groundwater_modflow:
         self.var.baseflow = compressArray(self.modflow2CWATM(baseflow))
 
         # computing saturated fraction of each CWatM cells (where water table >= soil bottom)
-        self.var.capriseindex = compressArray(self.modflow2CWATMbis(capillar))  # initialized in landcoverType module
+        self.var.capriseindex = compressArray(self.modflow2CWATMbis(groundwater_outflow2))  # initialized in landcoverType module, self.var.capriseindex is the fraction of saturated ModFlow cells in each CWatM cell
 
         # updating water table maps both at CWatM and ModFlow resolution
         self.var.head = compressArray(self.modflow2CWATM(head))

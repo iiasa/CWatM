@@ -401,7 +401,8 @@ class soil(object):
             self.var.prefFlow[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0.0, self.var.prefFlow[No])
 
         if self.var.modflow:
-            self.var.prefFlow[No] = np.where(self.var.capriseindex>0.9, 0, self.var.prefFlow[No])  # no recharge is the modflow cells below are too saturated
+            self.var.prefFlow[No] = self.var.prefFlow[No] * (
+                        1 - self.var.capriseindex)  # multiplied by the fraction of ModFlow unsaturated cells
 
         # ---------------------------------------------------------
         # calculate infiltration
@@ -573,8 +574,8 @@ class soil(object):
             subperc2to3 =  np.minimum(availWater2,np.minimum(kUnSat2 * DtSub, capLayer3))
 
             if self.var.modflow:
-                subperc3toGW = np.where(self.var.capriseindex > 0.9, 0,
-                                        np.minimum(availWater3, np.minimum(kUnSat3 * DtSub, availWater3)))  # no recharge is the modflow cells below are too saturated
+                subperc3toGW = np.minimum(availWater3, np.minimum(kUnSat3 * DtSub, availWater3)) * (
+                            1 - self.var.capriseindex)  # multiplied by the fraction of ModFlow unsaturated cells
             else:
                 subperc3toGW = np.minimum(availWater3, np.minimum(kUnSat3 * DtSub, availWater3))
 
