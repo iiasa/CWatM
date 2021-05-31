@@ -26,14 +26,15 @@ class soil(object):
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
     capRiseFrac           fraction of a grid cell where capillar rise may happen                            m        
-    cropKC                crop coefficient for each of the 4 different land cover types (forest, irrigated  --       
     storGroundwater       simulated groundwater storage                                                     m        
     modflow               Flag: True if modflow_coupling = True in settings file                            --       
+    includeCrops          1=includeCrops option in settings file is True, 0=otherwise                                
+    Crops                 Internal: List of specific crops and Kc/Ky parameters                                      
     availWaterInfiltrati  quantity of water reaching the soil after interception, more snowmelt             m        
     interceptEvap         simulated evaporation from water intercepted by vegetation                        m        
     potTranspiration      Potential transpiration (after removing of evaporation)                           m        
     snowEvap              total evaporation from snow for a snow layers                                     m        
-    fracVegCover          Fraction of area covered by the corresponding landcover type                               
+    cropKC                crop coefficient for each of the 4 different land cover types (forest, irrigated  --       
     rootDepth                                                                                                        
     KSat1                                                                                                            
     KSat2                                                                                                            
@@ -70,6 +71,7 @@ class soil(object):
     FrostIndex            FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Index for Floo  --       
     actualET              simulated evapotranspiration from soil, flooded area and vegetation               m        
     soilLayers            Number of soil layers                                                             --       
+    fracVegCover          Fraction of specific land covers (0=forest, 1=grasslands, etc.)                   %        
     soildepth             Thickness of the first soil layer                                                 m        
     soildepth12           Total thickness of layer 2 and 3                                                  m        
     w1                    Simulated water storage in the layer 1                                            m        
@@ -84,7 +86,6 @@ class soil(object):
     percolationImp        Fraction of area covered by the corresponding landcover type                      m        
     cropGroupNumber       soil water depletion fraction, Van Diepen et al., 1988: WOFOST 6.0, p.86, Dooren  --       
     cPrefFlow             Factor influencing preferential flow (flow from surface to GW)                    --       
-    act_irrConsumption    actual irrgation water consumption                                                m        
     potBareSoilEvap       potential bare soil evaporation (calculated with minus snow evaporation)          m        
     totalPotET            Potential evaporation per land use class                                          m        
     rws                   Transpiration reduction factor (in case of water stress)                          --       
@@ -98,12 +99,19 @@ class soil(object):
     theta1                fraction of water in soil compartment 1 for each land use class                   --       
     theta2                fraction of water in soil compartment 2 for each land use class                   --       
     theta3                fraction of water in soil compartment 3 for each land use class                   --       
-    actTransTotal_forest                                                                                             
-    actTransTotal_grassl                                                                                             
-    actTransTotal_paddy                                                                                              
-    actTransTotal_nonpad                                                                                             
-    before                                                                                                           
+    actTransTotal_forest  Transpiration from forest land cover                                              m        
+    actTransTotal_grassl  Transpiration from grasslands land cover                                          m        
+    actTransTotal_paddy   Transpiration from paddy land cover                                               m        
+    actTransTotal_nonpad  Transpiration from non-paddy land cover                                           m        
+    actTransTotal_crops_  Transpiration associated with specific irrigated crops                            m        
+    fracCrops_Irr         Fraction of cell currently planted with specific irrigated crops                  %        
+    currentKC             Current crop coefficient for specific crops                                                
+    actTransTotal_month_  Internal variable: Running total of  transpiration for specific irrigated crops   m        
+    actTransTotal_crops_  Transpiration associated with specific non-irr crops                              m        
+    fracCrops_nonIrr      Fraction of cell currently planted with specific non-irr crops                             
+    actTransTotal_month_  Internal variable: Running total of  transpiration for specific non-irrigated cr  m        
     gwRecharge            groundwater recharge                                                              m        
+    act_irrConsumption    actual irrigation water consumption                                               m        
     ====================  ================================================================================  =========
 
     **Functions**
@@ -392,6 +400,10 @@ class soil(object):
             self.var.prefFlow[No] = availWaterInfiltration * relSat ** self.var.cPrefFlow
             self.var.prefFlow[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0.0, self.var.prefFlow[No])
 
+        if self.var.modflow:
+            self.var.prefFlow[No] = self.var.prefFlow[No] * (
+                        1 - self.var.capriseindex)  # multiplied by the fraction of ModFlow unsaturated cells
+
         # ---------------------------------------------------------
         # calculate infiltration
         # infiltration, limited with KSat1 and available water in topWaterLayer
@@ -560,7 +572,12 @@ class soil(object):
             # Flux from top- to subsoil
             subperc1to2 =  np.minimum(availWater1,np.minimum(kUnSat1 * DtSub, capLayer2))
             subperc2to3 =  np.minimum(availWater2,np.minimum(kUnSat2 * DtSub, capLayer3))
-            subperc3toGW = np.minimum(availWater3,np.minimum(kUnSat3 * DtSub, availWater3))
+
+            if self.var.modflow:
+                subperc3toGW = np.minimum(availWater3, np.minimum(kUnSat3 * DtSub, availWater3)) * (
+                            1 - self.var.capriseindex)  # multiplied by the fraction of ModFlow unsaturated cells
+            else:
+                subperc3toGW = np.minimum(availWater3, np.minimum(kUnSat3 * DtSub, availWater3))
 
             # Update water balance for all layers
             availWater1 = availWater1 - subperc1to2
@@ -603,7 +620,34 @@ class soil(object):
         self.var.actTransTotal_paddy = self.var.actTransTotal[2]*self.var.fracVegCover[2]
         self.var.actTransTotal_nonpaddy = self.var.actTransTotal[3]*self.var.fracVegCover[3]
 
-        self.var.before = self.var.actualET[No].copy()
+        if self.var.includeCrops: #checkOption('includeCrops') and checkOption('includeCropSpecificWaterUse'):
+            if No == 3:
+
+                #Method 1: Simple
+                """
+                for c in range(len(self.var.Crops)):
+                    self.var.actTransTotal_crops_Irr[c] = np.where(self.var.fracVegCover[3]>0, self.var.fracCrops_Irr[c]/self.var.fracVegCover[3], 0) * self.var.actTransTotal_nonpaddy
+                    self.var.actTransTotal_crops_nonIrr[c] = np.where(self.var.fracVegCover[1]>0, self.var.fracCrops_nonIrr[c]/self.var.fracVegCover[1], 0) * self.var.actTransTotal_paddy
+                """
+                # Crop-specific transpiration (m) scales the land-class specific transpiration according to its
+                # specific potential evapotranspiration and the land-class specific potential evapotranspiration
+
+                for c in range(len(self.var.Crops)):
+                    self.var.actTransTotal_crops_Irr[c] = np.where(self.var.fracVegCover[3] * self.var.cropKC[3] > 0, (
+                                self.var.fracCrops_Irr[c] * self.var.currentKC[c]) / (self.var.fracVegCover[3] *
+                                                                                      self.var.cropKC[3]),
+                                                                   0) * self.var.actTransTotal_nonpaddy
+                    self.var.actTransTotal_month_Irr[c] += self.var.actTransTotal_crops_Irr[c]
+
+                    self.var.actTransTotal_crops_nonIrr[c] = np.where(self.var.fracVegCover[1] * self.var.cropKC[1] > 0,
+                                                                      (self.var.fracCrops_nonIrr[c] *
+                                                                       self.var.currentKC[c]) / (
+                                                                                  self.var.fracVegCover[1] *
+                                                                                  self.var.cropKC[1]),
+                                                                      0) * self.var.actTransTotal_grasslands #self.var.actTransTotal_paddy
+
+                    self.var.actTransTotal_month_nonIrr[c] += self.var.actTransTotal_crops_nonIrr[c]
+
 
         # total actual evaporation + transpiration
         self.var.actualET[No] = self.var.actualET[No] + self.var.actBareSoilEvap[No] + self.var.openWaterEvap[No] + self.var.actTransTotal[No]

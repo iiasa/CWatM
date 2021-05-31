@@ -2,4 +2,11 @@ numpy
 scipy
 netCDF4
 gdal
-flopy
+flopy 3.3.2
+xmipy
+
+Python 3.8
+
+mingw64 installed manually and then installed to the path (see https://www.programmersought.com/article/7052573717/)
+
+ModFlow6 dll: libmf6.dll in the "cwatm" folder

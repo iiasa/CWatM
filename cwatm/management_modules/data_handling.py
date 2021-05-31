@@ -424,10 +424,11 @@ def compressArray(map, name="None", zeros = 0.):
     :param zeros: add zeros (default= 0) if values of map are to big or too small
     :return: Compressed 1D array
     """
+    """
     if map.shape != maskinfo['mask'].shape:
         msg = "Error 105: " + name + " has less a different shape than area or ldd \n"
         raise CWATMError(msg)
-
+    """
     mapnp1 = np.ma.masked_array(map, maskinfo['mask'])
     mapC = np.ma.compressed(mapnp1)
     # if fill: mapC[np.isnan(mapC)]=0
@@ -773,13 +774,15 @@ def mapattrTiff(nf2):
     x1 = geotransform[0]
     y1 = geotransform[3]
 
-
-
     #maskmapAttr['col'] = nf2.RasterXSize
     #maskmapAttr['row'] = nf2.RasterYSize
     cellSize = geotransform[1]
 
-    invcell = round(1/cellSize,0)
+    #invcell = round(1/cellSize,0)
+    if cellSize > 0:
+        invcell = 1 / cellSize
+    else:
+        invcell = round(1/cellSize,0)
 
     # getgeotransform only delivers single precision!
     cellSize = 1 / invcell
@@ -913,6 +916,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     :raises if data is wrong: :meth:`management_modules.messages.CWATMError`
     :raises if meteo netcdf file cannot be opened: :meth:`management_modules.messages.CWATMFileError`
     """
+
     if modflowSteady:
         idx = 0
         filename = os.path.normpath(cbinding(name))
@@ -1232,10 +1236,10 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
             row = domain['nrow']
             col = domain['ncol']
             metadataNCDF['modflow_x'] = {}
-            metadataNCDF['modflow_x']['standard_name'] = 'UTM_X'
+            metadataNCDF['modflow_x']['standard_name'] = 'X'
             metadataNCDF['modflow_x']['units'] = 'm'
             metadataNCDF['modflow_y'] = {}
-            metadataNCDF['modflow_y']['standard_name'] = 'UTM_Y'
+            metadataNCDF['modflow_y']['standard_name'] = 'Y'
             metadataNCDF['modflow_y']['units'] = 'm'
 
 
@@ -1314,8 +1318,8 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
 
         # Fill variables
         if modflow:
-            lats = np.arange(domain['north'], domain['south'] - 1, domain['cellsize'] * -1)
-            lons =  np.arange(domain['west'], domain['east']+1, domain['cellsize'])
+            lats = np.arange(domain['north'], domain['south'] - 1, domain['rowsize'] * -1)
+            lons =  np.arange(domain['west'], domain['east']+1, domain['colsize'])
             #lons =  np.linspace(domain['north'] , domain['south'], col, endpoint=False)
             latitude[:] = lats
             longitude[:] = lons
@@ -1350,10 +1354,12 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
             time.calendar = dateVar['calendar']
 
             if modflow:
-                value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True, fill_value=1e20)
+                value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True, fill_value=1e20,
+                                           chunksizes=(1, row, col))
             else:
                 if 'x' in list(metadataNCDF.keys()):
-                   value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True,fill_value=1e20)
+                    value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True, fill_value=1e20,
+                                               chunksizes=(1, row, col))
                 if 'lon' in list(metadataNCDF.keys()):
                     #value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20)
                     value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20,chunksizes=(1,row,col))

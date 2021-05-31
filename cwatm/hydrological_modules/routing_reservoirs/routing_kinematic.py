@@ -40,13 +40,9 @@ class routing_kinematic(object):
     EvapWaterBodyM                                                                                                   
     lakeResInflowM                                                                                                   
     lakeResOutflowM                                                                                                  
-    lakeResStorage                                                                                                   
     downstruct                                                                                                       
-    act_SurfaceWaterAbst                                                                                             
-    fracVegCover          Fraction of area covered by the corresponding landcover type                               
-    returnFlow                                                                                                       
     DtSec                 number of seconds per timestep (default = 86400)                                  s        
-    cellArea              Cell area [m²] of each simulated mesh                                                      
+    cellArea              Area of cell                                                                      m2       
     EWRef                 potential evaporation rate from water surface                                     m        
     QInM3Old              Inflow from previous day                                                          m3       
     UpArea1               upstream area of a grid cell                                                      m2       
@@ -87,12 +83,16 @@ class routing_kinematic(object):
     invchannelAlpha                                                                                                  
     riverbedExchange                                                                                                 
     QDelta                                                                                                           
-    act_bigLakeResAbst                                                                                               
-    act_smallLakeResAbst                                                                                             
     inflowDt                                                                                                         
     dis_outlet                                                                                                       
     runoff                                                                                                           
+    fracVegCover          Fraction of specific land covers (0=forest, 1=grasslands, etc.)                   %        
     openWaterEvap         Simulated evaporation from open areas                                             m        
+    lakeResStorage                                                                                                   
+    act_SurfaceWaterAbst                                                                                             
+    returnFlow                                                                                                       
+    act_bigLakeResAbst                                                                                               
+    act_smallLakeResAbst                                                                                             
     ====================  ================================================================================  =========
 
     **Functions**
@@ -367,6 +367,9 @@ class routing_kinematic(object):
             self.var.sumLakeEvapWaterBodyC = self.var.evapWaterBodyC * 0.
 
         EvapoChannelM3Dt = self.var.EvapoChannel / self.var.noRoutingSteps
+        if self.var.modflow:
+            # removing water infiltrating from river to groundwater
+            riverbedExchangeDt = self.var.riverbedExchangeM3 / self.var.noRoutingSteps
         #riverbedExchangeDt = self.var.riverbedExchange / self.var.noRoutingSteps
 
         if checkOption('inflow'):
@@ -416,8 +419,9 @@ class routing_kinematic(object):
             sideflowChanM3 = runoffM3.copy()
             # minus evaporation from channels
             sideflowChanM3 -= EvapoChannelM3Dt
-            # minus riverbed exchange
-            #sideflowChanM3 -= riverbedExchangeDt
+            if self.var.modflow:
+                # minus riverbed exchange
+                sideflowChanM3 -= riverbedExchangeDt
 
             if checkOption('includeWaterDemand'):
                 sideflowChanM3 -= WDAddM3Dt

@@ -9,6 +9,7 @@
 # -------------------------------------------------------------------------
 
 from cwatm.management_modules.data_handling import *
+import pandas as pd
 
 class initcondition(object):
 
@@ -22,6 +23,9 @@ class initcondition(object):
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
+    includeCrops          1=includeCrops option in settings file is True, 0=otherwise                                
+    Crops                 Internal: List of specific crops and Kc/Ky parameters                                      
+    Crops_names           Internal: List of specific crops                                                           
     loadInit              Flag: if true initial conditions are loaded                                       --       
     initLoadFile          load file name of the initial condition data                                      --       
     saveInit              Flag: if true initial conditions are saved                                        --       
@@ -36,6 +40,24 @@ class initcondition(object):
     def __init__(self, model):
         self.var = model.var
         self.model = model
+
+    def crops_initialise(self, xl_settings_file_path):
+        df = pd.read_excel(xl_settings_file_path, sheet_name='Crops')
+
+        # Crops = [ [planting month, [length of growth stage i, kc_i, ky_i]_i]_c]
+        Crops = []
+        Crops_names = []
+        for i in df.index:
+            crop = [df['Planting month'][i]]
+
+            for gs in range(1, 5):
+                gs_parameters = [df['EM' + str(gs)][i], df['KC' + str(gs)][i], df['KY' + str(gs)][i]]
+                crop.append(gs_parameters)
+
+            Crops.append(crop)
+            Crops_names.append(df['Crop'][i])
+
+        return Crops, Crops_names
 
 
     def initial(self):
@@ -81,6 +103,39 @@ class initcondition(object):
                     initCondVar.append(coverType+"_"+ cond)
                     initCondVarValue.append(cond+"["+str(i)+"]")
             i += 1
+
+        self.var.includeCrops = False
+        if "includeCrops" in option:
+            self.var.includeCrops = checkOption('includeCrops')
+
+        if self.var.includeCrops:
+
+            if 'Excel_settings_file' in binding:
+                xl_settings_file_path = cbinding('Excel_settings_file')
+                self.var.Crops, self.var.Crops_names = self.crops_initialise(xl_settings_file_path)
+            else:
+                msg = "The Excel settings file needs to be included into the settings file:\nExcel_settings_file = *PATH*\cwatm_settings.xlsx\n"
+                raise CWATMError(msg)
+
+            initCondVar.append('frac_totalIrr_max')
+            initCondVarValue.append('frac_totalIrr_max')
+
+            initCondVar.append('frac_totalnonIrr_max')
+            initCondVarValue.append('frac_totalnonIrr_max')
+
+            for c in range(len(self.var.Crops)):
+
+                initCondVar.append('monthCounter_'+ str(c))
+                initCondVarValue.append('monthCounter['+str(c)+']')
+
+                initCondVar.append('fracCrops_Irr_'+ str(c))
+                initCondVarValue.append('fracCrops_Irr['+str(c)+']')
+
+                initCondVar.append('fracCrops_nonIrr_'+ str(c))
+                initCondVarValue.append('fracCrops_nonIrr['+str(c)+']')
+
+                initCondVar.append('activatedCrops_'+ str(c))
+                initCondVarValue.append('activatedCrops['+str(c)+']')
 
         # water demand
         initCondVar.append("unmetDemandPaddy")

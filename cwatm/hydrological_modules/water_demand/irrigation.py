@@ -12,6 +12,24 @@ from cwatm.management_modules import globals
 from cwatm.management_modules.data_handling import returnBool, binding, cbinding, loadmap
 import numpy as np
 
+#from cwatm.management_modules.data_handling import *  # luca for testing
+#import matplotlib.pyplot as plt
+
+
+#def decompress(map, nanvalue=None):
+#    """
+#    Decompressing CWatM maps from 1D to 2D with missing values
+#
+#    :param map: compressed map
+#    :return: decompressed 2D map
+#    """
+#
+#    dmap = maskinfo['maskall'].copy()
+#    dmap[~maskinfo['maskflat']] = map[:]
+#    if nanvalue is not None:
+#        dmap.data[np.isnan(dmap.data)] = nanvalue
+#
+#    return dmap.data
 
 class waterdemand_irrigation:
     """
@@ -25,33 +43,36 @@ class waterdemand_irrigation:
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    cropKC                crop coefficient for each of the 4 different land cover types (forest, irrigated  --       
     load_initial                                                                                                     
     availWaterInfiltrati  quantity of water reaching the soil after interception, more snowmelt             m        
-    fracVegCover          Fraction of area covered by the corresponding landcover type                               
-    ws1                   Maximum storage capacity in layer 1                                               m        
-    ws2                   Maximum storage capacity in layer 2                                               m        
-    wfc1                  Soil moisture at field capacity in layer 1                                                 
-    wfc2                  Soil moisture at field capacity in layer 2                                                 
-    wwp1                  Soil moisture at wilting point in layer 1                                                  
-    wwp2                  Soil moisture at wilting point in layer 2                                                  
-    w1                    Simulated water storage in the layer 1                                            m        
-    w2                    Simulated water storage in the layer 2                                            m        
-    topwater              quantity of water above the soil (flooding)                                       m        
-    arnoBeta                                                                                                         
-    maxtopwater           maximum heigth of topwater                                                        m        
-    totAvlWater                                                                                                      
-    InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
-    totalPotET            Potential evaporation per land use class                                          m        
-    unmetDemandPaddy                                                                                                 
-    unmetDemandNonpaddy                                                                                              
-    unmetDemand                                                                                                      
+    cropKC                crop coefficient for each of the 4 different land cover types (forest, irrigated  --       
     efficiencyPaddy                                                                                                  
     efficiencyNonpaddy                                                                                               
     returnfractionIrr                                                                                                
     alphaDepletion                                                                                                   
     pot_irrConsumption                                                                                               
     irrDemand                                                                                                        
+    irrPaddyDemand                                                                                                   
+    irrNonpaddyDemand                                                                                                
+    irrNonpaddyDeman                                                                                                 
+    ws1                   Maximum storage capacity in layer 1                                               m        
+    ws2                   Maximum storage capacity in layer 2                                               m        
+    wfc1                  Soil moisture at field capacity in layer 1                                                 
+    wfc2                  Soil moisture at field capacity in layer 2                                                 
+    wwp1                  Soil moisture at wilting point in layer 1                                                  
+    wwp2                  Soil moisture at wilting point in layer 2                                                  
+    arnoBeta                                                                                                         
+    maxtopwater           maximum heigth of topwater                                                        m        
+    totAvlWater                                                                                                      
+    InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
+    fracVegCover          Fraction of specific land covers (0=forest, 1=grasslands, etc.)                   %        
+    w1                    Simulated water storage in the layer 1                                            m        
+    w2                    Simulated water storage in the layer 2                                            m        
+    topwater              quantity of water above the soil (flooding)                                       m        
+    totalPotET            Potential evaporation per land use class                                          m        
+    unmetDemand                                                                                                      
+    unmetDemandPaddy                                                                                                 
+    unmetDemandNonpaddy                                                                                              
     totalIrrDemand                                                                                                   
     ====================  ================================================================================  =========
 
@@ -86,6 +107,10 @@ class waterdemand_irrigation:
             self.var.alphaDepletion = loadmap('alphaDepletion')
         else:
             self.var.alphaDepletion = 0.7
+
+        # ignore demand if less than self.var.minimum_irrigation #1 m3
+        self.var.minimum_irrigation = self.var.InvCellArea
+        print('=> If irrigation demand is smaller than ', np.nanmean(self.var.minimum_irrigation), ' m/day, the demand is set to zero')
 
     def dynamic(self):
         """
@@ -140,6 +165,7 @@ class waterdemand_irrigation:
         # for irrigation it is expected that the crop has a low adaptation to dry climate
         #cropGroupNumber = 1.0
         etpotMax = np.minimum(0.1 * (self.var.totalPotET[No] * 1000.), 1.0)
+        #print('-----------------------------etpotMax---------: ', np.sum(etpotMax * self.var.cellArea))
         # to avoid a strange behaviour of the p-formula's, ETRef is set to a maximum of 10 mm/day.
 
         # for group number 1 -> those are plants which needs irrigation
@@ -162,16 +188,20 @@ class waterdemand_irrigation:
         critAvlWater = critWaterPlant1 + critWaterPlant2 # + critWaterPlant3
 
         # with alpha from Xiaogang He, to adjust irrigation to farmer's need
+
         self.var.pot_irrConsumption[No] = np.where(self.var.cropKC[No] > 0.20, np.where(readAvlWater < (self.var.alphaDepletion * critAvlWater),
                                                         np.maximum(0.0, self.var.alphaDepletion * self.var.totAvlWater - readAvlWater),  0.), 0.)
+
         # should not be bigger than infiltration capacity
         self.var.pot_irrConsumption[No] = np.minimum(self.var.pot_irrConsumption[No],potInf)
 
-        # ignore demand if less than 1 m3
-        self.var.pot_irrConsumption[No] = np.where(self.var.pot_irrConsumption[No] > self.var.InvCellArea, self.var.pot_irrConsumption[No], 0)
+        # ignore demand if less than self.var.minimum_irrigation
+        self.var.pot_irrConsumption[No] = np.where(self.var.pot_irrConsumption[No] > self.var.minimum_irrigation, self.var.pot_irrConsumption[No], 0)
         self.var.irrDemand[No] = self.var.pot_irrConsumption[No] / self.var.efficiencyNonpaddy
 
+
         # Sum up irrigation water demand with area fraction
-        self.var.irrPaddyDemand = self.var.fracVegCover[2] * self.var.irrDemand[2]
         self.var.irrNonpaddyDemand = self.var.fracVegCover[3] * self.var.irrDemand[3]
+        self.var.irrPaddyDemand = self.var.fracVegCover[2] * self.var.irrDemand[2]
         self.var.totalIrrDemand = self.var.irrPaddyDemand + self.var.irrNonpaddyDemand
+
