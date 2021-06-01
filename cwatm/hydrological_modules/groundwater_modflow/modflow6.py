@@ -1,7 +1,6 @@
 from time import time
 from contextlib import contextmanager
 import os
-<<<<<<< HEAD
 import numpy as np
 
 import importlib
