@@ -4,9 +4,9 @@ import os
 #from cwatm.management_modules.data_handling import globals, cbinding, loadmap, returnBool
 from  cwatm.management_modules.data_handling import *
 from cwatm.hydrological_modules.groundwater_modflow.modflow6 import ModFlowSimulation
-
 # impotlib to install libraries on the fly if needed e.g. rasterio
 import importlib
+
 
 
 def is_float(s):
@@ -135,10 +135,6 @@ class groundwater_modflow:
             nlay = int(loadmap('nlay'))
 
             rasterio = importlib.import_module("rasterio", package=None)
-
-
-
-
             with rasterio.open(cbinding('modflow_basin'), 'r') as src:
                 modflow_basin = src.read(1).astype(np.bool)  # read in as 2-dimensional array (nrows, ncols).
                 self.domain = {
@@ -367,6 +363,7 @@ class groundwater_modflow:
             self.var.baseflow = globals.inZero.copy()
 
             self.var.modflow_watertable = np.copy(head)  # water table will be also saved at modflow resolution
+
             # initial water table map is converting into CWatM map
             self.var.head = compressArray(self.modflow2CWATM(head))
 
@@ -392,9 +389,10 @@ class groundwater_modflow:
             self.var.permeability = compressArray(self.modflow2CWATM(self.permeability[0])) * self.coefficient
 
         else:
+
             ii = 1
             #print('=> ModFlow coupling is not used')
-        
+
     def dynamic(self):
 
         # converting the CWatM recharge into ModFlow recharge (in meter)

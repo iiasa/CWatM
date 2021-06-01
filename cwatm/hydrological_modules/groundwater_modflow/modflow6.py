@@ -1,6 +1,7 @@
 from time import time
 from contextlib import contextmanager
 import os
+<<<<<<< HEAD
 import numpy as np
 
 import importlib
@@ -45,6 +46,7 @@ class ModFlowSimulation:
         pumpingloc=None,
         verbose=False
     ):
+
 
         flopy = importlib.import_module("flopy", package=None)
 
@@ -183,10 +185,10 @@ class ModFlowSimulation:
 
         # modflow requires the real path (no symlinks etc.)
         library_path = os.path.realpath(os.path.join(self.dir_mf6dll, library_name))
-
         try:
             xmipy = importlib.import_module("xmipy")
             self.mf6 = xmipy.XmiWrapper(library_path)
+
         except Exception as e:
             print("Failed to load " + library_path)
             print("with message: " + str(e))

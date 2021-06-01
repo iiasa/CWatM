@@ -428,6 +428,7 @@ def compressArray(map, name="None", zeros = 0.):
     if map.shape != maskinfo['mask'].shape:
         msg = "Error 105: " + name + " has a different shape than area or ldd \n"
         raise CWATMError(msg)
+    
     mapnp1 = np.ma.masked_array(map, maskinfo['mask'])
     mapC = np.ma.compressed(mapnp1)
     # if fill: mapC[np.isnan(mapC)]=0

@@ -167,6 +167,7 @@ class water_demand:
 
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 #print('=> All water demands are taken into account')
+
                 self.domestic.initial()
                 self.industry.initial()
                 self.livestock.initial()
@@ -174,6 +175,7 @@ class water_demand:
                 self.environmental_need.initial()
             else:  # only irrigation is considered
                 #print('=> Only irrigation is considered as water demand')
+
                 self.irrigation.initial()
                 self.environmental_need.initial()
 

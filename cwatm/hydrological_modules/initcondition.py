@@ -112,6 +112,7 @@ class initcondition(object):
             self.var.includeCrops = checkOption('includeCrops')
 
         if self.var.includeCrops:
+
             if 'Excel_settings_file' in binding:
                 xl_settings_file_path = cbinding('Excel_settings_file')
                 self.var.Crops, self.var.Crops_names = self.crops_initialise(xl_settings_file_path)

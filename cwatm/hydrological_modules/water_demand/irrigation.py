@@ -112,6 +112,7 @@ class waterdemand_irrigation:
         self.var.minimum_irrigation = self.var.InvCellArea
         #print('=> If irrigation demand is smaller than ', np.nanmean(self.var.minimum_irrigation), ' m/day, the demand is set to zero')
 
+
     def dynamic(self):
         """
         Dynamic part of the water demand module
