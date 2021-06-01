@@ -28,7 +28,6 @@ class waterbalance(object):
     prestorGroundwater    storGroundwater at the beginning of each step                                     m        
     sum_gwRecharge        groundwater recharge                                                              m        
     snowEvap              total evaporation from snow for a snow layers                                     m        
-    smalllakeStorage                                                                                                 
     preSmalllakeStorage                                                                                              
     smallLakedaycorrect                                                                                              
     smallLakeIn                                                                                                      
@@ -38,25 +37,19 @@ class waterbalance(object):
     EvapWaterBodyM                                                                                                   
     lakeResInflowM                                                                                                   
     lakeResOutflowM                                                                                                  
-    lakeResStorage                                                                                                   
     resStorage                                                                                                       
-    act_SurfaceWaterAbst                                                                                             
     totalSto              Total soil,snow and vegetation storage for each cell including all landcover typ  m        
     pretotalSto           Previous totalSto                                                                 m        
     sum_actBareSoilEvap                                                                                              
     sum_openWaterEvap                                                                                                
-    addtoevapotrans                                                                                                  
     sum_directRunoff                                                                                                 
     sum_interflow                                                                                                    
     sum_capRiseFromGW     capillar rise from groundwater to 3rd soil layer (summed up for all land cover c  m        
     sum_act_irrConsumpti                                                                                             
     sum_perc3toGW         percolation from 3rd soil layer to groundwater (summed up for all land cover cla  m        
     sum_prefFlow          preferential flow from soil to groundwater (summed up for all land cover classes  m        
-    act_irrWithdrawal                                                                                                
-    act_nonIrrConsumptio                                                                                             
-    returnFlow                                                                                                       
     DtSec                 number of seconds per timestep (default = 86400)                                  s        
-    cellArea              Cell area [m²] of each simulated mesh                                                      
+    cellArea              Area of cell                                                                      m2       
     baseflow              simulated baseflow (= groundwater discharge to river)                             m        
     Precipitation         Precipitation (input for the model)                                               m        
     lddCompress           compressed river network (without missing values)                                 --       
@@ -70,6 +63,19 @@ class waterbalance(object):
     runoff                                                                                                           
     gridcell_storage                                                                                                 
     nonFossilGroundwater  groundwater abstraction which is sustainable and not using fossil resources       m        
+    lakeResStorage                                                                                                   
+    smalllakeStorage                                                                                                 
+    act_SurfaceWaterAbst                                                                                             
+    addtoevapotrans                                                                                                  
+    act_irrWithdrawal                                                                                                
+    act_nonIrrConsumptio                                                                                             
+    returnFlow                                                                                                       
+    unmetDemand                                                                                                      
+    act_nonIrrWithdrawal                                                                                             
+    returnflowIrr                                                                                                    
+    nonIrrReturnFlowFrac                                                                                             
+    unmet_lost                                                                                                       
+    act_totalWaterWithdr                                                                                             
     totalET               Total evapotranspiration for each cell including all landcover types              m        
     sum_actTransTotal                                                                                                
     sum_interceptEvap                                                                                                
@@ -80,12 +86,7 @@ class waterbalance(object):
     sumbalance                                                                                                       
     sum_balanceStore                                                                                                 
     sum_balanceFlux                                                                                                  
-    unmetDemand                                                                                                      
-    act_nonIrrWithdrawal                                                                                             
-    returnflowIrr                                                                                                    
-    nonIrrReturnFlowFrac                                                                                             
     lakeReservoirStorage                                                                                             
-    unmet_lost                                                                                                       
     ====================  ================================================================================  =========
 
     **Functions**

@@ -37,85 +37,91 @@ class water_demand:
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
+    domesticDemand                                                                                                   
+    pot_domesticConsumpt                                                                                             
+    envFlow                                                                                                          
     readAvlStorGroundwat  same as storGroundwater but equal to 0 when inferior to a treshold                m        
-    nonFossilGroundwater  groundwater abstraction which is sustainable and not using fossil resources       m        
-    waterbalance_module                                                                                              
+    industryDemand                                                                                                   
+    efficiencyPaddy                                                                                                  
+    efficiencyNonpaddy                                                                                               
+    returnfractionIrr                                                                                                
+    irrDemand                                                                                                        
+    irrPaddyDemand                                                                                                   
+    irrNonpaddyDemand                                                                                                
     waterBodyID           lakes/reservoirs map with a single ID for each lake/reservoir                     --       
+    waterBodyBuffer                                                                                                  
     compress_LR           boolean map as mask map for compressing lake/reservoir                            --       
     decompress_LR         boolean map as mask map for decompressing lake/reservoir                          --       
     MtoM3C                conversion factor from m to m3 (compressed map)                                   --       
+    waterBodyTypCTemp                                                                                                
+    livestockDemand                                                                                                  
+    pot_livestockConsump                                                                                             
     MtoM3                 Coefficient to change units                                                       --       
+    InvDtSec                                                                                                         
+    cellArea              Area of cell                                                                      m2       
+    M3toM                 Coefficient to change units                                                       --       
+    channelStorage                                                                                                   
+    fracVegCover          Fraction of specific land covers (0=forest, 1=grasslands, etc.)                   %        
+    nonFossilGroundwater  groundwater abstraction which is sustainable and not using fossil resources       m        
     lakeVolumeM3C         compressed map of lake volume                                                     m3       
     lakeStorageC                                                                                            m3       
     reservoirStorageM3C                                                                                              
     lakeResStorageC                                                                                                  
     lakeResStorage                                                                                                   
-    waterBodyTypCTemp                                                                                                
-    InvDtSec                                                                                                         
-    cellArea              Cell area [m²] of each simulated mesh                                                      
     smalllakeVolumeM3                                                                                                
     smalllakeStorage                                                                                                 
     act_SurfaceWaterAbst                                                                                             
-    fracVegCover          Fraction of area covered by the corresponding landcover type                               
     addtoevapotrans                                                                                                  
-    M3toM                 Coefficient to change units                                                       --       
-    act_irrConsumption    actual irrgation water consumption                                                m        
-    channelStorage                                                                                                   
+    act_irrWithdrawal                                                                                                
+    act_nonIrrConsumptio                                                                                             
+    returnFlow                                                                                                       
+    act_irrConsumption    actual irrigation water consumption                                               m        
+    unmetDemand                                                                                                      
+    act_nonIrrWithdrawal                                                                                             
+    returnflowIrr                                                                                                    
+    nonIrrReturnFlowFrac                                                                                             
+    unmet_lost                                                                                                       
+    act_totalWaterWithdr                                                                                             
     act_bigLakeResAbst                                                                                               
     act_smallLakeResAbst                                                                                             
-    returnFlow                                                                                                       
     modflowPumpingM                                                                                                  
     modflowTopography                                                                                                
     modflowDepth2                                                                                                    
     leakageC                                                                                                         
-    domesticDemand                                                                                                   
-    pot_domesticConsumpt                                                                                             
     dom_efficiency                                                                                                   
     demand_unit                                                                                                      
-    envFlow                                                                                                          
-    industryDemand                                                                                                   
     pot_industryConsumpt                                                                                             
     ind_efficiency                                                                                                   
     unmetDemandPaddy                                                                                                 
     unmetDemandNonpaddy                                                                                              
-    unmetDemand                                                                                                      
-    efficiencyPaddy                                                                                                  
-    efficiencyNonpaddy                                                                                               
-    returnfractionIrr                                                                                                
-    irrDemand                                                                                                        
     totalIrrDemand                                                                                                   
-    livestockDemand                                                                                                  
-    pot_livestockConsump                                                                                             
     liv_efficiency                                                                                                   
+    waterdemandFixed                                                                                                 
+    waterdemandFixedYear                                                                                             
     allocSegments                                                                                                    
     swAbstractionFractio                                                                                             
+    allocation_zone                                                                                                  
     modflowPumping                                                                                                   
     leakage                                                                                                          
     pumping                                                                                                          
-    nonIrrReturnFlowFrac                                                                                             
     nonIrruse                                                                                                        
     act_indDemand                                                                                                    
     act_domDemand                                                                                                    
     act_livDemand                                                                                                    
     nonIrrDemand                                                                                                     
     totalWaterDemand                                                                                                 
-    act_irrWithdrawal                                                                                                
-    act_nonIrrWithdrawal                                                                                             
-    act_totalWaterWithdr                                                                                             
     act_indConsumption                                                                                               
     act_domConsumption                                                                                               
     act_livConsumption                                                                                               
-    act_nonIrrConsumptio                                                                                             
     act_totalIrrConsumpt                                                                                             
     act_totalWaterConsum                                                                                             
-    returnflowIrr                                                                                                    
+    pot_GroundwaterAbstr                                                                                             
     pot_nonIrrConsumptio                                                                                             
     readAvlChannelStorag                                                                                             
+    act_channelAbst                                                                                                  
     reservoir_command_ar                                                                                             
     leakageC_daily                                                                                                   
     leakageC_daily_segme                                                                                             
-    pot_GroundwaterAbstr                                                                                             
-    renewableAvlWater                                                                                                
     act_irrNonpaddyWithd                                                                                             
     act_irrPaddyWithdraw                                                                                             
     act_irrPaddyDemand                                                                                               
@@ -123,7 +129,12 @@ class water_demand:
     act_indWithdrawal                                                                                                
     act_domWithdrawal                                                                                                
     act_livWithdrawal                                                                                                
-    waterDemandLost                                                                                                  
+    act_paddyConsumption                                                                                             
+    act_nonpaddyConsumpt                                                                                             
+    returnflowNonIrr                                                                                                 
+    unmet_lostirr                                                                                                    
+    unmet_lostNonirr                                                                                                 
+    waterabstraction                                                                                                 
     ====================  ================================================================================  =========
 
     **Functions**
@@ -146,13 +157,25 @@ class water_demand:
         Set the water allocation
         """
 
+        # This variable has no impact if includeWaterDemand is False
+        self.var.includeIndusDomesDemand = False
+        if "includeIndusDomesDemand" in option:
+            self.var.includeIndusDomesDemand = checkOption('includeIndusDomesDemand')
+        # True if all demands are taken into account, if not only irrigation is considered
+
         if checkOption('includeWaterDemand'):
 
-            self.domestic.initial()
-            self.industry.initial()
-            self.livestock.initial()
-            self.irrigation.initial()
-            self.environmental_need.initial()
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                #print('=> All water demands are taken into account')
+                self.domestic.initial()
+                self.industry.initial()
+                self.livestock.initial()
+                self.irrigation.initial()
+                self.environmental_need.initial()
+            else:  # only irrigation is considered
+                #print('=> Only irrigation is considered as water demand')
+                self.irrigation.initial()
+                self.environmental_need.initial()
 
             # if waterdemand is fixed:
             self.var.waterdemandFixed = False
@@ -192,7 +215,10 @@ class water_demand:
             for No in range(4):
                 self.var.swAbstractionFraction += self.var.fracVegCover[No] * swAbstractionFraction
             for No in range(4, 6):
-                self.var.swAbstractionFraction += self.var.fracVegCover[No]
+                if self.var.modflow:
+                    self.var.swAbstractionFraction += self.var.fracVegCover[No] * swAbstractionFraction
+                else:
+                    self.var.swAbstractionFraction += self.var.fracVegCover[No]  # because we cant put a pumping borehole in a lake in reality!
 
             self.var.demand_unit = True
             if "demand_unit" in binding:
@@ -210,6 +236,7 @@ class water_demand:
                 filename = os.path.splitext(cbinding('Ldd'))[0] + '.nc'
                 cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check=False)
             except:
+                filename = os.path.splitext(cbinding('Ldd'))[0] + '.tif'
                 cut0, cut1, cut2, cut3 = mapattrTiff(gdal.Open(filename, GA_ReadOnly))
 
             arr = np.kron(np.arange(rows // inner * cols // inner).reshape((rows // inner, cols // inner)), np.ones((inner, inner)))
@@ -218,11 +245,20 @@ class water_demand:
 
 
             self.var.modflowPumping = globals.inZero.copy()
-            self.var.modflowPumpingM = globals.inZero.copy()
-            self.var.modflowDepth2 = 0
-            self.var.modflowTopography = 0
+
             self.var.leakage = globals.inZero.copy()
             self.var.pumping = globals.inZero.copy()
+
+            self.var.modfPumpingM = globals.inZero.copy()
+            self.var.modflowDepth2 = 0
+            self.var.modflowTopography = 0
+            #self.var.leakage = globals.inZero.copy()
+            #self.var.pumping = globals.inZero.copy()
+
+            # from Mikhail
+            #self.var.gwstorage_full = loadmap('poro')*loadmap('thickness') + globals.inZero
+            self.var.allowedPumping = globals.inZero.copy()
+            self.var.leakageCanals_M = globals.inZero.copy()
 
 
         else:  # no water demand
@@ -257,9 +293,12 @@ class water_demand:
             self.var.modflowDepth2 = 0
             self.var.modflowTopography = 0
             self.var.act_bigLakeResAbst = globals.inZero.copy()
+
             self.var.leakage = globals.inZero.copy()
             self.var.pumping = globals.inZero.copy()
-            self.var.unmet_lost = 0
+            self.var.unmet_lost = globals.inZero.copy()
+            self.var.pot_GroundwaterAbstract = globals.inZero.copy()
+
 
     def dynamic(self):
         """
@@ -268,6 +307,24 @@ class water_demand:
         * calculate the fraction of water from surface water vs. groundwater
         * get non-Irrigation water demand and its return flow fraction
         """
+
+        if self.var.modflow:
+
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                self.environmental_need.dynamic()
+            else:
+                self.var.envFlow = 0.00001  # 0.01mm
+
+            # computing leakage from rivers to groundwater
+
+            # self.var.readAvlChannelStorageM will be used in land covertype to compute leakage to groundwater if ModFlow coupling
+            # to avoid small values and to avoid surface water abstractions from dry channels (>= 0.01mm)
+            self.var.readAvlChannelStorageM = np.where(self.var.channelStorage < (0.0005 * self.var.cellArea), 0.,
+                                                       self.var.channelStorage)  # in [m3]
+            # coversersion m3 -> m # minus environmental flow
+            self.var.readAvlChannelStorageM = self.var.readAvlChannelStorageM * self.var.M3toM  # in [m]
+            self.var.readAvlChannelStorageM = np.maximum(0., self.var.readAvlChannelStorageM - self.var.envFlow)
+
 
         if checkOption('includeWaterDemand'):
 
@@ -284,37 +341,44 @@ class water_demand:
                 wd_date = wd_date.replace(day = 1)
                 wd_date = wd_date.replace(year = self.var.waterdemandFixedYear)
 
-            self.domestic.dynamic(wd_date)
-            self.industry.dynamic(wd_date)
-            self.livestock.dynamic(wd_date)
-            self.irrigation.dynamic()
-            self.environmental_need.dynamic()
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                self.domestic.dynamic(wd_date)
+                self.industry.dynamic(wd_date)
+                self.livestock.dynamic(wd_date)
+                self.irrigation.dynamic()
+                self.environmental_need.dynamic()
+            else:
+                self.irrigation.dynamic()
+            #if not self.var.modflow:
+                self.environmental_need.dynamic()
 
-            if globals.dateVar['newStart'] or globals.dateVar['newMonth']:
-                # total (potential) non irrigation water demand
-                self.var.nonIrrDemand = self.var.domesticDemand + self.var.industryDemand + self.var.livestockDemand
-                self.var.pot_nonIrrConsumption = np.minimum(self.var.nonIrrDemand, self.var.pot_domesticConsumption +
-                                                            self.var.pot_industryConsumption + self.var.pot_livestockConsumption)
-                # fraction of return flow from domestic and industrial water demand
-                self.var.nonIrrReturnFlowFraction = divideValues((self.var.nonIrrDemand - self.var.pot_nonIrrConsumption), self.var.nonIrrDemand)
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                if globals.dateVar['newStart'] or globals.dateVar['newMonth']:
+                    # total (potential) non irrigation water demand
+                    self.var.nonIrrDemand = self.var.domesticDemand + self.var.industryDemand + self.var.livestockDemand
+                    self.var.pot_nonIrrConsumption = np.minimum(self.var.nonIrrDemand, self.var.pot_domesticConsumption +
+                                                                self.var.pot_industryConsumption + self.var.pot_livestockConsumption)
+                    # fraction of return flow from domestic and industrial water demand
+                    self.var.nonIrrReturnFlowFraction = divideValues((self.var.nonIrrDemand - self.var.pot_nonIrrConsumption), self.var.nonIrrDemand)
 
-            # non-irrg fracs in nonIrrDemand
-            frac_industry = divideValues(self.var.industryDemand, self.var.nonIrrDemand)
-            frac_domestic = divideValues(self.var.domesticDemand, self.var.nonIrrDemand)
-            frac_livestock = divideValues(self.var.livestockDemand, self.var.nonIrrDemand)
+                # non-irrg fracs in nonIrrDemand
+                frac_industry = divideValues(self.var.industryDemand, self.var.nonIrrDemand)
+                frac_domestic = divideValues(self.var.domesticDemand, self.var.nonIrrDemand)
+                frac_livestock = divideValues(self.var.livestockDemand, self.var.nonIrrDemand)
 
-            # Sum up water demand
-            # totalDemand [m]: total maximum (potential) water demand: irrigation and non irrigation
-            totalDemand = self.var.nonIrrDemand + self.var.totalIrrDemand  # in [m]
+                # Sum up water demand
+                # totalDemand [m]: total maximum (potential) water demand: irrigation and non irrigation
+                totalDemand = self.var.nonIrrDemand + self.var.totalIrrDemand  # in [m]
+            else:  # only irrigation is considered
+                totalDemand = np.copy(self.var.totalIrrDemand)  # in [m]
+                #print('-----------------------------totalDemand---------: ', np.mean(totalDemand))
 
             # ----------------------------------------------------
             # WATER AVAILABILITY
 
-            # to avoid small values and to avoid surface water abstractions from dry channels (>= 0.01mm)
-            #self.var.readAvlChannelStorageM = np.where(self.var.channelStorage < (0.0005 * self.var.cellArea), 0., self.var.channelStorage)  # in [m3]
-
-            # conversion m3 -> m # minus environmental flow
-            self.var.readAvlChannelStorageM = np.maximum(0.,self.var.channelStorage * self.var.M3toM - self.var.envFlow) # in [m]
+            if not self.var.modflow:  # already done if ModFlow coupling
+                # conversion m3 -> m # minus environmental flow
+                self.var.readAvlChannelStorageM = np.maximum(0.,self.var.channelStorage * self.var.M3toM - self.var.envFlow) # in [m]
 
 
             #-------------------------------------
@@ -339,7 +403,7 @@ class water_demand:
                 # first from big Lakes and reservoirs, big lakes cover several gridcells
                 # collect all water demand from lake pixels of the same id
 
-                remainNeedBig = npareatotal(remainNeed, self.var.waterBodyID)
+                #remainNeedBig = npareatotal(remainNeed, self.var.waterBodyID)
                 # not only the lakes and reservoirs but the command areas around water bodies e.g. here a buffer
                 remainNeedBig = npareatotal(remainNeed, self.var.waterBodyBuffer)
                 remainNeedBigC = np.compress(self.var.compress_LR, remainNeedBig)
@@ -506,10 +570,21 @@ class water_demand:
 
 
             # remaining is taken from groundwater if possible
+            #print('                   totalDemand : ', np.mean(totalDemand))
             self.var.pot_GroundwaterAbstract = totalDemand - self.var.act_SurfaceWaterAbstract
+            #print('self.var.pot_GroundwaterAbstract : ', np.mean(self.var.pot_GroundwaterAbstract))
             self.var.nonFossilGroundwaterAbs = np.maximum(0.,np.minimum(self.var.readAvlStorGroundwater, self.var.pot_GroundwaterAbstract))
             # calculate renewableAvlWater_local (non-fossil groundwater and channel) - environmental flow
             #self.var.renewableAvlWater_local = self.var.readAvlStorGroundwater + self.var.readAvlChannelStorageM
+
+            if self.var.modflow:
+                # if available storage is too low, no pumping in this cell (defined in transient module)
+
+                # self.var.allowedPumping = np.maximum(self.var.groundwater_storage_available - (1-self.var.availableGWStorageFraction)*self.var.gwstorage_full, 0)
+                # self.var.nonFossilGroundwaterAbs = np.minimum(self.var.allowedPumping, self.var.pot_GroundwaterAbstract)  # gwstorage_cell
+                self.var.nonFossilGroundwaterAbs = np.where(self.var.groundwater_storage_available > (
+                        1 - self.var.availableGWStorageFraction) * self.var.gwstorage_full, self.var.pot_GroundwaterAbstract, 0)
+                # self.var.nonSatisfiedGWrequest = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
 
             # if limitAbstraction from groundwater is True
             # fossil gwAbstraction and water demand may be reduced
@@ -520,30 +595,54 @@ class water_demand:
                 # Fossil groundwater abstraction is not allowed
                 # allocation rule here: domestic& industry > irrigation > paddy
 
-                # non-irrgated water demand: adjusted (and maybe increased) by gwabstration factor
-                # if nonirrgated water demand is higher than actual growndwater abstraction (wwhat is needed and what is stored in gw)
-                act_nonIrrWithdrawalGW = self.var.nonIrrDemand * (1 - act_swAbstractionFraction)
-                act_nonIrrWithdrawalGW = np.where(act_nonIrrWithdrawalGW > self.var.nonFossilGroundwaterAbs, self.var.nonFossilGroundwaterAbs, act_nonIrrWithdrawalGW)
-                act_nonIrrWithdrawalSW = act_swAbstractionFraction * self.var.nonIrrDemand
-                self.var.act_nonIrrWithdrawal = act_nonIrrWithdrawalSW + act_nonIrrWithdrawalGW
+                if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                    # non-irrgated water demand: adjusted (and maybe increased) by gwabstration factor
+                    # if nonirrgated water demand is higher than actual growndwater abstraction (wwhat is needed and what is stored in gw)
+                    act_nonIrrWithdrawalGW = self.var.nonIrrDemand * (1 - act_swAbstractionFraction)
+                    act_nonIrrWithdrawalGW = np.where(act_nonIrrWithdrawalGW > self.var.nonFossilGroundwaterAbs, self.var.nonFossilGroundwaterAbs, act_nonIrrWithdrawalGW)
+                    act_nonIrrWithdrawalSW = act_swAbstractionFraction * self.var.nonIrrDemand
+                    self.var.act_nonIrrWithdrawal = act_nonIrrWithdrawalSW + act_nonIrrWithdrawalGW
 
-                # irrigated water demand:
-                act_irrWithdrawalGW = self.var.totalIrrDemand * (1 - act_swAbstractionFraction)
-                act_irrWithdrawalGW = np.minimum(self.var.nonFossilGroundwaterAbs - act_nonIrrWithdrawalGW, act_irrWithdrawalGW)
-                act_irrWithdrawalSW = act_swAbstractionFraction * self.var.totalIrrDemand
-                self.var.act_irrWithdrawal = act_irrWithdrawalSW + act_irrWithdrawalGW
-                # (nonpaddy)
-                act_irrnonpaddyGW = self.var.fracVegCover[3] * (1 - act_swAbstractionFraction) * self.var.irrDemand[3]
-                act_irrnonpaddyGW = np.minimum(self.var.nonFossilGroundwaterAbs - act_nonIrrWithdrawalGW, act_irrnonpaddyGW)
-                act_irrnonpaddySW = self.var.fracVegCover[3] * act_swAbstractionFraction * self.var.irrDemand[3]
-                self.var.act_irrNonpaddyWithdrawal = act_irrnonpaddySW + act_irrnonpaddyGW
-                # (paddy)
-                act_irrpaddyGW = self.var.fracVegCover[2] * (1 - act_swAbstractionFraction) * self.var.irrDemand[2]
-                act_irrpaddyGW = np.minimum(self.var.nonFossilGroundwaterAbs - act_nonIrrWithdrawalGW - act_irrnonpaddyGW, act_irrpaddyGW)
-                act_irrpaddySW = self.var.fracVegCover[2] * act_swAbstractionFraction * self.var.irrDemand[2]
-                self.var.act_irrPaddyWithdrawal = act_irrpaddySW + act_irrpaddyGW
+                    # irrigated water demand:
+                    act_irrWithdrawalGW = self.var.totalIrrDemand * (1 - act_swAbstractionFraction)
+                    act_irrWithdrawalGW = np.minimum(self.var.nonFossilGroundwaterAbs - act_nonIrrWithdrawalGW, act_irrWithdrawalGW)
+                    act_irrWithdrawalSW = act_swAbstractionFraction * self.var.totalIrrDemand
+                    self.var.act_irrWithdrawal = act_irrWithdrawalSW + act_irrWithdrawalGW
+                    # (nonpaddy)
+                    act_irrnonpaddyGW = self.var.fracVegCover[3] * (1 - act_swAbstractionFraction) * self.var.irrDemand[3]
+                    act_irrnonpaddyGW = np.minimum(self.var.nonFossilGroundwaterAbs - act_nonIrrWithdrawalGW, act_irrnonpaddyGW)
+                    act_irrnonpaddySW = self.var.fracVegCover[3] * act_swAbstractionFraction * self.var.irrDemand[3]
+                    self.var.act_irrNonpaddyWithdrawal = act_irrnonpaddySW + act_irrnonpaddyGW
+                    # (paddy)
+                    act_irrpaddyGW = self.var.fracVegCover[2] * (1 - act_swAbstractionFraction) * self.var.irrDemand[2]
+                    act_irrpaddyGW = np.minimum(self.var.nonFossilGroundwaterAbs - act_nonIrrWithdrawalGW - act_irrnonpaddyGW, act_irrpaddyGW)
+                    act_irrpaddySW = self.var.fracVegCover[2] * act_swAbstractionFraction * self.var.irrDemand[2]
+                    self.var.act_irrPaddyWithdrawal = act_irrpaddySW + act_irrpaddyGW
 
-                act_gw = act_nonIrrWithdrawalGW + act_irrWithdrawalGW
+                    act_gw = act_nonIrrWithdrawalGW + act_irrWithdrawalGW
+                else:  # only irrigation is considered
+
+                    self.var.act_nonIrrWithdrawal = globals.inZero.copy()
+
+                    # irrigated water demand:
+                    act_irrWithdrawalGW = self.var.totalIrrDemand * (1 - act_swAbstractionFraction)
+                    act_irrWithdrawalGW = np.minimum(self.var.nonFossilGroundwaterAbs, act_irrWithdrawalGW)
+                    act_irrWithdrawalSW = act_swAbstractionFraction * self.var.totalIrrDemand
+                    self.var.act_irrWithdrawal = act_irrWithdrawalSW + act_irrWithdrawalGW
+                    # (nonpaddy)
+                    act_irrnonpaddyGW = self.var.fracVegCover[3] * (1 - act_swAbstractionFraction) * self.var.irrDemand[3]
+                    act_irrnonpaddyGW = np.minimum(self.var.nonFossilGroundwaterAbs, act_irrnonpaddyGW)
+                    act_irrnonpaddySW = self.var.fracVegCover[3] * act_swAbstractionFraction * self.var.irrDemand[3]
+                    self.var.act_irrNonpaddyWithdrawal = act_irrnonpaddySW + act_irrnonpaddyGW
+                    # (paddy)
+                    act_irrpaddyGW = self.var.fracVegCover[2] * (1 - act_swAbstractionFraction) * self.var.irrDemand[2]
+                    act_irrpaddyGW = np.minimum(
+                        self.var.nonFossilGroundwaterAbs - act_irrnonpaddyGW, act_irrpaddyGW)
+                    act_irrpaddySW = self.var.fracVegCover[2] * act_swAbstractionFraction * self.var.irrDemand[2]
+                    self.var.act_irrPaddyWithdrawal = act_irrpaddySW + act_irrpaddyGW
+
+                    act_gw = np.copy(act_irrWithdrawalGW)
+
 
                 # todo: is act_irrWithdrawal needed to be replaced? Check later!!
                 # consumption - irrigation (without loss) = demand  * efficiency   (back to non fraction value)
@@ -560,98 +659,124 @@ class water_demand:
                 self.var.act_irrNonpaddyDemand = np.maximum(0, self.var.irrNonpaddyDemand - self.var.unmetDemandNonpaddy)
 
                 # unmet is either pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs or demand - withdrawal
-                self.var.unmetDemand = (self.var.totalIrrDemand - self.var.act_irrWithdrawal) + (self.var.nonIrrDemand - self.var.act_nonIrrWithdrawal)
+                if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                    self.var.unmetDemand = (self.var.totalIrrDemand - self.var.act_irrWithdrawal) + (self.var.nonIrrDemand - self.var.act_nonIrrWithdrawal)
+                else:  # only irrigation is considered
+                    self.var.unmetDemand = (self.var.totalIrrDemand - self.var.act_irrWithdrawal) - self.var.act_nonIrrWithdrawal
                 self.var.unmetDemandPaddy = self.var.irrPaddyDemand - self.var.act_irrPaddyDemand
                 self.var.unmetDemandNonpaddy = self.var.irrNonpaddyDemand - self.var.act_irrNonpaddyDemand
 
 
             else:
-                # Fossil groundwater abstractions are allowed (act = pot)
-                self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
+                # This is the case when using ModFlow coupling (limitation imposed previously)
+                if self.var.modflow:
+                    # This is the case when using ModFlow coupling (limitation imposed previously)
+                    # part of the groundwater demand unsatisfied
+                    self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
 
-                # using allocation from abstraction zone
-                # this might be a regualr grid e.g. 2x2 for 0.5 deg
-                left_sf = self.var.readAvlChannelStorageM - self.var.act_channelAbst
-                # sum demand, surface water - local used, groundwater - local use, not satisfied for allocation zone
-                zoneDemand = npareatotal(self.var.unmetDemand,self.var.allocation_zone)
-                zone_sf_avail = npareatotal(left_sf, self.var.allocation_zone)
+                    if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                        self.var.act_nonIrrWithdrawal = np.copy(self.var.nonIrrDemand)
+                    self.var.act_irrWithdrawal = np.copy(self.var.totalIrrDemand)
 
-                # zone abstraction is minimum of availability and demand
-                zone_sf_abstraction = np.minimum(zoneDemand,zone_sf_avail)
-                # water taken from surface zone and allocated to cell demand
-                cell_sf_abstraction = np.maximum(0.,divideValues(left_sf,zone_sf_avail) * zone_sf_abstraction)
-                cell_sf_allocation = np.maximum(0.,divideValues(self.var.unmetDemand, zoneDemand) * zone_sf_abstraction)
-
-                # sum up with other abstraction
-                self.var.act_SurfaceWaterAbstract = self.var.act_SurfaceWaterAbstract + cell_sf_abstraction
-                self.var.act_channelAbst = self.var.act_channelAbst +  cell_sf_abstraction
+                    act_gw = np.copy(self.var.nonFossilGroundwaterAbs)
+                    # LUCA: TAKE CARE OF THE ORDER OF FRACLANDCOVER
+                    self.var.act_irrNonpaddyWithdrawal = self.var.fracVegCover[3] * self.var.irrDemand[3]
+                    self.var.act_irrPaddyWithdrawal = self.var.fracVegCover[2] * self.var.irrDemand[2]
 
 
+                else:
+                    # Fossil groundwater abstractions are allowed (act = pot)
+                    self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
 
-                # new potential groundwater abstraction
-                self.var.pot_GroundwaterAbstract = np.maximum(0.,self.var.pot_GroundwaterAbstract - cell_sf_allocation)
-                left_gw_demand = np.maximum(0.,self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs)
-                left_gw_avail = self.var.readAvlStorGroundwater - self.var.nonFossilGroundwaterAbs
-                zone_gw_avail = npareatotal(left_gw_avail, self.var.allocation_zone)
+                    # using allocation from abstraction zone
+                    # this might be a regualr grid e.g. 2x2 for 0.5 deg
+                    left_sf = self.var.readAvlChannelStorageM - self.var.act_channelAbst
+                    # sum demand, surface water - local used, groundwater - local use, not satisfied for allocation zone
+                    zoneDemand = npareatotal(self.var.unmetDemand,self.var.allocation_zone)
+                    zone_sf_avail = npareatotal(left_sf, self.var.allocation_zone)
 
-                # for groundwater substract demand which is fulfilled by surface zone, calc abstraction and what is left.
-                #zone_gw_demand = npareatotal(left_gw_demand, self.var.allocation_zone)
-                zone_gw_demand = zoneDemand -  zone_sf_abstraction
-                zone_gw_abstraction = np.minimum(zone_gw_demand,zone_gw_avail)
-                #zone_unmetdemand = np.maximum(0., zone_gw_demand - zone_gw_abstraction)
+                    # zone abstraction is minimum of availability and demand
+                    zone_sf_abstraction = np.minimum(zoneDemand,zone_sf_avail)
+                    # water taken from surface zone and allocated to cell demand
+                    cell_sf_abstraction = np.maximum(0.,divideValues(left_sf,zone_sf_avail) * zone_sf_abstraction)
+                    cell_sf_allocation = np.maximum(0.,divideValues(self.var.unmetDemand, zoneDemand) * zone_sf_abstraction)
 
-                # water taken from groundwater zone and allocated to cell demand
-                cell_gw_abstraction = np.maximum(0.,divideValues(left_gw_avail,zone_gw_avail) * zone_gw_abstraction)
-                cell_gw_allocation = np.maximum(0.,divideValues(left_gw_demand,zone_gw_demand) * zone_gw_abstraction)
-
-                self.var.unmetDemand = np.maximum(0.,left_gw_demand - cell_gw_allocation)
-                self.var.nonFossilGroundwaterAbs = self.var.nonFossilGroundwaterAbs + cell_gw_abstraction
-
-                #self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
-                ## end of zonal abstraction
-
-                # unmet demand is again checked for water from channels and abstraction from surface is increased
-                #channelAbs2 = np.minimum(self.var.readAvlChannelStorageM - self.var.act_channelAbst, self.var.unmetDemand)
-                #self.var.act_SurfaceWaterAbstract = self.var.act_SurfaceWaterAbstract + channelAbs2
-                #self.var.act_channelAbst = self.var.act_channelAbst +  channelAbs2
-                #self.var.unmetDemand = self.var.unmetDemand - channelAbs2
-                #self.var.pot_GroundwaterAbstract = self.var.pot_GroundwaterAbstract - channelAbs2
+                    # sum up with other abstraction
+                    self.var.act_SurfaceWaterAbstract = self.var.act_SurfaceWaterAbstract + cell_sf_abstraction
+                    self.var.act_channelAbst = self.var.act_channelAbst +  cell_sf_abstraction
 
 
+                    # new potential groundwater abstraction
+                    self.var.pot_GroundwaterAbstract = np.maximum(0.,self.var.pot_GroundwaterAbstract - cell_sf_allocation)
+                    left_gw_demand = np.maximum(0.,self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs)
+                    left_gw_avail = self.var.readAvlStorGroundwater - self.var.nonFossilGroundwaterAbs
+                    zone_gw_avail = npareatotal(left_gw_avail, self.var.allocation_zone)
 
+                    # for groundwater substract demand which is fulfilled by surface zone, calc abstraction and what is left.
+                    #zone_gw_demand = npareatotal(left_gw_demand, self.var.allocation_zone)
+                    zone_gw_demand = zoneDemand -  zone_sf_abstraction
+                    zone_gw_abstraction = np.minimum(zone_gw_demand,zone_gw_avail)
+                    #zone_unmetdemand = np.maximum(0., zone_gw_demand - zone_gw_abstraction)
 
-                self.var.act_nonIrrWithdrawal = self.var.nonIrrDemand
-                self.var.act_irrWithdrawal = self.var.totalIrrDemand
+                    # water taken from groundwater zone and allocated to cell demand
+                    cell_gw_abstraction = np.maximum(0.,divideValues(left_gw_avail,zone_gw_avail) * zone_gw_abstraction)
+                    cell_gw_allocation = np.maximum(0.,divideValues(left_gw_demand,zone_gw_demand) * zone_gw_abstraction)
 
-                act_gw = self.var.pot_GroundwaterAbstract
-                self.var.act_irrNonpaddyWithdrawal = self.var.fracVegCover[3] * self.var.irrDemand[3]
-                self.var.act_irrPaddyWithdrawal = self.var.fracVegCover[2] * self.var.irrDemand[2]
+                    self.var.unmetDemand = np.maximum(0.,left_gw_demand - cell_gw_allocation)
+                    self.var.nonFossilGroundwaterAbs = self.var.nonFossilGroundwaterAbs + cell_gw_abstraction
+
+                    #self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
+                    ## end of zonal abstraction
+
+                    # unmet demand is again checked for water from channels and abstraction from surface is increased
+                    #channelAbs2 = np.minimum(self.var.readAvlChannelStorageM - self.var.act_channelAbst, self.var.unmetDemand)
+                    #self.var.act_SurfaceWaterAbstract = self.var.act_SurfaceWaterAbstract + channelAbs2
+                    #self.var.act_channelAbst = self.var.act_channelAbst +  channelAbs2
+                    #self.var.unmetDemand = self.var.unmetDemand - channelAbs2
+                    #self.var.pot_GroundwaterAbstract = self.var.pot_GroundwaterAbstract - channelAbs2
+
+                    if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                        self.var.act_nonIrrWithdrawal = np.copy(self.var.nonIrrDemand)
+                    self.var.act_irrWithdrawal = np.copy(self.var.totalIrrDemand)
+
+                    act_gw = np.copy(self.var.pot_GroundwaterAbstract)
+                    # LUCA: TAKE CARE OF THE ORDER OF FRACLANDCOVER
+                    self.var.act_irrNonpaddyWithdrawal = self.var.fracVegCover[3] * self.var.irrDemand[3]
+                    self.var.act_irrPaddyWithdrawal = self.var.fracVegCover[2] * self.var.irrDemand[2]
+
 
             ## End of limit extraction if, then
 
             self.var.act_irrConsumption[2] = divideValues(self.var.act_irrPaddyWithdrawal, self.var.fracVegCover[2]) * self.var.efficiencyPaddy
             self.var.act_irrConsumption[3] = divideValues(self.var.act_irrNonpaddyWithdrawal, self.var.fracVegCover[3]) * self.var.efficiencyNonpaddy
 
-            self.var.pumping = act_gw
-            if 'demand2pumping' in binding:
-                if checkOption('demand2pumping'): self.var.modflowPumpingM += act_gw
+            if self.var.modflow:
+                if self.var.GW_pumping:  # pumping demand is sent to ModFlow (used in transient module)
+                    self.var.modfPumpingM = np.copy(act_gw)
 
-            self.var.act_indWithdrawal = frac_industry * self.var.act_nonIrrWithdrawal
-            self.var.act_domWithdrawal = frac_domestic * self.var.act_nonIrrWithdrawal
-            self.var.act_livWithdrawal = frac_livestock * self.var.act_nonIrrWithdrawal
-            self.var.act_indConsumption = self.var.ind_efficiency * self.var.act_indWithdrawal
-            self.var.act_domConsumption = self.var.dom_efficiency * self.var.act_domWithdrawal
-            self.var.act_livConsumption = self.var.liv_efficiency * self.var.act_livWithdrawal
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                self.var.act_indWithdrawal = frac_industry * self.var.act_nonIrrWithdrawal
+                self.var.act_domWithdrawal = frac_domestic * self.var.act_nonIrrWithdrawal
+                self.var.act_livWithdrawal = frac_livestock * self.var.act_nonIrrWithdrawal
+                self.var.act_indConsumption = self.var.ind_efficiency * self.var.act_indWithdrawal
+                self.var.act_domConsumption = self.var.dom_efficiency * self.var.act_domWithdrawal
+                self.var.act_livConsumption = self.var.liv_efficiency * self.var.act_livWithdrawal
 
-            self.var.act_nonIrrConsumption = self.var.act_domConsumption + self.var.act_indConsumption + self.var.act_livConsumption
+                self.var.act_nonIrrConsumption = self.var.act_domConsumption + self.var.act_indConsumption + self.var.act_livConsumption
+            else:  # only irrigation is considered
+                self.var.act_nonIrrConsumption = globals.inZero.copy()
             self.var.act_totalIrrConsumption = self.var.fracVegCover[2] * self.var.act_irrConsumption[2] + self.var.fracVegCover[3] * self.var.act_irrConsumption[3]
             self.var.act_paddyConsumption = self.var.fracVegCover[2] * self.var.act_irrConsumption[2]
             self.var.act_nonpaddyConsumption = self.var.fracVegCover[3] * self.var.act_irrConsumption[3]
 
-
-            self.var.totalWaterDemand = self.var.fracVegCover[2] * self.var.irrDemand[2] + self.var.fracVegCover[3] * self.var.irrDemand[3] + self.var.nonIrrDemand
-            self.var.act_totalWaterWithdrawal = self.var.act_nonIrrWithdrawal + self.var.act_irrWithdrawal
-            self.var.act_totalWaterConsumption = self.var.act_nonIrrConsumption + self.var.act_totalIrrConsumption
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                self.var.totalWaterDemand = self.var.fracVegCover[2] * self.var.irrDemand[2] + self.var.fracVegCover[3] * self.var.irrDemand[3] + self.var.nonIrrDemand
+                self.var.act_totalWaterWithdrawal = self.var.act_nonIrrWithdrawal + self.var.act_irrWithdrawal
+                self.var.act_totalWaterConsumption = self.var.act_nonIrrConsumption + self.var.act_totalIrrConsumption
+            else:  # only irrigation is considered
+                self.var.totalWaterDemand = self.var.fracVegCover[2] * self.var.irrDemand[2] + self.var.fracVegCover[3] * self.var.irrDemand[3]
+                self.var.act_totalWaterWithdrawal = np.copy(self.var.act_irrWithdrawal)
+                self.var.act_totalWaterConsumption = np.copy(self.var.act_totalIrrConsumption)
 
             # --- calculate return flow
             #Sum up loss - difference between withdrawn and consumed - split into return flow and evaporation
@@ -659,54 +784,70 @@ class water_demand:
 
             self.var.returnflowIrr =  self.var.returnfractionIrr * sumIrrLoss
             self.var.addtoevapotrans = (1- self.var.returnfractionIrr) * sumIrrLoss
-            self.var.returnflowNonIrr  = self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrWithdrawal
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                self.var.returnflowNonIrr  = self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrWithdrawal
 
             # limit return flow to not put all fossil groundwater back into the system, because
             # it can lead to higher river discharge than without water demand, as water is taken from fossil groundwater (out of system)
             unmet_div_ww = 1. - np.minimum(1, divideValues(self.var.unmetDemand, self.var.act_totalWaterWithdrawal))
-            self.var.unmet_lost = ( self.var.returnflowIrr + self.var.returnflowNonIrr +  self.var.addtoevapotrans) * (1-unmet_div_ww)
+
+            if checkOption('limitAbstraction'):
+                unmet_div_ww = 1
+
+            #self.var.unmet_lost = ( self.var.returnflowIrr + self.var.returnflowNonIrr +  self.var.addtoevapotrans) * (1-unmet_div_ww)
+
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                self.var.unmet_lost = ( self.var.returnflowIrr + self.var.returnflowNonIrr +  self.var.addtoevapotrans) * (1-unmet_div_ww)
+            else:  # only irrigation is considered
+                self.var.unmet_lost = (self.var.returnflowIrr + self.var.addtoevapotrans) * (1 - unmet_div_ww)
+
 
             #self.var.waterDemandLost = self.var.act_totalWaterConsumption + self.var.addtoevapotrans
             self.var.unmet_lostirr = ( self.var.returnflowIrr  +  self.var.addtoevapotrans) * (1-unmet_div_ww)
-            self.var.unmet_lostNonirr = self.var.returnflowNonIrr * (1-unmet_div_ww)
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                self.var.unmet_lostNonirr = self.var.returnflowNonIrr * (1-unmet_div_ww)
 
             self.var.returnflowIrr = self.var.returnflowIrr * unmet_div_ww
             self.var.addtoevapotrans = self.var.addtoevapotrans * unmet_div_ww
-            self.var.returnflowNonIrr =  self.var.returnflowNonIrr * unmet_div_ww
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                self.var.returnflowNonIrr =  self.var.returnflowNonIrr * unmet_div_ww
 
             # returnflow to river and to evapotranspiration
-            self.var.returnFlow = self.var.returnflowIrr + self.var.returnflowNonIrr
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                self.var.returnFlow = self.var.returnflowIrr + self.var.returnflowNonIrr
+            else:  # only irrigation is considered
+                self.var.returnFlow = self.var.returnflowIrr
             self.var.waterabstraction = self.var.nonFossilGroundwaterAbs + self.var.unmetDemand + self.var.act_SurfaceWaterAbstract
 
+            if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [self.var.act_irrWithdrawal],  # In
+                    [self.var.act_totalIrrConsumption,self.var.unmet_lostirr,self.var.addtoevapotrans,self.var.returnflowIrr],  # Out
+                    [globals.inZero],
+                    [globals.inZero],
+                    "Waterdemand5a", False)
 
-            self.model.waterbalance_module.waterBalanceCheck(
-                [self.var.act_irrWithdrawal],  # In
-                [self.var.act_totalIrrConsumption,self.var.unmet_lostirr,self.var.addtoevapotrans,self.var.returnflowIrr],  # Out
-                [globals.inZero],
-                [globals.inZero],
-                "Waterdemand5a", False)
 
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [self.var.act_nonIrrWithdrawal],  # In
+                    [self.var.act_nonIrrConsumption , self.var.returnflowNonIrr, self.var.unmet_lostNonirr],  # Out
+                    [globals.inZero],
+                    [globals.inZero],
+                    "Waterdemand5b", False)
 
-            self.model.waterbalance_module.waterBalanceCheck(
-                [self.var.act_nonIrrWithdrawal],  # In
-                [self.var.act_nonIrrConsumption , self.var.returnflowNonIrr, self.var.unmet_lostNonirr],  # Out
-                [globals.inZero],
-                [globals.inZero],
-                "Waterdemand5b", False)
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [self.var.ind_efficiency * frac_industry * self.var.act_nonIrrWithdrawal],  # In
+                    [self.var.act_indConsumption],  # Out
+                    [globals.inZero],
+                    [globals.inZero],
+                    "Waterdemand5c", False)
 
-            self.model.waterbalance_module.waterBalanceCheck(
-                [self.var.ind_efficiency * frac_industry * self.var.act_nonIrrWithdrawal],  # In
-                [self.var.act_indConsumption],  # Out
-                [globals.inZero],
-                [globals.inZero],
-                "Waterdemand5c", False)
-
-            self.model.waterbalance_module.waterBalanceCheck(
-                [ self.var.act_indWithdrawal],  # In
-                [self.var.act_indConsumption/ self.var.ind_efficiency],  # Out
-                [globals.inZero],
-                [globals.inZero],
-                "Waterdemand5d", False)
+                self.model.waterbalance_module.waterBalanceCheck(
+                    [ self.var.act_indWithdrawal],  # In
+                    [self.var.act_indConsumption/ self.var.ind_efficiency],  # Out
+                    [globals.inZero],
+                    [globals.inZero],
+                    "Waterdemand5d", False)
 
 
             # ----------------------------------------------------------------

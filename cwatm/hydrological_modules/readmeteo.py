@@ -53,12 +53,8 @@ class readmeteo(object):
     wc4_tmax              upscaled to low resolution WorldClim map for max temperature                      K        
     wc2_prec              High resolution WorldClim map for precipitation                                   m        
     wc4_prec              upscaled to low resolution WorldClim map for precipitation                        m        
-    demAnomaly            digital elevation model anomaly (high resolution - low resolution)                m        
-    demHigh               digital elevation model high resolution                                           m        
     prec                  precipitation in m                                                                m        
-    temp                  average temperature in Celsius deg                                                C°       
-    Tmin                  minimum temperature in Celsius deg                                                C°       
-    Tmax                  maximum temperature in celsius deg                                                C°       
+    temp                  average temperature in Celsius deg                                                Celcius d
     WtoMJ                 Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6                    --       
     ====================  ================================================================================  =========
 
@@ -329,6 +325,15 @@ class readmeteo(object):
         if (self.var.modflow and self.var.modflowsteady):
             modflow = True
 
+        if Flags['warm']:
+            # if warmstart use stored meteo variables
+            no = dateVar['curr']-1
+            self.var.Precipitation = self.var.meteo[0,no]
+            self.var.Tavg = self.var.meteo[1,no]
+            self.var.ETRef = self.var.meteo[2,no]
+            self.var.EWRef = self.var.meteo[3,no]
+            return
+
         ZeroKelvin = 0.0
         if checkOption('TemperatureInKelvin'):
             # if temperature is in Kelvin -> conversion to deg C
@@ -475,6 +480,19 @@ class readmeteo(object):
                 # potential evaporation rate from water surface (conversion to [m] per time step)
                 # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
 
-
-
+        if Flags['calib']:
+            # if first clibration run, store all meteo data in a variable
+            if dateVar['curr'] == 1:
+                self.var.meteo = np.zeros([4,1 + dateVar["intEnd"] - dateVar["intStart"],len(self.var.Precipitation)])
+                #self.var.ETRef_all,self.var.EWRef_all,self.var.Tavg_all, self.var.Precipitation_all = [],[],[],[]
+            no = dateVar['curr'] -1
+            self.var.meteo[0,no] = self.var.Precipitation
+            self.var.meteo[1,no] = self.var.Tavg
+            self.var.meteo[2,no] = self.var.ETRef
+            self.var.meteo[3,no] = self.var.EWRef
+            #self.var.ETRef_all.append(self.var.ETRef)
+            #self.var.EWRef_all.append(self.var.EWRef)
+            #self.var.Tavg_all.append(self.var.Tavg)
+            #self.var.Precipitation_all.append(self.var.Precipitation)
+            ii =1
 

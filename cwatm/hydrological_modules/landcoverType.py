@@ -10,6 +10,20 @@
 
 from cwatm.management_modules.data_handling import *
 
+def decompress(map, nanvalue=None):
+    """
+    Decompressing CWatM maps from 1D to 2D with missing values
+
+    :param map: compressed map
+    :return: decompressed 2D map
+    """
+
+    dmap = maskinfo['maskall'].copy()
+    dmap[~maskinfo['maskflat']] = map[:]
+    if nanvalue is not None:
+        dmap.data[np.isnan(dmap.data)] = nanvalue
+
+    return dmap.data
 
 class landcoverType(object):
 
@@ -29,7 +43,7 @@ class landcoverType(object):
     load_initial                                                                                                     
     sum_gwRecharge        groundwater recharge                                                              m        
     modflow               Flag: True if modflow_coupling = True in settings file                            --       
-    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days…)                                       
+    modflow_timestep      Chosen ModFlow model timestep (1day, 7days, 30days, etc.)                                  
     sumed_sum_gwRecharge                                                                                             
     GWVolumeVariation                                                                                                
     snowEvap              total evaporation from snow for a snow layers                                     m        
@@ -37,10 +51,10 @@ class landcoverType(object):
     minInterceptCap       Maximum interception read from file for forest and grassland land cover           m        
     interceptStor         simulated vegetation interception storage                                         m        
     dynamicLandcover                                                                                                 
+    staticLandCoverMaps   1=staticLandCoverMaps in settings file is True, 0=otherwise                                
     landcoverSum                                                                                                     
-    act_SurfaceWaterAbst                                                                                             
+    irrigatedArea_origin                                                                                             
     sum_interceptStor     Total of simulated vegetation interception storage including all landcover types  m        
-    fracVegCover          Fraction of area covered by the corresponding landcover type                               
     minCropKC             minimum crop factor (default 0.2)                                                 --       
     minTopWaterLayer                                                                                                 
     rootFraction1                                                                                                    
@@ -70,9 +84,6 @@ class landcoverType(object):
     genuInvN1                                                                                                        
     genuInvN2                                                                                                        
     genuInvN3                                                                                                        
-    invAlpha1                                                                                                        
-    invAlpha2                                                                                                        
-    invAlpha3                                                                                                        
     ws1                   Maximum storage capacity in layer 1                                               m        
     ws2                   Maximum storage capacity in layer 2                                               m        
     ws3                   Maximum storage capacity in layer 3                                               m        
@@ -100,7 +111,7 @@ class landcoverType(object):
     sum_w2                                                                                                           
     sum_w3                                                                                                           
     totalSto              Total soil,snow and vegetation storage for each cell including all landcover typ  m        
-    arnoBetaOro                                                                                                      
+    arnoBetaOro           chosen ModFlow model timestep (1day, 7days, 30days, etc.)                                  
     arnoBeta                                                                                                         
     adjRoot                                                                                                          
     maxtopwater           maximum heigth of topwater                                                        m        
@@ -109,7 +120,6 @@ class landcoverType(object):
     pretotalSto           Previous totalSto                                                                 m        
     sum_actBareSoilEvap                                                                                              
     sum_openWaterEvap                                                                                                
-    addtoevapotrans                                                                                                  
     sum_runoff            Runoff above the soil, more interflow, including all landcover types              m        
     sum_directRunoff                                                                                                 
     sum_interflow                                                                                                    
@@ -118,10 +128,7 @@ class landcoverType(object):
     sum_act_irrConsumpti                                                                                             
     sum_perc3toGW         percolation from 3rd soil layer to groundwater (summed up for all land cover cla  m        
     sum_prefFlow          preferential flow from soil to groundwater (summed up for all land cover classes  m        
-    act_irrWithdrawal                                                                                                
-    act_nonIrrConsumptio                                                                                             
-    returnFlow                                                                                                       
-    cellArea              Cell area [m²] of each simulated mesh                                                      
+    cellArea              Area of cell                                                                      m2       
     baseflow              simulated baseflow (= groundwater discharge to river)                             m        
     Precipitation         Precipitation (input for the model)                                               m        
     coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
@@ -131,12 +138,18 @@ class landcoverType(object):
     ElevationStD                                                                                                     
     prevSnowCover         snow cover of previous day (only for water balance)                               m        
     soilLayers            Number of soil layers                                                             --       
+    fracVegCover          Fraction of specific land covers (0=forest, 1=grasslands, etc.)                   %        
     soildepth             Thickness of the first soil layer                                                 m        
     soildepth12           Total thickness of layer 2 and 3                                                  m        
     w1                    Simulated water storage in the layer 1                                            m        
     w2                    Simulated water storage in the layer 2                                            m        
     w3                    Simulated water storage in the layer 3                                            m        
     topwater              quantity of water above the soil (flooding)                                       m        
+    act_SurfaceWaterAbst                                                                                             
+    addtoevapotrans                                                                                                  
+    act_irrWithdrawal                                                                                                
+    act_nonIrrConsumptio                                                                                             
+    returnFlow                                                                                                       
     totalET               Total evapotranspiration for each cell including all landcover types              m        
     sum_actTransTotal                                                                                                
     sum_interceptEvap                                                                                                
@@ -165,11 +178,17 @@ class landcoverType(object):
         And initialize the soil variables
         """
 
+        self.var.capriseindex = globals.inZero.copy() # Fraction of cells where capillary rise occurs (used when ModFlow coupling)
+
         # make land cover change from year to year or fix it to 1 year
         if returnBool('dynamicLandcover'):
             self.var.dynamicLandcover = True
         else:
             self.var.dynamicLandcover = False
+
+        self.var.staticLandCoverMaps = False
+        if "staticLandCoverMaps" in option:
+            self.var.staticLandCoverMaps = checkOption('staticLandCoverMaps')
 
 
         self.var.coverTypes= list(map(str.strip, cbinding("coverTypes").split(",")))
@@ -186,7 +205,7 @@ class landcoverType(object):
 
         # fraction (m2) of a certain irrigation type over (only) total irrigation area ; will be assigned by the landSurface module
         # output variable per land cover class
-        landcoverVars = ['irrTypeFracOverIrr','fractionArea','totAvlWater','cropKC',
+        landcoverVars = ['irrTypeFracOverIrr','fractionArea','totAvlWater','cropKC', 'cropKC_landCover',
                          'effSatAt50',  'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin','rootZoneWaterStorageRange',
                          'totalPotET','potTranspiration','soilWaterStorage',
                          'infiltration','actBareSoilEvap','landSurfaceRunoff','actTransTotal',
@@ -196,6 +215,7 @@ class landcoverType(object):
      
         # for 6 landcover types
         for variable in landcoverVars:  vars(self.var)[variable] = np.tile(globals.inZero,(6,1))
+
 
         #for 4 landcover types with soil underneath
         landcoverVarsSoil = ['arnoBeta','rootZoneWaterStorageCap','rootZoneWaterStorageCap12','perc1to2','perc2to3','theta1','theta2','theta3']
@@ -220,6 +240,7 @@ class landcoverType(object):
 
         self.var.totalET = globals.inZero.copy()
         self.var.act_SurfaceWaterAbstract = globals.inZero.copy()
+        self.var.irrigatedArea_original = globals.inZero.copy()
 
         # ----------------------------------------------------------
         # Load initial values and calculate basic soil parameters which are not changed in time
@@ -380,7 +401,6 @@ class landcoverType(object):
             i += 1
 
 
-
         i = 0
         for coverType in self.var.coverTypes[:4]:
             # other paramater values
@@ -407,6 +427,16 @@ class landcoverType(object):
             self.var.w1[i] = self.var.load_initial(coverType + "_w1",default = self.var.wwp1[i])
             self.var.w2[i] = self.var.load_initial(coverType + "_w2",default = self.var.wwp2[i])
             self.var.w3[i] = self.var.load_initial(coverType + "_w3",default = self.var.wwp3[i])
+
+            if self.var.modflow: # it is better to start with a humid soil to avoid too much pumping at the begining because of the irrigation demand
+                start_soil_humid = 0.75
+                if 'start_soil_humid' in binding:
+                    start_soil_humid = loadmap('start_soil_humid')
+                if i == 0:
+                    print('=> Soil moisture is filled at ', 100*start_soil_humid, ' % at the begining')
+                self.var.w1[i] = self.var.load_initial(coverType + "_w1", default=self.var.wwp1[i] + start_soil_humid*(self.var.wfc1[i]-self.var.wwp1[i]))
+                self.var.w2[i] = self.var.load_initial(coverType + "_w2", default=self.var.wwp2[i] + start_soil_humid*(self.var.wfc2[i]-self.var.wwp2[i]))
+                self.var.w3[i] = self.var.load_initial(coverType + "_w3", default=self.var.wwp3[i] + start_soil_humid*(self.var.wfc3[i]-self.var.wwp3[i]))
 
             soilVars = ['w1', 'w2', 'w3']
             for variable in soilVars:
@@ -476,6 +506,7 @@ class landcoverType(object):
         #totalWaterPlant3 = np.maximum(0., self.var.wfc3[3] - self.var.wwp3[3]) * self.var.rootDepth[2][3]
         self.var.totAvlWater = totalWaterPlant1 + totalWaterPlant2 #+ totalWaterPlant3
 
+
     # --------------------------------------------------------------------------
 
     def dynamic_fracIrrigation(self, init = False, dynamic = True):
@@ -500,18 +531,25 @@ class landcoverType(object):
 
         if init and dynamic:
 
-            if self.var.dynamicLandcover:
-                landcoverYear = dateVar['currDate']
+            if self.var.staticLandCoverMaps:
+
+                self.var.fracVegCover[0] = loadmap('forest_fracVegCover')
+                self.var.fracVegCover[2] = loadmap('irrPaddy_fracVegCover')
+                self.var.fracVegCover[3] = loadmap('irrNonPaddy_fracVegCover')
+                self.var.fracVegCover[4] = loadmap('sealed_fracVegCover')
+                self.var.fracVegCover[5] = loadmap('water_fracVegCover')
+
             else:
-                landcoverYear = datetime.datetime(int(binding['fixLandcoverYear']), 1, 1)
+                if self.var.dynamicLandcover:
+                    landcoverYear = dateVar['currDate']
+                else:
+                    landcoverYear = datetime.datetime(int(binding['fixLandcoverYear']), 1, 1)
 
-            i = 0
+                i = 0
+                for coverType in self.var.coverTypes:
 
-
-            for coverType in self.var.coverTypes:
-                
-                self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
-                i += 1
+                    self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
+                    i += 1
 
 
             # for Xiaogang's agent model
@@ -520,12 +558,20 @@ class landcoverType(object):
                 self.var.fracVegCover[3] = loadmap('nonpaddyfraction')
 
 
+            #if "Burgenland" in option:
+            #    if checkOption('Burgenland'):
+            #        print('FOR BURGENLAND WE SPECIFIED MANUALLY IRRIGATED AREA')
+            #        self.var.fracVegCover[3] = 0.8*self.var.fracVegCover[1]
+            #        self.var.fracVegCover[1] = 0.2 * self.var.fracVegCover[1]
+
             # correction of grassland if sum is not 1.0
             sum = np.sum(self.var.fracVegCover,axis=0)
             self.var.fracVegCover[1] = np.maximum(0.,self.var.fracVegCover[1] + 1.0 - sum)
             sum = np.sum(self.var.fracVegCover, axis=0)
             self.var.fracVegCover[0] = np.maximum(0., self.var.fracVegCover[0] + 1.0 - sum)
             sum = np.sum(self.var.fracVegCover,axis=0)
+
+            self.var.irrigatedArea_original = self.var.fracVegCover[3].copy()
 
             # sum of landcover without water and sealed
             # self.var.sum_fracVegCover = np.sum(self.var.fracVegCover[0:4], axis=0)
@@ -535,8 +581,6 @@ class landcoverType(object):
                 self.var.fracVegCover[1] = self.var.fracVegCover[1] + self.var.fracVegCover[2] + self.var.fracVegCover[3]
                 self.var.fracVegCover[2] = 0.0
                 self.var.fracVegCover[3] = 0.0
-
-
 
 
 
@@ -579,10 +623,11 @@ class landcoverType(object):
             pretop = self.var.sum_topwater
 
         ### To compute water balance for modflow
-        if self.var.modflow:
-            if (dateVar['curr'] - int(dateVar['curr'] / self.var.modflow_timestep) * self.var.modflow_timestep) == 1 and \
-                    dateVar['curr'] > self.var.modflow_timestep:  # if it is the first step of the week
-                self.var.presumed_sum_gwRecharge = self.var.sumed_sum_gwRecharge.copy()
+        # Currently, only daily time scale is implemented for this version')
+        #if self.var.modflow:
+            #if (dateVar['curr'] - int(dateVar['curr'] / self.var.modflow_timestep) * self.var.modflow_timestep) == 1 and \
+            #        dateVar['curr'] > self.var.modflow_timestep:  # if it is the first step of the week
+            #    self.var.presumed_sum_gwRecharge = self.var.sumed_sum_gwRecharge.copy()
                 # stormodf = np.nansum((self.var.presumed_sum_gwRecharge/self.var.modflow_timestep-self.var.capillar-self.var.baseflow) * self.var.cellArea) # From ModFlow during the previous step
                 # stormodf = self.var.GWVolumeVariation / self.var.modflow_timestep # GW volume change from the previous ModFlow run (difference betwwen water levels times porosity)
         self.var.pretotalSto = self.var.totalSto.copy()
@@ -629,7 +674,99 @@ class landcoverType(object):
 
         #print "--", self.var.sum_directRunoff
 
+        if self.var.modflow:
+            # computing leakage from rivers (if modflow coupling is used)
 
+            # leakage depends on water bodies storage, water bodies fraction and modflow saturated area
+            self.var.riverbedExchangeM = np.minimum(self.var.leakageriver_factor * np.maximum(self.var.fracVegCover[5], 0) *
+                                                    ((1 - self.var.capriseindex + 0.25) // 1),
+                                                    0.80 * self.var.readAvlChannelStorageM)  # leakage in m/d
+            self.var.riverbedExchangeM = np.where(self.var.riverbedExchangeM > self.var.InvCellArea,
+                                                       self.var.riverbedExchangeM, 0)  # to avoid too small values
+
+            # if there is a lake in this cell, there is no leakage
+            self.var.riverbedExchangeM = np.where(self.var.waterBodyID > 0, 0., self.var.riverbedExchangeM)
+            self.var.riverbedExchangeM3 = self.var.riverbedExchangeM * self.var.cellArea  # converting leakage in m3
+            # self.var.riverbedExchangeM3 is then removed from river storage in routing_kinematic module
+
+            #toGW = np.sum(self.var.leakageCanals_M * (1 - self.var.capriseindex) * self.var.cellArea)  # leakage from the canals is converted in m3
+            #toInterflow = np.sum(self.var.leakageCanals_M * self.var.capriseindex * self.var.cellArea)  # leakage from the canals is converted in m3
+
+            #self.var.leakageIntoGw = self.var.leakageCanals_M * (1 - self.var.capriseindex)
+            #self.var.leakageIntoRunoff = self.var.leakageCanals_M * self.var.capriseindex
+            #self.var.sum_gwRecharge += self.var.leakageIntoGw
+            #self.var.sum_interflow +=  self.var.leakageIntoRunoff
+
+            # adding leakage from river to the groundwater recharge
+            self.var.sum_gwRecharge += self.var.riverbedExchangeM
+
+            if checkOption('includeWaterBodies'):
+
+                # first, lakes variable need to be extended to their area and not only to the discharge point
+                lakeIDbyID = np.unique(self.var.waterBodyID)
+
+                lakestor_id = np.copy(self.var.lakeStorage)
+                resstor_id = np.copy(self.var.resStorage)
+                for id in range(len(lakeIDbyID)):  # for each lake or reservoir
+                    if lakeIDbyID[id] != 0:
+                        temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.lakeStorage > 0, 1, 0), 0)  # Looking for the discharge point of the lake
+                        if np.sum(temp_map) == 0:  # try reservoir
+                            temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.resStorage > 0, 1, 0), 0)  # Looking for the discharge point of the reservoir
+                        discharge_point = np.nanargmax(temp_map)  # Index of the cell where the lake outlet is stored
+                        if self.var.waterBodyTypTemp[discharge_point] != 0:
+
+                            if self.var.waterBodyTypTemp[discharge_point] == 1:  # this is a lake
+                                # computing the lake area
+                                area_stor = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id], self.var.cellArea, 0))  # required to keep mass balance rigth
+                                # computing the lake storage in meter and put this value in each cell including the lake
+                                lakestor_id = np.where(self.var.waterBodyID == lakeIDbyID[id],
+                                                       self.var.lakeStorage[discharge_point] / area_stor, lakestor_id)  # in meter
+
+                            else:  # this is a reservoir
+                                # computing the reservoir area
+                                area_stor = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id], self.var.cellArea, 0))  # required to keep mass balance rigth
+                                # computing the reservoir storage in meter and put this value in each cell including the reservoir
+                                resstor_id = np.where(self.var.waterBodyID == lakeIDbyID[id],
+                                                       self.var.resStorage[discharge_point] / area_stor, resstor_id)  # in meter
+
+                # Gathering lakes and reservoirs in the same array
+                lakeResStorage = np.where(self.var.waterBodyTypTemp == 0, 0., np.where(self.var.waterBodyTypTemp == 1,
+                                                                                       lakestor_id, resstor_id))  # in meter
+
+                minlake = np.maximum(0., 0.98 * lakeResStorage)  # reasonable but arbitrary limit
+
+                # leakage depends on water bodies storage, water bodies fraction and modflow saturated area
+                lakebedExchangeM_temp = np.minimum(self.var.leakagelake_factor * np.maximum(self.var.fracVegCover[5], 0) *
+                                                   ((1 - self.var.capriseindex + 0.25) // 1), minlake)  # leakage in m/d
+
+                # Now, leakage is converted again from the lake/reservoir area to discharge point to be removed from the lake/reservoir store
+                self.var.lakebedExchangeM = np.zeros(np.shape(self.var.cellArea))
+                for id in range(len(lakeIDbyID)):  # for each lake or reservoir
+                    if lakeIDbyID[id] != 0:
+                        temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.lakeStorage > 0, 1, 0), 0)  # Looking for the discharge point of the lake
+                        if np.sum(temp_map) == 0:  # try reservoir
+                            temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.resStorage > 0, 1, 0), 0)  # Looking for the discharge point of the reservoir
+                        discharge_point = np.nanargmax(temp_map)  # Index of the cell where the lake outlet is stored
+                    # Converting the lake/reservoir leakage from meter to cubic meter and put this value in the cell corresponding to the outlet
+                    self.var.lakebedExchangeM[discharge_point] = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id],
+                                                                                                        lakebedExchangeM_temp * self.var.cellArea, 0))  # in m3
+                self.var.lakebedExchangeM = self.var.lakebedExchangeM / self.var.MtoM3  # in meter
+
+                # compressed version for lakes and reservoirs
+                lakeExchangeM = np.compress(self.var.compress_LR, self.var.lakebedExchangeM)
+
+                # substract from both, because it is sorted by self.var.waterBodyTypCTemp
+                self.var.lakeStorageC = self.var.lakeStorageC - lakeExchangeM * self.var.MtoM3C
+                self.var.lakeVolumeM3C = self.var.lakeVolumeM3C - lakeExchangeM * self.var.MtoM3C
+                self.var.reservoirStorageM3C = self.var.reservoirStorageM3C - lakeExchangeM * self.var.MtoM3C
+
+                # and from the combined one for waterbalance issues
+                self.var.lakeResStorageC = self.var.lakeResStorageC - lakeExchangeM * self.var.MtoM3C
+                self.var.lakeResStorage = globals.inZero.copy()
+                np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
+
+                # adding leakage from lakes and reservoirs to the groundwater recharge
+                self.var.sum_gwRecharge += lakebedExchangeM_temp
 
         soilVars = ['w1','w2','w3']
         for variable in soilVars:
@@ -652,7 +789,9 @@ class landcoverType(object):
             if self.var.modflow:
                 if dateVar['curr'] > self.var.modflow_timestep:  # from the second step
                     storcwat = np.sum((self.var.totalSto - self.var.pretotalSto) * self.var.cellArea)  # Daily CWAT storage variations
-                    cwatbudg = np.sum((self.var.Precipitation - self.var.sum_runoff - self.var.totalET + self.var.presumed_sum_gwRecharge / self.var.modflow_timestep - self.var.sum_gwRecharge - self.var.baseflow) * self.var.cellArea)  # Inputs-Outputs (baseflow comes from the previous ModFlow model)
+                    #cwatbudg = np.sum((self.var.Precipitation - self.var.sum_runoff - self.var.totalET + self.var.presumed_sum_gwRecharge / self.var.modflow_timestep - self.var.sum_gwRecharge - self.var.baseflow) * self.var.cellArea)  # Inputs-Outputs (baseflow comes from the previous ModFlow model)
+                    cwatbudg = np.sum((self.var.Precipitation - self.var.sum_runoff - self.var.totalET + self.var.sum_gwRecharge - self.var.sum_gwRecharge - self.var.baseflow) * self.var.cellArea)  # Inputs-Outputs (baseflow comes from the previous ModFlow model)
+
                     print('CWatM-ModFlow water balance error [%]: ',
                           round(100 * (cwatbudg - storcwat - self.var.GWVolumeVariation / self.var.modflow_timestep) /
                                 (0.5 * cwatbudg + 0.5 * storcwat + 0.5 * self.var.GWVolumeVariation / self.var.modflow_timestep) * 100) / 100)

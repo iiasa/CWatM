@@ -24,13 +24,13 @@ class waterdemand_industry:
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
-    M3toM                 Coefficient to change units                                                       --       
-    demand_unit                                                                                                      
     industryTime                                                                                                     
     indWithdrawalVar                                                                                                 
     indConsumptionVar                                                                                                
     industryDemand                                                                                                   
+    InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
+    M3toM                 Coefficient to change units                                                       --       
+    demand_unit                                                                                                      
     pot_industryConsumpt                                                                                             
     ind_efficiency                                                                                                   
     ====================  ================================================================================  =========

@@ -340,10 +340,12 @@ def checkifDate(start,end,spinup,name):
     d1 = datenum(begin)
     startint = int(d1 + dateVar['intSpin'] -1)
     dateVar['dateStart'] = numdate(startint)
-
-
     dateVar['diffdays'] = dateVar['intEnd'] - dateVar['intSpin'] + 1
     #dateVar['dateEnd'] = dateVar['dateStart'] + datetime.timedelta(days=dateVar['diffdays']-1)
+
+    dateVar['dateStart1'] = begin + datetime.timedelta(days=dateVar['intSpin'] - 1)
+    dateVar['dateEnd1'] = dateVar['dateStart1'] + datetime.timedelta(days=dateVar['diffdays'] - 1)
+
     d1 = datenum(dateVar['dateStart'])
     endint = int(d1 + dateVar['diffdays'])
     dateVar['dateEnd'] = numdate(endint, -1)

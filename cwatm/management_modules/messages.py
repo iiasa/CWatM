@@ -83,7 +83,7 @@ class CWATMWarning(Warning):
 
     def __init__(self, msg):
         sys.tracebacklimit = 0
-        header = "\n\n ========================== CWATM Warning =============================\n"
+        header = "\n========================== CWATM Warning =============================\n"
         self._msg = header + msg
         sys.tracebacklimit = 1
     def __str__(self):

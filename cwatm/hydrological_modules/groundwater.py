@@ -120,8 +120,12 @@ class groundwater(object):
            # Groundwater baseflow from modflow or if modflow is not included calculate baseflow with linear storage function
            self.var.baseflow = np.maximum(0., np.minimum(self.var.storGroundwater, self.var.recessionCoeff * self.var.storGroundwater))
 
+        #MS
+        #self.var.storGroundwater = np.maximum(0., self.var.storGroundwater - self.var.baseflow - self.var.capillar)
         self.var.storGroundwater = np.maximum(0., self.var.storGroundwater - self.var.baseflow)
-        # PS: baseflow must be calculated at the end (to ensure the availability of storGroundwater to support nonFossilGroundwaterAbs)
+        if self.var.modflow:
+            # In the non-MODFLOW version, capillary rise is already dealt with previously be being removed from groundwater recharge
+            self.var.storGroundwater = np.maximum(0, self.var.storGroundwater - self.var.capillar)
 
         # to avoid small values and to avoid excessive abstractions from dry groundwater
         tresholdStorGroundwater = 0.00001  # 0.01 mm

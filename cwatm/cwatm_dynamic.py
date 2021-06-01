@@ -41,19 +41,6 @@ class CWATModel_dyn(DynamicModel):
         del timeMes[:]
         timemeasure("Start dynamic")
 
-
-
-        if Flags['loud']:
-            print("%-6i %10s" %(dateVar['currStart'],dateVar['currDatestr']), end=' ')
-        else:
-            if not(Flags['check']):
-                if (Flags['quiet']) and (not(Flags['veryquiet'])):
-                    sys.stdout.write(".")
-                if (not(Flags['quiet'])) and (not(Flags['veryquiet'])):
-                    sys.stdout.write("\r%d" % dateVar['currStart'])
-                    sys.stdout.flush()
-                if not (Flags['veryquiet']): print()
-
         # ************************************************************
         """ up to here it was fun, now the real stuff starts
         """
@@ -71,6 +58,10 @@ class CWATModel_dyn(DynamicModel):
 
             self.readmeteo_module.dynamic()
             timemeasure("Read meteo") # 1. timing after read input maps
+
+            if Flags['calib']:
+               self.output_module.dynamic()
+               return
 
             self.evaporationPot_module.dynamic()
             timemeasure("ET pot") # 2. timing after read input maps
@@ -99,7 +90,7 @@ class CWATModel_dyn(DynamicModel):
             timemeasure("Soil main")  # 5. timing
 
             if self.var.modflow:
-                self.groundwater_modflow_module.dynamic_transient()
+                self.groundwater_modflow_module.dynamic()
             self.groundwater_module.dynamic()
             timemeasure("Groundwater")  # 7. timing
 
@@ -152,7 +143,7 @@ class CWATModel_dyn(DynamicModel):
 
             self.environflow_module.dynamic()
             # in case environmental flow is calculated last
-            # overFlo error from Flo Roemer
+            # overFlo error from Flo Roemer line 155
 
             self.output_module.dynamic()
             timemeasure("Output")  # 12. timing

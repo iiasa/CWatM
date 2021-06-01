@@ -8,12 +8,8 @@ Created on Wed Jan 16 13:55:27 2019
 import os
 import sys
 import numpy as np
-flopypth = os.path.join('..', '..', 'flopy')
-if flopypth not in sys.path:
-    sys.path.append(flopypth)
-import flopy
-import flopy.utils.binaryfile as bf
 import time
+import importlib
 
 def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, recharge, GW_pumping, pumping_datas=[]):
         """
@@ -40,6 +36,12 @@ def ModFlow_modelV5(self, path_data, numero, namemodel, StepSize, nrow,ncol, rec
                     time.sleep(3)
 
 
+        # dynamical install of the flopy library
+        flopypth = os.path.join('..', '..', 'flopy')
+        if flopypth not in sys.path:
+            sys.path.append(flopypth)
+        flopy = importlib.import_module("flopy", package=None)
+        bf = importlib.import_module("flopy.utils.binaryfile", package=None)
 
 
         # output and name prefix

@@ -40,16 +40,16 @@ class snow_frost(object):
     numberSnowLayers      Number of snow layers (up to 10)                                                  --       
     glaciertransportZone  Number of layers which can be mimiced as glacier transport zone                   --       
     deltaInvNorm          Quantile of the normal distribution (for different numbers of snow layers)        --       
-    DeltaTSnow            Temperature lapse rate x std. deviation of elevation                              C°       
+    DeltaTSnow            Temperature lapse rate x std. deviation of elevation                              Celcius d
     SnowDayDegrees        day of the year to degrees: 360/365.25 = 0.9856                                   --       
     summerSeasonStart     day when summer season starts = 165                                               --       
     IceDayDegrees         days of summer (15th June-15th Sept.) to degree: 180/(259-165)                    --       
-    SnowSeason            seasonal melt factor                                                              m C°-1 da
-    TempSnow              Average temperature at which snow melts                                           C°       
+    SnowSeason            seasonal melt factor                                                              m (Celciu
+    TempSnow              Average temperature at which snow melts                                           Celcius d
     SnowFactor            Multiplier applied to precipitation that falls as snow                            --       
     SnowMeltCoef          Snow melt coefficient - default: 0.004                                            --       
     IceMeltCoef           Ice melt coefficnet - default  0.007                                              --       
-    TempMelt              Average temperature at which snow melts                                           C°       
+    TempMelt              Average temperature at which snow melts                                           Celcius d
     SnowCoverS            snow cover for each layer                                                         m        
     Kfrost                Snow depth reduction coefficient, (HH, p. 7.28)                                   m-1      
     Afrost                Daily decay coefficient, (Handbook of Hydrology, p. 7.28)                         --       

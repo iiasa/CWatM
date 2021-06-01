@@ -81,6 +81,7 @@ class lakes_reservoirs(object):
     waterBodyID           lakes/reservoirs map with a single ID for each lake/reservoir                     --       
     waterBodyOut          biggest outlet (biggest accumulation of ldd network) of a waterbody               --       
     dirUp                 river network in upstream direction                                               --       
+    waterBodyBuffer                                                                                                  
     ldd_LR                change river network (put pits in where lakes are)                                --       
     lddCompress_LR        compressed river network lakes/reservoirs (without missing values)                --       
     dirUp_LR              river network direction upstream lake/reservoirs                                  --       
@@ -117,8 +118,6 @@ class lakes_reservoirs(object):
     lakeFactor            factor for the Modified Puls approach to calculate retention of the lake          --       
     lakeFactorSqr         square root factor for the Modified Puls approach to calculate retention of the   --       
     lakeInflowOldC        inflow to the lake from previous days                                             m/3      
-    lakeVolumeM3C         compressed map of lake volume                                                     m3       
-    lakeStorageC                                                                                            m3       
     lakeOutflowC          compressed map of lake outflow                                                    m3/s     
     lakeLevelC            compressed map of lake level                                                      m        
     conLimitC                                                                                                        
@@ -134,9 +133,6 @@ class lakes_reservoirs(object):
     deltaLF                                                                                                          
     deltaNFL                                                                                                         
     reservoirFillC                                                                                                   
-    reservoirStorageM3C                                                                                              
-    lakeResStorageC                                                                                                  
-    lakeResStorage                                                                                                   
     resStorage                                                                                                       
     waterBodyTypCTemp                                                                                                
     sumEvapWaterBodyC                                                                                                
@@ -149,7 +145,7 @@ class lakes_reservoirs(object):
     DtSec                 number of seconds per timestep (default = 86400)                                  s        
     MtoM3                 Coefficient to change units                                                       --       
     InvDtSec                                                                                                         
-    cellArea              Cell area [m²] of each simulated mesh                                                      
+    cellArea              Area of cell                                                                      m2       
     UpArea1               upstream area of a grid cell                                                      m2       
     lddCompress           compressed river network (without missing values)                                 --       
     lakeEvaFactor         a factor which increases evaporation from lake because of wind                    --       
@@ -161,6 +157,11 @@ class lakes_reservoirs(object):
     discharge             discharge                                                                         m3/s     
     prelakeResStorage                                                                                                
     runoff                                                                                                           
+    lakeVolumeM3C         compressed map of lake volume                                                     m3       
+    lakeStorageC                                                                                            m3       
+    reservoirStorageM3C                                                                                              
+    lakeResStorageC                                                                                                  
+    lakeResStorage                                                                                                   
     ====================  ================================================================================  =========
 
     **Functions**
@@ -257,6 +258,8 @@ class lakes_reservoirs(object):
 
             # year when the reservoirs is operating
             self.var.resYearC = np.compress(self.var.compress_LR, loadmap('waterBodyYear'))
+            if self.var.modflow: # required to compute leakage from lakes and reservoirs
+                self.var.resYear = loadmap('waterBodyYear')
 
             # water body types:
             # - 3 = reservoirs and lakes (used as reservoirs but before the year of construction as lakes
@@ -264,6 +267,8 @@ class lakes_reservoirs(object):
             # - 1 = lakes (weirFormula)
             # - 0 = non lakes or reservoirs (e.g. wetland)
             waterBodyTyp = loadmap('waterBodyTyp').astype(np.int64)
+            if self.var.modflow: # required to compute leakage from lakes and reservoirs
+                self.var.waterBodyTyp = waterBodyTyp
 
             #waterBodyTyp = np.where(waterBodyTyp > 0., 1, waterBodyTyp)  # TODO change all to lakes for testing
             self.var.waterBodyTypC = np.compress(self.var.compress_LR, waterBodyTyp)
@@ -451,9 +456,15 @@ class lakes_reservoirs(object):
 
                     self.var.waterBodyTypCTemp = np.where((self.var.resYearC > year) & (self.var.waterBodyTypC == 2), 0, self.var.waterBodyTypC)
                     self.var.waterBodyTypCTemp = np.where((self.var.resYearC > year) & (self.var.waterBodyTypC == 3), 1, self.var.waterBodyTypCTemp)
+                    if self.var.modflow: # we also need the uncompressed version to compute leakage
+                        self.var.waterBodyTypTemp = np.where((self.var.resYear > year) & (self.var.waterBodyTyp == 2), 0, self.var.waterBodyTyp)
+                        self.var.waterBodyTypTemp = np.where((self.var.resYear > year) & (self.var.waterBodyTyp == 3), 1, self.var.waterBodyTypTemp)
                 else:
                     self.var.waterBodyTypCTemp = np.where(self.var.waterBodyTypC == 2, 0, self.var.waterBodyTypC)
                     self.var.waterBodyTypCTemp = np.where(self.var.waterBodyTypC == 3, 1, self.var.waterBodyTypCTemp)
+                    if self.var.modflow: # we also need the uncompressed version to compute leakage
+                        self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 2, 0, self.var.waterBodyTyp)
+                        self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 3, 1, self.var.waterBodyTypTemp)
 
             self.var.sumEvapWaterBodyC = 0
             self.var.sumlakeResInflow = 0
