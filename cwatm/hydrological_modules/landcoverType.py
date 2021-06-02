@@ -704,69 +704,69 @@ class landcoverType(object):
 
                 # first, lakes variable need to be extended to their area and not only to the discharge point
                 lakeIDbyID = np.unique(self.var.waterBodyID)
+                if len(lakeIDbyID) > 1:
 
-                lakestor_id = np.copy(self.var.lakeStorage)
-                resstor_id = np.copy(self.var.resStorage)
-                for id in range(len(lakeIDbyID)):  # for each lake or reservoir
-                    if lakeIDbyID[id] != 0:
-                        temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.lakeStorage > 0, 1, 0), 0)  # Looking for the discharge point of the lake
-                        if np.sum(temp_map) == 0:  # try reservoir
-                            temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.resStorage > 0, 1, 0), 0)  # Looking for the discharge point of the reservoir
-                        discharge_point = np.nanargmax(temp_map)  # Index of the cell where the lake outlet is stored
-                        if self.var.waterBodyTypTemp[discharge_point] != 0:
+                    lakestor_id = np.copy(self.var.lakeStorage)
+                    resstor_id = np.copy(self.var.resStorage)
+                    for id in range(len(lakeIDbyID)):  # for each lake or reservoir
+                        if lakeIDbyID[id] != 0:
+                            temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.lakeStorage > 0, 1, 0), 0)  # Looking for the discharge point of the lake
+                            if np.sum(temp_map) == 0:  # try reservoir
+                                temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.resStorage > 0, 1, 0), 0)  # Looking for the discharge point of the reservoir
+                            discharge_point = np.nanargmax(temp_map)  # Index of the cell where the lake outlet is stored
+                            if self.var.waterBodyTypTemp[discharge_point] != 0:
 
-                            if self.var.waterBodyTypTemp[discharge_point] == 1:  # this is a lake
-                                # computing the lake area
-                                area_stor = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id], self.var.cellArea, 0))  # required to keep mass balance rigth
-                                # computing the lake storage in meter and put this value in each cell including the lake
-                                lakestor_id = np.where(self.var.waterBodyID == lakeIDbyID[id],
-                                                       self.var.lakeStorage[discharge_point] / area_stor, lakestor_id)  # in meter
+                                if self.var.waterBodyTypTemp[discharge_point] == 1:  # this is a lake
+                                    # computing the lake area
+                                    area_stor = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id], self.var.cellArea, 0))  # required to keep mass balance rigth
+                                    # computing the lake storage in meter and put this value in each cell including the lake
+                                    lakestor_id = np.where(self.var.waterBodyID == lakeIDbyID[id],
+                                                           self.var.lakeStorage[discharge_point] / area_stor, lakestor_id)  # in meter
 
-                            else:  # this is a reservoir
-                                # computing the reservoir area
-                                area_stor = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id], self.var.cellArea, 0))  # required to keep mass balance rigth
-                                # computing the reservoir storage in meter and put this value in each cell including the reservoir
-                                resstor_id = np.where(self.var.waterBodyID == lakeIDbyID[id],
-                                                       self.var.resStorage[discharge_point] / area_stor, resstor_id)  # in meter
+                                else:  # this is a reservoir
+                                    # computing the reservoir area
+                                    area_stor = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id], self.var.cellArea, 0))  # required to keep mass balance rigth
+                                    # computing the reservoir storage in meter and put this value in each cell including the reservoir
+                                    resstor_id = np.where(self.var.waterBodyID == lakeIDbyID[id],
+                                                           self.var.resStorage[discharge_point] / area_stor, resstor_id)  # in meter
 
-                # Gathering lakes and reservoirs in the same array
-                lakeResStorage = np.where(self.var.waterBodyTypTemp == 0, 0., np.where(self.var.waterBodyTypTemp == 1,
-                                                                                       lakestor_id, resstor_id))  # in meter
+                    # Gathering lakes and reservoirs in the same array
+                    lakeResStorage = np.where(self.var.waterBodyTypTemp == 0, 0., np.where(self.var.waterBodyTypTemp == 1, lakestor_id, resstor_id))  # in meter
 
-                minlake = np.maximum(0., 0.98 * lakeResStorage)  # reasonable but arbitrary limit
+                    minlake = np.maximum(0., 0.98 * lakeResStorage)  # reasonable but arbitrary limit
 
-                # leakage depends on water bodies storage, water bodies fraction and modflow saturated area
-                lakebedExchangeM_temp = np.minimum(self.var.leakagelake_factor * np.maximum(self.var.fracVegCover[5], 0) *
-                                                   ((1 - self.var.capriseindex + 0.25) // 1), minlake)  # leakage in m/d
+                    # leakage depends on water bodies storage, water bodies fraction and modflow saturated area
+                    lakebedExchangeM_temp = np.minimum(self.var.leakagelake_factor * np.maximum(self.var.fracVegCover[5], 0) *
+                                                       ((1 - self.var.capriseindex + 0.25) // 1), minlake)  # leakage in m/d
 
-                # Now, leakage is converted again from the lake/reservoir area to discharge point to be removed from the lake/reservoir store
-                self.var.lakebedExchangeM = np.zeros(np.shape(self.var.cellArea))
-                for id in range(len(lakeIDbyID)):  # for each lake or reservoir
-                    if lakeIDbyID[id] != 0:
-                        temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.lakeStorage > 0, 1, 0), 0)  # Looking for the discharge point of the lake
-                        if np.sum(temp_map) == 0:  # try reservoir
-                            temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.resStorage > 0, 1, 0), 0)  # Looking for the discharge point of the reservoir
-                        discharge_point = np.nanargmax(temp_map)  # Index of the cell where the lake outlet is stored
-                    # Converting the lake/reservoir leakage from meter to cubic meter and put this value in the cell corresponding to the outlet
-                    self.var.lakebedExchangeM[discharge_point] = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id],
-                                                                                                        lakebedExchangeM_temp * self.var.cellArea, 0))  # in m3
-                self.var.lakebedExchangeM = self.var.lakebedExchangeM / self.var.MtoM3  # in meter
+                    # Now, leakage is converted again from the lake/reservoir area to discharge point to be removed from the lake/reservoir store
+                    self.var.lakebedExchangeM = np.zeros(np.shape(self.var.cellArea))
+                    for id in range(len(lakeIDbyID)):  # for each lake or reservoir
+                        if lakeIDbyID[id] != 0:
+                            temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.lakeStorage > 0, 1, 0), 0)  # Looking for the discharge point of the lake
+                            if np.sum(temp_map) == 0:  # try reservoir
+                                temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.resStorage > 0, 1, 0), 0)  # Looking for the discharge point of the reservoir
+                            discharge_point = np.nanargmax(temp_map)  # Index of the cell where the lake outlet is stored
+                        # Converting the lake/reservoir leakage from meter to cubic meter and put this value in the cell corresponding to the outlet
+                        self.var.lakebedExchangeM[discharge_point] = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id],
+                                                                                                            lakebedExchangeM_temp * self.var.cellArea, 0))  # in m3
+                    self.var.lakebedExchangeM = self.var.lakebedExchangeM / self.var.MtoM3  # in meter
 
-                # compressed version for lakes and reservoirs
-                lakeExchangeM = np.compress(self.var.compress_LR, self.var.lakebedExchangeM)
+                    # compressed version for lakes and reservoirs
+                    lakeExchangeM = np.compress(self.var.compress_LR, self.var.lakebedExchangeM)
 
-                # substract from both, because it is sorted by self.var.waterBodyTypCTemp
-                self.var.lakeStorageC = self.var.lakeStorageC - lakeExchangeM * self.var.MtoM3C
-                self.var.lakeVolumeM3C = self.var.lakeVolumeM3C - lakeExchangeM * self.var.MtoM3C
-                self.var.reservoirStorageM3C = self.var.reservoirStorageM3C - lakeExchangeM * self.var.MtoM3C
+                    # substract from both, because it is sorted by self.var.waterBodyTypCTemp
+                    self.var.lakeStorageC = self.var.lakeStorageC - lakeExchangeM * self.var.MtoM3C
+                    self.var.lakeVolumeM3C = self.var.lakeVolumeM3C - lakeExchangeM * self.var.MtoM3C
+                    self.var.reservoirStorageM3C = self.var.reservoirStorageM3C - lakeExchangeM * self.var.MtoM3C
 
-                # and from the combined one for waterbalance issues
-                self.var.lakeResStorageC = self.var.lakeResStorageC - lakeExchangeM * self.var.MtoM3C
-                self.var.lakeResStorage = globals.inZero.copy()
-                np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
+                    # and from the combined one for waterbalance issues
+                    self.var.lakeResStorageC = self.var.lakeResStorageC - lakeExchangeM * self.var.MtoM3C
+                    self.var.lakeResStorage = globals.inZero.copy()
+                    np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
 
-                # adding leakage from lakes and reservoirs to the groundwater recharge
-                self.var.sum_gwRecharge += lakebedExchangeM_temp
+                    # adding leakage from lakes and reservoirs to the groundwater recharge
+                    self.var.sum_gwRecharge += lakebedExchangeM_temp
 
         soilVars = ['w1','w2','w3']
         for variable in soilVars:

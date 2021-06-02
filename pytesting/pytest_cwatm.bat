@@ -1,7 +1,7 @@
 rem coverage run -m pytest test_cwatm3.py --html=report111220.html --settingsfile=test_py_cwatm2.txt --cwatm=C:/work/CWATM/run_cwatm.py
 rem coverage html
 
-pytest test_cwatm3.py --cov-report=xml --cov=cwatm tests/  --html=report111220.html --settingsfile=test_py_cwatm2.txt --cwatm=C:/work/CWATM/run_cwatm.py
+pytest test_cwatm3.py --cov-report=xml --cov=cwatm tests/  --html=report02062021.html --settingsfile=test_py_cwatm5.txt --cwatm=C:/work/CWATM/run_cwatm.py
 
 pause
 

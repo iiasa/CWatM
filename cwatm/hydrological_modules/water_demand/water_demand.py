@@ -158,7 +158,7 @@ class water_demand:
         """
 
         # This variable has no impact if includeWaterDemand is False
-        self.var.includeIndusDomesDemand = False
+        self.var.includeIndusDomesDemand = True
         if "includeIndusDomesDemand" in option:
             self.var.includeIndusDomesDemand = checkOption('includeIndusDomesDemand')
         # True if all demands are taken into account, if not only irrigation is considered
