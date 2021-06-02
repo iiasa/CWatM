@@ -29,9 +29,20 @@ These external libraries are needed:
 * `SciPy <https://www.scipy.org>`_
 * `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
 * `GDAL <http://www.gdal.org>`_
-* `FloPy <https://www.usgs.gov/software/flopy-python-package-creating-running-and-post-processing-modflow-based-models>`_
 
-The five libraries can be installed with conda, pip or downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
+The four libraries can be installed with conda, pip or downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
+
+Additional libraries for CWatM - MODFLOW
+
+* `FloPy <https://www.usgs.gov/software/flopy-python-package-creating-running-and-post-processing-modflow-based-models>`_
+* `xmipy <https://pypi.org/project/xmipy>`_
+
+Additional libraries for CWatM - crop specific
+
+* `Pandas <https://pandas.pydata.org>`_
+* `xlrd <https://xlrd.readthedocs.io>`_
+* `openpyxl <https://openpyxl.readthedocs.io/en/stable>`_
+
 
 .. warning::
    | **Troublemaker GDAL**
@@ -42,6 +53,14 @@ The five libraries can be installed with conda, pip or downloaded at `Unofficial
    | 
    | Sometimes problems occure if you have installed GDAL separately (or a software did, like QGIS)
    
+
+.. warning::
+   | **Still troublemaker GDAL**  
+   | for Python version 3.8 we changed import gdal to:
+   | from osgeo import gdal
+   | from osgeo import osr
+   | from osgeo import gdalconst   
+   | gdal can be installed for Python 3.8 from pip or conda
 
 Installing
 ------------

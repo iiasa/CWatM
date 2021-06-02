@@ -285,7 +285,7 @@ The information of pathes are stored in the settings file around line 80-100
 
 
 Error and exception handling
-===========================
+============================
 
 We try to make our program behave properly when encountering unexpected conditions. Therefore we caption a number of possible wrong inputs.
 

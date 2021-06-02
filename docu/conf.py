@@ -11,6 +11,7 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
+# https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -113,7 +114,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Community Water Model'
-copyright = u'2017, PB'
+copyright = u'2021, IIASA Water Security'
 author = u'PB'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -121,7 +122,7 @@ author = u'PB'
 # built documents.
 #
 # The short X.Y version.
-version = u'-1.1'
+version = u'1.0.6'
 # The full version, including alpha/beta/rc tags.
 release = u'1'
 
@@ -183,7 +184,11 @@ todo_include_todos = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'nature'
+#html_theme = 'nature'
+# using Daniel Huppmann's python-stub 
+html_theme = "sphinx_rtd_theme"
+
+
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -214,10 +219,20 @@ html_logo = '_static/CWatM_logo.png'
 #
 # html_favicon = None
 
+# Using  python-stub
+html_logo = "_static/iiasa_logo_white.png"
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# These paths are either relative to html_static_path
+# or fully qualified paths (eg. https://...)
+html_css_files = [
+    "iiasa.css",
+]
+
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

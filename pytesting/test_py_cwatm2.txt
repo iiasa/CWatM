@@ -44,8 +44,8 @@ runtest: Rhine_30min_add  True
 runtest: Error_30min  True
 runtest: global_30min True
 runtest: Rhine_5min   True
-runtest: Rhine_5min_modflow   True
-runtest: global_5min  True
+runtest: Rhine_5min_modflow   False
+runtest: global_5min  False
 runtest: Check_30min  True
 
 # True is test should compare last discharge with given number, False is test should look for -no error- execution of run
@@ -61,7 +61,7 @@ test_value: False
 	path_init: ./init
 	path_out: ./output/rhine
 	path_maps: P:/watmodel/CWATM/cwatm_input
-	path_meteo: M:/climate/Isi-Mip2/wfdei
+	path_meteo: C:/climate/Isi-Mip2/wfdei
 	
        # 1st Rhine 30min
         header:      Rhine_30min_1
@@ -150,7 +150,7 @@ test_value: False
 	path_init: ./init
 	path_out: ./output/rhine
 	path_maps: P:/watmodel/CWATM/cwatm_input
-	path_meteo: M:/climate/Isi-Mip2/wfdei
+	path_meteo: C:/climate/Isi-Mip2/wfdei
 	
        # 1st add 
         header:      Rhine_30min_add_1
@@ -211,7 +211,7 @@ test_value: False
 	path_init: ./init
 	path_out: ./output/rhine
 	path_maps: P:/watmodel/CWATM/cwatm_input
-	path_meteo: M:/climate/Isi-Mip2/wfdei
+	path_meteo: C:/climate/Isi-Mip2/wfdei
 	
        # 1st Error 101 
         header:      Error_30min_1
@@ -261,7 +261,7 @@ test_value: False
         set_save:    settings_error_30min_07.ini
         changes:     CellArea = $(FILE_PATHS:PathMaps)/areamaps/lobith.tif
         adds:        
-        last_value:  Error 105 - map has less different shape than area or ldd
+        last_value:  Error 105 - map has a different shape than area or ldd
        # -> error 106 is missing data handling line 435
        # -> error 204 is missing data handling line 510
        # -> error 205 is missing data handling line 561
@@ -754,7 +754,7 @@ test_value: False
 	path_init: ./init
 	path_out: ./output/rhine
 	path_maps: P:/watmodel/CWATM/cwatm_input
-	path_meteo: M:/climate/Isi-Mip2/wfdei
+	path_meteo: C:/climate/Isi-Mip2/wfdei
 	
        # 1st Check 
         header:      Check_30min_1

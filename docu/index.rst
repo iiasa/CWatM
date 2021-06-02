@@ -19,7 +19,7 @@ Community Water Model
 
 :Copyright: IIASA WAT Program
 :Authors: :ref:`rst_developer`
-:Version: 1.04  
+:Version: 1.06  
 :Version Date: |today|
 
 **Content:**

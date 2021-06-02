@@ -5,7 +5,7 @@ Introduction
 
 .. raw:: html 
 
-   <video autoplay loop controls src="_static/CWatM_intro.mp4" width="800"> </video>
+   <video autoplay loop controls src="_static/CWatM_intro.mp4" width="700"> </video>
 
 
 Community Water Model - CWatM
@@ -18,7 +18,7 @@ CWatM will represent one of the new key elements of the WAT program going forwar
 Our vision for the short to medium term work of the group is to introduce water quality (i.e., salinization in deltas and eutrophication associated with mega cities) into the community model and to consider how to include a qualitative/quantitative measure of transboundary river and groundwater governance into a scenario and modelling framework.
 
 .. image:: _static/Hydrological-model2.jpg
-    :width: 800px
+    :width: 700px
 
 Figure: CWatM - Water related processes included in the model design
 

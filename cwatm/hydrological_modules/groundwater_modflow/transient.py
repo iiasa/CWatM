@@ -120,13 +120,18 @@ class groundwater_modflow:
 
         # test if ModFlow coupling is used as defined in settings file
         self.var.modflow = False
-        if 'modflow_coupling' in binding:
-            self.var.modflow = returnBool('modflow_coupling')
-            #self.var.modflow = checkOption('modflow_coupling')
+        if 'modflow_coupling' in option:
+            #self.var.modflow = returnBool('modflow_coupling')
+            self.var.modflow = checkOption('modflow_coupling')
 
         if self.var.modflow:
 
             print('\n=> ModFlow is used\n')
+
+            verboseGW = False
+            if 'verbose_GW' in binding:
+                verboseGW = returnBool('verbose_GW')
+
 
             modflow_directory = cbinding('PathGroundwaterModflow')
             modflow_directory_output = cbinding('PathGroundwaterModflowOutput')
@@ -323,7 +328,7 @@ class groundwater_modflow:
                     load_from_disk=returnBool('load_modflow_from_disk'),
                     setpumpings=True,
                     pumpingloc=self.wells_mask,
-                    verbose=True)
+                    verbose=verboseGW)
 
 
 
@@ -350,7 +355,7 @@ class groundwater_modflow:
                     load_from_disk=returnBool('load_modflow_from_disk'),
                     setpumpings=False,
                     pumpingloc=None,
-                    verbose=True)
+                    verbose=verboseGW)
 
 
             # MODIF LUCA
@@ -411,7 +416,8 @@ class groundwater_modflow:
             # Groundwater pumping demand from the CWatM waterdemand module, will be decompressed to 2D array
             # CWatM 2D groundwater pumping array is converted into Modflow 2D array
             # Pumping is given to ModFlow in m3 and < 0
-            print('mean modflow pumping [m]: ', np.nanmean(self.var.modfPumpingM))
+            if self.modflow.verbose:
+                print('mean modflow pumping [m]: ', np.nanmean(self.var.modfPumpingM))
             groundwater_abstraction = - self.CWATM2modflow(decompress(self.var.modfPumpingM)) * domain['rowsize'] * domain['colsize'] # BURGENLAND * 100 AND L428
             # * 100 because applied only in one ModFlow cell in Burgenland
 
