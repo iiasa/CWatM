@@ -143,9 +143,11 @@ def CWATMexe(settings):
         timePrint = timeSum
         for i in range(len(timePrint)):
             print("%2i %-17s %10.2f %8.1f" % (i, timeMesString[i], timePrint[i], 100 * timePrint[i] / timePrint[-1]))
-    current_time = datetime.datetime.now().time()
-    print(start_time.isoformat())
-    print(current_time.isoformat())
+
+    if Flags['loud']:
+        current_time = datetime.datetime.now().time()
+        print("\nStart: " + start_time.isoformat())
+        print("End:   " + current_time.isoformat())
 
     # return with last value and true for successfull run for pytest
     if Flags['calib']:
@@ -176,8 +178,6 @@ def CWATMexe2(settings,meteo):
     for i in inputcounter.keys():
         inputcounter[i] = inputcounter[i] - days
 
-    if Flags['check']:
-        dateVar["intEnd"] = dateVar["intStart"]
 
     CWATM = CWATModel()
     CWATM.var.meteo = meteo
@@ -197,9 +197,7 @@ def CWATMexe2(settings,meteo):
         timePrint = timeSum
         for i in range(len(timePrint)):
             print("%2i %-17s %10.2f %8.1f" % (i, timeMesString[i], timePrint[i], 100 * timePrint[i] / timePrint[-1]))
-    current_time = datetime.datetime.now().time()
-    print(start_time.isoformat())
-    print(current_time.isoformat())
+
 
     # return with last value and true for successfull run for pytest
     return(True, CWATM.var.firstout)
@@ -282,12 +280,14 @@ def headerinfo():
 
 def mainwarm(settings, args, meteo):
     success = False
-    print ("Warm start CWatM")
+    #print ("Warm start CWatM")
 
     calibclear()
     globalFlags(settings, args, settingsfile, Flags)
     Flags['warm'] = True
-
+    Flags['warm'] = True
+    if meteo == []:
+        Flags['warm'] = False
     headerinfo()
     success, last_dis = CWATMexe2(settingsfile[0],meteo)
     return success, last_dis

@@ -416,7 +416,8 @@ def date2indexNew(date, nctime, calendar, select='nearest', name =""):
             value = max(nctime[:]) - 11 + (date.month - month0)
             msg = " - " + date.strftime('%Y-%m') + " is later then the last dataset in " + name + " -"
             msg += " instead last year/month dataset is used"
-            print(CWATMWarning(msg))
+            if Flags['loud']:
+                print(CWATMWarning(msg))
 
 
         index = np.where(nctime[:] == value)[0][0]
@@ -427,12 +428,14 @@ def date2indexNew(date, nctime, calendar, select='nearest', name =""):
             value = max(nctime[:])
             msg = " - " + date.strftime('%Y') + " is later then the last dataset in " + name + " -"
             msg += " instead last year dataset is used"
-            print(CWATMWarning(msg))
+            if Flags['loud']:
+                print(CWATMWarning(msg))
         if value < min(nctime[:]):
             value = min(nctime[:])
             msg = " - " + date.strftime('%Y') + " is earlier then the first dataset in " + name + " -"
             msg += " instead first year dataset is used"
-            print(CWATMWarning(msg))
+            if Flags['loud']:
+                print(CWATMWarning(msg))
 
 
         index = np.where(nctime[:] == value)[0][0]
