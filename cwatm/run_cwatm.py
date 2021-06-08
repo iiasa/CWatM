@@ -285,10 +285,11 @@ def mainwarm(settings, args, meteo):
     calibclear()
     globalFlags(settings, args, settingsfile, Flags)
     Flags['warm'] = True
-    Flags['warm'] = True
+
+    headerinfo()
     if meteo == []:
         Flags['warm'] = False
-    headerinfo()
+
     success, last_dis = CWATMexe2(settingsfile[0],meteo)
     return success, last_dis
 

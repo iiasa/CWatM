@@ -702,8 +702,15 @@ class lakes_reservoirs(object):
 
         # sum up runoff and discharge on the lake
         inflow = npareatotal(dis_LR + self.var.runoff * self.var.cellArea , self.var.waterBodyID)
+
         # only once at the outlet
         inflow = np.where(self.var.waterBodyOut > 0, inflow, 0.) / self.var.noRoutingSteps + self.var.outLake
+
+        if checkOption('inflow'):
+            # if inflow ( from module inflow) goes to a lake this is not counted, because lakes,reservoirs are dislinked from the network
+            inflow2basin = npareatotal(self.var.inflowDt, self.var.waterBodyID)
+            inflow2basin = np.where(self.var.waterBodyOut > 0, inflow2basin, 0.)
+            inflow = inflow + inflow2basin
 
         # calculate total inflow into lakes and compress it to waterbodie outflow point
         # inflow to lake is discharge from upstream network + runoff directly into lake + outflow from upstream lakes
