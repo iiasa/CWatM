@@ -71,6 +71,40 @@ class CWATMFileError(CWATMError):
             errornumber = 100
         sys.exit(errornumber)
 
+class CWATMDirError(CWATMError):
+    """
+    The error handling class
+    prints out an error
+
+    :param Warning: class CWATMError
+    :return: prints out a message about file error
+
+    """
+    def __init__(self, filename, msg="", sname=""):
+        # don't show the error code, lines etc.
+        sys.tracebacklimit = 0
+        path, name = os.path.split(filename)
+        if os.path.exists(filename):
+            text1 = "in setting name  \"" + sname + "\"\n"
+            text1 += "directory name: "+ filename + " exists, but an error was raised"
+        elif os.path.exists(path):
+            text1 = "in setting name: \"" + sname + "\"\n"
+            text1 += "directory path: "+ path + " exists\nbut: "+name+ " does not\n"
+
+        else:
+            text1 = " in settings name: \""+ sname +"\"\n"
+            text1 += "searching: \""+filename+"\""
+            text1 += "\npath: "+ path + " does not exists\n"
+
+        header = "\n\n ======================== CWATM FILE ERROR ===========================\n"
+        print (header + msg + text1 +"\n")
+
+        try:
+            errornumber = int(msg[6:9])
+        except:
+            errornumber = 100
+        sys.exit(errornumber)
+
 
 class CWATMWarning(Warning):
     """

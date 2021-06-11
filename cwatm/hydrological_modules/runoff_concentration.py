@@ -228,6 +228,7 @@ class runoff_concentration(object):
             #self.var.sum_landSurfaceRunoff = self.var.runoff_conc[0].copy()
 
             # baseflow time of concentration
+            self.var.baseflow = self.var.baseflow.astype(np.float64)
             lib2.runoffConc(self.var.runoff_conc, self.var.tpeak_baseflow,globals.inZero +1 ,self.var.baseflow,self.var.maxtime_runoff_conc,maskinfo['mapC'][0])
             #self.var.baseflow = self.var.runoff_conc[0] - self.var.sum_landSurfaceRunoff
             # -------------------------------------------------------------------------------

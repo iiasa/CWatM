@@ -114,7 +114,6 @@ class groundwater_modflow:
         # estimate of the initial water table ("head" variable in the initial part)
 
         # ModFlow6 version is only daily currently
-        self.var.modflowsteady = False  #returnBool('modflow_steadystate')
         self.var.modflow_timestep = 1  #int(loadmap('modflow_timestep'))
         self.var.Ndays_steady = 0  #int(loadmap('Ndays_steady'))
 
@@ -136,6 +135,9 @@ class groundwater_modflow:
             modflow_directory = cbinding('PathGroundwaterModflow')
             modflow_directory_output = cbinding('PathGroundwaterModflowOutput')
             directory_mf6dll = cbinding('path_mf6dll')
+            if not(os.path.isdir(directory_mf6dll)):
+                msg = "Error 222: Path to Modflow6 files does not exists "
+                raise CWATMDirError(directory_mf6dll,msg,sname='path_mf6dll')
 
             nlay = int(loadmap('nlay'))
 
