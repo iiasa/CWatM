@@ -74,6 +74,8 @@ class ModFlowSimulation:
                 exe_name=os.path.join(folder, 'mf6'),
                 sim_ws=self.working_directory,
                 memory_print_option='all'
+                #nocheck = True
+
             )
             
             # create tdis package

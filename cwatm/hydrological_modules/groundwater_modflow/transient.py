@@ -266,7 +266,14 @@ class groundwater_modflow:
                 self.var.load_init_water_table = returnBool('load_init_water_table')
             if self.var.load_init_water_table:
                 print('=> Initial water table depth is uploaded from ', cbinding('init_water_table'))
-                head = np.load(cbinding('init_water_table'))
+                watertable = cbinding('init_water_table')
+                if watertable.split(".")[-1] == "npy":
+                    head = np.load(cbinding('init_water_table'))
+                else:
+                    ds = Dataset(watertable)
+                    var = list(ds.variables.keys())[-1]
+                    head = ds[var][:].data
+
             else:
                 start_watertabledepth = loadmap('initial_water_table_depth')
                 print('=> Water table depth is - ', start_watertabledepth, ' m at the begining')
