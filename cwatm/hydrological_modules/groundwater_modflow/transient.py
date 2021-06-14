@@ -295,6 +295,7 @@ class groundwater_modflow:
                 self.var.GW_pumping = returnBool('Groundwater_pumping')
             print('=> Groundwater pumping should be deactivated if includeWaterDemand is False')
 
+            self.var.availableGWStorageFraction = 0.85
             if self.var.GW_pumping:
                 print('=> THE PUMPING MAP SHOULD BE DEFINED (In transient.py ALSO LINE 420) BEFORE TO RUN THE MODEL AND BE THE SAME FOR ALL THE SIMULATION')
                 # creating a mask to set up pumping wells, TO DO MANUALLY HERE OR TO IMPORT AS A MAP, because running the model with zero pumping rates every cells is consuming
@@ -309,7 +310,6 @@ class groundwater_modflow:
                         else:
                             self.wells_mask[ir][ic] = False
 
-                self.var.availableGWStorageFraction = 0.85
                 if 'water_table_limit_for_pumping' in binding:
                     # if available storage is too low, no pumping in this cell
                     self.var.availableGWStorageFraction = loadmap('water_table_limit_for_pumping')  # if 85% of the ModFlow cell is empty, we prevent pumping in this cell
