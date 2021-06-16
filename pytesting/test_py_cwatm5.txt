@@ -39,15 +39,15 @@
 
 
 # True is the tests for this section should be done
-runtest: Rhine_30min  False
-runtest: Rhine_30min_add False
-runtest: Error_30min  False
-runtest: global_30min False
-runtest: Rhine_5min   False
+runtest: Rhine_30min  True
+runtest: Rhine_30min_add True
+runtest: Error_30min  True
+runtest: global_30min True
+runtest: Rhine_5min   True
 runtest: Rhine_5min_modflow  True
-runtest: Burgenland_1km_modflow  False
-runtest: global_5min  False
-runtest: Check_30min  False
+runtest: Burgenland_1km_modflow  True
+runtest: global_5min  True
+runtest: Check_30min  True
 
 # True is test should compare last discharge with given number, False is test should look for -no error- execution of run
 test_value: False
@@ -675,7 +675,7 @@ test_value: False
         last_value:  0.0         
        # 4th Rhine 5min Modflow
         header:      Rhine_5min_Modflow_4
-        description: 4th Rhine 5min Modflow no pumping some falgs reversed
+        description: 4th Rhine 5min Modflow no pumping some flags reversed
         set_save:    settings_rhine5min_gw_04.ini
         changes:     load_modflow_from_disk = True; load_init_water_table = True; use_soildepth_as_GWtop = True; correct_soildepth_underlakes = False; Groundwater_pumping = False
         adds:        

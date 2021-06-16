@@ -134,6 +134,8 @@ class groundwater_modflow:
 
             modflow_directory = cbinding('PathGroundwaterModflow')
             modflow_directory_output = cbinding('PathGroundwaterModflowOutput')
+            # assert os.path.isabs(modflow_directory_output)
+
             directory_mf6dll = cbinding('path_mf6dll')
             if not(os.path.isdir(directory_mf6dll)):
                 msg = "Error 222: Path to Modflow6 files does not exists "
@@ -439,6 +441,8 @@ class groundwater_modflow:
 
         # running ModFlow
         self.modflow.step()
+        #self.modflow.finalize()
+
 
         # MODIF LUCA
         # extracting the new simulated hydraulic head map

@@ -153,6 +153,12 @@ class CWATModel_dyn(DynamicModel):
             if self.currentStep == self.firstStep:
                 timeMesSum.append(timeMes[i] - timeMes[0])
             else: timeMesSum[i] += timeMes[i] - timeMes[0]
+        # if modflow is used, the temporary files produced by Modflow/Flopy have to be closed with finalize
+        # otherwise they cannot be oppend in the next run by pytest or calibration
+        if self.var.modflow:
+            if self.currentStep == self.lastStep:
+                self.groundwater_modflow_module.modflow.finalize()
+
 
 
         #self.var.sumsum_directRunoff += self.var.sum_directRunoff

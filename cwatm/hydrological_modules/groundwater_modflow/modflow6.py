@@ -160,6 +160,7 @@ class ModFlowSimulation:
                                         print_input=False, print_flows=False, save_flows=False)
             
             sim.write_simulation()
+            ii = 1
             # sim.run_simulation()
         elif self.verbose:
             print("Loading MODFLOW model from disk")

@@ -265,28 +265,11 @@ class landcoverType(object):
 
         i = 0
         for coverType in self.var.coverTypes[:4]:
-            # other paramater values
-            # b coefficient of soil water storage capacity distribution
-            #self.var.minTopWaterLayer.append(loadmap(coverType + "_minTopWaterLayer"))
-            #self.var.minCropKC.append(loadmap(coverType + "_minCropKC"))
-
-            #self.var.minInterceptCap.append(loadmap(coverType + "_minInterceptCap"))
-            #self.var.cropDeplFactor.append(loadmap(coverType + "_cropDeplFactor"))
-            # parameter values
-
-            self.var.rootFraction1.append(loadmap(coverType + "_rootFraction1"))
-            #self.var.rootFraction2.append(loadmap(coverType + "_rootFraction2"))
+            # calculate rootdepth for each soillayer and each land cover class
 
             soildepth_factor = loadmap('soildepth_factor')
             self.var.maxRootDepth.append(loadmap(coverType + "_maxRootDepth")* soildepth_factor)
 
-            i += 1
-
-
-        i = 0
-        for coverType in self.var.coverTypes[:4]:
-            # calculate rootdepth for each soillayer and each land cover class
-            # self.var.rootDepth[0][i] = np.minimum(self.var.soildepth[0], self.var.maxRootDepth[i])
             self.var.rootDepth[0][i] = self.var.soildepth[0].copy()  # 0.05 m
             # if land cover = forest
             if coverType != 'grassland':
@@ -347,10 +330,6 @@ class landcoverType(object):
             self.var.genuInvM1 = [1 / x for x in self.var.genuM1]
             self.var.genuInvM2 = [1 / x for x in self.var.genuM2]
             self.var.genuInvM3 = [1 / x for x in self.var.genuM3]
-            # self.var.GenuInvN1=1/GenuN1
-            self.var.genuInvN1 = [1 / x for x in genuN1]
-            self.var.genuInvN2 = [1 / x for x in genuN2]
-            self.var.genuInvN3 = [1 / x for x in genuN3]
 
         soilVars2 = ['ws1','ws2','ws3','wres1','wres2','wres3','wrange1','wrange2','wrange3','wfc1','wfc2','wfc3','wwp1','wwp2','wwp3','kunSatFC12','kunSatFC23']
         for variable in soilVars2: vars(self.var)[variable] = []
