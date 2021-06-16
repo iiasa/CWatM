@@ -40,7 +40,7 @@ class outputTssMap(object):
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
     dirUp                 river network in upstream direction                                               --       
-    cellArea              Cell area [m²] of each simulated mesh                                                      
+    cellArea              Area of cell                                                                      m2       
     sampleAdresses                                                                                                   
     noOutpoints                                                                                                      
     evalCatch                                                                                                        
@@ -525,12 +525,20 @@ class outputTssMap(object):
         # ************************************************************
         self.var.firstout = firstout(self.var.discharge)
 
-        if Flags['loud'] and checkOption('reportTss'):
-            # print the discharge of the first output map loc
-            # print " %10.2f"  %cellvalue(maptotal(decompress(eval('self.var.' + reportTimeSerieAct["DisTS"]['outputVar'][0]))),1,1)[0]
-            # print " %10.2f" % self.var.Tss["DisTS"].firstout(decompress(self.var.ChanQAvg))
-            #print " %10.2f" % outTss['routing_out_tss_daily'][0][0].firstout(decompress(self.var.discharge))
-            print(" %10.2f" % self.var.firstout)
+        if Flags['loud']:
+            print("\r%-6i %10s %10.2f     " %(dateVar['currStart'],dateVar['currDatestr'],self.var.firstout), end='')
+            sys.stdout.flush()
+
+        else:
+            if not(Flags['check']):
+                if (Flags['quiet']) and (not(Flags['veryquiet'])):
+                    sys.stdout.write(".")
+                if (not(Flags['quiet'])) and (not(Flags['veryquiet'])):
+                    print("\r%d   " % dateVar['currStart'],end ='')
+                    sys.stdout.flush()
+
+        #if Flags['loud'] and checkOption('reportTss'):
+            #print(" %10.2f" % self.var.firstout)
 
         if checkOption('reportTss'):
             for tss in list(outTss.keys()):

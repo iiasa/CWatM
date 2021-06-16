@@ -23,9 +23,7 @@ class readmeteo(object):
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    modflow               Flag: True if modflow_coupling = True in settings file                            --       
-    modflowsteady         True if modflow_steadystate = True in settings file                               --       
-    DtDay                 seconds in a timestep (default=86400)                                             s        
+    DtDay                 seconds in a timestep (default=86400)                                             s
     con_precipitation     conversion factor for precipitation                                               --       
     con_e                 conversion factor for evaporation                                                 --       
     TMin                  minimum air temperature                                                           K        
@@ -41,11 +39,7 @@ class readmeteo(object):
     Precipitation         Precipitation (input for the model)                                               m        
     meteomapsscale        if meteo maps have the same extend as the other spatial static maps -> meteomaps  --       
     meteodown             if meteo maps should be downscaled                                                --       
-    preMaps               choose between steady state precipitation maps for steady state modflow or norma  --       
-    tempMaps              choose between steady state temperature maps for steady state modflow or normal   --       
-    evaTMaps              choose between steady state ETP water maps for steady state modflow or normal ma  --       
-    eva0Maps              choose between steady state ETP reference maps for steady state modflow or norma  --       
-    wc2_tavg              High resolution WorldClim map for average temperature                             K        
+    wc2_tavg              High resolution WorldClim map for average temperature                             K
     wc4_tavg              upscaled to low resolution WorldClim map for average temperature                  K        
     wc2_tmin              High resolution WorldClim map for min temperature                                 K        
     wc4_tmin              upscaled to low resolution WorldClim map for min temperature                      K        
@@ -53,12 +47,8 @@ class readmeteo(object):
     wc4_tmax              upscaled to low resolution WorldClim map for max temperature                      K        
     wc2_prec              High resolution WorldClim map for precipitation                                   m        
     wc4_prec              upscaled to low resolution WorldClim map for precipitation                        m        
-    demAnomaly            digital elevation model anomaly (high resolution - low resolution)                m        
-    demHigh               digital elevation model high resolution                                           m        
     prec                  precipitation in m                                                                m        
-    temp                  average temperature in Celsius deg                                                C°       
-    Tmin                  minimum temperature in Celsius deg                                                C°       
-    Tmax                  maximum temperature in celsius deg                                                C°       
+    temp                  average temperature in Celsius deg                                                Celcius d
     WtoMJ                 Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6                    --       
     ====================  ================================================================================  =========
 
@@ -110,6 +100,7 @@ class readmeteo(object):
         if "usemeteodownscaling" in binding:
             self.var.meteodown = returnBool('usemeteodownscaling')
 
+        check_clim = False
         if self.var.meteodown:
             check_clim = checkMeteo_Wordclim(namemeteo, cbinding('downscale_wordclim_prec'))
 
@@ -133,29 +124,10 @@ class readmeteo(object):
 
         # -------------------------------------------------------------------
 
-
-
-        # test if ModFlow is in the settingsfile
-        # if not, use default without Modflow
-        self.var.modflow = False
-        self.var.modflowsteady = True
-        if "modflow_coupling" in option:
-            self.var.modflow = checkOption('modflow_coupling')
-
-        if self.var.modflow:
-            ## Model properties ##
-            self.var.modflowsteady = returnBool('modflow_steadystate')
-
-        if (self.var.modflow and self.var.modflowsteady):
-            self.var.preMaps  = 'ModflowPrecipitationMaps'
-            self.var.tempMaps = 'ModflowTavgMaps'
-            self.var.evaTMaps = 'ModflowETMaps'
-            self.var.eva0Maps = 'ModflowE0Maps'
-        else:
-            self.var.preMaps = 'PrecipitationMaps'
-            self.var.tempMaps = 'TavgMaps'
-            self.var.evaTMaps = 'ETMaps'
-            self.var.eva0Maps = 'E0Maps'
+        self.var.preMaps = 'PrecipitationMaps'
+        self.var.tempMaps = 'TavgMaps'
+        self.var.evaTMaps = 'ETMaps'
+        self.var.eva0Maps = 'E0Maps'
 
 
         if checkOption('calc_evaporation'):
@@ -324,9 +296,14 @@ class readmeteo(object):
             If option *TemperatureInKelvin* = True temperature is assumed to be Kelvin instead of Celsius!
 
         """
-        modflow = False
-        if (self.var.modflow and self.var.modflowsteady):
-            modflow = True
+        if Flags['warm']:
+            # if warmstart use stored meteo variables
+            no = dateVar['curr']-1
+            self.var.Precipitation = self.var.meteo[0,no]
+            self.var.Tavg = self.var.meteo[1,no]
+            self.var.ETRef = self.var.meteo[2,no]
+            self.var.EWRef = self.var.meteo[3,no]
+            return
 
         ZeroKelvin = 0.0
         if checkOption('TemperatureInKelvin'):
@@ -334,7 +311,7 @@ class readmeteo(object):
             # TODO in initial there could be a check if temperature > 200 -> automatic change to Kelvin
             ZeroKelvin = 273.15
 
-        self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale, modflowSteady = modflow) * self.var.DtDay * self.var.con_precipitation
+        self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale) * self.var.DtDay * self.var.con_precipitation
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
 
         if self.var.meteodown:
@@ -354,7 +331,7 @@ class readmeteo(object):
         tzero = 0
         if checkOption('TemperatureInKelvin'):
             tzero = ZeroKelvin
-        self.var.Tavg = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.var.meteomapsscale, modflowSteady = modflow)
+        self.var.Tavg = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.var.meteomapsscale)
 
         if self.var.meteodown:
             self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
@@ -456,28 +433,37 @@ class readmeteo(object):
         # if pot evaporation is already precalulated
         else:
 
-            """
-            # in case ET_ref is cut to local area there is an optional flag in settings which checks this
-            # if it is not sert the standart is used
-            try:
-                if returnBool('cutET'):
-                    cutET = True
-                else: cutET = False
-            except:
-                cutET = False
-            """
+            # in case ET_ref is the same resolution as the other meteo input map, there is an optional flag in settings which checks this
+            ETsamePr = False
+            if "ETsamePr" in binding:
+                if returnBool('ETsamePr'):
+                    ETsamePr = True
 
-            #self.var.ETRef = readmeteodata('ETMaps', dateVar['currDate'], addZeros=True) * self.var.DtDay * self.var.con_e
-            self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True, mapsscale = True, modflowSteady = modflow) * self.var.DtDay * self.var.con_e
-            #self.var.ETRef = downscaling2(self.var.ETRef)
-            # daily reference evaporation (conversion to [m] per time step)
-            #self.var.EWRef = readmeteodata('E0Maps', dateVar['currDate'], addZeros=True) * self.var.DtDay * self.var.con_e
-            self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True, mapsscale = True, modflowSteady = modflow) * self.var.DtDay * self.var.con_e
-            #self.var.EWRef = downscaling2(self.var.EWRef)
-            # potential evaporation rate from water surface (conversion to [m] per time step)
-            # self.var.ESRef = (self.var.EWRef + self.var.ETRef)/2
-            # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
+            if ETsamePr:
+                self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale) * self.var.DtDay * self.var.con_e
+                self.var.ETRef = self.downscaling2(self.var.ETRef, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
 
+                self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale) * self.var.DtDay * self.var.con_e
+                self.var.EWRef = self.downscaling2(self.var.EWRef, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
+            else:
+                self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True, mapsscale = True) * self.var.DtDay * self.var.con_e
+                self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True, mapsscale = True) * self.var.DtDay * self.var.con_e
+                # potential evaporation rate from water surface (conversion to [m] per time step)
+                # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
 
-
+        if Flags['calib']:
+            # if first clibration run, store all meteo data in a variable
+            if dateVar['curr'] == 1:
+                self.var.meteo = np.zeros([4,1 + dateVar["intEnd"] - dateVar["intStart"],len(self.var.Precipitation)])
+                #self.var.ETRef_all,self.var.EWRef_all,self.var.Tavg_all, self.var.Precipitation_all = [],[],[],[]
+            no = dateVar['curr'] -1
+            self.var.meteo[0,no] = self.var.Precipitation
+            self.var.meteo[1,no] = self.var.Tavg
+            self.var.meteo[2,no] = self.var.ETRef
+            self.var.meteo[3,no] = self.var.EWRef
+            #self.var.ETRef_all.append(self.var.ETRef)
+            #self.var.EWRef_all.append(self.var.EWRef)
+            #self.var.Tavg_all.append(self.var.Tavg)
+            #self.var.Precipitation_all.append(self.var.Precipitation)
+            ii =1
 

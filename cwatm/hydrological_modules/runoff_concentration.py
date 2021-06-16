@@ -39,7 +39,6 @@ class runoff_concentration(object):
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
     load_initial                                                                                                     
-    fracVegCover          Fraction of area covered by the corresponding landcover type                               
     sum_interflow                                                                                                    
     baseflow              simulated baseflow (= groundwater discharge to river)                             m        
     coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
@@ -52,6 +51,7 @@ class runoff_concentration(object):
     gridcell_storage                                                                                                 
     sum_landSurfaceRunof  Runoff concentration above the soil more interflow including all landcover types  m        
     landSurfaceRunoff     Runoff concentration above the soil more interflow                                m        
+    fracVegCover          Fraction of specific land covers (0=forest, 1=grasslands, etc.)                   %        
     directRunoff          Simulated surface runoff                                                          m        
     interflow             Simulated flow reaching runoff instead of groundwater                             m        
     prergridcell                                                                                                     
@@ -228,6 +228,7 @@ class runoff_concentration(object):
             #self.var.sum_landSurfaceRunoff = self.var.runoff_conc[0].copy()
 
             # baseflow time of concentration
+            self.var.baseflow = self.var.baseflow.astype(np.float64)
             lib2.runoffConc(self.var.runoff_conc, self.var.tpeak_baseflow,globals.inZero +1 ,self.var.baseflow,self.var.maxtime_runoff_conc,maskinfo['mapC'][0])
             #self.var.baseflow = self.var.runoff_conc[0] - self.var.sum_landSurfaceRunoff
             # -------------------------------------------------------------------------------

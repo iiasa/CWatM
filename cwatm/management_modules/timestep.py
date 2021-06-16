@@ -62,6 +62,7 @@ def ctbinding(inBinding):
     if test:
         return binding[inBinding]
     else:
+        # not tested because you have to remove eg stepstart to test this
         closest = difflib.get_close_matches(inBinding, list(binding.keys()))
         if not closest: closest = ["- no match -"]
         msg = "Error 118: ===== Timing in the section: [TIME-RELATED_CONSTANTS] is wrong! =====\n"
@@ -340,10 +341,12 @@ def checkifDate(start,end,spinup,name):
     d1 = datenum(begin)
     startint = int(d1 + dateVar['intSpin'] -1)
     dateVar['dateStart'] = numdate(startint)
-
-
     dateVar['diffdays'] = dateVar['intEnd'] - dateVar['intSpin'] + 1
     #dateVar['dateEnd'] = dateVar['dateStart'] + datetime.timedelta(days=dateVar['diffdays']-1)
+
+    dateVar['dateStart1'] = begin + datetime.timedelta(days=dateVar['intSpin'] - 1)
+    dateVar['dateEnd1'] = dateVar['dateStart1'] + datetime.timedelta(days=dateVar['diffdays'] - 1)
+
     d1 = datenum(dateVar['dateStart'])
     endint = int(d1 + dateVar['diffdays'])
     dateVar['dateEnd'] = numdate(endint, -1)
@@ -414,7 +417,8 @@ def date2indexNew(date, nctime, calendar, select='nearest', name =""):
             value = max(nctime[:]) - 11 + (date.month - month0)
             msg = " - " + date.strftime('%Y-%m') + " is later then the last dataset in " + name + " -"
             msg += " instead last year/month dataset is used"
-            print(CWATMWarning(msg))
+            if Flags['loud']:
+                print(CWATMWarning(msg))
 
 
         index = np.where(nctime[:] == value)[0][0]
@@ -425,12 +429,14 @@ def date2indexNew(date, nctime, calendar, select='nearest', name =""):
             value = max(nctime[:])
             msg = " - " + date.strftime('%Y') + " is later then the last dataset in " + name + " -"
             msg += " instead last year dataset is used"
-            print(CWATMWarning(msg))
+            if Flags['loud']:
+                print(CWATMWarning(msg))
         if value < min(nctime[:]):
             value = min(nctime[:])
             msg = " - " + date.strftime('%Y') + " is earlier then the first dataset in " + name + " -"
             msg += " instead first year dataset is used"
-            print(CWATMWarning(msg))
+            if Flags['loud']:
+                print(CWATMWarning(msg))
 
 
         index = np.where(nctime[:] == value)[0][0]

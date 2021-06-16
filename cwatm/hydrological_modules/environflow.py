@@ -9,7 +9,7 @@
 # -------------------------------------------------------------------------
 
 from cwatm.management_modules.data_handling import *
-
+from datetime import datetime, timedelta
 
 
 class environflow(object):
@@ -25,12 +25,12 @@ class environflow(object):
     ====================  ================================================================================  =========
     Variable [self.var]   Description                                                                       Unit     
     ====================  ================================================================================  =========
-    cut_ef_map            if TRUE calculated maps of environmental flow are cut to the extend of the area   --       
     MAF                   Mean of discharge for all days                                                    m3/s     
     Q90                   10% of the lowest discharge for all days                                          m3/s     
     MMF                   Mean of discharge for each month separately                                       m3/s     
     MQ90                  10% of lowest discharge for each month separately                                 m3/s     
     EF_VMF                EF requirement with Variable Monthly Flow: Pastor et al.(2014): Accounting for e  m3/s     
+    cut_ef_map            if TRUE calculated maps of environmental flow are cut to the extend of the area   --       
     ====================  ================================================================================  =========
 
     **Functions**
@@ -96,8 +96,10 @@ class environflow(object):
           if (returnBool('calc_ef_afterRun')  == False) or (dateVar['currDate'] == dateVar['dateEnd']):
             # either load already calculated discharge or at the end of the simulation
 
-            # calculate date  array
-            datearray = np.arange(dateVar['dateStart'], dateVar['dateEnd'], datetime.timedelta(days=1)).astype(datetime.datetime)
+            # calculate date array
+            #datearray = np.arange(dateVar['dateStart'], dateVar['dateEnd'], datetime.timedelta(days=1)).astype(datetime.datetime)
+            datearray = np.arange(dateVar['dateStart1'], dateVar['dateEnd1'], timedelta(days=1)).astype(datetime)
+
             montharray = np.array([d.month for d in datearray])
             monthshape = montharray.shape[0]
 

@@ -25,9 +25,9 @@ from cwatm.management_modules.dynamicModel import *
 from netCDF4 import Dataset,num2date,date2num,date2index
 #from netcdftime import utime
 
-import gdal
+from osgeo import gdal
 from osgeo import osr
-from gdalconst import *
+from osgeo import gdalconst
 import warnings
 
 def valuecell( coordx, coordstr, returnmap = True):
@@ -101,6 +101,7 @@ def setmaskmapAttr(x,y,col,row,cell):
     """
     invcell = round(1/cell,0)
     # getgeotransform only delivers single precision!
+    if invcell == 0: invcell = 1/cell
     cell = 1 / invcell
     if (x-int(x)) != 0.:
         if abs(x - int(x)) > 1e9:
@@ -184,7 +185,7 @@ def loadsetclone(self,name):
             try:
 
                 filename = cbinding(name)
-                nf2 = gdal.Open(filename, GA_ReadOnly)
+                nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
                 geotransform = nf2.GetGeoTransform()
                 geotrans.append(geotransform)
                 setmaskmapAttr( geotransform[0], geotransform[3], nf2.RasterXSize, nf2.RasterYSize, geotransform[1])
@@ -339,7 +340,7 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
             #nf1 = Dataset(filename, 'r')
             value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
-            if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+            if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
                 msg = "Error 202: Latitude is in wrong order\n"
                 raise CWATMFileError(filename, msg)
 
@@ -379,7 +380,7 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
 
             filename = cbinding(name)
             try:
-                nf2 = gdal.Open(filename, GA_ReadOnly)
+                nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
                 band = nf2.GetRasterBand(1)
                 mapnp = band.ReadAsArray(0, 0, nf2.RasterXSize, nf2.RasterYSize).astype(np.float64)
                 # if local no cut
@@ -423,10 +424,11 @@ def compressArray(map, name="None", zeros = 0.):
     :param zeros: add zeros (default= 0) if values of map are to big or too small
     :return: Compressed 1D array
     """
-    if map.shape != maskinfo['mask'].shape:
-        msg = "Error 105: " + name + " has less a different shape than area or ldd \n"
-        raise CWATMError(msg)
 
+    if map.shape != maskinfo['mask'].shape:
+        msg = "Error 105: " + name + " has a different shape than area or ldd \n"
+        raise CWATMError(msg)
+    
     mapnp1 = np.ma.masked_array(map, maskinfo['mask'])
     mapC = np.ma.compressed(mapnp1)
     # if fill: mapC[np.isnan(mapC)]=0
@@ -538,10 +540,10 @@ def readCoord(name):
 
         # getgeotransform only delivers single precision!
         cell = 1 / invcell
-        x1 = gt[0]
-        y1 = gt[3]
-        lon = 1 / round(1 / (x1 - int(x1)), 4) + int(x1)
-        lat = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
+        lon = gt[0]
+        lat = gt[3]
+        #lon = 1 / round(1 / (x1 - int(x1)), 4) + int(x1)
+        #lat = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
 
 
     return lat, lon, cell, invcell, rows, cols
@@ -567,13 +569,22 @@ def readCoordNetCDF(name,check = True):
         # if subroutine is called already from inside a try command
         nf1 = Dataset(name, 'r')
 
-    rows = nf1.variables['lat'].shape[0]
-    cols = nf1.variables['lon'].shape[0]
+    if not('coordx' in maskmapAttr.keys()):
+        if 'lon' in nf1.variables.keys():
+            maskmapAttr['coordx'] = 'lon'
+            maskmapAttr['coordy'] = 'lat'
+        else:
+            maskmapAttr['coordx'] = 'x'
+            maskmapAttr['coordy'] = 'y'
 
-    lon0 = nf1.variables['lon'][0]
-    lon1 = nf1.variables['lon'][1]
-    lat0 = nf1.variables['lat'][0]
-    latlast = nf1.variables['lat'][-1]
+
+    rows = nf1.variables[maskmapAttr['coordy']].shape[0]
+    cols = nf1.variables[maskmapAttr['coordx']].shape[0]
+
+    lon0 = nf1.variables[maskmapAttr['coordx']][0]
+    lon1 = nf1.variables[maskmapAttr['coordx']][1]
+    lat0 = nf1.variables[maskmapAttr['coordy']][0]
+    latlast = nf1.variables[maskmapAttr['coordy']][-1]
     nf1.close()
     # swap to make lat0 the biggest number
     if lat0 < latlast:
@@ -581,6 +592,8 @@ def readCoordNetCDF(name,check = True):
 
     cell = round(np.abs(lon1 - lon0),8)
     invcell = round(1.0 / cell, 0)
+    if invcell == 0: invcell = 1./cell
+
     lon = round(lon0 - cell / 2,8)
     lat = round(lat0 + cell / 2,8)
 
@@ -739,8 +752,9 @@ def mapattrNetCDFMeteo(name, check = True):
     if celly < cut7:
         cut3 += 1
 
-    if cut1 > (360 * invcell): cut1 = int(360 * invcell)
-    if cut3 > (180 * invcell): cut3 = int(180 * invcell)
+    if maskmapAttr['coordy'] == 'lat':
+        if cut1 > (360 * invcell): cut1 = int(360 * invcell)
+        if cut3 > (180 * invcell): cut3 = int(180 * invcell)
 
 
 
@@ -760,13 +774,15 @@ def mapattrTiff(nf2):
     x1 = geotransform[0]
     y1 = geotransform[3]
 
-
-
     #maskmapAttr['col'] = nf2.RasterXSize
     #maskmapAttr['row'] = nf2.RasterYSize
     cellSize = geotransform[1]
 
-    invcell = round(1/cellSize,0)
+    #invcell = round(1/cellSize,0)
+    if cellSize > 0:
+        invcell = 1 / cellSize
+    else:
+        invcell = round(1/cellSize,0)
 
     # getgeotransform only delivers single precision!
     cellSize = 1 / invcell
@@ -885,7 +901,7 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
 
 
 
-def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapsscale = True, modflowSteady = False):
+def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapsscale = True):
     """
     load stack of maps 1 at each timestamp in netcdf format
 
@@ -900,18 +916,15 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     :raises if data is wrong: :meth:`management_modules.messages.CWATMError`
     :raises if meteo netcdf file cannot be opened: :meth:`management_modules.messages.CWATMFileError`
     """
-    if modflowSteady:
-        idx = 0
-        filename = os.path.normpath(cbinding(name))
-    else:
-        try:
-            meteoInfo = meteofiles[name][flagmeteo[name]]
-            idx = inputcounter[name]
-            filename =  os.path.normpath(meteoInfo[0])
-        except:
-            date1 = "%02d/%02d/%02d" % (date.day, date.month, date.year)
-            msg = "Error 210: Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date1 + ": \n"
-            raise CWATMError(msg)
+
+    try:
+        meteoInfo = meteofiles[name][flagmeteo[name]]
+        idx = inputcounter[name]
+        filename =  os.path.normpath(meteoInfo[0])
+    except:
+        date1 = "%02d/%02d/%02d" % (date.day, date.month, date.year)
+        msg = "Error 210: Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date1 + ": \n"
+        raise CWATMError(msg)
 
     try:
        nf1 = Dataset(filename, 'r')
@@ -935,7 +948,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
 
     #checkif latitude is reversed
     turn_latitude = False
-    if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+    if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
         turn_latitude = True
         mapnp = nf1.variables[value][idx].astype(np.float64)
         mapnp = np.flipud(mapnp)
@@ -981,11 +994,10 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     #        ii = 1  # dummmy for not doing anything
     #    else:
 
-    if not(modflowSteady):
-        inputcounter[name] += 1
-        if inputcounter[name] > meteoInfo[2]:
-            inputcounter[name] = 0
-            flagmeteo[name] += 1
+    inputcounter[name] += 1
+    if inputcounter[name] > meteoInfo[2]:
+        inputcounter[name] = 0
+        flagmeteo[name] += 1
 
     return mapC
 
@@ -1125,7 +1137,7 @@ def readnetcdfWithoutTime(name, value="None"):
     if value == "None":
         value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
-    if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+    if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
         msg = "Error 111: Latitude is in wrong order\n"
         raise CWATMFileError(filename, msg)
 
@@ -1160,8 +1172,8 @@ def readnetcdfInitial(name, value,default = 0.0):
         raise CWATMFileError(filename,msg)
     if value in list(nf1.variables.keys()):
         try:
-            #mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
-            if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
+
+            if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
                 msg = "Error 112: Latitude is in wrong order\n"
                 raise CWATMFileError(filename, msg)
 
@@ -1219,10 +1231,10 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
             row = domain['nrow']
             col = domain['ncol']
             metadataNCDF['modflow_x'] = {}
-            metadataNCDF['modflow_x']['standard_name'] = 'UTM_X'
+            metadataNCDF['modflow_x']['standard_name'] = 'X'
             metadataNCDF['modflow_x']['units'] = 'm'
             metadataNCDF['modflow_y'] = {}
-            metadataNCDF['modflow_y']['standard_name'] = 'UTM_Y'
+            metadataNCDF['modflow_y']['standard_name'] = 'Y'
             metadataNCDF['modflow_y']['units'] = 'm'
 
 
@@ -1301,8 +1313,8 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
 
         # Fill variables
         if modflow:
-            lats = np.arange(domain['north'], domain['south'] - 1, domain['cellsize'] * -1)
-            lons =  np.arange(domain['west'], domain['east']+1, domain['cellsize'])
+            lats = np.arange(domain['north'], domain['south'] - 1, domain['rowsize'] * -1)
+            lons =  np.arange(domain['west'], domain['east']+1, domain['colsize'])
             #lons =  np.linspace(domain['north'] , domain['south'], col, endpoint=False)
             latitude[:] = lats
             longitude[:] = lons
@@ -1337,10 +1349,12 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
             time.calendar = dateVar['calendar']
 
             if modflow:
-                value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True, fill_value=1e20)
+                value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True, fill_value=1e20,
+                                           chunksizes=(1, row, col))
             else:
                 if 'x' in list(metadataNCDF.keys()):
-                   value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True,fill_value=1e20)
+                    value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True, fill_value=1e20,
+                                               chunksizes=(1, row, col))
                 if 'lon' in list(metadataNCDF.keys()):
                     #value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20)
                     value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20,chunksizes=(1,row,col))
@@ -1524,9 +1538,9 @@ def writeIniNetcdf(netfile,varlist, inputlist):
 
 # --------------------------------------------------------------------------------------------
 # report .tif and .maps
-
+"""
 def report(valueIn,name,compr=True):
-    """
+
     For debugging: Save the 2D array as .map or .tif
 
     :param name: Filename of the map
@@ -1539,7 +1553,7 @@ def report(valueIn,name,compr=True):
         Example:
         > report(c:/temp/ksat1.map, self_.var_.ksat1)
 
-    """
+
 
     filename = os.path.splitext(name)
     pcmap = False
@@ -1591,7 +1605,7 @@ def report(valueIn,name,compr=True):
     ds = None
     outband = None
 
-
+"""
 
 
 # --------------------------------------------------------------------------------------------
@@ -1619,6 +1633,8 @@ def checkOption(inBinding):
     Check if option in settings file has a counterpart in the source code
 
     :param inBinding: parameter in settings file
+
+    Not tested because you need to change the name eg gridSizeUserDefined = True -> gridSizeUser = True
     """
     lineclosest = ""
     test = inBinding in option
@@ -1649,6 +1665,8 @@ def cbinding(inBinding):
     Check if variable in settings file has a counterpart in the source code
 
     :param inBinding: parameter in settings file
+
+    Not tested because you need to change the name eg PrecipiationMaps = ... -> Precipitation = ...
     """
 
     lineclosest = ""

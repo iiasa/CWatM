@@ -21,7 +21,7 @@ from cwatm.hydrological_modules.landcoverType import landcoverType
 from cwatm.hydrological_modules.sealed_water import sealed_water
 from cwatm.hydrological_modules.evaporation import evaporation
 from cwatm.hydrological_modules.groundwater import groundwater
-from cwatm.hydrological_modules.groundwater_modflow.groundwater_modflow import groundwater_modflow
+from cwatm.hydrological_modules.groundwater_modflow.transient import groundwater_modflow
 from cwatm.hydrological_modules.water_demand.water_demand import water_demand
 from cwatm.hydrological_modules.capillarRise import capillarRise
 from cwatm.hydrological_modules.interception import interception
@@ -55,7 +55,10 @@ class Variables:
             name = name + str(number)
 
         if self.loadInit:
-            return readnetcdfInitial(self.initLoadFile, name)
+            map = readnetcdfInitial(self.initLoadFile, name)
+            if Flags['calib']:
+                self.initmap[name] = map
+            return map
         else:
             return default
 
@@ -113,13 +116,13 @@ class CWATModel_ini(DynamicModel):
         self.waterbalance = waterbalance(self)
 
         # ----------------------------------------
-        ## MakMap: the maskmap is flexible e.g. col,row,x1,y1  or x1,x2,y1,y2
-        # set the maskmap
-        self.MaskMap = loadsetclone(self,'MaskMap')
 
         # reading of the metainformation of variables to put into output netcdfs
         metaNetCDF()
 
+        ## MakMap: the maskmap is flexible e.g. col,row,x1,y1  or x1,x2,y1,y2
+        # set the maskmap
+        self.MaskMap = loadsetclone(self,'MaskMap')
         # run intial misc to get all global variables
         self.misc_module.initial()
         self.init_module.initial()

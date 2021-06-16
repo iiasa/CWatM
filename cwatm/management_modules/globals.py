@@ -71,6 +71,64 @@ def globalclear():
     indexes.clear()
 
 
+def calibclear():
+
+    for i in Flags.keys():
+        Flags[i] = False
+    settingsfile.clear()
+
+    #maskinfo.clear()
+    #modelSteps.clear()
+    #xmlstring.clear()
+    #geotrans.clear()
+    #versioning.clear()
+    #timestepInit.clear()
+    #binding.clear()
+    #option.clear()
+    #metaNetcdfVar.clear()
+
+    inputcounter.clear()
+    flagmeteo.clear()
+    meteofiles.clear()
+
+    initCondVarValue.clear()
+    initCondVar.clear()
+
+    dateVar.clear()
+
+    #outDir.clear()
+    #outMap.clear()
+
+    outTss.clear()
+
+
+    #outsection.clear()
+    #reportTimeSerieAct.clear()
+    #reportMapsAll.clear()
+    #reportMapsSteps.clear()
+    #reportMapsEnd.clear()
+
+
+    #ReportSteps.clear()
+    #FilterSteps.clear()
+    #EnsMembers.clear()
+    #nrCores.clear()
+    #outputDir.clear()
+
+    #maskmapAttr.clear()
+    #bigmapAttr.clear()
+    #metadataNCDF.clear()
+
+    #domain.clear()
+    #indexes.clear()
+
+    outsection.clear()
+    outputDir.clear()
+    binding.clear()
+    option.clear()
+
+
+
 global settingsfile
 settingsfile = []
 
@@ -164,10 +222,10 @@ platform1 = platform.uname()[0]
 
 # ----------------------------------
 FlagName = ['quiet', 'veryquiet', 'loud',
-            'checkfiles', 'noheader', 'printtime','warranty']
+            'checkfiles', 'noheader', 'printtime','warranty','calib','warm']
 Flags = {'quiet': False, 'veryquiet': False, 'loud': False,
          'check': False, 'noheader': False, 'printtime': False, 'warranty': False, 'use': False,
-         'test': False}
+         'test': False,'calib': False,'warm': False}
 
 
 
@@ -238,7 +296,7 @@ def globalFlags(setting, arg,settingsfile,Flags):
     settingsfile.append(setting)
 
     try:
-        opts, args = getopt.getopt(arg, 'qvlchtw', FlagName)
+        opts, args = getopt.getopt(arg, 'qvlchtwk0', FlagName)
     except getopt.GetoptError:
         Flags['use'] = True
         return
@@ -258,7 +316,14 @@ def globalFlags(setting, arg,settingsfile,Flags):
             Flags['printtime'] = True
         if o in ('-w', '--warranty'):
             Flags['warranty'] = True
-        # if testing from pytest
+        #PB21 calibration flag
+        if o in ('-k', '--calib'):
+            Flags['calib'] = True
+            Flags['warm'] = False
+
+        if o in ('-0', '--warm'):
+            Flags['warm'] = True
+    # if testing from pytest
     if "pytest" in sys.modules:
         Flags['test'] = True
 

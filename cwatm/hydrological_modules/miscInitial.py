@@ -31,8 +31,7 @@ class miscInitial(object):
     twothird              2/3                                                                               --       
     MtoM3                 Coefficient to change units                                                       --       
     InvDtSec                                                                                                         
-    cellArea              Cell area [m²] of each simulated mesh                                                      
-    cellLength            length of a grid cell                                                             m        
+    cellArea              Area of cell                                                                      m2       
     InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
     DtDay                 seconds in a timestep (default=86400)                                             s        
     InvDtDay              inverse seconds in a timestep (default=86400)                                     s-1      
@@ -86,7 +85,8 @@ class miscInitial(object):
 
             # Area of pixel [m2]
             self.var.cellArea=np.empty(maskinfo['mapC'])
-            self.var.cellArea.fill(self.var.cellLength ** 2)
+            self.var.cellArea.fill(maskmapAttr['cell'] ** 2)
+            ii =1
 
 #            self.var.PixelArea = spatial(self.var.PixelArea)
             # Convert to spatial expresion (otherwise this variable cannnot be
