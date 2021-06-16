@@ -56,10 +56,8 @@ class ExtParser(configparser.ConfigParser):
              print(section, option)
              closest = difflib.get_close_matches(option, list(binding.keys()))
              if not closest: closest = ["- no match -"]
-             #msg = "No key with the name: \"" + option +" in " + section + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
              msg = "Error 116: Closest key to the required one is: \"" + closest[0] + "\""
              raise CWATMError(msg)
-
 
         #sys.tracebacklimit = h1   # set error message back to default
         if raw:
@@ -116,7 +114,7 @@ def parse_configuration(settingsFileName):
 
         :param varin:
         :param check:
-        :return: list with sveral variables
+        :return: list with several variables
         """
 
         out = list(map(str.strip, varin.split(',')))

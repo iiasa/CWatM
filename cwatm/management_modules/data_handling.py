@@ -540,10 +540,10 @@ def readCoord(name):
 
         # getgeotransform only delivers single precision!
         cell = 1 / invcell
-        x1 = gt[0]
-        y1 = gt[3]
-        lon = 1 / round(1 / (x1 - int(x1)), 4) + int(x1)
-        lat = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
+        lon = gt[0]
+        lat = gt[3]
+        #lon = 1 / round(1 / (x1 - int(x1)), 4) + int(x1)
+        #lat = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
 
 
     return lat, lon, cell, invcell, rows, cols
@@ -1538,9 +1538,9 @@ def writeIniNetcdf(netfile,varlist, inputlist):
 
 # --------------------------------------------------------------------------------------------
 # report .tif and .maps
-
+"""
 def report(valueIn,name,compr=True):
-    """
+
     For debugging: Save the 2D array as .map or .tif
 
     :param name: Filename of the map
@@ -1553,7 +1553,7 @@ def report(valueIn,name,compr=True):
         Example:
         > report(c:/temp/ksat1.map, self_.var_.ksat1)
 
-    """
+
 
     filename = os.path.splitext(name)
     pcmap = False
@@ -1605,7 +1605,7 @@ def report(valueIn,name,compr=True):
     ds = None
     outband = None
 
-
+"""
 
 
 # --------------------------------------------------------------------------------------------
@@ -1633,6 +1633,8 @@ def checkOption(inBinding):
     Check if option in settings file has a counterpart in the source code
 
     :param inBinding: parameter in settings file
+
+    Not tested because you need to change the name eg gridSizeUserDefined = True -> gridSizeUser = True
     """
     lineclosest = ""
     test = inBinding in option
@@ -1663,6 +1665,8 @@ def cbinding(inBinding):
     Check if variable in settings file has a counterpart in the source code
 
     :param inBinding: parameter in settings file
+
+    Not tested because you need to change the name eg PrecipiationMaps = ... -> Precipitation = ...
     """
 
     lineclosest = ""

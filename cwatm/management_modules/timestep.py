@@ -62,6 +62,7 @@ def ctbinding(inBinding):
     if test:
         return binding[inBinding]
     else:
+        # not tested because you have to remove eg stepstart to test this
         closest = difflib.get_close_matches(inBinding, list(binding.keys()))
         if not closest: closest = ["- no match -"]
         msg = "Error 118: ===== Timing in the section: [TIME-RELATED_CONSTANTS] is wrong! =====\n"

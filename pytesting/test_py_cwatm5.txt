@@ -132,13 +132,13 @@ test_value: False
         description: 10th Rhine 30min waterdemand TRUE, load initial
         set_save:    settings_rhine_30min_10.ini
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 100; SpinUp = 30; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine_20091231.nc  
-        adds:        OUT_TSS_Daily = discharge
+        adds:        OUT_TSS_Daily = discharge; OUT_MAP_TotalAvg = discharge, baseflow
         last_value:  1553.59		
        # 11th setup Rhine
         header:      Rhine_30min_11
         description: 11th Rhine 30min with lot of output
         set_save:    settings_rhine_30min_11.ini
-        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 730; SpinUp = 01/10/2009; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine_20091231.nc  
+        changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 730; SpinUp = 01/10/2009; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine_20091231.nc; swAbstractionFrac = -0.7 
         adds:        OUT_TSS_Daily = discharge; OUT_TSS_MonthAvg = discharge; OUT_TSS_AnnualAvg = discharge; OUT_TSS_AnnualTot = runoff; OUT_Map_Daily = discharge; OUT_Map_MonthAvg = discharge, Precipitation, runoff; OUT_Map_AnnualAvg = discharge; OUT_MAP_AnnualTot = runoff; OUT_MAP_AnnualEnd = runoff; OUT_MAP_TotalAvg = discharge, baseflow
         last_value:  1656.99	
        # 12th setup Rhine
@@ -148,6 +148,27 @@ test_value: False
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 400; SpinUp = 20/01/2009; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine_20091231.nc  
         adds:        OUT_TSS_AreaSum_MonthTot = Precipitation, runoff; OUT_TSS_AreaAvg_MonthTot = Precipitation; OUT_Map_MonthAvg = reservoirStorage, Tavg; OUT_MAP_TotalTot = Precipitation
         last_value:  1032.73	
+       # 13th setup Rhine
+        header:      Rhine_30min_13
+        description: 13th Rhine 30min with daily init save
+        set_save:    settings_rhine_30min_13.ini
+        changes:     calc_evaporation = False; save_initial = True; StepInit = 01/01/2009 15d; StepEnd = 40
+        adds:        
+        last_value:  999.9	
+       # 14th setup Rhine
+        header:      Rhine_30min_14
+        description: 14th Rhine 30min with monthly init save
+        set_save:    settings_rhine_30min_14.ini
+        changes:     calc_evaporation = False; save_initial = True; StepInit = 01/01/2009 2m
+        adds:        
+        last_value:  999.9
+       # 15th setup Rhine
+        header:      Rhine_30min_15
+        description: 15th Rhine 30min with yearly init save
+        set_save:    settings_rhine_30min_15.ini
+        changes:     calc_evaporation = False; save_initial = True; StepInit = 01/01/2009 2y
+        adds:        
+        last_value:  999.9
 
 # -----------------------------
     # Additional testing
@@ -209,6 +230,21 @@ test_value: False
         changes:     StepEnd = 40
         adds:        OUT_MAP_Daily = actualET[1]; OUT_TSS_monthend = discharge; OUT_TSS_totaltot = discharge; OUT_TSS_totalavg = discharge; OUT_MAP_monthend = discharge; OUT_MAP_monthtot = discharge;OUT_MAP_totaltot = discharge; OUT_MAP_totalavg = discharge; OUT_MAP_totalend = discharge
         last_value:  4.22
+       # 8st add 
+        header:      Rhine_30min_add_8
+        description: Additional tests 30min covermap
+        set_save:    settings_rhineadd_30min_08.ini
+        changes:     StepEnd = 4; coverresult = True; covermap = $(FILE_PATHS:PathMaps)/areamaps/rhine30min.tif
+        adds:        
+        last_value:  4.22
+       # 9st add 
+        header:      Rhine_30min_add_9
+        description: Additional tests .tif or .map
+        set_save:    settings_rhineadd_30min_09.ini
+        changes:     StepEnd = 4; Ldd = $(FILE_PATHS:PathMaps)/routing/ldd1.map
+        adds:        
+        last_value:  4.22
+
 
 # --- ERROR ------------------
     # Error testing
@@ -644,6 +680,14 @@ test_value: False
         changes:     calc_evaporation = False; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True; StepEnd = 400; SpinUp = 20/01/1979; load_initial = True; initLoad = $(FILE_PATHS:PathInit)/Rhine5min_19790131.nc  
         adds:        OUT_TSS_AreaSum_MonthTot = Precipitation, runoff; OUT_TSS_AreaAvg_MonthTot = Precipitation; OUT_Map_MonthAvg = reservoirStorage, Tavg; OUT_MAP_TotalTot = Precipitation
         last_value:  3045.40
+       # 12th setup Rhine
+        header:      Rhine_5min_12
+        description: 11th Rhine 5min with time period older than demand
+        set_save:    settings_rhine_5min_12.ini
+        changes:     StepStart = 01/01/2012; StepEnd = 4; SpinUp = None; includeIrrigation = True; preferentialFlow = True; CapillarRise = True; includeRunoffConcentration = True; includeWaterBodies = True; includeWaterDemand = True
+        adds:        
+        last_value:  9999.9
+
 
 # -----------------------------
     # Rhine Modflow
@@ -701,8 +745,8 @@ test_value: False
         header:      Burgenland_1km_2_crop
         description: 2nd Burgenland with crop specifi
         set_save:    settings_burgenland_02.ini
-        changes:     modflow_coupling = False
-        adds:        
+        changes:     modflow_coupling = False; save_initial = True; StepInit = 10/01/1990
+        adds:        OUT_Map_Daily = discharge
         last_value:  0.0
         # 3rd setup setup Burgenland 1km crop gw
         header:     Burgenland_1km_3_gw_crop

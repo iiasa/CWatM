@@ -234,12 +234,8 @@ class water_demand:
                 inner = int(loadmap('allocation_area'))
 
             latldd, lonldd, cell, invcellldd, rows, cols = readCoord(cbinding('Ldd'))
-            try:
-                filename = os.path.splitext(cbinding('Ldd'))[0] + '.nc'
-                cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check=False)
-            except:
-                filename = os.path.splitext(cbinding('Ldd'))[0] + '.tif'
-                cut0, cut1, cut2, cut3 = mapattrTiff(gdal.Open(filename, GA_ReadOnly))
+            filename = cbinding('Ldd')
+            cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check=False)
 
             arr = np.kron(np.arange(rows // inner * cols // inner).reshape((rows // inner, cols // inner)), np.ones((inner, inner)))
             arr = arr[cut2:cut3, cut0:cut1].astype(int)
@@ -821,6 +817,10 @@ class water_demand:
                 self.var.returnFlow = self.var.returnflowIrr
             self.var.waterabstraction = self.var.nonFossilGroundwaterAbs + self.var.unmetDemand + self.var.act_SurfaceWaterAbstract
 
+            #---------------------------------------------
+            # testing
+            
+            
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.model.waterbalance_module.waterBalanceCheck(
                     [self.var.act_irrWithdrawal],  # In
