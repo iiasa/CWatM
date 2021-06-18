@@ -1538,9 +1538,9 @@ def writeIniNetcdf(netfile,varlist, inputlist):
 
 # --------------------------------------------------------------------------------------------
 # report .tif and .maps
-"""
-def report(valueIn,name,compr=True):
 
+def report(valueIn,name,compr=True):
+    """
     For debugging: Save the 2D array as .map or .tif
 
     :param name: Filename of the map
@@ -1553,7 +1553,7 @@ def report(valueIn,name,compr=True):
         Example:
         > report(c:/temp/ksat1.map, self_.var_.ksat1)
 
-
+    """
 
     filename = os.path.splitext(name)
     pcmap = False
@@ -1567,6 +1567,7 @@ def report(valueIn,name,compr=True):
 
     checkint = value.dtype.char in np.typecodes['AllInteger']
     ny, nx = value.shape
+    geo = (maskmapAttr['x'], maskmapAttr['cell'], 0.0, maskmapAttr['y'], 0.0, -maskmapAttr['cell'])
 
     if pcmap: # if it is a map
         raster = gdal.GetDriverByName('PCRaster')
@@ -1576,7 +1577,9 @@ def report(valueIn,name,compr=True):
         else:
             ds = raster.Create(name, nx, ny, 1, gdal.GDT_Float32, ["PCRASTER_VALUESCALE=VS_SCALAR"])
 
-        ds.SetGeoTransform(geotrans[0])  # specify coords
+
+        #ds.SetGeoTransform(geotrans[0])  # specify coords
+        ds.SetGeoTransform(geo)  # specify coords
         outband = ds.GetRasterBand(1)
         # set NoData value
         # outband.SetNoDataValue(np.nan)
@@ -1590,7 +1593,7 @@ def report(valueIn,name,compr=True):
         else:
             ds = gdal.GetDriverByName('GTiff').Create(name, nx, ny, 1, gdal.GDT_Float32, ['COMPRESS=LZW'])
 
-        ds.SetGeoTransform(geotrans[0])  # specify coords
+        ds.SetGeoTransform(geo)  # specify coords
         srs = osr.SpatialReference()  # establish encoding
         srs.ImportFromEPSG(4326)  # WGS84 lat/long
         ds.SetProjection(srs.ExportToWkt())  # export coords to file
@@ -1605,7 +1608,7 @@ def report(valueIn,name,compr=True):
     ds = None
     outband = None
 
-"""
+
 
 
 # --------------------------------------------------------------------------------------------

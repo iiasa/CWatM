@@ -381,6 +381,13 @@ The modeling area can be defined by:
     :language: ini
     :lines: 108-128	
 
+.. note:: 
+
+    | If you start with a basin defined by the outlet of a basin e.g. 6.25 51.75
+    | You can generate a new mask map for the following runs by:
+    | **savebasinmap = True** in [OPTIONS]
+    | a basin.tif is generated in the output folder, which you can copy and use next time as:
+    | **MaskMap = your_directory/basin.tif**
 
 Defining the time
 *****************

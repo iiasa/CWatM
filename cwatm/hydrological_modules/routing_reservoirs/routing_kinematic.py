@@ -173,12 +173,18 @@ class routing_kinematic(object):
         #self.var.ups = upstreamArea(dirDown, dirshort, self.var.cellArea)
         self.var.UpArea1 = upstreamArea(self.var.dirDown, dirshort, globals.inZero + 1.0)
         self.var.UpArea = upstreamArea(self.var.dirDown, dirshort, self.var.cellArea)
-        #d1 =downstream1(self.var.dirUp, self.var.UpArea1)
-        #up1 = upstream1( self.var.downstruct,self.var.UpArea1)
 
 
-        #lib2.kinematic(Qold, q, dd, dl, di, Qnew, alpha, 0.6, deltaT, deltaX, len(dirDown))
-        #lib2.kinematic(Qold, q, self.var.dirDown, self.var.dirupLen, self.var.dirupID, Qnew, alpha, 0.6, deltaT, deltaX, self.var.lendirDown)
+        basin = False
+        if 'savebasinmap' in option:
+            basin = checkOption('savebasinmap')
+        if basin:
+            file = os.path.join(outDir[list(outDir)[-1]],"basin.tif")
+            report(self.var.catchment,file)
+            print("\nBasin area map in: ", file)
+            file = os.path.join(outDir[list(outDir)[-1]],"ups.tif")
+            report(self.var.UpArea,file)
+            print("Upstream area map in: ", file)
 
         #---------------------------------------------------------------
         #Calibration
