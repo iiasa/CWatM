@@ -13,7 +13,7 @@ In short:
 
 - Go to https://github.com/iiasa/CWatM
 - Download Code with Download ZIP
-- place it somewhere on your computer
+- Place it somewhere on your computer
 
 ## Downloading the large files stored as GitHUB LFS
 
@@ -39,6 +39,6 @@ In short:
 - Copy file to ../tutorial/CWATM_data/climate
 - Extract .zip files with “Extract here”
 
-## Move on to CWATM Ecercise 1
+## Move on to CWATM Exercise 1
 
 - read the pdf and test the batch files
