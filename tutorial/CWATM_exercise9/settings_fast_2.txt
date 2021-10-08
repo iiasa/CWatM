@@ -1,6 +1,6 @@
 [DEFAULT]
-Root = F:/CWATM.ECHO
-RootPC = F:/CWATM.ECHO
+Root = C:/Users/guillaumot/Documents/CWatM_global/IWMI_calib_tutorial/CWatM-version1.06/tutorial
+RootPC = C:/Users/guillaumot/Documents/CWatM_global/IWMI_calib_tutorial/CWatM-version1.06/tutorial
 Rootbasin = CWATM_exercise9
 ForcingStart = 1/1/2006
 ForcingEnd = 31/12/2007
@@ -27,16 +27,16 @@ RunModel = runpy.bat
 
 [Option]
 firstrun = False
-para_first = [0.004, 1.2, 1.0, 4.0, 0.5, 1.0, 1.0, 1.0,1.0,0.5,1.0,1.0, 1.]
-# Snowmelt, crop KC, soil depth,pref. flow, arno beta, interflow factor, groundwater recession, runoff conc., routing, manning factor, normalStorageLimit, lakeAFactor,lakeEvaFactor,No of run
+para_first = [1.2, 1.0, 4.0, 0.5, 1.0, 1.0, 1.0, 0.5, 1.]
+# crop KC, soil depth, pref. flow, arno beta, interflow factor, groundwater recession, routing, normalStorageLimit, No of run
 bestrun = True
 
 [DEAP]
 maximize = True
 use_multiprocessing = 1
 pool_limit = 32
-ngen = 2
+ngen = 10
 mu = 8
-lambda_ = 4
+lambda_ = 8
 
 
