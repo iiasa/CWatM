@@ -5,7 +5,7 @@
 # Author:      PB
 #
 # Created:     13/07/2016
-# Copyright:   (c) PB 2016
+# Copyright:   (c) PB 201664
 # -------------------------------------------------------------------------
 
 from cwatm.management_modules.data_handling import *
