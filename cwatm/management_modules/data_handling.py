@@ -106,11 +106,11 @@ def setmaskmapAttr(x,y,col,row,cell):
     if (x-int(x)) != 0.:
         if abs(x - int(x)) > 1e9:
             x = 1/round(1/(x-int(x)),4) + int(x)
-        else: x = round(x,4)
+        else: x = round(x,6)
     if (y - int(y)) != 0.:
         if abs(y - int(y)) > 1e9:
             y = 1 / round(1 / (y - int(y)), 4) + int(y)
-        else: y = round(y,4)
+        else: y = round(y,6)
 
     maskmapAttr['x'] = x
     maskmapAttr['y'] = y
@@ -694,8 +694,11 @@ def mapattrNetCDF(name, check=True):
 
     xx = maskmapAttr['x']
     yy = maskmapAttr['y']
-    cut0 = int(0.0001 + np.abs(xx - lon) * invcell)  # argmin() ??
-    cut2 = int(0.0001 + np.abs(yy - lat) * invcell)
+    #cut0 = int(0.0001 + np.abs(xx - lon) * invcell) # argmin() ??
+    #cut2 = int(0.0001 + np.abs(yy - lat) * invcell) #
+    cut0 = int(np.abs(xx + maskmapAttr['cell']/2 - lon) * invcell) # argmin() ??
+    cut2 = int(np.abs(yy - maskmapAttr['cell']/2 - lat) * invcell) #
+
 
     cut1 = cut0 + maskmapAttr['col']
     cut3 = cut2 + maskmapAttr['row']
@@ -779,7 +782,7 @@ def mapattrTiff(nf2):
     cellSize = geotransform[1]
 
     #invcell = round(1/cellSize,0)
-    if cellSize > 0:
+    if cellSize > 1:
         invcell = 1 / cellSize
     else:
         invcell = round(1/cellSize,0)
@@ -846,14 +849,14 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
             except:
                 datediv = 1
 
-            datestart = num2date(nctime[0] ,units=nctime.units,calendar=nctime.calendar)
+            datestart = num2date(nctime[:][0] ,units=nctime.units,calendar=nctime.calendar)
 
             # sometime daily records have a strange hour to start with -> it is changed to 0:00 to haqve the same record
             datestart = datestart.replace(hour=0, minute=0)
-            dateend = num2date(nctime[-1], units=nctime.units, calendar=nctime.calendar)
+            dateend = num2date(nctime[:][-1], units=nctime.units, calendar=nctime.calendar)
 
             datestartint = int(nctime[0]) // datediv
-            dateendint = int(nctime[-1]) // datediv
+            dateendint = int(nctime[:][-1]) // datediv
 
             dateend = dateend.replace(hour=0, minute=0)
             #if dateVar['leapYear'] > 0:

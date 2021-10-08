@@ -223,29 +223,41 @@ test_value: False
         changes:     calc_environflow = True; StepEnd =  31/12/2010; calc_ef_afterRun = True
         adds:        OUT_MAP_Daily = discharge; OUT_MAP_12month = MMF, MQ90, EF_VMF; OUT_MAP_Once = MAF, Q90
         last_value:  4.22
-       # 7st add 
+       # 7th add 
         header:      Rhine_30min_add_7
         description: Additional tests 30min add output
         set_save:    settings_rhineadd_30min_07.ini
         changes:     StepEnd = 40
         adds:        OUT_MAP_Daily = actualET[1]; OUT_TSS_monthend = discharge; OUT_TSS_totaltot = discharge; OUT_TSS_totalavg = discharge; OUT_MAP_monthend = discharge; OUT_MAP_monthtot = discharge;OUT_MAP_totaltot = discharge; OUT_MAP_totalavg = discharge; OUT_MAP_totalend = discharge
         last_value:  4.22
-       # 8st add 
+       # 8th add 
         header:      Rhine_30min_add_8
         description: Additional tests 30min covermap
         set_save:    settings_rhineadd_30min_08.ini
         changes:     StepEnd = 4; coverresult = True; covermap = $(FILE_PATHS:PathMaps)/areamaps/rhine30min.tif
         adds:        
         last_value:  4.22
-       # 9st add 
+       # 9th add 
         header:      Rhine_30min_add_9
         description: Additional tests .tif or .map
         set_save:    settings_rhineadd_30min_09.ini
         changes:     StepEnd = 4; Ldd = $(FILE_PATHS:PathMaps)/routing/ldd1.map
         adds:        
         last_value:  4.22
-
-
+       # 10th add 
+        header:      Rhine_30min_add_10
+        description: Additional tests - store basin map
+        set_save:    settings_rhineadd_30min_10.ini
+        changes:     StepEnd = 4; savebasinmap = True
+        adds:        
+        last_value:  4.22
+       # 11th add 
+        header:      Rhine_30min_add_11
+        description: Additional tests - load basin map stored before as .tif
+        set_save:    settings_rhineadd_30min_11.ini
+        changes:     StepEnd = 4; MaskMap = $(FILE_PATHS:PathOut)/basin.tif
+        adds:        
+        last_value:  4.22
 # --- ERROR ------------------
     # Error testing
 	base_setting: ./settings/30min/error_30min/settings_error_30min.ini

@@ -33,9 +33,8 @@ A region is considered “severely water stressed” if WSI exceeds 40% (Alcamo 
 
 .. raw:: html 
 
-   <div>
-   <a href="https://plot.ly/~bupe/22.embed?share_key=H7iBduCAcA5RnykkLIjnOk" target="_blank" title="Zambezi Water Stress" style="display: block; text-align: center;"><img src="https://plot.ly/~bupe/22.png?share_key=H7iBduCAcA5RnykkLIjnOk" alt="Zambezi Water Stress" style="max-width: 100%;width: 700px;"  width="700" onerror="this.onerror=null;this.src='https://plot.ly/404.png';" /></a>
-   <script data-plotly="bupe:22" sharekey-plotly="H7iBduCAcA5RnykkLIjnOk" src="https://plot.ly/embed.js" async></script>
-   </div>
+   <iframe width="745" height="680" frameborder="0" scrolling="no" src="https://chart-studio.plotly.com/~bupe/22.embed"></iframe>
 
-Figure 1: Annual water stress 201- and 2050
+
+
+Figure 1: Annual water stress 2010 - and 2050
