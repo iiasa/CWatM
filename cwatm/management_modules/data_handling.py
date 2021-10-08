@@ -111,6 +111,7 @@ def setmaskmapAttr(x,y,col,row,cell):
         if abs(y - int(y)) > 1e9:
             y = 1 / round(1 / (y - int(y)), 4) + int(y)
         else: y = round(y,6)
+    # This is still not ok! Some rounding issues still appear sometimes
 
     maskmapAttr['x'] = x
     maskmapAttr['y'] = y
