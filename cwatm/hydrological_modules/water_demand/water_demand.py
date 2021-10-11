@@ -234,8 +234,12 @@ class water_demand:
                 inner = int(loadmap('allocation_area'))
 
             latldd, lonldd, cell, invcellldd, rows, cols = readCoord(cbinding('Ldd'))
-            filename = cbinding('Ldd')
-            cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check=False)
+            try:
+                filename = os.path.splitext(cbinding('Ldd'))[0] + '.nc'
+                cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check=False)
+            except:
+                filename = os.path.splitext(cbinding('Ldd'))[0] + '.tif'
+                cut0, cut1, cut2, cut3 = mapattrTiff(gdal.Open(filename, GA_ReadOnly))
 
             arr = np.kron(np.arange(rows // inner * cols // inner).reshape((rows // inner, cols // inner)), np.ones((inner, inner)))
             arr = arr[cut2:cut3, cut0:cut1].astype(int)
@@ -248,6 +252,7 @@ class water_demand:
             self.var.pumping = globals.inZero.copy()
 
             self.var.modfPumpingM = globals.inZero.copy()
+            self.var.Pumping_daily = globals.inZero.copy()
             self.var.modflowDepth2 = 0
             self.var.modflowTopography = 0
             #self.var.leakage = globals.inZero.copy()
@@ -750,7 +755,8 @@ class water_demand:
 
             if self.var.modflow:
                 if self.var.GW_pumping:  # pumping demand is sent to ModFlow (used in transient module)
-                    self.var.modfPumpingM = np.copy(act_gw)
+                    self.var.modfPumpingM += act_gw  # modfPumpingM is initialized every "modflow_timestep" in "groundwater_modflow/transient.py"
+                    self.var.Pumping_daily = np.copy(act_gw)
 
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.act_indWithdrawal = frac_industry * self.var.act_nonIrrWithdrawal

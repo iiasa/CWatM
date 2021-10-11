@@ -280,6 +280,45 @@ class soil(object):
             saverunofffromGW = + np.where(self.var.w1[No] > self.var.ws1[No], self.var.w1[No] - self.var.ws1[No], 0)
             self.var.w1[No]= np.minimum(self.var.ws1[No], self.var.w1[No])
 
+            # Now, we need to add transfer between soil layers # MODIF LUCA TO IMPROVE MODFLOW COUPLING
+
+            # Percolation -----------------------------------------------
+            if No == 0:
+                NoSoil = 0
+            else:
+                NoSoil = 1
+
+            # Available water in both soil layers [m]
+            availWater1 = np.maximum(0., self.var.w1[No] - self.var.wres1[No])
+            availWater2 = np.maximum(0., self.var.w2[No] - self.var.wres2[No])
+            availWater3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No])
+
+            satTerm2 = availWater2 / self.var.wrange2[No]
+            satTerm3 = availWater3 / self.var.wrange3[No]
+
+            # Saturation term in Van Genuchten equation (always between 0 and 1)
+            satTerm2 = np.maximum(np.minimum(satTerm2, 1.0), 0)
+            satTerm3 = np.maximum(np.minimum(satTerm3, 1.0), 0)
+
+            # Unsaturated conductivity
+            kUnSat2 = self.var.KSat2[NoSoil] * np.sqrt(satTerm2) * np.square(
+                1 - (1 - satTerm2 ** self.var.genuInvM2[NoSoil]) ** self.var.genuM2[NoSoil])
+            kUnSat3 = self.var.KSat3[NoSoil] * np.sqrt(satTerm3) * np.square(
+                1 - (1 - satTerm3 ** self.var.genuInvM3[NoSoil]) ** self.var.genuM3[NoSoil])
+
+            ## ----------------------------------------------------------
+            # Capillar Rise
+
+            satTermFC1 = np.maximum(0., self.var.w1[No] - self.var.wres1[No]) / (self.var.wfc1[No] - self.var.wres1[No])
+            satTermFC2 = np.maximum(0., self.var.w2[No] - self.var.wres2[No]) / (self.var.wfc2[No] - self.var.wres2[No])
+            satTermFC3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No]) / (self.var.wfc3[No] - self.var.wres3[No])
+            capRise1 = np.minimum(np.maximum(0., (1 - satTermFC1) * kUnSat2), self.var.kunSatFC12[No])
+            capRise2 = np.minimum(np.maximum(0., (1 - satTermFC2) * kUnSat3), self.var.kunSatFC23[No])
+
+            self.var.w1[No] = self.var.w1[No] + capRise1
+            self.var.w2[No] = self.var.w2[No] - capRise1 + capRise2
+            self.var.w3[No] = self.var.w3[No] - capRise2  # GW capillary rise has already been added to the soil
+
         # ---------------------------------------------------------
         # calculate transpiration
         # ***** SOIL WATER STRESS ************************************

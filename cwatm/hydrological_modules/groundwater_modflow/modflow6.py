@@ -1,6 +1,7 @@
 from time import time
 from contextlib import contextmanager
 import os
+
 import numpy as np
 
 import importlib
@@ -8,7 +9,6 @@ import importlib
 #from xmipy import XmiWrapper
 #import flopy
 import platform
-
 
 @contextmanager
 def cd(newdir):
@@ -27,6 +27,7 @@ class ModFlowSimulation:
         folder,
         path_mf6dll,
         ndays,
+        timestep,
         specific_storage,
         specific_yield,
         nlay,
@@ -45,7 +46,6 @@ class ModFlowSimulation:
         pumpingloc=None,
         verbose=False
     ):
-
 
         flopy = importlib.import_module("flopy", package=None)
 
@@ -74,26 +74,26 @@ class ModFlowSimulation:
                 exe_name=os.path.join(folder, 'mf6'),
                 sim_ws=self.working_directory,
                 memory_print_option='all'
-                #nocheck = True
-
             )
             
             # create tdis package
             tdis = flopy.mf6.ModflowTdis(sim, nper=ndays, perioddata=[(1.0, 1, 1)] * ndays)
 
             # create iterative model solution and register the gwf model with it
-            ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='COMPLEX', linear_acceleration='BICGSTAB')
+            #ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='COMPLEX', linear_acceleration='BICGSTAB')
+            ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='SIMPLE', linear_acceleration='BICGSTAB',
+                                       rcloserecord=[0.1*24*3600*timestep*np.nansum(basin), 'L2NORM_RCLOSE'])
 
             # create gwf model
             # MODIF LUCA
-            gwf = flopy.mf6.ModflowGwf(sim, modelname=self.name, newtonoptions='under_relaxation', print_input=False, print_flows=False)
+            gwf = flopy.mf6.ModflowGwf(sim, modelname=self.name, newtonoptions='under_relaxation', print_input=False, print_flows=False)  # We can not play on flux tolerance as for ModFlow-NWT ?
 
             discretization = flopy.mf6.ModflowGwfdis(gwf, nlay=nlay, nrow=self.nrow, ncol=self.ncol,
                 delr=self.rowsize, delc=self.colsize, top=top,
                 botm=bottom, idomain=self.basin, nogrb=True)
 
             initial_conditions = flopy.mf6.ModflowGwfic(gwf, strt=head)
-            node_property_flow = flopy.mf6.ModflowGwfnpf(gwf, save_flows=True, icelltype=1, k=permeability)
+            node_property_flow = flopy.mf6.ModflowGwfnpf(gwf, save_flows=True, icelltype=1, k=permeability*timestep)
 
             # MODIF LUCA
             output_control = flopy.mf6.ModflowGwfoc(gwf, head_filerecord=f'{self.name}.hds',
@@ -128,6 +128,7 @@ class ModFlowSimulation:
             #recharge[0, 0] =
             recharge = recharge.tolist()
 
+            # Recharge is > 0, and already given in m/timestep per ModFlow cell
             recharge = flopy.mf6.ModflowGwfrch(gwf, fixed_cell=False,
                               print_input=False, print_flows=False,
                               save_flows=False, boundnames=None,
@@ -141,6 +142,7 @@ class ModFlowSimulation:
                 wells[:, 2] = well_locations[1]
                 wells = wells.tolist()
 
+                # Pumping is < 0 for abstraction, and is already given here in m3/timestep per ModFlow cell
                 wells = flopy.mf6.ModflowGwfwel(gwf, print_input=False, print_flows=False, save_flows=False,
                                             maxbound=self.basin.sum(), stress_period_data=wells,
                                             boundnames=False, auto_flow_reduce=0.1)
@@ -152,7 +154,7 @@ class ModFlowSimulation:
             drainage[:, 1] = drainage_locations[0]
             drainage[:, 2] = drainage_locations[1]
             drainage[:, 3] = topography[drainage_locations]  # This one should not be an integer
-            drainage[:, 4] = permeability[0, self.basin == True] * self.rowsize * self.colsize
+            drainage[:, 4] = permeability[0, self.basin == True] * self.rowsize * self.colsize * timestep
             drainage = drainage.tolist()
             drainage = [[int(i), int(j), int(k) ,l, m] for i, j, k, l, m in drainage]  # MODIF LUCA
 
@@ -160,7 +162,6 @@ class ModFlowSimulation:
                                         print_input=False, print_flows=False, save_flows=False)
             
             sim.write_simulation()
-            ii = 1
             # sim.run_simulation()
         elif self.verbose:
             print("Loading MODFLOW model from disk")
@@ -222,6 +223,8 @@ class ModFlowSimulation:
         # use the view of the first part of the array up to the number of active
         # (non-basined) cells
         self.recharge = self.mf6.get_value_ptr(recharge_tag)[:, 0]
+
+        # print(self.mf6.get_output_var_names())
         
         head_tag = self.mf6.get_var_address("X", self.name)
         self.head = self.mf6.get_value_ptr(head_tag)
@@ -229,6 +232,8 @@ class ModFlowSimulation:
         if setpump == True:
             well_tag = self.mf6.get_var_address("BOUND", self.name, "WEL_0")
             self.well_rate = self.mf6.get_value_ptr(well_tag)[:, 0]
+            actualwell_tag = self.mf6.get_var_address("SIMVALS", self.name, "WEL_0")
+            self.actualwell_rate = self.mf6.get_value_ptr(actualwell_tag)
 
         drainage_tag = self.mf6.get_var_address("BOUND", self.name, "DRN_0")
         self.drainage = self.mf6.get_value_ptr(drainage_tag)[:, 0]

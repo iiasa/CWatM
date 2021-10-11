@@ -1,0 +1,42 @@
+[DEFAULT]
+Root = C:/Users/guillaumot/Documents/CWatM_global/IWMI_calib_tutorial/CWatM-version1.06/tutorial
+RootPC = C:/Users/guillaumot/Documents/CWatM_global/IWMI_calib_tutorial/CWatM-version1.06/tutorial
+Rootbasin = CWATM_exercise9
+ForcingStart = 1/1/2006
+ForcingEnd = 31/12/2007
+timeperiod = daily
+
+[ObservedData]
+Qtss = observed_data/lobith2006.csv
+Column = lobith
+Header = River: Rhine  station: Lobith
+
+[Validate]
+Qtss = observed_data/lobith1980.csv
+ValStart = 1/1/1980
+ValEnd = 31/12/1994
+
+[Path]
+Templates = templates
+SubCatchmentPath = calibrationRuns_fast2
+ParamRanges = ParamRanges.csv
+
+[Templates]
+ModelSettings = settings_fast.ini
+RunModel = runpy.bat
+
+[Option]
+firstrun = False
+para_first = [1.2, 1.0, 4.0, 0.5, 1.0, 1.0, 1.0, 0.5, 1.]
+# crop KC, soil depth, pref. flow, arno beta, interflow factor, groundwater recession, routing, normalStorageLimit, No of run
+bestrun = True
+
+[DEAP]
+maximize = True
+use_multiprocessing = 1
+pool_limit = 32
+ngen = 10
+mu = 8
+lambda_ = 8
+
+

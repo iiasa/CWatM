@@ -664,7 +664,8 @@ class landcoverType(object):
                                                        self.var.riverbedExchangeM, 0)  # to avoid too small values
 
             # if there is a lake in this cell, there is no leakage
-            self.var.riverbedExchangeM = np.where(self.var.waterBodyID > 0, 0., self.var.riverbedExchangeM)
+            if checkOption('includeWaterBodies'):
+                self.var.riverbedExchangeM = np.where(self.var.waterBodyID > 0, 0., self.var.riverbedExchangeM)
             self.var.riverbedExchangeM3 = self.var.riverbedExchangeM * self.var.cellArea  # converting leakage in m3
             # self.var.riverbedExchangeM3 is then removed from river storage in routing_kinematic module
 
