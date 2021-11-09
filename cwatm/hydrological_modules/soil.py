@@ -672,20 +672,29 @@ class soil(object):
                 # specific potential evapotranspiration and the land-class specific potential evapotranspiration
 
                 for c in range(len(self.var.Crops)):
-                    self.var.actTransTotal_crops_Irr[c] = np.where(self.var.fracVegCover[3] * self.var.cropKC[3] > 0, (
-                                self.var.fracCrops_Irr[c] * self.var.currentKC[c]) / (self.var.fracVegCover[3] *
-                                                                                      self.var.cropKC[3]),
-                                                                   0) * self.var.actTransTotal_nonpaddy
-                    self.var.actTransTotal_month_Irr[c] += self.var.actTransTotal_crops_Irr[c]
+
+                    #self.var.actTransTotal_crops_Irr[c] = np.where(self.var.fracVegCover[3] * (self.var.cropKC[3]-self.var.minCropKC) > 0, (
+                    #            self.var.fracCrops_Irr[c] * (self.var.currentKC[c] - self.var.minCropKC)) / (self.var.fracVegCover[3] *
+                    #                                                                  (self.var.cropKC[3]-self.var.minCropKC)),
+                    #                                                                                         0) * self.var.actTransTotal_nonpaddy
+
+                    self.var.actTransTotal_crops_Irr[c] = np.where(
+                        self.var.frac_totalIrr * self.var.weighted_KC_Irr_woFallow  > 0, (
+                                self.var.fracCrops_Irr[c] * self.var.weighted_KC_Irr_woFallow) / (
+                                    self.var.frac_totalIrr *
+                                    self.var.weighted_KC_Irr_woFallow),
+                        0) * self.var.actTransTotal_nonpaddy
+
+                    self.var.actTransTotal_month_Irr[c] += self.var.actTransTotal_crops_Irr[c] #+ self.var.actBareSoilEvap[3]
 
                     self.var.actTransTotal_crops_nonIrr[c] = np.where(self.var.fracVegCover[1] * self.var.cropKC[1] > 0,
                                                                       (self.var.fracCrops_nonIrr[c] *
-                                                                       self.var.currentKC[c]) / (
+                                                                       self.var.currentKC[c] * self.var.cropCorrect) / (
                                                                                   self.var.fracVegCover[1] *
                                                                                   self.var.cropKC[1]),
-                                                                      0) * self.var.actTransTotal_grasslands #self.var.actTransTotal_paddy
+                                                                      0) * self.var.actTransTotal_grasslands
 
-                    self.var.actTransTotal_month_nonIrr[c] += self.var.actTransTotal_crops_nonIrr[c]
+                    self.var.actTransTotal_month_nonIrr[c] += self.var.actTransTotal_crops_nonIrr[c] + self.var.actBareSoilEvap[1]
 
 
         # total actual evaporation + transpiration

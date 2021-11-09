@@ -288,11 +288,11 @@ class groundwater_modflow:
             leakageriver_factor = 0
             if 'leakageriver_permea' in binding:
                 self.var.leakageriver_factor = loadmap('leakageriver_permea')  # in m/day
-            print('=> Leakage under rivers is ', self.var.leakageriver_factor, ' m/day')
+            print('=> Potential groundwater inflow from rivers is ', self.var.leakageriver_factor, ' m/day')
             leakagelake_factor = 0
             if 'leakagelake_permea' in binding:
                 self.var.leakagelake_factor = loadmap('leakagelake_permea')  # in m/day
-            print('=> Leakage under lakes/reservoirs is ', self.var.leakageriver_factor, ' m/day')
+            print('=> Groundwater inflow from lakes/reservoirs is ', self.var.leakagelake_factor, ' m/day')
 
             # test if ModFlow pumping is used as defined in settings file
             Groundwater_pumping = False
@@ -384,6 +384,7 @@ class groundwater_modflow:
             # initializing arrays
             self.var.capillar = globals.inZero.copy()
             self.var.baseflow = globals.inZero.copy()
+            self.var.depth = globals.inZero.copy()
 
             self.modflow_watertable = np.copy(head)  # water table will be also saved at modflow resolution
 
@@ -426,6 +427,8 @@ class groundwater_modflow:
     def dynamic(self):
 
         # Sumed recharge is re-initialized here for water budget computing purpose
+        self.var.modfPumpingM_actual = globals.inZero.copy() #compressArray(self.modflow2CWATM(self.permeability[0]*0))
+
         if self.var.modflow_timestep == 1 or ((dateVar['curr']-int(dateVar['curr']/self.var.modflow_timestep)*self.var.modflow_timestep) == 1):  # if it is the first step of the week,months...
             # ? Can the above line be replaced with: (dateVar['curr']  % self.var.modflow_timestep) == 0:
             # setting sumed up recharge again to 7 (or 14 or 30...), will be sumed up for the following 7 days (or 14 or 30...)
@@ -494,6 +497,7 @@ class groundwater_modflow:
             if self.var.writeerror:
                 # Check the water balance in the aquifer: recharge = capillary + baseflow + storage change (- pumping)
 
+
                 if self.var.GW_pumping:
 
                     # extracting actual ModFlow pumping
@@ -535,6 +539,8 @@ class groundwater_modflow:
 
             # updating water table maps both at CWatM and ModFlow resolution
             self.var.head = compressArray(self.modflow2CWATM(head))
+            self.var.gwdepth = compressArray(self.modflow2CWATM(self.layer_boundaries[0])) - self.var.head
+
             self.var.modflow_watertable = np.copy(head)
 
             # Re-initializing the weekly (orbi-weekly, or monthly...) sum of groundwater pumping

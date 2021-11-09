@@ -80,11 +80,28 @@ class waterdemand_domestic:
         
         if globals.dateVar['newStart'] or globals.dateVar[new]:
 
-            self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.domWithdrawalVar)
-            self.var.pot_domesticConsumption = readnetcdf2('domesticWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.domConsumptionVar)
-            # avoid small values (less than 1 m3):
-            self.var.domesticDemand = np.where(self.var.domesticDemand > self.var.InvCellArea, self.var.domesticDemand, 0.0)
-            self.var.pot_domesticConsumption = np.where(self.var.pot_domesticConsumption > self.var.InvCellArea, self.var.pot_domesticConsumption, 0.0)
+            if 'sw_agentsUrban_month_m3' in binding:
+                self.var.demand_unit = False
+                self.var.urbanWithdrawalSW_max = loadmap('sw_agentsUrban_month_m3') + globals.inZero.copy()
+                self.var.urbanWithdrawalGW_max = loadmap('gw_agentsUrban_month_m3') + globals.inZero.copy()
+                self.var.domesticDemand = self.var.urbanWithdrawalSW_max + self.var.urbanWithdrawalGW_max
+                self.var.swAbstractionFraction_nonIrr = divideValues(self.var.urbanWithdrawalSW_max,
+                                                                     self.var.domesticDemand)
+                self.var.domesticDemand /= 1000000
+                self.var.pot_domesticConsumption = self.var.domesticDemand.copy() * 0.3  # This will be an input from the Urban module, 0.3 is an assumption for testing
+
+            else:
+
+                self.var.domesticDemand = readnetcdf2('domesticWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.domWithdrawalVar)
+                self.var.pot_domesticConsumption = readnetcdf2('domesticWaterDemandFile', wd_date, self.var.domesticTime, value=self.var.domConsumptionVar)
+                # avoid small values (less than 1 m3):
+                self.var.domesticDemand = np.where(self.var.domesticDemand > self.var.InvCellArea, self.var.domesticDemand, 0.0)
+
+                # test
+                #self.var.pot_domesticConsumption = self.var.domesticDemand.copy()
+                self.var.pot_domesticConsumption = np.where(self.var.pot_domesticConsumption > self.var.InvCellArea, self.var.pot_domesticConsumption, 0.0)
+
+
             self.var.dom_efficiency = divideValues(self.var.pot_domesticConsumption, self.var.domesticDemand)
 
 
