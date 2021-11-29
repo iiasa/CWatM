@@ -103,7 +103,7 @@ class CWATMDirError(CWATMError):
             errornumber = int(msg[6:9])
         except:
             errornumber = 100
-        sys.exit(errornumber)
+        #sys.exit(errornumber)
 
 
 class CWATMWarning(Warning):

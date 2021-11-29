@@ -233,8 +233,9 @@ class evaporation(object):
                             self.var.fracCrops_nonIrrLandDemand[c] = self.var.fracCrops_IrrLandDemand[c] - \
                                                                      self.var.fracCrops_Irr[c]
 
-                            if c<3: #sugarcane
-                                self.var.fracCrops_nonIrrLandDemand[c] = globals.inZero.copy()
+                            if 'crops_leftoverNotIrrigated' in binding:
+                                if c <= int(cbinding('crops_leftoverNotIrrigated')):
+                                    self.var.fracCrops_nonIrrLandDemand[c] = globals.inZero.copy()
 
                         self.var.fracCrops_nonIrr[c] = np.where(
                             self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 0,

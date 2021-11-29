@@ -157,6 +157,8 @@ class water_demand:
         Set the water allocation
         """
 
+        self.var.relaxGWagent = globals.inZero.copy()
+        self.var.relaxSWagent = globals.inZero.copy()
         # This variable has no impact if includeWaterDemand is False
         self.var.includeIndusDomesDemand = True
         if "includeIndusDomesDemand" in option:
@@ -174,6 +176,7 @@ class water_demand:
             if 'sw_agents_month_m3' in binding:
                 self.var.irrWithdrawalSW_max = npareaaverage(loadmap('sw_agents_month_m3') + globals.inZero.copy(),
                                                              self.var.adminSegments)
+
                 if 'relax_sw_agent' in binding:
                     self.var.relaxSWagent = loadmap('relax_sw_agent')
 
@@ -183,6 +186,7 @@ class water_demand:
             if 'gw_agents_month_m3' in binding:
                 self.var.irrWithdrawalGW_max = npareaaverage(loadmap('gw_agents_month_m3') + globals.inZero.copy(),
                                                              self.var.adminSegments)
+
                 if 'relax_gw_agent' in binding:
                     self.var.relaxGWagent = loadmap('relax_gw_agent')
 
@@ -380,8 +384,6 @@ class water_demand:
             self.var.ratio_irrWithdrawalSW_month = globals.inZero.copy()
             self.var.act_irrWithdrawalSW_month = globals.inZero.copy()
             self.var.act_irrWithdrawalGW_month = globals.inZero.copy()
-            self.var.relaxSWagent = globals.inZero.copy()
-            self.var.relaxGWagent = globals.inZero.copy()
 
 
         else:  # no water demand
@@ -423,6 +425,8 @@ class water_demand:
             self.var.pot_GroundwaterAbstract = globals.inZero.copy()
 
             self.var.WB_elec = globals.inZero.copy()
+            self.var.relaxSWagent = globals.inZero.copy()
+            self.var.relaxGWagent = globals.inZero.copy()
 
 
     def dynamic(self):

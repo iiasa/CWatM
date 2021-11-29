@@ -82,13 +82,13 @@ class ModFlowSimulation:
             # create iterative model solution and register the gwf model with it
             # If the model fails with the following error: xmipy.errors.XMIError: MODFLOW 6 BMI, exception in: finalize_solve ()
             # Then one can reduce the modflow timestep, or use the following ims lines with complexity = 'COMPLEX'
-            #ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='COMPLEX', linear_acceleration='BICGSTAB')
+            #ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='COMPLEX') #, linear_acceleration='BICGSTAB')
             ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='SIMPLE', linear_acceleration='BICGSTAB',
                                        rcloserecord=[0.1*24*3600*timestep*np.nansum(basin), 'L2NORM_RCLOSE'])
 
             # create gwf model
             # MODIF LUCA
-            gwf = flopy.mf6.ModflowGwf(sim, modelname=self.name, newtonoptions='under_relaxation', print_input=False, print_flows=False)  # We can not play on flux tolerance as for ModFlow-NWT ?
+            gwf = flopy.mf6.ModflowGwf(sim, modelname=self.name, newtonoptions='under_relaxation', print_input=False, print_flows=False)  # newtonoptions='under_relaxation' can be tried if there is no convergence
 
             discretization = flopy.mf6.ModflowGwfdis(gwf, nlay=nlay, nrow=self.nrow, ncol=self.ncol,
                 delr=self.rowsize, delc=self.colsize, top=top,
