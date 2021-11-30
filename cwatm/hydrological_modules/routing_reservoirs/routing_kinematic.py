@@ -483,8 +483,9 @@ class routing_kinematic(object):
         if 'adminSegments' in binding:
             self.var.ETRefAverage_segments = npareaaverage(self.var.ETRef, self.var.adminSegments)
             self.var.precipEffectiveAverage_segments = npareaaverage(self.var.infiltration[1], self.var.adminSegments)
-            self.var.head_segments = npareaaverage(self.var.head, self.var.adminSegments)
-            self.var.gwdepth_segments = npareaaverage(self.var.gwdepth, self.var.adminSegments)
+            if self.var.modflow:
+                self.var.head_segments = npareaaverage(self.var.head, self.var.adminSegments)
+                self.var.gwdepth_segments = npareaaverage(self.var.gwdepth, self.var.adminSegments)
 
             #self.var.precipEffectiveAverage_segments = npareaaverage(self.var.Rain-self.var.interceptEvap[1]-self.var.actBareSoilEvap[1], self.var.adminSegments)
             #self.var.head_development_segments = npareaaverage(self.var.head_development, self.var.adminSegments)

@@ -270,99 +270,91 @@ class evaporation(object):
                             self.var.Crops[c][1][2],
                             self.var.currentKY[c])
 
-            if No == 3 and (dateVar['newStart'] or dateVar['currDate'].day == 1):
+                #if No == 3 and (dateVar['newStart'] or dateVar['currDate'].day == 1):
+                if dateVar['newStart'] or dateVar['currDate'].day == 1:
 
-                frac_totalIrr, frac_totalnonIrr = globals.inZero.copy(), globals.inZero.copy()
-                for i in range(len(self.var.Crops)):
-                    frac_totalIrr += self.var.fracCrops_Irr[i]
-                    frac_totalnonIrr += self.var.fracCrops_nonIrr[i]
+                    frac_totalIrr, frac_totalnonIrr = globals.inZero.copy(), globals.inZero.copy()
+                    for i in range(len(self.var.Crops)):
+                        frac_totalIrr += self.var.fracCrops_Irr[i]
+                        frac_totalnonIrr += self.var.fracCrops_nonIrr[i]
 
-                self.var.frac_totalIrr = frac_totalIrr.copy()
-                self.var.frac_totalnonIrr = frac_totalnonIrr.copy()
+                    self.var.frac_totalIrr = frac_totalIrr.copy()
+                    self.var.frac_totalnonIrr = frac_totalnonIrr.copy()
 
-                self.var.frac_totalIrr_max = np.maximum(frac_totalIrr, self.var.frac_totalIrr_max)
-                self.var.frac_totalnonIrr_max = np.maximum(frac_totalnonIrr, self.var.frac_totalnonIrr_max)
-                # UNDER CONSTRUCTION: Automatic fallowing for irrigated land
-                self.var.generalIrrCrop_max = np.maximum(self.var.fracVegCover[3] - self.var.frac_totalIrr_max, globals.inZero.copy())
-                self.var.generalnonIrrCrop_max = np.maximum(self.var.fracVegCover[1] - self.var.frac_totalnonIrr_max, globals.inZero.copy())
+                    self.var.frac_totalIrr_max = np.maximum(frac_totalIrr, self.var.frac_totalIrr_max)
+                    self.var.frac_totalnonIrr_max = np.maximum(frac_totalnonIrr, self.var.frac_totalnonIrr_max)
+                    # UNDER CONSTRUCTION: Automatic fallowing for irrigated land
+                    self.var.generalIrrCrop_max = np.maximum(self.var.fracVegCover[3] - self.var.frac_totalIrr_max, globals.inZero.copy())
+                    self.var.generalnonIrrCrop_max = np.maximum(self.var.fracVegCover[1] - self.var.frac_totalnonIrr_max, globals.inZero.copy())
 
-                # The representative vegetation is determined from a specific user-input map, as compared to being
-                # determined automatically otherwise.
-                if 'GeneralCrop_Irr' in binding and checkOption('use_GeneralCropIrr') == True:
-                    self.var.GeneralCrop_Irr = loadmap('GeneralCrop_Irr')
-                    self.var.GeneralCrop_Irr = np.minimum(self.var.fracVegCover[3] - frac_totalIrr,
-                                                          self.var.GeneralCrop_Irr)
+                    # The representative vegetation is determined from a specific user-input map, as compared to being
+                    # determined automatically otherwise.
+                    if 'GeneralCrop_Irr' in binding and checkOption('use_GeneralCropIrr') == True:
+                        self.var.GeneralCrop_Irr = loadmap('GeneralCrop_Irr')
+                        self.var.GeneralCrop_Irr = np.minimum(self.var.fracVegCover[3] - frac_totalIrr,
+                                                              self.var.GeneralCrop_Irr)
 
-                # Fallowing and general crop are determined automatically, and are not specific input maps.
-                elif checkOption('use_GeneralCropIrr') == False:
+                    # Fallowing and general crop are determined automatically, and are not specific input maps.
+                    elif checkOption('use_GeneralCropIrr') == False:
 
-                    # Fallow land exists alongside general land as non-specific crop options.
-                    if checkOption('activate_fallow') == True:
+                        # Fallow land exists alongside general land as non-specific crop options.
+                        if checkOption('activate_fallow') == True:
 
-                        # Crop land that has been previously planted by a specific-crop is fallowed between plantings.
-                        if checkOption('automaticFallowingIrr') == True:
-                            self.var.GeneralCrop_Irr = self.var.generalIrrCrop_max.copy()
+                            # Crop land that has been previously planted by a specific-crop is fallowed between plantings.
+                            if checkOption('automaticFallowingIrr') == True:
+                                self.var.GeneralCrop_Irr = self.var.generalIrrCrop_max.copy()
 
-                        # With the interest in fallowing without automatic fallowing nor a specific input map implies
-                        # the scenario without general lands -- only specific planted crops and fallow land.
+                            # With the interest in fallowing without automatic fallowing nor a specific input map implies
+                            # the scenario without general lands -- only specific planted crops and fallow land.
+                            else:
+                                self.var.GeneralCrop_Irr = globals.inZero.copy()
+
                         else:
-                            self.var.GeneralCrop_Irr = globals.inZero.copy()
-
-                    else:
-                        # activate_fallow = False implies that all non-planted grassland and non-paddy land is made
-                        # to be representative vegetation.
-                        self.var.GeneralCrop_Irr = self.var.fracVegCover[3] - self.var.frac_totalIrr
+                            # activate_fallow = False implies that all non-planted grassland and non-paddy land is made
+                            # to be representative vegetation.
+                            self.var.GeneralCrop_Irr = self.var.fracVegCover[3] - self.var.frac_totalIrr
 
 
 
-                self.var.fallowIrr = self.var.fracVegCover[3] - (self.var.frac_totalIrr + self.var.GeneralCrop_Irr)
-                self.var.fallowIrr_max = np.maximum(self.var.fallowIrr, self.var.fallowIrr_max)
+                    self.var.fallowIrr = self.var.fracVegCover[3] - (self.var.frac_totalIrr + self.var.GeneralCrop_Irr)
+                    self.var.fallowIrr_max = np.maximum(self.var.fallowIrr, self.var.fallowIrr_max)
 
-                # Updating irrigated land to not include fallow
-                # Irrigated fallow land is moved to non-irrigated fallow land. Irrigated fallow land is
+                    # Updating irrigated land to not include fallow
+                    # Irrigated fallow land is moved to non-irrigated fallow land. Irrigated fallow land is
 
-                #UNDER CONSTRUCTION
-                if checkOption('moveIrrFallowToNonIrr'):
+                    #UNDER CONSTRUCTION
+                    if checkOption('moveIrrFallowToNonIrr'):
 
-                    self.var.fracVegCover[3] = self.var.frac_totalIrr + self.var.GeneralCrop_Irr
-                    remainderLand = np.maximum(
-                        globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
-                        self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
-                        globals.inZero.copy())
+                        self.var.fracVegCover[3] = self.var.frac_totalIrr + self.var.GeneralCrop_Irr
+                        remainderLand = np.maximum(
+                            globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
+                            self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
+                            globals.inZero.copy())
 
-                    self.var.fracVegCover[1] = remainderLand.copy()
-
-                self.var.weighted_KC_Irr = self.var.GeneralCrop_Irr * self.var.cropKC_landCover[3]
-                for c in range(len(self.var.Crops)):
-                    self.var.weighted_KC_Irr += self.var.fracCrops_Irr[c] * self.var.currentKC[c]
-
-                self.var.weighted_KC_Irr_woFallow = np.where(self.var.fracVegCover[3] > 0, self.var.weighted_KC_Irr/(self.var.fracVegCover[3]-self.var.fallowIrr), 0)
-                self.var.weighted_KC_Irr += self.var.fallowIrr * self.var.minCropKC
-                self.var.weighted_KC_Irr = np.where(self.var.fracVegCover[3]>0, self.var.weighted_KC_Irr/self.var.fracVegCover[3], 0)
-                self.var.cropKC[3] = self.var.weighted_KC_Irr.copy()
+                        self.var.fracVegCover[1] = remainderLand.copy()
 
 
-                if 'GeneralCrop_nonIrr' in binding and checkOption('use_GeneralCropnonIrr') == True:
+                    if 'GeneralCrop_nonIrr' in binding and checkOption('use_GeneralCropnonIrr') == True:
 
-                    self.var.GeneralCrop_nonIrr = loadmap('GeneralCrop_nonIrr')
-                    self.var.GeneralCrop_nonIrr = np.minimum(self.var.fracVegCover[1] - frac_totalnonIrr,
-                                                             self.var.GeneralCrop_nonIrr)
+                        self.var.GeneralCrop_nonIrr = loadmap('GeneralCrop_nonIrr')
+                        self.var.GeneralCrop_nonIrr = np.minimum(self.var.fracVegCover[1] - frac_totalnonIrr,
+                                                                 self.var.GeneralCrop_nonIrr)
 
-                elif checkOption('use_GeneralCropnonIrr') == False:
-                    if checkOption('activate_fallow') == True:
-                        # if fallow is activated, it must be automatically generated for non-irrigated lands, or not at all, but necessary if activated, which is suggested
-                        self.var.GeneralCrop_nonIrr = self.var.generalnonIrrCrop_max.copy()
-                    else:
-                        self.var.GeneralCrop_nonIrr = self.var.fracVegCover[1] - self.var.frac_totalnonIrr
-
-
+                    elif checkOption('use_GeneralCropnonIrr') == False:
+                        if checkOption('activate_fallow') == True:
+                            # if fallow is activated, it must be automatically generated for non-irrigated lands, or not at all, but necessary if activated, which is suggested
+                            self.var.GeneralCrop_nonIrr = self.var.generalnonIrrCrop_max.copy()
+                        else:
+                            self.var.GeneralCrop_nonIrr = self.var.fracVegCover[1] - self.var.frac_totalnonIrr
 
 
-                self.var.fallownonIrr = self.var.fracVegCover[1] - (
-                        self.var.frac_totalnonIrr + self.var.GeneralCrop_nonIrr)
-                self.var.fallownonIrr_max = np.maximum(self.var.fallownonIrr, self.var.fallownonIrr_max)
+                    self.var.fallownonIrr = self.var.fracVegCover[1] - (
+                            self.var.frac_totalnonIrr + self.var.GeneralCrop_nonIrr)
+                    self.var.fallownonIrr_max = np.maximum(self.var.fallownonIrr, self.var.fallownonIrr_max)
 
-                self.var.availableArableLand = self.var.fallowIrr + self.var.fracVegCover[1] - frac_totalnonIrr
+                    self.var.availableArableLand = self.var.fallowIrr + self.var.fracVegCover[1] - frac_totalnonIrr
+
+            if No == 1:
 
                 self.var.weighted_KC_nonIrr = self.var.GeneralCrop_nonIrr * self.var.cropKC_landCover[1]
                 self.var.weighted_KC_nonIrr += self.var.fallownonIrr * self.var.minCropKC
@@ -370,6 +362,19 @@ class evaporation(object):
                     self.var.weighted_KC_nonIrr += self.var.fracCrops_nonIrr[c] * self.var.currentKC[c]
                 self.var.weighted_KC_nonIrr /= self.var.fracVegCover[1]
                 self.var.cropKC[1] = np.where(self.var.fracVegCover[1] > 0, self.var.weighted_KC_nonIrr, 0)
+
+            if No == 3:
+
+                self.var.weighted_KC_Irr = self.var.GeneralCrop_Irr * self.var.cropKC_landCover[3]
+                for c in range(len(self.var.Crops)):
+                    self.var.weighted_KC_Irr += self.var.fracCrops_Irr[c] * self.var.currentKC[c]
+
+                self.var.weighted_KC_Irr_woFallow = np.where(self.var.fracVegCover[3] > 0, self.var.weighted_KC_Irr / (
+                            self.var.fracVegCover[3] - self.var.fallowIrr), 0)
+                self.var.weighted_KC_Irr += self.var.fallowIrr * self.var.minCropKC
+                self.var.weighted_KC_Irr = np.where(self.var.fracVegCover[3] > 0,
+                                                    self.var.weighted_KC_Irr / self.var.fracVegCover[3], 0)
+                self.var.cropKC[3] = self.var.weighted_KC_Irr.copy()
 
         # calculate potential ET
         ##  self.var.totalPotET total potential evapotranspiration for a reference crop for a land cover class [m]

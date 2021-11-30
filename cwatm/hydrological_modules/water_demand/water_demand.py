@@ -297,13 +297,13 @@ class water_demand:
 
                     if self.var.sectorSourceAbstractionFractions:
                         self.var.swAbstractionFraction_Lift_Domestic = loadmap(
-                            'swAbstractionFraction_Lake_Domestic')
+                            'swAbstractionFraction_Lift_Domestic')
                         self.var.swAbstractionFraction_Lift_Livestock = loadmap(
-                            'swAbstractionFraction_Lake_Livestock')
+                            'swAbstractionFraction_Lift_Livestock')
                         self.var.swAbstractionFraction_Lift_Industry = loadmap(
-                            'swAbstractionFraction_Lake_Industry')
+                            'swAbstractionFraction_Lift_Industry')
                         self.var.swAbstractionFraction_Lift_Irrigation = loadmap(
-                            'swAbstractionFraction_Lake_Irrigation')
+                            'swAbstractionFraction_Lift_Irrigation')
 
 
 

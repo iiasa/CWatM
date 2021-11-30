@@ -109,18 +109,19 @@ class waterdemand_industry:
                 np.put(self.var.WB_elec, self.var.decompress_LR, self.var.WB_elecC)
                 self.var.WB_elec = np.where(self.var.WB_elec <= 1, self.var.WB_elec, 0)
 
-                self.var.swAbstractionFraction_Lake_Industry = np.where(self.var.WB_elec > 0, 1,
-                                                                self.var.swAbstractionFraction_Lake_Industry)
-                self.var.swAbstractionFraction_Channel_Industry = np.where(self.var.WB_elec > 0, 0,
-                                                                self.var.swAbstractionFraction_Channel_Industry)
-                self.var.swAbstractionFraction_Res_Industry = np.where(self.var.WB_elec > 0, 0,
-                                                                           self.var.swAbstractionFraction_Res_Industry)
-                self.var.gwAbstractionFraction_Industry = np.where(self.var.WB_elec > 0, 0,
-                                                                           self.var.gwAbstractionFraction_Industry)
-                #self.var.gwAbstractionFraction_Irr = np.where(self.var.WB_elec > 0, 0,
-                #                                              self.var.gwAbstractionFraction_Irr)
-                #self.var.swAbstractionFraction_nonIrr = np.where(self.var.WB_elec > 0, 1,
-                #                                                 self.var.swAbstractionFraction_nonIrr)
+                if self.var.sectorSourceAbstractionFractions:
+                    self.var.swAbstractionFraction_Lake_Industry = np.where(self.var.WB_elec > 0, 1,
+                                                                    self.var.swAbstractionFraction_Lake_Industry)
+                    self.var.swAbstractionFraction_Channel_Industry = np.where(self.var.WB_elec > 0, 0,
+                                                                    self.var.swAbstractionFraction_Channel_Industry)
+                    self.var.swAbstractionFraction_Res_Industry = np.where(self.var.WB_elec > 0, 0,
+                                                                               self.var.swAbstractionFraction_Res_Industry)
+                    self.var.gwAbstractionFraction_Industry = np.where(self.var.WB_elec > 0, 0,
+                                                                               self.var.gwAbstractionFraction_Industry)
+                    #self.var.gwAbstractionFraction_Irr = np.where(self.var.WB_elec > 0, 0,
+                    #                                              self.var.gwAbstractionFraction_Irr)
+                    #self.var.swAbstractionFraction_nonIrr = np.where(self.var.WB_elec > 0, 1,
+                    #                                                 self.var.swAbstractionFraction_nonIrr)
 
 
                 self.var.industryDemand += self.var.WB_elec * self.var.lakeResStorage * self.var.M3toM
