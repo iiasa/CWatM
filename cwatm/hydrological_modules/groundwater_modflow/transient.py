@@ -191,19 +191,7 @@ class groundwater_modflow:
                                                            np.where(self.var.channel_ratio + factor_channelratio < 0, 0,
                                                                     self.var.channel_ratio + factor_channelratio)), 0)
 
-            permeability_m_s = cbinding('permeability')
-            if is_float(permeability_m_s):  # aquifer permeability is constant
-                permeability_m_s = float(permeability_m_s)
-                self.permeability = np.full((nlay, self.domain['nrow'], self.domain['ncol']), (24 * 3600 * permeability_m_s) / self.coefficient, dtype=np.float32)
-            else:  # aquifer permeability is given as a tif file at ModFLow resolution
-                raise NotImplementedError
 
-            self.porosity = cbinding('poro')   # default = 0.1
-            if is_float(self.porosity):  # aquifer porosity is constant
-                self.porosity = float(self.porosity)
-                self.porosity = np.full((nlay, self.domain['nrow'], self.domain['ncol']), self.porosity, dtype=np.float32)
-            else:  # aquifer porosity is given as a tif file at ModFLow resolution
-                raise NotImplementedError
 
             # uploading arrays allowing to transform 2D arrays from ModFlow to CWatM and conversely
             modflow_x = np.load(os.path.join(cbinding('cwatm_modflow_indices'), 'modflow_x.npy'))
@@ -221,6 +209,53 @@ class groundwater_modflow:
                                             minlength=maskinfo['mapC'][0])
             area_correction = (decompress(self.var.cellArea, nanvalue=0) / indices_cell_area)[self.indices['CWatM_index']]
             self.indices['area'] = self.indices['area'] * area_correction
+
+
+            permeability_m_s = cbinding('permeability')
+            if is_float(permeability_m_s):  # aquifer permeability is constant
+                permeability_m_s = float(permeability_m_s)
+                self.permeability = np.full((nlay, self.domain['nrow'], self.domain['ncol']), (24 * 3600 * permeability_m_s) / self.coefficient, dtype=np.float32)
+            else:  # aquifer permeability is given as a tif file at ModFLow resolution
+                perm1 = loadmap('permeability') + globals.inZero.copy()
+                perm2 = maskinfo['maskall'].copy()
+                perm2[~maskinfo['maskflat']] = perm1[:]
+                # CWATM 2D array is converted to Modflow 2D array
+
+                # p1 = decompress(perm1)
+                p1 = maskinfo['maskall'].copy()
+                p1[~maskinfo['maskflat']] = perm1[:]
+                p1 = p1.reshape(maskinfo['shape'])
+                p1[p1.mask] = -9999
+
+                self.permeability = np.zeros((nlay, self.domain['nrow'], self.domain['ncol']))
+                for i in range(len(modflow_x)):
+                    v = p1[cwatm_y[i], cwatm_x[i]]
+                    self.permeability[0, modflow_y[i], modflow_x[i]] = v
+
+                self.permeability[np.isnan(self.permeability)] = 1e-6
+                self.permeability[self.permeability == 0] = 1e-6
+                self.permeability[self.permeability < 0] = 1e-6
+                self.permeability = self.permeability * 86400 / self.coefficient
+
+            self.porosity = cbinding('poro')   # default = 0.1
+            if is_float(self.porosity):  # aquifer porosity is constant
+                self.porosity = float(self.porosity)
+                self.porosity = np.full((nlay, self.domain['nrow'], self.domain['ncol']), self.porosity, dtype=np.float32)
+            else:  # aquifer porosity is given as a tif file at ModFLow resolution
+                poro = loadmap('poro')
+                p1 = maskinfo['maskall'].copy()
+                p1[~maskinfo['maskflat']] = poro[:]
+                p1 = p1.reshape(maskinfo['shape'])
+                p1[p1.mask] = -9999
+
+                self.porosity = np.zeros((nlay, self.domain['nrow'], self.domain['ncol']))
+                for i in range(len(modflow_x)):
+                    v = p1[cwatm_y[i], cwatm_x[i]]
+                    self.porosity[0, modflow_y[i], modflow_x[i]] = v
+
+                self.porosity[np.isnan(self.porosity)] = 0.02
+                self.porosity[self.porosity == 0] = 0.02
+                self.porosity[self.porosity < 0] = 0.02
 
             # Converting the CWatM soil thickness into ModFlow map, then soil thickness will be removed from topography
             # if there is a lake or a reservoir soil depth should be replace (instead of 0) by the averaged soil depth (if not the topography under the lake is above neighboring cells)
@@ -332,7 +367,7 @@ class groundwater_modflow:
                     ndays=globals.dateVar['intEnd'],
                     timestep=self.var.modflow_timestep,
                     specific_storage=0,
-                    specific_yield=float(cbinding('poro')),
+                    specific_yield=self.porosity,
                     nlay=nlay,
                     nrow=self.domain['nrow'],
                     ncol=self.domain['ncol'],

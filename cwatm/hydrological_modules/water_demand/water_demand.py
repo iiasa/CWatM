@@ -268,7 +268,6 @@ class water_demand:
 
 
 
-
             if 'using_reservoir_command_areas' in option:
                 if checkOption('using_reservoir_command_areas'):
 
@@ -436,6 +435,16 @@ class water_demand:
         * calculate the fraction of water from surface water vs. groundwater
         * get non-Irrigation water demand and its return flow fraction
         """
+
+        if 'commandAreasRelaxGwAbstraction' in option:
+            if cbinding('commandAreasRelaxGwAbstraction') > 0:
+
+                if dateVar['currDate'].day <= 15:
+                    self.var.gwAbstractionFraction_Irrigation = np.where(self.var.reservoir_command_areas > 0, 0,
+                                                                         self.var.gwAbstractionFraction_Irrigation)
+                else:
+                    self.var.gwAbstractionFraction_Irrigation = np.where(self.var.reservoir_command_areas > 0, cbinding('commandAreasRelaxGwAbstraction'),
+                                                                         self.var.gwAbstractionFraction_Irrigation)
 
         if self.var.modflow:
 

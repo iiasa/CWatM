@@ -141,7 +141,7 @@ class evaporation(object):
 
                     if checkOption('moveIrrFallowToNonIrr'):
 
-                        # The irrigated land classes may have given up its fallow land to the grasslands land class.
+                        # The irrigated land class may have given up fallow land to the grasslands land class.
                         # If this is the case, these fallow lands are returned to the irrigated land class briefly to
                         # allow them to be planted on in the irrigated land class, and then returned to the
                         # grasslands land class.

@@ -193,6 +193,11 @@ class waterdemand_irrigation:
         self.var.pot_irrConsumption[No] = np.where(self.var.cropKC[No] > 0.20, np.where(readAvlWater < (self.var.alphaDepletion * critAvlWater),
                                                         np.maximum(0.0, self.var.alphaDepletion * self.var.totAvlWater - readAvlWater),  0.), 0.)
 
+        if "fraction_IncreaseIrrigation_Nonpaddy" in binding:
+            self.var.fraction_IncreaseIrrigation_Nonpaddy = loadmap(
+                'fraction_IncreaseIrrigation_Nonpaddy') + globals.inZero.copy()
+            self.var.pot_irrConsumption[No] *= self.var.fraction_IncreaseIrrigation_Nonpaddy
+
         # should not be bigger than infiltration capacity
         self.var.pot_irrConsumption[No] = np.minimum(self.var.pot_irrConsumption[No],potInf)
 
