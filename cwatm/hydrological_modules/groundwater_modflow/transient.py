@@ -235,7 +235,9 @@ class groundwater_modflow:
                 self.permeability[np.isnan(self.permeability)] = 1e-6
                 self.permeability[self.permeability == 0] = 1e-6
                 self.permeability[self.permeability < 0] = 1e-6
-                self.permeability = self.permeability * 86400 / self.coefficient
+                #self.permeability[self.permeability <1e-6] = 1e-6
+                #self.permeability[self.permeability > 5e-5] = 5e-5
+                self.permeability = self.permeability * 86400 / self.coefficient #experiment
 
             self.porosity = cbinding('poro')   # default = 0.1
             if is_float(self.porosity):  # aquifer porosity is constant
@@ -256,6 +258,8 @@ class groundwater_modflow:
                 self.porosity[np.isnan(self.porosity)] = 0.02
                 self.porosity[self.porosity == 0] = 0.02
                 self.porosity[self.porosity < 0] = 0.02
+                #self.porosity[self.porosity > 0.03] = 0.03 #experiment
+                #self.porosity[self.porosity < 0.01] = 0.01
 
             # Converting the CWatM soil thickness into ModFlow map, then soil thickness will be removed from topography
             # if there is a lake or a reservoir soil depth should be replace (instead of 0) by the averaged soil depth (if not the topography under the lake is above neighboring cells)
@@ -295,6 +299,16 @@ class groundwater_modflow:
             self.layer_boundaries[0] = topography - soildepth_modflow
             # defining the bottom of the ModFlow layer
             self.layer_boundaries[1] = self.layer_boundaries[0] - thickness
+
+            if not correct_depth_underlakes:  # we make a manual correction
+                waterBodyID_temp = loadmap('waterBodyID').astype(np.int64)
+            lake_modf = np.where(waterBodyID_temp != 0, 1, 0)
+            lake_modf = self.CWATM2modflow(decompress(lake_modf))
+            soildepth_modflow[np.isnan(lake_modf)] = 0
+            self.layer_boundaries[0] = np.where(lake_modf <= 0, np.where(self.var.channel_ratio > 0,
+                                                                         self.layer_boundaries[0] - 1,
+                                                                         self.layer_boundaries[0]),
+                                                self.layer_boundaries[0])
 
             # saving soil thickness at modflow resolution to compute water table depth in postprocessing
             self.var.modflowtotalSoilThickness = soildepth_modflow
@@ -572,9 +586,21 @@ class groundwater_modflow:
             # computing saturated fraction of each CWatM cells (where water table >= soil bottom)
             self.var.capriseindex = compressArray(self.modflow2CWATMbis(groundwater_outflow2))  # initialized in landcoverType module, self.var.capriseindex is the fraction of saturated ModFlow cells in each CWatM cell
 
+
+            # head = self.modflow.decompress(self.modflow.head.astype(np.float32))
             # updating water table maps both at CWatM and ModFlow resolution
             self.var.head = compressArray(self.modflow2CWATM(head))
             self.var.gwdepth = compressArray(self.modflow2CWATM(self.layer_boundaries[0])) - self.var.head
+
+            if 'gw_depth_observations' in binding:
+                self.var.gwdepth_difference_sim_obs = self.var.gwdepth - self.var.gwdepth_observations
+            if 'gw_depth_sim_obs' in binding:
+                self.var.gwdepth_adjusted = np.maximum(self.var.gwdepth - self.var.gwdepth_adjuster, 0)
+                #print(self.modflow.decompress(self.layer_boundaries[0]))
+                head_adjusted = self.layer_boundaries[0] - self.CWATM2modflow(decompress(self.var.gwdepth_adjusted))
+
+                #self.var.head_adjusted = head_adjusted
+                self.var.modflow_head_adjusted = np.copy(head_adjusted)
 
             self.var.modflow_watertable = np.copy(head)
 
