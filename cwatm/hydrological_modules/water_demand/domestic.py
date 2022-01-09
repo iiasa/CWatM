@@ -84,6 +84,10 @@ class waterdemand_domestic:
                 self.var.demand_unit = False
                 self.var.urbanWithdrawalSW_max = loadmap('sw_agentsUrban_month_m3') + globals.inZero.copy()
                 self.var.urbanWithdrawalGW_max = loadmap('gw_agentsUrban_month_m3') + globals.inZero.copy()
+
+                self.var.urbanWithdrawalSW_max *=2 #experiment
+                self.var.urbanWithdrawalGW_max *=2 #experiment
+
                 self.var.domesticDemand = self.var.urbanWithdrawalSW_max + self.var.urbanWithdrawalGW_max
                 self.var.swAbstractionFraction_nonIrr = divideValues(self.var.urbanWithdrawalSW_max,
                                                                      self.var.domesticDemand)

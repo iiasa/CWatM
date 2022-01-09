@@ -178,9 +178,22 @@ class landcoverType(object):
         And initialize the soil variables
         """
 
+        self.var.GeneralCrop_nonIrr = globals.inZero.copy()
+        self.var.GeneralCrop_Irr = globals.inZero.copy()
+
+        self.var.frac_totalIrr = globals.inZero.copy()
+        self.var.frac_totalnonIrr = globals.inZero.copy()
+        self.var.frac_totalIrr_max = globals.inZero.copy()
+        self.var.frac_totalnonIrr_max = globals.inZero.copy()
+        self.var.fallowIrr = globals.inZero.copy()
+        self.var.fallownonIrr = globals.inZero.copy()
+        self.var.fallowIrr_max = globals.inZero.copy()
+        self.var.fallownonIrr_max = globals.inZero.copy()
+
         self.var.capriseindex = globals.inZero.copy() # Fraction of cells where capillary rise occurs (used when ModFlow coupling)
         self.var.leakageIntoGw = globals.inZero.copy()
         self.var.leakageIntoRunoff = globals.inZero.copy()
+        self.var.availableArableLand = globals.inZero.copy()
 
         # make land cover change from year to year or fix it to 1 year
         if returnBool('dynamicLandcover'):
@@ -551,6 +564,18 @@ class landcoverType(object):
             sum = np.sum(self.var.fracVegCover, axis=0)
             self.var.fracVegCover[0] = np.maximum(0., self.var.fracVegCover[0] + 1.0 - sum)
             sum = np.sum(self.var.fracVegCover,axis=0)
+
+            """temp = loadmap('reservoir_command_areas').astype(np.int)
+            self.var.fracVegCover[3] += np.where(temp > 0, self.var.fracVegCover[1] * 0.25,
+                                                 0)
+            self.var.fracVegCover[1] -= np.where(temp > 0, self.var.fracVegCover[1] * 0.25,
+                                                 0)
+
+            self.var.fracVegCover[3] += np.where(temp == 46, self.var.fracVegCover[1] * 0.25,
+                                                 0)
+            self.var.fracVegCover[1] -= np.where(temp == 46, self.var.fracVegCover[1] * 0.25,
+                                                 0)"""
+
 
             self.var.irrigatedArea_original = self.var.fracVegCover[3].copy()
 

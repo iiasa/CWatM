@@ -480,6 +480,20 @@ class routing_kinematic(object):
         # maybe later, but for now it is known as m3
         #self.var.EvapoChannel = self.var.EvapoChannel / self.var.cellArea
 
+        self.var.humanConsumption = globals.inZero.copy()
+        self.var.humanUse = globals.inZero.copy()
+        self.var.natureUse = globals.inZero.copy()
+
+        for i in range(len(self.var.Crops)):
+            self.var.humanConsumption += self.var.actTransTotal_crops_nonIrr[i]
+            self.var.humanUse += self.var.actTransTotal_crops_nonIrr[i]
+
+        #self.var.natureUse = actTransTotal_grasslands - self.var.humanUse + self.var.EvapoChannel + self.var.sum_actBareSoilEvap + self.var.sum_interceptEvap + self.var.EvapWaterBodyM
+
+        self.var.humanConsumption += self.var.act_nonIrrConsumption + self.var.actTransTotal_paddy + self.var.addtoevapotrans + self.var.actTransTotal_nonpaddy + self.var.sum_openWaterEvap
+        self.var.humanUse += self.var.act_nonIrrWithdrawal + self.var.act_irrWithdrawal #+ self.var.sum_openWaterEvap #+ self.var.leakage #+reservoir evaporation
+
+
         if 'adminSegments' in binding:
             self.var.ETRefAverage_segments = npareaaverage(self.var.ETRef, self.var.adminSegments)
             self.var.precipEffectiveAverage_segments = npareaaverage(self.var.infiltration[1], self.var.adminSegments)

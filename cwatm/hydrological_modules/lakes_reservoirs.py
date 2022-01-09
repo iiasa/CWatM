@@ -300,7 +300,13 @@ class lakes_reservoirs(object):
 
             # ================================
             # Reservoirs
+            """temp = loadmap('waterBodyVolRes')
+            temp = np.where(self.var.waterBodyID == 13, 240, temp)
+            temp = np.where(self.var.waterBodyID == 2, 75, temp)
+            self.var.waterBodyVolRes = temp.copy()
+            self.var.resVolumeC = np.compress(self.var.compress_LR, temp) * 1000000"""
             self.var.resVolumeC = np.compress(self.var.compress_LR, loadmap('waterBodyVolRes')) * 1000000
+
             # if vol = 0 volu = 10 * area just to mimic all lakes are reservoirs
             # in [Million m3] -> converted to mio m3
 
@@ -313,11 +319,9 @@ class lakes_reservoirs(object):
             np.put(self.var.resVolumeOnlyReservoirs, self.var.decompress_LR, self.var.resVolumeOnlyReservoirsC)
 
             # correcting reservoir volume for lakes, just to run them all as reservoirs
+            self.var.resVolume = globals.inZero.copy()
             self.var.resVolumeC = np.where(self.var.resVolumeC > 0, self.var.resVolumeC, self.var.lakeAreaC * 10)
-
-            #
-            #
-
+            np.put(self.var.resVolume, self.var.decompress_LR, self.var.resVolumeC)
 
 
             # a factor which increases evaporation from lake because of wind

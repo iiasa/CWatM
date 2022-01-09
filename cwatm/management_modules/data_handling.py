@@ -1141,9 +1141,11 @@ def readnetcdfWithoutTime(name, value="None"):
     if value == "None":
         value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
+    '''
     if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
         msg = "Error 111: Latitude is in wrong order\n"
         raise CWATMFileError(filename, msg)
+    '''
 
     mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
     nf1.close()

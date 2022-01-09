@@ -86,6 +86,7 @@ class evaporation(object):
                         vars(self.var)[z] = np.tile(globals.inZero, (len(self.var.Crops), 1))
 
                     # The general crops are representative vegetation.
+                    '''
                     self.var.GeneralCrop_nonIrr = globals.inZero.copy()
                     self.var.GeneralCrop_Irr = globals.inZero.copy()
 
@@ -100,7 +101,7 @@ class evaporation(object):
                     self.var.fallownonIrr_max = self.var.load_initial('frac_totalnonIrr_max')
 
                     self.var.availableArableLand = globals.inZero.copy()
-
+                    '''
                     for c in range(len(self.var.Crops)):
 
                         self.var.activatedCrops[c] = self.var.load_initial("activatedCrops_" + str(c))
@@ -121,6 +122,7 @@ class evaporation(object):
                                 loadmap(self.var.Crops_names[i] + '_nonIrr') * crop_inflate_factor <= 1,
                                 loadmap(self.var.Crops_names[i] + '_nonIrr') * crop_inflate_factor,
                                 1)
+
                         except:
 
                             self.var.fracCrops_IrrLandDemand[i] = readnetcdf2(self.var.Crops_names[i] + '_Irr', dateVar['currDate'],
@@ -132,10 +134,18 @@ class evaporation(object):
                                                                   'yearly',
                                                                   value=re.split('[^a-zA-Z0-9_[\]]', cbinding(self.var.Crops_names[i] + '_nonIrr'))[-2])
 
+                        # in two places
+                        if 'crops_leftoverNotIrrigated' in binding:
+                            if i <= int(cbinding('crops_leftoverNotIrrigated')):
+                                print('in evaporation: some crops not rainfed')
+                                self.var.fracCrops_nonIrrLandDemand[i] = globals.inZero.copy()
+
                         # activatedCrops[c] = 1 where crop c is planned in at least 0.001% of the cell, and 0 otherwise.
-                        self.var.activatedCrops[i] = np.maximum((self.var.fracCrops_IrrLandDemand[i] +
-                                                                 self.var.fracCrops_nonIrrLandDemand[i] + 0.99999) // 1,
-                                                                self.var.activatedCrops[i])
+                        self.var.activatedCrops[i] = np.minimum(np.maximum((self.var.fracCrops_IrrLandDemand[i] +
+                                                                            self.var.fracCrops_nonIrrLandDemand[i] + 0.99999) // 1,
+                                                                           self.var.activatedCrops[i]), 1)
+
+
 
                 if dateVar['currDate'].day == 1:
 
