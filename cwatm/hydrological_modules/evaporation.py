@@ -78,7 +78,7 @@ class evaporation(object):
                 # I. new start
                 if dateVar['newStart']:
 
-                    for z in ['ratio_a_p_nonIrr', 'ratio_a_p_Irr',
+                    for z in ['irr_crop', 'irr_crop_month', 'irrM3_crop_month_segment', 'ratio_a_p_nonIrr', 'ratio_a_p_Irr',
                               'fracCrops_IrrLandDemand', 'fracCrops_Irr', 'areaCrops_Irr_segment', 'areaCrops_nonIrr_segment', 'fracCrops_nonIrrLandDemand', 'fracCrops_nonIrr',
                               'activatedCrops', 'monthCounter', 'currentKC', 'totalPotET_month', 'PET_cropIrr_m3',
                               'actTransTotal_month_Irr', 'actTransTotal_month_nonIrr', 'currentKY', 'Yield_Irr',
@@ -202,6 +202,7 @@ class evaporation(object):
                         self.var.totalPotET_month[c] = globals.inZero.copy()
                         self.var.actTransTotal_month_nonIrr[c] = globals.inZero.copy()
                         self.var.actTransTotal_month_Irr[c] = globals.inZero.copy()
+                        self.var.irr_crop_month[c] = globals.inZero.copy()
 
                         # Harvest crops that are finished growing: reset month counter and KC. New seeds are sown after harvesting towards the end.
                         self.var.monthCounter[c] = np.where(self.var.monthCounter[c] > self.var.Crops[c][-1][0], 0,
@@ -415,6 +416,7 @@ class evaporation(object):
                         self.var.areaCrops_nonIrr_segment[c] = npareatotal(
                             self.var.fracCrops_nonIrr[c] * self.var.cellArea,
                             self.var.adminSegments)
+
 
                 if 'adminSegments' in binding:
                     self.var.areaPaddy_Irr_segment = npareatotal(self.var.fracVegCover[2] * self.var.cellArea,

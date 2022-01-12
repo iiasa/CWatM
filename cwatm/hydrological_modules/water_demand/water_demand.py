@@ -3,7 +3,7 @@
 # Purpose:
 #
 # Author:      PB
-#
+#unmet_lost
 # Created:     15/07/2016
 # Copyright:   (c) PB 2016
 # -------------------------------------------------------------------------
@@ -485,14 +485,14 @@ class water_demand:
         * get non-Irrigation water demand and its return flow fraction
         """
 
-        if 'commandAreasRelaxGwAbstraction' in option:
-            if cbinding('commandAreasRelaxGwAbstraction') > 0:
+        if 'commandAreasRelaxGwAbstraction' in binding:
+            if float(cbinding('commandAreasRelaxGwAbstraction')) > 0:
 
                 if dateVar['currDate'].day <= 15:
                     self.var.gwAbstractionFraction_Irrigation = np.where(self.var.reservoir_command_areas > 0, 0.01,
                                                                          self.var.gwAbstractionFraction_Irrigation)
                 else:
-                    self.var.gwAbstractionFraction_Irrigation = np.where(self.var.reservoir_command_areas > 0, cbinding('commandAreasRelaxGwAbstraction'),
+                    self.var.gwAbstractionFraction_Irrigation = np.where(self.var.reservoir_command_areas > 0, float(cbinding('commandAreasRelaxGwAbstraction')),
                                                                          self.var.gwAbstractionFraction_Irrigation)
 
         if self.var.modflow:
@@ -1334,49 +1334,53 @@ class water_demand:
                 self.var.returnFlow = self.var.returnflowIrr
             self.var.waterabstraction = self.var.nonFossilGroundwaterAbs + self.var.unmetDemand + self.var.act_SurfaceWaterAbstract
 
-            if 'sw_agents_month_m3' in binding:
+            if 'adminSegments' in binding:
 
                 self.var.act_irrWithdrawalSW_month += npareatotal(act_irrWithdrawalSW * self.var.cellArea,
                                                                   self.var.adminSegments)
 
-                self.var.swAbstractionFraction_Channel_Irrigation = np.where(
-                    self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max, 0,
-                    self.var.swAbstractionFraction_Channel_Irrigation)
+                if 'sw_agents_month_m3' in binding:
 
-                self.var.swAbstractionFraction_Lake_Irrigation = np.where(
-                    self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max, 0,
-                    self.var.swAbstractionFraction_Lake_Irrigation)
+                    self.var.swAbstractionFraction_Channel_Irrigation = np.where(
+                        self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max, 0,
+                        self.var.swAbstractionFraction_Channel_Irrigation)
 
-                self.var.swAbstractionFraction_Res_Irrigation = np.where(
-                    self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max, 0,
-                    self.var.swAbstractionFraction_Res_Irrigation)
+                    self.var.swAbstractionFraction_Lake_Irrigation = np.where(
+                        self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max, 0,
+                        self.var.swAbstractionFraction_Lake_Irrigation)
 
-                self.var.ratio_irrWithdrawalSW_month = self.var.act_irrWithdrawalSW_month / self.var.irrWithdrawalSW_max
+                    self.var.swAbstractionFraction_Res_Irrigation = np.where(
+                        self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max, 0,
+                        self.var.swAbstractionFraction_Res_Irrigation)
 
-            if 'gw_agents_month_m3' in binding:
+                    self.var.ratio_irrWithdrawalSW_month = self.var.act_irrWithdrawalSW_month / self.var.irrWithdrawalSW_max
+
+
+            if 'adminSegments' in binding:
                 self.var.act_irrWithdrawalGW_month += npareatotal(act_irrWithdrawalGW * self.var.cellArea,
                                                                   self.var.adminSegments)
-
-                self.var.gwAbstractionFraction_Irrigation = np.where(
-                    self.var.act_irrWithdrawalGW_month > self.var.irrWithdrawalGW_max, 0,
-                    self.var.gwAbstractionFraction_Irrigation)
-
-                self.var.ratio_irrWithdrawalGW_month = self.var.act_irrWithdrawalGW_month / self.var.irrWithdrawalGW_max
-
-            if dateVar['currDate'].day == 10:
-                if 'sw_agents_month_m3' in binding:
-                    self.var.relaxSWagent += np.where(self.var.ratio_irrWithdrawalSW_month > 0.95, 1, 0)
                 if 'gw_agents_month_m3' in binding:
-                    self.var.relaxGWagent += np.where(self.var.ratio_irrWithdrawalGW_month > 0.95, 1, 0)
+                    self.var.gwAbstractionFraction_Irrigation = np.where(
+                        self.var.act_irrWithdrawalGW_month > self.var.irrWithdrawalGW_max, 0,
+                        self.var.gwAbstractionFraction_Irrigation)
 
-            # This will decrease values that have increased, but not on agents that were never too large
-            if dateVar['currDate'].day == 28:
-                if 'sw_agents_month_m3' in binding:
-                    self.var.relaxSWagent -= np.where(self.var.relaxSWagent > 0,
-                                                      np.where(self.var.ratio_irrWithdrawalSW_month > 0.98, 0, 1), 0)
-                if 'gw_agents_month_m3' in binding:
-                    self.var.relaxGWagent -= np.where(self.var.relaxGWagent > 0,
-                                                      np.where(self.var.ratio_irrWithdrawalGW_month > 0.98, 0, 1), 0)
+                    self.var.ratio_irrWithdrawalGW_month = self.var.act_irrWithdrawalGW_month / self.var.irrWithdrawalGW_max
+
+            if checkOption('relax'):
+                if dateVar['currDate'].day == 10:
+                    if 'sw_agents_month_m3' in binding:
+                        self.var.relaxSWagent += np.where(self.var.ratio_irrWithdrawalSW_month > 0.95, 1, 0)
+                    if 'gw_agents_month_m3' in binding:
+                        self.var.relaxGWagent += np.where(self.var.ratio_irrWithdrawalGW_month > 0.95, 1, 0)
+
+                # This will decrease values that have increased, but not on agents that were never too large
+                if dateVar['currDate'].day == 28:
+                    if 'sw_agents_month_m3' in binding:
+                        self.var.relaxSWagent -= np.where(self.var.relaxSWagent > 0,
+                                                          np.where(self.var.ratio_irrWithdrawalSW_month > 0.98, 0, 1), 0)
+                    if 'gw_agents_month_m3' in binding:
+                        self.var.relaxGWagent -= np.where(self.var.relaxGWagent > 0,
+                                                          np.where(self.var.ratio_irrWithdrawalGW_month > 0.98, 0, 1), 0)
 
 
             #---------------------------------------------

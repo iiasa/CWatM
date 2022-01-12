@@ -685,7 +685,7 @@ class soil(object):
                                     self.var.weighted_KC_Irr_woFallow),
                         0) * self.var.actTransTotal_nonpaddy
 
-                    self.var.actTransTotal_month_Irr[c] += self.var.actTransTotal_crops_Irr[c] #+ self.var.actBareSoilEvap[3]
+                    self.var.actTransTotal_month_Irr[c] += self.var.actTransTotal_crops_Irr[c] + self.var.actBareSoilEvap[3]
 
                     self.var.actTransTotal_crops_nonIrr[c] = np.where(self.var.fracVegCover[1] * self.var.cropKC[1] > 0,
                                                                       (self.var.fracCrops_nonIrr[c] *
@@ -695,6 +695,18 @@ class soil(object):
                                                                       0) * self.var.actTransTotal_grasslands
 
                     self.var.actTransTotal_month_nonIrr[c] += self.var.actTransTotal_crops_nonIrr[c] + self.var.actBareSoilEvap[1]
+
+                    self.var.irr_crop[c] = np.where(
+                        self.var.frac_totalIrr * self.var.weighted_KC_Irr_woFallow > 0, (
+                                self.var.fracCrops_Irr[c] * self.var.weighted_KC_Irr_woFallow) / (
+                                self.var.frac_totalIrr *
+                                self.var.weighted_KC_Irr_woFallow),
+                        0) * self.var.act_irrConsumption[No]
+
+                    self.var.irr_crop_month[c] += self.var.irr_crop[c]
+                    self.var.irrM3_crop_month_segment[c] = npareatotal(
+                        self.var.irr_crop_month[c] * self.var.cellArea,
+                        self.var.adminSegments)
 
 
         # total actual evaporation + transpiration
