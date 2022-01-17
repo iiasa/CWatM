@@ -1366,21 +1366,22 @@ class water_demand:
 
                     self.var.ratio_irrWithdrawalGW_month = self.var.act_irrWithdrawalGW_month / self.var.irrWithdrawalGW_max
 
-            if checkOption('relax'):
-                if dateVar['currDate'].day == 10:
-                    if 'sw_agents_month_m3' in binding:
-                        self.var.relaxSWagent += np.where(self.var.ratio_irrWithdrawalSW_month > 0.95, 1, 0)
-                    if 'gw_agents_month_m3' in binding:
-                        self.var.relaxGWagent += np.where(self.var.ratio_irrWithdrawalGW_month > 0.95, 1, 0)
+            if 'relax' in option:
+                if checkOption('relax'):
+                    if dateVar['currDate'].day == 10:
+                        if 'sw_agents_month_m3' in binding:
+                            self.var.relaxSWagent += np.where(self.var.ratio_irrWithdrawalSW_month > 0.95, 1, 0)
+                        if 'gw_agents_month_m3' in binding:
+                            self.var.relaxGWagent += np.where(self.var.ratio_irrWithdrawalGW_month > 0.95, 1, 0)
 
-                # This will decrease values that have increased, but not on agents that were never too large
-                if dateVar['currDate'].day == 28:
-                    if 'sw_agents_month_m3' in binding:
-                        self.var.relaxSWagent -= np.where(self.var.relaxSWagent > 0,
-                                                          np.where(self.var.ratio_irrWithdrawalSW_month > 0.98, 0, 1), 0)
-                    if 'gw_agents_month_m3' in binding:
-                        self.var.relaxGWagent -= np.where(self.var.relaxGWagent > 0,
-                                                          np.where(self.var.ratio_irrWithdrawalGW_month > 0.98, 0, 1), 0)
+                    # This will decrease values that have increased, but not on agents that were never too large
+                    if dateVar['currDate'].day == 28:
+                        if 'sw_agents_month_m3' in binding:
+                            self.var.relaxSWagent -= np.where(self.var.relaxSWagent > 0,
+                                                              np.where(self.var.ratio_irrWithdrawalSW_month > 0.98, 0, 1), 0)
+                        if 'gw_agents_month_m3' in binding:
+                            self.var.relaxGWagent -= np.where(self.var.relaxGWagent > 0,
+                                                              np.where(self.var.ratio_irrWithdrawalGW_month > 0.98, 0, 1), 0)
 
 
             #---------------------------------------------

@@ -701,11 +701,16 @@ class soil(object):
                                 self.var.fracCrops_Irr[c] * self.var.weighted_KC_Irr_woFallow) / (
                                 self.var.frac_totalIrr *
                                 self.var.weighted_KC_Irr_woFallow),
-                        0) * self.var.act_irrConsumption[No]
+                        0) * self.var.act_irrNonpaddyWithdrawal #self.var.act_irrConsumption[No]
 
                     self.var.irr_crop_month[c] += self.var.irr_crop[c]
                     self.var.irrM3_crop_month_segment[c] = npareatotal(
                         self.var.irr_crop_month[c] * self.var.cellArea,
+                        self.var.adminSegments)
+
+                self.var.irr_Paddy_month += self.var.act_irrPaddyWithdrawal
+                self.var.irrM3_Paddy_month_segment = npareatotal(
+                        self.var.irr_Paddy_month * self.var.cellArea,
                         self.var.adminSegments)
 
 
