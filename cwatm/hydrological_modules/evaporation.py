@@ -85,6 +85,11 @@ class evaporation(object):
                               'Yield_nonIrr', 'actTransTotal_crops_Irr', 'actTransTotal_crops_nonIrr', 'PotET_crop', 'PotETaverage_crop_segments', 'totalPotET_month_segment']:
                         vars(self.var)[z] = np.tile(globals.inZero, (len(self.var.Crops), 1))
 
+                    self.var.irr_Paddy_month = globals.inZero
+                    for z in [crop for crop in self.var.Crops_names]:
+                        vars(self.var)[z + '_Irr'] = globals.inZero
+                        vars(self.var)[z + '_nonIrr'] = globals.inZero
+
                     # The general crops are representative vegetation.
                     '''
                     self.var.GeneralCrop_nonIrr = globals.inZero.copy()
@@ -137,7 +142,7 @@ class evaporation(object):
                         # in two places
                         if 'crops_leftoverNotIrrigated' in binding:
                             if i <= int(cbinding('crops_leftoverNotIrrigated')):
-                                print('in evaporation: some crops not rainfed')
+                                #print('in evaporation: some crops not rainfed')
                                 self.var.fracCrops_nonIrrLandDemand[i] = globals.inZero.copy()
 
                         # activatedCrops[c] = 1 where crop c is planned in at least 0.001% of the cell, and 0 otherwise.
@@ -406,6 +411,10 @@ class evaporation(object):
 
                     self.var.PotET_crop[c] = self.var.cropCorrect * self.var.currentKC[c] * self.var.ETRef
                     self.var.totalPotET_month[c] += self.var.PotET_crop[c] #self.var.cropCorrect * self.var.currentKC[c] * self.var.ETRef #np.maximum(0., self.var.cropCorrect * self.var.currentKC[c] * self.var.ETRef - self.var.potBareSoilEvap - self.var.snowEvap)
+
+                    #For creating named crop maps
+                    #vars(self.var)[self.var.Crops_names[c]+'_Irr'] = self.var.fracCrops_Irr[c].copy()
+                    #vars(self.var)[self.var.Crops_names[c] + '_nonIrr'] = self.var.fracCrops_nonIrr[c].copy()
 
                     if 'adminSegments' in binding:
                         self.var.totalPotET_month_segment[c] = npareaaverage(self.var.totalPotET_month[c], self.var.adminSegments)
