@@ -10,7 +10,7 @@ from osgeo import gdal, osr
 import geopandas as gpd
 
 #GDAL_POLYGONIZE = r"C:\Users\jadeb\Miniconda3\envs\abm\Scripts\gdal_polygonize.py"
-GDAL_POLYGONIZE = 'C:/Users/guillaumot/Documents/CWatM_ModFlow_preprocess/GdalProj/Lib/site-packages/osgeo/scripts/gdal_polygonize.py'
+GDAL_POLYGONIZE = 'C:/Users/nb-smilovic/Envs/iiasa/Scripts/gdal_polygonize.py'
 assert os.path.exists(GDAL_POLYGONIZE)
 
 # these lines are necessary sometimes
