@@ -49,6 +49,7 @@ class waterdemand_domestic:
 
         """
 
+
         if "domesticTimeMonthly" in binding:
             if returnBool('domesticTimeMonthly'):
                 self.var.domesticTime = 'monthly'
@@ -93,6 +94,13 @@ class waterdemand_domestic:
                                                                      self.var.domesticDemand)
                 self.var.domesticDemand /= 1000000
                 self.var.pot_domesticConsumption = self.var.domesticDemand.copy() * 0.3  # This will be an input from the Urban module, 0.3 is an assumption for testing
+
+                self.var.swAbstractionFraction_Channel_Domestic = globals.inZero
+                self.var.swAbstractionFraction_Lift_Domestic = globals.inZero
+                self.var.swAbstractionFraction_Res_Domestic = self.var.swAbstractionFraction_nonIrr.copy()
+                self.var.swAbstractionFraction_Lake_Domestic = self.var.swAbstractionFraction_nonIrr.copy()
+                self.var.gwAbstractionFraction_Domestic = 1 - self.var.swAbstractionFraction_nonIrr
+
 
             else:
 

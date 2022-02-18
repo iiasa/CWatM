@@ -85,7 +85,7 @@ class groundwater(object):
         if 'gw_depth_observations' in binding:
             self.var.gwdepth_observations = readnetcdfWithoutTime(cbinding('gw_depth_observations'), value= 'Groundwater depth')
         if 'gw_depth_sim_obs' in binding:
-            self.var.gwdepth_adjuster = loadmap('gw_depth_sim_obs')
+            self.var.gwdepth_adjuster = loadmap('gw_depth_sim_obs') #np.minimum(loadmap('gw_depth_sim_obs'), 10)
 
         #PB for Bejing
         #self.var.area1 = loadmap('MaskMap')
