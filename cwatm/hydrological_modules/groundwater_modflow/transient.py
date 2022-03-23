@@ -39,7 +39,7 @@ class groundwater_modflow:
     def get_corrected_modflow_cell_area(self):
         return np.bincount(
             self.indices['ModFlow_index'],
-            weights=np.invert(self.var.mask.astype(np.bool)).ravel()[self.indices['CWatM_index']] * self.indices['area'],
+            weights=np.invert(self.var.mask.astype(bool)).ravel()[self.indices['CWatM_index']] * self.indices['area'],
             minlength=self.modflow.basin.size).reshape(self.modflow.basin.shape)
 
     def get_corrected_cwatm_cell_area(self):
@@ -67,7 +67,7 @@ class groundwater_modflow:
         variable_copy = variable.copy()
         variable_copy[self.modflow.basin == False] = 0
         assert not (np.isnan(variable_copy).any())
-        assert self.modflow.basin.dtype == np.bool
+        assert self.modflow.basin.dtype == bool
         if correct_boundary:
             cwatm_cell_area = self.corrected_cwatm_cell_area.ravel()
         else:
@@ -90,7 +90,7 @@ class groundwater_modflow:
         variable_copy[self.modflow.basin == False] = 0
         variable_copy[variable_copy > 0] = 1  # Each ModFlow cell is distinguished between producing or not producing capillary rise
         assert not (np.isnan(variable_copy).any())
-        assert self.modflow.basin.dtype == np.bool
+        assert self.modflow.basin.dtype == bool
         if correct_boundary:
             cwatm_cell_area = self.corrected_cwatm_cell_area.ravel()
         else:
@@ -139,7 +139,7 @@ class groundwater_modflow:
 
             rasterio = importlib.import_module("rasterio", package=None)
             with rasterio.open(cbinding('modflow_basin'), 'r') as src:
-                modflow_basin = src.read(1).astype(np.bool)  # read in as 2-dimensional array (nrows, ncols).
+                modflow_basin = src.read(1).astype(bool)  # read in as 2-dimensional array (nrows, ncols).
                 self.domain = {
                     'rowsize': abs(src.profile['transform'].e),
                     'colsize': abs(src.profile['transform'].a),
