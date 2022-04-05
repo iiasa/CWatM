@@ -349,6 +349,11 @@ class groundwater_modflow:
                 self.var.GW_pumping = returnBool('Groundwater_pumping')
             print('=> Groundwater pumping should be deactivated if includeWaterDemand is False')
 
+            self.var.use_complex_solver_for_modflow = False
+            if 'use_complex_solver_for_modflow' in option:
+                if checkOption('use_complex_solver_for_modflow'):
+                    self.var.use_complex_solver_for_modflow = True
+
             self.var.availableGWStorageFraction = 0.85
             if self.var.GW_pumping:
                 print('=> THE PUMPING MAP SHOULD BE DEFINED (In transient.py ALSO LINE 420) BEFORE TO RUN THE MODEL AND BE THE SAME FOR ALL THE SIMULATION')
@@ -370,8 +375,8 @@ class groundwater_modflow:
 
                 if 'water_table_limit_for_pumping' in binding:
                     # if available storage is too low, no pumping in this cell
-                    self.var.availableGWStorageFraction = loadmap('water_table_limit_for_pumping')  # if 85% of the ModFlow cell is empty, we prevent pumping in this cell
-                print('=> Pumping in the ModFlow layer is prevented if water table is under ', 1 - self.var.availableGWStorageFraction, ' of the layer capacity')
+                    self.var.availableGWStorageFraction = np.maximum(np.minimum(0.98, loadmap('water_table_limit_for_pumping')), 0)  # if 85% of the ModFlow cell is empty, we prevent pumping in this cell
+                print('=> Pumping in the ModFlow layer is prevented if water table is under', int(100*(1 - self.var.availableGWStorageFraction)), '% of the layer capacity')
 
                 # initializing the ModFlow6 model
                 self.modflow = ModFlowSimulation(
@@ -396,7 +401,8 @@ class groundwater_modflow:
                     load_from_disk=returnBool('load_modflow_from_disk'),
                     setpumpings=True,
                     pumpingloc=self.wells_mask,
-                    verbose=verboseGW)
+                    verbose=verboseGW,
+                    complex_solver = self.var.use_complex_solver_for_modflow)
 
 
 
@@ -424,7 +430,8 @@ class groundwater_modflow:
                     load_from_disk=returnBool('load_modflow_from_disk'),
                     setpumpings=False,
                     pumpingloc=None,
-                    verbose=verboseGW)
+                    verbose=verboseGW,
+                    complex_solver = self.var.use_complex_solver_for_modflow)
 
 
             #self.corrected_cwatm_cell_area = self.get_corrected_cwatm_cell_area()

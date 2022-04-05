@@ -66,15 +66,8 @@ class waterdemand_domestic:
         else:
             self.var.domConsumptionVar = "domesticNettoDemand"
 
-
-
-        self.var.urbanWithdrawalSW_max = globals.inZero.copy()
-        self.var.urbanWithdrawalGW_max = globals.inZero.copy()
-
-        # in water demand
-        # Phasing out swAbstractionFraction_nonIrr
-        #self.var.swAbstractionFraction_nonIrr = 1 + globals.inZero.copy()
-        #self.var.swAbstractionFraction_domestic = 1 + globals.inZero.copy()
+        self.var.domestic_agent_SW_withdrawal_request_month_m3 = globals.inZero.copy()
+        self.var.domestic_agent_GW_withdrawal_request_month_m3 = globals.inZero.copy()
 
 
     def dynamic(self,wd_date):
@@ -91,40 +84,57 @@ class waterdemand_domestic:
         
         if globals.dateVar['newStart'] or globals.dateVar[new]:
 
-            # Agents are collections of associated cells.
-            # The region is partitioned into agents, and each cell is associated with an agent.
-            # The settings sw_agentsUrban_month_m3 and gw_agentsUrban_month_m3 hold monthly water demand
-
             if self.var.activate_domestic_agents:
+
+                # Domestic agents have monthly surface and groundwater requests, at CWatM cellular resolution.
+                #
+                # The settings sw_agentsDomestic_month_m3, and gw_agentsDomestic_month_m3 are static maps
+                #  with the monthly water demand in cubic metres at CWatM resolution.
+                #
+                # The setting domestic_agents_fracConsumptionWithdrawal is a static map
+                #  with the ratio of consumption to withdrawal for domestic agents.
+
+                if 'domestic_agent_SW_withdrawal_request_month_m3' in binding:
+                    self.var.domestic_agent_SW_withdrawal_request_month_m3 = loadmap(
+                        'domestic_agent_SW_withdrawal_request_month_m3') + globals.inZero.copy()
+
+                if 'domestic_agent_GW_withdrawal_request_month_m3' in binding:
+                    self.var.domestic_agent_GW_withdrawal_request_month_m3 = loadmap(
+                        'domestic_agent_GW_withdrawal_request_month_m3') + globals.inZero.copy()
+
+                self.var.domesticDemand = self.var.domestic_agent_SW_withdrawal_request_month_m3 + \
+                                          self.var.domestic_agent_GW_withdrawal_request_month_m3
+
+                self.var.swAbstractionFraction_domestic = \
+                    np.where(self.var.domesticDemand > 0,
+                           divideValues(
+                               self.var.domestic_agent_SW_withdrawal_request_month_m3,
+                               self.var.domesticDemand), 0)
+
+
+                # domesticDemand and domesticConsumption are transformed below from million m3 per month to m/day
                 self.var.demand_unit = False
-                if 'sw_agentsUrban_month_m3' in binding:
-                    self.var.urbanWithdrawalSW_max = loadmap('sw_agentsUrban_month_m3') + globals.inZero.copy()
-                if 'gw_agentsUrban_month_m3' in binding:
-                    self.var.urbanWithdrawalGW_max = loadmap('gw_agentsUrban_month_m3') + globals.inZero.copy()
-
-                self.var.domesticDemand = self.var.urbanWithdrawalSW_max + self.var.urbanWithdrawalGW_max
-
-                #Phasing out swAbstractionFraction_nonIrr for swAbstractionFraction_domestic
-                self.var.swAbstractionFraction_nonIrr = divideValues(self.var.urbanWithdrawalSW_max,
-                                                                     self.var.domesticDemand)
-
-                self.var.swAbstractionFraction_domestic = divideValues(self.var.urbanWithdrawalSW_max,
-                                                                     self.var.domesticDemand)
                 self.var.domesticDemand /= 1000000
+
                 if 'domestic_agents_fracConsumptionWithdrawal' in binding:
-                    self.var.pot_domesticConsumption = self.var.domesticDemand.copy() * float(cbinding('domestic_agents_fracConsumptionWithdrawal'))
+                    self.var.pot_domesticConsumption = self.var.domesticDemand.copy() * loadmap(
+                        'domestic_agents_fracConsumptionWithdrawal')
                 else:
                     self.var.pot_domesticConsumption = self.var.domesticDemand.copy() * 0.2
 
-                self.var.swAbstractionFraction_Channel_Domestic = globals.inZero.copy()
-                self.var.swAbstractionFraction_Lift_Domestic = globals.inZero.copy()
-                self.var.swAbstractionFraction_Res_Domestic = self.var.swAbstractionFraction_nonIrr.copy()
-                self.var.swAbstractionFraction_Lake_Domestic = self.var.swAbstractionFraction_nonIrr.copy()
-                self.var.gwAbstractionFraction_Domestic = 1 - self.var.swAbstractionFraction_nonIrr
+                if self.var.sectorSourceAbstractionFractions:
+                    self.var.swAbstractionFraction_Channel_Domestic *= self.var.swAbstractionFraction_domestic
+                    self.var.swAbstractionFraction_Lift_Domestic *= self.var.swAbstractionFraction_domestic
+                    self.var.swAbstractionFraction_Res_Domestic *= self.var.swAbstractionFraction_domestic
+                    self.var.swAbstractionFraction_Lake_Domestic *= self.var.swAbstractionFraction_domestic
+                    self.var.gwAbstractionFraction_Domestic = 1 - self.var.swAbstractionFraction_domestic
+                else:
 
-                self.var.swAbstractionFraction_Res_Domestic = self.var.swAbstractionFraction_domestic.copy()
-                self.var.swAbstractionFraction_Lake_Domestic = self.var.swAbstractionFraction_domestic.copy()
-                self.var.gwAbstractionFraction_Domestic = 1 - self.var.swAbstractionFraction_domestic
+                    self.var.swAbstractionFraction_Channel_Domestic = self.var.swAbstractionFraction_domestic.copy()
+                    self.var.swAbstractionFraction_Lift_Domestic = self.var.swAbstractionFraction_domestic.copy()
+                    self.var.swAbstractionFraction_Res_Domestic = self.var.swAbstractionFraction_domestic.copy()
+                    self.var.swAbstractionFraction_Lake_Domestic = self.var.swAbstractionFraction_domestic.copy()
+                    self.var.gwAbstractionFraction_Domestic = 1 - self.var.swAbstractionFraction_domestic
 
 
             else:

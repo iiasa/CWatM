@@ -44,7 +44,8 @@ class ModFlowSimulation:
         load_from_disk=False,
         setpumpings=False,
         pumpingloc=None,
-        verbose=False
+        verbose=False,
+        complex_solver = False
     ):
 
         flopy = importlib.import_module("flopy", package=None)
@@ -82,9 +83,15 @@ class ModFlowSimulation:
             # create iterative model solution and register the gwf model with it
             # If the model fails with the following error: xmipy.errors.XMIError: MODFLOW 6 BMI, exception in: finalize_solve ()
             # Then one can reduce the modflow timestep, or use the following ims lines with complexity = 'COMPLEX'
-            #ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='COMPLEX') #, linear_acceleration='BICGSTAB')
-            ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='SIMPLE', linear_acceleration='BICGSTAB',
-                                       rcloserecord=[0.1*24*3600*timestep*np.nansum(basin), 'L2NORM_RCLOSE'])
+
+            if complex_solver:
+                print('using compex modflow solver')
+                ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='COMPLEX')
+            else:
+                ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='SIMPLE', linear_acceleration='BICGSTAB',
+                                           rcloserecord=[0.1 * 24 * 3600 * timestep * np.nansum(basin),
+                                                         'L2NORM_RCLOSE'])
+
 
             # create gwf model
             # MODIF LUCA

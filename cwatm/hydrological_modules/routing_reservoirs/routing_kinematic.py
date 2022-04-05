@@ -495,30 +495,6 @@ class routing_kinematic(object):
         self.var.humanConsumption += self.var.act_nonIrrConsumption + self.var.actTransTotal_paddy + self.var.addtoevapotrans + self.var.actTransTotal_nonpaddy + self.var.sum_openWaterEvap
         self.var.humanUse += self.var.act_nonIrrWithdrawal + self.var.act_irrWithdrawal #+ self.var.sum_openWaterEvap #+ self.var.leakage #+reservoir evaporation
 
-
-        #self.var.Xcel.append([dateVar['currDate'], np.sum(self.var.Rain * self.var.cellArea), np.sum(self.var.Snow * self.var.cellArea), np.sum(self.var.totalET * self.var.cellArea)])
-
-        """
-        if dateVar['currDate'] == dateVar['dateEnd']:
-
-            import xlsxwriter
-            workbook = xlsxwriter.Workbook('waterCycle.xlsx')
-            worksheet = workbook.add_worksheet('Flows')
-            worksheet.write(0, 0, '(m3)')
-            worksheet.write(0, 1, 'Rain')
-            worksheet.write(0, 2, 'Snow')
-            worksheet.write(0, 3, 'totalET')
-            row = 1
-
-            for i in self.var.Xcel:
-                worksheet.write(row, 0, str(i[0]))
-                worksheet.write(row, 1, int(i[1]))
-                worksheet.write(row, 2, int(i[2]))
-                worksheet.write(row, 3, int(i[3]))
-                row += 1
-            workbook.close()
-        """
-
         if 'adminSegments' in binding:
             self.var.ETRefAverage_segments = npareaaverage(self.var.ETRef, self.var.adminSegments)
             self.var.precipEffectiveAverage_segments = npareaaverage(self.var.infiltration[1], self.var.adminSegments)
