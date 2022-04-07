@@ -192,9 +192,9 @@ class water_demand:
             self.var.adminSegments = loadmap('adminSegments').astype(int)
             self.var.adminSegments = np.where(self.var.adminSegments>0, self.var.adminSegments, 0)
 
-            if 'irrigation_agent_SW_withdrawal_request_month_m3' in binding and self.var.activate_irrigation_agents:
+            if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
                 self.var.irrWithdrawalSW_max = npareaaverage(
-                    loadmap('irrigation_agent_SW_withdrawal_request_month_m3') + globals.inZero.copy(),
+                    loadmap('irrigation_agent_SW_request_month_m3') + globals.inZero.copy(),
                     self.var.adminSegments)
 
                 if 'relax_sw_agent' in binding:
@@ -203,9 +203,9 @@ class water_demand:
                     else:
                         self.var.relaxSWagent = loadmap('relax_sw_agent')
 
-            if 'irrigation_agent_GW_withdrawal_request_month_m3' in binding and self.var.activate_irrigation_agents:
+            if 'irrigation_agent_GW_request_month_m3' in binding and self.var.activate_irrigation_agents:
                 self.var.irrWithdrawalGW_max = npareaaverage(
-                    loadmap('irrigation_agent_GW_withdrawal_request_month_m3') + globals.inZero.copy(),
+                    loadmap('irrigation_agent_GW_request_month_m3') + globals.inZero.copy(),
                     self.var.adminSegments)
 
                 if 'relax_gw_agent' in binding:
@@ -610,7 +610,7 @@ class water_demand:
                 self.var.act_irrWithdrawalSW_month = globals.inZero.copy()
                 self.var.act_irrWithdrawalGW_month = globals.inZero.copy()
 
-                if 'irrigation_agent_SW_withdrawal_request_month_m3' in binding and self.var.activate_irrigation_agents:
+                if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
 
                     # These are read at the beginning of each month as they are updated by several relax functions
                     # and turned off once satisfying request
@@ -646,7 +646,7 @@ class water_demand:
                                                                                  self.var.relax_abstraction_fraction_initial / self.var.relaxSWagent,
                                                                                      self.var.swAbstractionFraction_Res_Irrigation)
 
-                if 'irrigation_agent_GW_withdrawal_request_month_m3' in binding and self.var.activate_irrigation_agents:
+                if 'irrigation_agent_GW_request_month_m3' in binding and self.var.activate_irrigation_agents:
 
                     if self.var.sectorSourceAbstractionFractions:
                         self.var.gwAbstractionFraction_Irrigation = loadmap(
@@ -1513,7 +1513,7 @@ class water_demand:
                 self.var.act_irrWithdrawalSW_month += npareatotal(act_irrWithdrawalSW * self.var.cellArea,
                                                                   self.var.adminSegments)
 
-                if 'irrigation_agent_SW_withdrawal_request_month_m3' in binding and self.var.activate_irrigation_agents:
+                if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
 
                     self.var.swAbstractionFraction_Channel_Irrigation = np.where(
                         self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max, 0,
@@ -1533,7 +1533,7 @@ class water_demand:
             if 'adminSegments' in binding:
                 self.var.act_irrWithdrawalGW_month += npareatotal(act_irrWithdrawalGW * self.var.cellArea,
                                                                   self.var.adminSegments)
-                if 'irrigation_agent_GW_withdrawal_request_month_m3' in binding and self.var.activate_irrigation_agents:
+                if 'irrigation_agent_GW_request_month_m3' in binding and self.var.activate_irrigation_agents:
                     self.var.gwAbstractionFraction_Irrigation = np.where(
                         self.var.act_irrWithdrawalGW_month > self.var.irrWithdrawalGW_max, 0,
                         self.var.gwAbstractionFraction_Irrigation)
@@ -1542,17 +1542,17 @@ class water_demand:
 
             if self.var.relax_irrigation_agents:
                 if dateVar['currDate'].day == 10:
-                    if 'irrigation_agent_SW_withdrawal_request_month_m3' in binding and self.var.activate_irrigation_agents:
+                    if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
                         self.var.relaxSWagent += np.where(self.var.ratio_irrWithdrawalSW_month > 0.95, 1, 0)
-                    if 'irrigation_agent_GW_withdrawal_request_month_m3' in binding and self.var.activate_irrigation_agents:
+                    if 'irrigation_agent_GW_request_month_m3' in binding and self.var.activate_irrigation_agents:
                         self.var.relaxGWagent += np.where(self.var.ratio_irrWithdrawalGW_month > 0.95, 1, 0)
 
                 # This will decrease values that have increased, but not on agents that were never too large
                 if dateVar['currDate'].day == 28:
-                    if 'irrigation_agent_SW_withdrawal_request_month_m3' in binding and self.var.activate_irrigation_agents:
+                    if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
                         self.var.relaxSWagent -= np.where(self.var.relaxSWagent > 0,
                                                           np.where(self.var.ratio_irrWithdrawalSW_month > 0.98, 0, 1), 0)
-                    if 'irrigation_agent_GW_withdrawal_request_month_m3' in binding and self.var.activate_irrigation_agents:
+                    if 'irrigation_agent_GW_request_month_m3' in binding and self.var.activate_irrigation_agents:
                         self.var.relaxGWagent -= np.where(self.var.relaxGWagent > 0,
                                                           np.where(self.var.ratio_irrWithdrawalGW_month > 0.98, 0, 1), 0)
 

@@ -173,12 +173,14 @@ class initcondition(object):
                 initCondVar.extend(Var1)
                 initCondVarValue.extend(Var2)
 
-        if 'sw_agents_month_m3' in binding:
-            initCondVar.append("relaxSWagent")
-            initCondVarValue.append("relaxSWagent")
-        if 'gw_agents_month_m3' in binding:
-            initCondVar.append("relaxGWagent")
-            initCondVarValue.append("relaxGWagent")
+        if 'relax_irrigation_agents' in option:
+            if checkOption('relax_irrigation_agents'):
+                if 'irrigation_agent_SW_request_month_m3' in binding:
+                    initCondVar.append("relaxSWagent")
+                    initCondVarValue.append("relaxSWagent")
+                if 'irrigation_agent_GW_request_month_m3' in binding:
+                    initCondVar.append("relaxGWagent")
+                    initCondVarValue.append("relaxGWagent")
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # Load init file - a single file can be loaded - needs path and file name

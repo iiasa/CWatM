@@ -66,8 +66,8 @@ class waterdemand_domestic:
         else:
             self.var.domConsumptionVar = "domesticNettoDemand"
 
-        self.var.domestic_agent_SW_withdrawal_request_month_m3 = globals.inZero.copy()
-        self.var.domestic_agent_GW_withdrawal_request_month_m3 = globals.inZero.copy()
+        self.var.domestic_agent_SW_request_month_m3 = globals.inZero.copy()
+        self.var.domestic_agent_GW_request_month_m3 = globals.inZero.copy()
 
 
     def dynamic(self,wd_date):
@@ -94,21 +94,21 @@ class waterdemand_domestic:
                 # The setting domestic_agents_fracConsumptionWithdrawal is a static map
                 #  with the ratio of consumption to withdrawal for domestic agents.
 
-                if 'domestic_agent_SW_withdrawal_request_month_m3' in binding:
-                    self.var.domestic_agent_SW_withdrawal_request_month_m3 = loadmap(
-                        'domestic_agent_SW_withdrawal_request_month_m3') + globals.inZero.copy()
+                if 'domestic_agent_SW_request_month_m3' in binding:
+                    self.var.domestic_agent_SW_request_month_m3 = loadmap(
+                        'domestic_agent_SW_request_month_m3') + globals.inZero.copy()
 
-                if 'domestic_agent_GW_withdrawal_request_month_m3' in binding:
-                    self.var.domestic_agent_GW_withdrawal_request_month_m3 = loadmap(
-                        'domestic_agent_GW_withdrawal_request_month_m3') + globals.inZero.copy()
+                if 'domestic_agent_GW_request_month_m3' in binding:
+                    self.var.domestic_agent_GW_request_month_m3 = loadmap(
+                        'domestic_agent_GW_request_month_m3') + globals.inZero.copy()
 
-                self.var.domesticDemand = self.var.domestic_agent_SW_withdrawal_request_month_m3 + \
-                                          self.var.domestic_agent_GW_withdrawal_request_month_m3
+                self.var.domesticDemand = self.var.domestic_agent_SW_request_month_m3 + \
+                                          self.var.domestic_agent_GW_request_month_m3
 
                 self.var.swAbstractionFraction_domestic = \
                     np.where(self.var.domesticDemand > 0,
                            divideValues(
-                               self.var.domestic_agent_SW_withdrawal_request_month_m3,
+                               self.var.domestic_agent_SW_request_month_m3,
                                self.var.domesticDemand), 0)
 
 
