@@ -172,6 +172,8 @@ f.close()
 ### OPEN THE EXCEL FILE WITH VARIABLES DESCRIPTION AND SAVE VARNAME AND DESCRIPTION IN PYTHON LIST
 # Reading an excel file using Python
 import xlrd
+xlrd.xlsx.ensure_elementtree_imported(False, None)
+xlrd.xlsx.Element_has_iter = True
 # Give the location of the file
 #loc = ("selfvar_cwatm.xlsx")
 #PB change file name
@@ -196,10 +198,11 @@ for ir in range(1,rows):
 #     from an older version)
 #   - a list of variables description
 
+a=bb
 
 ### ADDING DESCRIPTION TO THE MAIN DICTIONNARY ###
 
-print('Adding description and unit to the dictionnary')
+print('Adding description and unit to the dictionary')
 for name_var in Dict_AllVariables: # for each self.var variable name
     cnt_xl=0
     for excel_name in var_name_in_excel:  # for each self.var variable name described in excel sheet

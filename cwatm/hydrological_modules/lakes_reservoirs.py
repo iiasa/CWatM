@@ -487,6 +487,12 @@ class lakes_reservoirs(object):
             self.var.sumlakeResInflow = 0
             self.var.sumlakeResOutflow = 0
 
+            # Reservoir_releases holds variables for different reservoir operations, each with 366 timesteps.
+            # The value of the variable at the reservoir is the maximum fraction of available storage to be
+            # released for the associated operation.
+            # Downstream release is the water released downstream into the river.
+            # This is overridden only in flooding conditions.
+
             if 'Reservoir_releases' in binding:
                 day_of_year = dateVar['currDate'].timetuple().tm_yday
                 self.var.lakeResStorage_release_ratio = readnetcdf2(
@@ -495,7 +501,6 @@ class lakes_reservoirs(object):
 
                 self.var.lakeResStorage_release_ratioC = np.compress(self.var.compress_LR,
                                                                      self.var.lakeResStorage_release_ratio)
-
 
     def dynamic_inloop(self, NoRoutingExecuted):
         """
@@ -672,8 +677,14 @@ class lakes_reservoirs(object):
                                         (reservoirOutflow > self.var.normQC) &
                                         (self.var.reservoirFillC < self.var.floodLimitC), temp, reservoirOutflow)
 
-            if 'Reservoir_releases' in binding:
 
+            # Reservoir_releases holds variables for different reservoir operations, each with 366 timesteps.
+            # The value of the variable at the reservoir is the maximum fraction of available storage to be
+            # released for the associated operation.
+            # Downstream release is the water released downstream into the river.
+            # This is overridden only in flooding conditions.
+
+            if 'Reservoir_releases' in binding:
 
                 reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow,
                                             np.where(self.var.lakeResStorage_release_ratioC > 0, self.var.lakeResStorage_release_ratioC * self.var.reservoirStorageM3C * (

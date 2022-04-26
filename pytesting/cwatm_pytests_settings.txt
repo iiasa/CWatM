@@ -39,15 +39,16 @@
 
 
 # True is the tests for this section should be done
-runtest: Rhine_30min  True
-runtest: Rhine_30min_add True
+runtest: Rhine_30min  False
+runtest: Rhine_30min_add False
 runtest: Error_30min  True
-runtest: global_30min True
-runtest: Rhine_5min   True
-runtest: Rhine_5min_modflow  True
-runtest: Burgenland_1km_modflow  True
+runtest: global_30min False
+runtest: Rhine_5min   False
+runtest: Rhine_5min_modflow  False
+runtest: Burgenland_1km_modflow  False
 runtest: global_5min  False
-runtest: Check_30min  True
+runtest: Check_30min  False
+runtest: Bhima_30sec  False
 
 # True is test should compare last discharge with given number, False is test should look for -no error- execution of run
 test_value: False
@@ -62,7 +63,7 @@ test_value: False
 	path_init: ./init
 	path_out: ./output/rhine
 	path_maps: P:/watmodel/CWATM/cwatm_input
-	path_meteo: C:/climate/Isi-Mip2/wfdei
+	path_meteo: P:\watmodel\CWATM\climate\Isi-Mip2\wfdei
 	
        # 1st Rhine 30min
         header:      Rhine_30min_1
@@ -179,7 +180,7 @@ test_value: False
 	path_init: ./init
 	path_out: ./output/rhine
 	path_maps: P:/watmodel/CWATM/cwatm_input
-	path_meteo: C:/climate/Isi-Mip2/wfdei
+	path_meteo: P:\watmodel\CWATM\climate\Isi-Mip2\wfdei
 	
        # 1st add 
         header:      Rhine_30min_add_1
@@ -267,7 +268,7 @@ test_value: False
 	path_init: ./init
 	path_out: ./output/rhine
 	path_maps: P:/watmodel/CWATM/cwatm_input
-	path_meteo: C:/climate/Isi-Mip2/wfdei
+	path_meteo: P:\watmodel\CWATM\climate\Isi-Mip2\wfdei
 	
        # 1st Error 101 
         header:      Error_30min_1
@@ -774,7 +775,7 @@ test_value: False
 	name: global_5min
 	path_out: ./output/global
 	path_maps: P:/watmodel/CWATM/CWAT_input_5min/input5min_netcdf
-	path_meteo: C:/climate/Isi-Mip2/wfdei
+	path_meteo: P:\watmodel\CWATM\climate\Isi-Mip2\wfdei
 	
        # 1st global 5min
         header:      global_5min_1
@@ -843,7 +844,7 @@ test_value: False
 	path_init: ./init
 	path_out: ./output/rhine
 	path_maps: P:/watmodel/CWATM/cwatm_input
-	path_meteo: C:/climate/Isi-Mip2/wfdei
+	path_meteo: P:\watmodel\CWATM\climate\Isi-Mip2\wfdei
 	
        # 1st Check 
         header:      Check_30min_1
@@ -852,4 +853,39 @@ test_value: False
         changes:     
         adds:        
         last_value:  4.22
-        
+
+# -----------------------------
+# 30 arcsecond version - Groundwater modelflow
+    # Bhima
+	base_setting: ./settings/1km/Bhima/settings_bhima.ini
+	name: Bhima_30sec
+	path_system: P:\watmodel\CWATM\upper_bhima\FUSE
+	path_root: ./
+	path_init: P:\watmodel\CWATM\upper_bhima\FUSE\Input\init
+	path_out: ./output/1km/Bhima
+	path_maps: P:\watmodel\CWATM\upper_bhima\FUSE\Input
+	path_meteo: P:\watmodel\CWATM\upper_bhima\FUSE\Input\meteo\010deg
+
+       # 1st Bhima 30 arcseconds
+        header:      Bhima_30sec_1
+        description: 1st Without Groundwater and without crop specific data
+        set_save:    settings_Bhima_01.ini
+        changes:     
+        adds:       
+	last_value:  0.0  
+
+	# 2nd Bhima 30 arcseconds
+        header:      Bhima_30sec_1
+        description: 1st Without Groundwater and without crop specific data
+        set_save:    settings_Bhima_02.ini
+        changes:     
+	adds:      
+        last_value:  0.0  
+
+	# 3rd Bhima 30 arcseconds
+        header:      Bhima_30sec_1
+        description: 1st Without Groundwater and without crop specific data
+        set_save:    settings_Bhima_03.ini
+        changes:     activate_irrigation_agents = True; relax_irrigation_agents = True; use_complex_solver_for_modflow = True; 
+	adds:      
+        last_value:  0.0  

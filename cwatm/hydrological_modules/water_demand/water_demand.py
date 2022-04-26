@@ -158,6 +158,7 @@ class water_demand:
         """
 
         # This variable has no impact if includeWaterDemand is False
+        self.var.act_nonIrrWithdrawal = globals.inZero.copy()
         self.var.includeIndusDomesDemand = True
         if "includeIndusDomesDemand" in option:
             self.var.includeIndusDomesDemand = checkOption('includeIndusDomesDemand')
