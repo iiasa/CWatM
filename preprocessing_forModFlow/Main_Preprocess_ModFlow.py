@@ -55,17 +55,17 @@ np.seterr(divide='ignore', invalid='ignore')
 # =============================================================================
 
 # Files location
-basin_limits_tif_file = "Upper_Bhima_mask.tif"  # Mask of the CWATM model ##
+Main_path = 'Created_files'
 
-Main_path = 'ModFlow_inputs2'
-Folder_initial_maps = 'Required_initial_maps/'  # This folder should contain the CWATM mask, area and the DEM that will be used for the ModFlow topography
-
-initial_dem_tif = 'srtm_90m_UpperBhimaV8.tif'  # This DEM will be used to create both the finer grid to compute the river percentage and the ModFlow grid
+# USER INPUTS
+Folder_initial_maps = 'Required_initial_maps_Saudi/' #'Required_initial_maps_Saudi/'  # This folder should contain the CWATM mask, area and the DEM that will be used for the ModFlow topography
+basin_limits_tif_file = "SaudiMask.tif"  # Mask of the CWATM model ##
+initial_dem_tif = 'SaudiDEM.tif'  # This DEM will be used to create both the finer grid to compute the river percentage and the ModFlow grid
 init_dem_epsg = 4326
 init_dem_epsg_str = 'EPSG:' + str(init_dem_epsg)
 initial_dem_system = {'init': init_dem_epsg_str}
-res_ModFlow = 250           # ModFlow model's resolution [m]
-res_ModFlow_finer = 125      # Resolution used to define the river percentage for each ModFlow cell [m]
+res_ModFlow = 1000        # ModFlow model's resolution [m]
+res_ModFlow_finer = 500     # Resolution used to define the river percentage for each ModFlow cell [m]
 
 Outputs_file = os.path.join(Main_path, 'output')  # Contains at least one output map (like GW recharge) of CWatM and cellArea, in netcdf format
 Inputs_file = os.path.join(Main_path, f'{res_ModFlow}m/')   # Folder where input maps will be saved
@@ -78,13 +78,13 @@ if not os.path.exists(Inputs_file_finer):
 name_finer_dem_tif = Inputs_file_finer + 'DEM_ModFlow_finer.tif'
 
 # Spatial resolution of the model
-stream_density = 1000      # in [m], stream_density^2 defines the minimal drainage area of rivers (function of the basin, climate...)
-res_CWATM = 0.00833333333    # CWAT model's resolution [m] or [degree] depending of the coordinates system
+stream_density = 2000      # low = dense.  Must be greater than res_Modflow_finer. in [m], stream_density^2 defines the minimal drainage area of rivers (function of the basin, climate...)
+res_CWATM = 0.0833333333    # CWAT model's resolution [m] or [degree] depending of the coordinates system
 res_ModFlow = res_ModFlow * 1.0
 
 # Projection: choose the good UTM grid IN FUNCTION OF THE BASIN !!!
 cwatm_epsg = 4326
-modflow_epsg = 32643
+modflow_epsg = 32638 #32650 or 32648yellow # Saudi 32638 #1206 #20437 #8840 #Bhima 32643 https://epsg.io/32638
 cwatm_epsg_str = 'EPSG:' + str(init_dem_epsg)
 modflow_epsg_str = 'EPSG:' + str(modflow_epsg)
 wgs84_cwatm = pyproj.Proj("+init=EPSG:" + str(cwatm_epsg))  # Projection system for the CWatM model
@@ -94,7 +94,7 @@ modflow_crs = {'init': modflow_epsg_str}  # EPSG should be th same than UTM_modf
 # Area [m2] of each CWatM cell: two options
 print('\nLoading the map of the CWatM cells area')
 # 1) Loading model grid information: if cwatm in lat/lon
-with rasterio.open(Folder_initial_maps + 'cellarea.tif', 'r') as src:
+with rasterio.open(Folder_initial_maps + 'cellarea_totalend.nc', 'r') as src:  #cellarea_totalend.nc
     gridcellarea = src.read(1)  # Matrix containing the studied CWATM variable
     cwatm_profile = src.profile
 nrow_CWatM, ncol_CWatM = cwatm_profile['height'], cwatm_profile['width']
@@ -123,7 +123,7 @@ if cwatm_epsg == init_dem_epsg:
 # =============================================================================
 # CREATING MAPS NECESSARY TO MODFLOW MODEL
 # =============================================================================
-
+"""
 # ======================================================================================================================
 # First, it is necessary to define a river network using a finner topographic map resolution
 
@@ -144,7 +144,7 @@ Compute_RiverNetwork(res_ModFlow_finer, Inputs_file_finer, name_finer_dem_tif, a
 
 # Ones this step is done, the model can be created at different coarser resolutions
 a=bbb
-
+"""
 # ======================================================================================================================
 # Creating ModFlow maps at the chosen resolution
 
@@ -157,11 +157,11 @@ affine_modflow, ncol_ModFlow, nrow_ModFlow = ExtractBasinLimits(res_ModFlow, cwa
 
 # this part can't overwrite files inside the ModFlow inputs folder (previous files need to be removed to restart!)
 cwatm_shapefile = 'CWatM_model_grid.shp'
-#! create_raster(cwatm_profile['transform'].to_gdal(), int(ncol_CWatM), int(nrow_CWatM), cwatm_epsg,
-#!              Inputs_file, cwatm_shapefile)
+create_raster(cwatm_profile['transform'].to_gdal(), int(ncol_CWatM), int(nrow_CWatM), cwatm_epsg,
+              Inputs_file, cwatm_shapefile)
 modflow_shapefile = 'ModFlow_model_grid.shp'
-#!create_raster(affine_modflow.to_gdal(), int(ncol_ModFlow), int(nrow_ModFlow), modflow_epsg,
-#!              Inputs_file, modflow_shapefile)
+create_raster(affine_modflow.to_gdal(), int(ncol_ModFlow), int(nrow_ModFlow), modflow_epsg,
+              Inputs_file, modflow_shapefile)
 
 cwatm_shp = gpd.read_file(os.path.join(Inputs_file, cwatm_shapefile))
 if cwatm_epsg != modflow_epsg:
