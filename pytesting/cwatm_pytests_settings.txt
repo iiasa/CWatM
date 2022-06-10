@@ -11,9 +11,9 @@
 #   2.2 as map
 
 # 3 Options
-#   3.1 includeIrrigation = True
-#   3.2 preferentialFlow = True
-#   3.3 CapillarRise = True
+#   3.1 includeIrrigation = False
+#   3.2 preferentialFlow = False
+#   3.3 CapillarRise = False
 #   3.4 includeRunoffConcentration = True
 #   3.5 includeWaterBodies = True      =>  3.1 - 3.5 together
 #   3.6 includeWaterDemand = True
@@ -39,16 +39,16 @@
 
 
 # True is the tests for this section should be done
-runtest: Rhine_30min  False
-runtest: Rhine_30min_add False
+runtest: Rhine_30min  True
+runtest: Rhine_30min_add True
 runtest: Error_30min  True
-runtest: global_30min False
-runtest: Rhine_5min   False
-runtest: Rhine_5min_modflow  False
-runtest: Burgenland_1km_modflow  False
-runtest: global_5min  False
-runtest: Check_30min  False
-runtest: Bhima_30sec  False
+runtest: global_30min True
+runtest: Rhine_5min   True
+runtest: Rhine_5min_modflow  True
+runtest: Burgenland_1km_modflow True
+runtest: global_5min  True
+runtest: Check_30min  True
+runtest: Bhima_30sec  True
 
 # True is test should compare last discharge with given number, False is test should look for -no error- execution of run
 test_value: False
