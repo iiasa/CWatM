@@ -32,9 +32,12 @@ else:
     cwatm = os.path.basename(runcwatm).split(".")[0]
     sys.path.append(path)
 
+#print(path)
+#print(cwatm) #run_cwatm
 # include the cwatm folder as library
 run_cwatm = importlib.import_module(cwatm, package=None)
 
+#print(run_cwatm)
 
 print("Settingsfile: ", test_settingfile)
 
@@ -203,6 +206,7 @@ def cwatm(info, model):
         # test for error testing
         with pytest.raises(SystemExit,  match=model[6]) as pyt:
             run_cwatm.main(model[4], ['-q'])
+
 
     elif  model[4].find("checkmap")> -1:
         # test for check

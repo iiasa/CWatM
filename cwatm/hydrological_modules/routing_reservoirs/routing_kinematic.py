@@ -287,6 +287,7 @@ class routing_kinematic(object):
             #self.var.catchmentNo = int(loadmap('CatchmentNo'))
             #self.var.sumbalance = 0
 
+        self.var.Xcel = []
 
 
     # --------------------------------------------------------------------------
@@ -479,6 +480,34 @@ class routing_kinematic(object):
 
         # maybe later, but for now it is known as m3
         #self.var.EvapoChannel = self.var.EvapoChannel / self.var.cellArea
+
+        self.var.humanConsumption = globals.inZero.copy()
+        self.var.humanUse = globals.inZero.copy()
+        self.var.natureUse = globals.inZero.copy()
+        if 'includeCrops' in option:
+            if checkOption('includeCrops'):
+                for i in range(len(self.var.Crops)):
+                    self.var.humanConsumption += self.var.actTransTotal_crops_nonIrr[i]
+                    self.var.humanUse += self.var.actTransTotal_crops_nonIrr[i]
+
+        #self.var.natureUse = actTransTotal_grasslands - self.var.humanUse + self.var.EvapoChannel + self.var.sum_actBareSoilEvap + self.var.sum_interceptEvap + self.var.EvapWaterBodyM
+
+        self.var.humanConsumption += self.var.act_nonIrrConsumption + self.var.actTransTotal_paddy + self.var.addtoevapotrans + self.var.actTransTotal_nonpaddy + self.var.sum_openWaterEvap
+        self.var.humanUse += self.var.act_nonIrrWithdrawal + self.var.act_irrWithdrawal #+ self.var.sum_openWaterEvap #+ self.var.leakage #+reservoir evaporation
+
+        if 'adminSegments' in binding:
+            self.var.ETRefAverage_segments = npareaaverage(self.var.ETRef, self.var.adminSegments)
+            self.var.precipEffectiveAverage_segments = npareaaverage(self.var.infiltration[1], self.var.adminSegments)
+            if self.var.modflow:
+                self.var.head_segments = npareaaverage(self.var.head, self.var.adminSegments)
+                self.var.gwdepth_adjusted_segments = npareaaverage(self.var.gwdepth_adjusted, self.var.adminSegments)
+                self.var.gwdepth_segments = npareaaverage(self.var.gwdepth, self.var.adminSegments)
+
+            #self.var.precipEffectiveAverage_segments = npareaaverage(self.var.Rain-self.var.interceptEvap[1]-self.var.actBareSoilEvap[1], self.var.adminSegments)
+            #self.var.head_development_segments = npareaaverage(self.var.head_development, self.var.adminSegments)
+            self.var.adminSegments_area = npareaaverage(
+                (self.var.fracVegCover[1] + self.var.fracVegCover[2] + self.var.fracVegCover[3]) * self.var.cellArea,
+                self.var.adminSegments)
 
 
 #---------------------------------------------------------------------------------------

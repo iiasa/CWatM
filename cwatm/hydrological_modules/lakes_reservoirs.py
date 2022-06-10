@@ -300,15 +300,29 @@ class lakes_reservoirs(object):
 
             # ================================
             # Reservoirs
+            """temp = loadmap('waterBodyVolRes')
+            temp = np.where(self.var.waterBodyID == 13, 240, temp)
+            temp = np.where(self.var.waterBodyID == 2, 75, temp)
+            self.var.waterBodyVolRes = temp.copy()
+            self.var.resVolumeC = np.compress(self.var.compress_LR, temp) * 1000000"""
             self.var.resVolumeC = np.compress(self.var.compress_LR, loadmap('waterBodyVolRes')) * 1000000
+
             # if vol = 0 volu = 10 * area just to mimic all lakes are reservoirs
             # in [Million m3] -> converted to mio m3
 
 
             # correcting water body types if the volume is 0:
             self.var.waterBodyTypC = np.where(self.var.resVolumeC > 0., self.var.waterBodyTypC, np.where(self.var.waterBodyTypC == 2, 1, self.var.waterBodyTypC))
+
+            self.var.resVolumeOnlyReservoirs = globals.inZero.copy()
+            self.var.resVolumeOnlyReservoirsC = np.where(self.var.resVolumeC > 0, self.var.resVolumeC, 0)
+            np.put(self.var.resVolumeOnlyReservoirs, self.var.decompress_LR, self.var.resVolumeOnlyReservoirsC)
+
             # correcting reservoir volume for lakes, just to run them all as reservoirs
+            self.var.resVolume = globals.inZero.copy()
             self.var.resVolumeC = np.where(self.var.resVolumeC > 0, self.var.resVolumeC, self.var.lakeAreaC * 10)
+            np.put(self.var.resVolume, self.var.decompress_LR, self.var.resVolumeC)
+
 
             # a factor which increases evaporation from lake because of wind
             self.var.lakeEvaFactor =  globals.inZero + loadmap('lakeEvaFactor')
@@ -430,6 +444,7 @@ class lakes_reservoirs(object):
         np.put(self.var.lakeStorage, self.var.decompress_LR, lakeStorageC)
         np.put(self.var.resStorage, self.var.decompress_LR, resStorageC)
 
+
    # ------------------ End init ------------------------------------------------------------------------------------
    # ----------------------------------------------------------------------------------------------------------------
 
@@ -466,10 +481,26 @@ class lakes_reservoirs(object):
                         self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 2, 0, self.var.waterBodyTyp)
                         self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 3, 1, self.var.waterBodyTypTemp)
 
+
+
             self.var.sumEvapWaterBodyC = 0
             self.var.sumlakeResInflow = 0
             self.var.sumlakeResOutflow = 0
 
+            # Reservoir_releases holds variables for different reservoir operations, each with 366 timesteps.
+            # The value of the variable at the reservoir is the maximum fraction of available storage to be
+            # released for the associated operation.
+            # Downstream release is the water released downstream into the river.
+            # This is overridden only in flooding conditions.
+
+            if 'Reservoir_releases' in binding:
+                day_of_year = dateVar['currDate'].timetuple().tm_yday
+                self.var.lakeResStorage_release_ratio = readnetcdf2(
+                    'Reservoir_releases', day_of_year,
+                    useDaily='DOY', value='Downstream release')
+
+                self.var.lakeResStorage_release_ratioC = np.compress(self.var.compress_LR,
+                                                                     self.var.lakeResStorage_release_ratio)
 
     def dynamic_inloop(self, NoRoutingExecuted):
         """
@@ -645,6 +676,19 @@ class lakes_reservoirs(object):
             reservoirOutflow = np.where((reservoirOutflow > 1.2 * inflowC) &
                                         (reservoirOutflow > self.var.normQC) &
                                         (self.var.reservoirFillC < self.var.floodLimitC), temp, reservoirOutflow)
+
+
+            # Reservoir_releases holds variables for different reservoir operations, each with 366 timesteps.
+            # The value of the variable at the reservoir is the maximum fraction of available storage to be
+            # released for the associated operation.
+            # Downstream release is the water released downstream into the river.
+            # This is overridden only in flooding conditions.
+
+            if 'Reservoir_releases' in binding:
+
+                reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow,
+                                            np.where(self.var.lakeResStorage_release_ratioC > 0, self.var.lakeResStorage_release_ratioC * self.var.reservoirStorageM3C * (
+                                                        1 / (60 * 60 * 24)), 0))
 
             qResOutM3DtC = reservoirOutflow * self.var.dtRouting
 

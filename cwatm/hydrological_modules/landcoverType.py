@@ -178,7 +178,22 @@ class landcoverType(object):
         And initialize the soil variables
         """
 
+        self.var.GeneralCrop_nonIrr = globals.inZero.copy()
+        self.var.GeneralCrop_Irr = globals.inZero.copy()
+
+        self.var.frac_totalIrr = globals.inZero.copy()
+        self.var.frac_totalnonIrr = globals.inZero.copy()
+        self.var.frac_totalIrr_max = globals.inZero.copy()
+        self.var.frac_totalnonIrr_max = globals.inZero.copy()
+        self.var.fallowIrr = globals.inZero.copy()
+        self.var.fallownonIrr = globals.inZero.copy()
+        self.var.fallowIrr_max = globals.inZero.copy()
+        self.var.fallownonIrr_max = globals.inZero.copy()
+
         self.var.capriseindex = globals.inZero.copy() # Fraction of cells where capillary rise occurs (used when ModFlow coupling)
+        self.var.leakageIntoGw = globals.inZero.copy()
+        self.var.leakageIntoRunoff = globals.inZero.copy()
+        self.var.availableArableLand = globals.inZero.copy()
 
         # make land cover change from year to year or fix it to 1 year
         if returnBool('dynamicLandcover'):
@@ -550,6 +565,18 @@ class landcoverType(object):
             self.var.fracVegCover[0] = np.maximum(0., self.var.fracVegCover[0] + 1.0 - sum)
             sum = np.sum(self.var.fracVegCover,axis=0)
 
+            """temp = loadmap('reservoir_command_areas').astype(np.int)
+            self.var.fracVegCover[3] += np.where(temp > 0, self.var.fracVegCover[1] * 0.25,
+                                                 0)
+            self.var.fracVegCover[1] -= np.where(temp > 0, self.var.fracVegCover[1] * 0.25,
+                                                 0)
+
+            self.var.fracVegCover[3] += np.where(temp == 46, self.var.fracVegCover[1] * 0.25,
+                                                 0)
+            self.var.fracVegCover[1] -= np.where(temp == 46, self.var.fracVegCover[1] * 0.25,
+                                                 0)"""
+
+
             self.var.irrigatedArea_original = self.var.fracVegCover[3].copy()
 
             # sum of landcover without water and sealed
@@ -653,6 +680,11 @@ class landcoverType(object):
 
         #print "--", self.var.sum_directRunoff
 
+        self.var.prefFlow_GW = divideValues(self.var.sum_prefFlow, self.var.sum_prefFlow + self.var.sum_perc3toGW) * self.var.sum_gwRecharge
+        self.var.perc3toGW_GW = divideValues(self.var.sum_perc3toGW,
+                                                self.var.sum_prefFlow + self.var.sum_perc3toGW) * self.var.sum_gwRecharge
+        #print('landcoverType, first use of permeability')
+
         if self.var.modflow:
             # computing leakage from rivers (if modflow coupling is used)
 
@@ -669,16 +701,15 @@ class landcoverType(object):
             self.var.riverbedExchangeM3 = self.var.riverbedExchangeM * self.var.cellArea  # converting leakage in m3
             # self.var.riverbedExchangeM3 is then removed from river storage in routing_kinematic module
 
-            #toGW = np.sum(self.var.leakageCanals_M * (1 - self.var.capriseindex) * self.var.cellArea)  # leakage from the canals is converted in m3
-            #toInterflow = np.sum(self.var.leakageCanals_M * self.var.capriseindex * self.var.cellArea)  # leakage from the canals is converted in m3
-
-            #self.var.leakageIntoGw = self.var.leakageCanals_M * (1 - self.var.capriseindex)
-            #self.var.leakageIntoRunoff = self.var.leakageCanals_M * self.var.capriseindex
-            #self.var.sum_gwRecharge += self.var.leakageIntoGw
-            #self.var.sum_interflow +=  self.var.leakageIntoRunoff
-
             # adding leakage from river to the groundwater recharge
             self.var.sum_gwRecharge += self.var.riverbedExchangeM
+
+            self.var.leakageIntoGw = self.var.leakageCanals_M * (1 - self.var.capriseindex)
+            self.var.leakageIntoRunoff = self.var.leakageCanals_M * self.var.capriseindex
+            self.var.sum_gwRecharge += self.var.leakageIntoGw
+
+
+
 
             if checkOption('includeWaterBodies'):
 
@@ -761,7 +792,9 @@ class landcoverType(object):
         # addtoevapotrans: part of water demand which is lost due to evaporation
         self.var.sum_soil = self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
         self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_soil
-        self.var.sum_runoff = self.var.sum_directRunoff + self.var.sum_interflow
+
+        # leakageIntoRunoff is also added in runoff_concentration
+        self.var.sum_runoff = self.var.sum_directRunoff + self.var.sum_interflow + self.var.leakageIntoRunoff
 
         ### Printing the soil+GW water balance (considering no pumping), without the surface part
         #print('Date : ', dateVar['currDatestr'])
