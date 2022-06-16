@@ -216,18 +216,13 @@ class lakes_reservoirs(object):
             # load lakes/reservoirs map with a single ID for each lake/reservoir
             self.var.waterBodyID = loadmap('waterBodyID').astype(np.int64)
 
-            #self.var.waterBodyID = np.where(self.var.waterBodyID == 887, 0, self.var.waterBodyID)
-            #self.var.waterBodyID = np.where(self.var.waterBodyID == 15916, 0, self.var.waterBodyID) # Laropi Lake Victoria
-
             # calculate biggest outlet = biggest accumulation of ldd network
             lakeResmax = npareamaximum(self.var.UpArea1, self.var.waterBodyID)
             self.var.waterBodyOut = np.where(self.var.UpArea1 == lakeResmax,self.var.waterBodyID, 0)
 
-
             # dismiss water bodies that are not a subcatchment of an outlet
             sub = subcatchment1(self.var.dirUp, self.var.waterBodyOut,self.var.UpArea1)
             self.var.waterBodyID = np.where(self.var.waterBodyID == sub, sub, 0)
-
 
             # Create a buffer around water bodies as command areas for lakes and reservoirs
             if checkOption('includeWaterDemand'):
@@ -255,6 +250,8 @@ class lakes_reservoirs(object):
             self.var.compress_LR = self.var.waterBodyOut > 0
             self.var.decompress_LR = np.nonzero(self.var.waterBodyOut)[0]
             self.var.waterBodyOutC = np.compress(self.var.compress_LR, self.var.waterBodyOut)
+
+            self.var.waterBodyID_C = np.compress(self.var.compress_LR, self.var.waterBodyID)
 
             # year when the reservoirs is operating
             self.var.resYearC = np.compress(self.var.compress_LR, loadmap('waterBodyYear'))
@@ -300,12 +297,10 @@ class lakes_reservoirs(object):
 
             # ================================
             # Reservoirs
-            """temp = loadmap('waterBodyVolRes')
-            temp = np.where(self.var.waterBodyID == 13, 240, temp)
-            temp = np.where(self.var.waterBodyID == 2, 75, temp)
-            self.var.waterBodyVolRes = temp.copy()
-            self.var.resVolumeC = np.compress(self.var.compress_LR, temp) * 1000000"""
+
             self.var.resVolumeC = np.compress(self.var.compress_LR, loadmap('waterBodyVolRes')) * 1000000
+            self.var.reservoir_transfers_M3C = np.compress(self.var.compress_LR, globals.inZero.copy())
+            self.var.reservoir_transfers_M3 = globals.inZero.copy()
 
             # if vol = 0 volu = 10 * area just to mimic all lakes are reservoirs
             # in [Million m3] -> converted to mio m3
@@ -797,6 +792,9 @@ class lakes_reservoirs(object):
             np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
             np.put(self.var.lakeStorage, self.var.decompress_LR, lakeStorageC)
             np.put(self.var.resStorage, self.var.decompress_LR, resStorageC)
+
+            np.put(self.var.reservoir_transfers_M3, self.var.decompress_LR, self.var.reservoir_transfers_M3C)
+            self.var.reservoir_transfers_M3C = np.compress(self.var.compress_LR, globals.inZero.copy())
 
         # ------------------------------------------------------------
 

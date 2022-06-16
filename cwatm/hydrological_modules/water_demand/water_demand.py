@@ -839,11 +839,51 @@ class water_demand:
 
                 # available surface water is from river network + large/small lake & reservoirs
                 self.var.act_SurfaceWaterAbstract = self.var.act_SurfaceWaterAbstract + self.var.act_bigLakeResAbst + self.var.act_smallLakeResAbst
-
                 self.var.act_lakeAbst = self.var.act_bigLakeResAbst + self.var.act_smallLakeResAbst
-                # check for rounding issues
-                # TODO is this necessary?
-                #self.var.act_SurfaceWaterAbstract = np.minimum(totalDemand,self.var.act_SurfaceWaterAbstract)
+
+
+                # 📤 Transfer water between reservoirs
+                # Send storage between reservoirs using the Excel sheet reservoir_transfers within cwatm_settings.xlsx
+                # Using the waterBodyIDs defined in the settings, designate
+                # the Giver, the Receiver, and the daily fraction of live storage the Giver sends to the Receiver.
+                # If the Receiver is already at capacity, the Giver does not send any storage.
+                # Reservoirs can only send to one reservoir. Reservoirs can receive from several reservoirs.
+
+                if 'reservoir_transfers' in option:
+                    if checkOption('reservoir_transfers'):
+
+                        for transfer in self.var.reservoir_transfers:
+
+                            self.var.inZero_C = np.compress(self.var.compress_LR, globals.inZero.copy())
+                            index_giver = np.where(self.var.waterBodyID_C == transfer[0])[0][0]
+                            index_receiver = np.where(self.var.waterBodyID_C == transfer[1])[0][0]
+
+                            if returnBool('dynamicLakesRes'):
+                                year = dateVar['currDate'].year
+                            else:
+                                year = loadmap('fixLakesResYear')
+
+                            if self.var.resYearC[index_receiver] <= year and self.var.resYearC[index_giver] <= year:
+                                reservoir_storage_giver = self.var.reservoirStorageM3C[index_giver]
+                                reservoir_unused = self.var.resVolumeC - self.var.reservoirStorageM3C
+                                reservoir_unused_receiver = reservoir_unused[index_receiver]
+                                reservoir_transfer_actual = np.minimum(reservoir_unused_receiver * 0.95,
+                                                                       reservoir_storage_giver * transfer[2])
+
+                                #print(transfer[0], 'donated', reservoir_transfer_actual, 'm3 to', transfer[1])
+
+                                self.var.inZero_C[index_giver] = -reservoir_transfer_actual    # giver
+                                self.var.inZero_C[index_receiver] = reservoir_transfer_actual  # receiver
+
+                                self.var.lakeStorageC += self.var.inZero_C
+                                self.var.lakeVolumeM3C += self.var.inZero_C
+                                self.var.lakeResStorageC += self.var.inZero_C
+                                self.var.reservoirStorageM3C += self.var.inZero_C
+
+                                self.var.reservoir_transfers_M3C += self.var.inZero_C
+
+
+                # 📤 -------------------------------------
 
                 if self.var.sectorSourceAbstractionFractions:
 
@@ -859,9 +899,6 @@ class water_demand:
                         pot_Lake_Irrigation)
 
                     #B
-                    """pot_Res_Domestic = np.minimum(
-                        self.var.swAbstractionFraction_Res_Domestic * self.var.domesticDemand,
-                        self.var.domesticDemand*self.var.swAbstractionFraction_nonIrr.copy() - self.var.Channel_Domestic - self.var.Lake_Domestic)"""
 
                     pot_Res_Domestic = np.minimum(
                         self.var.swAbstractionFraction_Res_Domestic * self.var.domesticDemand,
@@ -1292,10 +1329,6 @@ class water_demand:
                     self.var.act_irrWithdrawal = np.copy(self.var.totalIrrDemand)
 
                     act_gw = np.copy(self.var.nonFossilGroundwaterAbs)
-                    # ToRemove
-                    #self.var.act_irrNonpaddyWithdrawal = self.var.fracVegCover[3] * self.var.irrDemand[3]
-                    #self.var.act_irrPaddyWithdrawal = self.var.fracVegCover[2] * self.var.irrDemand[2]
-
 
                 else:
                     # Fossil groundwater abstractions are allowed (act = pot)
@@ -1483,8 +1516,6 @@ class water_demand:
 
             if checkOption('limitAbstraction'):
                 unmet_div_ww = 1
-
-            #self.var.unmet_lost = ( self.var.returnflowIrr + self.var.returnflowNonIrr +  self.var.addtoevapotrans) * (1-unmet_div_ww)
 
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.unmet_lost = ( self.var.returnflowIrr + self.var.returnflowNonIrr +  self.var.addtoevapotrans) * (1-unmet_div_ww)

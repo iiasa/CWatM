@@ -91,22 +91,7 @@ class evaporation(object):
                         vars(self.var)[z + '_nonIrr'] = globals.inZero
 
                     # The general crops are representative vegetation.
-                    '''
-                    self.var.GeneralCrop_nonIrr = globals.inZero.copy()
-                    self.var.GeneralCrop_Irr = globals.inZero.copy()
 
-                    self.var.frac_totalIrr = globals.inZero.copy()
-                    self.var.frac_totalnonIrr = globals.inZero.copy()
-                    self.var.frac_totalIrr_max = globals.inZero.copy()
-                    self.var.frac_totalnonIrr_max = globals.inZero.copy()
-
-                    self.var.fallowIrr_max = globals.inZero.copy()
-                    self.var.fallownonIrr_max = globals.inZero.copy()
-                    self.var.fallowIrr_max = self.var.load_initial('frac_totalIrr_max')
-                    self.var.fallownonIrr_max = self.var.load_initial('frac_totalnonIrr_max')
-
-                    self.var.availableArableLand = globals.inZero.copy()
-                    '''
                     for c in range(len(self.var.Crops)):
 
                         self.var.activatedCrops[c] = self.var.load_initial("activatedCrops_" + str(c))
