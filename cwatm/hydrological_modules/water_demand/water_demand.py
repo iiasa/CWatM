@@ -1,9 +1,8 @@
 # -------------------------------------------------------------------------
-# Name:        Waterdemand module
-# Purpose:
+# Name:        Water demand module
 #
-# Author:      PB
-#unmet_lost
+# Author:      PB, MS, LG, JdeB
+#
 # Created:     15/07/2016
 # Copyright:   (c) PB 2016
 # -------------------------------------------------------------------------
@@ -28,8 +27,8 @@ class water_demand:
     """
     WATERDEMAND
 
-    calculating water demand -
-    Industrial, domenstic based on precalculated maps
+    Calculating water demand and attributing sources to satisfy demands
+    Industrial, domestic, and livestock are based on precalculated maps
     Agricultural water demand based on water need by plants
     
     **Global variables**
@@ -153,16 +152,17 @@ class water_demand:
     def initial(self):
         """
         Initial part of the water demand module
-
-        Set the water allocation
         """
 
-        # This variable has no impact if includeWaterDemand is False
-        self.var.act_nonIrrWithdrawal = globals.inZero.copy()
         self.var.includeIndusDomesDemand = True
+        # True if all demands are taken into account,
+        # False if not only irrigation is considered
+        # This variable has no impact if includeWaterDemand is False
         if "includeIndusDomesDemand" in option:
             self.var.includeIndusDomesDemand = checkOption('includeIndusDomesDemand')
-        # True if all demands are taken into account, if not only irrigation is considered
+
+
+        # 🕵 Variables related to agents =========================
 
         self.var.activate_domestic_agents = False
         if 'activate_domestic_agents' in option:
@@ -185,9 +185,9 @@ class water_demand:
                 self.var.relax_irrigation_agents = True
 
         if 'adminSegments' in binding:
-            # adminSegments (administrative segment) are collections of cells that are associated together.
+            # adminSegments (administrative segment) are collections of cells that are associated together, ie Agents
             # Cells within the same administrative segment have the same positive integer value.
-            # Cells with non-positive integer values are associated together.
+            # Cells with non-positive integer values are all associated together.
             # Irrigation agents use adminSegments
 
             self.var.adminSegments = loadmap('adminSegments').astype(int)
@@ -220,11 +220,11 @@ class water_demand:
             else:
                 self.var.relax_abstraction_fraction_initial = 0.5 + globals.inZero.copy()
 
+        # =======================================================
 
         if checkOption('includeWaterDemand'):
 
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
-                #print('=> All water demands are taken into account')
 
                 self.domestic.initial()
                 self.industry.initial()
@@ -232,12 +232,11 @@ class water_demand:
                 self.irrigation.initial()
                 self.environmental_need.initial()
             else:  # only irrigation is considered
-                #print('=> Only irrigation is considered as water demand')
 
                 self.irrigation.initial()
                 self.environmental_need.initial()
 
-            # if waterdemand is fixed:
+            # if waterdemand is fixed it means it does not change between years.
             self.var.waterdemandFixed = False
             if "waterdemandFixed" in binding:
                 if returnBool('waterdemandFixed'):
@@ -245,6 +244,11 @@ class water_demand:
                     self.var.waterdemandFixedYear = loadmap('waterdemandFixedYear')
 
             self.var.sectorSourceAbstractionFractions = False
+            # Sector-,source-abstraction fractions facilitate designating the specific source for the specific sector
+            # Sources: River, Lake, Reservoir, Groundwater
+            # Sectors: Domestic, Industry, Livestock, Irrigation
+            # Otherwise, one can distinguish only between surface and groundwater, irrigation and non-irrigation
+
             if 'sectorSourceAbstractionFractions' in option:
                 if checkOption('sectorSourceAbstractionFractions'):
                     print('Sector- and source-specific abstraction fractions are activated')
@@ -286,13 +290,11 @@ class water_demand:
                     self.var.gwAbstractionFraction_Irrigation = loadmap(
                         'gwAbstractionFraction_Irrigation')
 
-
             self.var.using_reservoir_command_areas = False
             if 'using_reservoir_command_areas' in option:
                 if checkOption('using_reservoir_command_areas'):
 
                     self.var.using_reservoir_command_areas = True
-
                     self.var.reservoir_command_areas = loadmap('reservoir_command_areas').astype(int)
 
 
@@ -359,8 +361,13 @@ class water_demand:
                     averageBaseflowInput = averageBaseflowInput * self.var.cellArea * self.var.InvDtSec
 
                 if checkOption('usingAllocSegments'):
-                    averageBaseflowInput = np.where(self.var.allocSegments > 0, npareaaverage(averageBaseflowInput, self.var.allocSegments), averageBaseflowInput)
-                    # averageUpstreamInput = np.where(self.var.allocSegments > 0, npareamaximum(averageDischargeInput, self.var.allocSegments), averageDischargeInput)
+                    averageBaseflowInput = np.where(self.var.allocSegments > 0,
+                                                    npareaaverage(averageBaseflowInput, self.var.allocSegments),
+                                                    averageBaseflowInput)
+
+                    # averageUpstreamInput = np.where(self.var.allocSegments > 0,
+                    #                                npareamaximum(averageDischargeInput, self.var.allocSegments),
+                    #                                averageDischargeInput)
 
                 swAbstractionFraction = np.maximum(0.0, np.minimum(1.0, averageDischargeInput / np.maximum(1e-20, averageDischargeInput + averageBaseflowInput)))
                 swAbstractionFraction = np.minimum(1.0, np.maximum(0.0, swAbstractionFraction))
@@ -372,8 +379,11 @@ class water_demand:
                 if self.var.modflow:
                     self.var.swAbstractionFraction += self.var.fracVegCover[No] * swAbstractionFraction
                 else:
-                    self.var.swAbstractionFraction += self.var.fracVegCover[No]  # because we cant put a pumping borehole in a lake in reality!
+                    # The motivation is to avoid groundwater on sealed and water land classes
+                    # TODO: Groundwater pumping should be allowed over sealed land
+                    self.var.swAbstractionFraction += self.var.fracVegCover[No]
 
+            # non-irrigation input maps have for each month or year the unit m/day (True) or million m3/month (False)
             self.var.demand_unit = True
             if "demand_unit" in binding:
                 self.var.demand_unit = returnBool('demand_unit')
@@ -400,21 +410,17 @@ class water_demand:
             arr = arr[cut2:cut3, cut0:cut1].astype(int)
             self.var.allocation_zone = compressArray(arr)
 
-
             self.var.modflowPumping = globals.inZero.copy()
-
             self.var.leakage = globals.inZero.copy()
             self.var.pumping = globals.inZero.copy()
-
             self.var.modfPumpingM = globals.inZero.copy()
             self.var.Pumping_daily = globals.inZero.copy()
             self.var.modflowDepth2 = 0
             self.var.modflowTopography = 0
-            #self.var.leakage = globals.inZero.copy()
-            #self.var.pumping = globals.inZero.copy()
-
             self.var.allowedPumping = globals.inZero.copy()
             self.var.leakageCanals_M = globals.inZero.copy()
+
+            self.var.act_nonIrrWithdrawal = globals.inZero.copy()
             self.var.ratio_irrWithdrawalGW_month = globals.inZero.copy()
             self.var.ratio_irrWithdrawalSW_month = globals.inZero.copy()
             self.var.act_irrWithdrawalSW_month = globals.inZero.copy()

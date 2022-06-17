@@ -160,14 +160,6 @@ class groundwater_modflow:
                 domain['south'] = src.profile['transform'].f - (src.profile['height']-1) * abs(src.profile['transform'].e)
                 # domain variables will be used here, and in data handlind to save netcdf maps
 
-
-            thickness = cbinding('thickness')
-            if is_float(thickness):  # aquifer thickness is constant
-                thickness = float(thickness)
-                thickness = np.full((nlay, self.domain['nrow'], self.domain['ncol']), thickness)
-            else:  # aquifer thickness is given as a tif file at ModFLow resolution
-                raise NotImplementedError
-
             # Coef to multiply transmissivity and storage coefficient (because ModFlow convergence is better if aquifer's thicknes is big and permeability is small)
             self.coefficient = 1
 
@@ -261,6 +253,32 @@ class groundwater_modflow:
                 #self.porosity[self.porosity > 0.03] = 0.03 #experiment
                 #self.porosity[self.porosity < 0.01] = 0.01
 
+
+            # der Anfang der Bauzone
+            self.thickness = cbinding('thickness')  # default = 0.1
+            if is_float(self.thickness):  # aquifer porosity is constant
+                self.thickness = float(self.thickness)
+                self.thickness = np.full((nlay, self.domain['nrow'], self.domain['ncol']), self.thickness,
+                                        dtype=np.float32)
+            else:  # aquifer porosity is given as a tif file at ModFLow resolution
+                thickness = loadmap('thickness')
+                p1 = maskinfo['maskall'].copy()
+                p1[~maskinfo['maskflat']] = thickness[:]
+                p1 = p1.reshape(maskinfo['shape'])
+                p1[p1.mask] = -9999
+
+                self.thickness = np.zeros((nlay, self.domain['nrow'], self.domain['ncol']))
+                for i in range(len(modflow_x)):
+                    v = p1[cwatm_y[i], cwatm_x[i]]
+                    self.thickness[0, modflow_y[i], modflow_x[i]] = v
+
+                self.thickness[np.isnan(self.thickness)] = 50
+                self.thickness[self.thickness == 0] = 50
+                self.thickness[self.thickness < 0] = 50
+
+            # die Ende der Bauzone
+
+
             # Converting the CWatM soil thickness into ModFlow map, then soil thickness will be removed from topography
             # if there is a lake or a reservoir soil depth should be replace (instead of 0) by the averaged soil depth (if not the topography under the lake is above neighboring cells)
             soildepth_as_GWtop = False
@@ -298,7 +316,7 @@ class groundwater_modflow:
             self.layer_boundaries = np.empty((nlay + 1, self.domain['nrow'], self.domain['ncol']), dtype=np.float32)
             self.layer_boundaries[0] = topography - soildepth_modflow
             # defining the bottom of the ModFlow layer
-            self.layer_boundaries[1] = self.layer_boundaries[0] - thickness
+            self.layer_boundaries[1] = self.layer_boundaries[0] - self.thickness
 
             if not correct_depth_underlakes:  # we make a manual correction
                 waterBodyID_temp = loadmap('waterBodyID').astype(np.int64)
