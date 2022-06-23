@@ -101,23 +101,17 @@ def setmaskmapAttr(x,y,col,row,cell):
     """
     invcell = round(1/cell,0)
     # getgeotransform only delivers single precision!
-    
-    
-
     if invcell == 0: invcell = 1/cell
     cell = 1 / invcell
     if (x-int(x)) != 0.:
         if abs(x - int(x)) > 1e9:
-            x = 1 / 1 / (x - int(x)) + int(x)
-            #x = 1/round(1/(x-int(x)),4) + int(x)
-        #else: x = round(x,6)
+            x = 1/round(1/(x-int(x)),4) + int(x)
+        else: x = round(x,6)
     if (y - int(y)) != 0.:
         if abs(y - int(y)) > 1e9:
-            #y = 1 / round(1 / (y - int(y)), 4) + int(y)
-            y = 1 / 1 / (y - int(y)) + int(y)
-        #else: y = round(y,6)
+            y = 1 / round(1 / (y - int(y)), 4) + int(y)
+        else: y = round(y,6)
     # This is still not ok! Some rounding issues still appear sometimes
-    # The function rounds the maskattributes but can lead to wrong results, so rounding was turned off
 
     maskmapAttr['x'] = x
     maskmapAttr['y'] = y
