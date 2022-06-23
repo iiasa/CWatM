@@ -353,10 +353,6 @@ class snow_frost(object):
                 self.var.Rain += RainS
                 self.var.SnowMelt += SnowMeltS
                 self.var.SnowCover += self.var.SnowCoverS[i]
-            # self.var.Snow += SnowS
-            # self.var.Rain += RainS
-            # self.var.SnowMelt += SnowMeltS
-            # self.var.SnowCover += self.var.SnowCoverS[i]
 
 
             if self.var.extfrostindex:
@@ -383,7 +379,6 @@ class snow_frost(object):
                 self.var.Rain /= self.var.numberSnowLayersFloat
                 self.var.SnowMelt /= self.var.numberSnowLayersFloat
                 self.var.SnowCover /= self.var.numberSnowLayersFloat
-                self.var.SnowCoverage /= self.var.numberSnowLayersFloat
         # all in pixel
 
         # DEBUG Snow
