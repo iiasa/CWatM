@@ -299,8 +299,21 @@ class lakes_reservoirs(object):
             # Reservoirs
 
             self.var.resVolumeC = np.compress(self.var.compress_LR, loadmap('waterBodyVolRes')) * 1000000
-            self.var.reservoir_transfers_M3C = np.compress(self.var.compress_LR, globals.inZero.copy())
-            self.var.reservoir_transfers_M3 = globals.inZero.copy()
+
+            self.var.reservoir_transfers_net_M3C = np.compress(self.var.compress_LR, globals.inZero.copy())
+            self.var.reservoir_transfers_net_M3 = globals.inZero.copy()
+
+            self.var.reservoir_transfers_in_M3C = np.compress(self.var.compress_LR, globals.inZero.copy())
+            self.var.reservoir_transfers_in_M3 = globals.inZero.copy()
+
+            self.var.reservoir_transfers_out_M3C = np.compress(self.var.compress_LR, globals.inZero.copy())
+            self.var.reservoir_transfers_out_M3 = globals.inZero.copy()
+
+            self.var.reservoir_transfers_from_outside_M3C = np.compress(self.var.compress_LR, globals.inZero.copy())
+            self.var.reservoir_transfers_from_outside_M3 = globals.inZero.copy()
+
+            self.var.reservoir_transfers_to_outside_M3C = np.compress(self.var.compress_LR, globals.inZero.copy())
+            self.var.reservoir_transfers_to_outside_M3 = globals.inZero.copy()
 
             # if vol = 0 volu = 10 * area just to mimic all lakes are reservoirs
             # in [Million m3] -> converted to mio m3
@@ -792,9 +805,6 @@ class lakes_reservoirs(object):
             np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
             np.put(self.var.lakeStorage, self.var.decompress_LR, lakeStorageC)
             np.put(self.var.resStorage, self.var.decompress_LR, resStorageC)
-
-            np.put(self.var.reservoir_transfers_M3, self.var.decompress_LR, self.var.reservoir_transfers_M3C)
-            self.var.reservoir_transfers_M3C = np.compress(self.var.compress_LR, globals.inZero.copy())
 
         # ------------------------------------------------------------
 
