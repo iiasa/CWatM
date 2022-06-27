@@ -572,7 +572,7 @@ class water_demand:
                 self.environmental_need.dynamic()
 
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
-                if globals.dateVar['newStart'] or globals.dateVar['newMonth'] or "waterBodyElec" in binding:
+                if globals.dateVar['newStart'] or globals.dateVar['newMonth'] or 'basin_transfers_daily_operations' in option or 'reservoir_transfers' in option:
                     # total (potential) non irrigation water demand
                     self.var.nonIrrDemand = self.var.domesticDemand + self.var.industryDemand + self.var.livestockDemand
                     self.var.pot_nonIrrConsumption = np.minimum(self.var.nonIrrDemand, self.var.pot_domesticConsumption +
@@ -968,9 +968,9 @@ class water_demand:
                             #np.put(self.var.reservoir_transfers_out_M3, self.var.decompress_LR,
                             #       self.var.reservoir_transfers_out_M3C)
 
-                            self.var.swAbstractionFraction_Res_Industry = np.where(self.var.reservoir_transfers_to_outside_M3 != 0, 0,
+                            self.var.swAbstractionFraction_Res_Industry = np.where(self.var.reservoir_transfers_to_outside_M3 > 0, 0,
                                                                                    self.var.swAbstractionFraction_Res_Industry)
-                            self.var.gwAbstractionFraction_Industry = np.where(self.var.reservoir_transfers_to_outside_M3 != 0, 0,
+                            self.var.gwAbstractionFraction_Industry = np.where(self.var.reservoir_transfers_to_outside_M3 > 0, 0,
                                                                                self.var.gwAbstractionFraction_Industry)
                         else:
                             pot_SurfaceAbstract -= to_outside_basin

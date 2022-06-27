@@ -71,9 +71,9 @@ class initcondition(object):
 
         for i in df.index:
             transfer = [df['Giving reservoir'][i], df['Receiving reservoir'][i], df['Fraction of live storage'][i]]
-            if np.nan not in transfer:
+            if transfer[2] > 0:
                 reservoir_transfers.append(transfer)
-
+        print(reservoir_transfers)
         return reservoir_transfers
 
 
