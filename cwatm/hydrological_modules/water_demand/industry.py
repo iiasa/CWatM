@@ -76,8 +76,8 @@ class waterdemand_industry:
         else:
             new = 'newYear'
 
-        if globals.dateVar['newStart'] or globals.dateVar[new] or checkOption(
-                'basin_transfers_daily_operations') or checkOption('reservoir_transfers'):
+        if globals.dateVar['newStart'] or globals.dateVar[new] or \
+                'basin_transfers_daily_operations' in binding or 'reservoir_transfers' in binding:
 
             self.var.industryDemand = readnetcdf2('industryWaterDemandFile', wd_date, self.var.industryTime, value=self.var.indWithdrawalVar)
             self.var.pot_industryConsumption = readnetcdf2('industryWaterDemandFile', wd_date, self.var.industryTime, value=self.var.indConsumptionVar)
