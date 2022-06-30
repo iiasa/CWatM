@@ -277,6 +277,8 @@ class lakes_reservoirs(object):
             if (waterBodyTyp == 4).any():
                 self.var.includeType4 = True
                 self.var.waterBodyTyp = waterBodyTyp
+
+            # ❓ Can self.var.waterBodyTyp = waterBodyTyp generally
                 
             #waterBodyTyp = np.where(waterBodyTyp > 0., 1, waterBodyTyp)  # TODO change all to lakes for testing
             self.var.waterBodyTypC = np.compress(self.var.compress_LR, waterBodyTyp)
@@ -494,7 +496,7 @@ class lakes_reservoirs(object):
                     self.var.waterBodyTypCTemp = np.where((self.var.resYearC > year) & (self.var.waterBodyTypC == 2), 0, self.var.waterBodyTypC)
                     self.var.waterBodyTypCTemp = np.where((self.var.resYearC > year) & (self.var.waterBodyTypC == 4), 0, self.var.waterBodyTypC)
                     self.var.waterBodyTypCTemp = np.where((self.var.resYearC > year) & (self.var.waterBodyTypC == 3), 1, self.var.waterBodyTypCTemp)
-                    if self.var.modflow: # we also need the uncompressed version to compute leakage
+                    if self.var.modflow or self.var.includeType4: # we also need the uncompressed version to compute leakage
                         self.var.waterBodyTypTemp = np.where((self.var.resYear > year) & (self.var.waterBodyTyp == 2), 0, self.var.waterBodyTyp)
                         self.var.waterBodyTypTemp = np.where((self.var.resYear > year) & (self.var.waterBodyTyp == 4), 0, self.var.waterBodyTyp)
                         self.var.waterBodyTypTemp = np.where((self.var.resYear > year) & (self.var.waterBodyTyp == 3), 1, self.var.waterBodyTypTemp)
@@ -502,7 +504,7 @@ class lakes_reservoirs(object):
                     self.var.waterBodyTypCTemp = np.where(self.var.waterBodyTypC == 2, 0, self.var.waterBodyTypC)
                     self.var.waterBodyTypCTemp = np.where(self.var.waterBodyTypC == 4, 0, self.var.waterBodyTypC)
                     self.var.waterBodyTypCTemp = np.where(self.var.waterBodyTypC == 3, 1, self.var.waterBodyTypCTemp)
-                    if self.var.modflow: # we also need the uncompressed version to compute leakage
+                    if self.var.modflow or self.var.includeType4: # we also need the uncompressed version to compute leakage
                         self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 2, 0, self.var.waterBodyTyp)
                         self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 4, 0, self.var.waterBodyTyp)
                         self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 3, 1, self.var.waterBodyTypTemp)
@@ -844,8 +846,9 @@ class lakes_reservoirs(object):
             
             # Output maps for lakeResInflow and lakeResOutflow when using type-4 res.
             # The standard map inflate the overall res. water volumes
-            self.var.lakeResInflowM_2 = np.where(self.var.waterBodyTyp == 4, self.var.lakeResInflowM - self.var.lakeResOutflowM, self.var.lakeResInflowM)
-            self.var.lakeResOutflowM_2 = np.where(self.var.waterBodyTyp == 4, 0., self.var.lakeResOutflowM)
+            if self.var.includeType4:
+                self.var.lakeResInflowM_2 = np.where(self.var.waterBodyTyp == 4, self.var.lakeResInflowM - self.var.lakeResOutflowM, self.var.lakeResInflowM)
+                self.var.lakeResOutflowM_2 = np.where(self.var.waterBodyTyp == 4, 0., self.var.lakeResOutflowM)
             
             np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
             np.put(self.var.lakeStorage, self.var.decompress_LR, lakeStorageC)

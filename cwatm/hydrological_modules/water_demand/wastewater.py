@@ -108,7 +108,7 @@ class waterdemand_wastewater(object):
         self.model = model
 	
     def initial(self):
-        if checkOption('includeWastewater'):
+        if self.var.includeWastewater:
             ## Setup wastewater treatment facilities
             # load inputs
             self.var.wwtID = loadmap('wwtID').astype(np.int64)

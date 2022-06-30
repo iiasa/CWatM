@@ -164,6 +164,10 @@ class water_demand:
         if "includeIndusDomesDemand" in option:
             self.var.includeIndusDomesDemand = checkOption('includeIndusDomesDemand')
 
+        self.var.includeWastewater = False
+        if "includeWastewater" in option:
+            self.var.includeWastewater = checkOption('includeWastewater')
+
 
         # 🕵 Variables related to agents =========================
 
@@ -1638,14 +1642,12 @@ class water_demand:
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.returnflowNonIrr =  self.var.returnflowNonIrr * unmet_div_ww
 
-            if checkOption('includeWastewater') & self.var.includeIndusDomesDemand:  # all demands are taken into account
+            if self.var.includeWastewater & self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.wwtEffluentsGenerated = self.var.returnflowNonIrr.copy() * self.var.cellArea # [M3]
                 
                 ## water quality vars in effluents generated and collected
                 self.var.wwtSewerCollection = np.where(self.var.wwtColArea > 0, np.minimum(self.var.returnflowNonIrr * self.var.wwtColShare, self.var.returnflowNonIrr), 0.)
-                
-                
-                
+
                 self.var.returnflowNonIrr  = np.maximum(self.var.returnflowNonIrr - self.var.wwtSewerCollection, 0.)   
                 self.var.wwtSewerCollection = self.var.wwtSewerCollection + self.var.wwtUrbanLeakage
                 self.model.wastewater_module.dynamic()
@@ -1655,7 +1657,7 @@ class water_demand:
                 
             # returnflow to river and to evapotranspiration
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
-                if checkOption('includeWastewater'):
+                if self.var.includeWastewater:
                     # add uncollected wastewater
                     uncollectedWWT = self.var.wwtSewerCollection * self.var.cellArea  - self.var.wwtExportedCollected - self.var.wwtSewerCollected # M3
                     self.var.returnflowNonIrr += uncollectedWWT / self.var.cellArea
@@ -1664,7 +1666,7 @@ class water_demand:
                 self.var.returnFlow = self.var.returnflowIrr
             
             # add wastewater discharge to river to returnFlow - so they are sent to routing
-            if checkOption('includeWastewater') & self.var.includeIndusDomesDemand:
+            if self.var.includeWastewater & self.var.includeIndusDomesDemand:
                 self.var.returnFlow += self.var.wwtOverflowOutM
                 
                 
