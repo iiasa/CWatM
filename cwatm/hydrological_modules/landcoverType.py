@@ -654,6 +654,14 @@ class landcoverType(object):
         # -----------------------------------------------------------
         # Calculate  water available for infiltration
         # *********  WATER Demand   *************************
+        # Allow Urban runoff to be collected by wastewater collection systems from sealed areas
+        if checkOption('includeWastewater'):
+            self.var.wwtUrbanLeakage = np.where(self.var.wwtColArea > 0, self.var.availWaterInfiltration[4] * self.var.urbanleak, 0.)
+          
+            
+            self.var.availWaterInfiltration[4] -= self.var.wwtUrbanLeakage
+            self.var.wwtUrbanLeakage = self.var.fracVegCover[4] * self.var.wwtUrbanLeakage
+            
         self.model.waterdemand_module.dynamic()
 
         # Calculate soil

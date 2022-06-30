@@ -17,6 +17,8 @@ from cwatm.hydrological_modules.water_demand.industry import waterdemand_industr
 from cwatm.hydrological_modules.water_demand.livestock import waterdemand_livestock
 from cwatm.hydrological_modules.water_demand.irrigation import waterdemand_irrigation
 from cwatm.hydrological_modules.water_demand.environmental_need import waterdemand_environmental_need
+from cwatm.hydrological_modules.water_demand.wastewater import waterdemand_wastewater
+
 
 
 #PB1507
@@ -148,6 +150,7 @@ class water_demand:
         self.livestock = waterdemand_livestock(model)
         self.irrigation = waterdemand_irrigation(model)
         self.environmental_need = waterdemand_environmental_need(model)
+        self.wastewater = waterdemand_wastewater(model)
 
     def initial(self):
         """
@@ -231,6 +234,7 @@ class water_demand:
                 self.livestock.initial()
                 self.irrigation.initial()
                 self.environmental_need.initial()
+                self.wastewater.initial()
             else:  # only irrigation is considered
 
                 self.irrigation.initial()
@@ -485,6 +489,8 @@ class water_demand:
             self.var.modflowDepth2 = 0
             self.var.modflowTopography = 0
             self.var.act_bigLakeResAbst = globals.inZero.copy()
+            self.var.act_bigLakeResAbst_R = globals.inZero.copy()
+            self.var.act_bigLakeResAbst_NR = globals.inZero.copy()
 
             self.var.leakage = globals.inZero.copy()
             self.var.pumping = globals.inZero.copy()
@@ -829,6 +835,10 @@ class water_demand:
                 # abstraction from big lakes is partioned to the users around the lake
                 self.var.act_bigLakeResAbst = remainNeed * bigLakesFactorAllaroundlake
 
+                # TEMPORARY BY DOR FRIDMAN
+                self.var.act_bigLakeResAbst_NR = self.var.act_bigLakeResAbst
+                self.var.act_bigLakeResAbst_R = globals.inZero.copy()
+                
                 # remaining need is used from small lakes
                 remainNeed1 = remainNeed * (1 - bigLakesFactorAllaroundlake)
                 #minlake = np.maximum(0.,self.var.smalllakeStorage - self.var.minsmalllakeStorage) * self.var.M3toM
@@ -1628,11 +1638,36 @@ class water_demand:
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.returnflowNonIrr =  self.var.returnflowNonIrr * unmet_div_ww
 
+            if checkOption('includeWastewater') & self.var.includeIndusDomesDemand:  # all demands are taken into account
+                self.var.wwtEffluentsGenerated = self.var.returnflowNonIrr.copy() * self.var.cellArea # [M3]
+                
+                ## water quality vars in effluents generated and collected
+                self.var.wwtSewerCollection = np.where(self.var.wwtColArea > 0, np.minimum(self.var.returnflowNonIrr * self.var.wwtColShare, self.var.returnflowNonIrr), 0.)
+                
+                
+                
+                self.var.returnflowNonIrr  = np.maximum(self.var.returnflowNonIrr - self.var.wwtSewerCollection, 0.)   
+                self.var.wwtSewerCollection = self.var.wwtSewerCollection + self.var.wwtUrbanLeakage
+                self.model.wastewater_module.dynamic()
+                
+                
+                
+                
             # returnflow to river and to evapotranspiration
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                if checkOption('includeWastewater'):
+                    # add uncollected wastewater
+                    uncollectedWWT = self.var.wwtSewerCollection * self.var.cellArea  - self.var.wwtExportedCollected - self.var.wwtSewerCollected # M3
+                    self.var.returnflowNonIrr += uncollectedWWT / self.var.cellArea
                 self.var.returnFlow = self.var.returnflowIrr + self.var.returnflowNonIrr
             else:  # only irrigation is considered
                 self.var.returnFlow = self.var.returnflowIrr
+            
+            # add wastewater discharge to river to returnFlow - so they are sent to routing
+            if checkOption('includeWastewater') & self.var.includeIndusDomesDemand:
+                self.var.returnFlow += self.var.wwtOverflowOutM
+                
+                
             self.var.waterabstraction = self.var.nonFossilGroundwaterAbs + self.var.unmetDemand + self.var.act_SurfaceWaterAbstract
 
             if 'adminSegments' in binding:

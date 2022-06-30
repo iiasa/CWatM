@@ -258,15 +258,26 @@ class lakes_reservoirs(object):
             if self.var.modflow: # required to compute leakage from lakes and reservoirs
                 self.var.resYear = loadmap('waterBodyYear')
 
+            
             # water body types:
+            # - 4 = water distribution reservoirs (input = output; only allows input from specified sources, e.g., interbasin transfers, wasetwater treatment, desalination, etc.)
             # - 3 = reservoirs and lakes (used as reservoirs but before the year of construction as lakes
             # - 2 = reservoirs (regulated discharge)
             # - 1 = lakes (weirFormula)
             # - 0 = non lakes or reservoirs (e.g. wetland)
+            
+            # Flag if res type-4 are used
+            self.var.includeType4 = False
+            
             waterBodyTyp = loadmap('waterBodyTyp').astype(np.int64)
             if self.var.modflow: # required to compute leakage from lakes and reservoirs
                 self.var.waterBodyTyp = waterBodyTyp
-
+            
+            # Flag if res type-4 are used
+            if (waterBodyTyp == 4).any():
+                self.var.includeType4 = True
+                self.var.waterBodyTyp = waterBodyTyp
+                
             #waterBodyTyp = np.where(waterBodyTyp > 0., 1, waterBodyTyp)  # TODO change all to lakes for testing
             self.var.waterBodyTypC = np.compress(self.var.compress_LR, waterBodyTyp)
             self.var.waterBodyTypC = np.where(self.var.waterBodyOutC > 0, self.var.waterBodyTypC.astype(np.int64), 0)
@@ -436,6 +447,8 @@ class lakes_reservoirs(object):
             self.var.reservoirFillC = self.var.normLimitC.copy()
             # Initial reservoir fill (fraction of total storage, [-])
             self.var.reservoirStorageM3C = self.var.reservoirFillC * self.var.resVolumeC
+            # set initial fill of distribution reservoir to zero (res. type-4)
+            self.var.reservoirStorageM3C = np.where(self.var.waterBodyTypC == 4, 0., self.var.reservoirStorageM3C)
         else:
             self.var.reservoirStorageM3C = np.compress(self.var.compress_LR, reservoirStorageIni)
             self.var.reservoirFillC = self.var.reservoirStorageM3C / self.var.resVolumeC
@@ -466,7 +479,8 @@ class lakes_reservoirs(object):
             # check years
             if dateVar['newStart'] or dateVar['newYear']:
                 year = dateVar['currDate'].year
-
+                
+                # - 4 = water distribution reservoirs (input = output; only allows input from specified sources, e.g., interbasin transfers, wasetwater treatment, desalination, etc.)
                 # - 3 = reservoirs and lakes (used as reservoirs but before the year of construction as lakes
                 # - 2 = reservoirs (regulated discharge)
                 # - 1 = lakes (weirFormula)
@@ -478,15 +492,19 @@ class lakes_reservoirs(object):
                         year = loadmap('fixLakesResYear')
 
                     self.var.waterBodyTypCTemp = np.where((self.var.resYearC > year) & (self.var.waterBodyTypC == 2), 0, self.var.waterBodyTypC)
+                    self.var.waterBodyTypCTemp = np.where((self.var.resYearC > year) & (self.var.waterBodyTypC == 4), 0, self.var.waterBodyTypC)
                     self.var.waterBodyTypCTemp = np.where((self.var.resYearC > year) & (self.var.waterBodyTypC == 3), 1, self.var.waterBodyTypCTemp)
                     if self.var.modflow: # we also need the uncompressed version to compute leakage
                         self.var.waterBodyTypTemp = np.where((self.var.resYear > year) & (self.var.waterBodyTyp == 2), 0, self.var.waterBodyTyp)
+                        self.var.waterBodyTypTemp = np.where((self.var.resYear > year) & (self.var.waterBodyTyp == 4), 0, self.var.waterBodyTyp)
                         self.var.waterBodyTypTemp = np.where((self.var.resYear > year) & (self.var.waterBodyTyp == 3), 1, self.var.waterBodyTypTemp)
                 else:
                     self.var.waterBodyTypCTemp = np.where(self.var.waterBodyTypC == 2, 0, self.var.waterBodyTypC)
+                    self.var.waterBodyTypCTemp = np.where(self.var.waterBodyTypC == 4, 0, self.var.waterBodyTypC)
                     self.var.waterBodyTypCTemp = np.where(self.var.waterBodyTypC == 3, 1, self.var.waterBodyTypCTemp)
                     if self.var.modflow: # we also need the uncompressed version to compute leakage
                         self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 2, 0, self.var.waterBodyTyp)
+                        self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 4, 0, self.var.waterBodyTyp)
                         self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 3, 1, self.var.waterBodyTypTemp)
 
 
@@ -648,13 +666,28 @@ class lakes_reservoirs(object):
             # New reservoir storage [m3] = plus inflow for this sub step
 
             # check that reservoir storage - evaporation > 0
-            self.var.resEvapWaterBodyC = np.where(self.var.reservoirStorageM3C - self.var.evapWaterBodyC > 0., self.var.evapWaterBodyC, self.var.reservoirStorageM3C)
+            # Evaporation from res type-4 is not applied for inflowC
+            reservoirStorageM3C_type4Res = np.where(self.var.waterBodyTypC == 4, self.var.reservoirStorageM3C - inflowC, self.var.reservoirStorageM3C)
+            self.var.resEvapWaterBodyC = np.where(reservoirStorageM3C_type4Res - self.var.evapWaterBodyC > 0., self.var.evapWaterBodyC, reservoirStorageM3C_type4Res)
             self.var.sumResEvapWaterBodyC += self.var.resEvapWaterBodyC
             self.var.reservoirStorageM3C = self.var.reservoirStorageM3C - self.var.resEvapWaterBodyC
 
             self.var.reservoirFillC = self.var.reservoirStorageM3C / self.var.resVolumeC
             # New reservoir fill [-]
-                     
+            
+            # MODIFIED DOR FRIDMAN 
+            # limit res. outflows to reservoir with water level > limit_to_resOutflows
+            # limit_to_resOutflows is defined relative to res. Volume
+            if "limit_to_resOutflows" in binding:
+                reservoirOutflowLimit = loadmap('limit_to_resOutflows')
+			    # load map of outflow limit np.compress(self.var.compress_LR, self.var.waterBodyOut)
+                reservoirOutflowLimitC = np.compress(self.var.compress_LR,  globals.inZero.copy() + reservoirOutflowLimit)
+                # compress to lake&res data
+                reservoirOutflowLimitMask = np.where(reservoirOutflowLimitC < self.var.reservoirFillC, 1, 0)
+                # Create mask for limit out flow: 1 allow out flow (in case fill > limit) 
+            else:
+                reservoirOutflowLimitMask =  np.compress(self.var.compress_LR, globals.inZero.copy() + 1)
+
             reservoirOutflow1 = np.minimum(self.var.minQC, self.var.reservoirStorageM3C * self.var.InvDtSec)
             # Reservoir outflow [m3/s] if ReservoirFill is nearing absolute minimum. 
 
@@ -685,7 +718,8 @@ class lakes_reservoirs(object):
                                         (reservoirOutflow > self.var.normQC) &
                                         (self.var.reservoirFillC < self.var.floodLimitC), temp, reservoirOutflow)
 
-
+            
+            
             # Reservoir_releases holds variables for different reservoir operations, each with 366 timesteps.
             # The value of the variable at the reservoir is the maximum fraction of available storage to be
             # released for the associated operation.
@@ -697,7 +731,11 @@ class lakes_reservoirs(object):
                 reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow,
                                             np.where(self.var.lakeResStorage_release_ratioC > 0, self.var.lakeResStorage_release_ratioC * self.var.reservoirStorageM3C * (
                                                         1 / (60 * 60 * 24)), 0))
-
+            
+            # Apply reservoirOutflowLimitMask to limit resOutflows based on storagre relative to threshold volume
+            # This may override the reservoir_releases behaviour - ATTENTION FROM MIKHAIL/DOR
+            reservoirOutflow = reservoirOutflow * reservoirOutflowLimitMask
+            
             qResOutM3DtC = reservoirOutflow * self.var.dtRouting
 
             # Reservoir outflow in [m3] per sub step
@@ -705,6 +743,8 @@ class lakes_reservoirs(object):
             # check if storage would go < 0 if outflow is used
             qResOutM3DtC = np.maximum(qResOutM3DtC, self.var.reservoirStorageM3C - self.var.resVolumeC)
             # Check to prevent reservoir storage from exceeding total capacity
+            qResOutM3DtC = np.where(self.var.waterBodyTypC == 4, inflowC, qResOutM3DtC)
+            # In type-4 res. outflow = inflowC
 
             self.var.reservoirStorageM3C -= qResOutM3DtC
 
@@ -801,7 +841,12 @@ class lakes_reservoirs(object):
             self.var.lakeResInflowM = self.var.lakeResInflowM  / self.var.cellArea
             np.put(self.var.lakeResOutflowM, self.var.decompress_LR, self.var.sumlakeResOutflow)
             self.var.lakeResOutflowM = self.var.lakeResOutflowM  / self.var.cellArea
-
+            
+            # Output maps for lakeResInflow and lakeResOutflow when using type-4 res.
+            # The standard map inflate the overall res. water volumes
+            self.var.lakeResInflowM_2 = np.where(self.var.waterBodyTyp == 4, self.var.lakeResInflowM - self.var.lakeResOutflowM, self.var.lakeResInflowM)
+            self.var.lakeResOutflowM_2 = np.where(self.var.waterBodyTyp == 4, 0., self.var.lakeResOutflowM)
+            
             np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
             np.put(self.var.lakeStorage, self.var.decompress_LR, lakeStorageC)
             np.put(self.var.resStorage, self.var.decompress_LR, resStorageC)
