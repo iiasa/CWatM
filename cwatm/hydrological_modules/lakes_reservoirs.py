@@ -277,7 +277,8 @@ class lakes_reservoirs(object):
             if (waterBodyTyp == 4).any():
                 self.var.includeType4 = True
                 self.var.waterBodyTyp = waterBodyTyp
-
+                self.var.resYear = loadmap('waterBodyYear')
+                
             # ❓ Can self.var.waterBodyTyp = waterBodyTyp generally
                 
             #waterBodyTyp = np.where(waterBodyTyp > 0., 1, waterBodyTyp)  # TODO change all to lakes for testing
