@@ -123,11 +123,18 @@ class readmeteo(object):
                     cutmapGlobal[3] = int(cutmap[3] / maskmapAttr['reso_mask_meteo']+0.999)
 
         # -------------------------------------------------------------------
-
+        self.var.includeGlaciers = False
+        if 'includeGlaciers' in option:
+            self.var.includeGlaciers = checkOption('includeGlaciers')
+           
         self.var.preMaps = 'PrecipitationMaps'
         self.var.tempMaps = 'TavgMaps'
         self.var.evaTMaps = 'ETMaps'
         self.var.eva0Maps = 'E0Maps'
+        
+        if self.var.includeGlaciers:
+            self.var.glaciermeltMaps = 'MeltGlacierMaps'
+            self.var.glacierrainMaps = 'PrecGlacierMaps'
 
 
         if checkOption('calc_evaporation'):
@@ -136,9 +143,16 @@ class readmeteo(object):
                 meteomaps.append('QAirMaps')
             else:
                 meteomaps.append('RhsMaps')
+            
+            if self.var.includeGlaciers:
+                    meteomaps.append(self.var.glaciermeltMaps)
+                    meteomaps.append(self.var.glacierrainMaps)
 
         else:
-            meteomaps = [self.var.preMaps, self.var.tempMaps,self.var.evaTMaps,self.var.eva0Maps]
+            if self.var.includeGlaciers:
+                meteomaps = [self.var.preMaps, self.var.tempMaps, self.var.evaTMaps, self.var.eva0Maps, self.var.glaciermeltMaps, self.var.glacierrainMaps]
+            else:
+                meteomaps = [self.var.preMaps, self.var.tempMaps,self.var.evaTMaps,self.var.eva0Maps]
 
         #meteomaps = ["PrecipitationMaps","TavgMaps"]
         multinetdf(meteomaps)
@@ -303,6 +317,9 @@ class readmeteo(object):
             self.var.Tavg = self.var.meteo[1,no]
             self.var.ETRef = self.var.meteo[2,no]
             self.var.EWRef = self.var.meteo[3,no]
+            if self.var.includeGlaciers:
+                self.var.GlacierMelt = self.var.meteo[4, no]
+                self.var.GlacierRain = self.var.meteo[5, no]
             return
 
         ZeroKelvin = 0.0
@@ -310,9 +327,14 @@ class readmeteo(object):
             # if temperature is in Kelvin -> conversion to deg C
             # TODO in initial there could be a check if temperature > 200 -> automatic change to Kelvin
             ZeroKelvin = 273.15
+        
 
         self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale) * self.var.DtDay * self.var.con_precipitation
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
+        
+        if self.var.includeGlaciers:
+            self.var.GlacierMelt = readmeteodata(self.var.glaciermeltMaps, dateVar['currDate'], addZeros=True, mapsscale = True)
+            self.var.GlacierRain = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True)
 
         if self.var.meteodown:
             self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
@@ -320,6 +342,7 @@ class readmeteo(object):
             self.var.Precipitation = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
 
         #self.var.Precipitation = self.var.Precipitation * 1000
+        
 
         self.var.prec = self.var.Precipitation / self.var.con_precipitation
         # precipitation (conversion to [m] per time step)  `
@@ -454,6 +477,11 @@ class readmeteo(object):
         if Flags['calib']:
             # if first clibration run, store all meteo data in a variable
             if dateVar['curr'] == 1:
+                if self.var.includeGlaciers:
+                    self.var.meteo = np.zeros([6, 1 + dateVar["intEnd"] - dateVar["intStart"], len(self.var.Precipitation)])
+                else:
+                    self.var.meteo = np.zeros([4,1 + dateVar["intEnd"] - dateVar["intStart"],len(self.var.Precipitation)])
+
                 self.var.meteo = np.zeros([4,1 + dateVar["intEnd"] - dateVar["intStart"],len(self.var.Precipitation)])
                 #self.var.ETRef_all,self.var.EWRef_all,self.var.Tavg_all, self.var.Precipitation_all = [],[],[],[]
             no = dateVar['curr'] -1
@@ -461,6 +489,10 @@ class readmeteo(object):
             self.var.meteo[1,no] = self.var.Tavg
             self.var.meteo[2,no] = self.var.ETRef
             self.var.meteo[3,no] = self.var.EWRef
+            
+            if self.var.includeGlaciers:
+                self.var.meteo[4, no] = self.var.GlacierMelt
+                self.var.meteo[5, no] = self.var.GlacierRain
             #self.var.ETRef_all.append(self.var.ETRef)
             #self.var.EWRef_all.append(self.var.EWRef)
             #self.var.Tavg_all.append(self.var.Tavg)

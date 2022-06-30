@@ -1261,6 +1261,10 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
         nf1.title = cbinding ("title")
         nf1.source = 'CWATM output maps'
         nf1.Conventions = 'CF-1.6'
+        if 'save_git' in option:
+            if checkOption("save_git"):
+                import git
+                nf1.git_commit = git.Repo(search_parent_directories=True).head.object.hexsha
 
         # put the additional genaral meta data information from the xml file into the netcdf file
         # infomation from the settingsfile comes first
