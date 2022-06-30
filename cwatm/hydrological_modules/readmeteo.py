@@ -144,9 +144,9 @@ class readmeteo(object):
             else:
                 meteomaps.append('RhsMaps')
             
-        if self.var.includeGlaciers:
-                meteomaps.append(self.var.glaciermeltMaps)
-                meteomaps.append(self.var.glacierrainMaps)
+            if self.var.includeGlaciers:
+                    meteomaps.append(self.var.glaciermeltMaps)
+                    meteomaps.append(self.var.glacierrainMaps)
 
         else:
             if self.var.includeGlaciers:
