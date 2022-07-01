@@ -10,6 +10,7 @@
 
 from cwatm.management_modules.data_handling import *
 import scipy.ndimage
+from scipy.interpolate import RegularGridInterpolator
 
 class readmeteo(object):
     """
@@ -97,8 +98,21 @@ class readmeteo(object):
         # for downscaling meteomaps , Wordclim data at a finer resolution is used
         # here it is necessary to clip the wordclim data so that they fit to meteo dataset
         self.var.meteodown = False
+        # if interpolationmethod not defined in settingsfil, use spline interpolation
+        self.var.InterpolationMethod = 'spline'
+        self.var.buffer = False
         if "usemeteodownscaling" in binding:
             self.var.meteodown = returnBool('usemeteodownscaling')
+            if 'InterpolationMethod' in binding:
+                # interpolation option can be spline or bilinear
+                self.var.InterpolationMethod = loadmap('InterpolationMethod')
+                if self.var.InterpolationMethod != 'bilinear' and self.var.InterpolationMethod != 'spline':
+                    msg = 'Error: InterpolationMethod in settings file must be one of the following: "spline" or  "bilinear", but it is {}'.format(self.var.InterpolationMethod)
+                    raise CWATMError(msg)
+                self.var.buffer = True
+
+
+
 
         check_clim = False
         if self.var.meteodown:
@@ -167,6 +181,19 @@ class readmeteo(object):
         self.var.wc2_prec = 0
         self.var.wc4_prec = 0
 
+        if self.var.InterpolationMethod == 'bilinear':
+            #these variables are generated to avoid calculating them at each timestep
+            self.var.xcoarse_prec = 0
+            self.var.ycoarse_prec = 0
+            self.var.xfine_prec = 0
+            self.var.yfine_prec = 0
+            self.var.meshlist_prec = 0
+            self.var.xcoarse_tavg = 0
+            self.var.ycoarse_tavg = 0
+            self.var.xfine_tavg = 0
+            self.var.yfine_tavg = 0
+            self.var.meshlist_tavg = 0
+
 
         # read dem for making a anomolydem between high resolution dem and low resoultion dem
 
@@ -227,7 +254,7 @@ class readmeteo(object):
         return input
         """
 
-    def downscaling2(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, downscale = 0):
+    def downscaling2(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, x=None, y=None, xfine=None, yfine=None, meshlist=None, downscale = 0):
         """
         Downscaling based on Delta method:
 
@@ -251,14 +278,29 @@ class readmeteo(object):
         reso = maskmapAttr['reso_mask_meteo']
         resoint = int(reso)
 
+        if self.var.InterpolationMethod == 'bilinear' and (downscale == 1 or downscale == 2):
+            buffer = 1
+            if dateVar['newStart']:
+                x = np.arange(0.5, np.shape(input)[0] + 0.5)
+                y = np.arange(0.5, np.shape(input)[1] + 0.5)
+                xfine = np.arange(0.5 + 1 / (resoint * 2), np.shape(input)[0] - 0.5, 1 / resoint)
+                yfine = np.arange(0.5 + 1 / (resoint * 2), np.shape(input)[1] - 0.5, 1 / resoint)
+                xmesh, ymesh = np.meshgrid(xfine, yfine)
+                meshlist = list(zip(xmesh.flatten(), ymesh.flatten()))
+        else:
+            buffer = 0
+
         if self.var.meteomapsscale:
             if downscale == 0:
                 return input
             else:
                 return input, wc2, wc4
 
+        if buffer == 0:
+            down3 = np.kron(input, np.ones((resoint, resoint)))
+        else:
+            down3 = np.kron(input[buffer:-buffer, buffer:-buffer], np.ones((resoint, resoint)))
 
-        down3 = np.kron(input, np.ones((resoint, resoint)))
         if downscale == 0:
             down2 = down3[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
             input = compressArray(down2)
@@ -266,7 +308,9 @@ class readmeteo(object):
         else:
             if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
                 wc1 = readnetcdf2(downscaleName, dateVar['currDate'], useDaily='month', compress = False, cut = False)
-                wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]
+                #wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]
+                wc2 = wc1[(cutmapGlobal[2] - buffer) * resoint: (cutmapGlobal[3] + buffer) * resoint,
+                      (cutmapGlobal[0] - buffer) * resoint: (cutmapGlobal[1] + buffer) * resoint]
                 #wc2 = wc1[cutmapGlobal[2] * resoint:cutmapGlobal[3] * resoint, cutmapGlobal[0] * resoint:cutmapGlobal[1] * resoint]
                 rows = wc2.shape[0]
                 cols = wc2.shape[1]
@@ -275,21 +319,43 @@ class readmeteo(object):
 
         if downscale == 1: # Temperature
             diff_wc = wc4 - input
-            #diff_wc[np.isnan( diff_wc)] = 0.0
-            # could also use np.kron !
-            diffSmooth = scipy.ndimage.zoom(diff_wc, resoint, order=1)
-            down1 = wc2 - diffSmooth
+            if self.var.InterpolationMethod == 'spline':
+                diffSmooth = scipy.ndimage.zoom(diff_wc, resoint, order=1)
+                down1 = wc2 - diffSmooth
+
+            elif self.var.InterpolationMethod == 'bilinear':
+                bilinear_interpolation = RegularGridInterpolator((x, y), diff_wc)
+                diffSmooth = bilinear_interpolation(meshlist)
+                diffSmooth = diffSmooth.reshape(len(xfine), len(yfine), order='F')
+                #no buffer for real downscaled values
+                crop = int(resoint / 2)
+                diffSmooth = diffSmooth[crop:-crop, crop:-crop]
+                down1 = wc2[buffer * resoint:-buffer * resoint, buffer * resoint:-buffer * resoint] - diffSmooth
+            
             down1 = np.where(np.isnan(down1),down3,down1)
+
         if downscale == 2:  # precipitation
             quot_wc = divideValues(input, wc4)
-            quotSmooth = scipy.ndimage.zoom(quot_wc, resoint, order=1)
-            down1 = wc2 * quotSmooth
+
+
+            if self.var.InterpolationMethod == 'spline':
+                quotSmooth = scipy.ndimage.zoom(quot_wc, resoint, order=1)
+                down1 = wc2 * quotSmooth
+            elif self.var.InterpolationMethod == 'bilinear':
+                bilinear_interpolation = RegularGridInterpolator((x, y), quot_wc)
+                quotSmooth = bilinear_interpolation(meshlist)
+                quotSmooth = quotSmooth.reshape(len(xfine), len(yfine), order='F')
+                crop = int(resoint/2)
+                quotSmooth = quotSmooth[crop:-crop, crop:-crop]
+                down1 = wc2[buffer * resoint:-buffer * resoint, buffer * resoint:-buffer * resoint] * quotSmooth
             down1 = np.where(np.isnan(down1),down3,down1)
             down1 = np.where(np.isinf(down1), down3, down1)
 
 
         down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
         input = compressArray(down2)
+        if self.var.InterpolationMethod == 'bilinear' and (downscale == 1 or downscale == 2):
+            return input, wc2, wc4, x, y, xfine, yfine, meshlist
         return input, wc2, wc4
 
      # --- end downscaling ----------------------------
@@ -329,7 +395,9 @@ class readmeteo(object):
             ZeroKelvin = 273.15
         
 
-        self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale) * self.var.DtDay * self.var.con_precipitation
+        self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer) * self.var.DtDay * self.var.con_precipitation
+
+
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
         
         if self.var.includeGlaciers:
@@ -337,7 +405,13 @@ class readmeteo(object):
             self.var.GlacierRain = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True)
 
         if self.var.meteodown:
-            self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
+            if self.var.InterpolationMethod == 'bilinear':
+                self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec, self.var.xcoarse_prec, self.var.ycoarse_prec, self.var.xfine_prec, self.var.yfine_prec, self.var.meshlist_prec = self.downscaling2(
+                    self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec,
+                    self.var.xcoarse_prec, self.var.ycoarse_prec, self.var.xfine_prec, self.var.yfine_prec,
+                    self.var.meshlist_prec, downscale=2)
+            else:
+                self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
         else:
             self.var.Precipitation = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
 
@@ -354,10 +428,15 @@ class readmeteo(object):
         tzero = 0
         if checkOption('TemperatureInKelvin'):
             tzero = ZeroKelvin
-        self.var.Tavg = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.var.meteomapsscale)
+        self.var.Tavg = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
 
         if self.var.meteodown:
-            self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
+            if self.var.InterpolationMethod == 'bilinear':
+                self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg, self.var.xcoarse_tavg, self.var.ycoarse_tavg, self.var.xfine_tavg, self.var.yfine_tavg, self.var.meshlist_tavg = self.downscaling2(
+                    self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, self.var.xcoarse_tavg,
+                    self.var.ycoarse_tavg, self.var.xfine_tavg, self.var.yfine_tavg, self.var.meshlist_tavg, downscale=1)
+            else:
+                self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
         else:
             self.var.Tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=0)
         self.var.temp = self.var.Tavg.copy()
@@ -384,9 +463,21 @@ class readmeteo(object):
         if checkOption('calc_evaporation'):
 
             #self.var.TMin = readnetcdf2('TminMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
-            self.var.TMin = readmeteodata('TminMaps',dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale)
+            self.var.TMin = readmeteodata('TminMaps',dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
             if self.var.meteodown:
-                self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=1)
+                if self.var.InterpolationMethod == 'bilinear':
+                    self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin, _, _, _, _, _ = self.downscaling2(self.var.TMin,
+                                                                                                           "downscale_wordclim_tmin",
+                                                                                                           self.var.wc2_tmin,
+                                                                                                           self.var.wc4_tmin,
+                                                                                                           self.var.xcoarse_tavg,
+                                                                                                           self.var.ycoarse_tavg,
+                                                                                                           self.var.xfine_tavg,
+                                                                                                           self.var.yfine_tavg,
+                                                                                                           self.var.meshlist_tavg,
+                                                                                                           downscale=1)
+                else:
+                    self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=1)
             else:
                 self.var.TMin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=0)
 
@@ -394,9 +485,21 @@ class readmeteo(object):
                 checkmap('TminMaps', "", self.var.TMin, True, True, self.var.TMin)
 
             #self.var.TMax = readnetcdf2('TmaxMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
-            self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale)
+            self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
             if self.var.meteodown:
-                self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=1)
+                if self.var.InterpolationMethod == 'bilinear':
+                    self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax, _, _, _, _, _ = self.downscaling2(self.var.TMax,
+                                                                                                           "downscale_wordclim_tmin",
+                                                                                                           self.var.wc2_tmax,
+                                                                                                           self.var.wc4_tmax,
+                                                                                                           self.var.xcoarse_tavg,
+                                                                                                           self.var.ycoarse_tavg,
+                                                                                                           self.var.xfine_tavg,
+                                                                                                           self.var.yfine_tavg,
+                                                                                                           self.var.meshlist_tavg,
+                                                                                                           downscale=1)
+                else:
+                    self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=1)
             else:
                 self.var.TMax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=0)
 

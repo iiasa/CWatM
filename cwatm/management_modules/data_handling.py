@@ -905,7 +905,7 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
 
 
 
-def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapsscale = True):
+def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapsscale = True, buffering=False):
     """
     load stack of maps 1 at each timestamp in netcdf format
 
@@ -915,6 +915,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     :param addZeros:
     :param zeros: default value
     :param mapsscale: if meteo maps have the same extend as the other spatial static m
+    :param buffering: if buffer should be applied before cutting the map to the mask extent
     :return: Compressed 1D array of meteo data
 
     :raises if data is wrong: :meth:`management_modules.messages.CWATMError`
@@ -960,8 +961,14 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     if cutcheck:
         if turn_latitude:
             mapnp = mapnp[cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]]
+            #TODO: make buffering work if lattitude is turned
         else:
-            mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]].astype(np.float64)
+            if buffering:
+                buffer = 1
+                mapnp = nf1.variables[value][idx, cutmapFine[2] - buffer:cutmapFine[3] + buffer,
+                cutmapFine[0] - buffer:cutmapFine[1] + buffer].astype(np.float64)
+            else:
+                mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]].astype(np.float64)
     else:
         if not(turn_latitude):
             mapnp = nf1.variables[value][idx].astype(np.float64)
