@@ -105,11 +105,12 @@ class readmeteo(object):
             self.var.meteodown = returnBool('usemeteodownscaling')
             if 'InterpolationMethod' in binding:
                 # interpolation option can be spline or bilinear
-                self.var.InterpolationMethod = loadmap('InterpolationMethod')
+                self.var.InterpolationMethod = cbinding('InterpolationMethod')
                 if self.var.InterpolationMethod != 'bilinear' and self.var.InterpolationMethod != 'spline':
                     msg = 'Error: InterpolationMethod in settings file must be one of the following: "spline" or  "bilinear", but it is {}'.format(self.var.InterpolationMethod)
                     raise CWATMError(msg)
-                self.var.buffer = True
+                if self.var.InterpolationMethod == 'bilinear':
+                    self.var.buffer = True
 
 
 
@@ -393,7 +394,6 @@ class readmeteo(object):
             # if temperature is in Kelvin -> conversion to deg C
             # TODO in initial there could be a check if temperature > 200 -> automatic change to Kelvin
             ZeroKelvin = 273.15
-        
 
         self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer) * self.var.DtDay * self.var.con_precipitation
 
