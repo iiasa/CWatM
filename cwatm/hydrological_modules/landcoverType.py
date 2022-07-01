@@ -545,6 +545,9 @@ class landcoverType(object):
                     self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
                     i += 1
 
+                if 'static_irrigation_map' in option:
+                    if checkOption('static_irrigation_map'):
+                        self.var.fracVegCover[3] = loadmap('irrNonPaddy_fracVegCover')
 
             # for Xiaogang's agent model
             if "paddyfraction" in binding:

@@ -262,9 +262,11 @@ class lakes_reservoirs(object):
             self.var.waterBodyTypC = np.where(self.var.waterBodyOutC > 0, self.var.waterBodyTypC.astype(np.int64), 0)
 
             self.var.resVolumeC = np.compress(self.var.compress_LR, loadmap('waterBodyVolRes')) * 1000000
-            # changing reservoirs to lakes if the volumes are 0:
+            # changing reservoirs and lake➡reservoirs to lakes if volumes are zero:
             self.var.waterBodyTypC = np.where(self.var.resVolumeC > 0., self.var.waterBodyTypC,
                                               np.where(self.var.waterBodyTypC == 2, 1, self.var.waterBodyTypC))
+            self.var.waterBodyTypC = np.where(self.var.resVolumeC > 0., self.var.waterBodyTypC,
+                                              np.where(self.var.waterBodyTypC == 3, 1, self.var.waterBodyTypC))
 
             np.put(self.var.waterBodyTyp, self.var.decompress_LR, self.var.waterBodyTypC)
 
