@@ -23,6 +23,7 @@ from cwatm.hydrological_modules.evaporation import evaporation
 from cwatm.hydrological_modules.groundwater import groundwater
 from cwatm.hydrological_modules.groundwater_modflow.transient import groundwater_modflow
 from cwatm.hydrological_modules.water_demand.water_demand import water_demand
+from cwatm.hydrological_modules.water_demand.wastewater import waterdemand_wastewater as wastewater
 from cwatm.hydrological_modules.capillarRise import capillarRise
 from cwatm.hydrological_modules.interception import interception
 from cwatm.hydrological_modules.runoff_concentration import runoff_concentration
@@ -105,6 +106,7 @@ class CWATModel_ini(DynamicModel):
         self.groundwater_module = groundwater(self)
         self.groundwater_modflow_module = groundwater_modflow(self)
         self.waterdemand_module = water_demand(self)
+        self.wastewater_module = wastewater(self)
         self.capillarRise_module = capillarRise(self)
         self.interception_module = interception(self)
         self.sealed_water_module = sealed_water(self)
@@ -151,6 +153,7 @@ class CWATModel_ini(DynamicModel):
             self.lakes_reservoirs_module.initial_reservoirs()
 
         self.waterdemand_module.initial()
+        self.waterdemand_module.initial()  #wastewater_module is currently initiate from within waterdemand
         self.waterbalance_module.initial()
         # calculate initial amount of water in the catchment
 

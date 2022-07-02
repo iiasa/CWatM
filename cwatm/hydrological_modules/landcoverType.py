@@ -545,6 +545,9 @@ class landcoverType(object):
                     self.var.fracVegCover[i] = readnetcdf2('fractionLandcover', landcoverYear, useDaily="yearly",  value= 'frac'+coverType)
                     i += 1
 
+                if 'static_irrigation_map' in option:
+                    if checkOption('static_irrigation_map'):
+                        self.var.fracVegCover[3] = loadmap('irrNonPaddy_fracVegCover')
 
             # for Xiaogang's agent model
             if "paddyfraction" in binding:
@@ -672,6 +675,13 @@ class landcoverType(object):
         # -----------------------------------------------------------
         # Calculate  water available for infiltration
         # *********  WATER Demand   *************************
+        # Allow Urban runoff to be collected by wastewater collection systems from sealed areas
+
+        if self.var.includeWastewater:
+            self.var.wwtUrbanLeakage = np.where(self.var.wwtColArea > 0, self.var.availWaterInfiltration[4] * self.var.urbanleak, 0.)
+            self.var.availWaterInfiltration[4] -= self.var.wwtUrbanLeakage
+            self.var.wwtUrbanLeakage = self.var.fracVegCover[4] * self.var.wwtUrbanLeakage
+            
         self.model.waterdemand_module.dynamic()
 
         # Calculate soil
