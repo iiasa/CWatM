@@ -76,13 +76,13 @@ class waterdemand_industry:
         else:
             new = 'newYear'
 
-        if globals.dateVar['newStart'] or globals.dateVar[new] or 'basin_transfers_daily_operations' in option or 'reservoir_transfers' in option:
+        if globals.dateVar['newStart'] or globals.dateVar[new] \
+                or 'basin_transfers_daily_operations' in option or 'reservoir_transfers' in option:
 
             self.var.industryDemand = readnetcdf2('industryWaterDemandFile', wd_date, self.var.industryTime, value=self.var.indWithdrawalVar)
             self.var.pot_industryConsumption = readnetcdf2('industryWaterDemandFile', wd_date, self.var.industryTime, value=self.var.indConsumptionVar)
             self.var.industryDemand = np.where(self.var.industryDemand > self.var.InvCellArea, self.var.industryDemand, 0.0)
             self.var.pot_industryConsumption = np.where(self.var.pot_industryConsumption > self.var.InvCellArea, self.var.pot_industryConsumption, 0.0)
-
 
             # transform from mio m3 per year (or month) to m/day if necessary
             if not self.var.demand_unit:

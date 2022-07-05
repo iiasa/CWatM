@@ -137,11 +137,13 @@ class CWATModel_ini(DynamicModel):
         self.snowfrost_module.initial()
         self.soil_module.initial()
 
-        self.groundwater_modflow_module.initial()
         # groundwater before meteo, bc it checks steady state
 
+        self.groundwater_modflow_module.initial()
+        if not self.var.modflow:
+            self.groundwater_module.initial()
+
         self.landcoverType_module.initial()
-        self.groundwater_module.initial()
 
         self.runoff_concentration_module.initial()
         self.lakes_res_small_module.initial()
@@ -153,7 +155,6 @@ class CWATModel_ini(DynamicModel):
             self.lakes_reservoirs_module.initial_reservoirs()
 
         self.waterdemand_module.initial()
-        self.waterdemand_module.initial()  #wastewater_module is currently initiate from within waterdemand
         self.waterbalance_module.initial()
         # calculate initial amount of water in the catchment
 

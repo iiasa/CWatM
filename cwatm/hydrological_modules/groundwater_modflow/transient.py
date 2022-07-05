@@ -1,7 +1,6 @@
 import numpy as np
 import os
-# MODIF LUCA
-#from cwatm.management_modules.data_handling import globals, cbinding, loadmap, returnBool
+
 from  cwatm.management_modules.data_handling import *
 from cwatm.hydrological_modules.groundwater_modflow.modflow6 import ModFlowSimulation
 # impotlib to install libraries on the fly if needed e.g. rasterio
@@ -49,7 +48,7 @@ class groundwater_modflow:
             minlength=self.var.mask.size)).reshape(self.var.mask.shape)
 
     def CWATM2modflow(self, variable, correct_boundary=False):
-        """Converting flow [L/T] from 2D CWatM map to 2D ModFlow map"""
+        # Converting flow [L/T] from 2D CWatM map to 2D ModFlow map
         if correct_boundary:
             self.var.modflow_cell_area = self.corrected_modflow_cell_area.ravel()
         else:   
@@ -63,7 +62,7 @@ class groundwater_modflow:
         return array
 
     def modflow2CWATM(self, variable, correct_boundary=False):
-        """Converting flow [L/T] from 2D ModFLow map to 2D CWatM map"""
+        # Converting flow [L/T] from 2D ModFLow map to 2D CWatM map
         variable_copy = variable.copy()
         variable_copy[self.modflow.basin == False] = 0
         assert not (np.isnan(variable_copy).any())
@@ -83,12 +82,15 @@ class groundwater_modflow:
         return array
 
     def modflow2CWATMbis(self, variable, correct_boundary=False):
-        """Converting the 2D ModFLow capillary rise map into the fraction of area where capillary rise occurs
+        """
+        Converting the 2D ModFLow capillary rise map into the fraction of area where capillary rise occurs
         in the 2D CWatM maps. return a fraction for each CWatM cell, input is the ModFlow capillary rise map
-        the returned array is used to apply leakage from water bodies to the ModFlow layer"""
+        the returned array is used to apply leakage from water bodies to the ModFlow layer
+        """
         variable_copy = variable.copy()
         variable_copy[self.modflow.basin == False] = 0
-        variable_copy[variable_copy > 0] = 1  # Each ModFlow cell is distinguished between producing or not producing capillary rise
+        # Each ModFlow cell is distinguished between producing or not producing capillary rise
+        variable_copy[variable_copy > 0] = 1
         assert not (np.isnan(variable_copy).any())
         assert self.modflow.basin.dtype == bool
         if correct_boundary:
@@ -120,9 +122,9 @@ class groundwater_modflow:
             self.var.modflow = checkOption('modflow_coupling')
 
         if self.var.modflow:
-            #print('\n=> ModFlow is used at daily timestep\n')
             print('\n=> ModFlow is used\n')
-            self.var.modflow_timestep = int(loadmap('modflow_timestep'))  # Define the size of the ModFlow time step - means that ModFlow is called each "modflow_timestep"
+            # Define the size of the ModFlow time step - means that ModFlow is called each "modflow_timestep"
+            self.var.modflow_timestep = int(loadmap('modflow_timestep'))
             print('\n=> ModFlow timestep is : ', self.var.modflow_timestep, ' days\n')
 
             verboseGW = False
@@ -146,21 +148,24 @@ class groundwater_modflow:
                     'nrow': int(src.profile['height']),
                     'ncol': int(src.profile['width']),
                     'west': src.profile['transform'].c,
-                    'east': src.profile['transform'].c + (src.profile['width']-1) * abs(src.profile['transform'].a),
+                    'east': src.profile['transform'].c + (src.profile['width'] - 1) * abs(src.profile['transform'].a),
                     'north': src.profile['transform'].f,
-                    'south': src.profile['transform'].f - (src.profile['height']-1) * abs(src.profile['transform'].e)
+                    'south': src.profile['transform'].f - (src.profile['height'] - 1) * abs(src.profile['transform'].e)
                 }
                 domain['rowsize'] = abs(src.profile['transform'].e)
                 domain['colsize'] = abs(src.profile['transform'].a)
                 domain['nrow'] = int(src.profile['height'])
                 domain['ncol'] = int(src.profile['width'])
                 domain['west'] = src.profile['transform'].c
-                domain['east'] = src.profile['transform'].c + (src.profile['width']-1) * abs(src.profile['transform'].a)
+                domain['east'] = src.profile['transform'].c + (src.profile['width'] - 1) * abs(
+                    src.profile['transform'].a)
                 domain['north'] = src.profile['transform'].f
-                domain['south'] = src.profile['transform'].f - (src.profile['height']-1) * abs(src.profile['transform'].e)
+                domain['south'] = src.profile['transform'].f - (src.profile['height'] - 1) * abs(
+                    src.profile['transform'].e)
                 # domain variables will be used here, and in data handlind to save netcdf maps
 
-            # Coef to multiply transmissivity and storage coefficient (because ModFlow convergence is better if aquifer's thicknes is big and permeability is small)
+            # Coef to multiply transmissivity and storage coefficient (because ModFlow convergence is better if
+            # aquifer's thicknes is big and permeability is small)
             self.coefficient = 1
 
             with rasterio.open(cbinding('topo_modflow'), 'r') as src:
@@ -173,8 +178,9 @@ class groundwater_modflow:
                 self.var.channel_ratio = src.read(1).astype(np.float32)
                 self.var.waterdemandFixed = False
 
-                # if a correcting add river_percent_factor is in settingsfile add this to self.var.channel_ratio, but 0<= self.var.channel_ratio <= 1
-                # correcting the channellratio from the value indicated in the settings file
+                # if a correcting add river_percent_factor is in settingsfile add this to self.var.channel_ratio,
+                # but 0<= self.var.channel_ratio <= 1 correcting the channellratio from the value indicated in the
+                # settings file
                 factor_channelratio = 0.
                 if "river_percent_factor" in binding:
                    factor_channelratio = float(binding['river_percent_factor'])
@@ -182,8 +188,6 @@ class groundwater_modflow:
                                                   np.where(self.var.channel_ratio + factor_channelratio > 1, 1,
                                                            np.where(self.var.channel_ratio + factor_channelratio < 0, 0,
                                                                     self.var.channel_ratio + factor_channelratio)), 0)
-
-
 
             # uploading arrays allowing to transform 2D arrays from ModFlow to CWatM and conversely
             modflow_x = np.load(os.path.join(cbinding('cwatm_modflow_indices'), 'modflow_x.npy'))
@@ -207,13 +211,12 @@ class groundwater_modflow:
             if is_float(permeability_m_s):  # aquifer permeability is constant
                 permeability_m_s = float(permeability_m_s)
                 self.permeability = np.full((nlay, self.domain['nrow'], self.domain['ncol']), (24 * 3600 * permeability_m_s) / self.coefficient, dtype=np.float32)
-            else:  # aquifer permeability is given as a tif file at ModFLow resolution
+            else:  # aquifer permeability is given as a tif file at CWatM resolution
                 perm1 = loadmap('permeability') + globals.inZero.copy()
                 perm2 = maskinfo['maskall'].copy()
                 perm2[~maskinfo['maskflat']] = perm1[:]
                 # CWATM 2D array is converted to Modflow 2D array
 
-                # p1 = decompress(perm1)
                 p1 = maskinfo['maskall'].copy()
                 p1[~maskinfo['maskflat']] = perm1[:]
                 p1 = p1.reshape(maskinfo['shape'])
@@ -227,15 +230,15 @@ class groundwater_modflow:
                 self.permeability[np.isnan(self.permeability)] = 1e-6
                 self.permeability[self.permeability == 0] = 1e-6
                 self.permeability[self.permeability < 0] = 1e-6
-                #self.permeability[self.permeability <1e-6] = 1e-6
-                #self.permeability[self.permeability > 5e-5] = 5e-5
-                self.permeability = self.permeability * 86400 / self.coefficient #experiment
+                # self.permeability[self.permeability <1e-6] = 1e-6
+                # self.permeability[self.permeability > 5e-5] = 5e-5
+                self.permeability = self.permeability * 86400 / self.coefficient
 
             self.porosity = cbinding('poro')   # default = 0.1
             if is_float(self.porosity):  # aquifer porosity is constant
                 self.porosity = float(self.porosity)
                 self.porosity = np.full((nlay, self.domain['nrow'], self.domain['ncol']), self.porosity, dtype=np.float32)
-            else:  # aquifer porosity is given as a tif file at ModFLow resolution
+            else:  # aquifer porosity is given as a tif file at CWatM resolution
                 poro = loadmap('poro')
                 p1 = maskinfo['maskall'].copy()
                 p1[~maskinfo['maskflat']] = poro[:]
@@ -250,17 +253,13 @@ class groundwater_modflow:
                 self.porosity[np.isnan(self.porosity)] = 0.02
                 self.porosity[self.porosity == 0] = 0.02
                 self.porosity[self.porosity < 0] = 0.02
-                #self.porosity[self.porosity > 0.03] = 0.03 #experiment
-                #self.porosity[self.porosity < 0.01] = 0.01
 
-
-            # der Anfang der Bauzone
             self.thickness = cbinding('thickness')  # default = 0.1
             if is_float(self.thickness):  # aquifer porosity is constant
                 self.thickness = float(self.thickness)
                 self.thickness = np.full((nlay, self.domain['nrow'], self.domain['ncol']), self.thickness,
                                         dtype=np.float32)
-            else:  # aquifer porosity is given as a tif file at ModFLow resolution
+            else:  # aquifer porosity is given as a tif file at CWatM resolution
                 thickness = loadmap('thickness')
                 p1 = maskinfo['maskall'].copy()
                 p1[~maskinfo['maskflat']] = thickness[:]
@@ -276,11 +275,10 @@ class groundwater_modflow:
                 self.thickness[self.thickness == 0] = 50
                 self.thickness[self.thickness < 0] = 50
 
-            # die Ende der Bauzone
+            # Converting the CWatM soil thickness into ModFlow map, then soil thickness will be removed from
+            # topography if there is a lake or a reservoir soil depth should be replace (instead of 0) by the
+            # averaged soil depth (if not the topography under the lake is above neighboring cells)
 
-
-            # Converting the CWatM soil thickness into ModFlow map, then soil thickness will be removed from topography
-            # if there is a lake or a reservoir soil depth should be replace (instead of 0) by the averaged soil depth (if not the topography under the lake is above neighboring cells)
             soildepth_as_GWtop = False
             if 'use_soildepth_as_GWtop' in binding:
                 soildepth_as_GWtop = returnBool('use_soildepth_as_GWtop')
@@ -451,10 +449,6 @@ class groundwater_modflow:
                     verbose=verboseGW,
                     complex_solver = self.var.use_complex_solver_for_modflow)
 
-
-            #self.corrected_cwatm_cell_area = self.get_corrected_cwatm_cell_area()
-            #self.corrected_modflow_cell_area = self.get_corrected_modflow_cell_area()
-
             # initializing arrays
             self.var.capillar = globals.inZero.copy()
             self.var.baseflow = globals.inZero.copy()
@@ -475,9 +469,10 @@ class groundwater_modflow:
             if 'writeModflowError' in binding:
                 self.var.writeerror = returnBool('writeModflowError')
             if self.var.writeerror:
-                # This one is to check model's water balance between ModFlow and CwatM exchanges
-                # ModFlow discrepancy for each time step can be extracted from the listing file (.lst file) at the end of the simulation
-                # as well as the actual pumping rate applied in ModFlow (ModFlow automatically reduces the pumping rate once the ModFlow cell is almost saturated)
+                # This one is to check model's water balance between ModFlow and CwatM exchanges ModFlow discrepancy
+                # for each time step can be extracted from the listing file (.lst file) at the end of the simulation
+                # as well as the actual pumping rate applied in ModFlow (ModFlow automatically reduces the pumping
+                # rate once the ModFlow cell is almost saturated)
                 print('=> ModFlow-CwatM water balance is checked\nModFlow discrepancy for each time step can be extracted from the listing file (.lst file) at the end of the simulation,\nas well as the actual pumping rate applied in ModFlow (ModFlow automatically reduces the pumping rate once the ModFlow cell is almost saturated)')
                 self.var.modflowdiscrepancy = np.zeros(dateVar['intEnd'])  # Will contain percentage discrepancy error for ModFLow simulation
                 self.var.modflow_cell_area = self.domain['rowsize'] * self.domain['colsize']  # in m², for water balance computation
@@ -513,7 +508,7 @@ class groundwater_modflow:
 
         # Every modflow timestep (e.g. 7,14,30... days)
         #print('dateVarcurr', dateVar['curr'])
-        if dateVar['curr'] == 1 or (dateVar['curr']  % self.var.modflow_timestep) == 0:
+        if dateVar['curr'] == 1 or (dateVar['curr'] % self.var.modflow_timestep) == 0:
 
             self.var.modflow_compteur += 1
 
@@ -621,10 +616,8 @@ class groundwater_modflow:
                 self.var.gwdepth_difference_sim_obs = self.var.gwdepth - self.var.gwdepth_observations
             if 'gw_depth_sim_obs' in binding:
                 self.var.gwdepth_adjusted = np.maximum(self.var.gwdepth - self.var.gwdepth_adjuster, 0)
-                #print(self.modflow.decompress(self.layer_boundaries[0]))
                 head_adjusted = self.layer_boundaries[0] - self.CWATM2modflow(decompress(self.var.gwdepth_adjusted))
 
-                #self.var.head_adjusted = head_adjusted
                 self.var.modflow_head_adjusted = np.copy(head_adjusted)
 
             self.var.modflow_watertable = np.copy(head)

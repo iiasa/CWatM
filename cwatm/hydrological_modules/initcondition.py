@@ -73,7 +73,6 @@ class initcondition(object):
             transfer = [df['Giving reservoir'][i], df['Receiving reservoir'][i], df['Fraction of live storage'][i]]
             if transfer[2] > 0:
                 reservoir_transfers.append(transfer)
-        print(reservoir_transfers)
         return reservoir_transfers
     
  

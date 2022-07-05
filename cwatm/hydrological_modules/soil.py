@@ -187,11 +187,16 @@ class soil(object):
 
 
 
+        # This is here, as groundwater.py is not called if MODFLOW is used
+        self.var.pumping_actual = globals.inZero.copy()
+        self.var.capillar = globals.inZero.copy()
+        self.var.baseflow = globals.inZero.copy()
 
-
-
-
-
+        if 'gw_depth_observations' in binding:
+            self.var.gwdepth_observations = readnetcdfWithoutTime(cbinding('gw_depth_observations'),
+                                                                  value='Groundwater depth')
+        if 'gw_depth_sim_obs' in binding:
+            self.var.gwdepth_adjuster = loadmap('gw_depth_sim_obs')
 
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
