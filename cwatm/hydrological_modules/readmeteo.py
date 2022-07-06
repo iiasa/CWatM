@@ -21,37 +21,59 @@ class readmeteo(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    DtDay                 seconds in a timestep (default=86400)                                             s
-    con_precipitation     conversion factor for precipitation                                               --       
-    con_e                 conversion factor for evaporation                                                 --       
-    TMin                  minimum air temperature                                                           K        
-    TMax                  maximum air temperature                                                           K        
-    Psurf                 Instantaneous surface pressure                                                    Pa       
-    Qair                  specific humidity                                                                 kg/kg    
-    Tavg                  average air Temperature (input for the model)                                     K        
-    Rsdl                  long wave downward surface radiation fluxes                                       W/m2     
-    Rsds                  short wave downward surface radiation fluxes                                      W/m2     
-    Wind                  wind speed                                                                        m/s      
-    ETRef                 potential evapotranspiration rate from reference crop                             m        
-    EWRef                 potential evaporation rate from water surface                                     m        
-    Precipitation         Precipitation (input for the model)                                               m        
-    meteomapsscale        if meteo maps have the same extend as the other spatial static maps -> meteomaps  --       
-    meteodown             if meteo maps should be downscaled                                                --       
-    wc2_tavg              High resolution WorldClim map for average temperature                             K
-    wc4_tavg              upscaled to low resolution WorldClim map for average temperature                  K        
-    wc2_tmin              High resolution WorldClim map for min temperature                                 K        
-    wc4_tmin              upscaled to low resolution WorldClim map for min temperature                      K        
-    wc2_tmax              High resolution WorldClim map for max temperature                                 K        
-    wc4_tmax              upscaled to low resolution WorldClim map for max temperature                      K        
-    wc2_prec              High resolution WorldClim map for precipitation                                   m        
-    wc4_prec              upscaled to low resolution WorldClim map for precipitation                        m        
-    prec                  precipitation in m                                                                m        
-    temp                  average temperature in Celsius deg                                                Celcius d
-    WtoMJ                 Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6                    --       
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    DtDay                                  seconds in a timestep (default=86400)                                   s    
+    con_precipitation                      conversion factor for precipitation                                     --   
+    con_e                                  conversion factor for evaporation                                       --   
+    TMin                                   minimum air temperature                                                 K    
+    TMax                                   maximum air temperature                                                 K    
+    Psurf                                  Instantaneous surface pressure                                          Pa   
+    Qair                                   specific humidity                                                       kg/kg
+    Tavg                                   Input, average air Temperature                                          K    
+    Rsdl                                   long wave downward surface radiation fluxes                             W/m2 
+    Rsds                                   short wave downward surface radiation fluxes                            W/m2 
+    Wind                                   wind speed                                                              m/s  
+    ETRef                                  potential evapotranspiration rate from reference crop                   m    
+    EWRef                                  potential evaporation rate from water surface                           m    
+    Precipitation                          Precipitation (input for the model)                                     m    
+    meteomapsscale                         if meteo maps have the same extend as the other spatial static maps ->  --   
+    meteodown                              if meteo maps should be downscaled                                      --   
+    InterpolationMethod                                                                                                 
+    buffer                                                                                                              
+    preMaps                                choose between steady state precipitation maps for steady state modflo  --   
+    tempMaps                               choose between steady state temperature maps for steady state modflow   --   
+    evaTMaps                               choose between steady state ETP water maps for steady state modflow or  --   
+    eva0Maps                               choose between steady state ETP reference maps for steady state modflo  --   
+    glaciermeltMaps                                                                                                     
+    glacierrainMaps                                                                                                     
+    wc2_tavg                               High resolution WorldClim map for average temperature                   K    
+    wc4_tavg                               upscaled to low resolution WorldClim map for average temperature        K    
+    wc2_tmin                               High resolution WorldClim map for min temperature                       K    
+    wc4_tmin                               upscaled to low resolution WorldClim map for min temperature            K    
+    wc2_tmax                               High resolution WorldClim map for max temperature                       K    
+    wc4_tmax                               upscaled to low resolution WorldClim map for max temperature            K    
+    wc2_prec                               High resolution WorldClim map for precipitation                         m    
+    wc4_prec                               upscaled to low resolution WorldClim map for precipitation              m    
+    xcoarse_prec                                                                                                        
+    ycoarse_prec                                                                                                        
+    xfine_prec                                                                                                          
+    yfine_prec                                                                                                          
+    meshlist_prec                                                                                                       
+    xcoarse_tavg                                                                                                        
+    ycoarse_tavg                                                                                                        
+    xfine_tavg                                                                                                          
+    yfine_tavg                                                                                                          
+    meshlist_tavg                                                                                                       
+    meteo                                                                                                               
+    prec                                   precipitation in m                                                      m    
+    temp                                   average temperature in Celsius deg                                      °C   
+    WtoMJ                                  Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6          --   
+    includeGlaciers                                                                                                     
+    GlacierMelt                                                                                                         
+    GlacierRain                                                                                                         
+    =====================================  ======================================================================  =====
 
     **Functions**
     """

@@ -21,19 +21,31 @@ class waterdemand_industry:
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    industryTime                                                                                                     
-    indWithdrawalVar                                                                                                 
-    indConsumptionVar                                                                                                
-    industryDemand                                                                                                   
-    InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
-    M3toM                 Coefficient to change units                                                       --       
-    demand_unit                                                                                                      
-    pot_industryConsumpt                                                                                             
-    ind_efficiency                                                                                                   
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    industryTime                           Monthly' when industryTimeMonthly = True, and 'Yearly' otherwise.       str  
+    indWithdrawalVar                       Settings industryWithdrawalvarname, variable name in industryWaterDema  str  
+    indConsumptionVar                      Settings industryConsuptionvarname, variable name in domesticWaterDema  strin
+    WB_elecC                               Compressed WB_elec                                                           
+    compress_LR                            boolean map as mask map for compressing lake/reservoir                  --   
+    decompress_LR                          boolean map as mask map for decompressing lake/reservoir                --   
+    InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 
+    M3toM                                  Coefficient to change units                                             --   
+    lakeResStorage                                                                                                      
+    demand_unit                                                                                                         
+    sectorSourceAbstractionFractions                                                                                    
+    industryDemand                                                                                                      
+    pot_industryConsumption                                                                                             
+    WB_elec                                Fractions of live storage to be exported from basin                     366-d
+    swAbstractionFraction_Lake_Industry    Input, Fraction of Industrial water demand to be satisfied by Lakes     %    
+    swAbstractionFraction_Channel_Industr  Input, Fraction of Industrial water demand to be satisfied by Channels  %    
+    swAbstractionFraction_Res_Industry     Input, Fraction of Industrial water demand to be satisfied by Reservoi  %    
+    gwAbstractionFraction_Industry         Fraction of industrial water demand to be satisfied by groundwater      %    
+    swAbstractionFraction                  Input, Fraction of demands to be satisfied with surface water           %    
+    swAbstractionFraction_nonIrr           Input, Fraction of non-irrigation demands to be satisfied with surface  %    
+    ind_efficiency                                                                                                      
+    =====================================  ======================================================================  =====
 
     **Functions**
     """

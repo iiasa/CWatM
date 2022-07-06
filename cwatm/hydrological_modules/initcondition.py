@@ -22,18 +22,21 @@ class initcondition(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    includeCrops          1=includeCrops option in settings file is True, 0=otherwise                                
-    Crops                 Internal: List of specific crops and Kc/Ky parameters                                      
-    Crops_names           Internal: List of specific crops                                                           
-    loadInit              Flag: if true initial conditions are loaded                                       --       
-    initLoadFile          load file name of the initial condition data                                      --       
-    saveInit              Flag: if true initial conditions are saved                                        --       
-    saveInitFile          save file name of the initial condition data                                      --       
-    coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    includeCrops                           1 when includeCrops=True in Settings, 0 otherwise                       bool 
+    Crops                                  Internal: List of specific crops and Kc/Ky parameters                        
+    Crops_names                            Internal: List of specific crops                                             
+    reservoir_transfers                    [['Giving reservoir'][i], ['Receiving reservoir'][i], ['Fraction of li  array
+    wwt_def                                                                                                             
+    wastewater_to_reservoirs                                                                                            
+    loadInit                               Flag: if true initial conditions are loaded                             --   
+    initLoadFile                           load file name of the initial condition data                            --   
+    saveInit                               Flag: if true initial conditions are saved                              --   
+    saveInitFile                           save file name of the initial condition data                            --   
+    coverTypes                             land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
+    =====================================  ======================================================================  =====
 
     **Functions**
     """
@@ -252,7 +255,7 @@ class initcondition(object):
         # or in certain interval e.g. 2y = every 2 years, 3m = every 3 month, 15d = every 15 days
 
         self.var.saveInit = returnBool('save_initial')
-        self.var.initmap = {}
+        #self.var.initmap = {}
 
         if self.var.saveInit:
             self.var.saveInitFile = cbinding('initSave')

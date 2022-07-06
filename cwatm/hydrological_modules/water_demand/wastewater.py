@@ -49,56 +49,76 @@ class waterdemand_wastewater(object):
         a predefined portion of it ( > 0; <=1); defaults to 0.
 
     **Global variables**
-    ====================     ================================================================================  =========
-    Variable [self.var]      Description                                                                       Unit     
-    ====================     ================================================================================  =========
-    wwtID                    wastewater treatement facility ID                                                 --
-    compress_WWT             boolean map as mask for compressing the wastewater module's maps                  --
-    decompress_WWT           boolean map as mask for decompressing the wastewater module's maps                --
-    wwtC                     compressed map of the wastewater treatement facility ID                           --
-    wwtVolC                  compressed map of the wastewater treatement facility volume/capacity              m3/day
-    wwtYearC                 compressed map of the wastewater treatement facility year of establishment        --
-    wwtTimeC                 compressed map of the wastewater treatement duration per facility                 days (model's time step)
-    wwtSurfaceAreaC          compressed map of the wastewater treatment pond surface area                      m2
-    wwtOverflow              map of overflow discharge locations; each location is marked by facility id       --
-    wwtStorage            
-    wwtColArea               map of sewer collection area for each facility ID                                 --
-    wwtColShare              map of sewer collection capacity                                                  ratio (0-1) 
-    wwtEffluentsGenerated    map of the effluents generated in each grid cell (nonIrr_returnFlows)             m3
-    wwtUrbanLeakage          map of direct runoff leakage from sealed areas                                    m3
-    wwtSewerCollected        map of wastewater collected in facilities                                         m3
-    wwtSewerCollectedC       compressed map of wastewater collected in facilities                              m3
-    wwtSewerTreated          map of wastewater treated                                                         m3
-    wwtSewerTreatedC         compressed map of wastewater treated                                              m3
-    wwtSewerToTreatment      map of wastewater sent to treatment (storage)                                     m3
-    wwtSewerToTreatmentC     compressed map of wastewater sent to treatment (storage)              -           m3
-    wwtExportedCollected     map of raw wastewater sent exported outside of the mask                           m3
-    wwtExportedTreatedC      compressed map of treated wastewater sent exported outside of the mask            m3
-    wwtExportedTreated       map of treated wastewater sent exported outside of the mask                       m3
-    wwtSewerExported         map of all wastewater sent exported outside of the mask                           m3
-    wwtEvap                  map of evaporation from treatment pond                                            m3
-    wwtEvapC                 compressed map of evaporation from treatment pond                                 m3 
-    wwtOverflowOut           map of total wastewater (raw/treated) overflow                                    m3
-    wwtOverflowOutM          map of total wastewater (raw/treated) overflow                                    m
-    wwtSewerOverflow         map of wastewater (raw) overflow                                                  m3
-    wwtSewerOverflowC        compressed map of wastewater (raw) overflow                                       m3
-    wwtSewerResOverflow      map of wastewater (treated) overflow from reservoirs                              m3
-    wwtSewerResOverflowC     compressed map of wastewater (treated) overflow from reservoirs                   m3 
-    wwtTreatedOverflow       map of wastewater (treated) overflow - intentional discharge                      m3
-    wwtTreatedOverflowC      map of wastewater (treated) overflow - intentional discharge                      m3
-    wwtSentToRes             map of wastewater (treated) sent to reservoirs                                    m3
-    wwtSentToResC            compressed map of wastewater (treated) sent to reservoirs                         m3
-    wwtSentToResC_LR       
-    wwtSewerCollection       map of all wastewater collected in pipes source of generation                     m   
-    wwtSewerOverflow
-    wwtInTreatment           map of wastewater currently in treatment                                          m3
-    compress_LR              boolean map as mask for compressing lakes/reservoirs                              --
-    decompress_LR            boolean map as mask for decompressing lakes/reservoirs                            --
-    EWRef                    Potential evaporation from open water                                             m
-    urbanleak                Share of leakge into sewers from sealed direct runoff                             --
-    minHRT                   Share defines the minimum HRT allowed before sending water to the sewers          --
-    wastewater_to_reservoirs Junction table associating WWTPs with destination reservoirs                      --
-    ====================     ================================================================================  =========
+
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    wwt_def                                                                                                             
+    wastewater_to_reservoirs                                                                                            
+    waterBodyOut                           biggest outlet (biggest accumulation of ldd network) of a waterbody     --   
+    compress_LR                            boolean map as mask map for compressing lake/reservoir                  --   
+    decompress_LR                          boolean map as mask map for decompressing lake/reservoir                --   
+    waterBodyOutC                          compressed map biggest outlet of each lake/reservoir                    --   
+    resVolumeC                             compressed map of reservoir volume                                      Milli
+    cellArea                               Area of cell                                                            m2   
+    EWRef                                  potential evaporation rate from water surface                           m    
+    wwtUrbanLeakage                                                                                                     
+    wwtColArea                                                                                                          
+    urbanleak                                                                                                           
+    wwtID                                                                                                               
+    compress_WWT                                                                                                        
+    decompress_WWT                                                                                                      
+    wwtC                                                                                                                
+    minHRT                                                                                                              
+    wwtOverflow                                                                                                         
+    toResManageC                                                                                                        
+    wwtStorage                                                                                                          
+    wwtColShare                                                                                                         
+    wwtSewerCollectedC                                                                                                  
+    wwtSewerTreatedC                                                                                                    
+    wwtExportedTreatedC                                                                                                 
+    wwtSewerToTreatmentC                                                                                                
+    wwtSewerOverflowC                                                                                                   
+    wwtSewerResOverflowC                                                                                                
+    wwtTreatedOverflowC                                                                                                 
+    wwtSentToResC                                                                                                       
+    wwtOverflowOut                                                                                                      
+    wwtEvapC                                                                                                            
+    wwtSewerCollected                                                                                                   
+    wwtSewerTreated                                                                                                     
+    wwtExportedTreated                                                                                                  
+    wwtSewerToTreatment                                                                                                 
+    wwtSewerExported                                                                                                    
+    wwtSewerOverflow                                                                                                    
+    wwtSentToRes                                                                                                        
+    wwtSewerResOverflow                                                                                                 
+    wwtTreatedOverflow                                                                                                  
+    wwtEvap                                                                                                             
+    wwtInTreatment                                                                                                      
+    wwtIdsOrdered                                                                                                       
+    wwtVolC                                                                                                             
+    wwtTimeC                                                                                                            
+    extensive                                                                                                           
+    noPools_extensive                                                                                                   
+    poolVolume_extensive                                                                                                
+    wwtSurfaceAreaC                                                                                                     
+    extensive_counter                                                                                                   
+    wwtResIDTemp_compress                                                                                               
+    wwtResIDC                                                                                                           
+    wwtResTypC                                                                                                          
+    wwtResYearC                                                                                                         
+    wwtSentToResC_LR                                                                                                    
+    wwtOverflowOutM                                                                                                     
+    lakeVolumeM3C                          compressed map of lake volume                                           m3   
+    lakeStorageC                                                                                                   m3   
+    reservoirStorageM3C                                                                                                 
+    lakeResStorageC                                                                                                     
+    lakeResStorage                                                                                                      
+    includeWastewater                                                                                                   
+    wwtEffluentsGenerated                                                                                               
+    wwtSewerCollection                                                                                                  
+    wwtExportedCollected                                                                                                
+    =====================================  ======================================================================  =====
 
     **Functions**
     """

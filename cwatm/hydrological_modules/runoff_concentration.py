@@ -35,27 +35,35 @@ class runoff_concentration(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    load_initial                                                                                                     
-    sum_interflow                                                                                                    
-    baseflow              simulated baseflow (= groundwater discharge to river)                             m        
-    coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
-    runoff                                                                                                           
-    runoff_peak           peak time of runoff in seconds for each land use class                            s        
-    tpeak_interflow       peak time of interflow                                                            s        
-    tpeak_baseflow        peak time of baseflow                                                             s        
-    maxtime_runoff_conc   maximum time till all flow is at the outlet                                       s        
-    runoff_conc           runoff after concentration - triangular-weighting method                          m        
-    gridcell_storage                                                                                                 
-    sum_landSurfaceRunof  Runoff concentration above the soil more interflow including all landcover types  m        
-    landSurfaceRunoff     Runoff concentration above the soil more interflow                                m        
-    fracVegCover          Fraction of specific land covers (0=forest, 1=grasslands, etc.)                   %        
-    directRunoff          Simulated surface runoff                                                          m        
-    interflow             Simulated flow reaching runoff instead of groundwater                             m        
-    prergridcell                                                                                                     
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    load_initial                           Settings initLoad holds initial conditions for variables                input
+    leakageIntoRunoff                                                                                                   
+    fracGlacierCover                                                                                                    
+    sum_interflow                                                                                                       
+    cellArea                               Area of cell                                                            m2   
+    coverTypes                             land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
+    runoff                                                                                                              
+    includeGlaciers                                                                                                     
+    GlacierMelt                                                                                                         
+    GlacierRain                                                                                                         
+    runoff_peak                            peak time of runoff in seconds for each land use class                  s    
+    tpeak_interflow                        peak time of interflow                                                  s    
+    tpeak_baseflow                         peak time of baseflow                                                   s    
+    tpeak_glaciers                                                                                                      
+    maxtime_runoff_conc                    maximum time till all flow is at the outlet                             s    
+    runoff_conc                            runoff after concentration - triangular-weighting method                m    
+    gridcell_storage                                                                                                    
+    sum_landSurfaceRunoff                  Runoff concentration above the soil more interflow including all landc  m    
+    landSurfaceRunoff                      Runoff concentration above the soil more interflow                      m    
+    directRunoffGlacier                                                                                                 
+    directRunoff                           Simulated surface runoff                                                m    
+    interflow                              Simulated flow reaching runoff instead of groundwater                   m    
+    baseflow                               simulated baseflow (= groundwater discharge to river)                   m    
+    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
+    prergridcell                                                                                                        
+    =====================================  ======================================================================  =====
 
     **Functions**
     """
