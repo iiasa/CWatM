@@ -193,8 +193,9 @@ class initcondition(object):
         initCondVarValue.append("unmetDemandNonpaddy")
 
         # groundwater
-        initCondVar.append("storGroundwater")
-        initCondVarValue.append("storGroundwater")
+        if not self.var.modflow:
+            initCondVar.append("storGroundwater")
+            initCondVarValue.append("storGroundwater")
 
         # routing
         Var1 = ["channelStorage", "discharge", "riverbedExchange"]

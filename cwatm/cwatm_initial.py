@@ -35,6 +35,7 @@ from cwatm.hydrological_modules.lakes_reservoirs import lakes_reservoirs
 from cwatm.hydrological_modules.waterquality1 import waterquality1
 
 from cwatm.management_modules.output import *
+from cwatm.management_modules.data_handling import *
 import os, glob
 
 
@@ -122,9 +123,14 @@ class CWATModel_ini(DynamicModel):
         # reading of the metainformation of variables to put into output netcdfs
         metaNetCDF()
 
+        # test if ModFlow coupling is used as defined in settings file
+        self.var.modflow = False
+        if "modflow_coupling" in option:
+            self.var.modflow = checkOption('modflow_coupling')
+
         ## MakMap: the maskmap is flexible e.g. col,row,x1,y1  or x1,x2,y1,y2
         # set the maskmap
-        self.MaskMap = loadsetclone(self,'MaskMap')
+        self.MaskMap = loadsetclone(self, 'MaskMap')
         # run intial misc to get all global variables
         self.misc_module.initial()
         self.init_module.initial()
@@ -138,9 +144,9 @@ class CWATModel_ini(DynamicModel):
         self.soil_module.initial()
 
         # groundwater before meteo, bc it checks steady state
-
-        self.groundwater_modflow_module.initial()
-        if not self.var.modflow:
+        if self.var.modflow:
+            self.groundwater_modflow_module.initial()
+        else:
             self.groundwater_module.initial()
 
         self.landcoverType_module.initial()

@@ -85,7 +85,8 @@ class ModFlowSimulation:
             # reduce the modflow timestep, or use the following ims lines with complexity = 'COMPLEX'
 
             if complex_solver:
-                print('using compex modflow solver')
+                if self.verbose:
+                    print('using compex modflow solver')
                 ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='COMPLEX')
             else:
                 ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='SIMPLE', linear_acceleration='BICGSTAB',
