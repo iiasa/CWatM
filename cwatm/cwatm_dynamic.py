@@ -141,7 +141,6 @@ class CWATModel_dyn(DynamicModel):
 
         self.environflow_module.dynamic()
         # in case environmental flow is calculated last
-        # overFlo error from Flo Roemer line 155
 
         self.output_module.dynamic()
         timemeasure("Output")  # 12. timing
@@ -171,9 +170,9 @@ class CWATModel_dyn(DynamicModel):
         #print self.sum_directRunoff,  self.sum_interflowTotal, self.sum_landSurfaceRunoff, self.baseflow, runoff
         #print self.sumsum_Precipitation, self.sumsum_Runoff
 
-          #report(decompress(self.var.sum_potTranspiration), "c:\work\output/trans.map")
-          #r eport(decompress(self.var.directRunoff[3 ]), "c:\work\output\dir.map")
+        #report(decompress(self.var.sum_potTranspiration), "c:\work\output/trans.map")
+        #report(decompress(self.var.directRunoff[3 ]), "c:\work\output\dir.map")
         #report(decompress(runoff), "c:\work\output\dirsum.map")
         #report(decompress(self.sumsum_Precipitation), "c:\work\output\prsum.map")
-           #report(decompress(runoff), "c:\work\output/runoff.map")
+        #report(decompress(runoff), "c:\work\output/runoff.map")
 

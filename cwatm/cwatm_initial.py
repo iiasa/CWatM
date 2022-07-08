@@ -135,7 +135,8 @@ class CWATModel_ini(DynamicModel):
         self.snowfrost_module.initial()
         self.soil_module.initial()
 
-        self.groundwater_modflow_module.initial()
+        if not(Flags['calib']):
+            self.groundwater_modflow_module.initial()
         # groundwater before meteo, bc it checks steady state
 
         self.landcoverType_module.initial()

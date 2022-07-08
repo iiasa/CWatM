@@ -123,7 +123,8 @@ def CWATMexe(settings):
     Deterministic run
     ----------------------------------------------
     """
-    print(CWATMRunInfo([outputDir[0], settingsfile[0]]))
+    if not(Flags['veryquiet']):
+        print(CWATMRunInfo([outputDir[0], settingsfile[0]]))
     start_time = datetime.datetime.now().time()
     if Flags['loud']:
         print("%-6s %10s %11s\n" % ("Step", "Date", "Discharge"), end=' ')
@@ -289,8 +290,10 @@ def mainwarm(settings, args, meteo):
     headerinfo()
     if meteo == []:
         Flags['warm'] = False
+        success, last_dis = CWATMexe(settingsfile[0])
+    else:
+        success, last_dis = CWATMexe2(settingsfile[0],meteo)
 
-    success, last_dis = CWATMexe2(settingsfile[0],meteo)
     return success, last_dis
 
 

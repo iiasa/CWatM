@@ -64,16 +64,7 @@ class waterquality1(object):
             self.var.downdist =np.where(ldd == 3, 1.414214 * self.var.downdist , self.var.downdist )
             self.var.downdist =np.where(ldd == 7, 1.414214 * self.var.downdist , self.var.downdist )
             self.var.downdist =np.where(ldd == 9, 1.414214 * self.var.downdist , self.var.downdist )
-
-
-
-
-
             i =1
-
-
-
-
 
     # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
@@ -92,19 +83,19 @@ class waterquality1(object):
           width = 1.22 * (dis ** 0.557)
           crossArea = 0.4148 * dis ** 0.898
           # van Vliet et al. 2012
-
-
-
+          #van Vliet, M.T.H., Yearsley, J.R., Franssen, W.H.P., Ludwig, F., Haddeland, I., Lettenmaier, D.P., and Kabat, P.: Coupled daily streamflow and water
+          #temperature modelling in large river  basins, Hydrol.Earth Syst.Sci., 16, 4303–4321, https: // doi.org / 10.5194 / hess - 16 - 4303 - 2012, 2012.
 
           #flowVelocity = np.minimum(self.var.discharge /self.var.totalCrossSectionArea, 0.36*self.var.discharge**0.24)
           flowVelocity = np.minimum(self.var.discharge / crossArea,0.36 * dis ** 0.24)
           flowVelocity = np.maximum(flowVelocity, 10.*0.0011575)
              # Channel velocity (m/s); dividing Q (m3/s) by CrossSectionArea (m2)
              # avoid extreme velocities by using the Wollheim 2006 equation
-            #  minimum velocity = 1000 m per day!
-
+             #  minimum velocity = 1000 m per day!
              #FlowVelocity = FlowVelocity * np.min(PixelLength/ChanLength,1)
              # reduction for sinuosity of channels
+
+
           self.var.travelDistance = flowVelocity * self.var.DtSec
              # if flow is fast, Traveltime=1, TravelDistance is high: Pixellength*DtSec
              # if flow is slow, Traveltime=DtSec then TravelDistance=PixelLength
@@ -139,10 +130,6 @@ class waterquality1(object):
           # this is the min water temperature (degree Celsius)
           WTgamma = 0.18
           WTbeta = 14
-
-
-
-
 
           #WaterTemperature = 3.0 + (28-3)/(1+exp(0.18*(14-AirTemperature)));
           self.var.waterTemperature = WTmu + (WTalpha - WTmu)/(1 + np.exp(WTgamma * (WTbeta -  self.var.Tavg)))

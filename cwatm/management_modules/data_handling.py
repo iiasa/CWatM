@@ -538,6 +538,7 @@ def readCoord(name):
 
         cell = gt[1]
         invcell = round(1.0 / cell, 0)
+        if invcell == 0: invcell = 1. / cell
 
         # getgeotransform only delivers single precision!
         cell = 1 / invcell
@@ -939,10 +940,10 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     warnings.filterwarnings("ignore")
     if value == "None":
         value = list(nf1.variables.items())[-1][0]  # get the last variable name
-        if value in ["lon","lat","time"]:
+        if value in ["x","y","lon","lat","time"]:
             for i in range(2,5):
                value = list(nf1.variables.items())[-i][0]
-               if not(value in ["lon","lat","time"]) : break
+               if not(value in ["x","y","lon","lat","time"]) : break
 
     # check if mask = map size -> if yes do not cut the map
     cutcheckmask = maskinfo['shape'][0] * maskinfo['shape'][1]

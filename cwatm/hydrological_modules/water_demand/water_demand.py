@@ -234,12 +234,15 @@ class water_demand:
                 inner = int(loadmap('allocation_area'))
 
             latldd, lonldd, cell, invcellldd, rows, cols = readCoord(cbinding('Ldd'))
-            try:
-                filename = os.path.splitext(cbinding('Ldd'))[0] + '.nc'
+            filename = os.path.splitext(cbinding('Ldd'))[0] + '.nc'
+            if os.path.isfile(filename):
                 cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check=False)
-            except:
+            else:
                 filename = os.path.splitext(cbinding('Ldd'))[0] + '.tif'
-                cut0, cut1, cut2, cut3 = mapattrTiff(gdal.Open(filename, GA_ReadOnly))
+                if not(os.path.isfile(filename)):
+                    filename = os.path.splitext(cbinding('Ldd'))[0] + '.map'
+                nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
+                cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
 
             arr = np.kron(np.arange(rows // inner * cols // inner).reshape((rows // inner, cols // inner)), np.ones((inner, inner)))
             arr = arr[cut2:cut3, cut0:cut1].astype(int)
