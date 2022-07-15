@@ -494,7 +494,7 @@ class lakes_reservoirs(object):
                     self.var.waterBodyTypCTemp = np.where((self.var.resYearC > year) & (self.var.waterBodyTypC == 2), 0,
                                                           self.var.waterBodyTypC)
                     self.var.waterBodyTypCTemp = np.where((self.var.resYearC > year) & (self.var.waterBodyTypC == 4), 0,
-                                                          self.var.waterBodyTypC)
+                                                          self.var.waterBodyTypCTemp)
                     self.var.waterBodyTypCTemp = np.where((self.var.resYearC > year) & (self.var.waterBodyTypC == 3), 1,
                                                           self.var.waterBodyTypCTemp)
                     # we also need the uncompressed version to compute leakage
@@ -502,17 +502,17 @@ class lakes_reservoirs(object):
                         self.var.waterBodyTypTemp = np.where((self.var.resYear > year) & (self.var.waterBodyTyp == 2),
                                                              0, self.var.waterBodyTyp)
                         self.var.waterBodyTypTemp = np.where((self.var.resYear > year) & (self.var.waterBodyTyp == 4),
-                                                             0, self.var.waterBodyTyp)
+                                                             0, self.var.waterBodyTypTemp)
                         self.var.waterBodyTypTemp = np.where((self.var.resYear > year) & (self.var.waterBodyTyp == 3),
                                                              1, self.var.waterBodyTypTemp)
                 else:
                     self.var.waterBodyTypCTemp = np.where(self.var.waterBodyTypC == 2, 0, self.var.waterBodyTypC)
-                    self.var.waterBodyTypCTemp = np.where(self.var.waterBodyTypC == 4, 0, self.var.waterBodyTypC)
+                    self.var.waterBodyTypCTemp = np.where(self.var.waterBodyTypC == 4, 0, self.var.waterBodyTypCTemp)
                     self.var.waterBodyTypCTemp = np.where(self.var.waterBodyTypC == 3, 1, self.var.waterBodyTypCTemp)
 
                     if self.var.modflow or self.var.includeType4:
                         self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 2, 0, self.var.waterBodyTyp)
-                        self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 4, 0, self.var.waterBodyTyp)
+                        self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 4, 0, self.var.waterBodyTypTemp)
                         self.var.waterBodyTypTemp = np.where(self.var.waterBodyTyp == 3, 1, self.var.waterBodyTypTemp)
 
             self.var.sumEvapWaterBodyC = 0
