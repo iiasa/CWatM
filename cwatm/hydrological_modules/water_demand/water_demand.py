@@ -557,6 +557,11 @@ class water_demand:
             self.var.Channel_Livestock = globals.inZero.copy()
             self.var.Channel_Irrigation = globals.inZero.copy()
 
+            self.var.Lift_Domestic = globals.inZero.copy()
+            self.var.Lift_Industry = globals.inZero.copy()
+            self.var.Lift_Livestock = globals.inZero.copy()
+            self.var.Lift_Irrigation = globals.inZero.copy()
+
             self.var.Lake_Domestic = globals.inZero.copy()
             self.var.Lake_Industry = globals.inZero.copy()
             self.var.Lake_Livestock = globals.inZero.copy()
@@ -819,6 +824,10 @@ class water_demand:
                 pot_Channel_Industry = self.var.swAbstractionFraction_Channel_Industry * self.var.industryDemand
                 pot_Channel_Irrigation = self.var.swAbstractionFraction_Channel_Irrigation * self.var.totalIrrDemand
 
+                if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
+                    pot_Channel_Irrigation = np.maximum(pot_Channel_Irrigation,
+                                                        self.var.irrWithdrawalSW_max*self.var.InvCellArea)
+
                 pot_channelAbst = pot_Channel_Domestic + pot_Channel_Livestock + pot_Channel_Industry + pot_Channel_Irrigation
 
                 self.var.act_SurfaceWaterAbstract = np.minimum(self.var.readAvlChannelStorageM, pot_channelAbst)
@@ -854,15 +863,19 @@ class water_demand:
                 # a cell may abstract more than its pot_SurfaceAbstract, as well as not necessarily satisfy its
                 # pot_SurfaceAbstract
 
-                pot_liftAbst = self.var.swAbstractionFraction_Lift_Irrigation * self.var.totalIrrDemand + \
-                               self.var.swAbstractionFraction_Lift_Domestic * self.var.domesticDemand + \
-                               self.var.swAbstractionFraction_Lift_Industry * self.var.industryDemand + \
-                               self.var.swAbstractionFraction_Lift_Livestock * self.var.livestockDemand
+                pot_Lift_Domestic = self.var.swAbstractionFraction_Lift_Domestic * self.var.domesticDemand-self.var.Channel_Domestic
+                pot_Lift_Livestock = self.var.swAbstractionFraction_Lift_Livestock * self.var.livestockDemand-self.var.Channel_Livestock
+                pot_Lift_Industry = self.var.swAbstractionFraction_Lift_Industry * self.var.industryDemand-self.var.Channel_Industry
+                pot_Lift_Irrigation = self.var.swAbstractionFraction_Lift_Irrigation * self.var.totalIrrDemand-self.var.Channel_Irrigation
 
-                remainNeed_afterLocal = \
-                    np.maximum(0, np.minimum(pot_SurfaceAbstract_Lift,
-                                             self.var.totalIrrDemand * self.var.swAbstractionFraction_Irr
-                                             - self.var.act_SurfaceWaterAbstract_Irr))
+                if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
+                    pot_Lift_Irrigation = np.maximum(pot_Lift_Irrigation,
+                                                    self.var.irrWithdrawalSW_max * self.var.InvCellArea)
+
+                pot_liftAbst = pot_Lift_Domestic + pot_Lift_Livestock + pot_Lift_Industry + pot_Lift_Irrigation
+
+
+                remainNeed_afterLocal = pot_liftAbst.copy()
 
                 # The remaining demand within each command area [M3] is put into a map where each cell in the command
                 # area holds this total demand
@@ -885,17 +898,26 @@ class water_demand:
                                                  divideValues(frac_used_Segment_lift * available_Segment_lift,
                                                               demand_Segment_lift), 0)
                 self.var.metRemainSegment_lift = metRemainSegment_lift.copy()
-                self.var.act_SurfaceWaterAbstract_Irr += (metRemainSegment_lift * remainNeed_afterLocal)
-                self.var.act_SurfaceWaterAbstract += (metRemainSegment_lift * remainNeed_afterLocal)
-                # print('satisfied need minus abstracted', np.sum(self.var.cellArea * metRemainSegment_lift * remainNeed_afterLocal) - np.sum(
-                #    self.var.cellArea * frac_used_Segment_lift * self.var.readAvlChannelStorageM))
-
+                lift_abstractions = metRemainSegment_lift * remainNeed_afterLocal
+                self.var.act_SurfaceWaterAbstract += lift_abstractions
                 self.var.readAvlChannelStorageM -= (frac_used_Segment_lift * self.var.readAvlChannelStorageM)
                 self.var.readAvlChannelStorageM = np.where(self.var.readAvlChannelStorageM < 0.02, 0,
                                                            self.var.readAvlChannelStorageM)
                 # Used in landCover for riverbedExchange
-
                 self.var.act_channelAbstract_Lift = frac_used_Segment_lift * self.var.readAvlChannelStorageM
+
+                if self.var.sectorSourceAbstractionFractions:
+
+                    # A
+                    self.var.Lift_Domestic = np.minimum(lift_abstractions, pot_Lift_Domestic)
+                    self.var.Lift_Livestock = np.minimum(lift_abstractions - self.var.Lift_Domestic,
+                                                         pot_Lift_Livestock)
+                    self.var.Lift_Industry = np.minimum(
+                        lift_abstractions - self.var.Lift_Domestic - self.var.Lift_Livestock,
+                        pot_Lift_Industry)
+                    self.var.Lift_Irrigation = np.minimum(
+                        lift_abstractions - self.var.Lift_Domestic - self.var.Lift_Livestock - self.var.Lift_Industry,
+                        pot_Lift_Irrigation)
 
             if checkOption('includeWaterBodies'):
 
@@ -908,19 +930,19 @@ class water_demand:
                     pot_Lake_Domestic = np.minimum(
                         self.var.swAbstractionFraction_Lake_Domestic * self.var.domesticDemand,
                         self.var.domesticDemand * self.var.swAbstractionFraction_domestic.copy()
-                        - self.var.Channel_Domestic)
+                        - self.var.Channel_Domestic - self.var.Lift_Domestic)
 
                     pot_Lake_Livestock = np.minimum(
                         self.var.swAbstractionFraction_Lake_Livestock * self.var.livestockDemand,
-                        self.var.livestockDemand - self.var.Channel_Livestock)
+                        self.var.livestockDemand - self.var.Channel_Livestock - self.var.Lift_Livestock)
 
                     pot_Lake_Industry = np.minimum(
                         self.var.swAbstractionFraction_Lake_Industry * self.var.industryDemand,
-                        self.var.industryDemand - self.var.Channel_Industry)
+                        self.var.industryDemand - self.var.Channel_Industry - self.var.Lift_Industry)
 
                     pot_Lake_Irrigation = np.minimum(
                         self.var.swAbstractionFraction_Lake_Irrigation * self.var.totalIrrDemand,
-                        self.var.totalIrrDemand - self.var.Channel_Irrigation)
+                        self.var.totalIrrDemand - self.var.Channel_Irrigation - self.var.Lift_Irrigation)
 
                     remainNeed = pot_Lake_Domestic + pot_Lake_Livestock + pot_Lake_Industry + pot_Lake_Irrigation
 
@@ -1140,19 +1162,24 @@ class water_demand:
                     # B
                     pot_Res_Domestic = np.minimum(
                         self.var.swAbstractionFraction_Res_Domestic * self.var.domesticDemand,
-                        self.var.domesticDemand * self.var.swAbstractionFraction_domestic.copy() - self.var.Channel_Domestic - self.var.Lake_Domestic)
+                        self.var.domesticDemand * self.var.swAbstractionFraction_domestic.copy() -
+                        self.var.Channel_Domestic - self.var.Lift_Domestic - self.var.Lake_Domestic)
 
                     pot_Res_Livestock = np.minimum(
                         self.var.swAbstractionFraction_Res_Livestock * self.var.livestockDemand,
-                        self.var.livestockDemand - self.var.Channel_Livestock - self.var.Lake_Livestock)
+                        self.var.livestockDemand - self.var.Channel_Livestock - self.var.Lift_Livestock- self.var.Lake_Livestock)
 
                     pot_Res_Industry = np.minimum(
                         self.var.swAbstractionFraction_Res_Industry * self.var.industryDemand,
-                        self.var.industryDemand - self.var.Channel_Industry - self.var.Lake_Industry)
+                        self.var.industryDemand - self.var.Channel_Industry - self.var.Lift_Industry - self.var.Lake_Industry)
 
                     pot_Res_Irrigation = np.minimum(
                         self.var.swAbstractionFraction_Res_Irrigation * self.var.totalIrrDemand,
-                        self.var.totalIrrDemand - self.var.Channel_Irrigation - self.var.Lake_Irrigation)
+                        self.var.totalIrrDemand - self.var.Channel_Irrigation - self.var.Lift_Irrigation - self.var.Lake_Irrigation)
+
+                    if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
+                        pot_Res_Irrigation = np.maximum(pot_Res_Irrigation,
+                                                        self.var.irrWithdrawalSW_max*self.var.InvCellArea)
 
                     # remainNeed2 = pot_Res_Domestic + pot_Res_Livestock + pot_Res_Industry + pot_Res_Irrigation
                     remainNeed2 = pot_Res_Irrigation
@@ -1418,19 +1445,23 @@ class water_demand:
             if self.var.sectorSourceAbstractionFractions:
                 pot_GW_Domestic = np.minimum(
                     self.var.gwAbstractionFraction_Domestic * self.var.domesticDemand,
-                    self.var.domesticDemand - self.var.Channel_Domestic - self.var.Lake_Domestic - self.var.Res_Domestic)
+                    self.var.domesticDemand - self.var.Channel_Domestic - self.var.Lift_Domestic - self.var.Lake_Domestic - self.var.Res_Domestic)
 
                 pot_GW_Livestock = np.minimum(
                     self.var.gwAbstractionFraction_Livestock * self.var.livestockDemand,
-                    self.var.livestockDemand - self.var.Channel_Livestock - self.var.Lake_Livestock - self.var.Res_Livestock)
+                    self.var.livestockDemand - self.var.Channel_Livestock - self.var.Lift_Livestock - self.var.Lake_Livestock - self.var.Res_Livestock)
 
                 pot_GW_Industry = np.minimum(
                     self.var.gwAbstractionFraction_Industry * self.var.industryDemand,
-                    self.var.industryDemand - self.var.Channel_Industry - self.var.Lake_Industry - self.var.Res_Industry)
+                    self.var.industryDemand - self.var.Channel_Industry - self.var.Lift_Industry - self.var.Lake_Industry - self.var.Res_Industry)
 
                 pot_GW_Irrigation = np.minimum(
                     self.var.gwAbstractionFraction_Irrigation * self.var.totalIrrDemand,
-                    self.var.totalIrrDemand - self.var.Channel_Irrigation - self.var.Lake_Irrigation - self.var.Res_Irrigation)
+                    self.var.totalIrrDemand - self.var.Channel_Irrigation - self.var.Lift_Irrigation - self.var.Lake_Irrigation - self.var.Res_Irrigation)
+
+                if 'irrigation_agent_GW_request_month_m3' in binding and self.var.activate_irrigation_agents:
+                    pot_Channel_Irrigation = np.maximum(pot_GW_Irrigation,
+                                                        self.var.irrWithdrawalSW_max*self.var.InvCellArea)
 
                 self.var.pot_GroundwaterAbstract = pot_GW_Domestic + pot_GW_Livestock + pot_GW_Industry + pot_GW_Irrigation
             else:
@@ -1463,10 +1494,10 @@ class water_demand:
                     self.var.nonFossilGroundwaterAbs - self.var.GW_Domestic - self.var.GW_Livestock - self.var.GW_Industry,
                     pot_GW_Irrigation)
 
-                unmet_Domestic = self.var.domesticDemand - self.var.Channel_Domestic - self.var.Lake_Domestic - self.var.Res_Domestic - self.var.GW_Domestic
-                unmet_Livestock = self.var.livestockDemand - self.var.Channel_Livestock - self.var.Lake_Livestock - self.var.Res_Livestock - self.var.GW_Livestock
-                unmet_Industry = self.var.industryDemand - self.var.Channel_Industry - self.var.Lake_Industry - self.var.Res_Industry - self.var.GW_Industry
-                unmet_Irrigation = self.var.totalIrrDemand - self.var.Channel_Irrigation - self.var.Lake_Irrigation - self.var.Res_Irrigation - self.var.GW_Irrigation
+                unmet_Domestic = self.var.domesticDemand - self.var.Channel_Domestic - self.var.Lift_Domestic- self.var.Lake_Domestic - self.var.Res_Domestic - self.var.GW_Domestic
+                unmet_Livestock = self.var.livestockDemand - self.var.Channel_Livestock - self.var.Lift_Livestock - self.var.Lake_Livestock - self.var.Res_Livestock - self.var.GW_Livestock
+                unmet_Industry = self.var.industryDemand - self.var.Channel_Industry - self.var.Lift_Industry - self.var.Lake_Industry - self.var.Res_Industry - self.var.GW_Industry
+                unmet_Irrigation = self.var.totalIrrDemand - self.var.Channel_Irrigation - self.var.Lift_Industry - self.var.Lake_Irrigation - self.var.Res_Irrigation - self.var.GW_Irrigation
 
             if checkOption('limitAbstraction'):
                 # real surface water abstraction can be lower, because not all demand can be done from surface water
@@ -1477,19 +1508,18 @@ class water_demand:
                 if self.var.sectorSourceAbstractionFractions:
 
                     self.var.act_nonIrrWithdrawal = self.var.Channel_Domestic + self.var.Channel_Livestock + self.var.Channel_Industry + \
+                                                    self.var.Lift_Domestic + self.var.Lift_Livestock + self.var.Lift_Industry + \
                                                     self.var.Lake_Domestic + self.var.Lake_Livestock + self.var.Lake_Industry + \
                                                     self.var.Res_Domestic + self.var.Res_Livestock + self.var.Res_Industry + \
                                                     self.var.GW_Domestic + self.var.GW_Livestock + self.var.GW_Industry
-                    self.var.act_irrWithdrawal = self.var.Channel_Irrigation + self.var.Lake_Irrigation + self.var.Res_Irrigation + self.var.GW_Irrigation
-                    act_irrWithdrawalSW = self.var.Channel_Irrigation + self.var.Lake_Irrigation + self.var.Res_Irrigation
+                    self.var.act_irrWithdrawal = self.var.Channel_Irrigation + self.var.Lift_Irrigation + self.var.Lake_Irrigation + self.var.Res_Irrigation + self.var.GW_Irrigation
+                    act_irrWithdrawalSW = self.var.Channel_Irrigation + self.var.Lift_Irrigation + self.var.Lake_Irrigation + self.var.Res_Irrigation
                     act_irrWithdrawalGW = self.var.GW_Irrigation
                     self.var.act_irrNonpaddyWithdrawal = np.minimum(self.var.act_irrWithdrawal,
                                                                     self.var.fracVegCover[3] * self.var.irrDemand[3])
                     self.var.act_irrPaddyWithdrawal = self.var.act_irrWithdrawal - self.var.act_irrNonpaddyWithdrawal
 
                     act_gw = np.copy(self.var.nonFossilGroundwaterAbs)
-
-
 
                 elif self.var.includeIndusDomesDemand:  # all demands are taken into account
                     # non-irrgated water demand: adjusted (and maybe increased) by gwabstration factor if
@@ -1722,12 +1752,13 @@ class water_demand:
 
             if self.var.sectorSourceAbstractionFractions:
 
-                self.var.act_indWithdrawal = self.var.Channel_Industry + self.var.Lake_Industry + \
-                                             self.var.Res_Industry + self.var.GW_Industry
-                self.var.act_domWithdrawal = self.var.Channel_Domestic + self.var.Lake_Domestic + \
+                self.var.act_domWithdrawal = self.var.Channel_Domestic + self.var.Lift_Domestic + self.var.Lake_Domestic + \
                                              self.var.Res_Domestic + self.var.GW_Domestic
-                self.var.act_livWithdrawal = self.var.Channel_Livestock + self.var.Lake_Livestock + \
+                self.var.act_livWithdrawal = self.var.Channel_Livestock + self.var.Lift_Livestock + self.var.Lake_Livestock + \
                                              self.var.Res_Livestock + self.var.GW_Livestock
+                self.var.act_indWithdrawal = self.var.Channel_Industry + self.var.Lift_Industry+ self.var.Lake_Industry + \
+                                             self.var.Res_Industry + self.var.GW_Industry
+
                 self.var.act_indConsumption = self.var.ind_efficiency * self.var.act_indWithdrawal
                 self.var.act_domConsumption = self.var.dom_efficiency * self.var.act_domWithdrawal
                 self.var.act_livConsumption = self.var.liv_efficiency * self.var.act_livWithdrawal
@@ -1839,6 +1870,10 @@ class water_demand:
                     self.var.swAbstractionFraction_Channel_Irrigation = np.where(
                         self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max, 0,
                         self.var.swAbstractionFraction_Channel_Irrigation)
+
+                    self.var.swAbstractionFraction_Lift_Irrigation = np.where(
+                        self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max, 0,
+                        self.var.swAbstractionFraction_Lift_Irrigation)
 
                     self.var.swAbstractionFraction_Lake_Irrigation = np.where(
                         self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max, 0,

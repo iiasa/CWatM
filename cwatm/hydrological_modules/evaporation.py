@@ -344,11 +344,9 @@ class evaporation(object):
 
                     elif checkOption('use_GeneralCropnonIrr') == False:
                         if checkOption('activate_fallow') == True:
-                            # if fallow is activated, it must be automatically generated for non-irrigated lands, or not at all, but necessary if activated, which is suggested
                             self.var.GeneralCrop_nonIrr = self.var.generalnonIrrCrop_max.copy()
                         else:
                             self.var.GeneralCrop_nonIrr = self.var.fracVegCover[1] - self.var.frac_totalnonIrr
-
 
                     self.var.fallownonIrr = self.var.fracVegCover[1] - (
                             self.var.frac_totalnonIrr + self.var.GeneralCrop_nonIrr)
@@ -359,20 +357,22 @@ class evaporation(object):
             if No == 1:
 
                 self.var.weighted_KC_nonIrr = self.var.GeneralCrop_nonIrr * self.var.cropKC_landCover[1]
-                self.var.weighted_KC_nonIrr += self.var.fallownonIrr * self.var.minCropKC
                 for c in range(len(self.var.Crops)):
                     self.var.weighted_KC_nonIrr += self.var.fracCrops_nonIrr[c] * self.var.currentKC[c]
-                self.var.weighted_KC_nonIrr /= self.var.fracVegCover[1]
-                self.var.cropKC[1] = np.where(self.var.fracVegCover[1] > 0, self.var.weighted_KC_nonIrr, 0)
+                self.var.weighted_KC_nonIrr_woFallow = self.var.weighted_KC_nonIrr.copy()
+
+                self.var.weighted_KC_nonIrr += self.var.fallownonIrr * self.var.minCropKC
+                self.var.weighted_KC_nonIrr = np.where(self.var.fracVegCover[1] > 0,
+                                                    self.var.weighted_KC_nonIrr / self.var.fracVegCover[1], 0)
+                self.var.cropKC[1] = self.var.weighted_KC_nonIrr.copy()
 
             if No == 3:
 
                 self.var.weighted_KC_Irr = self.var.GeneralCrop_Irr * self.var.cropKC_landCover[3]
                 for c in range(len(self.var.Crops)):
                     self.var.weighted_KC_Irr += self.var.fracCrops_Irr[c] * self.var.currentKC[c]
+                self.var.weighted_KC_Irr_woFallow = self.var.weighted_KC_Irr.copy()
 
-                self.var.weighted_KC_Irr_woFallow = np.where(self.var.fracVegCover[3] > 0, self.var.weighted_KC_Irr / (
-                            self.var.fracVegCover[3] - self.var.fallowIrr), 0)
                 self.var.weighted_KC_Irr += self.var.fallowIrr * self.var.minCropKC
                 self.var.weighted_KC_Irr = np.where(self.var.fracVegCover[3] > 0,
                                                     self.var.weighted_KC_Irr / self.var.fracVegCover[3], 0)
@@ -386,7 +386,7 @@ class evaporation(object):
 
 
         ## potTranspiration: Transpiration for each land cover class
-        self.var.potTranspiration[No] = np.maximum(0.,self.var.totalPotET[No] - self.var.potBareSoilEvap - self.var.snowEvap)
+        self.var.potTranspiration[No] = np.maximum(0., self.var.totalPotET[No] - self.var.potBareSoilEvap) #Dealt with above - self.var.snowEvap)
 
         if self.var.includeCrops: #checkOption('includeCrops') and checkOption('includeCropSpecificWaterUse'):
 
