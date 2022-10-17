@@ -526,8 +526,10 @@ class water_demand:
                 cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check=False)
             else:
                 filename = os.path.splitext(cbinding('Ldd'))[0] + '.tif'
-                if not (os.path.isfile(filename)):
+
+                if not(os.path.isfile(filename)):
                     filename = os.path.splitext(cbinding('Ldd'))[0] + '.map'
+                    
                 nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
                 cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
 

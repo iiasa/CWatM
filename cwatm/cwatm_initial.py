@@ -144,7 +144,7 @@ class CWATModel_ini(DynamicModel):
         self.soil_module.initial()
 
         # groundwater before meteo, bc it checks steady state
-        if self.var.modflow:
+        if self.var.modflow and not(Flags['calib']):
             self.groundwater_modflow_module.initial()
         else:
             self.groundwater_module.initial()

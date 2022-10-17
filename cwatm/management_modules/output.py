@@ -439,9 +439,10 @@ class outputTssMap(object):
                                 outMap[map][i][2] = writenetcdf(netfile, varname, "_monthend", "undefined", eval(inputmap),  dateVar['currDate'], dateVar['currMonth'], flag,True,dateVar['diffMonth'])
                         if map[-8:] == "monthtot":
                             # sum up daily value to monthly values
-                            vars(self.var)[varname + "_monthtot"] = vars(self.var)[varname + "_monthtot"] + vars(self.var)[varname]
+                            vars(self.var)[varname + "_monthtot"] = vars(self.var)[varname + "_monthtot"] +  eval(inputmap)
                         if map[-8:] == "monthavg":
-                            vars(self.var)[varname + "_monthavg"] = vars(self.var)[varname + "_monthavg"] + vars(self.var)[varname]
+                            #vars(self.var)[varname + "_monthavg"] = vars(self.var)[varname + "_monthavg"] + vars(self.var)[varname]
+                            vars(self.var)[varname + "_monthavg"] = vars(self.var)[varname + "_monthavg"] +  eval(inputmap)
 
                         if map[-4:] == "once":
                             if (returnBool('calc_ef_afterRun') == False) or (dateVar['currDate'] == dateVar['dateEnd']):

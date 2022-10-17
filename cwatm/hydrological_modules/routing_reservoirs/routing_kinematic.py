@@ -508,6 +508,7 @@ class routing_kinematic(object):
         # maybe later, but for now it is known as m3
         #self.var.EvapoChannel = self.var.EvapoChannel / self.var.cellArea
 
+
         self.var.humanConsumption = globals.inZero.copy()
         self.var.humanUse = globals.inZero.copy()
         self.var.natureUse = globals.inZero.copy()
@@ -535,7 +536,6 @@ class routing_kinematic(object):
             self.var.adminSegments_area = npareaaverage(
                 (self.var.fracVegCover[1] + self.var.fracVegCover[2] + self.var.fracVegCover[3]) * self.var.cellArea,
                 self.var.adminSegments)
-
 
 #---------------------------------------------------------------------------------------
 

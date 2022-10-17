@@ -173,14 +173,22 @@ class readmeteo(object):
             self.var.glaciermeltMaps = 'MeltGlacierMaps'
             self.var.glacierrainMaps = 'PrecGlacierMaps'
 
+        self.var.only_radition = False
+        if 'only_radiation' in binding:
+            self.var.only_radition = returnBool('only_radiation')
 
         if checkOption('calc_evaporation'):
-            meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','PSurfMaps','WindMaps','RSDSMaps','RSDLMaps']
-            if returnBool('useHuss'):
-                meteomaps.append('QAirMaps')
+            if self.var.only_radition:
+                # for maps from EMO-5 with total radiation and vapor pressure instead of huss, air pressure, rsds and rlds
+                meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps']
             else:
-                meteomaps.append('RhsMaps')
-            
+
+                meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','PSurfMaps','WindMaps','RSDSMaps','RSDLMaps']
+                if returnBool('useHuss'):
+                    meteomaps.append('QAirMaps')
+                else:
+                    meteomaps.append('RhsMaps')
+
             if self.var.includeGlaciers:
                     meteomaps.append(self.var.glaciermeltMaps)
                     meteomaps.append(self.var.glacierrainMaps)
@@ -279,6 +287,70 @@ class readmeteo(object):
 
     def downscaling2(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, x=None, y=None, xfine=None, yfine=None, meshlist=None, downscale = 0):
         """
+        Downscaling with only internal (inside the coarse gridcell) interpolation
+
+        :param input: low input map
+        :param downscaleName: High resolution monthly map from WorldClim
+        :param wc2: High resolution WorldClim map
+        :param wc4: upscaled to low resolution
+        :param downscale: 0 for no change, 1: for temperature , 2 for pprecipitation, 3 for psurf
+        :return: input - downscaled input data
+        :return: wc2
+        :return: wc4
+        """
+        reso = maskmapAttr['reso_mask_meteo']
+        resoint = int(reso)
+        if self.var.meteomapsscale:
+            if downscale == 0:
+                return input
+            else:
+                return input, wc2, wc4
+
+        down3 = np.kron(input, np.ones((resoint, resoint)))
+        # this is creating an array resoint times bigger than input, by copying each item resoint times in x and y direction
+
+        if downscale == 0:
+            down2 = down3[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
+            input = compressArray(down2)
+            return input
+        else:
+            if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
+                wc1 = readnetcdf2(downscaleName, dateVar['currDate'], useDaily='month', compress = False, cut = False)
+                wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]
+                #print('\n'.join([' '.join(['{:4}'.format(item) for item in row]) for row in wc2]))
+
+                if downscale == 2:  # precipitation
+                    wc3 = wc2.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
+                    wc3mean = np.nanmean(wc3, axis=(1, 3))
+                    # Average of wordclim on the bigger input raster scale
+                    wc3kron = np.kron(wc3mean, np.ones((resoint, resoint)))
+                    # the average values are spread out to the fine scale
+                    wc4 = divideValues(wc2, wc3kron)
+                    # wc4 holds the correction multiplicator on fine scale
+
+        if downscale == 1: # Temperature
+            diff_wc = wc2 - down3
+            # on fine scale: wordclim fine scale - spreaded input data (same value for each big cell)
+            wc3 = diff_wc.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
+            wc4 = np.nanmean(wc3, axis=(1, 3))
+            wc4kron = np.kron(wc4, np.ones((resoint, resoint)))
+            # wordclim is averaged on big cell scale and the average is spread out to fine raster
+            down1 = diff_wc - wc4kron + down3
+            # result is the fine scale input data + the difference of wordclim - input data - the average difference of wordclim - input
+            down1 = np.where(np.isnan(down1),down3,down1)
+        if downscale == 2:  # precipitation
+            down1 = down3 * wc4
+            down1 = np.where(np.isnan(down1),down3,down1)
+            down1 = np.where(np.isinf(down1), down3, down1)
+
+        down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
+        input = compressArray(down2)
+        return input, wc2, wc4
+
+     # --- end downscaling ----------------------------
+
+    def downscaling2old(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, downscale = 0):
+        """
         Downscaling based on Delta method:
 
         Note:
@@ -320,9 +392,11 @@ class readmeteo(object):
                 return input, wc2, wc4
 
         if buffer == 0:
+          # this is creating an array resoint times bigger than input, by copying each item resoint times in x and y direction
             down3 = np.kron(input, np.ones((resoint, resoint)))
         else:
             down3 = np.kron(input[buffer:-buffer, buffer:-buffer], np.ones((resoint, resoint)))
+
 
         if downscale == 0:
             down2 = down3[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
@@ -339,9 +413,11 @@ class readmeteo(object):
                 cols = wc2.shape[1]
                 wc3 =  wc2.reshape(rows//resoint,resoint,cols//resoint,resoint)
                 wc4 =  np.nanmean(wc3, axis=(1, 3))
+                # wc4 is as big as the input array -> average of the fine scale downscale map
 
         if downscale == 1: # Temperature
             diff_wc = wc4 - input
+
             if self.var.InterpolationMethod == 'spline':
                 diffSmooth = scipy.ndimage.zoom(diff_wc, resoint, order=1)
                 down1 = wc2 - diffSmooth
@@ -382,6 +458,8 @@ class readmeteo(object):
         return input, wc2, wc4
 
      # --- end downscaling ----------------------------
+
+
 
 
 
@@ -480,8 +558,6 @@ class readmeteo(object):
         # psurf, radiation
         # -----------------------------------------------------------------------
 
-
-
         if checkOption('calc_evaporation'):
 
             #self.var.TMin = readnetcdf2('TminMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
@@ -527,23 +603,42 @@ class readmeteo(object):
 
             if Flags['check']: checkmap('TmaxMaps', "", self.var.TMax, True, True, self.var.TMax)
 
+            if checkOption('TemperatureInKelvin'):
+                self.var.TMin -= ZeroKelvin
+                self.var.TMax -= ZeroKelvin
+
+            #self.var.Wind = readnetcdf2('WindMaps', dateVar['currDate'], addZeros = True, meteo = True)
+            self.var.Wind = readmeteodata('WindMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+            self.var.Wind = self.downscaling2(self.var.Wind)
+                # wind speed maps at 10m [m/s]
+
+            # Adjust wind speed for measurement height: wind speed measured at
+            # 10 m, but needed at 2 m height
+            # Shuttleworth, W.J. (1993) in Maidment, D.R. (1993), p. 4.36
+            self.var.Wind = self.var.Wind * 0.749
+
+
+
+
+            if self.var.only_radition:
+                # read daily calculated radiation [in KJ/m2/day]
+                # named here Rsds instead of rds, because use in evaproationPot in the same way as rsds
+                self.var.Rsds = readmeteodata('RGDMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
+                #self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.001  # convert from KJ to MJ/m2/day
+                self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.000001  # convert from KJ to MJ/m2/day
+                # but for EMO it is 1e6 instead 1000 it seems it is J instead of KJ
+
+                # read daily vapor pressure [in hPa]
+                self.var.EAct = readmeteodata('EActMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
+                self.var.EAct = self.downscaling2(self.var.EAct) * 0.1  # convert from hP to kP
+                return
+
 
             #self.var.Psurf = readnetcdf2('PSurfMaps', dateVar['currDate'], addZeros = True, meteo = True)
             self.var.Psurf = readmeteodata('PSurfMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
             self.var.Psurf = self.downscaling2(self.var.Psurf)
                 # Instantaneous surface pressure[Pa]
-            #self.var.Wind = readnetcdf2('WindMaps', dateVar['currDate'], addZeros = True, meteo = True)
-            self.var.Wind = readmeteodata('WindMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-            self.var.Wind = self.downscaling2(self.var.Wind)
-                # wind speed maps at 10m [m/s]
-            #self.var.Rsds = readnetcdf2('RSDSMaps', dateVar['currDate'], addZeros = True, meteo = True)
-            self.var.Rsds = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-            self.var.Rsds = self.downscaling2(self.var.Rsds)
-                # radiation surface downwelling shortwave maps [W/m2]
-            #self.var.Rsdl = readnetcdf2('RSDLMaps', dateVar['currDate'], addZeros = True, meteo = True)
-            self.var.Rsdl = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-            self.var.Rsdl = self.downscaling2(self.var.Rsdl)
-                # radiation surface downwelling longwave maps [W/m2]
+
             if returnBool('useHuss'):
                 #self.var.Qair = readnetcdf2('QAirMaps', dateVar['currDate'], addZeros = True, meteo = True)
                 self.var.Qair = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
@@ -552,23 +647,21 @@ class readmeteo(object):
                 #self.var.Qair = readnetcdf2('RhsMaps', dateVar['currDate'], addZeros = True, meteo = True)
                 self.var.Qair = readmeteodata('RhsMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
             self.var.Qair = self.downscaling2(self.var.Qair)
-                #
 
+            #self.var.Rsds = readnetcdf2('RSDSMaps', dateVar['currDate'], addZeros = True, meteo = True)
+            self.var.Rsds = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+            self.var.Rsds = self.downscaling2(self.var.Rsds)
+                # radiation surface downwelling shortwave maps [W/m2]
+            #self.var.Rsdl = readnetcdf2('RSDLMaps', dateVar['currDate'], addZeros = True, meteo = True)
+            self.var.Rsdl = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+            self.var.Rsdl = self.downscaling2(self.var.Rsdl)
+                # radiation surface downwelling longwave maps [W/m2]
 
             #--------------------------------------------------------
             # conversions
 
-            if checkOption('TemperatureInKelvin'):
-                self.var.TMin -= ZeroKelvin
-                self.var.TMax -= ZeroKelvin
-
             # [Pa] to [KPa]
             self.var.Psurf = self.var.Psurf * 0.001
-
-            # Adjust wind speed for measurement height: wind speed measured at
-            # 10 m, but needed at 2 m height
-            # Shuttleworth, W.J. (1993) in Maidment, D.R. (1993), p. 4.36
-            self.var.Wind = self.var.Wind * 0.749
 
             # Conversion factor from [W] to [MJ]
             self.var.WtoMJ = 86400 * 1E-6
@@ -576,7 +669,6 @@ class readmeteo(object):
             # conversion from W/m2 to MJ/m2/day
             self.var.Rsds = self.var.Rsds * self.var.WtoMJ
             self.var.Rsdl = self.var.Rsdl * self.var.WtoMJ
-
 
         # if pot evaporation is already precalulated
         else:

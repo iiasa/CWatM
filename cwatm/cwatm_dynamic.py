@@ -147,7 +147,6 @@ class CWATModel_dyn(DynamicModel):
 
         self.environflow_module.dynamic()
         # in case environmental flow is calculated last
-        # overFlo error from Flo Roemer line 155
 
         self.output_module.dynamic()
         timemeasure("Output")  # 12. timing
@@ -166,18 +165,19 @@ class CWATModel_dyn(DynamicModel):
             if self.currentStep == self.lastStep:
                 self.groundwater_modflow_module.modflow.finalize()
 
-        # self.var.sumsum_directRunoff += self.var.sum_directRunoff
-        # self.var.sumsum_Runoff += self.var.sum_directRunoff
-        # self.var.sumsum_Precipitation += self.var.Precipitation
-        # self.var.sumsum_gwRecharge += self.var.sum_gwRecharge
-        # runoff = self.var.baseflow + self.var.sum_landSurfaceRunoff
-        # self.var.sumsum_Runoff += runoff
 
-        # print self.sum_directRunoff,  self.sum_interflowTotal, self.sum_landSurfaceRunoff, self.baseflow, runoff
-        # print self.sumsum_Precipitation, self.sumsum_Runoff
+        #self.var.sumsum_directRunoff += self.var.sum_directRunoff
+        #self.var.sumsum_Runoff += self.var.sum_directRunoff
+        #self.var.sumsum_Precipitation += self.var.Precipitation
+        #self.var.sumsum_gwRecharge += self.var.sum_gwRecharge
+        #runoff = self.var.baseflow + self.var.sum_landSurfaceRunoff
+        #self.var.sumsum_Runoff += runoff
 
-        # report(decompress(self.var.sum_potTranspiration), "c:\work\output/trans.map")
-        # report(decompress(self.var.directRunoff[3 ]), "c:\work\output\dir.map")
-        # report(decompress(runoff), "c:\work\output\dirsum.map")
-        # report(decompress(self.sumsum_Precipitation), "c:\work\output\prsum.map")
-        # report(decompress(runoff), "c:\work\output/runoff.map")
+        #print self.sum_directRunoff,  self.sum_interflowTotal, self.sum_landSurfaceRunoff, self.baseflow, runoff
+        #print self.sumsum_Precipitation, self.sumsum_Runoff
+
+        #report(decompress(self.var.sum_potTranspiration), "c:\work\output/trans.map")
+        #report(decompress(self.var.directRunoff[3 ]), "c:\work\output\dir.map")
+        #report(decompress(runoff), "c:\work\output\dirsum.map")
+        #report(decompress(self.sumsum_Precipitation), "c:\work\output\prsum.map")
+        #report(decompress(runoff), "c:\work\output/runoff.map")
