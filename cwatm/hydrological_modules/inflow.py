@@ -21,17 +21,17 @@ class inflow(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    sampleInflow          location of inflow point                                                          lat/lon  
-    noinflowpoints        number of inflow points                                                           --       
-    inflowTs              inflow time series data                                                           m3/s     
-    totalQInM3            total inflow over time (for mass balance calculation)                             m3       
-    inflowM3              inflow to basin                                                                   m3       
-    DtSec                 number of seconds per timestep (default = 86400)                                  s        
-    QInM3Old              Inflow from previous day                                                          m3       
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    sampleInflow                           location of inflow point                                                lat/l
+    noinflowpoints                         number of inflow points                                                 --   
+    inflowTs                               inflow time series data                                                 m3/s 
+    totalQInM3                             total inflow over time (for mass balance calculation)                   m3   
+    inflowM3                               inflow to basin                                                         m3   
+    DtSec                                  number of seconds per timestep (default = 86400)                        s    
+    QInM3Old                               Inflow from previous day                                                m3   
+    =====================================  ======================================================================  =====
 
     **Functions**
     """

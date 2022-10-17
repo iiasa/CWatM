@@ -36,18 +36,18 @@ class outputTssMap(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    dirUp                 river network in upstream direction                                               --       
-    cellArea              Area of cell                                                                      m2       
-    sampleAdresses                                                                                                   
-    noOutpoints                                                                                                      
-    evalCatch                                                                                                        
-    catcharea                                                                                                        
-    firstout                                                                                                         
-    discharge             discharge                                                                         m3/s     
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    dirUp                                  river network in upstream direction                                     --   
+    cellArea                               Area of cell                                                            m2   
+    sampleAdresses                                                                                                      
+    noOutpoints                                                                                                         
+    evalCatch                                                                                                           
+    catcharea                                                                                                           
+    firstout                                                                                                            
+    discharge                              discharge                                                               m3/s 
+    =====================================  ======================================================================  =====
 
     **Functions**
     """
@@ -344,6 +344,11 @@ class outputTssMap(object):
             # outputFile.write("timeseries " + self._spatialDatatype.lower() + "\n")
             header = "timeseries " + " settingsfile: " + os.path.realpath(settingsfile[0]) + " date: " + xtime.ctime(xtime.time())
             header += " CWATM: " + versioning['exe']  + ", " +versioning['lastdate'] + "\n"
+            if 'save_git' in option:
+                if checkOption("save_git"):
+                    import git
+                    header += "git commit " + git.Repo(search_parent_directories=True).head.object.hexsha
+           
             outputFile.write(header)
             if len(expression[3]):
                 numbervalues = len(expression[3][0]) + 1

@@ -22,18 +22,21 @@ class initcondition(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    includeCrops          1=includeCrops option in settings file is True, 0=otherwise                                
-    Crops                 Internal: List of specific crops and Kc/Ky parameters                                      
-    Crops_names           Internal: List of specific crops                                                           
-    loadInit              Flag: if true initial conditions are loaded                                       --       
-    initLoadFile          load file name of the initial condition data                                      --       
-    saveInit              Flag: if true initial conditions are saved                                        --       
-    saveInitFile          save file name of the initial condition data                                      --       
-    coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    includeCrops                           1 when includeCrops=True in Settings, 0 otherwise                       bool 
+    Crops                                  Internal: List of specific crops and Kc/Ky parameters                        
+    Crops_names                            Internal: List of specific crops                                             
+    reservoir_transfers                    [['Giving reservoir'][i], ['Receiving reservoir'][i], ['Fraction of li  array
+    wwt_def                                                                                                             
+    wastewater_to_reservoirs                                                                                            
+    loadInit                               Flag: if true initial conditions are loaded                             --   
+    initLoadFile                           load file name of the initial condition data                            --   
+    saveInit                               Flag: if true initial conditions are saved                              --   
+    saveInitFile                           save file name of the initial condition data                            --   
+    coverTypes                             land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
+    =====================================  ======================================================================  =====
 
     **Functions**
     """
@@ -71,10 +74,40 @@ class initcondition(object):
 
         for i in df.index:
             transfer = [df['Giving reservoir'][i], df['Receiving reservoir'][i], df['Fraction of live storage'][i]]
-            reservoir_transfers.append(transfer)
-
+            if transfer[2] > 0:
+                reservoir_transfers.append(transfer)
         return reservoir_transfers
+    
+ 
+    # To initialize wastewater2reservoir; and wastewater attributes
+    def wastewater_to_reservoirs(self, xl_settings_file_path):
+        # fix - build an object with wwtp_id as key and res as values.
+        # get unique wwtp_id and iterate
+        pd = importlib.import_module("pandas", package=None)
+        df = pd.read_excel(xl_settings_file_path, sheet_name='Wastewater_to_reservoirs')
+        
+       
+        wwtp_to_reservoir = {}
 
+        for wwtpid in df['Sending WWTP'].unique():
+            wwtp_to_reservoir[wwtpid] = df[df['Sending WWTP'] == wwtpid]['Receiving Reservoir'].tolist()
+            #transfer = [df['Sending WWTP'][i], df['Receiving Reservoir'][i]]
+            #wwtp_to_reservoir.append(transfer)
+        #print(wwtp_to_reservoir)
+        return wwtp_to_reservoir
+    
+    def wasterwater_def(self, xl_settings_file_path):
+        pd = importlib.import_module("pandas", package=None)
+        df = pd.read_excel(xl_settings_file_path, sheet_name='Wastewater_def')
+        
+        cols = ['From year', 'To year', 'Volume (cubic m per day)', 'Treatment days', 'Treatment level', 'Export share', 'Domestic', 'Industrial']
+        wwtp_definitions = {}
+        for wwtpid in df['WWTP ID'].unique():
+            wwtp_definitions[wwtpid] = df[df['WWTP ID'] == wwtpid][cols].to_numpy()
+            #transfer = [df['Sending WWTP'][i], df['Receiving Reservoir'][i]]
+            #wwtp_to_reservoir.append(transfer)
+        #print(wwtp_definitions)
+        return wwtp_definitions
 
     def initial(self):
         """
@@ -160,8 +193,9 @@ class initcondition(object):
         initCondVarValue.append("unmetDemandNonpaddy")
 
         # groundwater
-        initCondVar.append("storGroundwater")
-        initCondVarValue.append("storGroundwater")
+        if not self.var.modflow:
+            initCondVar.append("storGroundwater")
+            initCondVarValue.append("storGroundwater")
 
         # routing
         Var1 = ["channelStorage", "discharge", "riverbedExchange"]
@@ -191,7 +225,15 @@ class initcondition(object):
                 if 'Excel_settings_file' in binding:
                     xl_settings_file_path = cbinding('Excel_settings_file')
                     self.var.reservoir_transfers = self.reservoir_transfers(xl_settings_file_path)
-
+        
+        if 'includeWastewater' in option:
+            if checkOption('includeWastewater'):
+                if 'Excel_settings_file' in binding:
+                    xl_settings_file_path = cbinding('Excel_settings_file')
+                    self.var.wwt_def = self.wasterwater_def(xl_settings_file_path)
+                    self.var.wastewater_to_reservoirs = self.wastewater_to_reservoirs(xl_settings_file_path)
+                    
+        
         if 'relax_irrigation_agents' in option:
             if checkOption('relax_irrigation_agents'):
                 if 'irrigation_agent_SW_request_month_m3' in binding:
@@ -214,7 +256,7 @@ class initcondition(object):
         # or in certain interval e.g. 2y = every 2 years, 3m = every 3 month, 15d = every 15 days
 
         self.var.saveInit = returnBool('save_initial')
-        self.var.initmap = {}
+        #self.var.initmap = {}
 
         if self.var.saveInit:
             self.var.saveInitFile = cbinding('initSave')

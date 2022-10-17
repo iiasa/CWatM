@@ -24,23 +24,23 @@ class miscInitial(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    DtSec                 number of seconds per timestep (default = 86400)                                  s        
-    twothird              2/3                                                                               --       
-    MtoM3                 Coefficient to change units                                                       --       
-    InvDtSec                                                                                                         
-    cellArea              Area of cell                                                                      m2       
-    InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
-    DtDay                 seconds in a timestep (default=86400)                                             s        
-    InvDtDay              inverse seconds in a timestep (default=86400)                                     s-1      
-    MMtoM                 Coefficient to change units                                                       --       
-    MtoMM                 Coefficient to change units                                                       --       
-    M3toM                 Coefficient to change units                                                       --       
-    con_precipitation     conversion factor for precipitation                                               --       
-    con_e                 conversion factor for evaporation                                                 --       
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    DtSec                                  number of seconds per timestep (default = 86400)                        s    
+    twothird                               2/3                                                                     --   
+    MtoM3                                  Coefficient to change units                                             --   
+    InvDtSec                                                                                                            
+    cellArea                               Area of cell                                                            m2   
+    InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 
+    DtDay                                  seconds in a timestep (default=86400)                                   s    
+    InvDtDay                               inverse seconds in a timestep (default=86400)                           1/s  
+    MMtoM                                  Coefficient to change units                                             --   
+    MtoMM                                  Coefficient to change units                                             --   
+    M3toM                                  Coefficient to change units                                             --   
+    con_precipitation                      conversion factor for precipitation                                     --   
+    con_e                                  conversion factor for evaporation                                       --   
+    =====================================  ======================================================================  =====
 
     **Functions**
     """

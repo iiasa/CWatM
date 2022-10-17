@@ -35,27 +35,35 @@ class runoff_concentration(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    load_initial                                                                                                     
-    sum_interflow                                                                                                    
-    baseflow              simulated baseflow (= groundwater discharge to river)                             m        
-    coverTypes            land cover types - forest - grassland - irrPaddy - irrNonPaddy - water - sealed   --       
-    runoff                                                                                                           
-    runoff_peak           peak time of runoff in seconds for each land use class                            s        
-    tpeak_interflow       peak time of interflow                                                            s        
-    tpeak_baseflow        peak time of baseflow                                                             s        
-    maxtime_runoff_conc   maximum time till all flow is at the outlet                                       s        
-    runoff_conc           runoff after concentration - triangular-weighting method                          m        
-    gridcell_storage                                                                                                 
-    sum_landSurfaceRunof  Runoff concentration above the soil more interflow including all landcover types  m        
-    landSurfaceRunoff     Runoff concentration above the soil more interflow                                m        
-    fracVegCover          Fraction of specific land covers (0=forest, 1=grasslands, etc.)                   %        
-    directRunoff          Simulated surface runoff                                                          m        
-    interflow             Simulated flow reaching runoff instead of groundwater                             m        
-    prergridcell                                                                                                     
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    load_initial                           Settings initLoad holds initial conditions for variables                input
+    leakageIntoRunoff                                                                                                   
+    fracGlacierCover                                                                                                    
+    sum_interflow                                                                                                       
+    cellArea                               Area of cell                                                            m2   
+    coverTypes                             land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
+    runoff                                                                                                              
+    includeGlaciers                                                                                                     
+    GlacierMelt                                                                                                         
+    GlacierRain                                                                                                         
+    runoff_peak                            peak time of runoff in seconds for each land use class                  s    
+    tpeak_interflow                        peak time of interflow                                                  s    
+    tpeak_baseflow                         peak time of baseflow                                                   s    
+    tpeak_glaciers                                                                                                      
+    maxtime_runoff_conc                    maximum time till all flow is at the outlet                             s    
+    runoff_conc                            runoff after concentration - triangular-weighting method                m    
+    gridcell_storage                                                                                                    
+    sum_landSurfaceRunoff                  Runoff concentration above the soil more interflow including all landc  m    
+    landSurfaceRunoff                      Runoff concentration above the soil more interflow                      m    
+    directRunoffGlacier                                                                                                 
+    directRunoff                           Simulated surface runoff                                                m    
+    interflow                              Simulated flow reaching runoff instead of groundwater                   m    
+    baseflow                               simulated baseflow (= groundwater discharge to river)                   m    
+    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
+    prergridcell                                                                                                        
+    =====================================  ======================================================================  =====
 
     **Functions**
     """
@@ -132,6 +140,14 @@ class runoff_concentration(object):
             self.var.tpeak_baseflow = runoffConc_factor * tpeak * loadmap("baseflow_runoff_peaktime")
             #self.var.tpeak_baseflow = 0.5
             self.var.tpeak_baseflow = np.minimum(np.maximum(self.var.tpeak_baseflow, 0.5, ), 5.0)
+            
+            self.var.includeGlaciers = False
+            if 'includeGlaciers' in option:
+                self.var.includeGlaciers = checkOption('includeGlaciers')
+                
+            if self.var.includeGlaciers:
+                self.var.tpeak_glaciers = runoffConc_factor * tpeak * loadmap("glaciers_runoff_peaktime")
+                self.var.tpeak_glaciers = np.minimum(np.maximum(self.var.tpeak_glaciers, 0.5,),3.0)
 
             max = np.where(self.var.tpeak_baseflow > max, self.var.tpeak_baseflow, max)
             self.var.maxtime_runoff_conc = int(np.ceil(2 * np.amax(max)))
@@ -207,6 +223,14 @@ class runoff_concentration(object):
         self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow + self.var.leakageIntoRunoff
 
 
+        if self.var.includeGlaciers:
+            #from m3/d to m/d by dividing by the cell area
+            self.var.directRunoffGlacier = np.divide(self.var.GlacierMelt + self.var.GlacierRain, (self.var.cellArea * self.var.fracGlacierCover), out=np.zeros_like(self.var.GlacierMelt), where=(self.var.cellArea * self.var.fracGlacierCover) != 0)
+            self.var.GlacierMelt = self.var.GlacierMelt / self.var.cellArea
+            self.var.GlacierRain = self.var.GlacierRain / self.var.cellArea
+            self.var.runoff += self.var.GlacierMelt + self.var.GlacierRain
+
+        #print(self.var.runoff)
         if checkOption('includeRunoffConcentration'):
             # -------------------------------------------------------
             # runoff concentration: triangular-weighting method
@@ -222,6 +246,9 @@ class runoff_concentration(object):
                #self.var.runoff_conc = runoff_concentration(self.var.maxtime_runoff_conc,self.var.runoff_peak[No],self.var.fracVegCover[No] ,self.var.directRunoff[No], self.var.runoff_conc)
                lib2.runoffConc(self.var.runoff_conc, self.var.runoff_peak[No],self.var.fracVegCover[No] ,self.var.directRunoff[No],self.var.maxtime_runoff_conc,maskinfo['mapC'][0])
 
+            # glacier melt time of concentration
+            if self.var.includeGlaciers:
+               lib2.runoffConc(self.var.runoff_conc, self.var.tpeak_glaciers, self.var.fracGlacierCover, self.var.directRunoffGlacier, self.var.maxtime_runoff_conc, maskinfo['mapC'][0])
             # interflow time of concentration
             #self.var.runoff_conc = runoff_concentration(self.var.maxtime_runoff_conc, self.var.tpeak_interflow, 1.0, self.var.sum_interflow, self.var.runoff_conc)
             lib2.runoffConc(self.var.runoff_conc, self.var.tpeak_interflow,globals.inZero +1 ,self.var.sum_interflow,self.var.maxtime_runoff_conc,maskinfo['mapC'][0])

@@ -20,19 +20,19 @@ class sealed_water(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    modflow               Flag: True if modflow_coupling = True in settings file                            --       
-    availWaterInfiltrati  quantity of water reaching the soil after interception, more snowmelt             m        
-    capillar              Simulated flow from groundwater to the third CWATM soil layer                     m        
-    EWRef                 potential evaporation rate from water surface                                     m        
-    actualET              simulated evapotranspiration from soil, flooded area and vegetation               m        
-    directRunoff          Simulated surface runoff                                                          m        
-    openWaterEvap         Simulated evaporation from open areas                                             m        
-    actTransTotal         Total actual transpiration from the three soil layers                             m        
-    actBareSoilEvap       Simulated evaporation from the first soil layer                                   m        
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    availWaterInfiltration                 quantity of water reaching the soil after interception, more snowmelt   m    
+    EWRef                                  potential evaporation rate from water surface                           m    
+    actualET                               simulated evapotranspiration from soil, flooded area and vegetation     m    
+    directRunoff                           Simulated surface runoff                                                m    
+    openWaterEvap                          Simulated evaporation from open areas                                   m    
+    actTransTotal                          Total actual transpiration from the three soil layers                   m    
+    actBareSoilEvap                        Simulated evaporation from the first soil layer                         m    
+    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
+    capillar                               Simulated flow from groundwater to the third CWATM soil layer           m    
+    =====================================  ======================================================================  =====
 
     **Functions**
     """

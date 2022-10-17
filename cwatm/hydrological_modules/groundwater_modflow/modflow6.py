@@ -80,12 +80,13 @@ class ModFlowSimulation:
             # create tdis package
             tdis = flopy.mf6.ModflowTdis(sim, nper=ndays, perioddata=[(1.0, 1, 1)] * ndays)
 
-            # create iterative model solution and register the gwf model with it
-            # If the model fails with the following error: xmipy.errors.XMIError: MODFLOW 6 BMI, exception in: finalize_solve ()
-            # Then one can reduce the modflow timestep, or use the following ims lines with complexity = 'COMPLEX'
+            # create iterative model solution and register the gwf model with it If the model fails with the
+            # following error: xmipy.errors.XMIError: MODFLOW 6 BMI, exception in: finalize_solve () Then one can
+            # reduce the modflow timestep, or use the following ims lines with complexity = 'COMPLEX'
 
             if complex_solver:
-                print('using compex modflow solver')
+                if self.verbose:
+                    print('using compex modflow solver')
                 ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='COMPLEX')
             else:
                 ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='SIMPLE', linear_acceleration='BICGSTAB',
