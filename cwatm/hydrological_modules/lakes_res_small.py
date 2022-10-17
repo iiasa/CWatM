@@ -30,35 +30,35 @@ class lakes_res_small(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    load_initial                                                                                                     
-    smallpart                                                                                                        
-    smalllakeArea                                                                                                    
-    smalllakeDis0                                                                                                    
-    smalllakeA                                                                                                       
-    smalllakeFactor                                                                                                  
-    smalllakeFactorSqr                                                                                               
-    smalllakeInflowOld                                                                                               
-    smalllakeOutflow                                                                                                 
-    smalllakeLevel                                                                                                   
-    minsmalllakeVolumeM3                                                                                             
-    preSmalllakeStorage                                                                                              
-    smallLakedaycorrect                                                                                              
-    smallLakeIn                                                                                                      
-    smallevapWaterBody                                                                                               
-    smallLakeout                                                                                                     
-    smallrunoffDiff                                                                                                  
-    DtSec                 number of seconds per timestep (default = 86400)                                  s        
-    InvDtSec                                                                                                         
-    cellArea              Area of cell                                                                      m2       
-    EWRef                 potential evaporation rate from water surface                                     m        
-    lakeEvaFactor         a factor which increases evaporation from lake because of wind                    --       
-    runoff                                                                                                           
-    smalllakeVolumeM3                                                                                                
-    smalllakeStorage                                                                                                 
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    load_initial                           Settings initLoad holds initial conditions for variables                input
+    smallpart                                                                                                           
+    smalllakeArea                                                                                                       
+    smalllakeDis0                                                                                                       
+    smalllakeA                                                                                                          
+    smalllakeFactor                                                                                                     
+    smalllakeFactorSqr                                                                                                  
+    smalllakeInflowOld                                                                                                  
+    smalllakeOutflow                                                                                                    
+    smalllakeLevel                                                                                                      
+    minsmalllakeVolumeM3                                                                                                
+    preSmalllakeStorage                                                                                                 
+    smallLakedaycorrect                                                                                                 
+    smallLakeIn                                                                                                         
+    smallevapWaterBody                                                                                                  
+    smallLakeout                                                                                                        
+    smallrunoffDiff                                                                                                     
+    DtSec                                  number of seconds per timestep (default = 86400)                        s    
+    InvDtSec                                                                                                            
+    cellArea                               Area of cell                                                            m2   
+    EWRef                                  potential evaporation rate from water surface                           m    
+    lakeEvaFactor                          a factor which increases evaporation from lake because of wind          --   
+    runoff                                                                                                              
+    smalllakeVolumeM3                                                                                                   
+    smalllakeStorage                                                                                                    
+    =====================================  ======================================================================  =====
 
     **Functions**
     """

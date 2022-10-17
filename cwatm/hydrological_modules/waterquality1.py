@@ -21,23 +21,23 @@ class waterquality1(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    DtSec                 number of seconds per timestep (default = 86400)                                  s        
-    cellArea              Area of cell                                                                      m2       
-    Tavg                  average air Temperature (input for the model)                                     K        
-    discharge             discharge                                                                         m3/s     
-    chanLength                                                                                                       
-    totalCrossSectionAre                                                                                             
-    waterquality                                                                                                     
-    celllenght                                                                                                       
-    downdist                                                                                                         
-    travelDistance                                                                                                   
-    travelTime                                                                                                       
-    waterLevel                                                                                                       
-    waterTemperature                                                                                                 
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    DtSec                                  number of seconds per timestep (default = 86400)                        s    
+    cellArea                               Area of cell                                                            m2   
+    Tavg                                   Input, average air Temperature                                          K    
+    discharge                              discharge                                                               m3/s 
+    chanLength                             Input, Channel length                                                   m    
+    totalCrossSectionArea                                                                                               
+    waterquality                                                                                                        
+    celllength                             Cell length, defined as the square root of cell area                    m    
+    downdist                                                                                                            
+    travelDistance                                                                                                      
+    travelTime                                                                                                          
+    waterLevel                                                                                                          
+    waterTemperature                                                                                                    
+    =====================================  ======================================================================  =====
 
     **Functions**
     """
@@ -57,9 +57,9 @@ class waterquality1(object):
            self.var.waterquality = checkOption('waterquality')
 
         if self.var.waterquality:
-            self.var.celllenght = np.sqrt(self.var.cellArea)
+            self.var.celllength = np.sqrt(self.var.cellArea)
             ldd = loadmap('Ldd')
-            self.var.downdist = self.var.celllenght
+            self.var.downdist = self.var.celllength
             self.var.downdist =np.where(ldd == 1, 1.414214 * self.var.downdist , self.var.downdist )
             self.var.downdist =np.where(ldd == 3, 1.414214 * self.var.downdist , self.var.downdist )
             self.var.downdist =np.where(ldd == 7, 1.414214 * self.var.downdist , self.var.downdist )

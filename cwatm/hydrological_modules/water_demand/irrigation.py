@@ -12,11 +12,12 @@ from cwatm.management_modules import globals
 from cwatm.management_modules.data_handling import returnBool, binding, cbinding, loadmap
 import numpy as np
 
-#from cwatm.management_modules.data_handling import *  # luca for testing
-#import matplotlib.pyplot as plt
+
+# from cwatm.management_modules.data_handling import *  # luca for testing
+# import matplotlib.pyplot as plt
 
 
-#def decompress(map, nanvalue=None):
+# def decompress(map, nanvalue=None):
 #    """
 #    Decompressing CWatM maps from 1D to 2D with missing values
 #
@@ -40,41 +41,42 @@ class waterdemand_irrigation:
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    load_initial                                                                                                     
-    availWaterInfiltrati  quantity of water reaching the soil after interception, more snowmelt             m        
-    cropKC                crop coefficient for each of the 4 different land cover types (forest, irrigated  --       
-    efficiencyPaddy                                                                                                  
-    efficiencyNonpaddy                                                                                               
-    returnfractionIrr                                                                                                
-    alphaDepletion                                                                                                   
-    pot_irrConsumption                                                                                               
-    irrDemand                                                                                                        
-    irrPaddyDemand                                                                                                   
-    irrNonpaddyDemand                                                                                                
-    irrNonpaddyDeman                                                                                                 
-    ws1                   Maximum storage capacity in layer 1                                               m        
-    ws2                   Maximum storage capacity in layer 2                                               m        
-    wfc1                  Soil moisture at field capacity in layer 1                                                 
-    wfc2                  Soil moisture at field capacity in layer 2                                                 
-    wwp1                  Soil moisture at wilting point in layer 1                                                  
-    wwp2                  Soil moisture at wilting point in layer 2                                                  
-    arnoBeta                                                                                                         
-    maxtopwater           maximum heigth of topwater                                                        m        
-    totAvlWater                                                                                                      
-    InvCellArea           Inverse of cell area of each simulated mesh                                       m-1      
-    fracVegCover          Fraction of specific land covers (0=forest, 1=grasslands, etc.)                   %        
-    w1                    Simulated water storage in the layer 1                                            m        
-    w2                    Simulated water storage in the layer 2                                            m        
-    topwater              quantity of water above the soil (flooding)                                       m        
-    totalPotET            Potential evaporation per land use class                                          m        
-    unmetDemand                                                                                                      
-    unmetDemandPaddy                                                                                                 
-    unmetDemandNonpaddy                                                                                              
-    totalIrrDemand                                                                                                   
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    load_initial                           Settings initLoad holds initial conditions for variables                input
+    topwater                               quantity of water above the soil (flooding)                             m    
+    cropKC                                 crop coefficient for each of the 4 different land cover types (forest,  --   
+    efficiencyPaddy                        Input, irrPaddy_efficiency, paddy irrigation efficiency, the amount of  frac 
+    efficiencyNonpaddy                     Input, irrNonPaddy_efficiency, non-paddy irrigation efficiency, the am  frac 
+    returnfractionIrr                      Input, irrigation_returnfraction, the fraction of non-efficient water   frac 
+    alphaDepletion                         Input, alphaDepletion, irrigation aims to alphaDepletion of field capa  frac 
+    minimum_irrigation                     Cover-specific irrigation in metres is 0 if less than this, currently   1/m2 
+    pot_irrConsumption                     Cover-specific potential irrigation consumption                         m/m  
+    fraction_IncreaseIrrigation_Nonpaddy   Input, fraction_IncreaseIrrigation_Nonpaddy, scales pot_irrConsumption  frac 
+    irrPaddyDemand                         Paddy irrigation demand                                                 m    
+    availWaterInfiltration                 quantity of water reaching the soil after interception, more snowmelt   m    
+    ws1                                    Maximum storage capacity in layer 1                                     m    
+    ws2                                    Maximum storage capacity in layer 2                                     m    
+    wfc1                                   Soil moisture at field capacity in layer 1                                   
+    wfc2                                   Soil moisture at field capacity in layer 2                                   
+    wwp1                                   Soil moisture at wilting point in layer 1                                    
+    wwp2                                   Soil moisture at wilting point in layer 2                                    
+    arnoBeta                                                                                                            
+    maxtopwater                            maximum heigth of topwater                                              m    
+    totAvlWater                            Field capacity minus wilting point in soil layers 1 and 2               m    
+    InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 
+    w1                                     Simulated water storage in the layer 1                                  m    
+    w2                                     Simulated water storage in the layer 2                                  m    
+    totalPotET                             Potential evaporation per land use class                                m    
+    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
+    unmetDemand                            Unmet demand                                                            m    
+    unmetDemandPaddy                       Unmet paddy demand                                                      m    
+    unmetDemandNonpaddy                    Unmet nonpaddy demand                                                   m    
+    irrDemand                              Cover-specific Irrigation demand                                        m/m  
+    irrNonpaddyDemand                                                                                                   
+    totalIrrDemand                         Irrigation demand                                                       m    
+    =====================================  ======================================================================  =====
 
     **Functions**
     """
@@ -110,8 +112,7 @@ class waterdemand_irrigation:
 
         # ignore demand if less than self.var.minimum_irrigation #1 m3
         self.var.minimum_irrigation = self.var.InvCellArea
-        #print('=> If irrigation demand is smaller than ', np.nanmean(self.var.minimum_irrigation), ' m/day, the demand is set to zero')
-
+        # print('=> If irrigation demand is smaller than ', np.nanmean(self.var.minimum_irrigation), ' m/day, the demand is set to zero')
 
     def dynamic(self):
         """
@@ -129,14 +130,16 @@ class waterdemand_irrigation:
         # a function of cropKC (evaporation and transpiration) and available water see Wada et al. 2014 p. 19
         self.var.pot_irrConsumption[No] = np.where(
             self.var.cropKC[No] > 0.75,
-            np.maximum(0., (self.var.alphaDepletion * self.var.maxtopwater - (self.var.topwater + self.var.availWaterInfiltration[No]))),
+            np.maximum(0., (self.var.alphaDepletion * self.var.maxtopwater - (
+                        self.var.topwater + self.var.availWaterInfiltration[No]))),
             0.
         )
         # ignore demand if less than 1 m3
-        self.var.pot_irrConsumption[No] = np.where(self.var.pot_irrConsumption[No] > self.var.InvCellArea, self.var.pot_irrConsumption[No], 0)
+        self.var.pot_irrConsumption[No] = np.where(self.var.pot_irrConsumption[No] > self.var.InvCellArea,
+                                                   self.var.pot_irrConsumption[No], 0)
         self.var.irrDemand[No] = self.var.pot_irrConsumption[No] / self.var.efficiencyPaddy
 
-        #-----------------
+        # -----------------
         # irrNonPaddy
         No = 3
 
@@ -153,20 +156,21 @@ class waterdemand_irrigation:
         potBeta = (self.var.arnoBeta[No] + 1) / self.var.arnoBeta[No]
         potInf = store - store * (1 - (1 - satAreaFrac) ** potBeta)
         # ----------------------------------------------------------
-        availWaterPlant1 = np.maximum(0., self.var.w1[No] - self.var.wwp1[No])   #* self.var.rootDepth[0][No]  should not be multiplied again with soildepth
-        availWaterPlant2 = np.maximum(0., self.var.w2[No] - self.var.wwp2[No])   # * self.var.rootDepth[1][No]
-        #availWaterPlant3 = np.maximum(0., self.var.w3[No] - self.var.wwp3[No])  #* self.var.rootDepth[2][No]
-        readAvlWater = availWaterPlant1 + availWaterPlant2 # + availWaterPlant3
+        availWaterPlant1 = np.maximum(0., self.var.w1[No] - self.var.wwp1[
+            No])  # * self.var.rootDepth[0][No]  should not be multiplied again with soildepth
+        availWaterPlant2 = np.maximum(0., self.var.w2[No] - self.var.wwp2[No])  # * self.var.rootDepth[1][No]
+        # availWaterPlant3 = np.maximum(0., self.var.w3[No] - self.var.wwp3[No])  #* self.var.rootDepth[2][No]
+        readAvlWater = availWaterPlant1 + availWaterPlant2  # + availWaterPlant3
 
         # calculate   ****** SOIL WATER STRESS ************************************
 
-        #The crop group number is a indicator of adaptation to dry climate,
+        # The crop group number is a indicator of adaptation to dry climate,
         # e.g. olive groves are adapted to dry climate, therefore they can extract more water from drying out soil than e.g. rice.
         # The crop group number of olive groves is 4 and of rice fields is 1
         # for irrigation it is expected that the crop has a low adaptation to dry climate
-        #cropGroupNumber = 1.0
+        # cropGroupNumber = 1.0
         etpotMax = np.minimum(0.1 * (self.var.totalPotET[No] * 1000.), 1.0)
-        #print('-----------------------------etpotMax---------: ', np.sum(etpotMax * self.var.cellArea))
+        # print('-----------------------------etpotMax---------: ', np.sum(etpotMax * self.var.cellArea))
         # to avoid a strange behaviour of the p-formula's, ETRef is set to a maximum of 10 mm/day.
 
         # for group number 1 -> those are plants which needs irrigation
@@ -185,24 +189,28 @@ class waterdemand_irrigation:
 
         critWaterPlant1 = np.maximum(0., wCrit1 - self.var.wwp1[No])  # * self.var.rootDepth[0][No]
         critWaterPlant2 = np.maximum(0., wCrit2 - self.var.wwp2[No])  # * self.var.rootDepth[1][No]
-        #critWaterPlant3 = np.maximum(0., wCrit3 - self.var.wwp3[No]) # * self.var.rootDepth[2][No]
-        critAvlWater = critWaterPlant1 + critWaterPlant2 # + critWaterPlant3
+        # critWaterPlant3 = np.maximum(0., wCrit3 - self.var.wwp3[No]) # * self.var.rootDepth[2][No]
+        critAvlWater = critWaterPlant1 + critWaterPlant2  # + critWaterPlant3
 
         # with alpha from Xiaogang He, to adjust irrigation to farmer's need
 
         self.var.pot_irrConsumption[No] = np.where(self.var.cropKC[No] > 0.20, np.where(readAvlWater < (self.var.alphaDepletion * critAvlWater),
                                                         np.maximum(0.0, self.var.alphaDepletion * self.var.totAvlWater - readAvlWater),  0.), 0.)
 
+        if "fraction_IncreaseIrrigation_Nonpaddy" in binding:
+            self.var.fraction_IncreaseIrrigation_Nonpaddy = loadmap(
+                'fraction_IncreaseIrrigation_Nonpaddy') + globals.inZero.copy()
+            self.var.pot_irrConsumption[No] *= self.var.fraction_IncreaseIrrigation_Nonpaddy
+
         # should not be bigger than infiltration capacity
-        self.var.pot_irrConsumption[No] = np.minimum(self.var.pot_irrConsumption[No],potInf)
+        self.var.pot_irrConsumption[No] = np.minimum(self.var.pot_irrConsumption[No], potInf)
 
         # ignore demand if less than self.var.minimum_irrigation
-        self.var.pot_irrConsumption[No] = np.where(self.var.pot_irrConsumption[No] > self.var.minimum_irrigation, self.var.pot_irrConsumption[No], 0)
+        self.var.pot_irrConsumption[No] = np.where(self.var.pot_irrConsumption[No] > self.var.minimum_irrigation,
+                                                   self.var.pot_irrConsumption[No], 0)
         self.var.irrDemand[No] = self.var.pot_irrConsumption[No] / self.var.efficiencyNonpaddy
-
 
         # Sum up irrigation water demand with area fraction
         self.var.irrNonpaddyDemand = self.var.fracVegCover[3] * self.var.irrDemand[3]
         self.var.irrPaddyDemand = self.var.fracVegCover[2] * self.var.irrDemand[2]
         self.var.totalIrrDemand = self.var.irrPaddyDemand + self.var.irrNonpaddyDemand
-

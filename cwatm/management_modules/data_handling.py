@@ -906,7 +906,7 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
 
 
 
-def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapsscale = True):
+def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapsscale = True, buffering=False):
     """
     load stack of maps 1 at each timestamp in netcdf format
 
@@ -916,6 +916,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     :param addZeros:
     :param zeros: default value
     :param mapsscale: if meteo maps have the same extend as the other spatial static m
+    :param buffering: if buffer should be applied before cutting the map to the mask extent
     :return: Compressed 1D array of meteo data
 
     :raises if data is wrong: :meth:`management_modules.messages.CWATMError`
@@ -961,8 +962,14 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     if cutcheck:
         if turn_latitude:
             mapnp = mapnp[cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]]
+            #TODO: make buffering work if lattitude is turned
         else:
-            mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]].astype(np.float64)
+            if buffering:
+                buffer = 1
+                mapnp = nf1.variables[value][idx, cutmapFine[2] - buffer:cutmapFine[3] + buffer,
+                cutmapFine[0] - buffer:cutmapFine[1] + buffer].astype(np.float64)
+            else:
+                mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]].astype(np.float64)
     else:
         if not(turn_latitude):
             mapnp = nf1.variables[value][idx].astype(np.float64)
@@ -1142,9 +1149,11 @@ def readnetcdfWithoutTime(name, value="None"):
     if value == "None":
         value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
+    '''
     if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
         msg = "Error 111: Latitude is in wrong order\n"
         raise CWATMFileError(filename, msg)
+    '''
 
     mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
     nf1.close()
@@ -1260,6 +1269,10 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
         nf1.title = cbinding ("title")
         nf1.source = 'CWATM output maps'
         nf1.Conventions = 'CF-1.6'
+        if 'save_git' in option:
+            if checkOption("save_git"):
+                import git
+                nf1.git_commit = git.Repo(search_parent_directories=True).head.object.hexsha
 
         # put the additional genaral meta data information from the xml file into the netcdf file
         # infomation from the settingsfile comes first

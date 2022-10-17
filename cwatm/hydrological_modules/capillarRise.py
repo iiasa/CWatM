@@ -18,27 +18,27 @@ class capillarRise(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    dzRel0100             map of relative elevation above flood plains (max elevation above plain)          m        
-    dzRel0090             map of relative elevation above flood plains (90% elevation above plain)          m        
-    dzRel0080             map of relative elevation above flood plains (80% elevation above plain)          m        
-    dzRel0070             map of relative elevation above flood plains (70% elevation above plain)          m        
-    dzRel0060             map of relative elevation above flood plains (60% elevation above plain)          m        
-    dzRel0050             map of relative elevation above flood plains (median elevation above plain)       m        
-    dzRel0040             map of relative elevation above flood plains (40% elevation above plain)          m        
-    dzRel0030             map of relative elevation above flood plains (30% elevation above plain)          m        
-    dzRel0020             map of relative elevation above flood plains (20% elevation above plain)          m        
-    dzRel0010             map of relative elevation above flood plains (10% elevation above plain)          m        
-    dzRel0005             map of relative elevation above flood plains (5% elevation above plain)           m        
-    dzRel0001             map of relative elevation above flood plains (1% elevation above plain)           m        
-    capRiseFrac           fraction of a grid cell where capillar rise may happen                            m        
-    storGroundwater       simulated groundwater storage                                                     m        
-    specificYield         groundwater reservoir parameters (if ModFlow is not used) used to compute ground  m        
-    modflow               Flag: True if modflow_coupling = True in settings file                            --       
-    maxGWCapRise          influence of capillary rise above groundwater level                               m        
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    dzRel0100                              relative elevation above flood plains (max elevation above plain)       m    
+    dzRel0090                              relative elevation above flood plains (90% elevation above plain)       m    
+    dzRel0080                              relative elevation above flood plains (80% elevation above plain)       m    
+    dzRel0070                              relative elevation above flood plains (70% elevation above plain)       m    
+    dzRel0060                              relative elevation above flood plains (60% elevation above plain)       m    
+    dzRel0050                              relative elevation above flood plains (median elevation above plain)    m    
+    dzRel0040                              relative elevation above flood plains (40% elevation above plain)       m    
+    dzRel0030                              relative elevation above flood plains (30% elevation above plain)       m    
+    dzRel0020                              relative elevation above flood plains (20% elevation above plain)       m    
+    dzRel0010                              relative elevation above flood plains (10% elevation above plain)       m    
+    dzRel0005                              relative elevation above flood plains (5% elevation above plain)        m    
+    dzRel0001                              relative elevation above flood plains (1% elevation above plain)        m    
+    capRiseFrac                            fraction of a grid cell where capillar rise may happen                  m    
+    storGroundwater                        simulated groundwater storage                                           m    
+    specificYield                          groundwater reservoir parameters (if ModFlow is not used) used to comp  m    
+    maxGWCapRise                           influence of capillary rise above groundwater level                     m    
+    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
+    =====================================  ======================================================================  =====
 
     **Functions**
     """

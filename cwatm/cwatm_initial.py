@@ -23,6 +23,7 @@ from cwatm.hydrological_modules.evaporation import evaporation
 from cwatm.hydrological_modules.groundwater import groundwater
 from cwatm.hydrological_modules.groundwater_modflow.transient import groundwater_modflow
 from cwatm.hydrological_modules.water_demand.water_demand import water_demand
+from cwatm.hydrological_modules.water_demand.wastewater import waterdemand_wastewater as wastewater
 from cwatm.hydrological_modules.capillarRise import capillarRise
 from cwatm.hydrological_modules.interception import interception
 from cwatm.hydrological_modules.runoff_concentration import runoff_concentration
@@ -34,6 +35,7 @@ from cwatm.hydrological_modules.lakes_reservoirs import lakes_reservoirs
 from cwatm.hydrological_modules.waterquality1 import waterquality1
 
 from cwatm.management_modules.output import *
+from cwatm.management_modules.data_handling import *
 import os, glob
 
 
@@ -105,6 +107,7 @@ class CWATModel_ini(DynamicModel):
         self.groundwater_module = groundwater(self)
         self.groundwater_modflow_module = groundwater_modflow(self)
         self.waterdemand_module = water_demand(self)
+        self.wastewater_module = wastewater(self)
         self.capillarRise_module = capillarRise(self)
         self.interception_module = interception(self)
         self.sealed_water_module = sealed_water(self)
@@ -120,9 +123,14 @@ class CWATModel_ini(DynamicModel):
         # reading of the metainformation of variables to put into output netcdfs
         metaNetCDF()
 
+        # test if ModFlow coupling is used as defined in settings file
+        self.var.modflow = False
+        if "modflow_coupling" in option:
+            self.var.modflow = checkOption('modflow_coupling')
+
         ## MakMap: the maskmap is flexible e.g. col,row,x1,y1  or x1,x2,y1,y2
         # set the maskmap
-        self.MaskMap = loadsetclone(self,'MaskMap')
+        self.MaskMap = loadsetclone(self, 'MaskMap')
         # run intial misc to get all global variables
         self.misc_module.initial()
         self.init_module.initial()
@@ -135,12 +143,13 @@ class CWATModel_ini(DynamicModel):
         self.snowfrost_module.initial()
         self.soil_module.initial()
 
-        if not(Flags['calib']):
-            self.groundwater_modflow_module.initial()
         # groundwater before meteo, bc it checks steady state
+        if self.var.modflow and not(Flags['calib']):
+            self.groundwater_modflow_module.initial()
+        else:
+            self.groundwater_module.initial()
 
         self.landcoverType_module.initial()
-        self.groundwater_module.initial()
 
         self.runoff_concentration_module.initial()
         self.lakes_res_small_module.initial()

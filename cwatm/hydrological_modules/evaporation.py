@@ -9,6 +9,7 @@
 # -------------------------------------------------------------------------
 
 from cwatm.management_modules.data_handling import *
+import re
 
 class evaporation(object):
     """
@@ -77,60 +78,70 @@ class evaporation(object):
                 # I. new start
                 if dateVar['newStart']:
 
-                    for z in ['ratio_a_p_nonIrr', 'ratio_a_p_Irr',
-                              'fracCrops_IrrLandDemand', 'fracCrops_Irr', 'fracCrops_nonIrrLandDemand', 'fracCrops_nonIrr',
+                    for z in ['irrM3_Paddy_month_segment', 'irr_Paddy_month', 'irr_crop', 'irr_crop_month', 'irrM3_crop_month_segment', 'ratio_a_p_nonIrr', 'ratio_a_p_Irr',
+                              'fracCrops_IrrLandDemand', 'fracCrops_Irr', 'areaCrops_Irr_segment', 'areaCrops_nonIrr_segment', 'fracCrops_nonIrrLandDemand', 'fracCrops_nonIrr',
                               'activatedCrops', 'monthCounter', 'currentKC', 'totalPotET_month', 'PET_cropIrr_m3',
                               'actTransTotal_month_Irr', 'actTransTotal_month_nonIrr', 'currentKY', 'Yield_Irr',
-                              'Yield_nonIrr', 'actTransTotal_crops_Irr', 'actTransTotal_crops_nonIrr']:
+                              'Yield_nonIrr', 'actTransTotal_crops_Irr', 'actTransTotal_crops_nonIrr', 'PotET_crop', 'PotETaverage_crop_segments', 'totalPotET_month_segment']:
                         vars(self.var)[z] = np.tile(globals.inZero, (len(self.var.Crops), 1))
 
+                    self.var.irr_Paddy_month = globals.inZero
+                    for z in [crop for crop in self.var.Crops_names]:
+                        vars(self.var)[z + '_Irr'] = globals.inZero
+                        vars(self.var)[z + '_nonIrr'] = globals.inZero
+
                     # The general crops are representative vegetation.
-                    self.var.GeneralCrop_nonIrr = globals.inZero.copy()
-                    self.var.GeneralCrop_Irr = globals.inZero.copy()
 
-                    self.var.frac_totalIrr = globals.inZero.copy()
-                    self.var.frac_totalnonIrr = globals.inZero.copy()
-                    self.var.frac_totalIrr_max = globals.inZero.copy()
-                    self.var.frac_totalnonIrr_max = globals.inZero.copy()
-
-
-
-                    # to keep a previous planting
-                    crop_inflate_factor = 1
-                    for i in range(len(self.var.Crops)):
-
-                        self.var.fracCrops_IrrLandDemand[i] = np.where(
-                            loadmap(self.var.Crops_names[i] + '_Irr') * crop_inflate_factor <= 1,
-                            loadmap(self.var.Crops_names[i] + '_Irr') * crop_inflate_factor, 1)
-                        self.var.fracCrops_nonIrrLandDemand[i] = np.where(
-                            loadmap(self.var.Crops_names[i] + '_nonIrr') * crop_inflate_factor <= 1,
-                            loadmap(self.var.Crops_names[i] + '_nonIrr') * crop_inflate_factor,
-                            1)
-
-
-                    self.var.fallowIrr_max = globals.inZero.copy()
-                    self.var.fallownonIrr_max = globals.inZero.copy()
-                    self.var.fallowIrr_max = self.var.load_initial('frac_totalIrr_max')
-                    self.var.fallownonIrr_max = self.var.load_initial('frac_totalnonIrr_max')
-
-                    # activatedCrops[c] = 1 where crop c is planned in at least 0.001% of the cell, and 0 otherwise.
                     for c in range(len(self.var.Crops)):
 
-                        self.var.activatedCrops[c] = (self.var.fracCrops_IrrLandDemand[c] +
-                                                      self.var.fracCrops_nonIrrLandDemand[c] + 0.99999) // 1
-                        self.var.activatedCrops[c] = np.maximum(
-                            self.var.load_initial("activatedCrops_" + str(c)), self.var.activatedCrops[c])
-
+                        self.var.activatedCrops[c] = self.var.load_initial("activatedCrops_" + str(c))
                         self.var.fracCrops_Irr[c] = self.var.load_initial('fracCrops_Irr_' + str(c))
                         self.var.fracCrops_nonIrr[c] = self.var.load_initial('fracCrops_nonIrr_' + str(c))
                         self.var.monthCounter[c] = self.var.load_initial("monthCounter_" + str(c))
+
+                if dateVar['newStart'] or dateVar['newYear']:
+
+                    crop_inflate_factor = 1
+                    for i in range(len(self.var.Crops)):
+
+                        try:
+                            self.var.fracCrops_IrrLandDemand[i] = np.where(
+                                loadmap(self.var.Crops_names[i] + '_Irr') * crop_inflate_factor <= 1,
+                                loadmap(self.var.Crops_names[i] + '_Irr') * crop_inflate_factor, 1)
+                            self.var.fracCrops_nonIrrLandDemand[i] = np.where(
+                                loadmap(self.var.Crops_names[i] + '_nonIrr') * crop_inflate_factor <= 1,
+                                loadmap(self.var.Crops_names[i] + '_nonIrr') * crop_inflate_factor,
+                                1)
+
+                        except:
+
+                            self.var.fracCrops_IrrLandDemand[i] = readnetcdf2(self.var.Crops_names[i] + '_Irr', dateVar['currDate'],
+                                                                  'yearly',
+                                                                  value=re.split('[^a-zA-Z0-9_[\]]', cbinding(self.var.Crops_names[i] + '_Irr'))[-2])
+
+
+                            self.var.fracCrops_nonIrrLandDemand[i] = readnetcdf2(self.var.Crops_names[i] + '_nonIrr', dateVar['currDate'],
+                                                                  'yearly',
+                                                                  value=re.split('[^a-zA-Z0-9_[\]]', cbinding(self.var.Crops_names[i] + '_nonIrr'))[-2])
+
+                        # in two places
+                        if 'crops_leftoverNotIrrigated' in binding:
+                            if i <= int(cbinding('crops_leftoverNotIrrigated')):
+                                #print('in evaporation: some crops not rainfed')
+                                self.var.fracCrops_nonIrrLandDemand[i] = globals.inZero.copy()
+
+                        # activatedCrops[c] = 1 where crop c is planned in at least 0.001% of the cell, and 0 otherwise.
+                        self.var.activatedCrops[i] = np.minimum(np.maximum((self.var.fracCrops_IrrLandDemand[i] +
+                                                                            self.var.fracCrops_nonIrrLandDemand[i] + 0.99999) // 1,
+                                                                           self.var.activatedCrops[i]), 1)
+
 
 
                 if dateVar['currDate'].day == 1:
 
                     if checkOption('moveIrrFallowToNonIrr'):
 
-                        # The irrigated land classes may have given up its fallow land to the grasslands land class.
+                        # The irrigated land class may have given up fallow land to the grasslands land class.
                         # If this is the case, these fallow lands are returned to the irrigated land class briefly to
                         # allow them to be planted on in the irrigated land class, and then returned to the
                         # grasslands land class.
@@ -181,6 +192,8 @@ class evaporation(object):
                         self.var.totalPotET_month[c] = globals.inZero.copy()
                         self.var.actTransTotal_month_nonIrr[c] = globals.inZero.copy()
                         self.var.actTransTotal_month_Irr[c] = globals.inZero.copy()
+                        self.var.irr_crop_month[c] = globals.inZero.copy()
+                        self.var.irr_Paddy_month = globals.inZero.copy()
 
                         # Harvest crops that are finished growing: reset month counter and KC. New seeds are sown after harvesting towards the end.
                         self.var.monthCounter[c] = np.where(self.var.monthCounter[c] > self.var.Crops[c][-1][0], 0,
@@ -201,7 +214,7 @@ class evaporation(object):
                                                              self.var.Crops[c][a + 1][2], self.var.currentKY[c])
 
                         # This calculates the current land being used for irrigated and non-irrigated crops
-                        frac_totalIrr, frac_totalnonIrr = 0, 0
+                        frac_totalIrr, frac_totalnonIrr = globals.inZero.copy(), globals.inZero.copy()
                         for i in range(len(self.var.Crops)):
                             frac_totalIrr += self.var.fracCrops_Irr[i]
                             frac_totalnonIrr += self.var.fracCrops_nonIrr[i]
@@ -221,6 +234,10 @@ class evaporation(object):
                         if checkOption('leftoverIrrigatedCropIsRainfed'):
                             self.var.fracCrops_nonIrrLandDemand[c] = self.var.fracCrops_IrrLandDemand[c] - \
                                                                      self.var.fracCrops_Irr[c]
+
+                            if 'crops_leftoverNotIrrigated' in binding:
+                                if c <= int(cbinding('crops_leftoverNotIrrigated')):
+                                    self.var.fracCrops_nonIrrLandDemand[c] = globals.inZero.copy()
 
                         self.var.fracCrops_nonIrr[c] = np.where(
                             self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 0,
@@ -255,99 +272,111 @@ class evaporation(object):
                             self.var.Crops[c][1][2],
                             self.var.currentKY[c])
 
-            if No == 3 and (dateVar['newStart'] or dateVar['currDate'].day == 1):
+                #if No == 3 and (dateVar['newStart'] or dateVar['currDate'].day == 1):
+                if dateVar['newStart'] or dateVar['currDate'].day == 1:
 
-                frac_totalIrr, frac_totalnonIrr = globals.inZero.copy(), globals.inZero.copy()
-                for i in range(len(self.var.Crops)):
-                    frac_totalIrr += self.var.fracCrops_Irr[i]
-                    frac_totalnonIrr += self.var.fracCrops_nonIrr[i]
+                    frac_totalIrr, frac_totalnonIrr = globals.inZero.copy(), globals.inZero.copy()
+                    for i in range(len(self.var.Crops)):
+                        frac_totalIrr += self.var.fracCrops_Irr[i]
+                        frac_totalnonIrr += self.var.fracCrops_nonIrr[i]
 
-                self.var.frac_totalIrr = frac_totalIrr.copy()
-                self.var.frac_totalnonIrr = frac_totalnonIrr.copy()
+                    self.var.frac_totalIrr = frac_totalIrr.copy()
+                    self.var.frac_totalnonIrr = frac_totalnonIrr.copy()
 
-                self.var.frac_totalIrr_max = np.maximum(frac_totalIrr, self.var.frac_totalIrr_max)
-                self.var.frac_totalnonIrr_max = np.maximum(frac_totalnonIrr, self.var.frac_totalnonIrr_max)
-                self.var.generalIrrCrop_max = self.var.fracVegCover[3] - self.var.frac_totalIrr_max
-                self.var.generalnonIrrCrop_max = self.var.fracVegCover[1] - self.var.frac_totalnonIrr_max
+                    self.var.frac_totalIrr_max = np.maximum(frac_totalIrr, self.var.frac_totalIrr_max)
+                    self.var.frac_totalnonIrr_max = np.maximum(frac_totalnonIrr, self.var.frac_totalnonIrr_max)
+                    # UNDER CONSTRUCTION: Automatic fallowing for irrigated land
+                    self.var.generalIrrCrop_max = np.maximum(self.var.fracVegCover[3] - self.var.frac_totalIrr_max, globals.inZero.copy())
+                    self.var.generalnonIrrCrop_max = np.maximum(self.var.fracVegCover[1] - self.var.frac_totalnonIrr_max, globals.inZero.copy())
 
-                # The representative vegetation is determined from a specific user-input map, as compared to being
-                # determined automatically otherwise.
-                if 'GeneralCrop_Irr' in binding and True and checkOption('use_GeneralCropIrr') == True:
-                    self.var.GeneralCrop_Irr = loadmap('GeneralCrop_Irr')
-                    self.var.GeneralCrop_Irr = np.minimum(self.var.fracVegCover[3] - frac_totalIrr,
-                                                          self.var.GeneralCrop_Irr)
+                    # The representative vegetation is determined from a specific user-input map, as compared to being
+                    # determined automatically otherwise.
+                    if 'GeneralCrop_Irr' in binding and checkOption('use_GeneralCropIrr') == True:
+                        self.var.GeneralCrop_Irr = loadmap('GeneralCrop_Irr')
+                        self.var.GeneralCrop_Irr = np.minimum(self.var.fracVegCover[3] - frac_totalIrr,
+                                                              self.var.GeneralCrop_Irr)
 
-                # Fallowing and general crop are determined automatically, and are not specific input maps.
-                elif checkOption('use_GeneralCropIrr') == False:
+                    # Fallowing and general crop are determined automatically, and are not specific input maps.
+                    elif checkOption('use_GeneralCropIrr') == False:
 
-                    # Fallow land exists alongside general land as non-specific crop options.
-                    if checkOption('activate_fallow') == True:
+                        # Fallow land exists alongside general land as non-specific crop options.
+                        if checkOption('activate_fallow') == True:
 
-                        # Crop land that has been previously planted by a specific-crop is fallowed between plantings.
-                        if checkOption('automaticFallowingIrr') == True:
-                            self.var.GeneralCrop_Irr = self.var.generalIrrCrop_max.copy()
+                            # Crop land that has been previously planted by a specific-crop is fallowed between plantings.
+                            if checkOption('automaticFallowingIrr') == True:
+                                self.var.GeneralCrop_Irr = self.var.generalIrrCrop_max.copy()
 
-                        # With the interest in fallowing without automatic fallowing nor a specific input map implies
-                        # the scenario without general lands -- only specific planted crops and fallow land.
+                            # With the interest in fallowing without automatic fallowing nor a specific input map implies
+                            # the scenario without general lands -- only specific planted crops and fallow land.
+                            else:
+                                self.var.GeneralCrop_Irr = globals.inZero.copy()
+
                         else:
-                            self.var.GeneralCrop_Irr = globals.inZero.copy()
-
-                    else:
-                        # activate_fallow = False implies that all non-planted grassland and non-paddy land is made
-                        # to be representative vegetation.
-                        self.var.GeneralCrop_Irr = self.var.fracVegCover[3] - self.var.frac_totalIrr
-
-                self.var.weighted_KC_Irr = self.var.GeneralCrop_Irr * self.var.cropKC_landCover[3]
-
-                self.var.fallowIrr = self.var.fracVegCover[3] - (self.var.frac_totalIrr + self.var.GeneralCrop_Irr)
-                self.var.fallowIrr_max = np.maximum(self.var.fallowIrr, self.var.fallowIrr_max)
-
-                # Updating irrigated land to not include fallow
-                # Irrigated fallow land is moved to non-irrigated fallow land. Irrigated fallow land is
-
-                if checkOption('moveIrrFallowToNonIrr'):
-
-                    self.var.fracVegCover[3] = self.var.frac_totalIrr + self.var.GeneralCrop_Irr
-                    remainderLand = np.maximum(
-                        globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
-                        self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
-                        globals.inZero.copy())
-
-                    self.var.fracVegCover[1] = remainderLand.copy()
+                            # activate_fallow = False implies that all non-planted grassland and non-paddy land is made
+                            # to be representative vegetation.
+                            self.var.GeneralCrop_Irr = self.var.fracVegCover[3] - self.var.frac_totalIrr
 
 
-                for c in range(len(self.var.Crops)):
-                    self.var.weighted_KC_Irr += self.var.fracCrops_Irr[c] * self.var.currentKC[c]
-                self.var.weighted_KC_Irr /= self.var.fracVegCover[3]
 
-                self.var.cropKC[3] = np.where(self.var.fracVegCover[3] > 0, self.var.weighted_KC_Irr, 0)
+                    self.var.fallowIrr = self.var.fracVegCover[3] - (self.var.frac_totalIrr + self.var.GeneralCrop_Irr)
+                    self.var.fallowIrr_max = np.maximum(self.var.fallowIrr, self.var.fallowIrr_max)
 
-                if 'GeneralCrop_nonIrr' in binding and checkOption('use_GeneralCropnonIrr') == True:
+                    # Updating irrigated land to not include fallow
+                    # Irrigated fallow land is moved to non-irrigated fallow land. Irrigated fallow land is
 
-                    self.var.GeneralCrop_nonIrr = loadmap('GeneralCrop_nonIrr')
-                    self.var.GeneralCrop_nonIrr = np.minimum(self.var.fracVegCover[1] - frac_totalnonIrr,
-                                                             self.var.GeneralCrop_nonIrr)
+                    #UNDER CONSTRUCTION
+                    if checkOption('moveIrrFallowToNonIrr'):
 
-                elif checkOption('use_GeneralCropnonIrr') == False:
-                    if checkOption('activate_fallow') == True:
-                        # if fallow is activated, it must be automatically generated for non-irrigated lands, or not at all, but necessary if activated, which is suggested
-                        self.var.GeneralCrop_nonIrr = self.var.generalnonIrrCrop_max.copy()
-                    else:
-                        self.var.GeneralCrop_nonIrr = self.var.fracVegCover[1] - self.var.frac_totalnonIrr
+                        self.var.fracVegCover[3] = self.var.frac_totalIrr + self.var.GeneralCrop_Irr
+                        remainderLand = np.maximum(
+                            globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
+                            self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
+                            globals.inZero.copy())
+
+                        self.var.fracVegCover[1] = remainderLand.copy()
+
+
+                    if 'GeneralCrop_nonIrr' in binding and checkOption('use_GeneralCropnonIrr') == True:
+
+                        self.var.GeneralCrop_nonIrr = loadmap('GeneralCrop_nonIrr')
+                        self.var.GeneralCrop_nonIrr = np.minimum(self.var.fracVegCover[1] - frac_totalnonIrr,
+                                                                 self.var.GeneralCrop_nonIrr)
+
+                    elif checkOption('use_GeneralCropnonIrr') == False:
+                        if checkOption('activate_fallow') == True:
+                            self.var.GeneralCrop_nonIrr = self.var.generalnonIrrCrop_max.copy()
+                        else:
+                            self.var.GeneralCrop_nonIrr = self.var.fracVegCover[1] - self.var.frac_totalnonIrr
+
+                    self.var.fallownonIrr = self.var.fracVegCover[1] - (
+                            self.var.frac_totalnonIrr + self.var.GeneralCrop_nonIrr)
+                    self.var.fallownonIrr_max = np.maximum(self.var.fallownonIrr, self.var.fallownonIrr_max)
+
+                    self.var.availableArableLand = self.var.fallowIrr + self.var.fracVegCover[1] - frac_totalnonIrr
+
+            if No == 1:
 
                 self.var.weighted_KC_nonIrr = self.var.GeneralCrop_nonIrr * self.var.cropKC_landCover[1]
-
-                self.var.fallownonIrr = self.var.fracVegCover[1] - (
-                        self.var.frac_totalnonIrr + self.var.GeneralCrop_nonIrr)
-                self.var.fallownonIrr_max = np.maximum(self.var.fallownonIrr, self.var.fallownonIrr_max)
-
-                self.var.availableArableLand = self.var.fallowIrr + self.var.fracVegCover[1] - frac_totalnonIrr
-
                 for c in range(len(self.var.Crops)):
                     self.var.weighted_KC_nonIrr += self.var.fracCrops_nonIrr[c] * self.var.currentKC[c]
-                self.var.weighted_KC_nonIrr /= self.var.fracVegCover[1]
+                self.var.weighted_KC_nonIrr_woFallow = self.var.weighted_KC_nonIrr.copy()
 
-                self.var.cropKC[1] = np.where(self.var.fracVegCover[1] > 0, self.var.weighted_KC_nonIrr, 0)
+                self.var.weighted_KC_nonIrr += self.var.fallownonIrr * self.var.minCropKC
+                self.var.weighted_KC_nonIrr = np.where(self.var.fracVegCover[1] > 0,
+                                                    self.var.weighted_KC_nonIrr / self.var.fracVegCover[1], 0)
+                self.var.cropKC[1] = self.var.weighted_KC_nonIrr.copy()
+
+            if No == 3:
+
+                self.var.weighted_KC_Irr = self.var.GeneralCrop_Irr * self.var.cropKC_landCover[3]
+                for c in range(len(self.var.Crops)):
+                    self.var.weighted_KC_Irr += self.var.fracCrops_Irr[c] * self.var.currentKC[c]
+                self.var.weighted_KC_Irr_woFallow = self.var.weighted_KC_Irr.copy()
+
+                self.var.weighted_KC_Irr += self.var.fallowIrr * self.var.minCropKC
+                self.var.weighted_KC_Irr = np.where(self.var.fracVegCover[3] > 0,
+                                                    self.var.weighted_KC_Irr / self.var.fracVegCover[3], 0)
+                self.var.cropKC[3] = self.var.weighted_KC_Irr.copy()
 
         # calculate potential ET
         ##  self.var.totalPotET total potential evapotranspiration for a reference crop for a land cover class [m]
@@ -357,16 +386,46 @@ class evaporation(object):
 
 
         ## potTranspiration: Transpiration for each land cover class
-        self.var.potTranspiration[No] = np.maximum(0.,self.var.totalPotET[No] - self.var.potBareSoilEvap - self.var.snowEvap)
+        self.var.potTranspiration[No] = np.maximum(0., self.var.totalPotET[No] - self.var.potBareSoilEvap) #Dealt with above - self.var.snowEvap)
 
         if self.var.includeCrops: #checkOption('includeCrops') and checkOption('includeCropSpecificWaterUse'):
-            if No == 3:
+
+            if No == 3: #only goes through ones
+
                 for c in range(len(self.var.Crops)):
 
-                    self.var.totalPotET_month[c] += np.maximum(0., self.var.cropCorrect * self.var.currentKC[c] * self.var.ETRef - self.var.potBareSoilEvap - self.var.snowEvap)
-                    self.var.PET_cropIrr_m3[c] = self.var.cropCorrect * self.var.currentKC[c] * self.var.ETRef * \
-                                                 self.var.fracCrops_Irr[
-                                                     c] * self.var.cellArea
+                    self.var.PotET_crop[c] = self.var.cropCorrect * self.var.currentKC[c] * self.var.ETRef
+                    self.var.totalPotET_month[c] += self.var.PotET_crop[c] #self.var.cropCorrect * self.var.currentKC[c] * self.var.ETRef #np.maximum(0., self.var.cropCorrect * self.var.currentKC[c] * self.var.ETRef - self.var.potBareSoilEvap - self.var.snowEvap)
+
+                    #For creating named crop maps
+                    #vars(self.var)[self.var.Crops_names[c]+'_Irr'] = self.var.fracCrops_Irr[c].copy()
+                    #vars(self.var)[self.var.Crops_names[c] + '_nonIrr'] = self.var.fracCrops_nonIrr[c].copy()
+
+                    if 'adminSegments' in binding:
+                        self.var.totalPotET_month_segment[c] = npareaaverage(self.var.totalPotET_month[c], self.var.adminSegments)
+                        self.var.PotETaverage_crop_segments[c] = npareaaverage(self.var.PotET_crop[c], self.var.adminSegments)
+
+                        self.var.areaCrops_Irr_segment[c] = npareatotal(self.var.fracCrops_Irr[c] * self.var.cellArea,
+                                                                        self.var.adminSegments)
+
+                        self.var.areaCrops_nonIrr_segment[c] = npareatotal(
+                            self.var.fracCrops_nonIrr[c] * self.var.cellArea,
+                            self.var.adminSegments)
+
+
+                if 'adminSegments' in binding:
+                    self.var.areaPaddy_Irr_segment = npareatotal(self.var.fracVegCover[2] * self.var.cellArea,
+                                                             self.var.adminSegments)
+
+                    self.var.Precipitation_segment = npareatotal(self.var.Precipitation * self.var.cellArea,
+                                                                 self.var.adminSegments)
+
+                    self.var.availableArableLand_segment = npareatotal(self.var.availableArableLand * self.var.cellArea,
+                                                                        self.var.adminSegments)
+
+
+
+
 
         if checkOption('calcWaterBalance'):
             self.model.waterbalance_module.waterBalanceCheck(

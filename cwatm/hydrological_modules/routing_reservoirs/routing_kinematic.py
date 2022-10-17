@@ -23,77 +23,104 @@ class routing_kinematic(object):
 
     **Global variables**
 
-    ====================  ================================================================================  =========
-    Variable [self.var]   Description                                                                       Unit     
-    ====================  ================================================================================  =========
-    load_initial                                                                                                     
-    inflowM3              inflow to basin                                                                   m3       
-    waterBodyID           lakes/reservoirs map with a single ID for each lake/reservoir                     --       
-    dirUp                 river network in upstream direction                                               --       
-    dirupLen_LR           number of bifurcation upstream lake/reservoir                                     --       
-    dirupID_LR            index river upstream lake/reservoir                                               --       
-    dirDown_LR            river network direktion downstream lake/reservoir                                 --       
-    lendirDown_LR         number of river network connections lake/reservoir                                --       
-    compress_LR           boolean map as mask map for compressing lake/reservoir                            --       
-    lakeArea              area of each lake/reservoir                                                       m2       
-    lakeEvaFactorC        compressed map of a factor which increases evaporation from lake because of wind  --       
-    EvapWaterBodyM                                                                                                   
-    lakeResInflowM                                                                                                   
-    lakeResOutflowM                                                                                                  
-    downstruct                                                                                                       
-    DtSec                 number of seconds per timestep (default = 86400)                                  s        
-    cellArea              Area of cell                                                                      m2       
-    EWRef                 potential evaporation rate from water surface                                     m        
-    QInM3Old              Inflow from previous day                                                          m3       
-    UpArea1               upstream area of a grid cell                                                      m2       
-    lddCompress           compressed river network (without missing values)                                 --       
-    lakeEvaFactor         a factor which increases evaporation from lake because of wind                    --       
-    dtRouting             number of seconds per routing timestep                                            s        
-    evapWaterBodyC                                                                                                   
-    sumLakeEvapWaterBody                                                                                             
-    noRoutingSteps                                                                                                   
-    sumResEvapWaterBodyC                                                                                             
-    discharge             discharge                                                                         m3/s     
-    prelakeResStorage                                                                                                
-    catchmentAll                                                                                                     
-    sumsideflow                                                                                                      
-    EvapoChannel                                                                                                     
-    prechannelStorage                                                                                                
-    channelStorage                                                                                                   
-    chanLength                                                                                                       
-    totalCrossSectionAre                                                                                             
-    dirupLen                                                                                                         
-    dirupID                                                                                                          
-    catchment                                                                                                        
-    dirDown                                                                                                          
-    lendirDown                                                                                                       
-    UpArea                                                                                                           
-    beta                                                                                                             
-    chanMan                                                                                                          
-    chanGrad                                                                                                         
-    chanWidth                                                                                                        
-    chanDepth                                                                                                        
-    invbeta                                                                                                          
-    invchanLength                                                                                                    
-    invdtRouting                                                                                                     
-    totalCrossSectionAre                                                                                             
-    chanWettedPerimeterA                                                                                             
-    alpPower                                                                                                         
-    channelAlpha                                                                                                     
-    invchannelAlpha                                                                                                  
-    riverbedExchange                                                                                                 
-    QDelta                                                                                                           
-    inflowDt                                                                                                         
-    dis_outlet                                                                                                       
-    runoff                                                                                                           
-    fracVegCover          Fraction of specific land covers (0=forest, 1=grasslands, etc.)                   %        
-    openWaterEvap         Simulated evaporation from open areas                                             m        
-    lakeResStorage                                                                                                   
-    act_SurfaceWaterAbst                                                                                             
-    returnFlow                                                                                                       
-    act_bigLakeResAbst                                                                                               
-    act_smallLakeResAbst                                                                                             
-    ====================  ================================================================================  =========
+    =====================================  ======================================================================  =====
+    Variable [self.var]                    Description                                                             Unit 
+    =====================================  ======================================================================  =====
+    load_initial                           Settings initLoad holds initial conditions for variables                input
+    inflowM3                               inflow to basin                                                         m3   
+    Crops                                  Internal: List of specific crops and Kc/Ky parameters                        
+    waterBodyID                            lakes/reservoirs map with a single ID for each lake/reservoir           --   
+    dirUp                                  river network in upstream direction                                     --   
+    dirupLen_LR                            number of bifurcation upstream lake/reservoir                           --   
+    dirupID_LR                             index river upstream lake/reservoir                                     --   
+    dirDown_LR                             river network direktion downstream lake/reservoir                       --   
+    lendirDown_LR                          number of river network connections lake/reservoir                      --   
+    compress_LR                            boolean map as mask map for compressing lake/reservoir                  --   
+    lakeArea                               area of each lake/reservoir                                             m2   
+    lakeEvaFactorC                         compressed map of a factor which increases evaporation from lake becau  --   
+    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   m    
+    lakeResInflowM                                                                                                      
+    lakeResOutflowM                                                                                                     
+    downstruct                                                                                                          
+    riverbedExchangeM3                                                                                                  
+    sum_openWaterEvap                                                                                                   
+    DtSec                                  number of seconds per timestep (default = 86400)                        s    
+    cellArea                               Area of cell                                                            m2   
+    ETRef                                  potential evapotranspiration rate from reference crop                   m    
+    EWRef                                  potential evaporation rate from water surface                           m    
+    QInM3Old                               Inflow from previous day                                                m3   
+    UpArea1                                upstream area of a grid cell                                            m2   
+    lddCompress                            compressed river network (without missing values)                       --   
+    lakeEvaFactor                          a factor which increases evaporation from lake because of wind          --   
+    dtRouting                              number of seconds per routing timestep                                  s    
+    evapWaterBodyC                         Compressed version of EvapWaterBodyM                                    m    
+    sumLakeEvapWaterBodyC                                                                                               
+    noRoutingSteps                                                                                                      
+    sumResEvapWaterBodyC                                                                                                
+    discharge                              discharge                                                               m3/s 
+    inflowDt                                                                                                            
+    prelakeResStorage                                                                                                   
+    catchmentAll                                                                                                        
+    sumsideflow                                                                                                         
+    EvapoChannel                           Channel evaporation                                                     m3   
+    prechannelStorage                                                                                                   
+    chanLength                             Input, Channel length                                                   m    
+    totalCrossSectionArea                                                                                               
+    dirupLen                                                                                                            
+    dirupID                                                                                                             
+    catchment                                                                                                           
+    dirDown                                                                                                             
+    lendirDown                                                                                                          
+    UpArea                                                                                                              
+    beta                                                                                                                
+    chanMan                                Input, Channel Manning's roughness coefficient                               
+    chanGrad                                                                                                            
+    chanWidth                              Input, Channel width                                                    m    
+    chanDepth                              Input, Channel depth                                                    m    
+    invbeta                                                                                                             
+    invchanLength                                                                                                       
+    invdtRouting                                                                                                        
+    totalCrossSectionAreaBankFull                                                                                       
+    chanWettedPerimeterAlpha                                                                                            
+    alpPower                                                                                                            
+    channelAlpha                                                                                                        
+    invchannelAlpha                                                                                                     
+    riverbedExchange                                                                                                    
+    Xcel                                                                                                                
+    QDelta                                                                                                              
+    dis_outlet                                                                                                          
+    humanConsumption                                                                                                    
+    humanUse                                                                                                            
+    natureUse                                                                                                           
+    ETRefAverage_segments                                                                                               
+    precipEffectiveAverage_segments                                                                                     
+    head_segments                          Simulated water level, averaged over adminSegments [masl]                    
+    gwdepth_adjusted_segments              Adjusted depth to groundwater table, averaged over adminSegments        m    
+    gwdepth_segments                       Groundwater depth, averaged over adminSegments                          m    
+    adminSegments_area                     Spatial area of domestic agents                                         m2   
+    runoff                                                                                                              
+    openWaterEvap                          Simulated evaporation from open areas                                   m    
+    infiltration                           Water actually infiltrating the soil                                    m    
+    actTransTotal_paddy                    Transpiration from paddy land cover                                     m    
+    actTransTotal_nonpaddy                 Transpiration from non-paddy land cover                                 m    
+    actTransTotal_crops_nonIrr             Transpiration associated with specific non-irr crops                    m    
+    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
+    head                                   Simulated ModFlow water level [masl]                                    m    
+    gwdepth_adjusted                       Adjusted depth to groundwater table                                     m    
+    gwdepth                                Depth to groundwater table                                              m    
+    lakeResStorage                                                                                                      
+    act_SurfaceWaterAbstract               Surface water abstractions                                              m    
+    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
+    addtoevapotrans                        Irrigation application loss to evaporation                              m    
+    act_irrWithdrawal                      Irrigation withdrawals                                                  m    
+    act_nonIrrConsumption                  Non-irrigation consumption                                              m    
+    returnFlow                                                                                                          
+    adminSegments                          Domestic agents                                                         Int  
+    act_nonIrrWithdrawal                   Non-irrigation withdrawals                                              m    
+    channelStorage                         Channel water storage                                                   m3   
+    act_bigLakeResAbst                     Abstractions to satisfy demands from lakes and reservoirs               m    
+    act_smallLakeResAbst                   Abstractions from small lakes at demand location                        m    
+    =====================================  ======================================================================  =====
 
     **Functions**
     """
@@ -287,6 +314,7 @@ class routing_kinematic(object):
             #self.var.catchmentNo = int(loadmap('CatchmentNo'))
             #self.var.sumbalance = 0
 
+        self.var.Xcel = []
 
 
     # --------------------------------------------------------------------------
@@ -479,14 +507,32 @@ class routing_kinematic(object):
 
         # maybe later, but for now it is known as m3
         #self.var.EvapoChannel = self.var.EvapoChannel / self.var.cellArea
+
+
+        self.var.humanConsumption = globals.inZero.copy()
+        self.var.humanUse = globals.inZero.copy()
+        self.var.natureUse = globals.inZero.copy()
+        if 'includeCrops' in option:
+            if checkOption('includeCrops'):
+                for i in range(len(self.var.Crops)):
+                    self.var.humanConsumption += self.var.actTransTotal_crops_nonIrr[i]
+                    self.var.humanUse += self.var.actTransTotal_crops_nonIrr[i]
+
+        #self.var.natureUse = actTransTotal_grasslands - self.var.humanUse + self.var.EvapoChannel + self.var.sum_actBareSoilEvap + self.var.sum_interceptEvap + self.var.EvapWaterBodyM
+
+        self.var.humanConsumption += self.var.act_nonIrrConsumption + self.var.actTransTotal_paddy + self.var.addtoevapotrans + self.var.actTransTotal_nonpaddy + self.var.sum_openWaterEvap
+        self.var.humanUse += self.var.act_nonIrrWithdrawal + self.var.act_irrWithdrawal #+ self.var.sum_openWaterEvap #+ self.var.leakage #+reservoir evaporation
+
         if 'adminSegments' in binding:
             self.var.ETRefAverage_segments = npareaaverage(self.var.ETRef, self.var.adminSegments)
-            self.var.rainAverage_segments = npareaaverage(self.var.Rain, self.var.adminSegments)
-            self.var.precipEffectiveAverage_segments = npareaaverage(np.where(self.var.infiltration[1]-self.var.actBareSoilEvap[1]>0,self.var.infiltration[1]-self.var.actBareSoilEvap[1],0), self.var.adminSegments)
-            self.var.precipEffectiveAverage_woBare_segments = npareaaverage(self.var.infiltration[1], self.var.adminSegments)
+            self.var.precipEffectiveAverage_segments = npareaaverage(self.var.infiltration[1], self.var.adminSegments)
+            if self.var.modflow:
+                self.var.head_segments = npareaaverage(self.var.head, self.var.adminSegments)
+                self.var.gwdepth_adjusted_segments = npareaaverage(self.var.gwdepth_adjusted, self.var.adminSegments)
+                self.var.gwdepth_segments = npareaaverage(self.var.gwdepth, self.var.adminSegments)
 
             #self.var.precipEffectiveAverage_segments = npareaaverage(self.var.Rain-self.var.interceptEvap[1]-self.var.actBareSoilEvap[1], self.var.adminSegments)
-            self.var.head_development_segments = npareaaverage(self.var.head_development, self.var.adminSegments)
+            #self.var.head_development_segments = npareaaverage(self.var.head_development, self.var.adminSegments)
             self.var.adminSegments_area = npareaaverage(
                 (self.var.fracVegCover[1] + self.var.fracVegCover[2] + self.var.fracVegCover[3]) * self.var.cellArea,
                 self.var.adminSegments)
