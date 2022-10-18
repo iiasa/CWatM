@@ -144,6 +144,8 @@ class runoff_concentration(object):
             self.var.includeGlaciers = False
             if 'includeGlaciers' in option:
                 self.var.includeGlaciers = checkOption('includeGlaciers')
+            if 'includeOnlyGlaciersMelt' in option:
+                self.var.includeOnlyGlaciersMelt = checkOption('includeOnlyGlaciersMelt')
                 
             if self.var.includeGlaciers:
                 self.var.tpeak_glaciers = runoffConc_factor * tpeak * loadmap("glaciers_runoff_peaktime")
@@ -225,10 +227,18 @@ class runoff_concentration(object):
 
         if self.var.includeGlaciers:
             #from m3/d to m/d by dividing by the cell area
-            self.var.directRunoffGlacier = np.divide(self.var.GlacierMelt + self.var.GlacierRain, (self.var.cellArea * self.var.fracGlacierCover), out=np.zeros_like(self.var.GlacierMelt), where=(self.var.cellArea * self.var.fracGlacierCover) != 0)
-            self.var.GlacierMelt = self.var.GlacierMelt / self.var.cellArea
-            self.var.GlacierRain = self.var.GlacierRain / self.var.cellArea
-            self.var.runoff += self.var.GlacierMelt + self.var.GlacierRain
+            if self.var.includeOnlyGlaciersMelt:
+                self.var.directRunoffGlacier = np.divide(self.var.GlacierMelt,
+                                                         (self.var.cellArea * self.var.fracGlacierCover),
+                                                         out=np.zeros_like(self.var.GlacierMelt),
+                                                         where=(self.var.cellArea * self.var.fracGlacierCover) != 0)
+                self.var.GlacierMelt = self.var.GlacierMelt / self.var.cellArea
+                self.var.runoff += self.var.GlacierMelt
+            else:
+                self.var.directRunoffGlacier = np.divide(self.var.GlacierMelt + self.var.GlacierRain, (self.var.cellArea * self.var.fracGlacierCover), out=np.zeros_like(self.var.GlacierMelt), where=(self.var.cellArea * self.var.fracGlacierCover) != 0)
+                self.var.GlacierMelt = self.var.GlacierMelt / self.var.cellArea
+                self.var.GlacierRain = self.var.GlacierRain / self.var.cellArea
+                self.var.runoff += self.var.GlacierMelt + self.var.GlacierRain
 
         #print(self.var.runoff)
         if checkOption('includeRunoffConcentration'):
