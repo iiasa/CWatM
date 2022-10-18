@@ -161,8 +161,11 @@ class readmeteo(object):
 
         # -------------------------------------------------------------------
         self.var.includeGlaciers = False
+        self.var.includeOnlyGlaciersMelt = False
         if 'includeGlaciers' in option:
             self.var.includeGlaciers = checkOption('includeGlaciers')
+        if 'includeOnlyGlaciersMelt' in option:
+            self.var.includeOnlyGlaciersMelt = checkOption('includeOnlyGlaciersMelt')
            
         self.var.preMaps = 'PrecipitationMaps'
         self.var.tempMaps = 'TavgMaps'
@@ -171,7 +174,8 @@ class readmeteo(object):
         
         if self.var.includeGlaciers:
             self.var.glaciermeltMaps = 'MeltGlacierMaps'
-            self.var.glacierrainMaps = 'PrecGlacierMaps'
+            if not self.var.includeOnlyGlaciersMelt:
+                self.var.glacierrainMaps = 'PrecGlacierMaps'
 
         self.var.only_radition = False
         if 'only_radiation' in binding:
@@ -190,12 +194,17 @@ class readmeteo(object):
                     meteomaps.append('RhsMaps')
 
             if self.var.includeGlaciers:
-                    meteomaps.append(self.var.glaciermeltMaps)
+                meteomaps.append(self.var.glaciermeltMaps)
+                if not self.var.includeOnlyGlaciersMelt:
                     meteomaps.append(self.var.glacierrainMaps)
 
         else:
             if self.var.includeGlaciers:
-                meteomaps = [self.var.preMaps, self.var.tempMaps, self.var.evaTMaps, self.var.eva0Maps, self.var.glaciermeltMaps, self.var.glacierrainMaps]
+                if not self.var.includeOnlyGlaciersMelt:
+                    meteomaps = [self.var.preMaps, self.var.tempMaps, self.var.evaTMaps, self.var.eva0Maps, self.var.glaciermeltMaps, self.var.glacierrainMaps]
+                else:
+                    meteomaps = [self.var.preMaps, self.var.tempMaps, self.var.evaTMaps, self.var.eva0Maps,
+                                 self.var.glaciermeltMaps]
             else:
                 meteomaps = [self.var.preMaps, self.var.tempMaps,self.var.evaTMaps,self.var.eva0Maps]
 
@@ -486,7 +495,8 @@ class readmeteo(object):
             self.var.EWRef = self.var.meteo[3,no]
             if self.var.includeGlaciers:
                 self.var.GlacierMelt = self.var.meteo[4, no]
-                self.var.GlacierRain = self.var.meteo[5, no]
+                if not self.var.includeOnlyGlaciersMelt:
+                    self.var.GlacierRain = self.var.meteo[5, no]
             return
 
         ZeroKelvin = 0.0
@@ -502,7 +512,8 @@ class readmeteo(object):
         
         if self.var.includeGlaciers:
             self.var.GlacierMelt = readmeteodata(self.var.glaciermeltMaps, dateVar['currDate'], addZeros=True, mapsscale = True)
-            self.var.GlacierRain = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True)
+            if not self.var.includeOnlyGlaciersMelt:
+                self.var.GlacierRain = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True)
 
         if self.var.meteodown:
             if self.var.InterpolationMethod == 'bilinear':
@@ -695,7 +706,10 @@ class readmeteo(object):
             # if first clibration run, store all meteo data in a variable
             if dateVar['curr'] == 1:
                 if self.var.includeGlaciers:
-                    self.var.meteo = np.zeros([6, 1 + dateVar["intEnd"] - dateVar["intStart"], len(self.var.Precipitation)])
+                    if not self.var.includeOnlyGlaciersMelt:
+                        self.var.meteo = np.zeros([6, 1 + dateVar["intEnd"] - dateVar["intStart"], len(self.var.Precipitation)])
+                    else:
+                        self.var.meteo = np.zeros([5, 1 + dateVar["intEnd"] - dateVar["intStart"], len(self.var.Precipitation)])
                 else:
                     self.var.meteo = np.zeros([4,1 + dateVar["intEnd"] - dateVar["intStart"],len(self.var.Precipitation)])
 
@@ -709,7 +723,8 @@ class readmeteo(object):
             
             if self.var.includeGlaciers:
                 self.var.meteo[4, no] = self.var.GlacierMelt
-                self.var.meteo[5, no] = self.var.GlacierRain
+                if not self.var.includeOnlyGlaciersMelt:
+                    self.var.meteo[5, no] = self.var.GlacierRain
             #self.var.ETRef_all.append(self.var.ETRef)
             #self.var.EWRef_all.append(self.var.EWRef)
             #self.var.Tavg_all.append(self.var.Tavg)
