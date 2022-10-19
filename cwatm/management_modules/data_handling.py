@@ -966,8 +966,39 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
         else:
             if buffering:
                 buffer = 1
-                mapnp = nf1.variables[value][idx, cutmapFine[2] - buffer:cutmapFine[3] + buffer,
-                cutmapFine[0] - buffer:cutmapFine[1] + buffer].astype(np.float64)
+                #          buffer1
+                #         ---------
+                # buffer3¦        ¦ buffer4
+                #        ¦        ¦
+                #         ---------
+                #          buffer2
+                buffer4, buffer2 = [1,1]
+                #if the input map should be used until the last column there is no buffer
+                if nf1.variables[value].shape[2] == cutmapFine[1]:
+                    buffer4 = 0
+                # if the input map should be used at the last row there is no buffer
+                if nf1.variables[value].shape[1] == cutmapFine[3]:
+                    buffer2 = 0
+                # if the input map should be used at the first row or column there is no buffer
+                if (cutmapFine[2] == 0) and (cutmapFine[0] == 0):
+                    mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3] + buffer2,
+                            cutmapFine[0]:cutmapFine[1] + buffer4].astype(np.float64)
+                    buffer1, buffer3 = [0,0]
+                # if the input map should be used at the first row there is no buffer
+                elif cutmapFine[2] == 0:
+                    mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3] + buffer2,
+                            cutmapFine[0] - buffer:cutmapFine[1] + buffer4].astype(np.float64)
+                    buffer1, buffer3 = [0, 1]
+                # if the input map should be used at the first column there is no buffer
+                elif cutmapFine[0] == 0:
+                    mapnp = nf1.variables[value][idx, cutmapFine[2] - buffer:cutmapFine[3] + buffer2,
+                            cutmapFine[0]:cutmapFine[1] + buffer4].astype(np.float64)
+                    buffer1, buffer3 = [1,0]
+                else:
+                    mapnp = nf1.variables[value][idx, cutmapFine[2] - buffer:cutmapFine[3] + buffer2,
+                            cutmapFine[0] - buffer:cutmapFine[1] + buffer4].astype(np.float64)
+                    buffer1, buffer3 = [1, 1]
+
             else:
                 mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]].astype(np.float64)
     else:
@@ -1011,7 +1042,11 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
         inputcounter[name] = 0
         flagmeteo[name] += 1
 
-    return mapC
+    if buffering:
+        buffer = [buffer1, buffer2, buffer3, buffer4]
+    else:
+        buffer = None
+    return mapC, buffer
 
 
 
