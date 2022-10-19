@@ -128,7 +128,7 @@ class readmeteo(object):
             if 'InterpolationMethod' in binding:
                 # interpolation option can be spline or bilinear
                 self.var.InterpolationMethod = cbinding('InterpolationMethod')
-                if self.var.InterpolationMethod != 'bilinear' and self.var.InterpolationMethod != 'spline':
+                if self.var.InterpolationMethod != 'bilinear' and self.var.InterpolationMethod != 'spline' and self.var.InterpolationMethod != 'peter':
                     msg = 'Error: InterpolationMethod in settings file must be one of the following: "spline" or  "bilinear", but it is {}'.format(self.var.InterpolationMethod)
                     raise CWATMError(msg)
                 if self.var.InterpolationMethod == 'bilinear':
@@ -294,7 +294,7 @@ class readmeteo(object):
         return input
         """
 
-    def downscaling2(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, x=None, y=None, xfine=None, yfine=None, meshlist=None, downscale = 0):
+    def downscaling2_peter(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, x=None, y=None, xfine=None, yfine=None, meshlist=None, downscale = 0):
         """
         Downscaling with only internal (inside the coarse gridcell) interpolation
 
@@ -324,20 +324,25 @@ class readmeteo(object):
             return input
         else:
             if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
-                wc1 = readnetcdf2(downscaleName, dateVar['currDate'], useDaily='month', compress = False, cut = False)
-                wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]
+                # wc1 = readnetcdf2(downscaleName, dateVar['currDate'], useDaily='month', compress = False, cut = False)
+                # wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]
                 #print('\n'.join([' '.join(['{:4}'.format(item) for item in row]) for row in wc2]))
 
                 if downscale == 2:  # precipitation
+                    #wc3 looks a like wc3
                     wc3 = wc2.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
+                    #wc3mean looks like w4
                     wc3mean = np.nanmean(wc3, axis=(1, 3))
                     # Average of wordclim on the bigger input raster scale
                     wc3kron = np.kron(wc3mean, np.ones((resoint, resoint)))
                     # the average values are spread out to the fine scale
+                    #looks like quot_wc, but wc2 = input, wc3kron = wc4
                     wc4 = divideValues(wc2, wc3kron)
                     # wc4 holds the correction multiplicator on fine scale
 
         if downscale == 1: # Temperature
+            #diff wc is different because originally it is wc4 - input
+            #diff_wc is difference on small scale
             diff_wc = wc2 - down3
             # on fine scale: wordclim fine scale - spreaded input data (same value for each big cell)
             wc3 = diff_wc.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
@@ -348,6 +353,7 @@ class readmeteo(object):
             # result is the fine scale input data + the difference of wordclim - input data - the average difference of wordclim - input
             down1 = np.where(np.isnan(down1),down3,down1)
         if downscale == 2:  # precipitation
+            # in the other interpolations this is wc2 * quotSmooth, wc2 being the fine worldclimmap cut to map extent, quotSmooth being the interpolated difference between the input and summed worldclim
             down1 = down3 * wc4
             down1 = np.where(np.isnan(down1),down3,down1)
             down1 = np.where(np.isinf(down1), down3, down1)
@@ -358,7 +364,7 @@ class readmeteo(object):
 
      # --- end downscaling ----------------------------
 
-    def downscaling2old(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, downscale = 0):
+    def downscaling2(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, x=None, y=None, xfine=None, yfine=None, meshlist=None, downscale = 0):
         """
         Downscaling based on Delta method:
 
@@ -424,6 +430,18 @@ class readmeteo(object):
                 wc4 =  np.nanmean(wc3, axis=(1, 3))
                 # wc4 is as big as the input array -> average of the fine scale downscale map
 
+                if self.var.InterpolationMethod == 'peter':
+                    if downscale == 2:  # precipitation
+                        # wc3 looks a like wc3
+                        wc3 = wc2.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
+                        # wc3mean looks like w4
+                        wc3mean = np.nanmean(wc3, axis=(1, 3))
+                        # Average of wordclim on the bigger input raster scale
+                        wc3kron = np.kron(wc3mean, np.ones((resoint, resoint)))
+                        # the average values are spread out to the fine scale
+                        # looks like quot_wc, but wc2 = input, wc3kron = wc4
+                        wc4 = divideValues(wc2, wc3kron)
+
         if downscale == 1: # Temperature
             diff_wc = wc4 - input
 
@@ -439,26 +457,38 @@ class readmeteo(object):
                 crop = int(resoint / 2)
                 diffSmooth = diffSmooth[crop:-crop, crop:-crop]
                 down1 = wc2[buffer * resoint:-buffer * resoint, buffer * resoint:-buffer * resoint] - diffSmooth
+
+            elif self.var.InterpolationMethod == 'peter':
+                diff_wc = wc2 - down3
+                # on fine scale: wordclim fine scale - spreaded input data (same value for each big cell)
+                wc3 = diff_wc.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
+                wc4 = np.nanmean(wc3, axis=(1, 3))
+                wc4kron = np.kron(wc4, np.ones((resoint, resoint)))
+                # wordclim is averaged on big cell scale and the average is spread out to fine raster
+                down1 = diff_wc - wc4kron + down3
+                # result is the fine scale input data + the difference of wordclim - input data - the average difference of wordclim - input
+                #down1 = np.where(np.isnan(down1), down3, down1)
             
             down1 = np.where(np.isnan(down1),down3,down1)
 
         if downscale == 2:  # precipitation
-            quot_wc = divideValues(input, wc4)
-
-
             if self.var.InterpolationMethod == 'spline':
+                quot_wc = divideValues(input, wc4)
                 quotSmooth = scipy.ndimage.zoom(quot_wc, resoint, order=1)
                 down1 = wc2 * quotSmooth
             elif self.var.InterpolationMethod == 'bilinear':
+                quot_wc = divideValues(input, wc4)
                 bilinear_interpolation = RegularGridInterpolator((x, y), quot_wc)
                 quotSmooth = bilinear_interpolation(meshlist)
                 quotSmooth = quotSmooth.reshape(len(xfine), len(yfine), order='F')
                 crop = int(resoint/2)
                 quotSmooth = quotSmooth[crop:-crop, crop:-crop]
                 down1 = wc2[buffer * resoint:-buffer * resoint, buffer * resoint:-buffer * resoint] * quotSmooth
+            elif self.var.InterpolationMethod == 'peter':
+                down1 = down3 * wc4
+
             down1 = np.where(np.isnan(down1),down3,down1)
             down1 = np.where(np.isinf(down1), down3, down1)
-
 
         down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
         input = compressArray(down2)
