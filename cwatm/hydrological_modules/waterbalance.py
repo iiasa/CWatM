@@ -442,7 +442,7 @@ class waterbalance(object):
             #self.var.sumDelta2 = 1000 * npareatotal((self.var.prevSnowCover + self.var.pretotalSoil + self.var.prestorGroundwater) * self.var.cellArea , self.var.catchment)/self.var.area
             #self.var.sumAll = self.var.sumDelta1- self.var.sumDelta2
 
-            #report(decompress(self.var.sumRunoff), "C:\work\output3/sumRun.map")
+            #report(decompress(self.var.sumRunoff), r"C:\work\output3/sumRun.map")
 
         """
 
