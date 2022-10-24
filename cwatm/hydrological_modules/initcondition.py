@@ -163,7 +163,8 @@ class initcondition(object):
                 xl_settings_file_path = cbinding('Excel_settings_file')
                 self.var.Crops, self.var.Crops_names = self.crops_initialise(xl_settings_file_path)
             else:
-                msg = "The Excel settings file needs to be included into the settings file:\nExcel_settings_file = *PATH*\cwatm_settings.xlsx\n"
+                msg = "The Excel settings file needs to be included into the settings file:\n" \
+                      "Excel_settings_file ="+r"*PATH*\cwatm_settings.xlsx"+"\n"
                 raise CWATMError(msg)
 
             initCondVar.append('frac_totalIrr_max')

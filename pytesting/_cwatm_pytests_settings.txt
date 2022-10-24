@@ -153,21 +153,21 @@ test_value: False
         header:      Rhine_30min_13
         description: 13th Rhine 30min with daily init save
         set_save:    settings_rhine_30min_13.ini
-        changes:     calc_evaporation = False; save_initial = True; StepInit = 01/01/2009 15d; StepEnd = 40
+        changes:     calc_evaporation = False; save_initial = True; StepInit = 01/01/2009 15d; StepEnd = 40; 
         adds:        InterpolationMethod = spline
         last_value:  999.9	
        # 14th setup Rhine
         header:      Rhine_30min_14
         description: 14th Rhine 30min with monthly init save
         set_save:    settings_rhine_30min_14.ini
-        changes:     calc_evaporation = False; save_initial = True; StepInit = 01/01/2009 2m
+        changes:     calc_evaporation = False; save_initial = True; StepInit = 01/01/2009 2m; 
         adds:        InterpolationMethod = bilinear
         last_value:  999.9
        # 15th setup Rhine
         header:      Rhine_30min_15
         description: 15th Rhine 30min with yearly init save
         set_save:    settings_rhine_30min_15.ini
-        changes:     calc_evaporation = False; save_initial = True; StepInit = 01/01/2009 2y
+        changes:     calc_evaporation = False; save_initial = True; StepInit = 01/01/2009 2y; 
         adds:        InterpolationMethod = kron
         last_value:  999.9
 
