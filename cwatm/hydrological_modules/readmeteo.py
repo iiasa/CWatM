@@ -128,14 +128,11 @@ class readmeteo(object):
             if 'InterpolationMethod' in binding:
                 # interpolation option can be spline or bilinear
                 self.var.InterpolationMethod = cbinding('InterpolationMethod')
-                if self.var.InterpolationMethod != 'bilinear' and self.var.InterpolationMethod != 'spline' and self.var.InterpolationMethod != 'peter':
+                if self.var.InterpolationMethod != 'bilinear' and self.var.InterpolationMethod != 'spline' and self.var.InterpolationMethod != 'kron':
                     msg = 'Error: InterpolationMethod in settings file must be one of the following: "spline" or  "bilinear", but it is {}'.format(self.var.InterpolationMethod)
                     raise CWATMError(msg)
                 if self.var.InterpolationMethod == 'bilinear':
                     self.var.buffer = True
-
-
-
 
         check_clim = False
         if self.var.meteodown:
@@ -482,7 +479,7 @@ class readmeteo(object):
                 wc4 =  np.nanmean(wc3, axis=(1, 3))
                 # wc4 is as big as the input array -> average of the fine scale downscale map
 
-                if self.var.InterpolationMethod == 'peter':
+                if self.var.InterpolationMethod == 'kron':
                     if downscale == 2:  # precipitation
                         # wc3 looks a like wc3
                         wc3 = wc2.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
@@ -510,7 +507,7 @@ class readmeteo(object):
                 diffSmooth = diffSmooth[crop:-crop, crop:-crop]
                 down1 = wc2[buffer * resoint:-buffer * resoint, buffer * resoint:-buffer * resoint] - diffSmooth
 
-            elif self.var.InterpolationMethod == 'peter':
+            elif self.var.InterpolationMethod == 'kron':
                 diff_wc = wc2 - down3
                 # on fine scale: wordclim fine scale - spreaded input data (same value for each big cell)
                 wc3 = diff_wc.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
@@ -536,7 +533,7 @@ class readmeteo(object):
                 crop = int(resoint/2)
                 quotSmooth = quotSmooth[crop:-crop, crop:-crop]
                 down1 = wc2[buffer * resoint:-buffer * resoint, buffer * resoint:-buffer * resoint] * quotSmooth
-            elif self.var.InterpolationMethod == 'peter':
+            elif self.var.InterpolationMethod == 'kron':
                 down1 = down3 * wc4
 
             down1 = np.where(np.isnan(down1),down3,down1)
