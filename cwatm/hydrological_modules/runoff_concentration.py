@@ -24,7 +24,7 @@ class runoff_concentration(object):
     lag-time/ peak time is calculated using slope, length and land cover class
     diffusion is calculated using a triangular-weighting-function
 
-    :math:`Q(t) = \sum_{i=0}^{max} c(i) * Q_{\mathrm{GW}} (t - i + 1)`
+    :math:`Q(t) = sum_{i=0}^{max} c(i) * Q_{\mathrm{GW}} (t - i + 1)`
 
     where :math:`c(i) = \int_{i-1}^{i} {2 \over{max}} - | u - {max \over {2}} | * {4 \over{max^2}} du`
 
