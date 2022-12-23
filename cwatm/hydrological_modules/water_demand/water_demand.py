@@ -602,12 +602,18 @@ class water_demand:
             self.var.act_indConsumption = globals.inZero.copy()
             self.var.act_domConsumption = globals.inZero.copy()
             self.var.act_livConsumption = globals.inZero.copy()
+
+            self.var.act_indWithdrawal = globals.inZero.copy()
+            self.var.act_domWithdrawal = globals.inZero.copy()
+            self.var.act_livWithdrawal = globals.inZero.copy()
+
             self.var.act_nonIrrConsumption = globals.inZero.copy()
             self.var.act_totalIrrConsumption = globals.inZero.copy()
             self.var.act_totalWaterConsumption = globals.inZero.copy()
             self.var.unmetDemand = globals.inZero.copy()
             self.var.addtoevapotrans = globals.inZero.copy()
             self.var.returnflowIrr = globals.inZero.copy()
+            self.var.returnflowNonIrr = globals.inZero.copy()
             self.var.returnFlow = globals.inZero.copy()
             self.var.unmetDemandPaddy = globals.inZero.copy()
             self.var.unmetDemandNonpaddy = globals.inZero.copy()
@@ -652,6 +658,9 @@ class water_demand:
 
             self.var.abstractedLakeReservoirM3 = globals.inZero.copy()
             self.var.swAbstractionFraction_domestic = 1 + globals.inZero.copy()
+
+            self.var.act_nonpaddyConsumption = globals.inZero.copy()
+            self.var.act_paddyConsumption = globals.inZero.copy()
 
     def dynamic(self):
         """
