@@ -7,7 +7,6 @@
 # Created:     16/05/2016
 # Copyright:   (c) PB 2016
 # -------------------------------------------------------------------------
-# test4real
 
 from cwatm.hydrological_modules.miscInitial import miscInitial
 from cwatm.hydrological_modules.initcondition import initcondition
