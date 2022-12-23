@@ -8,7 +8,6 @@
 # Copyright:   (c) PB 2016
 # -------------------------------------------------------------------------
 
-
 from cwatm.hydrological_modules.miscInitial import miscInitial
 from cwatm.hydrological_modules.initcondition import initcondition
 
