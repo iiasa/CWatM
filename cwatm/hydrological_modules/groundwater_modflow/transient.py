@@ -424,6 +424,11 @@ class groundwater_modflow:
                 if checkOption('use_complex_solver_for_modflow'):
                     self.var.use_complex_solver_for_modflow = True
 
+            self.var.use_super_complex_solver_for_modflow = False
+            if 'use_super_complex_solver_for_modflow' in option:
+                if checkOption('use_super_complex_solver_for_modflow'):
+                    self.var.use_super_complex_solver_for_modflow = True
+
             self.var.availableGWStorageFraction = 0.85
             if self.var.GW_pumping:
                 if verboseGW:
@@ -478,7 +483,8 @@ class groundwater_modflow:
                     setpumpings=True,
                     pumpingloc=self.wells_mask,
                     verbose=verboseGW,
-                    complex_solver=self.var.use_complex_solver_for_modflow)
+                    complex_solver=self.var.use_complex_solver_for_modflow,
+                    super_complex_solver=self.var.use_super_complex_solver_for_modflow)
 
 
 
@@ -507,7 +513,8 @@ class groundwater_modflow:
                     setpumpings=False,
                     pumpingloc=None,
                     verbose=verboseGW,
-                    complex_solver=self.var.use_complex_solver_for_modflow)
+                    complex_solver=self.var.use_complex_solver_for_modflow,
+                    super_complex_solver=self.var.use_super_complex_solver_for_modflow)
 
             # initializing arrays
             self.var.capillar = globals.inZero.copy()

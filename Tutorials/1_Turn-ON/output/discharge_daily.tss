@@ -1,0 +1,14 @@
+timeseries  settingsfile: C:\GitHub\CWatM\Tutorials\1_Turn-ON\settings_Rhine-30min_Tutorial-1.ini date: Tue Dec 27 12:06:27 2022 CWATM: C:\GitHub\CWatM\cwatm\run_cwatm.py, 2022/12/27 11:46
+2
+timestep
+1
+        1        5.27586
+        2        6.42894
+        3        8.16969
+        4        10.5988
+        5        13.5753
+        6        17.3611
+        7        21.8493
+        8        27.0717
+        9        33.2776
+       10        41.4684

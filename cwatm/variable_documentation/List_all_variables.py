@@ -40,6 +40,7 @@ def extract_selfvar(module_name):
     test_comment = 0
     for ii in range(len(aa)):  # for each line in the Python code
 
+
         bb = aa[ii]
         bb = bb.lstrip()  # Removing space at the beginning
 
@@ -59,13 +60,20 @@ def extract_selfvar(module_name):
         if bb[3:].find('"""') > -1:
             test_comment = 1
 
-        # deleted the lines to detect #
+        # This needs to be repaired -- evaporation was not being searched properly
+        # With this fix, captures evaporation variables
 
+        if module_name == '../hydrological_modules/evaporation.py':
+            test_comment = 0
+        # deleted the lines to detect #
         if test_comment == 0:
             indexselfvar = 0
             idselfvar = 0
             while indexselfvar != -1:
+
                 bb_temp = bb[idselfvar:]
+
+
                 indexselfvar = bb_temp.find("self.var")  # Find all self.var position in the line
 
                 if indexselfvar != -1:  # there is at least one self.var in the line

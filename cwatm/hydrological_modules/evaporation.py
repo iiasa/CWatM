@@ -371,12 +371,18 @@ class evaporation(object):
                 self.var.weighted_KC_Irr = self.var.GeneralCrop_Irr * self.var.cropKC_landCover[3]
                 for c in range(len(self.var.Crops)):
                     self.var.weighted_KC_Irr += self.var.fracCrops_Irr[c] * self.var.currentKC[c]
-                self.var.weighted_KC_Irr_woFallow = self.var.weighted_KC_Irr.copy()
+                self.var.weighted_KC_Irr_woFallow_fullKc = self.var.weighted_KC_Irr.copy()
 
                 self.var.weighted_KC_Irr += self.var.fallowIrr * self.var.minCropKC
                 self.var.weighted_KC_Irr = np.where(self.var.fracVegCover[3] > 0,
                                                     self.var.weighted_KC_Irr / self.var.fracVegCover[3], 0)
                 self.var.cropKC[3] = self.var.weighted_KC_Irr.copy()
+
+                self.var._weighted_KC_Irr = self.var.GeneralCrop_Irr * (self.var.cropKC_landCover[3]-self.var.minCropKC)
+                for c in range(len(self.var.Crops)):
+                    self.var._weighted_KC_Irr += self.var.fracCrops_Irr[c] * (self.var.currentKC[c]-self.var.minCropKC)
+                self.var.weighted_KC_Irr_woFallow = self.var._weighted_KC_Irr.copy()
+                
 
         # calculate potential ET
         ##  self.var.totalPotET total potential evapotranspiration for a reference crop for a land cover class [m]
