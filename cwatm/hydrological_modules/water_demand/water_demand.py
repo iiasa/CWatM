@@ -1471,8 +1471,8 @@ class water_demand:
                     self.var.totalIrrDemand - self.var.Channel_Irrigation - self.var.Lift_Irrigation - self.var.Lake_Irrigation - self.var.Res_Irrigation)
 
                 if 'irrigation_agent_GW_request_month_m3' in binding and self.var.activate_irrigation_agents:
-                    pot_Channel_Irrigation = np.maximum(pot_GW_Irrigation,
-                                                        self.var.irrWithdrawalSW_max*self.var.InvCellArea)
+                    pot_GW_Irrigation = np.maximum(pot_GW_Irrigation,
+                                                        self.var.irrWithdrawalGW_max*self.var.InvCellArea)
 
                 self.var.pot_GroundwaterAbstract = pot_GW_Domestic + pot_GW_Livestock + pot_GW_Industry + pot_GW_Irrigation
             else:

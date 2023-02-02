@@ -45,7 +45,8 @@ class ModFlowSimulation:
         setpumpings=False,
         pumpingloc=None,
         verbose=False,
-        complex_solver = False
+        complex_solver = False,
+        super_complex_solver = False
     ):
 
         flopy = importlib.import_module("flopy", package=None)
@@ -88,6 +89,11 @@ class ModFlowSimulation:
                 if self.verbose:
                     print('using compex modflow solver')
                 ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='COMPLEX')
+            elif super_complex_solver:
+                ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='COMPLEX', linear_acceleration='BICGSTAB',
+                                           under_relaxation='SIMPLE', under_relaxation_gamma=0.1,
+                                           backtracking_number=5, backtracking_tolerance=10 ** 5,
+                                           backtracking_reduction_factor=0.3, backtracking_residual_limit=150)
             else:
                 ims = flopy.mf6.ModflowIms(sim, print_option=None, complexity='SIMPLE', linear_acceleration='BICGSTAB',
                                            rcloserecord=[0.1 * 24 * 3600 * timestep * np.nansum(basin),

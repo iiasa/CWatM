@@ -56,8 +56,12 @@ class initcondition(object):
         for i in df.index:
             crop = [df['Planting month'][i]]
 
+            growth_stage_end_month=0
             for gs in range(1, 5):
-                gs_parameters = [df['EM' + str(gs)][i], df['KC' + str(gs)][i], df['KY' + str(gs)][i]]
+                #gs_parameters = [df['EM' + str(gs)][i], df['KC' + str(gs)][i], df['KY' + str(gs)][i]]
+
+                growth_stage_end_month+=df['GS' + str(gs)][i]
+                gs_parameters = [growth_stage_end_month, df['KC' + str(gs)][i], df['KY' + str(gs)][i]]
                 crop.append(gs_parameters)
 
             Crops.append(crop)

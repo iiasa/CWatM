@@ -16,7 +16,7 @@
  Community WATer Model
 
 
-CWATM is free software: you can redistribute it and/or modify
+CWATM is free software: you can redistribute it and modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 any later version.
@@ -30,10 +30,10 @@ GNU General Public License for more details
 # --------------------------------------------------
 """
 
-__author__ = "Peter Burek, Yusuke Satoh, Peter Greve, Mikhail Smilovic, Luca Guillaumot, Jens de Bruijn"
+__author__ = "Peter Burek, Mikhail Smilovic, Jens de Bruijn, Dor Fridman, Luca Guillaumot, Yusuke Satoh, Peter Greve"
 __email__ = 'burek@iiasa.ac.at'
-__version__ = "1.4"
-__date__ = "19/02/2020"
-__copyright__ = "Copyright 2016, IIASA"
-__maintainer__ = "Peter Burek"
+__version__ = "1.5"
+__date__ = "01/01/2023"
+__copyright__ = "Copyright 2023, IIASA"
+__maintainer__ = "Water Security Research Group"
 __status__ = "Development"
