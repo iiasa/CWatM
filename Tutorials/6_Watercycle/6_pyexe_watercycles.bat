@@ -1,2 +1,2 @@
-python ..\..\run_cwatm.py settings_WaterCycles.ini -l
+python ..\..\run_cwatm.py settings_Watercycles.ini -l
 pause
