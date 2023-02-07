@@ -49,7 +49,7 @@ The five libraries can be installed with pip or
 downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
 
 
-Windows executeable Python version
+Windows executable Python version
 **********************************
 
 | The A cwatmexe.zip with all Python libraries and a test case (River Rhine)) is stored on:
@@ -264,8 +264,8 @@ and as projection e.g.:
 Changing the Settings file
 ==========================
 	
-to run the model the pathes to data have to be set correctly:
-The information of pathes are stored in the settings file around line 80-100
+to run the model the paths to data have to be set correctly:
+The information of paths are stored in the settings file around line 80-100
 
 [FILE_PATHS]::
 

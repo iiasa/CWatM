@@ -185,7 +185,7 @@ Download Manual as pdf
 Global dataset
 ==============
 
-| If you are interested in obtaining the gloabl data set,
+| If you are interested in obtaining the global data set,
 | please send an email to wfas.info@iiasa.ac.at
 | We will give you access to our ftp server
 

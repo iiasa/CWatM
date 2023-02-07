@@ -139,7 +139,7 @@ To compile with g++::
 .. warning:: Please rename your compiled version to t5_linux.so! At the moment the file t5_linux.so is compiled with Ubuntu Linux
 
 
-Error and exeption handling
+Error and exception handling
 ---------------------------
 
 We try to make our program behave properly when encountering unexpected conditions. Therefore we caption a number of possible wrong inputs.
@@ -609,7 +609,7 @@ There are two possibilities:
 
 2. The initial state is known from a previous run, where the variables are stored at a certain time step. This is called **warm start**
 
-The **warm start** is usful for:
+The **warm start** is useful for:
 
 * using a long pre-run to find the steady-state storage of the groundwater storage and use it as initial value
 
@@ -689,9 +689,9 @@ and one or more dates have to be specified in StepInit
 Warm start
 ----------
 
-CWatM can write internal variables to a netCDF file for choosen timesteps. These netCDF files can be used as the initial conditions for a suceeding simulation.
+CWatM can write internal variables to a netCDF file for chosen timesteps. These netCDF files can be used as the initial conditions for a succeeding simulation.
 
-This is useful for establishing a steady-state after a long-term run and then using this steady-state for succeding simulations or for an every day run (forecasting mode)
+This is useful for establishing a steady-state after a long-term run and then using this steady-state for succeeding simulations or for an every day run (forecasting mode)
 
 .. warning:: If the parameters are changed after a run(especially the groundwater, lakes and reservoir parameters) the stored initial values do not represent the conditions of the storage variables. Stored initial conditions should **not** be used as initial values for a model run with another set of parameters. If you do this during calibration, you will not be able to reproduce the calibration results!
 
@@ -704,7 +704,7 @@ Set up a cold start in the settingsfile
 In the settings file the option: **load_initial** has to be set on **True**
 And define the name of the netcdf4 file in **initLoad**
 
-.. note:: Use the initial values of the previous day here. E.g. if you run the model from 01/01/2006 use the inital condition from 31/12/2005
+.. note:: Use the initial values of the previous day here. E.g. if you run the model from 01/01/2006 use the initial condition from 31/12/2005
 
 .. literalinclude:: _static/settings1.ini
     :linenos:
@@ -816,7 +816,7 @@ Variable are e.g. Precipitation, runoff, baseflow
 but also not so common variables as:
 
 - reservoirStorage (amount of water in the reservoirs in [m3])
-- nonIrrReturnFlowFraction (returnflow from domenstic and industrial water use [m3])
+- nonIrrReturnFlowFraction (returnflow from domestic and industrial water use [m3])
 - actualET[1] (actual evapotranspiration from grassland [m/day])
 - ...
 

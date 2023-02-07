@@ -38,7 +38,7 @@ Running calibration
 
 3. look into templates/runpy.bat. Put the path to python in if necessary
 
-4. look into templates/settings.ini. Put the pathes in a right way that it fits to your computer::
+4. look into templates/settings.ini. Put the paths in a right way that it fits to your computer::
 
     [FILE_PATHS]
     #-------------------------------------------------------

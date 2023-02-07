@@ -662,7 +662,7 @@ copy of the Program in return for a fee.
 Terms and Conditions of Use of the Community Water Model
 --------------------------------------------------------
    
-Stipulations regarding the use of the Commumunity  Water Model (hereinafter *CWATM*) provided here by the International Institute for Applied System Analysis, Laxenburg, Austria (IIASA) are as follows:
+Stipulations regarding the use of the Community  Water Model (hereinafter *CWATM*) provided here by the International Institute for Applied System Analysis, Laxenburg, Austria (IIASA) are as follows:
 
 1. Copyright
 ^^^^^^^^^^^^
@@ -722,7 +722,7 @@ Source code - Community Water Model
 Global dataset
 --------------
 
-| If you are interested in obtaining the gloabl data set,
+| If you are interested in obtaining the global data set,
 | please send an email to wfas.info@iiasa.ac.at
 | We will give you access to our ftp server
 

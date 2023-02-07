@@ -85,7 +85,7 @@ Calibration tool structure
 How it works
 ============
 
-The calibration tool builds up a single-objective obtimization framework using the Python libray DEAP
+The calibration tool builds up a single-objective optimization framework using the Python library DEAP
 For each run it triggers the run of the hydrological model:
 
 - using a template of the settings file

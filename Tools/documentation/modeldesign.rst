@@ -87,7 +87,7 @@ using fraction of 6 different land cover types
 Water demand
 ************
 
-* including water demand from industry and domestic land use via precalculated monhly spatial maps
+* including water demand from industry and domestic land use via precalculated monthly spatial maps
 * including agricultural water use from calculation of plant water demand and livestock water demand
 * Return flows ((water withdrawn but not consumed and returned to the water circle)
 
@@ -105,7 +105,7 @@ Soil
 
 Three soil layers for each land cover type including processes:
 
-* Frost interupting soil processes
+* Frost interrupting soil processes
 * Infiltration
 * Preferential flow
 * Capillary rise

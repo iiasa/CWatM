@@ -35,6 +35,6 @@ In short:
 - Copy file to ../tutorial/CWATM_data/climate
 - Extract .zip fileswith “Extract here”
 
-## Move on to CWATM Eercecise 1
+## Move on to CWATM Exercise 1
 
 - read the pdf and test the batch files
