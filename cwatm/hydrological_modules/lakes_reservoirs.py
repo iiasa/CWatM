@@ -31,12 +31,12 @@ class lakes_reservoirs(object):
         Lake Routine using Modified Puls Method (see Maniak, p.331ff)
 
         .. math::
-             {Qin1 + Qin2 \over{2}} - {Qout1 + Qout2 \over{2}} = {S2 - S1 \over{\delta time}}
+             {Qin1 + Qin2 \\over{2}} - {Qout1 + Qout2 \\over{2}} = {S2 - S1 \\over{\\delta time}}
 
         changed into:
 
         .. math::
-             {S2 \over{time + Qout2/2}} = {S1 \over{dtime + Qout1/2}} - Qout1 + {Qin1 + Qin2 \over{2}}
+             {S2 \\over{time + Qout2/2}} = {S1 \\over{dtime + Qout1/2}} - Qout1 + {Qin1 + Qin2 \\over{2}}
 
         Outgoing discharge (Qout) are linked to storage (S) by elevation.
 
@@ -44,31 +44,31 @@ class lakes_reservoirs(object):
 
         1.) storage volume is increase proportional to elevation: S = A * H where: H: elevation, A: area of lake
 
-        2.) :math:`Q_{\mathrm{out}} = c * b * H^{2.0}` (c: weir constant, b: width)
+        2.) :math:`Q_{\\mathrm{out}} = c * b * H^{2.0}` (c: weir constant, b: width)
 
              2.0 because it fits to a parabolic cross section see (Aigner 2008) (and it is much easier to calculate (that's the main reason)
 
-        c: for a perfect weir with mu=0.577 and Poleni: :math:`{2 \over{3}} \mu * \sqrt{2*g} = 1.7`
+        c: for a perfect weir with mu=0.577 and Poleni: :math:`{2 \\over{3}} \\mu * \\sqrt{2*g} = 1.7`
 
         c: for a parabolic weir: around 1.8
 
         because it is a imperfect weir: :math:`C = c * 0.85 = 1.5`
 
-        results in formular: :math:`Q = 1.5 * b * H^2 = a*H^2 -> H = \sqrt{Q/a}`
+        results in formular: :math:`Q = 1.5 * b * H^2 = a*H^2 -> H = \\sqrt{Q/a}`
 
         Solving the equation:
 
-        :math:`{S2 \over{dtime + Qout2/2}} = {S1 \over{dtime + Qout1/2}} - Qout1 + {Qin1 + Qin2 \over{2}}`
+        :math:`{S2 \\over{dtime + Qout2/2}} = {S1 \\over{dtime + Qout1/2}} - Qout1 + {Qin1 + Qin2 \\over{2}}`
 
-        :math:`SI = {S2 \over{dtime}} + {Qout2 \over{2}} = {A*H \over{DtRouting}} + {Q \over{2}} = {A \over{DtRouting*\sqrt{a}* \sqrt{Q}}} + {Q \over{2}}`
+        :math:`SI = {S2 \\over{dtime}} + {Qout2 \\over{2}} = {A*H \\over{DtRouting}} + {Q \\over{2}} = {A \\over{DtRouting*\\sqrt{a}* \\sqrt{Q}}} + {Q \\over{2}}`
 
-        -> replacement: :math:`{A \over{DtSec * \sqrt{a}}} = Lakefactor, Y = \sqrt{Q}`
+        -> replacement: :math:`{A \\over{DtSec * \\sqrt{a}}} = Lakefactor, Y = \\sqrt{Q}`
 
         :math:`Y^2 + 2 * Lakefactor *Y - 2 * SI=0`
 
         solution of this quadratic equation:
 
-        :math:`Q = (-LakeFactor + \sqrt{LakeFactor^2+2*SI})^2`
+        :math:`Q = (-LakeFactor + \\sqrt{LakeFactor^2+2*SI})^2`
 
 
     **Global variables**

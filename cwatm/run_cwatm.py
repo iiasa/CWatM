@@ -49,10 +49,7 @@ import netCDF4
 from osgeo import gdal
 from osgeo import osr
 
-import flopy
-import xmipy
-import xlrd
-import openpyxl
+
 
 from cwatm.management_modules.configuration import globalFlags, settingsfile, versioning, platform1, parse_configuration, read_metanetcdf, dateVar, CWATMRunInfo, outputDir, timeMesSum, timeMesString, globalclear, calibclear
 from cwatm.management_modules.data_handling import Flags, cbinding
@@ -60,6 +57,14 @@ from cwatm.management_modules.timestep import checkifDate
 from cwatm.management_modules.dynamicModel import ModelFrame
 from cwatm.cwatm_model import CWATModel
 from cwatm.management_modules.globals import *
+
+if "modflow_coupling" in option:
+    if checkOption('modflow_coupling'):
+        import flopy
+        import xmipy
+
+#import xlrd
+#import openpyxl
 
 # ---------------------------
 

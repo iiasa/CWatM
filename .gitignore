@@ -37,3 +37,6 @@ share/python-wheels/
 MANIFEST
 /test_framework
 /cwatm/.idea
+*.nc
+*.tss
+*.xlsx
