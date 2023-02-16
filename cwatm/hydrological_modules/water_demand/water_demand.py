@@ -451,6 +451,11 @@ class water_demand:
                     
                     if 'reservoir_command_areas_restricted' in binding:
                         self.var.load_command_areas_wwt = True
+                        
+                    if self.var.modflow and 'Water_conveyance_efficiency' in binding:
+                            Water_conveyance_efficiency = loadmap('Water_conveyance_efficiency') + globals.inZero
+                        else:
+                            Water_conveyance_efficiency = 1.0 + globals.inZero
 
                     # load command areas & command areas_wwt
                     if self.var.load_command_areas:
@@ -1158,12 +1163,7 @@ class water_demand:
                         #self.var.abstractedLakeReservoirM3C = np.compress(self.var.compress_LR, globals.inZero.copy())
                         self.var.act_ResAbst_wwt = globals.inZero.copy()
                         self.var.act_bigLakeResAbst_wwt = globals.inZero.copy()
-                        
-                        if self.var.modflow and 'Water_conveyance_efficiency' in binding:
-                            Water_conveyance_efficiency = loadmap('Water_conveyance_efficiency') + globals.inZero
-                        else:
-                            Water_conveyance_efficiency = 1.0 + globals.inZero
-                        
+
                         if 'Reservoir_releases' in binding:
                         # resStorage_maxFracForIrrigation = 0.5 + globals.inZero.copy()
                             resStorage_maxFracForIrrigation = readnetcdf2('Reservoir_releases', day_of_year,
@@ -1694,10 +1694,6 @@ class water_demand:
 
                         day_of_year = globals.dateVar['currDate'].timetuple().tm_yday
                         
-                        if self.var.modflow and 'Water_conveyance_efficiency' in binding:
-                            Water_conveyance_efficiency = loadmap('Water_conveyance_efficiency') + globals.inZero
-                        else:
-                            Water_conveyance_efficiency = 1.0 + globals.inZero
                             
                         if 'Reservoir_releases' in binding:
                             # resStorage_maxFracForIrrigation = 0.5 + globals.inZero.copy()

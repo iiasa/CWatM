@@ -238,7 +238,6 @@ class lakes_reservoirs(object):
 
             # load lakes/reservoirs map with a single ID for each lake/reservoir
             self.var.waterBodyID = loadmap('waterBodyID').astype(np.int64)
-            self.var.waterBodyID = np.where(self.var.waterBodyID == 1014, 0, self.var.waterBodyID) # temporal for testing
             
             self.var.includeWastewater = False
             if "includeWastewater" in option:
