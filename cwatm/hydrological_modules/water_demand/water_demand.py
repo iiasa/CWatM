@@ -1693,7 +1693,12 @@ class water_demand:
                                                              resStorageTotal_allocC)
 
                         day_of_year = globals.dateVar['currDate'].timetuple().tm_yday
-
+                        
+                        if self.var.modflow and 'Water_conveyance_efficiency' in binding:
+                            Water_conveyance_efficiency = loadmap('Water_conveyance_efficiency') + globals.inZero
+                        else:
+                            Water_conveyance_efficiency = 1.0 + globals.inZero
+                            
                         if 'Reservoir_releases' in binding:
                             # resStorage_maxFracForIrrigation = 0.5 + globals.inZero.copy()
                             resStorage_maxFracForIrrigation = readnetcdf2('Reservoir_releases', day_of_year,
@@ -2196,7 +2201,6 @@ class water_demand:
             if self.var.modflow:
                 if self.var.GW_pumping:  # pumping demand is sent to ModFlow (used in transient module)
                     # modfPumpingM is initialized every "modflow_timestep" in "groundwater_modflow/transient.py"
-                    self.var.modfPumpingM = globals.inZero.copy()
                     self.var.modfPumpingM += act_gw
                     self.var.Pumping_daily = np.copy(act_gw)
                     self.var.PumpingM3_daily = act_gw * self.var.cellArea
@@ -2318,7 +2322,8 @@ class water_demand:
 
             # add wastewater discharge to river to returnFlow - so they are sent to routing
             if self.var.includeWastewater & self.var.includeIndusDomesDemand:
-                self.var.returnFlow += self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max
+                self.var.returnFlow += self.var.wwtOverflowOutM
+                #self.var.returnFlow += self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max
 
             self.var.waterabstraction = self.var.nonFossilGroundwaterAbs + self.var.unmetDemand + \
                                         self.var.act_SurfaceWaterAbstract
