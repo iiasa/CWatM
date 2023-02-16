@@ -2319,7 +2319,6 @@ class water_demand:
             # add wastewater discharge to river to returnFlow - so they are sent to routing
             if self.var.includeWastewater & self.var.includeIndusDomesDemand:
                 self.var.returnFlow += self.var.wwtOverflowOutM
-                #self.var.returnFlow += self.var.act_irrWithdrawalSW_month > self.var.irrWithdrawalSW_max
 
             self.var.waterabstraction = self.var.nonFossilGroundwaterAbs + self.var.unmetDemand + \
                                         self.var.act_SurfaceWaterAbstract
