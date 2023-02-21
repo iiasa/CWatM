@@ -440,7 +440,7 @@ class water_demand:
             self.var.load_command_areas_wwt = False
             
             if 'using_reservoir_command_areas' in option:
-                if checkOption('using_reservoir_command_areas'):
+                if checkOption('using_reservoir_command_areas') &  checkOption('includeWaterBodies'):
                     
                     # initiate reservoir_command_areas & reservoir_command_areas_wwt
                     self.var.reservoir_command_areas = globals.inZero.copy()
@@ -453,9 +453,9 @@ class water_demand:
                         self.var.load_command_areas_wwt = True
                         
                     if self.var.modflow and 'Water_conveyance_efficiency' in binding:
-                            Water_conveyance_efficiency = loadmap('Water_conveyance_efficiency') + globals.inZero
-                        else:
-                            Water_conveyance_efficiency = 1.0 + globals.inZero
+                        self.var.Water_conveyance_efficiency = loadmap('Water_conveyance_efficiency') + globals.inZero
+                    else:
+                        self.var.Water_conveyance_efficiency = 1.0 + globals.inZero
 
                     # load command areas & command areas_wwt
                     if self.var.load_command_areas:
@@ -657,8 +657,9 @@ class water_demand:
             self.var.liv_efficiency = 1
             
             # for wastewater package
-            self.var.leakage_wwtC_daily = np.compress(self.var.compress_LR, globals.inZero.copy())
-            self.var.act_bigLakeResAbst_wwt = globals.inZero.copy()
+            if checkOption('includeWaterBodies'):
+                self.var.leakage_wwtC_daily = np.compress(self.var.compress_LR, globals.inZero.copy())
+                self.var.act_bigLakeResAbst_wwt = globals.inZero.copy()
             
             self.var.act_DesalWaterAbstractM = globals.inZero.copy()
             
@@ -744,8 +745,9 @@ class water_demand:
             self.var.act_paddyConsumption = globals.inZero.copy()
             
             # for wastewater package
-            self.var.leakage_wwtC_daily = np.compress(self.var.compress_LR, globals.inZero.copy())
-            self.var.act_bigLakeResAbst_wwt = globals.inZero.copy()
+            if checkOption('includeWaterBodies'):
+                self.var.leakage_wwtC_daily = np.compress(self.var.compress_LR, globals.inZero.copy())
+                self.var.act_bigLakeResAbst_wwt = globals.inZero.copy()
             
             self.var.act_DesalWaterAbstractM = globals.inZero.copy()
 
@@ -1224,7 +1226,7 @@ class water_demand:
                                                                       
                             act_bigLakeResAbst_alloc_wwt = np.minimum(
                                 resStorage_maxFracForIrrigation_CA * resStorageTotal_alloc,
-                                demand_Segment / Water_conveyance_efficiency)  # [M3]
+                                demand_Segment / self.var.Water_conveyance_efficiency)  # [M3]
                             
                             # fraction of water abstracted versus water available for total segment reservoir volumes
                             ResAbstractFactor = np.where(resStorageTotal_alloc > 0,
@@ -1248,7 +1250,7 @@ class water_demand:
                             np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
 
                             metRemainSegment = np.where(demand_Segment > 0,
-                                                        divideValues(act_bigLakeResAbst_alloc_wwt * Water_conveyance_efficiency,
+                                                        divideValues(act_bigLakeResAbst_alloc_wwt * self.var.Water_conveyance_efficiency,
                                                                     demand_Segment), 0)  # by definition <= 1
                             
                             self.var.act_bigLakeResAbst_wwt = remainNeedPre * metRemainSegment
@@ -1309,7 +1311,7 @@ class water_demand:
 
 
                         act_bigLakeResAbst_alloc_wwt = np.minimum(resStorage_maxFracForIrrigation_CA * resStorageTotal_alloc,
-                                                            demand_Segment / Water_conveyance_efficiency)  # [M3]
+                                                            demand_Segment / self.var.Water_conveyance_efficiency)  # [M3]
 
                         ResAbstractFactor = np.where(resStorageTotal_alloc > 0,
                                                     divideValues(act_bigLakeResAbst_alloc_wwt, resStorageTotal_alloc),
@@ -1334,14 +1336,14 @@ class water_demand:
                         np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
 
                         metRemainSegment = np.where(demand_Segment > 0,
-                                                    divideValues(act_bigLakeResAbst_alloc_wwt * Water_conveyance_efficiency,
+                                                    divideValues(act_bigLakeResAbst_alloc_wwt * self.var.Water_conveyance_efficiency,
                                                                 demand_Segment), 0)  # by definition <= 1
                             
                         self.var.act_bigLakeResAbst_wwt += remainNeed * metRemainSegment
                         self.var.act_ResAbst_wwt += remainNeed * metRemainSegment
                             
                         self.var.leakage_wwtC_daily = resStorageTotal_allocC * ResAbstractFactorC * (
-                                1 - np.compress(self.var.compress_LR, Water_conveyance_efficiency))
+                                1 - np.compress(self.var.compress_LR, self.var.Water_conveyance_efficiency))
 
                         
                         if self.var.sectorSourceAbstractionFractions:
@@ -1720,7 +1722,7 @@ class water_demand:
 
                         act_bigLakeResAbst_alloc = np.minimum(
                             resStorage_maxFracForIrrigation_CA * resStorageTotal_alloc,
-                            demand_Segment / Water_conveyance_efficiency)  # [M3]
+                            demand_Segment / self.var.Water_conveyance_efficiency)  # [M3]
 
                         # fraction of water abstracted versus water available for total segment reservoir volumes
                         ResAbstractFactor = np.where(resStorageTotal_alloc > 0,
@@ -1744,7 +1746,7 @@ class water_demand:
                         np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
 
                         metRemainSegment = np.where(demand_Segment > 0,
-                                                    divideValues(act_bigLakeResAbst_alloc * Water_conveyance_efficiency,
+                                                    divideValues(act_bigLakeResAbst_alloc * self.var.Water_conveyance_efficiency,
                                                                  demand_Segment), 0)  # by definition <= 1
 
                         self.var.act_bigLakeResAbst += remainNeedPre * metRemainSegment
@@ -1821,7 +1823,7 @@ class water_demand:
                     
 
                     act_bigLakeResAbst_alloc = np.minimum(resStorage_maxFracForIrrigation_CA * resStorageTotal_alloc,
-                                                          demand_Segment / Water_conveyance_efficiency)  # [M3]
+                                                          demand_Segment / self.var.Water_conveyance_efficiency)  # [M3]
 
                     ResAbstractFactor = np.where(resStorageTotal_alloc > 0,
                                                  divideValues(act_bigLakeResAbst_alloc, resStorageTotal_alloc),
@@ -1845,11 +1847,11 @@ class water_demand:
                     np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
 
                     metRemainSegment = np.where(demand_Segment > 0,
-                                                divideValues(act_bigLakeResAbst_alloc * Water_conveyance_efficiency,
+                                                divideValues(act_bigLakeResAbst_alloc * self.var.Water_conveyance_efficiency,
                                                              demand_Segment), 0)  # by definition <= 1
 
                     self.var.leakageC_daily = resStorageTotal_allocC * ResAbstractFactorC * (
-                            1 - np.compress(self.var.compress_LR, Water_conveyance_efficiency))
+                            1 - np.compress(self.var.compress_LR, self.var.Water_conveyance_efficiency))
 
                     self.var.leakage = globals.inZero.copy()
                     np.put(self.var.leakage, self.var.decompress_LR, self.var.leakageC_daily + self.var.leakage_wwtC_daily)

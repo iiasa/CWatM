@@ -297,9 +297,10 @@ class lakes_reservoirs(object):
             
             # needs to be changed - maybe update all reservoir to spreadsheet
             self.var.resId_restricted = globals.inZero.copy()
-            resIdList = np.unique(list(self.var.wastewater_to_reservoirs.values()))
-            for rid in resIdList:
-                self.var.resId_restricted += np.where(self.var.waterBodyID == rid, rid, 0)
+            if self.var.includeWastewater:
+                resIdList = np.unique(list(self.var.wastewater_to_reservoirs.values()))
+                for rid in resIdList:
+                    self.var.resId_restricted += np.where(self.var.waterBodyID == rid, rid, 0)
             
             # Create a buffer around water bodies as command areas for lakes and reservoirs
             if checkOption('includeWaterDemand'):

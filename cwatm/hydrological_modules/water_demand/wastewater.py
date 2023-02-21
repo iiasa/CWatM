@@ -174,7 +174,8 @@ class waterdemand_wastewater(object):
 
             self.var.wwtSewerResOverflowC = np.compress(self.var.compress_WWT, globals.inZero.copy())
             self.var.wwtTreatedOverflowC = np.compress(self.var.compress_WWT, globals.inZero.copy())
-            self.var.wwtSentToResC = np.compress(self.var.compress_LR, globals.inZero.copy())
+            if checkOption('includeWaterBodies'):
+                self.var.wwtSentToResC = np.compress(self.var.compress_LR, globals.inZero.copy())
             self.var.wwtUrbanLeakage = globals.inZero.copy()
             self.var.wwtEffluentsGenerated = globals.inZero.copy()
             self.var.wwtSewerCollection =  globals.inZero.copy()
@@ -484,7 +485,7 @@ class waterdemand_wastewater(object):
             toResManage = self.var.toResManageC[idIndex]
                 
             dischargeTreatedWaterBool = False
-            if toResManage == -1:
+            if toResManage == -1 or  not checkOption('includeWaterBodies'):
                 dischargeTreatedWaterBool = True
             
             
@@ -596,7 +597,8 @@ class waterdemand_wastewater(object):
         np.put(self.var.wwtEvap, self.var.decompress_WWT, self.var.wwtEvapC)
         np.put(self.var.wwtExportedTreated, self.var.decompress_WWT, self.var.wwtExportedTreatedC)
         self.var.wwtSewerExported =  self.var.wwtExportedTreated + self.var.wwtExportedCollected
-        self.var.wwtSentToResC_LR = np.compress(self.var.compress_LR, self.var.wwtSentToRes)
+        if  checkOption('includeWaterBodies'):
+            self.var.wwtSentToResC_LR = np.compress(self.var.compress_LR, self.var.wwtSentToRes)
         
         
         
@@ -604,11 +606,11 @@ class waterdemand_wastewater(object):
         ## add water from other source to distribution reservoirs
     
         # Reservoir inflow in [m3] at the end of all sub-timestep - source treated wastewater
-               
-        self.var.lakeVolumeM3C += self.var.wwtSentToResC_LR
-        self.var.lakeStorageC += self.var.wwtSentToResC_LR
-        self.var.lakeResStorageC += self.var.wwtSentToResC_LR 
-        self.var.reservoirStorageM3C += self.var.wwtSentToResC_LR 
+        if checkOption('includeWaterBodies'):               
+            self.var.lakeVolumeM3C += self.var.wwtSentToResC_LR
+            self.var.lakeStorageC += self.var.wwtSentToResC_LR
+            self.var.lakeResStorageC += self.var.wwtSentToResC_LR 
+            self.var.reservoirStorageM3C += self.var.wwtSentToResC_LR 
         
         
         # convert OverflowOut from m3 to m
