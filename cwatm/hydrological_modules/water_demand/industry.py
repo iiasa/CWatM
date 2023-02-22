@@ -32,7 +32,7 @@ class waterdemand_industry:
     decompress_LR                          boolean map as mask map for decompressing lake/reservoir                --   
     InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 
     M3toM                                  Coefficient to change units                                             --   
-    lakeResStorage                                                                                                      
+    lakeResStorage                                                                                                 m3   
     demand_unit                                                                                                         
     sectorSourceAbstractionFractions                                                                                    
     industryDemand                                                                                                      

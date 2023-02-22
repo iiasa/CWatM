@@ -21,14 +21,14 @@ class groundwater(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
+    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
+    load_initial                           Settings initLoad holds initial conditions for variables                input
     storGroundwater                        simulated groundwater storage                                           m    
     specificYield                          groundwater reservoir parameters (if ModFlow is not used) used to comp  m    
     recessionCoeff                         groundwater storage times this coefficient gives baseflow               frac 
-    load_initial                           Settings initLoad holds initial conditions for variables                input
     readAvlStorGroundwater                 same as storGroundwater but equal to 0 when inferior to a treshold      m    
     prestorGroundwater                     storGroundwater at the beginning of each step                           m    
     sum_gwRecharge                         groundwater recharge                                                    m    
-    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
     baseflow                               simulated baseflow (= groundwater discharge to river)                   m    
     capillar                               Simulated flow from groundwater to the third CWATM soil layer           m    
     nonFossilGroundwaterAbs                groundwater abstraction which is sustainable and not using fossil reso  m    
