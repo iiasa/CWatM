@@ -30,32 +30,32 @@ class snow_frost(object):
     load_initial                           Settings initLoad holds initial conditions for variables                input
     fracGlacierCover                                                                                                    
     DtDay                                  seconds in a timestep (default=86400)                                   s    
-    Tavg                                   Input, average air Temperature                                          K    
     Precipitation                          Precipitation (input for the model)                                     m    
-    Rain                                   Precipitation less snow                                                 m    
+    Tavg                                   Input, average air Temperature                                          K    
     SnowMelt                               total snow melt from all layers                                         m    
+    Rain                                   Precipitation less snow                                                 m    
+    prevSnowCover                          snow cover of previous day (only for water balance)                     m    
     SnowCover                              snow cover (sum over all layers)                                        m    
     ElevationStD                                                                                                        
-    prevSnowCover                          snow cover of previous day (only for water balance)                     m    
     numberSnowLayersFloat                                                                                               
     numberSnowLayers                       Number of snow layers (up to 10)                                        --   
     glaciertransportZone                   Number of layers which can be mimiced as glacier transport zone         --   
     deltaInvNorm                           Quantile of the normal distribution (for different numbers of snow lay  --   
     frac_snow_redistribution                                                                                            
-    DeltaTSnow                             Temperature lapse rate x std. deviation of elevation                    °C   
+    DeltaTSnow                             Temperature lapse rate x std. deviation of elevation                    deg C
     SnowDayDegrees                         day of the year to degrees: 360/365.25 = 0.9856                         --   
     SeasonalSnowMeltSin                                                                                                 
     excludeGlacierArea                                                                                                  
     summerSeasonStart                      day when summer season starts = 165                                     --   
     IceDayDegrees                          days of summer (15th June-15th Sept.) to degree: 180/(259-165)          --   
     SnowSeason                             seasonal melt factor                                                    m (Ce
-    TempSnowLow                            Temperature below which all precipitation is snow                       °C   
-    TempSnowHigh                           Temperature above which all precipitation is rain                       °C   
-    TempSnow                               Average temperature at which snow melts                                 °C   
+    TempSnowLow                            Temperature below which all precipitation is snow                       deg C
+    TempSnowHigh                           Temperature above which all precipitation is rain                       deg C
+    TempSnow                               Average temperature at which snow melts                                 deg C
     SnowFactor                             Multiplier applied to precipitation that falls as snow                  --   
     SnowMeltCoef                           Snow melt coefficient - default: 0.004                                  --   
     IceMeltCoef                            Ice melt coefficnet - default  0.007                                    --   
-    TempMelt                               Average temperature at which snow melts                                 °C   
+    TempMelt                               Average temperature at which snow melts                                 deg C
     SnowCoverS                             snow cover for each layer                                               m    
     Kfrost                                 Snow depth reduction coefficient, (HH, p. 7.28)                         m-1  
     Afrost                                 Daily decay coefficient, (Handbook of Hydrology, p. 7.28)               --   
