@@ -43,12 +43,11 @@ class groundwater_modflow:
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
     sum_gwRecharge                         groundwater recharge                                                    m    
     cellArea                               Area of cell                                                            m2   
     gwdepth_observations                   Input, gw_depth_observations, groundwater depth observations            m    
     gwdepth_adjuster                       Groundwater depth adjuster                                              m    
-    groundwater_storage_available                                                                                       
+    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
     baseflow                               simulated baseflow (= groundwater discharge to river)                   m    
     capillar                               Simulated flow from groundwater to the third CWATM soil layer           m    
     capriseindex                                                                                                        
@@ -67,7 +66,6 @@ class groundwater_modflow:
     load_init_water_table                                                                                               
     GW_pumping                             Input, True if Groundwater_pumping=True                                 bool 
     use_complex_solver_for_modflow                                                                                      
-    use_super_complex_solver_for_modflow                                                                                
     availableGWStorageFraction                                                                                          
     wells_index                                                                                                         
     depth                                                                                                               
@@ -77,6 +75,7 @@ class groundwater_modflow:
     writeerror                                                                                                          
     modflowdiscrepancy                                                                                                  
     groundwater_storage_top_layer                                                                                       
+    groundwater_storage_available                                                                                       
     gwstorage_full                         Groundwater storage at full capacity                                    m    
     permeability                                                                                                        
     modfPumpingM_actual                                                                                                 

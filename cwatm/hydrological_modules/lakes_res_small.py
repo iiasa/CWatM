@@ -34,7 +34,6 @@ class lakes_res_small(object):
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
     load_initial                           Settings initLoad holds initial conditions for variables                input
-    smallevapWaterBody                                                                                                  
     smallpart                                                                                                           
     smalllakeArea                                                                                                       
     smalllakeDis0                                                                                                       
@@ -48,16 +47,17 @@ class lakes_res_small(object):
     preSmalllakeStorage                                                                                                 
     smallLakedaycorrect                                                                                                 
     smallLakeIn                                                                                                         
+    smallevapWaterBody                                                                                                  
     smallLakeout                                                                                                        
     smallrunoffDiff                                                                                                     
-    cellArea                               Area of cell                                                            m2   
     DtSec                                  number of seconds per timestep (default = 86400)                        s    
     InvDtSec                                                                                                            
+    cellArea                               Area of cell                                                            m2   
     EWRef                                  potential evaporation rate from water surface                           m    
     lakeEvaFactor                          a factor which increases evaporation from lake because of wind          --   
     runoff                                                                                                              
-    smalllakeStorage                                                                                                    
     smalllakeVolumeM3                                                                                                   
+    smalllakeStorage                                                                                                    
     =====================================  ======================================================================  =====
 
     **Functions**

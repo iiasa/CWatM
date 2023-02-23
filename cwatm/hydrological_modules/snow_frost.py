@@ -30,13 +30,13 @@ class snow_frost(object):
     load_initial                           Settings initLoad holds initial conditions for variables                input
     fracGlacierCover                                                                                                    
     DtDay                                  seconds in a timestep (default=86400)                                   s    
-    Precipitation                          Precipitation (input for the model)                                     m    
     Tavg                                   Input, average air Temperature                                          K    
-    SnowMelt                               total snow melt from all layers                                         m    
+    Precipitation                          Precipitation (input for the model)                                     m    
     Rain                                   Precipitation less snow                                                 m    
-    prevSnowCover                          snow cover of previous day (only for water balance)                     m    
+    SnowMelt                               total snow melt from all layers                                         m    
     SnowCover                              snow cover (sum over all layers)                                        m    
     ElevationStD                                                                                                        
+    prevSnowCover                          snow cover of previous day (only for water balance)                     m    
     numberSnowLayersFloat                                                                                               
     numberSnowLayers                       Number of snow layers (up to 10)                                        --   
     glaciertransportZone                   Number of layers which can be mimiced as glacier transport zone         --   

@@ -26,11 +26,9 @@ class routing_kinematic(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
     load_initial                           Settings initLoad holds initial conditions for variables                input
     inflowM3                               inflow to basin                                                         m3   
     Crops                                  Internal: List of specific crops and Kc/Ky parameters                        
-    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   m    
     waterBodyID                            lakes/reservoirs map with a single ID for each lake/reservoir           --   
     dirUp                                  river network in upstream direction                                     --   
     dirupLen_LR                            number of bifurcation upstream lake/reservoir                           --   
@@ -40,16 +38,16 @@ class routing_kinematic(object):
     compress_LR                            boolean map as mask map for compressing lake/reservoir                  --   
     lakeArea                               area of each lake/reservoir                                             m2   
     lakeEvaFactorC                         compressed map of a factor which increases evaporation from lake becau  --   
+    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   m    
     lakeResInflowM                                                                                                      
     lakeResOutflowM                                                                                                     
     downstruct                                                                                                          
     riverbedExchangeM3                                                                                                  
     sum_openWaterEvap                                                                                                   
-    cellArea                               Area of cell                                                            m2   
     DtSec                                  number of seconds per timestep (default = 86400)                        s    
+    cellArea                               Area of cell                                                            m2   
     ETRef                                  potential evapotranspiration rate from reference crop                   m    
     EWRef                                  potential evaporation rate from water surface                           m    
-    EvapoChannel                           Channel evaporation                                                     m3   
     QInM3Old                               Inflow from previous day                                                m3   
     UpArea1                                upstream area of a grid cell                                            m2   
     lddCompress                            compressed river network (without missing values)                       --   
@@ -64,6 +62,7 @@ class routing_kinematic(object):
     prelakeResStorage                                                                                                   
     catchmentAll                                                                                                        
     sumsideflow                                                                                                         
+    EvapoChannel                           Channel evaporation                                                     m3   
     prechannelStorage                                                                                                   
     chanLength                             Input, Channel length                                                   m    
     totalCrossSectionArea                                                                                               
@@ -89,7 +88,7 @@ class routing_kinematic(object):
     riverbedExchange                                                                                                    
     Xcel                                                                                                                
     QDelta                                                                                                              
-    dis_outlet                                                                                                     m3s  
+    dis_outlet                                                                                                          
     humanConsumption                                                                                                    
     humanUse                                                                                                            
     natureUse                                                                                                           
@@ -105,19 +104,20 @@ class routing_kinematic(object):
     actTransTotal_paddy                    Transpiration from paddy land cover                                     m    
     actTransTotal_nonpaddy                 Transpiration from non-paddy land cover                                 m    
     actTransTotal_crops_nonIrr             Transpiration associated with specific non-irr crops                    m    
+    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
     head                                   Simulated ModFlow water level [masl]                                    m    
     gwdepth_adjusted                       Adjusted depth to groundwater table                                     m    
     gwdepth                                Depth to groundwater table                                              m    
-    lakeResStorage                                                                                                 m3   
-    channelStorage                         Channel water storage                                                   m3   
-    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
-    adminSegments                          Domestic agents                                                         Int  
+    lakeResStorage                                                                                                      
     act_SurfaceWaterAbstract               Surface water abstractions                                              m    
+    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     addtoevapotrans                        Irrigation application loss to evaporation                              m    
     act_irrWithdrawal                      Irrigation withdrawals                                                  m    
     act_nonIrrConsumption                  Non-irrigation consumption                                              m    
     returnFlow                                                                                                          
+    adminSegments                          Domestic agents                                                         Int  
     act_nonIrrWithdrawal                   Non-irrigation withdrawals                                              m    
+    channelStorage                         Channel water storage                                                   m3   
     act_bigLakeResAbst                     Abstractions to satisfy demands from lakes and reservoirs               m    
     act_smallLakeResAbst                   Abstractions from small lakes at demand location                        m    
     =====================================  ======================================================================  =====

@@ -43,11 +43,9 @@ class runoff_concentration(object):
     fracGlacierCover                                                                                                    
     sum_interflow                                                                                                       
     cellArea                               Area of cell                                                            m2   
-    gridcell_storage                                                                                                    
     coverTypes                             land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
     runoff                                                                                                              
     includeGlaciers                                                                                                     
-    includeOnlyGlaciersMelt                                                                                             
     GlacierMelt                                                                                                         
     GlacierRain                                                                                                         
     runoff_peak                            peak time of runoff in seconds for each land use class                  s    
@@ -56,6 +54,7 @@ class runoff_concentration(object):
     tpeak_glaciers                                                                                                      
     maxtime_runoff_conc                    maximum time till all flow is at the outlet                             s    
     runoff_conc                            runoff after concentration - triangular-weighting method                m    
+    gridcell_storage                                                                                                    
     sum_landSurfaceRunoff                  Runoff concentration above the soil more interflow including all landc  m    
     landSurfaceRunoff                      Runoff concentration above the soil more interflow                      m    
     directRunoffGlacier                                                                                                 

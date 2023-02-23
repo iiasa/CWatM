@@ -73,15 +73,6 @@ class CWATModel_ini(DynamicModel):
     CWATN initial part
     this part is to initialize the variables.
     It will call the initial part of the hydrological modules
-    **Global variables**
-
-    =====================================  ======================================================================  =====
-    Variable [self.var]                    Description                                                             Unit 
-    =====================================  ======================================================================  =====
-    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
-    =====================================  ======================================================================  =====
-
-    **Functions**
     """
 
     def __init__(self):

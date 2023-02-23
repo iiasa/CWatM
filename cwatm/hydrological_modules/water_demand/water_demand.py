@@ -37,7 +37,6 @@ class water_demand:
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
     load_initial                           Settings initLoad holds initial conditions for variables                input
     readAvlStorGroundwater                 same as storGroundwater but equal to 0 when inferior to a treshold      m    
     reservoir_transfers                    [['Giving reservoir'][i], ['Receiving reservoir'][i], ['Fraction of li  array
@@ -60,25 +59,20 @@ class water_demand:
     MtoM3C                                 conversion factor from m to m3 (compressed map)                         --   
     waterBodyTypCTemp                                                                                                   
     pot_livestockConsumption                                                                                            
-    InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 
-    cellArea                               Area of cell                                                            m2   
     MtoM3                                  Coefficient to change units                                             --   
     InvDtSec                                                                                                            
+    cellArea                               Area of cell                                                            m2   
     M3toM                                  Coefficient to change units                                             --   
-    groundwater_storage_available                                                                                       
+    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
     GW_pumping                             Input, True if Groundwater_pumping=True                                 bool 
     availableGWStorageFraction                                                                                          
+    groundwater_storage_available                                                                                       
     gwstorage_full                         Groundwater storage at full capacity                                    m    
     wwtUrbanLeakage                                                                                                     
     wwtColArea                                                                                                          
     wwtColShare                                                                                                         
     wwtSewerCollected                                                                                                   
     wwtOverflowOutM                                                                                                     
-    lakeResStorage                                                                                                 m3   
-    smalllakeStorage                                                                                                    
-    channelStorage                         Channel water storage                                                   m3   
-    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
-    adminSegments                          Domestic agents                                                         Int  
     nonFossilGroundwaterAbs                groundwater abstraction which is sustainable and not using fossil reso  m    
     reservoir_transfers_net_M3C                                                                                    m3   
     reservoir_transfers_in_M3C                                                                                     m3   
@@ -89,8 +83,11 @@ class water_demand:
     lakeStorageC                                                                                                   m3   
     reservoirStorageM3C                                                                                                 
     lakeResStorageC                                                                                                     
+    lakeResStorage                                                                                                      
     smalllakeVolumeM3                                                                                                   
+    smalllakeStorage                                                                                                    
     act_SurfaceWaterAbstract               Surface water abstractions                                              m    
+    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     includeWastewater                                                                                                   
     readAvlChannelStorageM                                                                                              
     leakageCanals_M                                                                                                     
@@ -100,12 +97,14 @@ class water_demand:
     returnFlow                                                                                                          
     act_irrConsumption                     actual irrigation water consumption                                     m    
     act_irrNonpaddyWithdrawal              non-paddy irrigation withdrawal                                         m    
+    adminSegments                          Domestic agents                                                         Int  
     act_irrPaddyWithdrawal                 paddy irrigation withdrawal                                             m    
     unmetDemand                            Unmet demand                                                            m    
     act_nonIrrWithdrawal                   Non-irrigation withdrawals                                              m    
     returnflowIrr                                                                                                       
     nonIrrReturnFlowFraction                                                                                            
     unmet_lost                             Fossil water that disappears instead of becoming return flow            m    
+    channelStorage                         Channel water storage                                                   m3   
     act_totalWaterWithdrawal               Total water withdrawals                                                 m    
     act_bigLakeResAbst                     Abstractions to satisfy demands from lakes and reservoirs               m    
     act_smallLakeResAbst                   Abstractions from small lakes at demand location                        m    
@@ -189,10 +188,6 @@ class water_demand:
     Channel_Industry                       Channel water abstracted for industry                                   m    
     Channel_Livestock                      Channel water abstracted for livestock                                  m    
     Channel_Irrigation                     Channel water abstracted for irrigation                                 m    
-    Lift_Domestic                                                                                                       
-    Lift_Industry                                                                                                       
-    Lift_Livestock                                                                                                      
-    Lift_Irrigation                                                                                                     
     Lake_Domestic                                                                                                       
     Lake_Industry                                                                                                       
     Lake_Livestock                                                                                                      
@@ -215,19 +210,15 @@ class water_demand:
     act_indConsumption                     Industrial consumption                                                  m    
     act_domConsumption                     Domestic consumption                                                    m    
     act_livConsumption                     Livestock consumptions                                                  m    
-    act_indWithdrawal                      Industrial withdrawal                                                   m    
-    act_domWithdrawal                      Domestic withdrawal                                                     m    
-    act_livWithdrawal                      Livestock withdrawals                                                   m    
     act_totalIrrConsumption                Total irrigation consumption                                            m    
     act_totalWaterConsumption              Total water consumption                                                 m    
-    returnflowNonIrr                                                                                                    
     act_bigLakeResAbst_R                                                                                                
     act_bigLakeResAbst_NR                                                                                               
     pot_GroundwaterAbstract                                                                                             
-    act_nonpaddyConsumption                Non-paddy irrigation consumption                                        m    
-    act_paddyConsumption                   Paddy consumption                                                       m    
     pot_nonIrrConsumption                                                                                               
     act_channelAbst                        Abstractions to satisfy demands from channels                           m    
+    swAbstractionFraction_Irr              Input, Fraction of demands to be satisfied with Surface water           %    
+    act_SurfaceWaterAbstract_Irr           Surface water abstractions for irrigation                               m    
     metRemainSegment_lift                                                                                               
     act_channelAbstract_Lift               Abstractions from the channel in lift areas at the location of the cha  m    
     abstractedLakeReservoirM3C             Compressed abstractedLakeReservoirM3                                    m3   
@@ -247,6 +238,12 @@ class water_demand:
     GW_Industry_fromZone                                                                                                
     GW_Irrigation_fromZone                                                                                              
     PumpingM3_daily                                                                                                     
+    act_indWithdrawal                      Industrial withdrawal                                                   m    
+    act_domWithdrawal                      Domestic withdrawal                                                     m    
+    act_livWithdrawal                      Livestock withdrawals                                                   m    
+    act_paddyConsumption                   Paddy consumption                                                       m    
+    act_nonpaddyConsumption                Non-paddy irrigation consumption                                        m    
+    returnflowNonIrr                                                                                                    
     unmet_lostirr                          Fossil water for irrigation that disappears instead of becoming return  m    
     unmet_lostNonirr                       Fossil water for non-irrigation that disappears instead of becoming re  m    
     waterabstraction                                                                                                    

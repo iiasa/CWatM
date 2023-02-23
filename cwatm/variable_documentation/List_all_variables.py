@@ -133,7 +133,7 @@ Dict_AllVariables = {}  # Keys are variable name : then 1rst module and associat
 
 # local_variable_names_list = extract_localvar(soil , 'soil')
 
-folders = ['.', 'hydrological_modules', 'hydrological_modules/routing_reservoirs',
+folders = ['hydrological_modules', 'hydrological_modules/routing_reservoirs',
            'hydrological_modules/groundwater_modflow', 'hydrological_modules/water_demand', 'management_modules']
 
 temp_folders = ['../' + f for f in folders]

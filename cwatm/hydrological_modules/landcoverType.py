@@ -40,41 +40,39 @@ class landcoverType(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
-    snowEvap                               total evaporation from snow for a snow layers                           m    
     load_initial                           Settings initLoad holds initial conditions for variables                input
+    snowEvap                               total evaporation from snow for a snow layers                           m    
     topwater                               quantity of water above the soil (flooding)                             m    
     waterBodyID                            lakes/reservoirs map with a single ID for each lake/reservoir           --   
     compress_LR                            boolean map as mask map for compressing lake/reservoir                  --   
     decompress_LR                          boolean map as mask map for decompressing lake/reservoir                --   
     MtoM3C                                 conversion factor from m to m3 (compressed map)                         --   
     waterBodyTypTemp                                                                                                    
-    dynamicLandcover                                                                                                    
-    totalSto                               Total soil,snow and vegetation storage for each cell including all lan  m    
     maxGWCapRise                           influence of capillary rise above groundwater level                     m    
-    minCropKC                              minimum crop factor (default 0.2)                                       --   
-    irrigatedArea_original                                                                                              
-    frac_totalnonIrr                       Fraction sown with specific non-irrigated crops                         %    
-    frac_totalIrr_max                      Fraction sown with specific irrigated crops, maximum throughout simula  %    
-    frac_totalnonIrr_max                   Fraction sown with specific non-irrigated crops, maximum throughout si  %    
-    GeneralCrop_Irr                        Fraction of irrigated land class sown with generally representative cr  %    
-    fallowIrr                              Fraction of fallowed irrigated land                                     %    
-    fallowIrr_max                          Fraction of fallowed irrigated land, maximum throughout simulation      %    
-    GeneralCrop_nonIrr                     Fraction of grasslands sown with generally representative crop          %    
-    fallownonIrr                           Fraction of fallowed non-irrigated land                                 %    
-    fallownonIrr_max                       Fraction of fallowed non-irrigated land, maximum throughout simulation  %    
-    availableArableLand                    Fraction of land not currently planted with specific crops              %    
     sum_gwRecharge                         groundwater recharge                                                    m    
     minInterceptCap                        Maximum interception read from file for forest and grassland land cove  m    
     interceptStor                          simulated vegetation interception storage                               m    
     availWaterInfiltration                 quantity of water reaching the soil after interception, more snowmelt   m    
     lakeStorage                                                                                                         
     resStorage                                                                                                          
+    GeneralCrop_nonIrr                     Fraction of grasslands sown with generally representative crop          %    
+    GeneralCrop_Irr                        Fraction of irrigated land class sown with generally representative cr  %    
+    frac_totalnonIrr                       Fraction sown with specific non-irrigated crops                         %    
+    frac_totalIrr_max                      Fraction sown with specific irrigated crops, maximum throughout simula  %    
+    frac_totalnonIrr_max                   Fraction sown with specific non-irrigated crops, maximum throughout si  %    
+    fallowIrr                              Fraction of fallowed irrigated land                                     %    
+    fallownonIrr                           Fraction of fallowed non-irrigated land                                 %    
+    fallowIrr_max                          Fraction of fallowed irrigated land, maximum throughout simulation      %    
+    fallownonIrr_max                       Fraction of fallowed non-irrigated land, maximum throughout simulation  %    
     leakageIntoGw                                                                                                       
     leakageIntoRunoff                                                                                                   
+    availableArableLand                    Fraction of land not currently planted with specific crops              %    
+    dynamicLandcover                                                                                                    
     staticLandCoverMaps                    1=staticLandCoverMaps in settings file is True, 0=otherwise                  
     landcoverSum                                                                                                        
+    irrigatedArea_original                                                                                              
     sum_interceptStor                      Total of simulated vegetation interception storage including all landc  m    
+    minCropKC                              minimum crop factor (default 0.2)                                       --   
     minTopWaterLayer                                                                                                    
     maxRootDepth                                                                                                        
     rootDepth                                                                                                           
@@ -126,6 +124,7 @@ class landcoverType(object):
     sum_w1                                                                                                              
     sum_w2                                                                                                              
     sum_w3                                                                                                              
+    totalSto                               Total soil,snow and vegetation storage for each cell including all lan  m    
     arnoBetaOro                            chosen ModFlow model timestep (1day, 7days, 30days, etc.)                    
     arnoBeta                                                                                                            
     adjRoot                                                                                                             
@@ -149,22 +148,23 @@ class landcoverType(object):
     sum_availWaterInfiltration                                                                                          
     sum_capRiseFromGW                      capillar rise from groundwater to 3rd soil layer (summed up for all la  m    
     sum_act_irrConsumption                                                                                              
-    InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 
-    cellArea                               Area of cell                                                            m2   
     MtoM3                                  Coefficient to change units                                             --   
+    cellArea                               Area of cell                                                            m2   
+    InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 
     Precipitation                          Precipitation (input for the model)                                     m    
     coverTypes                             land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
-    SnowMelt                               total snow melt from all layers                                         m    
     Rain                                   Precipitation less snow                                                 m    
-    prevSnowCover                          snow cover of previous day (only for water balance)                     m    
+    SnowMelt                               total snow melt from all layers                                         m    
     SnowCover                              snow cover (sum over all layers)                                        m    
     ElevationStD                                                                                                        
+    prevSnowCover                          snow cover of previous day (only for water balance)                     m    
     frac_totalIrr                          Fraction sown with specific irrigated crops                             %    
     soilLayers                             Number of soil layers                                                   --   
     soildepth                              Thickness of the first soil layer                                       m    
     w1                                     Simulated water storage in the layer 1                                  m    
     w2                                     Simulated water storage in the layer 2                                  m    
     w3                                     Simulated water storage in the layer 3                                  m    
+    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
     baseflow                               simulated baseflow (= groundwater discharge to river)                   m    
     capriseindex                                                                                                        
     soildepth12                            Total thickness of layer 2 and 3                                        m    
@@ -174,13 +174,13 @@ class landcoverType(object):
     wwtUrbanLeakage                                                                                                     
     wwtColArea                                                                                                          
     urbanleak                                                                                                           
-    lakeResStorage                                                                                                 m3   
-    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     lakeVolumeM3C                          compressed map of lake volume                                           m3   
     lakeStorageC                                                                                                   m3   
     reservoirStorageM3C                                                                                                 
     lakeResStorageC                                                                                                     
+    lakeResStorage                                                                                                      
     act_SurfaceWaterAbstract               Surface water abstractions                                              m    
+    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     includeWastewater                                                                                                   
     readAvlChannelStorageM                                                                                              
     leakageCanals_M                                                                                                     

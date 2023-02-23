@@ -24,22 +24,21 @@ class waterbalance(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    lakeReservoirStorage                                                                                                
-    snowEvap                               total evaporation from snow for a snow layers                           m    
     storGroundwater                        simulated groundwater storage                                           m    
     prestorGroundwater                     storGroundwater at the beginning of each step                           m    
-    smallevapWaterBody                                                                                                  
+    snowEvap                               total evaporation from snow for a snow layers                           m    
     preSmalllakeStorage                                                                                                 
     smallLakedaycorrect                                                                                                 
     smallLakeIn                                                                                                         
+    smallevapWaterBody                                                                                                  
     smallLakeout                                                                                                        
     EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   m    
     lakeResInflowM                                                                                                      
     lakeResOutflowM                                                                                                     
-    totalSto                               Total soil,snow and vegetation storage for each cell including all lan  m    
     sum_gwRecharge                         groundwater recharge                                                    m    
     lakeStorage                                                                                                         
     resStorage                                                                                                          
+    totalSto                               Total soil,snow and vegetation storage for each cell including all lan  m    
     pretotalSto                            Previous totalSto                                                       m    
     sum_prefFlow                           preferential flow from soil to groundwater (summed up for all land cov  m    
     sum_perc3toGW                          percolation from 3rd soil layer to groundwater (summed up for all land  m    
@@ -49,23 +48,22 @@ class waterbalance(object):
     sum_interflow                                                                                                       
     sum_capRiseFromGW                      capillar rise from groundwater to 3rd soil layer (summed up for all la  m    
     sum_act_irrConsumption                                                                                              
-    cellArea                               Area of cell                                                            m2   
     DtSec                                  number of seconds per timestep (default = 86400)                        s    
+    cellArea                               Area of cell                                                            m2   
     Precipitation                          Precipitation (input for the model)                                     m    
-    EvapoChannel                           Channel evaporation                                                     m3   
     lddCompress                            compressed river network (without missing values)                       --   
     discharge                              discharge                                                               m3/s 
     prelakeResStorage                                                                                                   
     catchmentAll                                                                                                        
     sumsideflow                                                                                                         
+    EvapoChannel                           Channel evaporation                                                     m3   
     prechannelStorage                                                                                                   
-    gridcell_storage                                                                                                    
     runoff                                                                                                              
+    gridcell_storage                                                                                                    
     baseflow                               simulated baseflow (= groundwater discharge to river)                   m    
-    lakeResStorage                                                                                                 m3   
-    smalllakeStorage                                                                                                    
-    channelStorage                         Channel water storage                                                   m3   
     nonFossilGroundwaterAbs                groundwater abstraction which is sustainable and not using fossil reso  m    
+    lakeResStorage                                                                                                      
+    smalllakeStorage                                                                                                    
     act_SurfaceWaterAbstract               Surface water abstractions                                              m    
     addtoevapotrans                        Irrigation application loss to evaporation                              m    
     act_irrWithdrawal                      Irrigation withdrawals                                                  m    
@@ -76,6 +74,7 @@ class waterbalance(object):
     returnflowIrr                                                                                                       
     nonIrrReturnFlowFraction                                                                                            
     unmet_lost                             Fossil water that disappears instead of becoming return flow            m    
+    channelStorage                         Channel water storage                                                   m3   
     act_totalWaterWithdrawal               Total water withdrawals                                                 m    
     totalET                                Total evapotranspiration for each cell including all landcover types    m    
     sum_actTransTotal                                                                                                   
@@ -87,6 +86,7 @@ class waterbalance(object):
     sumbalance                                                                                                          
     sum_balanceStore                                                                                                    
     sum_balanceFlux                                                                                                     
+    lakeReservoirStorage                                                                                                
     =====================================  ======================================================================  =====
 
     **Functions**
