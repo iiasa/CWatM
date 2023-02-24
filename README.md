@@ -2,8 +2,8 @@
 
 [![latest](https://img.shields.io/github/last-commit/iiasa/CWatM)](https://github.com/iiasa/CWatM)
 [![license](https://img.shields.io/github/license/iiasa/CWatM?color=1)](https://github.com/iiasa/CWatM/blob/version1.05/LICENSE)
-[![pytest-37](https://github.com/IAMconsortium/pyam/workflows/pytest%20(3.7)/badge.svg?branch=master)](https://github.com/iiasa/CWatM)
-[![pytest-38](https://github.com/IAMconsortium/pyam/workflows/pytest%20(3.8)/badge.svg?branch=master)](https://github.com/iiasa/CWatM)
+[![python](https://img.shields.io/badge/python-3.7_|_3.8_|_3.9_|_3.10|_3.11-blue?logo=python&logoColor=white)]((https://github.com/iiasa/CWatM)
+[![pytest](https://github.com/IAMconsortium/pyam/actions/workflows/pytest.yml/badge.svg)]
 [![codecov](https://codecov.io/gh/iiasa/CWATM_priv/branch/develop/graph/badge.svg?token=6HENTZM7SC)](https://codecov.io/gh/iiasa/CWATM_priv)
 [![size](https://img.shields.io/github/repo-size/iiasa/CWatM)](https://github.com/iiasa/CWatM)
 [![ReadTheDocs](https://readthedocs.org/projects/pyam-iamc/badge/?version=latest)](https://cwatm.iiasa.ac.at/)
@@ -13,7 +13,7 @@
 **Documentation on [https://cwatm.iiasa.ac.at](https://cwatm.iiasa.ac.at)**
 
 **Questions? Start a discussion on our [forum](https://github.com/iiasa/CWatM/discussions)**
-
+[![Watch the video](https://img.youtube.com/vi/l3OW9b32SVo/maxresdefault.jpg)](https://youtu.be/l3OW9b32SVo)
 
 ## Overview and scope
 
