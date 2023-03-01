@@ -104,37 +104,4 @@ class waterdemand_industry:
                     timediv = globals.dateVar['daysInYear']
                 self.var.industryDemand = self.var.industryDemand * 1000000 * self.var.M3toM / timediv
                 self.var.pot_industryConsumption = self.var.pot_industryConsumption * 1000000 * self.var.M3toM / timediv
-
-            # wd_date = globals.dateVar['currDate']
-            day_of_year = globals.dateVar['currDate'].timetuple().tm_yday
-            if 'basin_transfers_daily_operations' in option:
-                if checkOption('basin_transfers_daily_operations'):
-                    if 'Reservoir_releases' in binding:
-                        basinTransferFraction = readnetcdf2('Reservoir_releases', day_of_year,
-                                                            useDaily='DOY', value='Basin transfer')
-                    else:
-                        basinTransferFraction = globals.inZero.copy()
-
-                    self.var.WB_elec = basinTransferFraction
-                    self.var.WB_elecC = np.compress(self.var.compress_LR, self.var.WB_elec)
-                    np.put(self.var.WB_elec, self.var.decompress_LR, self.var.WB_elecC)
-                    self.var.WB_elec = np.where(self.var.WB_elec <= 1, self.var.WB_elec, 0)
-
-                    if self.var.sectorSourceAbstractionFractions:
-                        self.var.swAbstractionFraction_Lake_Industry = np.where(self.var.WB_elec > 0, 1,
-                                                                        self.var.swAbstractionFraction_Lake_Industry)
-                        self.var.swAbstractionFraction_Channel_Industry = np.where(self.var.WB_elec > 0, 0,
-                                                                        self.var.swAbstractionFraction_Channel_Industry)
-                        self.var.swAbstractionFraction_Res_Industry = np.where(self.var.WB_elec > 0, 0,
-                                                                                   self.var.swAbstractionFraction_Res_Industry)
-                        self.var.gwAbstractionFraction_Industry = np.where(self.var.WB_elec > 0, 0,
-                                                                                   self.var.gwAbstractionFraction_Industry)
-                    else:
-
-                        self.var.swAbstractionFraction = np.where(self.var.WB_elec > 0, 1,
-                                                                         self.var.swAbstractionFraction_nonIrr)
-
-                    self.var.industryDemand += self.var.WB_elec * self.var.lakeResStorage * self.var.M3toM
-                    self.var.pot_industryConsumption += self.var.WB_elec * self.var.lakeResStorage * self.var.M3toM
-
             self.var.ind_efficiency = divideValues(self.var.pot_industryConsumption, self.var.industryDemand)

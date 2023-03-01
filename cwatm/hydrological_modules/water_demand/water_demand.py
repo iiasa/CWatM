@@ -588,6 +588,14 @@ class water_demand:
             self.var.dom_efficiency = 1.
             self.var.liv_efficiency = 1
 
+            self.var.act_indConsumption = globals.inZero.copy()
+            self.var.act_domConsumption = globals.inZero.copy()
+            self.var.act_livConsumption = globals.inZero.copy()
+            self.var.act_irrConsumption = globals.inZero.copy()
+            self.var.returnflowIrr = globals.inZero.copy()
+            self.var.returnflowNonIrr = globals.inZero.copy()
+
+
 
         else:  # no water demand
             self.var.nonIrrReturnFlowFraction = globals.inZero.copy()
@@ -839,7 +847,7 @@ class water_demand:
                 pot_Channel_Irrigation = self.var.swAbstractionFraction_Channel_Irrigation * self.var.totalIrrDemand
 
                 if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
-                    pot_Channel_Irrigation = np.maximum(pot_Channel_Irrigation,
+                    pot_Channel_Irrigation = np.minimum(pot_Channel_Irrigation,
                                                         self.var.irrWithdrawalSW_max*self.var.InvCellArea)
 
                 pot_channelAbst = pot_Channel_Domestic + pot_Channel_Livestock + pot_Channel_Industry + pot_Channel_Irrigation
@@ -1092,6 +1100,8 @@ class water_demand:
                                     self.var.reservoir_transfers_to_outside_M3C[index_giver] \
                                         += reservoir_transfer_actual
 
+
+
                                 self.var.lakeStorageC += self.var.inZero_C
                                 self.var.lakeVolumeM3C += self.var.inZero_C
                                 self.var.lakeResStorageC += self.var.inZero_C
@@ -1103,7 +1113,6 @@ class water_demand:
                                 if transfer[1] == 0:
                                     to_outside_basin = globals.inZero.copy()
                                     np.put(to_outside_basin, self.var.decompress_LR, self.var.inZero_C)
-
                                     pot_Lake_Industry -= to_outside_basin * self.var.M3toM
                                     # self.var.Lake_Industry is updated below
                                     self.var.act_lakeAbst -= to_outside_basin * self.var.M3toM
@@ -1115,6 +1124,7 @@ class water_demand:
                                     self.var.pot_industryConsumption -= to_outside_basin * self.var.M3toM
                                     self.var.ind_efficiency = divideValues(self.var.pot_industryConsumption,
                                                                            self.var.industryDemand)
+
 
                         np.put(self.var.reservoir_transfers_net_M3, self.var.decompress_LR,
                                self.var.reservoir_transfers_net_M3C)
@@ -1192,7 +1202,7 @@ class water_demand:
                         self.var.totalIrrDemand - self.var.Channel_Irrigation - self.var.Lift_Irrigation - self.var.Lake_Irrigation)
 
                     if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
-                        pot_Res_Irrigation = np.maximum(pot_Res_Irrigation,
+                        pot_Res_Irrigation = np.minimum(pot_Res_Irrigation,
                                                         self.var.irrWithdrawalSW_max*self.var.InvCellArea)
 
                     # remainNeed2 = pot_Res_Domestic + pot_Res_Livestock + pot_Res_Industry + pot_Res_Irrigation
@@ -1473,9 +1483,11 @@ class water_demand:
                     self.var.gwAbstractionFraction_Irrigation * self.var.totalIrrDemand,
                     self.var.totalIrrDemand - self.var.Channel_Irrigation - self.var.Lift_Irrigation - self.var.Lake_Irrigation - self.var.Res_Irrigation)
 
+
                 if 'irrigation_agent_GW_request_month_m3' in binding and self.var.activate_irrigation_agents:
-                    pot_GW_Irrigation = np.maximum(pot_GW_Irrigation,
+                    pot_GW_Irrigation = np.minimum(pot_GW_Irrigation,
                                                         self.var.irrWithdrawalGW_max*self.var.InvCellArea)
+
 
                 self.var.pot_GroundwaterAbstract = pot_GW_Domestic + pot_GW_Livestock + pot_GW_Industry + pot_GW_Irrigation
             else:
