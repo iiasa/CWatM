@@ -588,14 +588,14 @@ class water_demand:
             self.var.dom_efficiency = 1.
             self.var.liv_efficiency = 1
 
+            self.var.act_nonIrrConsumption = globals.inZero.copy()
+            self.var.act_totalIrrConsumption = globals.inZero.copy()
+            self.var.act_totalWaterConsumption = globals.inZero.copy()
             self.var.act_indConsumption = globals.inZero.copy()
             self.var.act_domConsumption = globals.inZero.copy()
             self.var.act_livConsumption = globals.inZero.copy()
-            self.var.act_irrConsumption = globals.inZero.copy()
             self.var.returnflowIrr = globals.inZero.copy()
             self.var.returnflowNonIrr = globals.inZero.copy()
-
-
 
         else:  # no water demand
             self.var.nonIrrReturnFlowFraction = globals.inZero.copy()
@@ -618,7 +618,6 @@ class water_demand:
             self.var.act_domWithdrawal = globals.inZero.copy()
             self.var.act_livWithdrawal = globals.inZero.copy()
 
-            self.var.act_nonIrrConsumption = globals.inZero.copy()
             self.var.act_totalIrrConsumption = globals.inZero.copy()
             self.var.act_totalWaterConsumption = globals.inZero.copy()
             self.var.unmetDemand = globals.inZero.copy()
