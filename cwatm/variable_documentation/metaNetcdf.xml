@@ -349,7 +349,7 @@
 <metanetcdf varname="meshlist_tavg" unit=""  standard_name="meshlist_tavg" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="meteo" unit=""  standard_name="meteo" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="prec" unit="m"  standard_name="Precipitation" long_name="Precipitation" description="precipitation in m"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="temp" unit="°C"  standard_name="avgTemperature" long_name="Average daily temperature in K" description="average temperature in Celsius deg"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="temp" unit="C"  standard_name="avgTemperature" long_name="Average daily temperature in K" description="average temperature in Celsius deg"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="WtoMJ" unit="-"  standard_name="" long_name="" description="Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="QInM3Old" unit="m3"  standard_name="" long_name="" description="Inflow from previous day"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="UpArea1" unit="m2"  standard_name="" long_name="" description="upstream area of a grid cell"  title="CWATM" author="IIASA WAT" />
@@ -426,20 +426,20 @@
 <metanetcdf varname="glaciertransportZone" unit="-"  standard_name="" long_name="" description="Number of layers which can be mimiced as glacier transport zone"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="deltaInvNorm" unit="-"  standard_name="" long_name="" description="Quantile of the normal distribution (for different numbers of snow layers)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="frac_snow_redistribution" unit=""  standard_name="frac_snow_redistribution" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="DeltaTSnow" unit="°C"  standard_name="" long_name="" description="Temperature lapse rate x std. deviation of elevation"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="DeltaTSnow" unit="\B0C"  standard_name="" long_name="" description="Temperature lapse rate x std. deviation of elevation"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="SnowDayDegrees" unit="-"  standard_name="" long_name="" description="day of the year to degrees: 360/365.25 = 0.9856"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="SeasonalSnowMeltSin" unit=""  standard_name="SeasonalSnowMeltSin" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="excludeGlacierArea" unit=""  standard_name="excludeGlacierArea" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="summerSeasonStart" unit="-"  standard_name="" long_name="" description="day when summer season starts = 165 "  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="IceDayDegrees" unit="-"  standard_name="" long_name="" description="days of summer (15th June-15th Sept.) to degree: 180/(259-165)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="SnowSeason" unit="m (Celcius degrees) -1 day-1"  standard_name="" long_name="" description="seasonal melt factor "  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="TempSnowLow" unit="°C"  standard_name="TempSnowLow" long_name="" description="Temperature below which all precipitation is snow"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="TempSnowHigh" unit="°C"  standard_name="TempSnowHigh" long_name="" description="Temperature above which all precipitation is rain"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="TempSnow" unit="°C"  standard_name="" long_name="" description="Average temperature at which snow melts"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="TempSnowLow" unit="\B0C"  standard_name="TempSnowLow" long_name="" description="Temperature below which all precipitation is snow"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="TempSnowHigh" unit="\B0C"  standard_name="TempSnowHigh" long_name="" description="Temperature above which all precipitation is rain"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="TempSnow" unit="\B0C"  standard_name="" long_name="" description="Average temperature at which snow melts"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="SnowFactor" unit="-"  standard_name="" long_name="" description="Multiplier applied to precipitation that falls as snow"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="SnowMeltCoef" unit="-"  standard_name="" long_name="" description="Snow melt coefficient - default: 0.004"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="IceMeltCoef" unit="-"  standard_name="" long_name="" description="Ice melt coefficnet - default  0.007"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="TempMelt" unit="°C"  standard_name="" long_name="" description="Average temperature at which snow melts"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="TempMelt" unit="\B0C"  standard_name="" long_name="" description="Average temperature at which snow melts"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="SnowCoverS" unit="m"  standard_name="" long_name="" description="snow cover for each layer"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Kfrost" unit="m-1"  standard_name="" long_name="" description="Snow depth reduction coefficient, (HH, p. 7.28)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Afrost" unit="-"  standard_name="" long_name="" description="Daily decay coefficient, (Handbook of Hydrology, p. 7.28)"  title="CWATM" author="IIASA WAT" />

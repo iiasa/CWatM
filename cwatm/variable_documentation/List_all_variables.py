@@ -4,6 +4,15 @@ Created on Tue Apr  7 15:13:10 2020
 
 @author: Luca G.
 """
+from builtins import isinstance
+
+'''
+Requires:
+
+openpyxl
+loguru
+
+'''
 
 import os
 # PB added to sort the Dict_AllVariables
@@ -14,6 +23,9 @@ import argparse
 
 from loguru import logger
 import platform
+import pandas as pd
+import numpy as np
+from xml.dom import minidom
 
 # parser = argparse.ArgumentParser(description='Determine if the Excel file has been updated.')
 # parser.add_argument('integers', metavar='N', type=int, nargs=1,
@@ -25,8 +37,40 @@ import platform
 #     print('The Excel has not yet been updated -- creating new Excel')
 
 
-base_folders = ['hydrological_modules', 'hydrological_modules/routing_reservoirs',
-           'hydrological_modules/groundwater_modflow', 'hydrological_modules/water_demand', 'management_modules']
+base_folders = ['hydrological_modules', 
+                'hydrological_modules/routing_reservoirs',
+                'hydrological_modules/groundwater_modflow', 
+                'hydrological_modules/water_demand', 
+                'management_modules'
+                ]
+
+xcols = ['Variable name', 
+         'Long name',
+        'Unit', 
+        'Description', 
+        'First module', 
+        'Priority',
+        'Module 1', 'Module 2', 'Module 3', 'Module 4', 
+        'Module 5', 'Module 6', 'Module 7', 'Module 8', 
+        'Module 9', 'Module 10', 'Module 11', 'Module 12', 
+        'Module 13', 'Module 14', 'Module 15', 'Module 16'
+        ]
+
+
+netxml_head= "<CWATM>\n" + "# METADATA for NETCDF OUTPUT DATA\n\n" + \
+              "# varname: name of the variable in the CWAT code\n" + \
+              "# unit: unit of the varibale\n" + \
+              "# long name# standard name\n\n" + \
+              '# Time information\n' + '<metanetcdf varname="_daily"     time=": daily"/>\n' + \
+              '<metanetcdf varname="_monthavg"  time=": monthly average"/>\n' + \
+              '<metanetcdf varname="_monthend"  time=": last value of the month"/>\n' + \
+              '<metanetcdf varname="_monthtot"  time=": monthly sum"/>\n' + \
+              '<metanetcdf varname="_annualavg" time=": annual average"/>\n' + \
+              '<metanetcdf varname="_annualend" time=": last value of the year"/>\n' + \
+              '<metanetcdf varname="_annualtot" time=": annual sum"/>\n' + \
+              '<metanetcdf varname="_totalavg"  time=": average over the whole time period"/>\n' + \
+              '<metanetcdf varname="_totaltot"  time=": sum the whole time period"/>\n' + \
+              '<metanetcdf varname="_totalend"  time=": last value of the whole time period"/>\n\n\n'
 
     
 def open_workbook(wbook_file):
@@ -188,7 +232,6 @@ def extract_selfvar(module_name):
 
     return variable_names_list, associated_line, first_definition
 
-
 def extract_localvar(module_name, str_name):
     """Extract all 'local variable name' defined in the module.
     Return the list of this variables"""
@@ -207,37 +250,188 @@ def extract_localvar(module_name, str_name):
 
 
 
-if __name__ == '__main__':
+def make_all_variables_df(Dict_AllVariables, df_cur):
     
-    # wbook_file = input('Enter the excel file name where the variables names and attributes are stored or press any key to accept the default name (selfvar.xlsx)')
-    #
-    # if(len(wbook_file) < 2):
-    #     wbook_file = 'selfvar.xlsx' #set default if any key pressed
-    #
-    # if(os.path.isfile(wbook_file) == False):
-    #     logger.error(f'{wbook_file} does not exist. Program will exit.')
-    #     exit()
-    #
-    #
-    # print('Press enter to open and edit the excel file with the variable. Once edited, save it and close to continue the variables documentation process')
-    #
-    # wbook_edited = open_workbook(wbook_file = wbook_file)
-    # if(wbook_edited == 0):
-    #     logger.info(f'{wbook_file} successfully edited')
-    # else:
-    #     logger.warning(f'{wbook_file} was not edited')
+    df_all_vars = dict(zip(xcols, [[] for i in range(0, len(xcols))]))
+    df_cur['Description'] = df_cur['Description'].astype("string")
+    for k, v in Dict_AllVariables.items():
         
+        if(isinstance(v, dict)):
+            var_name = k.replace('self.var.', '')
+            df_all_vars['Variable name'].append(var_name)
+            df_all_vars['Unit'].append('')
+            df_all_vars['Description'].append(np.NaN)
+            df_all_vars['Priority'].append(np.NaN)
+            df_all_vars['Long name'].append(np.NaN)
+            
+            cnt = 1
+            for kv, vv in v.items():
+                if(kv == 'defined'):
+                    df_all_vars['First module'].append(vv)
+                else:
+                    col = f'Module {cnt}'
+                    df_all_vars[col].append(f'{kv}: {vv}')
+                    
+                    cnt+=1
+                
+            if(cnt < 16): #fill up Module n columns
+                
+                for i in range(cnt, 17):
+                    col = f'Module {i}'
+                    df_all_vars[col].append('')
+                    
+    
+    df_all_vars = pd.DataFrame(df_all_vars) 
+
+
+    drop_cols = [c + '_r' for c in xcols[1:]]
+    df = df_all_vars.join(df_cur.set_index('Variable name'), rsuffix='_r', on = 'Variable name')
+    df.reset_index(drop=True, inplace=True)
+
+    #use if to maintain retro-compatibility with legacy excel files that do not have priority
+    if('Priority' in list(df_cur.columns)):
+        df['Priority'] = df['Priority_r']
+    else:
+        drop_cols.remove('Priority_r')    
         
-      
+    if('Long name' in list(df_cur.columns)):
+        df['Long name'] = df['Long name_r']
+    else:
+        drop_cols.remove('Long name_r') 
+
+    df_new = df[df['Description_r'].isnull()].copy(deep=True)
+    df_old = df[~df['Description_r'].isnull()].copy(deep=True)
+    df_old['Description'] = df_old['Description_r']
+    df_old['Unit'] = df_old['Unit_r']
+
+        
+    df_new_old = pd.concat([df_new, df_old], ignore_index=True)
+    #print(df_new_old.columns)
+   
+    #print(drop_cols)
+    df_new_old.drop(columns=drop_cols, index = 1, inplace=True)
+    mask = df_new_old['Priority'].isnull()
+    df_new_old['Priority'] = np.where(mask, 'low', df_new_old['Priority'])    
+
+    mask = df_new_old['Long name'].isnull()
+    df_new_old['Long name'] = np.where(mask, '', df_new_old['Long name'])   
+    
+    return df_new_old
+
+def write_new_excel(wbook_file, df_new_old):
+    
+    with pd.ExcelWriter(wbook_file) as writer:
+        df_new_old.to_excel(writer, sheet_name='variables', index = False)
+        logger.info(f'{wbook_file} file with all variables saved.')    
+        
+    print('Press enter to open and edit the excel file with the variable. Once edited, save it and close to continue the variables documentation process')
+    
+    wbook_edited = open_workbook(wbook_file = wbook_file)
+    if(wbook_edited == 0):
+        logger.info(f'{wbook_file} successfully edited')
+    else:
+        logger.warning(f'{wbook_file} was not edited')    
+    
+    
+    #make one sheet for all priority levels
+    df = pd.read_excel(wbook_file, 'variables')
+    prio_levels = list(df['Priority'].unique())
+    
+    with pd.ExcelWriter(wbook_file) as writer:
+        df.to_excel(writer, sheet_name='variables', index = False)   
+        
+        for l in prio_levels:
+            df_l = df[df['Priority'] == l] 
+            df_l.to_excel(writer, sheet_name=l, index = False)     
+    
+    
+    return 0
+    
+def write_to_metaNetCdf(df_new_old, netxml_file):
+    
+    metaNetcdfVar = {}
+    #load existing info if file exists
+    if(os.path.isfile(netxml_file) == True):
+
+    
+        # open the metanetcdf file
+        user_opt = 'c'
+        try:
+            metaparse = minidom.parse(netxml_file)
+            meta = metaparse.getElementsByTagName("CWATM")[0]
+            for metavar in meta.getElementsByTagName("metanetcdf"):
+                d = {}
+                for key in list(metavar.attributes.keys()):
+                    if key != 'varname':
+                        d[key] = metavar.attributes[key].value
+                key = metavar.attributes['varname'].value
+                metaNetcdfVar[key] = d   
+        except:
+            logger.error(f'An error occured while trying to read the {netxml_file} file') 
+            user_opt = input('Press "c" to create a new empty file or "a" to abort the execution.')
+        
+        finally:
+            if(user_opt == 'a'):
+                exit()
+        
+        if(user_opt == 'c'):
+            
+                 
+
+    
+    
+    
+
+if __name__ == '__main__':
+          
     folders = ['../' + f for f in base_folders]
     Dict_AllVariables =  scan_variables(folders) # Keys are variable name : then 1rst module and associated line
     kn = len(Dict_AllVariables.keys())
     logger.info(f'Found {kn} variables.')
     
+    #get variables in previous xcel
+    wbook_file = input("Enter the excel file name where the variables names and attributes are stored or press any key to accept the default name (selfvar.xlsx).\nIf the file does not exist, it will be created.\n")
     
+    if(len(wbook_file) < 2):            
+        wbook_file = 'selfvar.xlsx' #set default if any key pressed
+    if('xlsx' not in wbook_file):
+        wbook_file += '.xlsx'
+        
+    #create file if not existing
+    if(os.path.isfile(wbook_file) == False):
+        df = pd.DataFrame(columns=xcols)
+        df = pd.DataFrame(df)
+        with pd.ExcelWriter(wbook_file) as writer:
+            df.to_excel(writer, sheet_name='variables', index = False)
+            logger.info(f'{wbook_file} file created.')
+            
+            
+    #find all the variables not included in the current documentation
+    df_cur = pd.read_excel(wbook_file, sheet_name = 'variables')
+    all_vars = list(Dict_AllVariables.keys())
+    all_vars_names = [k.replace('self.var.', '') for k in all_vars] #all variables names read from the code
+    df_all_names = pd.DataFrame({'vars': all_vars, 'var_names': all_vars_names})
+    df_new = df_all_names[~df_all_names['var_names'].isin(df_cur['Variable name'])  ]
+    n_nw = len(df_new.index)
+    logger.info(f'Found {n_nw} new variables.')
     
+    #print(df_new.head(100))
+    #create a dataframe with all variables and save it to excel
+    df_new_old = make_all_variables_df(Dict_AllVariables, df_cur)
+    
+    #write new excel with al variables and a worksheet for each priority level
+    write_new_excel(wbook_file, df_new_old)
 
 
+
+    netxml_file = input("Enter the xml file name where the variables NetCDF4 metadata will be stored or press any key to accept the default name (metaNetcdf.xml).\nIf the file does not exist, it will be created.\n")
+    
+    if(len(netxml_file) < 2):            
+        netxml_file = 'metaNetcdf.xml' #set default if any key pressed
+    if('xml' not in netxml_file):
+        netxml_file += '.xml'
+        
+    write_to_metaNetCdf(df_new_old, netxml_file)
 
 
 
