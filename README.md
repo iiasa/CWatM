@@ -23,7 +23,7 @@ http://www.iiasa.ac.at/cwatm
 
 
 <p align="center">
-  <img src="Tools/documentation/_static/CWatM_logo.png" width="200" title="CWatM">
+  <img src="Toolkit/documentation/_static/CWatM_logo.png" width="200" title="CWatM">
 </p>
 
 
@@ -32,7 +32,7 @@ http://www.iiasa.ac.at/cwatm
 The Community Water Model (CWatM) assesses water availability, demand, and environmental needs. It includes an accounting of how future water demands will evolve in response to socioeconomic change and how water availability will change in response to climate.
 
 <p align="center">
-  <img src="Tools/documentation/_static/Hydrological-model2.jpg" width="450" title="Schematic view of processes">
+  <img src="Toolkit/documentation/_static/Hydrological-model2.jpg" width="450" title="Schematic view of processes">
 </p>
 Figure 1: Schematic view of CWatM processes
 
@@ -40,7 +40,7 @@ Modules for hydrological processes e.g. snow, soil, groundwater etc. are located
 The kinematic routing and the C++ routines (for speeding up the computational time) are in the folder hydrological_modules/routing_reservoirs.
 
 <p align="center">
-  <img src="Tools/documentation/_static/schematic_modules.jpg" width="650" title="Schematic modules">
+  <img src="Toolkit/documentation/_static/schematic_modules.jpg" width="650" title="Schematic modules">
 </p>
 Figure 2: Schematic graph of CWatM modules
 
@@ -53,7 +53,7 @@ The Community Water Model will help to develop a next-generation hydro-economic 
 In the nexus framework of water, energy, food, ecosystem, CWatM will be coupled to the existing IIASA models including the Integrated Assessment Model MESSAGE and the global land and ecosystem model GLOBIOM in order to realize an improved assessments of water-energy-food-ecosystem nexus and associated feedback.
 
 <p align="center">
-  <img src="Tools/documentation/_static/nexus.jpg" width="350" title="IIASA nexus">
+  <img src="Toolkit/documentation/_static/nexus.jpg" width="350" title="IIASA nexus">
 </p>
 Figure 3: IIASA model nexus
 

@@ -1,0 +1,351 @@
+* 2020-10-08 - CWatM : chg: Error handling improved, included numbering of error handling add: pytest checks error handling
+* 2020-10-02 - CWatM : add: Co2 data, check if climate data are upside down
+* 2020-08-17 - CWatM : chk: added water withdrawal from neigbor cells
+* 2020-07-02 - CWatM : Fix: some minor fixes to adjust the waterbalance, mainly water demand e.g. calculation of return flow, lost to evaporation, dealing with fossil gw and return flow of fossil gw
+* 2020-06-15 - CWatM : Add: added self.var.tws total water storage, dis_outlet, sum_soil, lakeReservoirStorage as variable Add: dis_outlet as discharge only at the outlet points
+* 2020-06-15 - CWatM : Add: added self.var.tws total water storage, dis_outlet, sum_soil, lakeReservoirStorage as variable Add: dis_outlet as discharge only at the outlet points
+* 2020-06-03 - CWatM : chg: renamed water_demand/environmental_flow to water_demand/environmental_need chg: docu/sourcecode.rst changed the graphic to display the modules
+* 2020-06-03 - CWatM : CHG: improved description for each class with defined global Variables Add: water_demand.py in water_demand (moved from __init__) CHG: change file encoding to uft-8 again
+* 2020-06-02 - CWatM : CHG: added Luca's description of variables in each class comment
+* 2020-05-28 - Jens de Bruijn : Fix spelling error
+| * 2020-05-28 - Jens de Bruijn : split water demand module
+| * 2020-05-28 - Jens de Bruijn : some small pep8 changes
+| * 2020-05-28 - Jens de Bruijn : requirement pytest-report to pytest-html
+| * 2020-05-28 - Jens de Bruijn : fix error with usage function
+* | 2020-05-28 - Jens de Bruijn : Fix decoding error
+|/  
+* | 2020-05-28 - CWatM : CHG: cleaning cwatm_initial.py - put parts in data-handling loadsetclone
+* | 2020-05-28 - CWatM : Chg: put the part of checking meteorological forcing data to fit with mask map in readmeteo.py
+* |   2020-05-28 - CWatM : CHG: Merge Jens changed self.var structure
+|\ \  
+| * \   2020-05-28 - Peter Burek : Merge pull request #13 from iiasa/var-restructure
+| |\ \  
+| | * \   2020-05-28 - Peter Burek : Merge branch 'develop' into var-restructure
+| | |\ \  
+| | |/ /  
+| |/| |   
+| | * | 2020-05-19 - Jens de Bruijn : small bugfix
+| | * | 2020-05-19 - Jens de Bruijn : revert some unnecessary changes
+| | * | 2020-05-19 - Jens de Bruijn : return firstout from var
+| | * |   2020-05-18 - Jens de Bruijn : Merge pull request #12 from iiasa/var-variable-restructuring
+| | |\ \  
+| | | * | 2020-04-15 - Jens de Bruijn : all variables to model.var
+* | | | | 2020-05-28 - CWatM : Chk: preparation to merge with Jens change self.var structure
+|/ / / /  
+* | | |   2020-05-28 - Peter Burek : Merge pull request #11 from iiasa/simplify-run_cwatm.py
+|\ \ \ \  
+| * | | | 2020-04-17 - Jens de Bruijn : removed unneccesary import
+| * | | | 2020-04-17 - Jens de Bruijn : simplify run_cwatm
+* | | | | 2020-05-25 - CWatM : add: test self.var description in soil
+* | | | |   2020-05-25 - CWatM : Merge branch 'develop' of https://github.com/iiasa/CWATM_priv into develop
+|\ \ \ \ \  
+| | |/ / /  
+| |/| | |   
+| * | | | 2020-05-18 - Jens de Bruijn : include automatically generated settingsfiles and wordfiles temp files
+* | | | | 2020-05-25 - CWatM : add: addition self.var description to soil as test
+|/ / / /  
+* | | | 2020-05-15 - CWatM : add: added different option for ETP 2: Milly and Dunne method 3: Yang et al. Penman Montheith correction method
+| | | * 2020-04-27 - Mikhail Smilovic : Updates
+| | | * 2020-04-27 - Mikhail Smilovic : Initial values and new pumping variable
+| | | * 2020-04-27 - Mikhail Misha Smilovic : Fixed usingAllocSegments
+| | | * 2020-04-27 - Mikhail Smilovic : Initialize variables and fix rootFrac
+| | | *   2020-04-27 - Mikhail Smilovic : Merge branch 'develop' into Mikhail
+| | | |\  
+| |_|_|/  
+|/| | |   
+* | | |   2020-04-20 - CWatM : Merge branch 'develop' of https://github.com/iiasa/CWATM_priv into develop
+|\ \ \ \  
+| * | | | 2020-04-20 - Mikhail Misha Smilovic : Corrected self.var.sumlakeResOutflow and removed "somtimes_closed" feature
+| |/ / /  
+* | | | 2020-04-20 - CWatM : new: put documentation for pytesting in pytesting new: put documentation for docu in docu chg: changed pytesting fix: fixed find closest option if option is misspelled
+|/ / /  
+* | | 2020-04-16 - CWatM : chg: added some lines on docu/setup.rst
+* | |   2020-04-16 - CWatM : Making a new cwat version which can be installed by pip and manual
+|\ \ \  
+| * | | 2020-04-16 - Peter Burek : Delete .travis.yml
+| * | | 2020-04-16 - Jens de Bruijn : make run_cwatm.py work both directly and as 'cwatm' from command line.
+| * | |   2020-04-16 - Peter Burek : Merge pull request #10 from iiasa/jens
+| |\ \ \  
+| | * \ \   2020-04-15 - Jens de Bruijn : Merge branch 'jens' of https://github.com/iiasa/CWATM_priv into jens
+| | |\ \ \  
+| | | * | | 2020-04-15 - Jens de Bruijn : include license (was already present in docs) + include readme as long_description
+| | * | | | 2020-04-15 - Jens de Bruijn : include license (was already present in master branch and docs) + include readme as long_description
+| | |/ / /  
+| | * | |   2020-04-15 - Jens de Bruijn : Merge branch 'jens' of https://github.com/iiasa/CWATM_priv into jens
+| | |\ \ \  
+| | | * | | 2020-04-15 - Jens de Bruijn : fix circular reference
+| | * | | | 2020-04-15 - Jens de Bruijn : moved to cwatm folder
+| | * | | | 2020-04-15 - Jens de Bruijn : remove nonexisting page
+| | * | | | 2020-04-15 - Jens de Bruijn : update documentation to reflect running from command line
+| | * | | | 2020-04-15 - Jens de Bruijn : make cwatm runnable from the command line
+| | * | | | 2020-04-15 - Jens de Bruijn : fix circular reference
+| | |/ / /  
+| | * | | 2020-04-15 - Jens de Bruijn : fix pip installation + restructure document
+| | * | | 2020-04-15 - Jens de Bruijn : create requirements.txt for documentation
+| | * | | 2020-04-15 - Jens de Bruijn : change \over to \frac
+| | * | | 2020-04-15 - Jens de Bruijn : fix logo path
+| | * | | 2020-04-15 - Jens de Bruijn : included packages for testing in setup.py
+| | |/ /  
+| * | | 2020-04-16 - Jens de Bruijn : remove .vscode folder
+| |/ /  
+* | | 2020-04-16 - CWatM : cwamt which runs under pip install and manual install
+* | | 2020-04-16 - CWatM : Upadating cwatm to work from pip install and manual install
+|/ /  
+* | 2020-04-14 - CWatM : chk: trying to use Travis with pytest fix: some date problems using 360 days
+* |   2020-04-14 - CWatM : Merge branch 'develop' of https://github.com/iiasa/CWATM_priv into develop
+|\ \  
+| * \   2020-04-14 - Jens de Bruijn : Merge branch 'develop' of github.com:iiasa/CWATM_priv into develop
+| |\ \  
+| * | | 2020-04-14 - Jens de Bruijn : removed some unneccesary code + some renaming
+* | | | 2020-04-14 - CWatM : chk: small changes to run with Travis
+| |/ /  
+|/| |   
+* | | 2020-04-14 - CWatM : fix: 2nd fix for monthly netcdf file base on different netcdf calendars fix: included metanetcdf.xml in cwatm folder chk: in case there is not metanetcdf at the location defined in settingsfile -> look into cwatm folder fix; include metaxml into setu
+* | | 2020-04-14 - CWatM : fix: fixed a bug in the new meteo data use with 360 days
+| | * 2020-04-14 - Mikhail Smilovic : Removed file related to leakage
+| | * 2020-04-14 - Mikhail Misha Smilovic : Increase MODFLOW soil layer by soildepth[0]
+| | * 2020-04-14 - Mikhail Misha Smilovic : Reset summed up groundwater pumping
+| | * 2020-04-14 - Mikhail Misha Smilovic : Improved demand2pumping option
+| | * 2020-04-14 - Mikhail Smilovic : Allocation segments and cleaning
+| | * 2020-04-14 - Mikhail Misha Smilovic : Remove FUSE landcover commands and clean up rootFrac
+| | * 2020-04-10 - Mikhail Misha Smilovic : act_gw bug fix
+| | * 2020-04-10 - Mikhail Misha Smilovic : Soil depth fix and Aquifer begins below soil layer
+| | * 2020-04-10 - Mikhail Misha Smilovic : Channel abstractions fix
+| |/  
+|/|   
+* | 2020-04-10 - CWatM : chg: reads meteo data with different netcdf calendar and unit (days, minutes)
+* | 2020-04-10 - CWatM : Chg: tested last version for global 30, 5, rhine 5.30, Upper Bhima Add: CWatM can use different calendar as meteo input e.g 360 days Chg: improved setting mask in global dataset and meteoset Todo: meteo datasets should have days from , make this flexible to minutes, ...
+* |   2020-04-09 - CWatM : Merge branch 'develop' of https://github.com/iiasa/CWATM_priv into develop
+|\ \  
+| |/  
+| * 2020-02-20 - Jens de Bruijn : removed unused function parameter
+| * 2020-02-19 - Jens de Bruijn : improve setup authors + include myself as an author
+| * 2020-02-19 - Jens de Bruijn : Making CWatM installable as a pip package
+| * 2020-02-19 - Jens de Bruijn : removed source for python 2
+| * 2020-02-19 - Jens de Bruijn : fixes to documentation
+| * 2020-02-19 - Jens de Bruijn : fix docstring
+| * 2020-02-18 - Jens de Bruijn : Making CWatM installable as a pip package
+* | 2020-04-09 - CWatM : Chg: Using meteo datasets with 360 days, no_leap etc. automatically chg: calculting the position of the area map inside meteomaps, global data sets
+|/  
+*   2020-02-12 - CWatM : New: pytest framwork to test features of CWATM in different environemnts (scales, basins, options) Chg: Changed cwatm3.py and globals.py to run with pytest
+|\  
+| * 2020-02-07 - Jens de Bruijn : make gitignore more general, works for all Python versions now
+| * 2020-02-07 - Jens de Bruijn : init
+| * 2020-02-07 - Jens de Bruijn : changed time.clock() to time.perf_counter() as time.clock() ensuring Python3.8 support. time.perf_counter was added in Python3.3
+* | 2020-02-12 - CWatM : New: pytest framwork to test features of CWATM in different environemnts (scales, basins, options) Chg: Changed cwatm3.py and globals.py to run with pytest
+|/  
+* 2020-02-06 - CWatM : Bugfix: corrected a bug that gave some error message when using CWatM for 5min version Chg: Changed some internal structure to make it run with pytest.ini (cwatm3.py, output.py, globals.py, datahandling.py, etc.) New: A version which can be tested with a pytest framework
+*   2019-12-05 - CWatM : Merge branch 'develop' of https://github.com/iiasa/CWATM_priv into develop
+|\  
+| * 2019-11-26 - Mikhail Misha Smilovic : Update of module for Segments and unmet_div_ww
+| * 2019-11-26 - Mikhail Misha Smilovic : Fix to update act_irrConsumption for not LimitAbstraction
+| *   2019-11-04 - Mikhail Misha Smilovic : Merge pull request #7 from mikhailsmilovic/develop
+| |\  
+| | * 2019-11-04 - Mikhail Smilovic : Fix: all valid ldd values included
+| | * 2019-11-04 - Mikhail Smilovic : Revert "Fix: all valid ldd values included"
+| | * 2019-11-04 - Mikhail Smilovic : Fix: all valid ldd values included
+| | *   2019-11-04 - Mikhail Misha Smilovic : Merge pull request #7 from iiasa/develop
+| | |\  
+| | |/  
+| |/|   
+| * | 2019-11-04 - Mikhail Misha Smilovic : fix, added colon
+| | *   2019-11-04 - Mikhail Misha Smilovic : Merge pull request #6 from iiasa/develop
+| | |\  
+| | |/  
+| |/|   
+| * | 2019-11-04 - Mikhail Misha Smilovic : Clean up: remove print('hello')
+| * |   2019-11-04 - Mikhail Misha Smilovic : Merge pull request #6 from mikhailsmilovic/develop
+| |\ \  
+| | |/  
+| | * 2019-11-04 - Mikhail Smilovic : Moving options into Settings file
+| | *   2019-11-04 - Mikhail Misha Smilovic : Merge pull request #5 from iiasa/develop
+| | |\  
+| | |/  
+| |/|   
+| * | 2019-11-04 - Mikhail Misha Smilovic : True --> 'True'
+| * | 2019-11-04 - Mikhail Misha Smilovic : clean up of "sometimes_closed" feature
+| | *   2019-10-31 - Mikhail Misha Smilovic : Merge pull request #4 from iiasa/develop
+| | |\  
+| | |/  
+| |/|   
+| * |   2019-10-31 - Mikhail Smilovic : Merge branch 'develop' into pr/4
+| |\ \  
+| | |/  
+| | * 2019-10-31 - Mikhail Smilovic : fixed negative pumping and pyc git ignore
+| | * 2019-10-31 - Mikhail Smilovic : Activates pumping through modflow to meet gw demand
+| | * 2019-10-31 - Mikhail Smilovic : delete pyc files
+| | * 2019-10-31 - Mikhail Smilovic : Removing pyc files and including Sarati settings file
+| | * 2019-10-30 - Mikhail Smilovic : rootFraction disabled
+| | * 2019-10-30 - Mikhail Smilovic : Revert "Revert "Revert "Revert "Beginning demand2pumping feature""""
+| | * 2019-10-30 - Mikhail Smilovic : Revert "Revert "Revert "Beginning demand2pumping feature"""
+| | * 2019-10-30 - Mikhail Smilovic : Revert "Revert "Beginning demand2pumping feature""
+| | * 2019-10-30 - Mikhail Smilovic : Revert "Beginning demand2pumping feature"
+| | * 2019-10-30 - Mikhail Smilovic : Beginning demand2pumping feature
+| | * 2019-10-30 - Mikhail Misha Smilovic : Include sometimes_closed option
+| | * 2019-10-30 - Mikhail Misha Smilovic : sometimes_closed option
+| | * 2019-10-30 - Mikhail Misha Smilovic : Updated settings file
+| | * 2019-10-30 - Mikhail Misha Smilovic : Test: small edits
+* | | 2019-12-05 - CWatM : chg: adjusted downscaleing of meteo data. Now it checks if the wordclim data fits to the map extend of the precipitation data
+|/ /  
+* | 2019-10-19 - CWatM : Add: Point can be used as maskmap. this will generate the upstream catchment Add: output as catchment sum or avg Add: douc is updated
+* | 2019-10-18 - CWatM : NEW: added additional time series output: tss as catchment sum or average New: more checks to prevent white space in paths Fix: try to remove all compiled code
+* |   2019-10-18 - CWatM : Merge branch 'develop' of https://github.com/iiasa/CWATM_priv into develop
+|\ \  
+| |/  
+| * 2019-09-25 - Mikhail Misha Smilovic : Update logo and CWATM --> CWatM
+| * 2019-09-25 - Mikhail Misha Smilovic : New CWatM logo
+| * 2019-09-23 - Mikhail Smilovic : Updates
+| * 2019-09-13 - Mikhail Smilovic : Allows for the option 'usingAllocSegments'
+* | 2019-10-18 - CWatM : NEW: added aditional time series output: tss as catchment sum or average New: more checks to prevent whitespaces in pathes
+|/  
+* 2019-09-11 - CWatM : fix: change reservoir size (from Mikhail)
+* 2019-09-11 - CWatM : fix: data handling, using maskmap with col row celllenght lon lat again
+* 2019-08-06 - CWatM : Version 1.04
+* 2019-08-06 - CWatM : Version 1.04
+* 2019-06-27 - CWatM : fix: bug fix for initial value, small lakes was not stored
+* 2019-06-03 - CWatM : New: Groundwater
+* 2019-05-08 - CWatM : chk: changes omodflow groundwater_modflow.py chk data handling: saving netcdf with modflow resolution
+* 2019-05-03 - CWatM : fix: fixed some coding in groundwater
+* 2019-04-30 - CWatM : chk: fixed cropcorrect load in evapopartionpot.py chk: library for groundwater flopy only loaded when ModFlow is used
+* 2019-04-30 - CWatM : Add: First version which include the ModFlow version from LG
+* 2019-04-04 - CWatM : add: waterquality parts,: watertemp, waterlevel, travel time
+* 2019-03-08 - CWatM : chk: improved some pics, intro viedo from Junko
+*   2019-03-07 - CWatM : Merge branch 'develop' of https://github.com/iiasa/CWATM_priv into develop
+|\  
+| * 2019-03-05 - Mikhail Misha Smilovic : useSmallLakes commented out
+* | 2019-03-07 - CWatM : chg: cwatm.py no predefined setting.file
+|/  
+* 2019-03-05 - CWatM : changes for 1km version in readmeto and initcond
+* 2019-01-24 - CWatM : Fix: removed double mult with soilddepth in waterdemand - thank you Simon Moulds Fix: ldd with 1km reso was not working: changed kinematic, and kinematic_sub and lake_reservoirs Fix: read_meteo was not reading meteo
+* 2019-01-17 - CWatM : fix; cleaned snow_frost.html add: docu added to data.rst
+* 2019-01-16 - CWatM : Add: added tesxt pics to data.rst in docu
+*   2019-01-16 - CWatM : Merge branch 'develop' of https://github.com/iiasa/CWATM_priv into develop
+|\  
+| * 2019-01-16 - Mikhail Misha Smilovic : corrected under/overlines
+| * 2019-01-15 - Mikhail Misha Smilovic : Added resolution
+* | 2019-01-16 - CWatM : Add: some addition to docu: data.rst
+|/  
+* 2019-01-14 - CWatM : test2 readme pic
+* 2019-01-14 - CWatM : test1 pic readme
+* 2019-01-14 - CWatM : chk: docu sourcecode and setup.doctree chk: checks
+* 2019-01-14 - CWatM : Chk: change checking of data, mainly check.py and data handling.py
+* 2019-01-12 - CWatM : chk: changed parts in timestep.py so it does not need python-dateutil library
+* 2019-01-11 - CWatM : Chk: fix: add library python-dateutil as requirement in setup and tutorial docu
+* 2019-01-11 - CWatM : add: added file rhine_basin.zip as test case for cwatm.doctree add: cwatmexe.zip include rhine_basin.zip - a whole package now: executable cwatm + test case
+* 2019-01-11 - Mikhail Misha Smilovic : Updated authors' list and developers photo.
+*   2019-01-10 - Mikhail Misha Smilovic : Merge pull request #2 from iiasa/mikhail
+* 2018-06-05 - Mikhail Misha Smilovic : Update evaporation.py
+* 2019-01-10 - Mikhail Misha Smilovic : Added an 'M' to CWAT
+* 2019-01-10 - CWatM : Add: added a batch file to cwatmexe.zip
+* 2019-01-08 - CWatM : Python 2.7 version support has stopped We maintaining from now on Python 3.7 version
+* 2019-01-08 - CWatM : Chg: Added header for autodocu to each function, class (all changes only Python3.7 version) Chg: Put the downscaling functions in fron of readmeteo: no longer internal functions of readmeteo Fix: Cleaned the code, removed not used functions Chg: Improved the documentation, especially the autodocu of source code
+* 2019-01-05 - CWatM : fix: corrected some warnings from PCCharm code inspector
+* 2019-01-04 - CWatM : add: adding executable cwatm.exe
+* 2019-01-04 - CWatM : Fix: new water demand changes did not use the same variable name act_surfacewater in waterdemand and routing_kinematic. changed this in both version 2.7 and 3.7 Add python: added a report command to report data as .map or .tif for debugging
+* 2018-12-20 - CWatM : Python3.7 New: replaced pcraster framework by own framework Removed folder pcraster2 New: added save conditions for warmstart -> you can add a 10d or 6m or 2y after the first date -> the initial data will be saved every 10d (or whatever number), or 6 month or 2 year
+* 2018-12-17 - CWatM : New: Python 3 test code
+*   2018-12-17 - CWatM : Merge branch 'develop' of https://github.com/iiasa/CWATM_priv into develop
+|\  
+| *   2018-12-12 - Community Water Model : Merge pull request #3 from iiasa/waterdemand_update
+| |\  
+| | *   2018-12-12 - Community Water Model : Merge branch 'develop' into waterdemand_update
+| | |\  
+| | |/  
+| |/|   
+| | * 2018-08-15 - Unknown : modify irrConsuption to act_irrConsumption in landcoverType and soil modules
+| | * 2018-08-15 - Unknown : potential and actual values are explicitly written in waterdemand module
+| | * 2018-08-08 - Unknown : modified efficiency vaiables ;)
+| | * 2018-08-07 - Unknown : modified read-netcdf for wateruse data
+| | * 2018-07-24 - Yusuke : Added act_nonIrrConsumption conponents
+| | * 2018-07-24 - Yusuke : Clean up before editing
+* | | 2018-12-17 - CWatM : New: python 3 test version
+* | | 2018-12-17 - CWatM : New: Added Python source code: Further test required, but it seems to work. -> Plan in 2019 further development will use Python 3.7 coding New: Building a executable .exe with Python 3  seems to work as well. Further testing -> 2019 an installation setup will be produced using cx_freeze and Inno setup to make an easy start on Windows (no Python background will be required for CWATM users)
+|/ /  
+* | 2018-12-12 - CWatM : Put Yusuke's version of waterdemand in (soil, landtypes, waterdemand)
+* | 2018-12-12 - CWatM : Fix: checkmap -c option now checks maps first (but can be improved) new flag: usemeteodownscaling in [meteo] for using meteo downscaling Fix: can now use rivernetwork as map or tif again (ldd.map) changes in initial and data_handling
+* | 2018-12-11 - CWatM : in sync with version on p drive
+* | 2018-12-11 - CWatM : Small change in tutorial, added output variable added calibration tutorial, to be extended
+* | 2018-09-24 - CWatM : chk: waterdemand can use water demand netcdf with m/s or million m3 per month/year
+* | 2018-08-07 - CWatM : fix: reading meteo map with no leap year (365 day maps) new: using a cover map to put addition values in
+|/  
+* 2018-07-09 - CWatM : Fix: waterbalance for soil Chg: output of tss from 3-d variable e.g actualET[1]
+* 2018-06-27 - CWatM : fix: corrected storing initial values for the next warm start chk: changed environmental flow (EF)settings file -      loading EF is now in water demand
+* 2018-06-07 - CWatM : chg: outcommented a library call in data_handling    #from netcdftime import utime chg: added the sum of ET_actual again
+* 2018-05-17 - CWatM : Changed waterbalance Changed waterbodies in large and small lakes and reservoirs
+* 2018-04-24 - CWatM : Fix: bugfix to read waterdemand map
+* 2018-04-19 - CWatM : Change: meteo data can be clipped before and used. CWAT detects if it is a global map or a regional one e.g using only meteo data set for the Rhine.
+* 2018-04-16 - CWatM : Change; in waterdemand, landcovertyp and soil cjhange variable names     Gross = demand = withdrawal, netto = consumptiom      all vraibales names now are ..demand or .. consumption
+* 2018-04-13 - CWatM : test
+* 2018-04-13 - CWatM : Change: netcdf output as monthly or annual map has now a adequate monthly or yearly time step e.g. Months since 1901-01-01
+* 2018-04-03 - CWatM : Change: CWATM can be used with a smaller meteo dataset e.g. to use a demo dataset for the Rine with pr, tavg, ETRef, EWref
+* 2018-04-03 - CWatM : Change: CWAT can be used with a smaller meteo dataset  e.g. to download a smaller test meteo dataset for the Rhine
+* 2018-04-03 - CWatM : Chg: running cwatm with a smaller meteo dataset in order to make a test catchment (e.g. Rhine) with a small meteo dataset
+* 2018-03-20 - CWatM : Added: - small lakes - calc environmental flow - 5 arcmin version - downscale 30min meteo dataset to 5min
+* 2017-11-20 - CWatM : fix: replace strftime with .year or .month etc fix: looks for > 1e20 and -1e20 in each map and change these to standard zero value (default =0)
+* 2017-10-30 - CWatM : Fix: bug fix to save maps with a SpinUp <> None
+* 2017-10-27 - CWatM : Fix: reading meteo maps - every data > 1e12 is set to 0 Add: maxtopwater in prg and settings.ini Fix: calibration routine
+* 2017-09-21 - CWatM : bugfix: snow with more layers than 3
+* 2017-09-20 - CWatM : chg: water demand, small lakes, land cover
+* 2017-08-29 - CWatM : chg: water demand , soil add: error handling for output maps
+* 2017-08-17 - CWatM : new: water demand is working chg: soil especially paddy and non paddy irrigation bug: checked water balance
+* 2017-07-13 - CWatM : fix: small bugfix, to run precipitation maps with the suffix .nc4
+* 2017-07-13 - CWatM : chg: soil part - using different maps -> map folder has to be updated! chg: meteo maps do not have to be merge before -> stack of maps can  be used add: inflow to a catchment (still to work on)
+* 2017-05-23 - CWatM : chk: saving of netcdf with fixed number of time and with fixed chunk size -> less diskspace used chk: a few more error handlings added
+* 2017-05-19 - CWatM : chk: Chaznged soil calculation to Arno scheme and Mualem - van Genuchten equation new: put in a lot of checks for the settingsfile e.g. check True and false (not mispelled like ture). Check timing, check output variables chk: a lot more error messages are given out if something is wrong chk: output netcdf time is calculate in advanced in order to reduce size of output netcdf -> data_handling line 789 sets it to this value
+* 2017-05-10 - CWatM : chk: bugfix cropKC per land cover new: snow evaporation included new: Calibration routine added
+* 2017-04-20 - CWatM : fix: output to netcdf - in output and data_handling fix: output as a time series without header with the option -h new: readme.md for github
+* 2017-04-18 - CWatM : Transfer to new IIASA domain and making it private in branch develop
+* 2017-04-18 - CWatM : Transfer to new IIASA CWAT domain
+* 2017-04-18 - CWatM : ready for transfer to iiasa
+* 2017-04-13 - CWatM : data handling: faster read of meteo data
+* 2017-04-06 - CWatM : soil - Copy (2).py- removed bug in calculation of soildepth - change calc of arno beta
+* 2017-04-06 - CWatM : Merge branch 'branch2' of https://github.com/CWatM/CWatM into branch2
+* 2017-04-06 - Community Water Model : Create LICENSE
+* 2017-04-06 - CWatM : Updated soil, removed bug in calculating the soil depth changed how arno beta is calculated
+* 2017-02-03 - CWatM : - made CWATM run under cygwin   (for other linux version the c++ code has to be compiled) - fixed reading maskmap from rectangle
+* 2017-02-02 - CWatM : set realtive file path to c++ routine
+* 2017-02-02 - CWatM : - New kinematic routing    - c++ routine include     TODO: make it usable for linu/Unix - removed pcraster GIS commands - new output routine for time series - Budyko output.html - corrected bug in snow modules - corrected bug in init read/save module - WORKING on lakes/reservoirs TODO: bug in reading maskmap from coordinates
+* 2017-01-17 - CWatM : init condition - save more than 1 date
+* 2017-01-16 - CWatM : Lake/reservoirs routing
+* 2016-12-22 - CWatM : updated soil , initconditions etc
+* 2016-12-16 - CWatM : runoff concentration
+* 2016-12-08 - CWatM : With sphinx documentation making files
+* 2016-12-07 - CWatM : Update
+* 2016-12-07 - CWatM : Preferential flow, frost
+* 2016-11-10 - CWatM : Cacluation Evaporation from climate data
+* 2016-10-21 - CWatM : Changed soil + test
+* 2016-10-18 - CWatM : Waterdemand included
+* 2016-10-03 - CWatM : last August update - waterbalance
+* 2016-08-26 - CWatM : water balance 7
+* 2016-08-26 - CWatM : water balance 6
+* 2016-08-25 - CWatM : water Balance 5
+* 2016-08-24 - CWatM : water balance 4 Checks ok : soil , groundwater, routing, waterdemand Missing: reservoirs, sum up to catchments
+* 2016-08-23 - CWatM : water balance 3
+* 2016-08-23 - CWatM : water balance 2
+* 2016-08-22 - CWatM : Water balance check 1 Output on screen
+* 2016-08-19 - CWatM : initial condition
+* 2016-08-17 - CWatM : Spin up
+* 2016-08-17 - CWatM : output netcdf add attributes
+* 2016-08-10 - CWatM : output + time
+* 2016-08-10 - CWatM : date and time
+* 2016-08-09 - CWatM : output 3
+* 2016-08-09 - CWatM : output 2
+* 2016-08-08 - CWatM : output timeseries
+* 2016-08-03 - CWatM : waterbodies 1 Checked routing - working :)
+* 2016-08-02 - CWatM : routing 3
+* 2016-08-01 - CWatM : routing 2
+* 2016-08-01 - CWatM : routing 1
+* 2016-07-29 - CWatM : some changes I do not know anymore
+* 2016-07-26 - CWatM : soil + groundwater
+* 2016-07-26 - CWatM : soil check3
+* 2016-07-25 - CWatM : soil check2
+* 2016-07-25 - CWatM : check soil module
+* 2016-07-24 - CWatM : soil update
+* 2016-07-24 - Burek : Soil and groundwater
+* 2016-07-22 - CWatM : soil
+* 2016-07-21 - CWatM : till waterdemand - soil
+* 2016-07-20 - CWatM : Next step interception
+* 2016-07-19 - CWatM : changing irrigationarea part
+* 2016-07-15 - CWatM : Initial procedure for soil, groundwater, waterdemand
+* 2016-07-13 - CWatM : include: snow frost
+* 2016-04-02 - CWatM : Initial commit

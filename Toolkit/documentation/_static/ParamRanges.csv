@@ -1,0 +1,14 @@
+ParameterName,MinValue,MaxValue
+SnowMelt,0.001,0.007
+crop,0.8,3.0
+soildepthF, 0.8,1.8
+pref,0.5,8
+arnoB,0.01,1.0
+interF, 0.33,3.0
+reces,0.1,10
+runoff,0.1,5
+CCM,0.1,10.0
+normalStorageLimit,0.15,0.85
+lakeAFactor,0.333,3.0
+lakeEvaFactor,0.5,3.0
+No,1,100

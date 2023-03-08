@@ -215,7 +215,7 @@ class landcoverType(object):
 
         And initialize the soil variables
         """
-
+        self.var.riverbedExchangeM = globals.inZero.copy()
         self.var.GeneralCrop_nonIrr = globals.inZero.copy()
         self.var.GeneralCrop_Irr = globals.inZero.copy()
 

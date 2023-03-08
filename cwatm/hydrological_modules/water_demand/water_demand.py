@@ -671,6 +671,7 @@ class water_demand:
 
             self.var.act_nonpaddyConsumption = globals.inZero.copy()
             self.var.act_paddyConsumption = globals.inZero.copy()
+            self.var.act_nonIrrConsumption = globals.inZero.copy()
 
     def dynamic(self):
         """
