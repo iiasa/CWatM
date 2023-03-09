@@ -19,7 +19,6 @@ import os
 from collections import OrderedDict
 from operator import getitem
 
-import argparse
 
 from loguru import logger
 import platform
@@ -83,9 +82,11 @@ def open_workbook(wbook_file):
     ret = 0    
     plt = platform.system()
     logger.info(f'Detected {plt} operating system.')
+    logger.info(f'Closing the file can take up to a minute, wait until the message of successfully edited appears before pressing any key.')
     
     if(plt.lower() == 'windows'):
-        os.system(f'start EXCEL.EXE "{wbook_file}"')
+        #os.system(f'start EXCEL.EXE "{wbook_file}"')
+        os.system(f'"{wbook_file}"')
     elif(plt.lower() == 'linux'):
         os.system(f'soffice "{wbook_file}"')
     elif(plt.lower() == 'darwin'):
@@ -319,7 +320,6 @@ def make_all_variables_df(Dict_AllVariables, df_cur):
     return df_new_old
 
 def write_new_excel(wbook_file, df_new_old):
-    
     with pd.ExcelWriter(wbook_file) as writer:
         df_new_old.to_excel(writer, sheet_name='variables', index = False)
         logger.info(f'{wbook_file} file with all variables saved.')    
@@ -382,11 +382,15 @@ def write_to_metaNetCdf(df_new_old, netxml_file):
             var_name = row['Variable name']
             long_name = row['Long name']
             unt = row['Unit']
+            if(unt=='°C'):
+                unt= 'C'
             des = row['Description']
+            if(isinstance(des, pd._libs.missing.NAType)):
+                des = ''
             standard_name = ''
             
             if(var_name in metaNetcdfVar.keys()):
-                standar_name = metaNetcdfVar[var_name]['standard_name']
+                standard_name = metaNetcdfVar[var_name]['standard_name']
                 #TODO remove before flying
                 # long_name = metaNetcdfVar[var_name]['long_name'] #use these two lines to copy long names from older xml files
                 # df_new_old.loc[_index, 'Long name'] = long_name

@@ -1,0 +1,20 @@
+<CWATM>
+# METADATA for NETCDF OUTPUT DATA
+
+# varname: name of the variable in the CWAT code
+# unit: unit of the varibale
+# long name# standard name
+
+# Time information
+<metanetcdf varname="_daily"     time=": daily"/>
+<metanetcdf varname="_monthavg"  time=": monthly average"/>
+<metanetcdf varname="_monthend"  time=": last value of the month"/>
+<metanetcdf varname="_monthtot"  time=": monthly sum"/>
+<metanetcdf varname="_annualavg" time=": annual average"/>
+<metanetcdf varname="_annualend" time=": last value of the year"/>
+<metanetcdf varname="_annualtot" time=": annual sum"/>
+<metanetcdf varname="_totalavg"  time=": average over the whole time period"/>
+<metanetcdf varname="_totaltot"  time=": sum the whole time period"/>
+<metanetcdf varname="_totalend"  time=": last value of the whole time period"/>
+
+
