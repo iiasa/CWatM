@@ -342,6 +342,24 @@ class landcoverType(object):
         soilVars1 = ['KSat1','KSat2','KSat3','alpha1','alpha2','alpha3', 'lambda1','lambda2','lambda3','thetas1','thetas2','thetas3','thetar1','thetar2','thetar3']
         for variable in soilVars1: vars(self.var)[variable] = []
 
+        # ksat multiplier
+        if 'ksat_fact' in binding:
+            ksat_fact = loadmap('ksat_fact')  # define limit
+        else:
+            ksat_fact = 1.
+
+        # thetas multiplier
+        if 'thetas_fact' in binding:
+            thetas_fact = loadmap('thetas_fact')  # define limit
+        else:
+            thetas_fact = 1.
+
+        # thetar multiplier - limits 0.1 - 2.0
+        if 'thetar_fact' in binding:
+            thetar_fact = loadmap('thetar_fact')  # define limit
+            thetar_fact = np.maximum(0.1, np.minimum(thetar_fact, 2.0))
+        else:
+            thetar_fact = 1.
 
         i = 0
         for coverType in self.var.coverTypes[:2]:
@@ -350,21 +368,21 @@ class landcoverType(object):
             else:
                 pre = ""
             # ksat in cm/d-1 -> m/dm
-            self.var.KSat1.append((loadmap(pre + "KSat1"))/100)
-            self.var.KSat2.append((loadmap(pre + "KSat2"))/100)
-            self.var.KSat3.append((loadmap(pre + "KSat3"))/100)
+            self.var.KSat1.append(ksat_fact * (loadmap(pre + "KSat1"))/100)
+            self.var.KSat2.append(ksat_fact * (loadmap(pre + "KSat2"))/100)
+            self.var.KSat3.append(ksat_fact * (loadmap(pre + "KSat3"))/100)
             self.var.alpha1.append((loadmap(pre + "alpha1")))
             self.var.alpha2.append((loadmap(pre + "alpha2")))
             self.var.alpha3.append((loadmap(pre + "alpha3")))
             self.var.lambda1.append((loadmap(pre + "lambda1")))
             self.var.lambda2.append((loadmap(pre + "lambda2")))
             self.var.lambda3.append((loadmap(pre + "lambda3")))
-            self.var.thetas1.append((loadmap(pre + "thetas1")))
-            self.var.thetas2.append((loadmap(pre + "thetas2")))
-            self.var.thetas3.append((loadmap(pre + "thetas3")))
-            self.var.thetar1.append((loadmap(pre + "thetar1")))
-            self.var.thetar2.append((loadmap(pre + "thetar2")))
-            self.var.thetar3.append((loadmap(pre + "thetar3")))
+            self.var.thetas1.append(thetas_fact * (loadmap(pre + "thetas1")))
+            self.var.thetas2.append(thetas_fact * (loadmap(pre + "thetas2")))
+            self.var.thetas3.append(thetas_fact * (loadmap(pre + "thetas3")))
+            self.var.thetar1.append(thetar_fact *(loadmap(pre + "thetar1")))
+            self.var.thetar2.append(thetar_fact *(loadmap(pre + "thetar2")))
+            self.var.thetar3.append(thetar_fact *(loadmap(pre + "thetar3")))
             i += 1
 
 

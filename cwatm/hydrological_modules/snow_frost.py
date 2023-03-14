@@ -241,6 +241,8 @@ class snow_frost(object):
         self.var.SnowMelt = globals.inZero.copy()
         self.var.SnowCover = globals.inZero.copy()
         self.var.snow_redistributed_previous = globals.inZero.copy()
+        self.var.SnowM1 = globals.inZero.copy()
+        self.var.IceM1 = globals.inZero.copy()
 
         #get number of elevation zones with forest
         #assume forest is most present at lowest location
@@ -297,7 +299,9 @@ class snow_frost(object):
                 IceMeltS = TavgS * self.var.IceMeltCoef * self.var.DtDay * SummerSeason
 
             IceMeltS = np.maximum(IceMeltS, globals.inZero)
-            SnowMeltS = np.maximum(np.minimum(SnowMeltS + IceMeltS, self.var.SnowCoverS[i]), globals.inZero)
+            SnowMeltS1 = np.maximum(np.minimum(SnowMeltS + IceMeltS, self.var.SnowCoverS[i]), globals.inZero)
+            IceMeltS = np.maximum(SnowMeltS1 - SnowMeltS, globals.inZero)
+            SnowMeltS = np.maximum(SnowMeltS1 - IceMeltS, globals.inZero)
             # check if snow+ice not bigger than snowcover
             self.var.SnowCoverS[i] = self.var.SnowCoverS[i] + SnowS - SnowMeltS
 
@@ -339,6 +343,8 @@ class snow_frost(object):
                 self.var.SnowMelt += SnowMeltS * weight
                 self.var.SnowCover += self.var.SnowCoverS[i] * weight
 
+                # Need to include icemelt
+
                 #other option equally divide glacier fraction among X elevation zones
                 # weight = 1 / self.var.numberSnowLayers - current_fracGlacierCover
                 # # print(weight)
@@ -353,12 +359,14 @@ class snow_frost(object):
                 # self.var.Rain += RainS * weight
                 # self.var.SnowMelt += SnowMeltS * weight
                 # self.var.SnowCover += self.var.SnowCoverS[i] * weight
+
             else:
                 self.var.Snow += SnowS
                 self.var.Rain += RainS
-                self.var.SnowMelt += SnowMeltS
+                self.var.SnowMelt += SnowMeltS1
                 self.var.SnowCover += self.var.SnowCoverS[i]
-
+                self.var.SnowM1 += SnowMeltS
+                self.var.IceM1 += IceMeltS
 
             if self.var.extfrostindex:
                 Kfrost = np.where(TavgS < 0, 0.08, 0.5)
@@ -380,10 +388,14 @@ class snow_frost(object):
 
 
         if not self.var.excludeGlacierArea:
-                self.var.Snow /= self.var.numberSnowLayersFloat
-                self.var.Rain /= self.var.numberSnowLayersFloat
-                self.var.SnowMelt /= self.var.numberSnowLayersFloat
-                self.var.SnowCover /= self.var.numberSnowLayersFloat
+            self.var.Snow /= self.var.numberSnowLayersFloat
+            self.var.Rain /= self.var.numberSnowLayersFloat
+            self.var.SnowMelt /= self.var.numberSnowLayersFloat
+            self.var.SnowCover /= self.var.numberSnowLayersFloat
+
+            self.var.SnowM1 /= self.var.numberSnowLayersFloat
+            self.var.IceM1 /= self.var.numberSnowLayersFloat
+
         # all in pixel
 
         # DEBUG Snow
