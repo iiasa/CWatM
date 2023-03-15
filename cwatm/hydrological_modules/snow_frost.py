@@ -303,7 +303,7 @@ class snow_frost(object):
             IceMeltS = np.maximum(SnowMeltS1 - SnowMeltS, globals.inZero)
             SnowMeltS = np.maximum(SnowMeltS1 - IceMeltS, globals.inZero)
             # check if snow+ice not bigger than snowcover
-            self.var.SnowCoverS[i] = self.var.SnowCoverS[i] + SnowS - SnowMeltS
+            self.var.SnowCoverS[i] = self.var.SnowCoverS[i] + SnowS - SnowMeltS1
 
             #snow redistribution inspired by Frey and Holzmann (2015) doi:10.5194/hess-19-4517-2015
             #if snow cover higher than snow holding capacity redistribution
