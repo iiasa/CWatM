@@ -26,21 +26,13 @@ import pandas as pd
 import numpy as np
 from xml.dom import minidom
 
-# parser = argparse.ArgumentParser(description='Determine if the Excel file has been updated.')
-# parser.add_argument('integers', metavar='N', type=int, nargs=1,
-#                     help='add 1 after .py if the Excel has been updated')
-# args = parser.parse_args()
-# if args.integers[0]:
-#     print('The Excel has already been updated -- including descriptions into CWatM')
-# else:
-#     print('The Excel has not yet been updated -- creating new Excel')
-
 
 base_folders = ['hydrological_modules', 
                 'hydrological_modules/routing_reservoirs',
                 'hydrological_modules/groundwater_modflow', 
                 'hydrological_modules/water_demand', 
-                'management_modules'
+                'management_modules',
+                '.'
                 ]
 
 xcols = ['Variable name', 
@@ -390,10 +382,8 @@ def write_to_metaNetCdf(df_new_old, netxml_file):
             standard_name = ''
             
             if(var_name in metaNetcdfVar.keys()):
-                standard_name = metaNetcdfVar[var_name]['standard_name']
-                #TODO remove before flying
-                # long_name = metaNetcdfVar[var_name]['long_name'] #use these two lines to copy long names from older xml files
-                # df_new_old.loc[_index, 'Long name'] = long_name
+                standar_name = metaNetcdfVar[var_name]['standard_name']
+
                 
                 
             line = f'<metanetcdf varname="{var_name}" unit="{unt}"  standard_name="{standard_name}" long_name="{long_name}" description="{des}"  title="CWATM" author="IIASA WAT" />\n'
@@ -401,10 +391,7 @@ def write_to_metaNetCdf(df_new_old, netxml_file):
             
         f.write('</CWATM>')
             
-       
-    #TODO remove before flying
-    # with pd.ExcelWriter('selfvar.xlsx') as writer: #use these two lines to copy long names from older xml files
-    #     df_new_old.to_excel(writer, sheet_name='variables', index = False) 
+    
     
     return 0
 
