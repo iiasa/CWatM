@@ -1748,6 +1748,11 @@ class water_demand:
 
                     else:
                         self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
+                        if self.var.sectorSourceAbstractionFractions:
+                            self.var.GW_Domestic = pot_GW_Domestic
+                            self.var.GW_Industry = pot_GW_Industry
+                            self.var.GW_Livestock = pot_GW_Livestock
+                            self.var.GW_Irrigation = pot_GW_Irrigation
 
 
                     if self.var.includeIndusDomesDemand:  # all demands are taken into account
