@@ -77,8 +77,8 @@ class lakes_reservoirs(object):
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
     modflow                                Flag: True if modflow_coupling = True in settings file                  --   
-    saveInit                               Flag: if true initial conditions are saved                              --   
     load_initial                           Settings initLoad holds initial conditions for variables                input
+    saveInit                               Flag: if true initial conditions are saved                              --   
     waterBodyID                            lakes/reservoirs map with a single ID for each lake/reservoir           --   
     waterBodyOut                           biggest outlet (biggest accumulation of ldd network) of a waterbody     --   
     dirUp                                  river network in upstream direction                                     --   
@@ -118,12 +118,12 @@ class lakes_reservoirs(object):
     lakeEvaFactorC                         compressed map of a factor which increases evaporation from lake becau  --   
     reslakeoutflow                                                                                                 --   
     lakeVolume                             volume of lakes                                                         m3   
-    outLake                                outflow from lakes                                                      --   
+    outLake                                outflow from lakes                                                      m    
     lakeInflow                                                                                                     --   
     lakeOutflow                                                                                                    --   
     reservoirStorage                                                                                               --   
     MtoM3C                                 conversion factor from m to m3 (compressed map)                         --   
-    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   --   
+    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   m    
     lakeResInflowM                                                                                                 --   
     lakeResOutflowM                                                                                                --   
     lakedaycorrect                                                                                                 --   
@@ -131,7 +131,7 @@ class lakes_reservoirs(object):
     lakeFactorSqr                          square root factor for the Modified Puls approach to calculate retenti  --   
     lakeInflowOldC                         inflow to the lake from previous days                                   m/3  
     lakeOutflowC                           compressed map of lake outflow                                          m3/s 
-    lakeLevelC                             compressed map of lake level                                            --   
+    lakeLevelC                             compressed map of lake level                                            m    
     conLimitC                                                                                                      --   
     normLimitC                                                                                                     --   
     floodLimitC                                                                                                    --   
@@ -161,18 +161,18 @@ class lakes_reservoirs(object):
     lakeStorage                                                                                                    --   
     resStorage                                                                                                     --   
     cellArea                               Area of cell                                                            m2   
-    InvDtSec                                                                                                       --   
-    DtSec                                  number of seconds per timestep (default = 86400)                        --   
+    DtSec                                  number of seconds per timestep (default = 86400)                        s    
     MtoM3                                  Coefficient to change units                                             --   
-    lakeEvaFactor                          a factor which increases evaporation from lake because of wind          --   
-    discharge                              discharge                                                               m3/s 
+    InvDtSec                                                                                                       --   
     UpArea1                                upstream area of a grid cell                                            m2   
     lddCompress                            compressed river network (without missing values)                       --   
-    dtRouting                              number of seconds per routing timestep                                  --   
-    evapWaterBodyC                         Compressed version of EvapWaterBodyM                                    --   
+    lakeEvaFactor                          a factor which increases evaporation from lake because of wind          --   
+    dtRouting                              number of seconds per routing timestep                                  s    
+    evapWaterBodyC                         Compressed version of EvapWaterBodyM                                    m    
     sumLakeEvapWaterBodyC                                                                                          --   
     noRoutingSteps                                                                                                 --   
     sumResEvapWaterBodyC                                                                                           --   
+    discharge                              Channel discharge                                                       m3/s 
     inflowDt                                                                                                       --   
     prelakeResStorage                                                                                              --   
     runoff                                                                                                         --   

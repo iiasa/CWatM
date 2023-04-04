@@ -29,7 +29,7 @@ class inflow(object):
     inflowTs                               inflow time series data                                                 m3/s 
     totalQInM3                             total inflow over time (for mass balance calculation)                   m3   
     inflowM3                               inflow to basin                                                         m3   
-    DtSec                                  number of seconds per timestep (default = 86400)                        --   
+    DtSec                                  number of seconds per timestep (default = 86400)                        s    
     QInM3Old                               Inflow from previous day                                                m3   
     =====================================  ======================================================================  =====
 

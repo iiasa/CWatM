@@ -25,23 +25,23 @@ class soil(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    capRiseFrac                            fraction of a grid cell where capillar rise may happen                  --   
+    capRiseFrac                            fraction of a grid cell where capillar rise may happen                  m    
     modflow                                Flag: True if modflow_coupling = True in settings file                  --   
-    snowEvap                               total evaporation from snow for a snow layers                           --   
+    snowEvap                               total evaporation from snow for a snow layers                           m    
     fracCrops_nonIrr                       Fraction of cell currently planted with specific non-irr crops          --   
     currentKC                              Current crop coefficient for specific crops                             --   
     weighted_KC_Irr_woFallow_fullKc                                                                                --   
     weighted_KC_Irr_woFallow                                                                                       --   
-    storGroundwater                        simulated groundwater storage                                           --   
+    storGroundwater                        Groundwater storage (non-fossil). 
+This is primarily used when not usi  m    
     includeCrops                           1 when includeCrops=True in Settings, 0 otherwise                       bool 
     Crops                                  Internal: List of specific crops and Kc/Ky parameters                   --   
-    potTranspiration                       Potential transpiration (after removing of evaporation)                 --   
-    availWaterInfiltration                 quantity of water reaching the soil after interception, more snowmelt   --   
-    actualET                               simulated evapotranspiration from soil, flooded area and vegetation     --   
-    interceptEvap                          simulated evaporation from water intercepted by vegetation              --   
+    potTranspiration                       Potential transpiration (after removing of evaporation)                 m    
+    interceptEvap                          simulated evaporation from water intercepted by vegetation              m    
     cropKC                                 crop coefficient for each of the 4 different land cover types (forest,  --   
-    topwater                               quantity of water above the soil (flooding)                             --   
+    topwater                               quantity of water above the soil (flooding)                             m    
     minCropKC                              minimum crop factor (default 0.2)                                       --   
+    availWaterInfiltration                 quantity of water reaching the soil after interception, more snowmelt   m    
     rootDepth                                                                                                      --   
     KSat1                                                                                                          --   
     KSat2                                                                                                          --   
@@ -52,12 +52,12 @@ class soil(object):
     genuInvM1                                                                                                      --   
     genuInvM2                                                                                                      --   
     genuInvM3                                                                                                      --   
-    ws1                                    Maximum storage capacity in layer 1                                     --   
-    ws2                                    Maximum storage capacity in layer 2                                     --   
-    ws3                                    Maximum storage capacity in layer 3                                     --   
-    wres1                                  Residual storage capacity in layer 1                                    --   
-    wres2                                  Residual storage capacity in layer 2                                    --   
-    wres3                                  Residual storage capacity in layer 3                                    --   
+    ws1                                    Maximum storage capacity in layer 1                                     m    
+    ws2                                    Maximum storage capacity in layer 2                                     m    
+    ws3                                    Maximum storage capacity in layer 3                                     m    
+    wres1                                  Residual storage capacity in layer 1                                    m    
+    wres2                                  Residual storage capacity in layer 2                                    m    
+    wres3                                  Residual storage capacity in layer 3                                    m    
     wrange1                                                                                                        --   
     wrange2                                                                                                        --   
     wrange3                                                                                                        --   
@@ -71,66 +71,67 @@ class soil(object):
     kunSatFC23                                                                                                     --   
     arnoBeta                                                                                                       --   
     adjRoot                                                                                                        --   
-    maxtopwater                            maximum heigth of topwater                                              --   
+    maxtopwater                            maximum heigth of topwater                                              m    
     cellArea                               Area of cell                                                            m2   
-    EWRef                                  potential evaporation rate from water surface                           --   
+    EWRef                                  potential evaporation rate from water surface                           m    
     FrostIndexThreshold                    Degree Days Frost Threshold (stops infiltration, percolation and capil  --   
     FrostIndex                             FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Inde  --   
-    potBareSoilEvap                        potential bare soil evaporation (calculated with minus snow evaporatio  --   
+    potBareSoilEvap                        potential bare soil evaporation (calculated with minus snow evaporatio  m    
     irr_Paddy_month                                                                                                --   
-    fracCrops_Irr                          Fraction of cell currently planted with specific irrigated crops        --   
-    actTransTotal_month_nonIrr             Internal variable: Running total of  transpiration for specific non-ir  --   
-    actTransTotal_month_Irr                Internal variable: Running total of  transpiration for specific irriga  --   
+    fracCrops_Irr                          Fraction of cell currently planted with specific irrigated crops        %    
+    actTransTotal_month_nonIrr             Internal variable: Running total of  transpiration for specific non-ir  m    
+    actTransTotal_month_Irr                Internal variable: Running total of  transpiration for specific irriga  m    
     irr_crop_month                                                                                                 --   
-    frac_totalIrr                          Fraction sown with specific irrigated crops                             --   
+    frac_totalIrr                          Fraction sown with specific irrigated crops                             %    
     weighted_KC_nonIrr_woFallow                                                                                    --   
-    totalPotET                             Potential evaporation per land use class                                --   
-    directRunoff                           Simulated surface runoff                                                --   
-    interflow                              Simulated flow reaching runoff instead of groundwater                   --   
-    openWaterEvap                          Simulated evaporation from open areas                                   --   
-    actTransTotal                          Total actual transpiration from the three soil layers                   --   
-    actBareSoilEvap                        Simulated evaporation from the first soil layer                         --   
+    totalPotET                             Potential evaporation per land use class                                m    
+    actualET                               simulated evapotranspiration from soil, flooded area and vegetation     m    
     soilLayers                             Number of soil layers                                                   --   
-    soildepth                              Thickness of the first soil layer                                       --   
-    w1                                     Simulated water storage in the layer 1                                  --   
-    w2                                     Simulated water storage in the layer 2                                  --   
-    w3                                     Simulated water storage in the layer 3                                  --   
-    percolationImp                         Fraction of area covered by the corresponding landcover type            --   
+    soildepth                              Thickness of the first soil layer                                       m    
+    w1                                     Simulated water storage in the layer 1                                  m    
+    w2                                     Simulated water storage in the layer 2                                  m    
+    w3                                     Simulated water storage in the layer 3                                  m    
+    directRunoff                           Simulated surface runoff                                                m    
+    interflow                              Simulated flow reaching runoff instead of groundwater                   m    
+    openWaterEvap                          Simulated evaporation from open areas                                   m    
+    actTransTotal                          Total actual transpiration from the three soil layers                   m    
+    actBareSoilEvap                        Simulated evaporation from the first soil layer                         m    
+    percolationImp                         Fraction of area covered by the corresponding landcover type            m    
     cropGroupNumber                        soil water depletion fraction, Van Diepen et al., 1988: WOFOST 6.0, p.  --   
     cPrefFlow                              Factor influencing preferential flow (flow from surface to GW)          --   
     pumping_actual                                                                                                 --   
-    gwdepth_observations                   Input, gw_depth_observations, groundwater depth observations            --   
-    gwdepth_adjuster                       Groundwater depth adjuster                                              --   
+    gwdepth_observations                   Input, gw_depth_observations, groundwater depth observations            m    
+    gwdepth_adjuster                       Groundwater depth adjuster                                              m    
     rws                                    Transpiration reduction factor (in case of water stress)                --   
-    prefFlow                               Flow going directly from rainfall to groundwater                        --   
-    infiltration                           Water actually infiltrating the soil                                    --   
-    capRiseFromGW                          Simulated capillary rise from groundwater                               --   
+    prefFlow                               Flow going directly from soil surface to groundwater [land class speci  m    
+    infiltration                           Water actually infiltrating the soil                                    m    
+    capRiseFromGW                          Simulated capillary rise from groundwater                               m    
     NoSubSteps                             Number of sub steps to calculate soil percolation                       --   
-    perc1to2                               Simulated water flow from soil layer 1 to soil layer 2                  --   
-    perc2to3                               Simulated water flow from soil layer 2 to soil layer 3                  --   
-    perc3toGW                              Simulated water flow from soil layer 3 to groundwater                   --   
+    perc1to2                               Simulated water flow from soil layer 1 to soil layer 2                  m    
+    perc2to3                               Simulated water flow from soil layer 2 to soil layer 3                  m    
+    perc3toGW                              Simulated water flow from soil layer 3 to groundwater                   m    
     theta1                                 fraction of water in soil compartment 1 for each land use class         --   
     theta2                                 fraction of water in soil compartment 2 for each land use class         --   
     theta3                                 fraction of water in soil compartment 3 for each land use class         --   
-    actTransTotal_forest                   Transpiration from forest land cover                                    --   
-    actTransTotal_grasslands               Transpiration from grasslands land cover                                --   
-    actTransTotal_paddy                    Transpiration from paddy land cover                                     --   
-    actTransTotal_nonpaddy                 Transpiration from non-paddy land cover                                 --   
-    actTransTotal_crops_Irr                Transpiration associated with specific irrigated crops                  --   
-    actTransTotal_crops_nonIrr             Transpiration associated with specific non-irr crops                    --   
+    actTransTotal_forest                   Transpiration from forest land cover                                    m    
+    actTransTotal_grasslands               Transpiration from grasslands land cover                                m    
+    actTransTotal_paddy                    Transpiration from paddy land cover                                     m    
+    actTransTotal_nonpaddy                 Transpiration from non-paddy land cover                                 m    
+    actTransTotal_crops_Irr                Transpiration associated with specific irrigated crops                  m    
+    actTransTotal_crops_nonIrr             Transpiration associated with specific non-irr crops                    m    
     irr_crop                                                                                                       --   
     irrM3_crop_month_segment                                                                                       --   
     irrM3_Paddy_month_segment                                                                                      --   
-    gwRecharge                             groundwater recharge                                                    --   
-    baseflow                               simulated baseflow (= groundwater discharge to river)                   --   
-    capillar                               Simulated flow from groundwater to the third CWATM soil layer           --   
+    gwRecharge                             groundwater recharge                                                    m    
+    baseflow                               simulated baseflow (= groundwater discharge to river)                   m    
+    capillar                               Flow from groundwater to the third CWATM soil layer. Used with MODFLOW  m    
     capriseindex                                                                                                   --   
-    soildepth12                            Total thickness of layer 2 and 3                                        --   
-    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         --   
+    soildepth12                            Total thickness of layer 2 and 3                                        m    
+    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     adminSegments                          Domestic agents                                                         Int  
-    act_irrConsumption                     actual irrigation water consumption                                     --   
-    act_irrNonpaddyWithdrawal              non-paddy irrigation withdrawal                                         --   
-    act_irrPaddyWithdrawal                 paddy irrigation withdrawal                                             --   
+    act_irrConsumption                     actual irrigation water consumption                                     m    
+    act_irrNonpaddyWithdrawal              non-paddy irrigation withdrawal                                         m    
+    act_irrPaddyWithdrawal                 paddy irrigation withdrawal                                             m    
     =====================================  ======================================================================  =====
 
     **Functions**

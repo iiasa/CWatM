@@ -21,18 +21,18 @@ class interception(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    snowEvap                               total evaporation from snow for a snow layers                           --   
-    potTranspiration                       Potential transpiration (after removing of evaporation)                 --   
-    availWaterInfiltration                 quantity of water reaching the soil after interception, more snowmelt   --   
-    actualET                               simulated evapotranspiration from soil, flooded area and vegetation     --   
-    interceptStor                          simulated vegetation interception storage                               --   
-    interceptEvap                          simulated evaporation from water intercepted by vegetation              --   
-    interceptCap                           interception capacity of vegetation                                     --   
-    minInterceptCap                        Maximum interception read from file for forest and grassland land cove  --   
+    snowEvap                               total evaporation from snow for a snow layers                           m    
+    potTranspiration                       Potential transpiration (after removing of evaporation)                 m    
+    interceptCap                           interception capacity of vegetation                                     m    
+    interceptEvap                          simulated evaporation from water intercepted by vegetation              m    
+    minInterceptCap                        Maximum interception read from file for forest and grassland land cove  m    
+    interceptStor                          simulated vegetation interception storage                               m    
+    availWaterInfiltration                 quantity of water reaching the soil after interception, more snowmelt   m    
     twothird                               2/3                                                                     --   
-    EWRef                                  potential evaporation rate from water surface                           --   
-    SnowMelt                               total snow melt from all layers                                         --   
-    Rain                                   Precipitation less snow                                                 --   
+    EWRef                                  potential evaporation rate from water surface                           m    
+    SnowMelt                               total snow melt from all layers                                         m    
+    Rain                                   Precipitation less snow                                                 m    
+    actualET                               simulated evapotranspiration from soil, flooded area and vegetation     m    
     =====================================  ======================================================================  =====
 
     **Functions**

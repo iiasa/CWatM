@@ -24,26 +24,22 @@ class readmeteo(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    DtDay                                  seconds in a timestep (default=86400)                                   --   
+    DtDay                                  seconds in a timestep (default=86400)                                   s    
     con_precipitation                      conversion factor for precipitation                                     --   
     con_e                                  conversion factor for evaporation                                       --   
+    ETRef                                  potential evapotranspiration rate from reference crop                   m    
+    Precipitation                          Precipitation (input for the model)                                     m    
     only_radition                                                                                                  --   
-    TMin                                   minimum air temperature                                                 --   
-    TMax                                   maximum air temperature                                                 --   
-    Tavg                                   Input, average air Temperature                                          --   
+    TMin                                   minimum air temperature                                                 K    
+    TMax                                   maximum air temperature                                                 K    
+    Tavg                                   Input, average air Temperature                                          K    
     Rsds                                   short wave downward surface radiation fluxes                            W/m2 
     EAct                                                                                                           --   
     Psurf                                  Instantaneous surface pressure                                          Pa   
     Qair                                   specific humidity                                                       kg/kg
     Rsdl                                   long wave downward surface radiation fluxes                             W/m2 
     Wind                                   wind speed                                                              m/s  
-    ETRef                                  potential evapotranspiration rate from reference crop                   --   
-    EWRef                                  potential evaporation rate from water surface                           --   
-    Precipitation                          Precipitation (input for the model)                                     --   
-    includeGlaciers                                                                                                --   
-    includeOnlyGlaciersMelt                                                                                        --   
-    GlacierMelt                                                                                                    --   
-    GlacierRain                                                                                                    --   
+    EWRef                                  potential evaporation rate from water surface                           m    
     meteomapsscale                         if meteo maps have the same extend as the other spatial static maps ->  --   
     meteodown                              if meteo maps should be downscaled                                      --   
     InterpolationMethod                                                                                            --   
@@ -54,14 +50,14 @@ class readmeteo(object):
     eva0Maps                               choose between steady state ETP reference maps for steady state modflo  --   
     glaciermeltMaps                                                                                                --   
     glacierrainMaps                                                                                                --   
-    wc2_tavg                               High resolution WorldClim map for average temperature                   --   
-    wc4_tavg                               upscaled to low resolution WorldClim map for average temperature        --   
-    wc2_tmin                               High resolution WorldClim map for min temperature                       --   
-    wc4_tmin                               upscaled to low resolution WorldClim map for min temperature            --   
-    wc2_tmax                               High resolution WorldClim map for max temperature                       --   
-    wc4_tmax                               upscaled to low resolution WorldClim map for max temperature            --   
-    wc2_prec                               High resolution WorldClim map for precipitation                         --   
-    wc4_prec                               upscaled to low resolution WorldClim map for precipitation              --   
+    wc2_tavg                               High resolution WorldClim map for average temperature                   K    
+    wc4_tavg                               upscaled to low resolution WorldClim map for average temperature        K    
+    wc2_tmin                               High resolution WorldClim map for min temperature                       K    
+    wc4_tmin                               upscaled to low resolution WorldClim map for min temperature            K    
+    wc2_tmax                               High resolution WorldClim map for max temperature                       K    
+    wc4_tmax                               upscaled to low resolution WorldClim map for max temperature            K    
+    wc2_prec                               High resolution WorldClim map for precipitation                         m    
+    wc4_prec                               upscaled to low resolution WorldClim map for precipitation              m    
     xcoarse_prec                                                                                                   --   
     ycoarse_prec                                                                                                   --   
     xfine_prec                                                                                                     --   
@@ -73,9 +69,13 @@ class readmeteo(object):
     yfine_tavg                                                                                                     --   
     meshlist_tavg                                                                                                  --   
     meteo                                                                                                          --   
-    prec                                   precipitation in m                                                      --   
+    prec                                   precipitation in m                                                      m    
     temp                                   average temperature in Celsius deg                                      °C   
     WtoMJ                                  Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6          --   
+    includeGlaciers                                                                                                --   
+    includeOnlyGlaciersMelt                                                                                        --   
+    GlacierMelt                                                                                                    --   
+    GlacierRain                                                                                                    --   
     =====================================  ======================================================================  =====
 
     **Functions**
@@ -395,8 +395,8 @@ class readmeteo(object):
             #if 1: does not touch boundaries of meteo input map, if 0 touches boundary of input map
             #          buffer1
             #         ---------
-            # buffer3¦        ¦ buffer4
-            #        ¦        ¦
+            # buffer3Â¦        Â¦ buffer4
+            #        Â¦        Â¦
             #         ---------
             #          buffer2
             # to perform bilinear interpolation a buffer around the maskmap is needed, if maskmap touches bounary of input map an artifical buffer has to be created by duplicating the last row/column

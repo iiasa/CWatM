@@ -22,16 +22,17 @@ class groundwater(object):
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
     modflow                                Flag: True if modflow_coupling = True in settings file                  --   
-    storGroundwater                        simulated groundwater storage                                           --   
-    specificYield                          groundwater reservoir parameters (if ModFlow is not used) used to comp  --   
-    prestorGroundwater                     storGroundwater at the beginning of each step                           --   
-    recessionCoeff                         groundwater storage times this coefficient gives baseflow               frac 
-    readAvlStorGroundwater                 same as storGroundwater but equal to 0 when inferior to a treshold      --   
     load_initial                           Settings initLoad holds initial conditions for variables                input
-    sum_gwRecharge                         groundwater recharge                                                    --   
-    baseflow                               simulated baseflow (= groundwater discharge to river)                   --   
-    capillar                               Simulated flow from groundwater to the third CWATM soil layer           --   
-    nonFossilGroundwaterAbs                groundwater abstraction which is sustainable and not using fossil reso  --   
+    storGroundwater                        Groundwater storage (non-fossil). 
+This is primarily used when not usi  m    
+    specificYield                          groundwater reservoir parameters (if ModFlow is not used) used to comp  m    
+    recessionCoeff                         groundwater storage times this coefficient gives baseflow               frac 
+    readAvlStorGroundwater                 same as storGroundwater but equal to 0 when inferior to a treshold      m    
+    prestorGroundwater                     storGroundwater at the beginning of each step                           m    
+    sum_gwRecharge                         groundwater recharge                                                    m    
+    baseflow                               simulated baseflow (= groundwater discharge to river)                   m    
+    capillar                               Flow from groundwater to the third CWATM soil layer. Used with MODFLOW  m    
+    nonFossilGroundwaterAbs                Non-fossil groundwater abstraction. Used primarily without MODFLOW.     m    
     =====================================  ======================================================================  =====
 
     **Functions**
