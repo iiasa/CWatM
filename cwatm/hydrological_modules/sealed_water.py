@@ -31,7 +31,7 @@ class sealed_water(object):
     openWaterEvap                          Simulated evaporation from open areas                                   m    
     actTransTotal                          Total actual transpiration from the three soil layers                   m    
     actBareSoilEvap                        Simulated evaporation from the first soil layer                         m    
-    capillar                               Simulated flow from groundwater to the third CWATM soil layer           m    
+    capillar                               Flow from groundwater to the third CWATM soil layer. Used with MODFLOW  m    
     =====================================  ======================================================================  =====
 
     **Functions**

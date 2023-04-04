@@ -23,43 +23,43 @@ class evaporation(object):
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
     snowEvap                               total evaporation from snow for a snow layers                           m    
-    cropKC_landCover                                                                                                    
-    Crops_names                            Internal: List of specific crops                                             
-    activatedCrops                                                                                                      
+    cropKC_landCover                                                                                               --   
+    Crops_names                            Internal: List of specific crops                                        --   
+    activatedCrops                                                                                                 --   
     load_initial                           Settings initLoad holds initial conditions for variables                input
-    fracCrops_nonIrr                       Fraction of cell currently planted with specific non-irr crops               
-    monthCounter                                                                                                        
-    fracCrops_IrrLandDemand                                                                                             
-    fracCrops_nonIrrLandDemand                                                                                          
-    ratio_a_p_nonIrr                                                                                                    
-    totalPotET_month                                                                                                    
-    ratio_a_p_Irr                                                                                                       
-    Yield_nonIrr                                                                                                        
-    currentKY                                                                                                           
-    Yield_Irr                                                                                                           
-    currentKC                              Current crop coefficient for specific crops                                  
-    generalIrrCrop_max                                                                                                  
-    generalnonIrrCrop_max                                                                                               
-    weighted_KC_nonIrr                                                                                                  
-    weighted_KC_Irr                                                                                                     
-    weighted_KC_Irr_woFallow_fullKc                                                                                     
-    _weighted_KC_Irr                                                                                                    
-    weighted_KC_Irr_woFallow                                                                                            
-    PotET_crop                                                                                                          
-    totalPotET_month_segment                                                                                            
-    PotETaverage_crop_segments                                                                                          
-    areaCrops_Irr_segment                                                                                               
-    areaCrops_nonIrr_segment                                                                                            
-    areaPaddy_Irr_segment                                                                                               
-    Precipitation_segment                                                                                               
-    availableArableLand_segment                                                                                         
-    cropCorrect                            calibration factor of crop KC factor                                         
+    fracCrops_nonIrr                       Fraction of cell currently planted with specific non-irr crops          --   
+    monthCounter                                                                                                   --   
+    fracCrops_IrrLandDemand                                                                                        --   
+    fracCrops_nonIrrLandDemand                                                                                     --   
+    ratio_a_p_nonIrr                       Ratio actual to potential evapotranspiration, monthly, non-irrigated [  %    
+    totalPotET_month                                                                                               --   
+    ratio_a_p_Irr                          Ratio actual to potential evapotranspiration, monthly [crop specific]   %    
+    Yield_nonIrr                           Relative monthly non-irrigated yield [crop specific]                    %    
+    currentKY                              Yield sensitivity coefficient [crop specific]                           Posit
+    Yield_Irr                              Relative monthly irrigated yield [crop specific]                        %    
+    currentKC                              Current crop coefficient for specific crops                             --   
+    generalIrrCrop_max                                                                                             --   
+    generalnonIrrCrop_max                                                                                          --   
+    weighted_KC_nonIrr                                                                                             --   
+    weighted_KC_Irr                                                                                                --   
+    weighted_KC_Irr_woFallow_fullKc                                                                                --   
+    _weighted_KC_Irr                                                                                               --   
+    weighted_KC_Irr_woFallow                                                                                       --   
+    PotET_crop                                                                                                     --   
+    totalPotET_month_segment                                                                                       --   
+    PotETaverage_crop_segments                                                                                     --   
+    areaCrops_Irr_segment                                                                                          --   
+    areaCrops_nonIrr_segment                                                                                       --   
+    areaPaddy_Irr_segment                                                                                          --   
+    Precipitation_segment                                                                                          --   
+    availableArableLand_segment                                                                                    --   
+    cropCorrect                            calibration factor of crop KC factor                                    --   
     includeCrops                           1 when includeCrops=True in Settings, 0 otherwise                       bool 
-    Crops                                  Internal: List of specific crops and Kc/Ky parameters                        
+    Crops                                  Internal: List of specific crops and Kc/Ky parameters                   --   
     potTranspiration                       Potential transpiration (after removing of evaporation)                 m    
     cropKC                                 crop coefficient for each of the 4 different land cover types (forest,  --   
     minCropKC                              minimum crop factor (default 0.2)                                       --   
-    irrigatedArea_original                                                                                              
+    irrigatedArea_original                                                                                         --   
     frac_totalnonIrr                       Fraction sown with specific non-irrigated crops                         %    
     frac_totalIrr_max                      Fraction sown with specific irrigated crops, maximum throughout simula  %    
     frac_totalnonIrr_max                   Fraction sown with specific non-irrigated crops, maximum throughout si  %    
@@ -78,13 +78,13 @@ class evaporation(object):
     prevSnowCover                          snow cover of previous day (only for water balance)                     m    
     SnowCover                              snow cover (sum over all layers)                                        m    
     potBareSoilEvap                        potential bare soil evaporation (calculated with minus snow evaporatio  m    
-    irr_Paddy_month                                                                                                     
+    irr_Paddy_month                                                                                                --   
     fracCrops_Irr                          Fraction of cell currently planted with specific irrigated crops        %    
     actTransTotal_month_nonIrr             Internal variable: Running total of  transpiration for specific non-ir  m    
     actTransTotal_month_Irr                Internal variable: Running total of  transpiration for specific irriga  m    
-    irr_crop_month                                                                                                      
+    irr_crop_month                                                                                                 --   
     frac_totalIrr                          Fraction sown with specific irrigated crops                             %    
-    weighted_KC_nonIrr_woFallow                                                                                         
+    weighted_KC_nonIrr_woFallow                                                                                    --   
     totalPotET                             Potential evaporation per land use class                                m    
     fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     adminSegments                          Domestic agents                                                         Int  

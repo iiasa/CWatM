@@ -25,15 +25,15 @@ class waterdemand_livestock:
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
     domesticTime                           Monthly' when domesticTimeMonthly = True, and 'Yearly' otherwise.       str  
-    livestockTime                                                                                                       
-    livVar                                                                                                              
+    livestockTime                                                                                                  --   
+    livVar                                                                                                         --   
     uselivestock                           True if uselivestock=True in Settings, False otherwise                  bool 
-    pot_livestockConsumption                                                                                            
+    pot_livestockConsumption                                                                                       --   
     InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 
     M3toM                                  Coefficient to change units                                             --   
-    demand_unit                                                                                                         
-    livestockDemand                                                                                                     
-    liv_efficiency                                                                                                      
+    demand_unit                                                                                                    --   
+    livestockDemand                                                                                                --   
+    liv_efficiency                                                                                                 --   
     =====================================  ======================================================================  =====
 
     **Functions**

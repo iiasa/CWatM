@@ -26,12 +26,15 @@ class initcondition(object):
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
     modflow                                Flag: True if modflow_coupling = True in settings file                  --   
-    Crops_names                            Internal: List of specific crops                                             
+    Crops_names                            Internal: List of specific crops                                        --   
     includeCrops                           1 when includeCrops=True in Settings, 0 otherwise                       bool 
-    Crops                                  Internal: List of specific crops and Kc/Ky parameters                        
+    Crops                                  Internal: List of specific crops and Kc/Ky parameters                   --   
+    includeDesal                                                                                                   --   
+    unlimitedDesal                                                                                                 --   
+    desalAnnualCap                                                                                                 --   
     reservoir_transfers                    [['Giving reservoir'][i], ['Receiving reservoir'][i], ['Fraction of li  array
-    wwt_def                                                                                                             
-    wastewater_to_reservoirs                                                                                            
+    wwt_def                                                                                                        --   
+    wastewater_to_reservoirs                                                                                       --   
     loadInit                               Flag: if true initial conditions are loaded                             --   
     initLoadFile                           load file name of the initial condition data                            --   
     saveInit                               Flag: if true initial conditions are saved                              --   
