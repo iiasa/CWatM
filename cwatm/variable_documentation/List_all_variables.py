@@ -525,7 +525,7 @@ if __name__ == '__main__':
                             
                             if(isinstance(descr, str) == False):
                                 descr = ''
-                            if(isinstance(uim, str) == False or len(uim)<2):
+                            if(isinstance(uim, str) == False or uim == '-' or len(uim)==0):
                                 uim = '--'
 
                         added_description = added_description + lead + '{:{x}.{x}}'.format(vv[9:],
