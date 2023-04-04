@@ -24,69 +24,69 @@ class waterbalance(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    storGroundwater                        simulated groundwater storage                                           m    
-    prestorGroundwater                     storGroundwater at the beginning of each step                           m    
-    snowEvap                               total evaporation from snow for a snow layers                           m    
-    preSmalllakeStorage                                                                                                 
-    smallLakedaycorrect                                                                                                 
-    smallLakeIn                                                                                                         
-    smallevapWaterBody                                                                                                  
-    smallLakeout                                                                                                        
-    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   m    
-    lakeResInflowM                                                                                                      
-    lakeResOutflowM                                                                                                     
-    sum_gwRecharge                         groundwater recharge                                                    m    
-    lakeStorage                                                                                                         
-    resStorage                                                                                                          
-    totalSto                               Total soil,snow and vegetation storage for each cell including all lan  m    
-    pretotalSto                            Previous totalSto                                                       m    
-    sum_prefFlow                           preferential flow from soil to groundwater (summed up for all land cov  m    
-    sum_perc3toGW                          percolation from 3rd soil layer to groundwater (summed up for all land  m    
-    sum_actBareSoilEvap                                                                                                 
-    sum_openWaterEvap                                                                                                   
-    sum_directRunoff                                                                                                    
-    sum_interflow                                                                                                       
-    sum_capRiseFromGW                      capillar rise from groundwater to 3rd soil layer (summed up for all la  m    
-    sum_act_irrConsumption                                                                                              
-    DtSec                                  number of seconds per timestep (default = 86400)                        s    
+    lakeReservoirStorage                                                                                           --   
+    snowEvap                               total evaporation from snow for a snow layers                           --   
+    storGroundwater                        simulated groundwater storage                                           --   
+    prestorGroundwater                     storGroundwater at the beginning of each step                           --   
+    preSmalllakeStorage                                                                                            --   
+    smallLakedaycorrect                                                                                            --   
+    smallLakeIn                                                                                                    --   
+    smallevapWaterBody                                                                                             --   
+    smallLakeout                                                                                                   --   
+    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   --   
+    lakeResInflowM                                                                                                 --   
+    lakeResOutflowM                                                                                                --   
+    lakeStorage                                                                                                    --   
+    resStorage                                                                                                     --   
+    sum_gwRecharge                         groundwater recharge                                                    --   
+    totalET                                Total evapotranspiration for each cell including all landcover types    --   
+    pretotalSto                            Previous totalSto                                                       --   
+    totalSto                               Total soil,snow and vegetation storage for each cell including all lan  --   
+    sum_prefFlow                           preferential flow from soil to groundwater (summed up for all land cov  --   
+    sum_actTransTotal                                                                                              --   
     cellArea                               Area of cell                                                            m2   
-    Precipitation                          Precipitation (input for the model)                                     m    
-    lddCompress                            compressed river network (without missing values)                       --   
+    DtSec                                  number of seconds per timestep (default = 86400)                        --   
+    Precipitation                          Precipitation (input for the model)                                     --   
     discharge                              discharge                                                               m3/s 
-    prelakeResStorage                                                                                                   
-    catchmentAll                                                                                                        
-    sumsideflow                                                                                                         
+    lddCompress                            compressed river network (without missing values)                       --   
+    prelakeResStorage                                                                                              --   
+    catchmentAll                                                                                                   --   
+    sumsideflow                                                                                                    --   
     EvapoChannel                           Channel evaporation                                                     m3   
-    prechannelStorage                                                                                                   
-    runoff                                                                                                              
-    gridcell_storage                                                                                                    
-    baseflow                               simulated baseflow (= groundwater discharge to river)                   m    
-    nonFossilGroundwaterAbs                groundwater abstraction which is sustainable and not using fossil reso  m    
-    lakeResStorage                                                                                                      
-    smalllakeStorage                                                                                                    
-    act_SurfaceWaterAbstract               Surface water abstractions                                              m    
-    addtoevapotrans                        Irrigation application loss to evaporation                              m    
-    act_irrWithdrawal                      Irrigation withdrawals                                                  m    
-    act_nonIrrConsumption                  Non-irrigation consumption                                              m    
-    returnFlow                                                                                                          
-    unmetDemand                            Unmet demand                                                            m    
-    act_nonIrrWithdrawal                   Non-irrigation withdrawals                                              m    
-    returnflowIrr                                                                                                       
-    nonIrrReturnFlowFraction                                                                                            
-    unmet_lost                             Fossil water that disappears instead of becoming return flow            m    
+    prechannelStorage                                                                                              --   
+    runoff                                                                                                         --   
+    gridcell_storage                                                                                               --   
+    sum_interflow                                                                                                  --   
+    baseflow                               simulated baseflow (= groundwater discharge to river)                   --   
+    smalllakeStorage                                                                                               --   
+    lakeResStorage                                                                                                 --   
+    nonFossilGroundwaterAbs                groundwater abstraction which is sustainable and not using fossil reso  --   
+    unmetDemand                            Unmet demand                                                            --   
+    act_SurfaceWaterAbstract               Surface water abstractions                                              --   
+    act_irrWithdrawal                      Irrigation withdrawals                                                  --   
+    act_nonIrrWithdrawal                   Non-irrigation withdrawals                                              --   
+    returnflowIrr                                                                                                  --   
+    addtoevapotrans                        Irrigation application loss to evaporation                              --   
+    nonIrrReturnFlowFraction                                                                                       --   
+    act_nonIrrConsumption                  Non-irrigation consumption                                              --   
+    returnFlow                                                                                                     --   
+    unmet_lost                             Fossil water that disappears instead of becoming return flow            --   
     channelStorage                         Channel water storage                                                   m3   
-    act_totalWaterWithdrawal               Total water withdrawals                                                 m    
-    totalET                                Total evapotranspiration for each cell including all landcover types    m    
-    sum_actTransTotal                                                                                                   
-    sum_interceptEvap                                                                                                   
-    prergridcell                                                                                                        
-    nonIrrReturnFlow                                                                                                    
-    localQW                                                                                                             
-    channelStorageBefore                                                                                                
-    sumbalance                                                                                                          
-    sum_balanceStore                                                                                                    
-    sum_balanceFlux                                                                                                     
-    lakeReservoirStorage                                                                                                
+    act_totalWaterWithdrawal               Total water withdrawals                                                 --   
+    prergridcell                                                                                                   --   
+    nonIrrReturnFlow                                                                                               --   
+    localQW                                                                                                        --   
+    channelStorageBefore                                                                                           --   
+    sumbalance                                                                                                     --   
+    sum_balanceStore                                                                                               --   
+    sum_balanceFlux                                                                                                --   
+    sum_act_irrConsumption                                                                                         --   
+    sum_directRunoff                                                                                               --   
+    sum_capRiseFromGW                      capillar rise from groundwater to 3rd soil layer (summed up for all la  --   
+    sum_perc3toGW                          percolation from 3rd soil layer to groundwater (summed up for all land  --   
+    sum_actBareSoilEvap                                                                                            --   
+    sum_openWaterEvap                                                                                              --   
+    sum_interceptEvap                                                                                              --   
     =====================================  ======================================================================  =====
 
     **Functions**

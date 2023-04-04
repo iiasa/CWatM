@@ -76,12 +76,13 @@ class lakes_reservoirs(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    load_initial                           Settings initLoad holds initial conditions for variables                input
+    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
     saveInit                               Flag: if true initial conditions are saved                              --   
+    load_initial                           Settings initLoad holds initial conditions for variables                input
     waterBodyID                            lakes/reservoirs map with a single ID for each lake/reservoir           --   
     waterBodyOut                           biggest outlet (biggest accumulation of ldd network) of a waterbody     --   
     dirUp                                  river network in upstream direction                                     --   
-    waterBodyBuffer                                                                                                     
+    waterBodyBuffer                                                                                                --   
     ldd_LR                                 change river network (put pits in where lakes are)                      --   
     lddCompress_LR                         compressed river network lakes/reservoirs (without missing values)      --   
     dirUp_LR                               river network direction upstream lake/reservoirs                        --   
@@ -94,7 +95,7 @@ class lakes_reservoirs(object):
     compress_LR                            boolean map as mask map for compressing lake/reservoir                  --   
     decompress_LR                          boolean map as mask map for decompressing lake/reservoir                --   
     waterBodyOutC                          compressed map biggest outlet of each lake/reservoir                    --   
-    waterBodyID_C                                                                                                       
+    waterBodyID_C                                                                                                  --   
     resYear                                Settings waterBodyYear, with first operating year of reservoirs         map  
     resYearC                               Compressed map of resYear                                               --   
     waterBodyTyp                           Settings, waterBodyTyp, with waterbody type 1-4                         map  
@@ -111,81 +112,80 @@ class lakes_reservoirs(object):
     reservoir_transfers_out_M3             water given from reservoirs                                             m3   
     reservoir_transfers_from_outside_M3    water received into reservoirs from Outside                             m3   
     reservoir_transfers_to_outside_M3      water given from reservoirs to the Outside                              m3   
-    resVolumeOnlyReservoirs                                                                                             
-    resVolumeOnlyReservoirsC                                                                                            
-    resVolume                                                                                                           
+    resVolumeOnlyReservoirs                                                                                        --   
+    resVolumeOnlyReservoirsC                                                                                       --   
+    resVolume                                                                                                      --   
     lakeEvaFactorC                         compressed map of a factor which increases evaporation from lake becau  --   
-    reslakeoutflow                                                                                                 m    
+    reslakeoutflow                                                                                                 --   
     lakeVolume                             volume of lakes                                                         m3   
-    outLake                                outflow from lakes                                                      m    
-    lakeInflow                                                                                                          
-    lakeOutflow                                                                                                         
-    reservoirStorage                                                                                                    
+    outLake                                outflow from lakes                                                      --   
+    lakeInflow                                                                                                     --   
+    lakeOutflow                                                                                                    --   
+    reservoirStorage                                                                                               --   
     MtoM3C                                 conversion factor from m to m3 (compressed map)                         --   
-    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   m    
-    lakeResInflowM                                                                                                      
-    lakeResOutflowM                                                                                                     
-    lakedaycorrect                                                                                                      
+    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   --   
+    lakeResInflowM                                                                                                 --   
+    lakeResOutflowM                                                                                                --   
+    lakedaycorrect                                                                                                 --   
     lakeFactor                             factor for the Modified Puls approach to calculate retention of the la  --   
     lakeFactorSqr                          square root factor for the Modified Puls approach to calculate retenti  --   
     lakeInflowOldC                         inflow to the lake from previous days                                   m/3  
     lakeOutflowC                           compressed map of lake outflow                                          m3/s 
-    lakeLevelC                             compressed map of lake level                                            m    
-    conLimitC                                                                                                           
-    normLimitC                                                                                                          
-    floodLimitC                                                                                                         
-    adjust_Normal_FloodC                                                                                                
-    norm_floodLimitC                                                                                                    
-    minQC                                                                                                               
-    normQC                                                                                                              
-    nondmgQC                                                                                                            
-    deltaO                                                                                                              
-    deltaLN                                                                                                             
-    deltaLF                                                                                                             
-    deltaNFL                                                                                                            
-    reservoirFillC                                                                                                      
-    waterBodyTypCTemp                                                                                                   
-    waterBodyTypTemp                                                                                                    
-    sumEvapWaterBodyC                                                                                                   
-    sumlakeResInflow                                                                                                    
-    sumlakeResOutflow                                                                                                   
-    lakeResStorage_release_ratio                                                                                        
-    lakeResStorage_release_ratioC                                                                                       
-    lakeIn                                                                                                              
-    lakeEvapWaterBodyC                                                                                                  
-    resEvapWaterBodyC                                                                                                   
-    lakeResInflowM_2                                                                                                    
-    lakeResOutflowM_2                                                                                                   
-    downstruct                                                                                                          
-    lakeStorage                                                                                                         
-    resStorage                                                                                                          
-    DtSec                                  number of seconds per timestep (default = 86400)                        s    
-    MtoM3                                  Coefficient to change units                                             --   
-    InvDtSec                                                                                                            
+    lakeLevelC                             compressed map of lake level                                            --   
+    conLimitC                                                                                                      --   
+    normLimitC                                                                                                     --   
+    floodLimitC                                                                                                    --   
+    adjust_Normal_FloodC                                                                                           --   
+    norm_floodLimitC                                                                                               --   
+    minQC                                                                                                          --   
+    normQC                                                                                                         --   
+    nondmgQC                                                                                                       --   
+    deltaO                                                                                                         --   
+    deltaLN                                                                                                        --   
+    deltaLF                                                                                                        --   
+    deltaNFL                                                                                                       --   
+    reservoirFillC                                                                                                 --   
+    waterBodyTypCTemp                                                                                              --   
+    waterBodyTypTemp                                                                                               --   
+    sumEvapWaterBodyC                                                                                              --   
+    sumlakeResInflow                                                                                               --   
+    sumlakeResOutflow                                                                                              --   
+    lakeResStorage_release_ratio                                                                                   --   
+    lakeResStorage_release_ratioC                                                                                  --   
+    lakeIn                                                                                                         --   
+    lakeEvapWaterBodyC                                                                                             --   
+    resEvapWaterBodyC                                                                                              --   
+    lakeResInflowM_2                                                                                               --   
+    lakeResOutflowM_2                                                                                              --   
+    downstruct                                                                                                     --   
+    lakeStorage                                                                                                    --   
+    resStorage                                                                                                     --   
     cellArea                               Area of cell                                                            m2   
+    InvDtSec                                                                                                       --   
+    DtSec                                  number of seconds per timestep (default = 86400)                        --   
+    MtoM3                                  Coefficient to change units                                             --   
+    lakeEvaFactor                          a factor which increases evaporation from lake because of wind          --   
+    discharge                              discharge                                                               m3/s 
     UpArea1                                upstream area of a grid cell                                            m2   
     lddCompress                            compressed river network (without missing values)                       --   
-    lakeEvaFactor                          a factor which increases evaporation from lake because of wind          --   
-    dtRouting                              number of seconds per routing timestep                                  s    
-    evapWaterBodyC                         Compressed version of EvapWaterBodyM                                    m    
-    sumLakeEvapWaterBodyC                                                                                               
-    noRoutingSteps                                                                                                      
-    sumResEvapWaterBodyC                                                                                                
-    discharge                              discharge                                                               m3/s 
-    inflowDt                                                                                                            
-    prelakeResStorage                                                                                                   
-    runoff                                                                                                              
-    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
-    reservoir_transfers_net_M3C                                                                                    m3   
-    reservoir_transfers_in_M3C                                                                                     m3   
-    reservoir_transfers_out_M3C                                                                                    m3   
-    reservoir_transfers_from_outside_M3C                                                                           m3   
-    reservoir_transfers_to_outside_M3C                                                                             m3   
+    dtRouting                              number of seconds per routing timestep                                  --   
+    evapWaterBodyC                         Compressed version of EvapWaterBodyM                                    --   
+    sumLakeEvapWaterBodyC                                                                                          --   
+    noRoutingSteps                                                                                                 --   
+    sumResEvapWaterBodyC                                                                                           --   
+    inflowDt                                                                                                       --   
+    prelakeResStorage                                                                                              --   
+    runoff                                                                                                         --   
+    reservoir_transfers_net_M3C                                                                                    --   
+    reservoir_transfers_in_M3C                                                                                     --   
+    reservoir_transfers_out_M3C                                                                                    --   
+    reservoir_transfers_from_outside_M3C                                                                           --   
+    reservoir_transfers_to_outside_M3C                                                                             --   
     lakeVolumeM3C                          compressed map of lake volume                                           m3   
-    lakeStorageC                                                                                                   m3   
-    reservoirStorageM3C                                                                                                 
-    lakeResStorageC                                                                                                     
-    lakeResStorage                                                                                                      
+    lakeStorageC                                                                                                   --   
+    reservoirStorageM3C                                                                                            --   
+    lakeResStorageC                                                                                                --   
+    lakeResStorage                                                                                                 --   
     =====================================  ======================================================================  =====
 
     **Functions**

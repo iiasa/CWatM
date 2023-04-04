@@ -24,19 +24,19 @@ class waterquality1(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    DtSec                                  number of seconds per timestep (default = 86400)                        s    
     cellArea                               Area of cell                                                            m2   
-    Tavg                                   Input, average air Temperature                                          K    
+    DtSec                                  number of seconds per timestep (default = 86400)                        --   
+    Tavg                                   Input, average air Temperature                                          --   
     discharge                              discharge                                                               m3/s 
-    chanLength                             Input, Channel length                                                   m    
-    totalCrossSectionArea                                                                                               
-    waterquality                                                                                                        
-    celllength                             Cell length, defined as the square root of cell area                    m    
-    downdist                                                                                                            
-    travelDistance                                                                                                      
-    travelTime                                                                                                          
-    waterLevel                                                                                                          
-    waterTemperature                                                                                                    
+    chanLength                             Input, Channel length                                                   --   
+    totalCrossSectionArea                                                                                          --   
+    waterquality                                                                                                   --   
+    celllength                             Cell length, defined as the square root of cell area                    --   
+    downdist                                                                                                       --   
+    travelDistance                                                                                                 --   
+    travelTime                                                                                                     --   
+    waterLevel                                                                                                     --   
+    waterTemperature                                                                                               --   
     =====================================  ======================================================================  =====
 
     **Functions**

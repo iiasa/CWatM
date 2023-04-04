@@ -33,31 +33,31 @@ class lakes_res_small(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
+    smallpart                                                                                                      --   
+    smalllakeArea                                                                                                  --   
+    smalllakeDis0                                                                                                  --   
+    smalllakeA                                                                                                     --   
+    smalllakeFactor                                                                                                --   
+    smalllakeFactorSqr                                                                                             --   
+    smalllakeInflowOld                                                                                             --   
     load_initial                           Settings initLoad holds initial conditions for variables                input
-    smallpart                                                                                                           
-    smalllakeArea                                                                                                       
-    smalllakeDis0                                                                                                       
-    smalllakeA                                                                                                          
-    smalllakeFactor                                                                                                     
-    smalllakeFactorSqr                                                                                                  
-    smalllakeInflowOld                                                                                                  
-    smalllakeOutflow                                                                                                    
-    smalllakeLevel                                                                                                      
-    minsmalllakeVolumeM3                                                                                                
-    preSmalllakeStorage                                                                                                 
-    smallLakedaycorrect                                                                                                 
-    smallLakeIn                                                                                                         
-    smallevapWaterBody                                                                                                  
-    smallLakeout                                                                                                        
-    smallrunoffDiff                                                                                                     
-    DtSec                                  number of seconds per timestep (default = 86400)                        s    
-    InvDtSec                                                                                                            
+    smalllakeOutflow                                                                                               --   
+    smalllakeLevel                                                                                                 --   
+    minsmalllakeVolumeM3                                                                                           --   
+    preSmalllakeStorage                                                                                            --   
+    smallLakedaycorrect                                                                                            --   
+    smallLakeIn                                                                                                    --   
+    smallevapWaterBody                                                                                             --   
+    smallLakeout                                                                                                   --   
+    smallrunoffDiff                                                                                                --   
     cellArea                               Area of cell                                                            m2   
-    EWRef                                  potential evaporation rate from water surface                           m    
+    InvDtSec                                                                                                       --   
+    DtSec                                  number of seconds per timestep (default = 86400)                        --   
+    EWRef                                  potential evaporation rate from water surface                           --   
     lakeEvaFactor                          a factor which increases evaporation from lake because of wind          --   
-    runoff                                                                                                              
-    smalllakeVolumeM3                                                                                                   
-    smalllakeStorage                                                                                                    
+    runoff                                                                                                         --   
+    smalllakeVolumeM3                                                                                              --   
+    smalllakeStorage                                                                                               --   
     =====================================  ======================================================================  =====
 
     **Functions**
