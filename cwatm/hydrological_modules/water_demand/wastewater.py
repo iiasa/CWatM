@@ -111,11 +111,11 @@ class waterdemand_wastewater(object):
     wwtResYearC                                                                                                         
     wwtSentToResC_LR                                                                                                    
     wwtOverflowOutM                                                                                                     
+    lakeResStorage                                                                                                      
     lakeVolumeM3C                          compressed map of lake volume                                           m3   
     lakeStorageC                                                                                                   m3   
     reservoirStorageM3C                                                                                                 
     lakeResStorageC                                                                                                     
-    lakeResStorage                                                                                                      
     includeWastewater                                                                                                   
     wwtEffluentsGenerated                                                                                               
     wwtSewerCollection                                                                                                  

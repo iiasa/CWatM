@@ -30,32 +30,32 @@ class snow_frost(object):
     load_initial                           Settings initLoad holds initial conditions for variables                input
     fracGlacierCover                                                                                                    
     DtDay                                  seconds in a timestep (default=86400)                                   s    
-    Tavg                                   Input, average air Temperature                                          K    
     Precipitation                          Precipitation (input for the model)                                     m    
-    Rain                                   Precipitation less snow                                                 m    
+    Tavg                                   Input, average air Temperature                                          K    
     SnowMelt                               total snow melt from all layers                                         m    
+    Rain                                   Precipitation less snow                                                 m    
+    prevSnowCover                          snow cover of previous day (only for water balance)                     m    
     SnowCover                              snow cover (sum over all layers)                                        m    
     ElevationStD                                                                                                        
-    prevSnowCover                          snow cover of previous day (only for water balance)                     m    
     numberSnowLayersFloat                                                                                               
     numberSnowLayers                       Number of snow layers (up to 10)                                        --   
     glaciertransportZone                   Number of layers which can be mimiced as glacier transport zone         --   
     deltaInvNorm                           Quantile of the normal distribution (for different numbers of snow lay  --   
     frac_snow_redistribution                                                                                            
-    DeltaTSnow                             Temperature lapse rate x std. deviation of elevation                    °C   
+    DeltaTSnow                             Temperature lapse rate x std. deviation of elevation                    deg C
     SnowDayDegrees                         day of the year to degrees: 360/365.25 = 0.9856                         --   
     SeasonalSnowMeltSin                                                                                                 
     excludeGlacierArea                                                                                                  
     summerSeasonStart                      day when summer season starts = 165                                     --   
     IceDayDegrees                          days of summer (15th June-15th Sept.) to degree: 180/(259-165)          --   
     SnowSeason                             seasonal melt factor                                                    m (Ce
-    TempSnowLow                            Temperature below which all precipitation is snow                       °C   
-    TempSnowHigh                           Temperature above which all precipitation is rain                       °C   
-    TempSnow                               Average temperature at which snow melts                                 °C   
+    TempSnowLow                            Temperature below which all precipitation is snow                       deg C
+    TempSnowHigh                           Temperature above which all precipitation is rain                       deg C
+    TempSnow                               Average temperature at which snow melts                                 deg C
     SnowFactor                             Multiplier applied to precipitation that falls as snow                  --   
     SnowMeltCoef                           Snow melt coefficient - default: 0.004                                  --   
     IceMeltCoef                            Ice melt coefficnet - default  0.007                                    --   
-    TempMelt                               Average temperature at which snow melts                                 °C   
+    TempMelt                               Average temperature at which snow melts                                 deg C
     SnowCoverS                             snow cover for each layer                                               m    
     Kfrost                                 Snow depth reduction coefficient, (HH, p. 7.28)                         m-1  
     Afrost                                 Daily decay coefficient, (Handbook of Hydrology, p. 7.28)               --   
@@ -241,6 +241,8 @@ class snow_frost(object):
         self.var.SnowMelt = globals.inZero.copy()
         self.var.SnowCover = globals.inZero.copy()
         self.var.snow_redistributed_previous = globals.inZero.copy()
+        self.var.SnowM1 = globals.inZero.copy()
+        self.var.IceM1 = globals.inZero.copy()
 
         #get number of elevation zones with forest
         #assume forest is most present at lowest location
@@ -297,9 +299,11 @@ class snow_frost(object):
                 IceMeltS = TavgS * self.var.IceMeltCoef * self.var.DtDay * SummerSeason
 
             IceMeltS = np.maximum(IceMeltS, globals.inZero)
-            SnowMeltS = np.maximum(np.minimum(SnowMeltS + IceMeltS, self.var.SnowCoverS[i]), globals.inZero)
+            SnowMeltS1 = np.maximum(np.minimum(SnowMeltS + IceMeltS, self.var.SnowCoverS[i]), globals.inZero)
+            IceMeltS = np.maximum(SnowMeltS1 - SnowMeltS, globals.inZero)
+            SnowMeltS = np.maximum(SnowMeltS1 - IceMeltS, globals.inZero)
             # check if snow+ice not bigger than snowcover
-            self.var.SnowCoverS[i] = self.var.SnowCoverS[i] + SnowS - SnowMeltS
+            self.var.SnowCoverS[i] = self.var.SnowCoverS[i] + SnowS - SnowMeltS1
 
             #snow redistribution inspired by Frey and Holzmann (2015) doi:10.5194/hess-19-4517-2015
             #if snow cover higher than snow holding capacity redistribution
@@ -339,6 +343,8 @@ class snow_frost(object):
                 self.var.SnowMelt += SnowMeltS * weight
                 self.var.SnowCover += self.var.SnowCoverS[i] * weight
 
+                # Need to include icemelt
+
                 #other option equally divide glacier fraction among X elevation zones
                 # weight = 1 / self.var.numberSnowLayers - current_fracGlacierCover
                 # # print(weight)
@@ -353,12 +359,14 @@ class snow_frost(object):
                 # self.var.Rain += RainS * weight
                 # self.var.SnowMelt += SnowMeltS * weight
                 # self.var.SnowCover += self.var.SnowCoverS[i] * weight
+
             else:
                 self.var.Snow += SnowS
                 self.var.Rain += RainS
-                self.var.SnowMelt += SnowMeltS
+                self.var.SnowMelt += SnowMeltS1
                 self.var.SnowCover += self.var.SnowCoverS[i]
-
+                self.var.SnowM1 += SnowMeltS
+                self.var.IceM1 += IceMeltS
 
             if self.var.extfrostindex:
                 Kfrost = np.where(TavgS < 0, 0.08, 0.5)
@@ -380,10 +388,14 @@ class snow_frost(object):
 
 
         if not self.var.excludeGlacierArea:
-                self.var.Snow /= self.var.numberSnowLayersFloat
-                self.var.Rain /= self.var.numberSnowLayersFloat
-                self.var.SnowMelt /= self.var.numberSnowLayersFloat
-                self.var.SnowCover /= self.var.numberSnowLayersFloat
+            self.var.Snow /= self.var.numberSnowLayersFloat
+            self.var.Rain /= self.var.numberSnowLayersFloat
+            self.var.SnowMelt /= self.var.numberSnowLayersFloat
+            self.var.SnowCover /= self.var.numberSnowLayersFloat
+
+            self.var.SnowM1 /= self.var.numberSnowLayersFloat
+            self.var.IceM1 /= self.var.numberSnowLayersFloat
+
         # all in pixel
 
         # DEBUG Snow

@@ -76,8 +76,10 @@ class lakes_reservoirs(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
+    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
     load_initial                           Settings initLoad holds initial conditions for variables                input
     saveInit                               Flag: if true initial conditions are saved                              --   
+    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   m    
     waterBodyID                            lakes/reservoirs map with a single ID for each lake/reservoir           --   
     waterBodyOut                           biggest outlet (biggest accumulation of ldd network) of a waterbody     --   
     dirUp                                  river network in upstream direction                                     --   
@@ -122,7 +124,6 @@ class lakes_reservoirs(object):
     lakeOutflow                                                                                                         
     reservoirStorage                                                                                                    
     MtoM3C                                 conversion factor from m to m3 (compressed map)                         --   
-    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   m    
     lakeResInflowM                                                                                                      
     lakeResOutflowM                                                                                                     
     lakedaycorrect                                                                                                      
@@ -159,10 +160,10 @@ class lakes_reservoirs(object):
     downstruct                                                                                                          
     lakeStorage                                                                                                         
     resStorage                                                                                                          
+    cellArea                               Area of cell                                                            m2   
     DtSec                                  number of seconds per timestep (default = 86400)                        s    
     MtoM3                                  Coefficient to change units                                             --   
     InvDtSec                                                                                                            
-    cellArea                               Area of cell                                                            m2   
     UpArea1                                upstream area of a grid cell                                            m2   
     lddCompress                            compressed river network (without missing values)                       --   
     lakeEvaFactor                          a factor which increases evaporation from lake because of wind          --   
@@ -175,7 +176,7 @@ class lakes_reservoirs(object):
     inflowDt                                                                                                            
     prelakeResStorage                                                                                                   
     runoff                                                                                                              
-    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
+    lakeResStorage                                                                                                      
     reservoir_transfers_net_M3C                                                                                    m3   
     reservoir_transfers_in_M3C                                                                                     m3   
     reservoir_transfers_out_M3C                                                                                    m3   
@@ -185,7 +186,6 @@ class lakes_reservoirs(object):
     lakeStorageC                                                                                                   m3   
     reservoirStorageM3C                                                                                                 
     lakeResStorageC                                                                                                     
-    lakeResStorage                                                                                                      
     =====================================  ======================================================================  =====
 
     **Functions**

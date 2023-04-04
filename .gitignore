@@ -40,3 +40,5 @@ MANIFEST
 *.nc
 *.tss
 *.xlsx
+/.project
+/.pydevproject

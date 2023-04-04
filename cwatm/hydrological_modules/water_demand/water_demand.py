@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------
 # Name:        Water demand module
 #
-# Author:      PB, MS, LG, JdeB
+# Author:      PB, MS, LG, JdeB, DF
 #
 # Created:     15/07/2016
 # Copyright:   (c) PB 2016
@@ -37,6 +37,7 @@ class water_demand:
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
+    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
     load_initial                           Settings initLoad holds initial conditions for variables                input
     readAvlStorGroundwater                 same as storGroundwater but equal to 0 when inferior to a treshold      m    
     reservoir_transfers                    [['Giving reservoir'][i], ['Receiving reservoir'][i], ['Fraction of li  array
@@ -59,20 +60,25 @@ class water_demand:
     MtoM3C                                 conversion factor from m to m3 (compressed map)                         --   
     waterBodyTypCTemp                                                                                                   
     pot_livestockConsumption                                                                                            
+    InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 
+    cellArea                               Area of cell                                                            m2   
     MtoM3                                  Coefficient to change units                                             --   
     InvDtSec                                                                                                            
-    cellArea                               Area of cell                                                            m2   
     M3toM                                  Coefficient to change units                                             --   
-    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
+    groundwater_storage_available                                                                                       
     GW_pumping                             Input, True if Groundwater_pumping=True                                 bool 
     availableGWStorageFraction                                                                                          
-    groundwater_storage_available                                                                                       
     gwstorage_full                         Groundwater storage at full capacity                                    m    
     wwtUrbanLeakage                                                                                                     
     wwtColArea                                                                                                          
     wwtColShare                                                                                                         
     wwtSewerCollected                                                                                                   
     wwtOverflowOutM                                                                                                     
+    lakeResStorage                                                                                                      
+    smalllakeStorage                                                                                                    
+    channelStorage                         Channel water storage                                                   m3   
+    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
+    adminSegments                          Domestic agents                                                         Int  
     nonFossilGroundwaterAbs                groundwater abstraction which is sustainable and not using fossil reso  m    
     reservoir_transfers_net_M3C                                                                                    m3   
     reservoir_transfers_in_M3C                                                                                     m3   
@@ -83,11 +89,8 @@ class water_demand:
     lakeStorageC                                                                                                   m3   
     reservoirStorageM3C                                                                                                 
     lakeResStorageC                                                                                                     
-    lakeResStorage                                                                                                      
     smalllakeVolumeM3                                                                                                   
-    smalllakeStorage                                                                                                    
     act_SurfaceWaterAbstract               Surface water abstractions                                              m    
-    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     includeWastewater                                                                                                   
     readAvlChannelStorageM                                                                                              
     leakageCanals_M                                                                                                     
@@ -97,14 +100,12 @@ class water_demand:
     returnFlow                                                                                                          
     act_irrConsumption                     actual irrigation water consumption                                     m    
     act_irrNonpaddyWithdrawal              non-paddy irrigation withdrawal                                         m    
-    adminSegments                          Domestic agents                                                         Int  
     act_irrPaddyWithdrawal                 paddy irrigation withdrawal                                             m    
     unmetDemand                            Unmet demand                                                            m    
     act_nonIrrWithdrawal                   Non-irrigation withdrawals                                              m    
     returnflowIrr                                                                                                       
     nonIrrReturnFlowFraction                                                                                            
     unmet_lost                             Fossil water that disappears instead of becoming return flow            m    
-    channelStorage                         Channel water storage                                                   m3   
     act_totalWaterWithdrawal               Total water withdrawals                                                 m    
     act_bigLakeResAbst                     Abstractions to satisfy demands from lakes and reservoirs               m    
     act_smallLakeResAbst                   Abstractions from small lakes at demand location                        m    
@@ -188,6 +189,10 @@ class water_demand:
     Channel_Industry                       Channel water abstracted for industry                                   m    
     Channel_Livestock                      Channel water abstracted for livestock                                  m    
     Channel_Irrigation                     Channel water abstracted for irrigation                                 m    
+    Lift_Domestic                                                                                                       
+    Lift_Industry                                                                                                       
+    Lift_Livestock                                                                                                      
+    Lift_Irrigation                                                                                                     
     Lake_Domestic                                                                                                       
     Lake_Industry                                                                                                       
     Lake_Livestock                                                                                                      
@@ -210,15 +215,19 @@ class water_demand:
     act_indConsumption                     Industrial consumption                                                  m    
     act_domConsumption                     Domestic consumption                                                    m    
     act_livConsumption                     Livestock consumptions                                                  m    
+    act_indWithdrawal                      Industrial withdrawal                                                   m    
+    act_domWithdrawal                      Domestic withdrawal                                                     m    
+    act_livWithdrawal                      Livestock withdrawals                                                   m    
     act_totalIrrConsumption                Total irrigation consumption                                            m    
     act_totalWaterConsumption              Total water consumption                                                 m    
+    returnflowNonIrr                                                                                                    
     act_bigLakeResAbst_R                                                                                                
     act_bigLakeResAbst_NR                                                                                               
     pot_GroundwaterAbstract                                                                                             
+    act_nonpaddyConsumption                Non-paddy irrigation consumption                                        m    
+    act_paddyConsumption                   Paddy consumption                                                       m    
     pot_nonIrrConsumption                                                                                               
     act_channelAbst                        Abstractions to satisfy demands from channels                           m    
-    swAbstractionFraction_Irr              Input, Fraction of demands to be satisfied with Surface water           %    
-    act_SurfaceWaterAbstract_Irr           Surface water abstractions for irrigation                               m    
     metRemainSegment_lift                                                                                               
     act_channelAbstract_Lift               Abstractions from the channel in lift areas at the location of the cha  m    
     abstractedLakeReservoirM3C             Compressed abstractedLakeReservoirM3                                    m3   
@@ -238,12 +247,6 @@ class water_demand:
     GW_Industry_fromZone                                                                                                
     GW_Irrigation_fromZone                                                                                              
     PumpingM3_daily                                                                                                     
-    act_indWithdrawal                      Industrial withdrawal                                                   m    
-    act_domWithdrawal                      Domestic withdrawal                                                     m    
-    act_livWithdrawal                      Livestock withdrawals                                                   m    
-    act_paddyConsumption                   Paddy consumption                                                       m    
-    act_nonpaddyConsumption                Non-paddy irrigation consumption                                        m    
-    returnflowNonIrr                                                                                                    
     unmet_lostirr                          Fossil water for irrigation that disappears instead of becoming return  m    
     unmet_lostNonirr                       Fossil water for non-irrigation that disappears instead of becoming re  m    
     waterabstraction                                                                                                    
@@ -655,14 +658,24 @@ class water_demand:
             self.var.ind_efficiency = 1.
             self.var.dom_efficiency = 1.
             self.var.liv_efficiency = 1
-            
+ 
             # for wastewater package
             if checkOption('includeWaterBodies'):
                 self.var.leakage_wwtC_daily = np.compress(self.var.compress_LR, globals.inZero.copy())
-                self.var.act_bigLakeResAbst_wwt = globals.inZero.copy()
+            self.var.act_bigLakeResAbst_wwt = globals.inZero.copy()
             
             self.var.act_DesalWaterAbstractM = globals.inZero.copy()
             
+            self.var.act_nonIrrConsumption = globals.inZero.copy()
+            self.var.act_totalIrrConsumption = globals.inZero.copy()
+            self.var.act_totalWaterConsumption = globals.inZero.copy()
+            self.var.act_indConsumption = globals.inZero.copy()
+            self.var.act_domConsumption = globals.inZero.copy()
+            self.var.act_livConsumption = globals.inZero.copy()
+            self.var.returnflowIrr = globals.inZero.copy()
+            self.var.returnflowNonIrr = globals.inZero.copy()
+
+
         else:  # no water demand
             self.var.nonIrrReturnFlowFraction = globals.inZero.copy()
             self.var.nonFossilGroundwaterAbs = globals.inZero.copy()
@@ -684,7 +697,6 @@ class water_demand:
             self.var.act_domWithdrawal = globals.inZero.copy()
             self.var.act_livWithdrawal = globals.inZero.copy()
 
-            self.var.act_nonIrrConsumption = globals.inZero.copy()
             self.var.act_totalIrrConsumption = globals.inZero.copy()
             self.var.act_totalWaterConsumption = globals.inZero.copy()
             self.var.unmetDemand = globals.inZero.copy()
@@ -743,13 +755,16 @@ class water_demand:
 
             self.var.act_nonpaddyConsumption = globals.inZero.copy()
             self.var.act_paddyConsumption = globals.inZero.copy()
-            
+
             # for wastewater package
             if checkOption('includeWaterBodies'):
                 self.var.leakage_wwtC_daily = np.compress(self.var.compress_LR, globals.inZero.copy())
-                self.var.act_bigLakeResAbst_wwt = globals.inZero.copy()
+            self.var.act_bigLakeResAbst_wwt = globals.inZero.copy()
             
             self.var.act_DesalWaterAbstractM = globals.inZero.copy()
+
+            self.var.act_nonIrrConsumption = globals.inZero.copy()
+
 
     def dynamic(self):
         """
@@ -964,7 +979,7 @@ class water_demand:
                     self.var.totalIrrDemand - self.var.Desal_Irrigation)
 
                 if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
-                    pot_Channel_Irrigation = np.maximum(pot_Channel_Irrigation,
+                    pot_Channel_Irrigation = np.minimum(pot_Channel_Irrigation,
                                                         self.var.irrWithdrawalSW_max*self.var.InvCellArea)
 
                 pot_channelAbst = pot_Channel_Domestic + pot_Channel_Livestock + pot_Channel_Industry + pot_Channel_Irrigation
@@ -1514,6 +1529,8 @@ class water_demand:
                                     self.var.reservoir_transfers_to_outside_M3C[index_giver] \
                                         += reservoir_transfer_actual
 
+
+
                                 self.var.lakeStorageC += self.var.inZero_C
                                 self.var.lakeVolumeM3C += self.var.inZero_C
                                 self.var.lakeResStorageC += self.var.inZero_C
@@ -1525,7 +1542,6 @@ class water_demand:
                                 if transfer[1] == 0:
                                     to_outside_basin = globals.inZero.copy()
                                     np.put(to_outside_basin, self.var.decompress_LR, self.var.inZero_C)
-
                                     pot_Lake_Industry -= to_outside_basin * self.var.M3toM
                                     # self.var.Lake_Industry is updated below
                                     self.var.act_lakeAbst -= to_outside_basin * self.var.M3toM
@@ -1538,6 +1554,7 @@ class water_demand:
                                     self.var.pot_industryConsumption -= to_outside_basin * self.var.M3toM
                                     self.var.ind_efficiency = divideValues(self.var.pot_industryConsumption,
                                                                            self.var.industryDemand)
+
 
                         np.put(self.var.reservoir_transfers_net_M3, self.var.decompress_LR,
                                self.var.reservoir_transfers_net_M3C)
@@ -1618,7 +1635,7 @@ class water_demand:
                             self.var.Lift_Irrigation - self.var.wwt_Irrigation - self.var.Lake_Irrigation)
 
                     if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
-                        pot_Res_Irrigation = np.maximum(pot_Res_Irrigation,
+                        pot_Res_Irrigation = np.minimum(pot_Res_Irrigation,
                                                         self.var.irrWithdrawalSW_max*self.var.InvCellArea)
 
                     # remainNeed2 = pot_Res_Domestic + pot_Res_Livestock + pot_Res_Industry + pot_Res_Irrigation
@@ -1903,9 +1920,11 @@ class water_demand:
                     self.var.totalIrrDemand - self.var.Desal_Irrigation - self.var.Channel_Irrigation - \
                     self.var.Lift_Irrigation - self.var.wwt_Irrigation - self.var.Lake_Irrigation - self.var.Res_Irrigation)
 
+
                 if 'irrigation_agent_GW_request_month_m3' in binding and self.var.activate_irrigation_agents:
-                    pot_GW_Irrigation = np.maximum(pot_GW_Irrigation,
+                    pot_GW_Irrigation = np.minimum(pot_GW_Irrigation,
                                                         self.var.irrWithdrawalGW_max*self.var.InvCellArea)
+
 
                 self.var.pot_GroundwaterAbstract = pot_GW_Domestic + pot_GW_Livestock + pot_GW_Industry + pot_GW_Irrigation
             else:
@@ -2175,6 +2194,11 @@ class water_demand:
 
                     else:
                         self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
+                        if self.var.sectorSourceAbstractionFractions:
+                            self.var.GW_Domestic = pot_GW_Domestic
+                            self.var.GW_Industry = pot_GW_Industry
+                            self.var.GW_Livestock = pot_GW_Livestock
+                            self.var.GW_Irrigation = pot_GW_Irrigation
 
 
                     if self.var.includeIndusDomesDemand:  # all demands are taken into account

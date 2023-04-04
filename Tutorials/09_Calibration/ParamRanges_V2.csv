@@ -1,0 +1,4 @@
+ParameterName,MinValue,MaxValue
+pref,0.5,8
+reces,0.1,10
+No,1,100

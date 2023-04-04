@@ -1,0 +1,20 @@
+<CWATM>
+# METADATA for NETCDF OUTPUT DATA
+
+# varname: name of the variable in the CWAT code
+# unit: unit of the varibale
+# long name# standard name
+
+# Discharge maps 
+<metanetcdf varname="discharge" unit="m3/s"  standard_name="Discharge" long_name="Discharge in cubic meter per second"  title="1st Demo CWATM" author="PB" />
+
+# others
+<metanetcdf varname="soilmoisture" unit="mm"  standard_name="soil moisture" long_name="Soil moisture"  title ="1st Demo CWATM" author="PB" />
+
+# Initial condition Files
+<metanetcdf varname="initcondition"  purpose ="Initial Conditions CWATM" author="PB" />
+<metanetcdf varname="SnowCover1" unit="mm"  standard_name="SnowCover1" long_name="Snow cover top layer"  />
+<metanetcdf varname="SnowCover2" unit="mm"  standard_name="SnowCover2" long_name="Snow cover middle layer"  />
+<metanetcdf varname="SnowCover3" unit="mm"  standard_name="SnowCover3" long_name="Snow cover lower layer"  />
+<metanetcdf varname="FrostIndex" unit="degree/days"  standard_name="FrostIndex" long_name="Frost index based on Molnau, Bissel (1983)"  />
+</CWATM>

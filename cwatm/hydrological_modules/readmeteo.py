@@ -27,17 +27,19 @@ class readmeteo(object):
     DtDay                                  seconds in a timestep (default=86400)                                   s    
     con_precipitation                      conversion factor for precipitation                                     --   
     con_e                                  conversion factor for evaporation                                       --   
+    ETRef                                  potential evapotranspiration rate from reference crop                   m    
+    Precipitation                          Precipitation (input for the model)                                     m    
+    only_radition                                                                                                       
     TMin                                   minimum air temperature                                                 K    
     TMax                                   maximum air temperature                                                 K    
+    Tavg                                   Input, average air Temperature                                          K    
+    Rsds                                   short wave downward surface radiation fluxes                            W/m2 
+    EAct                                                                                                                
     Psurf                                  Instantaneous surface pressure                                          Pa   
     Qair                                   specific humidity                                                       kg/kg
-    Tavg                                   Input, average air Temperature                                          K    
     Rsdl                                   long wave downward surface radiation fluxes                             W/m2 
-    Rsds                                   short wave downward surface radiation fluxes                            W/m2 
     Wind                                   wind speed                                                              m/s  
-    ETRef                                  potential evapotranspiration rate from reference crop                   m    
     EWRef                                  potential evaporation rate from water surface                           m    
-    Precipitation                          Precipitation (input for the model)                                     m    
     meteomapsscale                         if meteo maps have the same extend as the other spatial static maps ->  --   
     meteodown                              if meteo maps should be downscaled                                      --   
     InterpolationMethod                                                                                                 
@@ -68,9 +70,10 @@ class readmeteo(object):
     meshlist_tavg                                                                                                       
     meteo                                                                                                               
     prec                                   precipitation in m                                                      m    
-    temp                                   average temperature in Celsius deg                                      °C   
+    temp                                   average temperature in Celsius deg                                      deg C
     WtoMJ                                  Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6          --   
     includeGlaciers                                                                                                     
+    includeOnlyGlaciersMelt                                                                                             
     GlacierMelt                                                                                                         
     GlacierRain                                                                                                         
     =====================================  ======================================================================  =====
@@ -392,8 +395,8 @@ class readmeteo(object):
             #if 1: does not touch boundaries of meteo input map, if 0 touches boundary of input map
             #          buffer1
             #         ---------
-            # buffer3¦        ¦ buffer4
-            #        ¦        ¦
+            # buffer3Ã‚Â¦        Ã‚Â¦ buffer4
+            #        Ã‚Â¦        Ã‚Â¦
             #         ---------
             #          buffer2
             # to perform bilinear interpolation a buffer around the maskmap is needed, if maskmap touches bounary of input map an artifical buffer has to be created by duplicating the last row/column

@@ -2,8 +2,8 @@
 
 [![latest](https://img.shields.io/github/last-commit/iiasa/CWatM)](https://github.com/iiasa/CWatM)
 [![license](https://img.shields.io/github/license/iiasa/CWatM?color=1)](https://github.com/iiasa/CWatM/blob/version1.05/LICENSE)
-[![pytest-37](https://github.com/IAMconsortium/pyam/workflows/pytest%20(3.7)/badge.svg?branch=master)](https://github.com/iiasa/CWatM)
-[![pytest-38](https://github.com/IAMconsortium/pyam/workflows/pytest%20(3.8)/badge.svg?branch=master)](https://github.com/iiasa/CWatM)
+[![python](https://img.shields.io/badge/python-3.7_|_3.8_|_3.9_|_3.10|_3.11-blue?logo=python&logoColor=white)](https://github.com/iiasa/CWatM)
+[![pytest](https://github.com/IAMconsortium/pyam/actions/workflows/pytest.yml/badge.svg)](https://github.com/iiasa/CWatM)
 [![codecov](https://codecov.io/gh/iiasa/CWATM_priv/branch/develop/graph/badge.svg?token=6HENTZM7SC)](https://codecov.io/gh/iiasa/CWATM_priv)
 [![size](https://img.shields.io/github/repo-size/iiasa/CWatM)](https://github.com/iiasa/CWatM)
 [![ReadTheDocs](https://readthedocs.org/projects/pyam-iamc/badge/?version=latest)](https://cwatm.iiasa.ac.at/)
@@ -13,26 +13,26 @@
 **Documentation on [https://cwatm.iiasa.ac.at](https://cwatm.iiasa.ac.at)**
 
 **Questions? Start a discussion on our [forum](https://github.com/iiasa/CWatM/discussions)**
-
+**CWatM tutorials on [YouTube](https://youtube.com/playlist?list=PLyT8dd_rWLaymQIewMyzVcjMYvPR8Rqtw)**
 
 ## Overview and scope
 
-CWatM represents one of the new key elements of IIASA's Water program to assess water supply, water demand and environmental needs at global and regional level. The hydrologic model is open source and flexible to link in different aspects of the water energy food nexus. CWATM will be a basis to develop a next-generation global hydro-economic modeling and will be coupled to the existing IIASA models like MESSAGE and GLOBIOM
+The Community Water Model (CWatM) is a key elements of IIASA's Water Security program to assess water supply, demand, and environmental needs at global and regional levels. The hydrologic model is open source and flexible to link different aspects of the water-energy-food nexus. CWatM will be a basis to develop next-generation global hydro-economic modelling and will be coupled to the existing IIASA models like MESSAGE and GLOBIOM.
 
 http://www.iiasa.ac.at/cwatm
 
 
 <p align="center">
-  <img src="docu/_static/CWatM_logo.png" width="200" title="CWatM">
+  <img src="Toolkit/documentation/_static/CWatM_logo.png" width="200" title="CWatM">
 </p>
 
 
 ## Model design and processes included
 
-The Community Water Model (CWatM) will be designed for the purpose to assess water availability, water demand and environmental needs. It includes an accounting of how future water demands will evolve in response to socioeconomic change and how water availability will change in response to climate.
+The Community Water Model (CWatM) assesses water availability, demand, and environmental needs. It includes an accounting of how future water demands will evolve in response to socioeconomic change and how water availability will change in response to climate.
 
 <p align="center">
-  <img src="docu/_static/Hydrological-model2.jpg" width="450" title="Schematic view of processes">
+  <img src="Toolkit/documentation/_static/Hydrological-model2.jpg" width="450" title="Schematic view of processes">
 </p>
 Figure 1: Schematic view of CWatM processes
 
@@ -40,7 +40,7 @@ Modules for hydrological processes e.g. snow, soil, groundwater etc. are located
 The kinematic routing and the C++ routines (for speeding up the computational time) are in the folder hydrological_modules/routing_reservoirs.
 
 <p align="center">
-  <img src="docu/_static/schematic_modules.jpg" width="650" title="Schematic modules">
+  <img src="Toolkit/documentation/_static/schematic_modules.jpg" width="650" title="Schematic modules">
 </p>
 Figure 2: Schematic graph of CWatM modules
 
@@ -50,10 +50,10 @@ The Community Water Model will help to develop a next-generation hydro-economic 
 
 ## The Nexus framework of IIASA
 
-In the nexus framework â€“ water, energy, food, ecosystem - CWatM will be coupled to the existing IIASA models including the Integrated Assessment Model MESSAGE and the global land and ecosystem model GLOBIOM in order to realize an improved assessments of water-energy-food-ecosystem nexus and associated feedback.
+In the nexus framework of water, energy, food, ecosystem, CWatM will be coupled to the existing IIASA models including the Integrated Assessment Model MESSAGE and the global land and ecosystem model GLOBIOM in order to realize an improved assessments of water-energy-food-ecosystem nexus and associated feedback.
 
 <p align="center">
-  <img src="docu/_static/nexus.jpg" width="350" title="IIASA nexus">
+  <img src="Toolkit/documentation/_static/nexus.jpg" width="350" title="IIASA nexus">
 </p>
 Figure 3: IIASA model nexus
 
