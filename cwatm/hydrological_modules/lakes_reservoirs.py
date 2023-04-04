@@ -205,14 +205,15 @@ class lakes_reservoirs(object):
         (marked as capital C at the end of the variable name)
         """
 
-        def buffer_waterbody(rec):
+        def buffer_waterbody(rec, waterBody):
             """
             Puts a buffer of a rectangular rec around the lakes and reservoirs
             parameter rec = size of rectangular
             output buffer = compressed buffer
             """
 
-            waterBody = decompress(self.var.waterBodyID)
+            # add waterBody as input - allow to create a buffer on customized maps
+            # waterBody = decompress(self.var.waterBodyID)
             rows, cols = waterBody.shape
             buffer = np.full((rows, cols), 1.0e15)
             for y in range(rows):
@@ -237,7 +238,11 @@ class lakes_reservoirs(object):
 
             # load lakes/reservoirs map with a single ID for each lake/reservoir
             self.var.waterBodyID = loadmap('waterBodyID').astype(np.int64)
-
+            
+            self.var.includeWastewater = False
+            if "includeWastewater" in option:
+                self.var.includeWastewater = checkOption('includeWastewater')
+                
             # calculate biggest outlet = biggest accumulation of ldd network
             lakeResmax = npareamaximum(self.var.UpArea1, self.var.waterBodyID)
             self.var.waterBodyOut = np.where(self.var.UpArea1 == lakeResmax, self.var.waterBodyID, 0)
@@ -246,12 +251,7 @@ class lakes_reservoirs(object):
             sub = subcatchment1(self.var.dirUp, self.var.waterBodyOut, self.var.UpArea1)
             self.var.waterBodyID = np.where(self.var.waterBodyID == sub, sub, 0)
 
-            # Create a buffer around water bodies as command areas for lakes and reservoirs
-            if checkOption('includeWaterDemand'):
-                rectangular = 1
-                if "buffer_waterbodies" in binding:
-                    rectangular = int(loadmap('buffer_waterbodies'))
-                self.var.waterBodyBuffer = buffer_waterbody(rectangular)
+            
 
             # and again calculate outlets, because ID might have changed due to the operation before
             lakeResmax = npareamaximum(self.var.UpArea1, self.var.waterBodyID)
@@ -277,6 +277,7 @@ class lakes_reservoirs(object):
             self.var.resYearC = np.compress(self.var.compress_LR, self.var.resYear)
 
             self.var.waterBodyTyp = loadmap('waterBodyTyp').astype(np.int64)
+            self.var.waterBodyTyp_unchanged = self.var.waterBodyTyp.copy()
             # Flag if res type-4 are used
             self.var.includeType4 = False
             if (self.var.waterBodyTyp == 4).any():
@@ -293,7 +294,33 @@ class lakes_reservoirs(object):
                                               np.where(self.var.waterBodyTypC == 3, 1, self.var.waterBodyTypC))
 
             np.put(self.var.waterBodyTyp, self.var.decompress_LR, self.var.waterBodyTypC)
-
+            
+            # needs to be changed - maybe update all reservoir to spreadsheet
+            self.var.resId_restricted = globals.inZero.copy()
+            if self.var.includeWastewater:
+                resIdList = np.unique(list(self.var.wastewater_to_reservoirs.values()))
+                for rid in resIdList:
+                    self.var.resId_restricted += np.where(self.var.waterBodyID == rid, rid, 0)
+            
+            # Create a buffer around water bodies as command areas for lakes and reservoirs
+            if checkOption('includeWaterDemand'):
+                waterBody_UnRestricted = self.var.waterBodyID.copy()
+                
+                if self.var.includeWastewater:
+                    waterBody_UnRestricted = np.where(np.in1d(waterBody_UnRestricted, self.var.resId_restricted), 0, waterBody_UnRestricted)
+                rectangular = 1
+                if "buffer_waterbodies" in binding:
+                    rectangular = int(loadmap('buffer_waterbodies'))
+                
+                self.var.waterBodyBuffer = buffer_waterbody(rectangular, decompress(waterBody_UnRestricted))
+                if self.var.includeWastewater:
+                    self.var.waterBodyBuffer_wwt = buffer_waterbody(rectangular, decompress(self.var.resId_restricted))
+                
+                #rectangular = 1
+                #if "buffer_waterbodies" in binding:
+                #    rectangular = int(loadmap('buffer_waterbodies'))
+                #self.var.waterBodyBuffer = buffer_waterbody(rectangular)
+                
             # ================================
             # Lakes
 
@@ -408,7 +435,6 @@ class lakes_reservoirs(object):
             #  2. Q= a *H **2.0  (if you choose Q= a *H **1.5 you have to solve the formula of Cardano)
         else:
             self.var.lakeOutflowC = np.compress(self.var.compress_LR, lakeOutflowIni)
-
         # lake storage ini
         self.var.lakeLevelC = self.var.lakeVolumeM3C / self.var.lakeAreaC
 
@@ -828,6 +854,7 @@ class lakes_reservoirs(object):
         inflowC = np.compress(self.var.compress_LR, inflow)
 
         # ------------------------------------------------------------
+        self.var.resEvapWaterBodyC = globals.inZero.copy()
         outflowLakesC = dynamic_inloop_lakes(inflowC, NoRoutingExecuted)
         outflowResC = dynamic_inloop_reservoirs(inflowC, NoRoutingExecuted)
         outflow0C = inflowC.copy()  # no retention
