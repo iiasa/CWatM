@@ -774,7 +774,7 @@ class soil(object):
 
         if option['calcWaterBalance']:
             self.model.waterbalance_module.waterBalanceCheck(
-                [self.var.availWaterInfiltration[No], self.var.act_irrConsumption[No],self.var.snowEvap,self.var.interceptEvap[No]],  # In
+                [self.var.availWaterInfiltration[No], self.var.act_irrConsumption[No],self.var.snowEvap, self.var.iceEvap, self.var.interceptEvap[No]],  # In
                 [self.var.directRunoff[No], self.var.interflow[No],self.var.gwRecharge[No],
                  self.var.actualET[No]],  # Out
                 [preStor1, preStor2, preStor3,pretopwater],  # prev storage

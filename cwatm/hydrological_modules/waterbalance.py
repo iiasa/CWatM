@@ -15,7 +15,7 @@ class waterbalance(object):
     """
     WATER BALANCE
     
-    * check if water balnace per time step is ok ( = 0)
+    * check if water balance per time step is closed ( = 0)
     * produce an annual overview - income, outcome storage
 
 
@@ -104,7 +104,6 @@ class waterbalance(object):
         Initial part of the water balance module
         """
 
-
         if checkOption('calcWaterBalance'):
 
             self.var.nonIrrReturnFlow = 0
@@ -123,7 +122,7 @@ class waterbalance(object):
             self.var.sum_balanceStore = ['SnowCover','sum_interceptStor','sum_topWaterLayer']
 
             # variable of fluxes
-            self.var.sum_balanceFlux = ['Precipitation','SnowMelt','Rain','sum_interceptEvap','actualET']
+            self.var.sum_balanceFlux = ['Precipitation','SnowMelt','IceMelt','Rain','sum_interceptEvap','actualET']
 
             #for variable in self.var.sum_balanceStore:
                 # vars(self.var)["sumup_" + variable] =  vars(self.var)[variable]
@@ -262,15 +261,15 @@ class waterbalance(object):
 
 
             self.model.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation, self.var.sum_act_irrConsumption],
+                [self.var.Rain,self.var.Snow, self.var.sum_act_irrConsumption],
                 [self.var.sum_directRunoff, self.var.sum_interflow, self.var.sum_gwRecharge,self.var.totalET],  # Out
                 [self.var.pretotalSto],  # prev storage
                 [self.var.totalSto],
-                "Soil_all", True)
+                "Soil_all", False)
 
 
             self.model.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation, self.var.sum_act_irrConsumption,self.var.sum_capRiseFromGW],
+                [self.var.Rain,self.var.Snow, self.var.sum_act_irrConsumption,self.var.sum_capRiseFromGW],
                 [self.var.sum_directRunoff, self.var.sum_perc3toGW, self.var.sum_prefFlow,
                  self.var.totalET],  # Out
                 [self.var.pretotalSto],  # prev storage
@@ -280,17 +279,17 @@ class waterbalance(object):
 
 
             self.model.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation, self.var.sum_act_irrConsumption,self.var.sum_capRiseFromGW],
+                [self.var.Rain,self.var.Snow, self.var.sum_act_irrConsumption,self.var.sum_capRiseFromGW],
                 [self.var.sum_directRunoff, self.var.sum_perc3toGW, self.var.sum_prefFlow,
-                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap],  # Out
+                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap, self.var.iceEvap],  # Out
                 [self.var.pretotalSto],  # prev storage
                 [self.var.totalSto],
                 "Soil_all2", False)
 
             self.model.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation, self.var.sum_act_irrConsumption],
+                [self.var.Rain,self.var.Snow, self.var.sum_act_irrConsumption],
                 [self.var.sum_directRunoff, self.var.sum_interflow, self.var.nonFossilGroundwaterAbs,self.var.baseflow,
-                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap],  # Out
+                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap, self.var.iceEvap],  # Out
                 [self.var.pretotalSto,self.var.prestorGroundwater],  # prev storage
                 [self.var.totalSto,self.var.storGroundwater],
                 "Soil+G", False)
@@ -311,23 +310,23 @@ class waterbalance(object):
                 "Waterdemand2", False)
 
             self.model.waterbalance_module.waterBalanceCheckSum(
-                [self.var.Precipitation, self.var.act_irrWithdrawal],
+                [self.var.Rain,self.var.Snow, self.var.act_irrWithdrawal],
                 [self.var.sum_directRunoff, self.var.sum_interflow, self.var.nonFossilGroundwaterAbs,self.var.baseflow,
-                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap,
+                 self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap, self.var.sum_interceptEvap, self.var.snowEvap, self.var.iceEvap,
                  self.var.returnflowIrr, self.var.addtoevapotrans],  # Out
                 [self.var.pretotalSto,self.var.prestorGroundwater],  # prev storage
                 [self.var.totalSto,self.var.storGroundwater],
                 "Soil+G+WD", False)
 
             self.model.waterbalance_module.waterBalanceCheck(
-                [self.var.Precipitation, self.var.act_irrWithdrawal],
+                [self.var.Rain,self.var.Snow, self.var.act_irrWithdrawal],
                 [self.var.sum_directRunoff, self.var.sum_interflow, self.var.baseflow,
                  self.var.sum_actTransTotal, self.var.sum_actBareSoilEvap, self.var.sum_openWaterEvap,
-                 self.var.sum_interceptEvap, self.var.snowEvap, self.var.addtoevapotrans,
+                 self.var.sum_interceptEvap, self.var.snowEvap, self.var.iceEvap, self.var.addtoevapotrans,
                  self.var.nonFossilGroundwaterAbs, self.var.returnflowIrr, ],  # Out
                 [self.var.pretotalSto, self.var.prestorGroundwater],  # prev storage
                 [self.var.totalSto, self.var.storGroundwater],
-                "Soil+G+WD", False)
+                "Soil+G+WD", True)
 
             nonIrrReturn = self.var.nonIrrReturnFlowFraction * self.var.act_irrWithdrawal
             nonIrruse = self.var.act_irrWithdrawal - nonIrrReturn
