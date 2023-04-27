@@ -397,8 +397,15 @@ def write_to_metaNetCdf(df_new_old, netxml_file):
 
 
 
+def get_vars_modules_descriptor(df_new_old):
+    dict_new_old = {}
     
-    
+    for _index, row in df_new_old.iterrows():
+        var_name = row['Variable name']
+        uom = row['Unit']
+        descr = row['Description']
+        dict_new_old[var_name] = {'Description': descr, 'Unit': uom}
+    return dict_new_old
     
 
 if __name__ == '__main__':
@@ -452,4 +459,123 @@ if __name__ == '__main__':
         
     write_to_metaNetCdf(df_new_old, netxml_file)
     
+    
+    
+    print('Modifying CWATM modules to add self.var information')
+
+    for folders_paths in folders:
+        path = str(folders_paths)
+        python_modules = os.listdir(path)
+        for ll in range(len(python_modules)):
+            if python_modules[ll][-2:] == 'py':
+                filename_to_modify = path + '/' + python_modules[ll]
+
+                # We know the Python file, now we need to find all variables inside
+                var_name_in_module = []
+
+                for var_name in Dict_AllVariables:  # FOR EACH SELF.VARIABLE NAME
+                    for keys in Dict_AllVariables[var_name]:
+                        if python_modules[ll][:-3] == keys:  # we search the module where we want to add information
+                            var_name_in_module.append(
+                                var_name)  # This list contains all var_name appearing in this module
+
+                if len(var_name_in_module) > 0:
+
+                    ## Now, we modify the Python module to add self.var description
+                    logger.info("=== " + filename_to_modify)
+                    file = open(filename_to_modify, 'r')
+                    lines = file.readlines()
+                    file.close()
+
+                    # PB change to make the output table variable
+                    lead = " " * 4
+                    between = " " * 2
+                    col1 = 37
+                    col2 = 70
+                    col3 = 5
+                    # col4 = 30
+
+                    added_description = lead + "**Global variables**\n\n"
+
+                    added_description = added_description + lead + '{:{x}.{x}}'.format('=' * col1,
+                                                                                       x=col1) + between + '{:{x}.{x}}'.format(
+                        '=' * col2, x=col2) + between + \
+                                        '{:{x}.{x}}'.format('=' * col3, x=col3) + "\n"
+                    added_description = added_description + lead + '{:{x}.{x}}'.format('Variable [self.var]',
+                                                                                       x=col1) + between + '{:{x}.{x}}'.format(
+                        'Description', x=col2) + between + \
+                                        '{:{x}.{x}}'.format('Unit', x=col3) + "\n"
+                    added_description = added_description + lead + '{:{x}.{x}}'.format('=' * col1,
+                                                                                       x=col1) + between + '{:{x}.{x}}'.format(
+                        '=' * col2, x=col2) + between + \
+                                        '{:{x}.{x}}'.format('=' * col3, x=col3) + "\n"
+
+                    # added_description = added_description + "    ==========================  ========================================================================================  =========  ==============================\n"
+                    # added_description = added_description + "    Variable [self.var]         Description                                                                               Unit       Appears in\n"
+                    # added_description = added_description + "    ==========================  ========================================================================================  =========  ==============================\n"
+                    #put variable names: {description, units} in a dictionary
+                    dict_new_old = get_vars_modules_descriptor(df_new_old)
+                    for vv in var_name_in_module:
+                        list_modules = ""
+                        v_name = vv.replace('self.var.','')
+                        if(v_name in dict_new_old.keys()):
+                            ds_um = dict_new_old[v_name]
+                            descr = ds_um['Description']
+                            uim = ds_um['Unit']
+                            
+                            if(isinstance(descr, str) == False):
+                                descr = ''
+                            if(isinstance(uim, str) == False or uim == '-' or len(uim)==0):
+                                uim = '--'
+
+                        added_description = added_description + lead + '{:{x}.{x}}'.format(vv[9:],
+                                                                                           x=col1) + between + '{:{x}.{x}}'.format(
+                            descr, x=col2) + between + \
+                                            '{:{x}.{x}}'.format(uim, x=col3) + "\n"
+
+                    # added_description = added_description + "    ==========================  ========================================================================================  =========  ==============================\n\n"
+                    # added_description = added_description + lead + '{:{x}.{x}}'.format('='*col1,x=col1) + between + '{:{x}.{x}}'.format('='*col2,x=col2) + between +\
+                    #                    '{:{x}.{x}}'.format('='*col3,x=col3) + between + '{:{x}.{x}}'.format('='*col4,x=col4) + "\n\n"
+
+                    added_description = added_description + lead + '{:{x}.{x}}'.format('=' * col1,
+                                                                                       x=col1) + between + '{:{x}.{x}}'.format(
+                        '=' * col2, x=col2) + between + \
+                                        '{:{x}.{x}}'.format('=' * col3, x=col3) + "\n\n"
+                    added_description = added_description + "    **Functions**\n"
+
+                    # PB delete old list in module (if there is any)
+                    linesnew = []
+                    add = True
+                    for line in lines:
+                        if line.find('**Global variables**') > -1:
+                            add = False
+                        if add:
+                            linesnew.append(line)
+                        if line.find('**Functions**') > -1:
+                            add = True
+                    lines = linesnew
+
+                    # Find where to add this description
+                    class_index = -1
+                    begin_outcommented_lines = -1
+                    end_outcommented_lines = -1
+                    for module_line in range(len(lines)):
+                        if lines[module_line].startswith('class'):  # the class is defined here
+                            class_index = module_line
+                        if lines[module_line].startswith('    """') and class_index != -1:
+                            begin_outcommented_lines = module_line
+                        if lines[module_line].startswith(
+                                '    """') and begin_outcommented_lines != -1 and class_index != -1:
+                            end_outcommented_lines = module_line
+
+                    if end_outcommented_lines != -1:  # we found a class and definition just after, so we can add our text
+                        # lines[end_outcommented_lines-1] = lines[end_outcommented_lines-1] + '\n' + added_description
+                        # PB removed the /n in between
+                        lines[end_outcommented_lines - 1] = lines[end_outcommented_lines - 1] + added_description
+
+                    # PB to make it unix compatible (windows does not care but linux)
+                    file = open(filename_to_modify, mode='w', newline='\n', encoding='utf8')
+                    file.writelines(lines)
+                    file.close()
+                    
     print('Process completed.')

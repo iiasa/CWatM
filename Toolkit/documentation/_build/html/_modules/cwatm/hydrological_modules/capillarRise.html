@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cwatm.hydrological_modules.capillarRise &mdash; Community Water Model</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/iiasa.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Community Water Model
+              <img src="../../../_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.6
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../errorHandling.html">6. Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../listVariables.html">7. List of output variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../results.html">8. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../todo.html">9. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data.html">10. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration.html">11. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration_tutorial.html">12. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../resolution.html">13. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zambezi.html">14. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">15. License and download info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcecode.html">16. Source code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../forum.html">17. Forum</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Community Water Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cwatm.hydrological_modules.capillarRise</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cwatm.hydrological_modules.capillarRise</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -------------------------------------------------------------------------</span>
+<span class="c1"># Name:        Capillar Rise module</span>
+<span class="c1"># Purpose:</span>
+<span class="c1">#</span>
+<span class="c1"># Author:      PB</span>
+<span class="c1">#</span>
+<span class="c1"># Created:     20/07/2016</span>
+<span class="c1"># Copyright:   (c) PB 2016</span>
+<span class="c1"># -------------------------------------------------------------------------</span>
+
+<span class="kn">from</span> <span class="nn">cwatm.management_modules.data_handling</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="capillarRise"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.capillarRise.capillarRise">[docs]</a><span class="k">class</span> <span class="nc">capillarRise</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    CAPILLAR RISE</span>
+<span class="sd">    calculate cell fraction influenced by capillary rise</span>
+
+<span class="sd">    **Global variables**</span>
+
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    Variable [self.var]                    Description                                                             Unit </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    dzRel0100                              relative elevation above flood plains (max elevation above plain)       m    </span>
+<span class="sd">    dzRel0090                              relative elevation above flood plains (90% elevation above plain)       m    </span>
+<span class="sd">    dzRel0080                              relative elevation above flood plains (80% elevation above plain)       m    </span>
+<span class="sd">    dzRel0070                              relative elevation above flood plains (70% elevation above plain)       m    </span>
+<span class="sd">    dzRel0060                              relative elevation above flood plains (60% elevation above plain)       m    </span>
+<span class="sd">    dzRel0050                              relative elevation above flood plains (median elevation above plain)    m    </span>
+<span class="sd">    dzRel0040                              relative elevation above flood plains (40% elevation above plain)       m    </span>
+<span class="sd">    dzRel0030                              relative elevation above flood plains (30% elevation above plain)       m    </span>
+<span class="sd">    dzRel0020                              relative elevation above flood plains (20% elevation above plain)       m    </span>
+<span class="sd">    dzRel0010                              relative elevation above flood plains (10% elevation above plain)       m    </span>
+<span class="sd">    dzRel0005                              relative elevation above flood plains (5% elevation above plain)        m    </span>
+<span class="sd">    dzRel0001                              relative elevation above flood plains (1% elevation above plain)        m    </span>
+<span class="sd">    capRiseFrac                            fraction of a grid cell where capillar rise may happen                  m    </span>
+<span class="sd">    modflow                                Flag: True if modflow_coupling = True in settings file                  --   </span>
+<span class="sd">    storGroundwater                        Groundwater storage (non-fossil). This is primarily used when not usin  m    </span>
+<span class="sd">    specificYield                          groundwater reservoir parameters (if ModFlow is not used) used to comp  m    </span>
+<span class="sd">    maxGWCapRise                           influence of capillary rise above groundwater level                     m    </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+
+<span class="sd">    **Functions**</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+
+<div class="viewcode-block" id="capillarRise.dynamic"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.capillarRise.capillarRise.dynamic">[docs]</a>    <span class="k">def</span> <span class="nf">dynamic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dynamic part of the capillar Rise module</span>
+<span class="sd">        calculate cell fraction influenced by capillary rise</span>
+<span class="sd">        depending on appr. height of groundwater and relative elevation of grid cell</span>
+
+<span class="sd">        :return: capRiseFrac = cell fraction influenced by capillary rise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;CapillarRise&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">modflow</span><span class="p">):</span>
+
+            <span class="c1"># approximate height of groundwater table and corresponding reach of cell under influence of capillary rise</span>
+            <span class="n">dzGroundwater</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">storGroundwater</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">specificYield</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">maxGWCapRise</span>
+
+            <span class="n">CRFRAC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0100</span> <span class="o">-</span> <span class="n">dzGroundwater</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span>
+                                                                                                   <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0100</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0090</span><span class="p">))</span>
+            <span class="n">CRFRAC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dzGroundwater</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0090</span><span class="p">,</span>
+                              <span class="mf">0.9</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0090</span> <span class="o">-</span> <span class="n">dzGroundwater</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span>
+                                                                                            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0090</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0080</span><span class="p">),</span>
+                              <span class="n">CRFRAC</span><span class="p">)</span>
+            <span class="n">CRFRAC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dzGroundwater</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0080</span><span class="p">,</span>
+                              <span class="mf">0.8</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0080</span> <span class="o">-</span> <span class="n">dzGroundwater</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span>
+                                                                                            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0080</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0070</span><span class="p">),</span>
+                              <span class="n">CRFRAC</span><span class="p">)</span>
+            <span class="n">CRFRAC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dzGroundwater</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0070</span><span class="p">,</span>
+                              <span class="mf">0.7</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0070</span> <span class="o">-</span> <span class="n">dzGroundwater</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span>
+                                                                                            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0070</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0060</span><span class="p">),</span>
+                              <span class="n">CRFRAC</span><span class="p">)</span>
+            <span class="n">CRFRAC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dzGroundwater</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0060</span><span class="p">,</span>
+                              <span class="mf">0.6</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0060</span> <span class="o">-</span> <span class="n">dzGroundwater</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span>
+                                                                                            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0060</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0050</span><span class="p">),</span>
+                              <span class="n">CRFRAC</span><span class="p">)</span>
+            <span class="n">CRFRAC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dzGroundwater</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0050</span><span class="p">,</span>
+                              <span class="mf">0.5</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0050</span> <span class="o">-</span> <span class="n">dzGroundwater</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span>
+                                                                                            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0050</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0040</span><span class="p">),</span>
+                              <span class="n">CRFRAC</span><span class="p">)</span>
+            <span class="n">CRFRAC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dzGroundwater</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0040</span><span class="p">,</span>
+                              <span class="mf">0.4</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0040</span> <span class="o">-</span> <span class="n">dzGroundwater</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span>
+                                                                                            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0040</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0030</span><span class="p">),</span>
+                              <span class="n">CRFRAC</span><span class="p">)</span>
+            <span class="n">CRFRAC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dzGroundwater</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0030</span><span class="p">,</span>
+                              <span class="mf">0.3</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0030</span> <span class="o">-</span> <span class="n">dzGroundwater</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span>
+                                                                                            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0030</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0020</span><span class="p">),</span>
+                              <span class="n">CRFRAC</span><span class="p">)</span>
+            <span class="n">CRFRAC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dzGroundwater</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0020</span><span class="p">,</span>
+                              <span class="mf">0.2</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0020</span> <span class="o">-</span> <span class="n">dzGroundwater</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span>
+                                                                                            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0020</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0010</span><span class="p">),</span>
+                              <span class="n">CRFRAC</span><span class="p">)</span>
+            <span class="n">CRFRAC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dzGroundwater</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0010</span><span class="p">,</span>
+                              <span class="mf">0.1</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0010</span> <span class="o">-</span> <span class="n">dzGroundwater</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span>
+                                                                                            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0010</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0005</span><span class="p">),</span>
+                              <span class="n">CRFRAC</span><span class="p">)</span>
+            <span class="n">CRFRAC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dzGroundwater</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0005</span><span class="p">,</span>
+                              <span class="mf">0.05</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0005</span> <span class="o">-</span> <span class="n">dzGroundwater</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span>
+                                                                                             <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0005</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0001</span><span class="p">),</span>
+                              <span class="n">CRFRAC</span><span class="p">)</span>
+            <span class="n">CRFRAC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dzGroundwater</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0001</span><span class="p">,</span>
+                              <span class="mf">0.01</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0001</span> <span class="o">-</span> <span class="n">dzGroundwater</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span>
+                                                                                             <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dzRel0001</span><span class="p">),</span>
+                              <span class="n">CRFRAC</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">capRiseFrac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">CRFRAC</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">capRiseFrac</span> <span class="o">=</span> <span class="mf">0.</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, IIASA Water Security.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -18,18 +18,15 @@
 <metanetcdf varname="_totalend"  time=": last value of the whole time period"/>
 
 
+<metanetcdf varname="lakeReservoirStorage" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="use_environflow" unit=""  standard_name="" long_name="use_environmental_flows" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="envFlowm3s" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="cropKC_landCover" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="activatedCrops" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="monthCounter" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="fracCrops_IrrLandDemand" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="fracCrops_nonIrrLandDemand" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="ratio_a_p_nonIrr" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="totalPotET_month" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="ratio_a_p_Irr" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="Yield_nonIrr" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="currentKY" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="Yield_Irr" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="generalIrrCrop_max" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="generalnonIrrCrop_max" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="weighted_KC_nonIrr" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -48,6 +45,9 @@
 <metanetcdf varname="dem" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="lat" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="co2" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="includeDesal" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="unlimitedDesal" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="desalAnnualCap" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwt_def" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wastewater_to_reservoirs" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="smallpart" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -66,8 +66,11 @@
 <metanetcdf varname="smallevapWaterBody" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="smallLakeout" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="smallrunoffDiff" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="waterBodyBuffer" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="waterBodyID_C" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="waterBodyTyp_unchanged" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="resId_restricted" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="waterBodyBuffer" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="waterBodyBuffer_wwt" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="resVolumeOnlyReservoirs" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="resVolumeOnlyReservoirsC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="resVolume" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -107,8 +110,6 @@
 <metanetcdf varname="irrigatedArea_original" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="lakeStorage" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="resStorage" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="leakageIntoGw" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="leakageIntoRunoff" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="dynamicLandcover" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="landcoverSum" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="minTopWaterLayer" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -152,11 +153,7 @@
 <metanetcdf varname="arnoBeta" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="adjRoot" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="fracGlacierCover" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="prefFlow_GW" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="perc3toGW_GW" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="riverbedExchangeM" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="riverbedExchangeM3" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="lakebedExchangeM" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sum_actBareSoilEvap" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sum_openWaterEvap" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sum_directRunoff" unit=""  standard_name="" long_name="Runoff from surface" description=""  title="CWATM" author="IIASA WAT" />
@@ -238,6 +235,8 @@
 <metanetcdf varname="SeasonalSnowMeltSin" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="excludeGlacierArea" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="snow_redistributed_previous" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="SnowM1" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="IceM1" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="irr_Paddy_month" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="irr_crop_month" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="weighted_KC_nonIrr_woFallow" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -261,9 +260,7 @@
 <metanetcdf varname="writeerror" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="modflowdiscrepancy" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="groundwater_storage_top_layer" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="groundwater_storage_available" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="permeability" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="modfPumpingM_actual" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="modflow_head_adjusted" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtUrbanLeakage" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtColArea" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -272,9 +269,9 @@
 <metanetcdf varname="compress_WWT" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="decompress_WWT" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="minHRT" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="act_bigLakeResAbst_UNRestricted" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="act_bigLakeResAbst_Restricted" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtOverflow" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="toResManageC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtStorage" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtColShare" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtSewerCollectedC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -285,9 +282,11 @@
 <metanetcdf varname="wwtSewerResOverflowC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtTreatedOverflowC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtSentToResC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwtSewerCollection" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtOverflowOut" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtEvapC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtSewerCollected" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwtExportedCollected" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtSewerTreated" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtExportedTreated" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtSewerToTreatment" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -301,6 +300,10 @@
 <metanetcdf varname="wwtIdsOrdered" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtVolC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtTimeC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="toResManageC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="minHRTC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="maskDomesticCollection" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="maskIndustryCollection" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="extensive" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="noPools_extensive" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="poolVolume_extensive" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -312,6 +315,7 @@
 <metanetcdf varname="wwtResYearC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtSentToResC_LR" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtOverflowOutM" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="includeWastewater" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="reservoir_transfers_net_M3C" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="reservoir_transfers_in_M3C" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="reservoir_transfers_out_M3C" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -323,7 +327,6 @@
 <metanetcdf varname="lakeResStorage" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="smalllakeVolumeM3" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="smalllakeStorage" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="includeWastewater" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="readAvlChannelStorageM" unit=""  standard_name="" long_name="Water availability in channel" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="leakageCanals_M" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="returnFlow" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -343,8 +346,8 @@
 <metanetcdf varname="livestockDemand" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="liv_efficiency" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="wwtEffluentsGenerated" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="wwtSewerCollection" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="wwtExportedCollected" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwtSewerCollection_domestic" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwtSewerCollection_industry" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="relaxGWagent" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="relaxSWagent" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="irrWithdrawalSW_max" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -352,27 +355,49 @@
 <metanetcdf varname="relax_irrigation_agents" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="relax_abstraction_fraction_initial" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="waterdemandFixedYear" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="othAbstractionFraction_Desal_Domestic" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="othAbstractionFraction_Desal_Livestock" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="othAbstractionFraction_Desal_Industry" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="othAbstractionFraction_Desal_Irrigation" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwtAbstractionFraction_Res_Domestic" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwtAbstractionFraction_Res_Livestock" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwtAbstractionFraction_Res_Industry" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwtAbstractionFraction_Res_Irrigation" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="load_command_areas" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="load_command_areas_wwt" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="reservoir_command_areas" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="reservoir_command_areas_wwt" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="Water_conveyance_efficiency" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="segmentArea" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="segmentArea_wwt" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="canals" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="canals_wwt" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="canalsArea" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="canalsAreaC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="canalsArea_wwt" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="canalsArea_wwtC" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="lift_command_areas" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="allocSegments" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="allocation_zone" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="modflowPumping" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="leakage" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="pumping" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="Pumping_daily" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="modflowDepth2" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="modflowTopography" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="allowedPumping" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="ratio_irrWithdrawalGW_month" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="ratio_irrWithdrawalSW_month" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="Desal_Domestic" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="Desal_Industry" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="Desal_Livestock" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="Desal_Irrigation" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Lift_Domestic" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Lift_Industry" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Lift_Livestock" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Lift_Irrigation" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwt_Domestic" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwt_Industry" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwt_Livestock" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwt_Irrigation" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Lake_Domestic" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Lake_Industry" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Lake_Livestock" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -381,14 +406,18 @@
 <metanetcdf varname="Res_Industry" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Res_Livestock" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Res_Irrigation" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="leakage_wwtC_daily" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="act_bigLakeResAbst_wwt" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="act_DesalWaterAbstractM" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="returnflowNonIrr" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="nonIrruse" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="nonIrrDemand" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="returnflowNonIrr" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="act_bigLakeResAbst_R" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="act_bigLakeResAbst_NR" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="pot_GroundwaterAbstract" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="pot_nonIrrConsumption" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="act_DesalWaterAbstractM3" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="AvlDesalM3" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="metRemainSegment_lift" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="remainNeed" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="act_ResAbst_wwt" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="inZero_C" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="leakageC_daily" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="leakageCanalsC_M" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -401,6 +430,9 @@
 <metanetcdf varname="GW_Industry_fromZone" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="GW_Irrigation_fromZone" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="PumpingM3_daily" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwtEffluentsGenerated_domestic" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwtEffluentsGenerated_industry" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="wwtSewerCollectedBySoruce" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="waterabstraction" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sum_actTransTotal" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sum_interceptEvap" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
@@ -411,14 +443,12 @@
 <metanetcdf varname="sumbalance" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sum_balanceStore" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sum_balanceFlux" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="lakeReservoirStorage" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="waterquality" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="downdist" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="travelDistance" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="travelTime" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="waterLevel" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="waterTemperature" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="modflow" unit="-"  standard_name="" long_name="" description="Flag: True if modflow_coupling = True in settings file"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="dzRel0100" unit="m"  standard_name="" long_name="" description="relative elevation above flood plains (max elevation above plain)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="dzRel0090" unit="m"  standard_name="" long_name="" description="relative elevation above flood plains (90% elevation above plain)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="dzRel0080" unit="m"  standard_name="" long_name="" description="relative elevation above flood plains (80% elevation above plain)"  title="CWATM" author="IIASA WAT" />
@@ -432,6 +462,8 @@
 <metanetcdf varname="dzRel0005" unit="m"  standard_name="" long_name="" description="relative elevation above flood plains (5% elevation above plain)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="dzRel0001" unit="m"  standard_name="" long_name="" description="relative elevation above flood plains (1% elevation above plain)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="capRiseFrac" unit="m"  standard_name="" long_name="" description="fraction of a grid cell where capillar rise may happen"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="tws" unit="m"  standard_name="" long_name="Total water storage" description="Total water storage"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="modflow" unit="-"  standard_name="" long_name="" description="Flag: True if modflow_coupling = True in settings file"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="domesticTime" unit="str"  standard_name="" long_name="" description="Monthly' when domesticTimeMonthly = True, and 'Yearly' otherwise. "  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="domWithdrawalVar" unit="str"  standard_name="" long_name="" description="Input, domesticWithdrawalvarname, variable name for netCDF"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="domConsumptionVar" unit="str"  standard_name="" long_name="" description="Input, domesticConsuptionvarname, variable name for netCDF"  title="CWATM" author="IIASA WAT" />
@@ -447,6 +479,11 @@
 <metanetcdf varname="Crops_names" unit="nan"  standard_name="" long_name="" description="Internal: List of specific crops"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="load_initial" unit="input netcdf"  standard_name="" long_name="" description="Settings initLoad holds initial conditions for variables"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="fracCrops_nonIrr" unit="nan"  standard_name="" long_name="" description="Fraction of cell currently planted with specific non-irr crops"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="ratio_a_p_nonIrr" unit="%"  standard_name="" long_name="Ratio actual to potential evapotranspiration, monthly, non-irrigated [crop specific]" description="Ratio actual to potential evapotranspiration, monthly, non-irrigated [crop specific]"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="ratio_a_p_Irr" unit="%"  standard_name="" long_name="Ratio actual to potential evapotranspiration, monthly, irrigated [crop specific]" description="Ratio actual to potential evapotranspiration, monthly [crop specific]"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="Yield_nonIrr" unit="%"  standard_name="" long_name="Relative monthly non-irrigated yield [crop specific]" description="Relative monthly non-irrigated yield [crop specific]"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="currentKY" unit="Positive"  standard_name="" long_name="Yield sensitivity coefficient [crop specific]" description="Yield sensitivity coefficient [crop specific]"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="Yield_Irr" unit="%"  standard_name="" long_name="Relative monthly irrigated yield [crop specific]" description="Relative monthly irrigated yield [crop specific]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="currentKC" unit="nan"  standard_name="" long_name="" description="Current crop coefficient for specific crops"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="cropCorrect" unit="nan"  standard_name="" long_name="" description="calibration factor of crop KC factor"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="pet_modus" unit="bool"  standard_name="" long_name="" description="Flag: index which ETP approach is used e.g. 1 for Penman-Monteith"  title="CWATM" author="IIASA WAT" />
@@ -455,7 +492,7 @@
 <metanetcdf varname="AlbedoWater" unit="nan"  standard_name="" long_name="" description="Albedo of water surface (Supit et. al. 1994) default = 0.05"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="albedoLand" unit="-"  standard_name="" long_name="" description="albedo from land surface (from GlobAlbedo database)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="albedoOpenWater" unit="-"  standard_name="" long_name="" description="albedo from open water surface (from GlobAlbedo database)"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="storGroundwater" unit="m"  standard_name="" long_name="Storage groundwater" description="simulated groundwater storage"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="storGroundwater" unit="m"  standard_name="" long_name="Groundwater storage" description="Groundwater storage (non-fossil). This is primarily used when not using MODFLOW. "  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="specificYield" unit="m"  standard_name="" long_name="" description="groundwater reservoir parameters (if ModFlow is not used) used to compute groundwater levels in capillary rise module"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="recessionCoeff" unit="frac"  standard_name="" long_name="" description="groundwater storage times this coefficient gives baseflow"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="readAvlStorGroundwater" unit="m"  standard_name="" long_name="Water availability in groundwater" description="same as storGroundwater but equal to 0 when inferior to a treshold"  title="CWATM" author="IIASA WAT" />
@@ -463,7 +500,6 @@
 <metanetcdf varname="industryTime" unit="str"  standard_name="" long_name="" description="Monthly' when industryTimeMonthly = True, and 'Yearly' otherwise. "  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="indWithdrawalVar" unit="str"  standard_name="" long_name="" description="Settings industryWithdrawalvarname, variable name in industryWaterDemandFile.nc"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="indConsumptionVar" unit="string"  standard_name="" long_name="" description="Settings industryConsuptionvarname, variable name in domesticWaterDemandFile.nc"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="WB_elecC" unit="nan"  standard_name="" long_name="" description="Compressed WB_elec"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sampleInflow" unit="lat/lon"  standard_name="" long_name="" description="location of inflow point"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="noinflowpoints" unit="-"  standard_name="" long_name="" description="number of inflow points"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="inflowTs" unit="m3/s"  standard_name="" long_name="" description="inflow time series data"  title="CWATM" author="IIASA WAT" />
@@ -546,6 +582,9 @@
 <metanetcdf varname="minInterceptCap" unit="m"  standard_name="" long_name="" description="Maximum interception read from file for forest and grassland land cover"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="interceptStor" unit="m"  standard_name="" long_name="" description="simulated vegetation interception storage"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="availWaterInfiltration" unit="m"  standard_name="" long_name="" description="quantity of water reaching the soil after interception, more snowmelt"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="riverbedExchangeM" unit="m"  standard_name="" long_name="Riverbed exchange" description="Flow from channel into groundwater"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="leakageIntoGw" unit="m"  standard_name="" long_name="" description="Canal leakage leading to groundwater recharge"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="leakageIntoRunoff" unit="m"  standard_name="" long_name="" description="Canal leakage leading to runoff"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="staticLandCoverMaps" unit="nan"  standard_name="" long_name="" description="1=staticLandCoverMaps in settings file is True, 0=otherwise"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sum_interceptStor" unit="m"  standard_name="" long_name="" description="Total of simulated vegetation interception storage including all landcover types"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="ws1" unit="m"  standard_name="" long_name="" description="Maximum storage capacity in layer 1"  title="CWATM" author="IIASA WAT" />
@@ -566,10 +605,13 @@
 <metanetcdf varname="maxtopwater" unit="m"  standard_name="" long_name="" description="maximum heigth of topwater"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="totAvlWater" unit="m"  standard_name="" long_name="" description="Field capacity minus wilting point in soil layers 1 and 2"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="pretotalSto" unit="m"  standard_name="" long_name="" description="Previous totalSto"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="sum_prefFlow" unit="m"  standard_name="" long_name="Preferential flow to groundwater" description="preferential flow from soil to groundwater (summed up for all land cover classes)"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="sum_perc3toGW" unit="m"  standard_name="" long_name="" description="percolation from 3rd soil layer to groundwater (summed up for all land cover classes)"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="prefFlow_GW" unit="m"  standard_name="" long_name="Preferential flow to groundwater" description="Preferential flow to groundwater. sum_prefFlow goes either to groundwater or runoff depending on percolationImp."  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="sum_prefFlow" unit="m"  standard_name="" long_name="Potential preferential flow to groundwater. Depending on percloationImp, distributed to groundwater and runoff." description="Preferential flow from soil to groundwater (summed up for all land cover classes). Depending on percloationImp, distributed to groundwater and runoff."  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="sum_perc3toGW" unit="m"  standard_name="" long_name="Potential percolation from 3rd soil layer to groundwater. Depending on percloationImp, distributed to groundwater and runoff." description="Percolation from 3rd soil layer to groundwater (summed up for all land cover classes). Depending on percloationImp, distributed to groundwater and runoff."  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="perc3toGW_GW" unit="m"  standard_name="" long_name="Percolation from soil to groundwater" description="Percolation from 3rd soil layer to groundwater. sum_perc3toGW goes either to groundwater or runoff depending on percolationImp."  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="lakebedExchangeM" unit="m"  standard_name="" long_name="" description="Flow of water from lakes and reservoirs into groundwater"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sum_runoff" unit="m"  standard_name="" long_name="" description="Runoff above the soil, more interflow, including all landcover types"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="sum_capRiseFromGW" unit="m"  standard_name="" long_name="Capillar rise from groundwaterto soil" description="capillar rise from groundwater to 3rd soil layer (summed up for all land cover classes)"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="sum_capRiseFromGW" unit="m"  standard_name="" long_name="Capillary rise" description="Capillary rise from groundwater to 3rd soil layer (summed up for all land cover classes). Used without MODFLOW."  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="uselivestock" unit="bool"  standard_name="" long_name="" description="True if uselivestock=True in Settings, False otherwise"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="cellArea" unit="m2"  standard_name="" long_name="" description="Area of cell"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="DtSec" unit="s"  standard_name="" long_name="" description="number of seconds per timestep (default = 86400)"  title="CWATM" author="IIASA WAT" />
@@ -617,7 +659,7 @@
 <metanetcdf varname="lakeEvaFactor" unit="-"  standard_name="" long_name="" description="a factor which increases evaporation from lake because of wind"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="dtRouting" unit="s"  standard_name="" long_name="" description="number of seconds per routing timestep"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="evapWaterBodyC" unit="m"  standard_name="" long_name="" description="Compressed version of EvapWaterBodyM"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="discharge" unit="m3/s"  standard_name="" long_name="Discharge in cubic meter per second" description="discharge"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="discharge" unit="m3/s"  standard_name="" long_name="Channel discharge" description="Channel discharge"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="EvapoChannel" unit="m3"  standard_name="" long_name="" description="Channel evaporation"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="chanLength" unit="m"  standard_name="" long_name="" description="Input, Channel length"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="chanMan" unit="nan"  standard_name="" long_name="" description="Input, Channel Manning's roughness coefficient"  title="CWATM" author="IIASA WAT" />
@@ -689,7 +731,7 @@
 <metanetcdf varname="gwdepth_observations" unit="m"  standard_name="" long_name="" description="Input, gw_depth_observations, groundwater depth observations"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="gwdepth_adjuster" unit="m"  standard_name="" long_name="" description="Groundwater depth adjuster"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="rws" unit="-"  standard_name="" long_name="" description="Transpiration reduction factor (in case of water stress)"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="prefFlow" unit="m"  standard_name="" long_name="" description="Flow going directly from rainfall to groundwater"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="prefFlow" unit="m"  standard_name="" long_name="Preferential flow to groundwater [land class specific]" description="Flow going directly from soil surface to groundwater [land class specific]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="infiltration" unit="m"  standard_name="" long_name="" description="Water actually infiltrating the soil"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="capRiseFromGW" unit="m"  standard_name="" long_name="" description="Simulated capillary rise from groundwater"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="NoSubSteps" unit="-"  standard_name="" long_name="" description="Number of sub steps to calculate soil percolation"  title="CWATM" author="IIASA WAT" />
@@ -706,8 +748,8 @@
 <metanetcdf varname="actTransTotal_crops_Irr" unit="m"  standard_name="" long_name="" description="Transpiration associated with specific irrigated crops"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="actTransTotal_crops_nonIrr" unit="m"  standard_name="" long_name="" description="Transpiration associated with specific non-irr crops"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="gwRecharge" unit="m"  standard_name="" long_name="" description="groundwater recharge"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="baseflow" unit="m"  standard_name="" long_name="Baseflow from groundwater storage" description="simulated baseflow (= groundwater discharge to river)"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="capillar" unit="m"  standard_name="" long_name="" description="Simulated flow from groundwater to the third CWATM soil layer"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="baseflow" unit="m"  standard_name="" long_name="Baseflow" description="simulated baseflow (= groundwater discharge to river)"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="capillar" unit="m"  standard_name="" long_name="Capillary rise" description="Flow from groundwater to the third CWATM soil layer. Used with MODFLOW"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="soildepth12" unit="m"  standard_name="" long_name="" description="Total thickness of layer 2 and 3"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="modflow_timestep" unit="nan"  standard_name="" long_name="" description="Chosen ModFlow model timestep (1day, 7days, 30days, etc.)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="head" unit="m"  standard_name="" long_name="" description="Simulated ModFlow water level [masl]"  title="CWATM" author="IIASA WAT" />
@@ -718,11 +760,13 @@
 <metanetcdf varname="modflowtotalSoilThickness" unit="m"  standard_name="" long_name="" description="Array (nrows, ncol) used to compute water table depth in post-processing"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="GW_pumping" unit="bool"  standard_name="" long_name="" description="Input, True if Groundwater_pumping=True"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="modflow_compteur" unit="nan"  standard_name="" long_name="" description="Counts each day relatively to the chosen ModFlow timestep, allow to run ModFlow only once by timestep"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="groundwater_storage_available" unit="m"  standard_name="" long_name="" description="Groundwater storage. Used with MODFLOW."  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="gwstorage_full" unit="m"  standard_name="" long_name="" description="Groundwater storage at full capacity"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="modfPumpingM_actual" unit="m"  standard_name="" long_name="" description="Actual groundwater pumping. Used with MODFLOW."  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="gwdepth_difference_sim_obs" unit="m"  standard_name="" long_name="" description="Difference between simulated and observed groundwater table"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="fracVegCover" unit="%"  standard_name="" long_name="" description="Fraction of specific land covers (0=forest, 1=grasslands, etc.)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="adminSegments" unit="Int"  standard_name="" long_name="" description="Domestic agents"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="nonFossilGroundwaterAbs" unit="m"  standard_name="" long_name="Actual water abstraction from groundwater" description="groundwater abstraction which is sustainable and not using fossil resources"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="nonFossilGroundwaterAbs" unit="m"  standard_name="" long_name="Non-fossil groundwater abstraction" description="Non-fossil groundwater abstraction. Used primarily without MODFLOW."  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="lakeVolumeM3C" unit="m3"  standard_name="" long_name="" description="compressed map of lake volume"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_SurfaceWaterAbstract" unit="m"  standard_name="" long_name="" description="Surface water abstractions"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="addtoevapotrans" unit="m"  standard_name="" long_name="" description="Irrigation application loss to evaporation"  title="CWATM" author="IIASA WAT" />
@@ -731,7 +775,7 @@
 <metanetcdf varname="act_irrConsumption" unit="m"  standard_name="" long_name="" description="actual irrigation water consumption"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_irrNonpaddyWithdrawal" unit="m"  standard_name="" long_name="Actual withdrawal from paddy irrigation" description="non-paddy irrigation withdrawal"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_irrPaddyWithdrawal" unit="m"  standard_name="" long_name="" description="paddy irrigation withdrawal"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="unmetDemand" unit="m"  standard_name="" long_name="" description="Unmet demand"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="unmetDemand" unit="m"  standard_name="" long_name="" description="Unmet groundwater demand to determine potential fossil groundwaterwater use. Primarily used without MODFLOW."  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_nonIrrWithdrawal" unit="m"  standard_name="" long_name="" description="Non-irrigation withdrawals"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="unmet_lost" unit="m"  standard_name="" long_name="" description="Fossil water that disappears instead of becoming return flow"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="channelStorage" unit="m3"  standard_name="" long_name="Channel storage" description="Channel water storage"  title="CWATM" author="IIASA WAT" />
@@ -746,13 +790,6 @@
 <metanetcdf varname="swAbstractionFraction_Res_Domestic" unit="%"  standard_name="" long_name="" description="Input, Fraction of Domestic demands to be satisfied with Reservoirs"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="swAbstractionFraction_Lake_Domestic" unit="%"  standard_name="" long_name="" description="Input, Fraction of Domestic demands to be satisfied with Lake"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="gwAbstractionFraction_Domestic" unit="%"  standard_name="" long_name="" description="Fraction of domestic water demand to be satisfied by groundwater"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="WB_elec" unit="366-day netcdf map"  standard_name="" long_name="" description="Fractions of live storage to be exported from basin"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="swAbstractionFraction_Lake_Industry" unit="%"  standard_name="" long_name="" description="Input, Fraction of Industrial water demand to be satisfied by Lakes"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="swAbstractionFraction_Channel_Industry" unit="%"  standard_name="" long_name="" description="Input, Fraction of Industrial water demand to be satisfied by Channels"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="swAbstractionFraction_Res_Industry" unit="%"  standard_name="" long_name="" description="Input, Fraction of Industrial water demand to be satisfied by Reservoirs"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="gwAbstractionFraction_Industry" unit="%"  standard_name="" long_name="" description="Fraction of industrial water demand to be satisfied by groundwater"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="swAbstractionFraction" unit="%"  standard_name="" long_name="Fraction of water tkaen from surface or groundwater  (discharge / (discharge + baseflow)" description="Input, Fraction of demands to be satisfied with surface water"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="swAbstractionFraction_nonIrr" unit="%"  standard_name="" long_name="" description="Input, Fraction of non-irrigation demands to be satisfied with surface water"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="unmetDemandPaddy" unit="m"  standard_name="" long_name="" description="Unmet paddy demand"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="unmetDemandNonpaddy" unit="m"  standard_name="" long_name="" description="Unmet nonpaddy demand"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="irrDemand" unit="m/m"  standard_name="" long_name="" description="Cover-specific Irrigation demand"  title="CWATM" author="IIASA WAT" />
@@ -760,18 +797,25 @@
 <metanetcdf varname="includeIndusDomesDemand" unit="bool"  standard_name="" long_name="" description="Input, True if includeIndusDomesDemand = True"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="activate_irrigation_agents" unit="bool"  standard_name="" long_name="" description="Input, True if activate_irrigation_agents = True"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="swAbstractionFraction_Channel_Livestock" unit="%"  standard_name="" long_name="" description="Input, Fraction of Livestock demands to be satisfied from Channels"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="swAbstractionFraction_Channel_Industry" unit="%"  standard_name="" long_name="" description="Input, Fraction of Industrial water demand to be satisfied by Channels"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="swAbstractionFraction_Channel_Irrigation" unit="%"  standard_name="" long_name="" description="Input, Fraction of Irrigation demand to be satisfied from Channels"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="swAbstractionFraction_Lake_Livestock" unit="%"  standard_name="" long_name="" description="Input, Fraction of Livestock water demands to be satisfied by Lakes"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="swAbstractionFraction_Lake_Industry" unit="%"  standard_name="" long_name="" description="Input, Fraction of Industrial water demand to be satisfied by Lakes"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="swAbstractionFraction_Lake_Irrigation" unit="%"  standard_name="" long_name="" description="Input, Fraction of Irrigation demand to be satisfied by Lakes"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="swAbstractionFraction_Res_Livestock" unit="%"  standard_name="" long_name="" description="Input, Fraction of Livestock water demands to be satisfied by Reservoirs"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="swAbstractionFraction_Res_Industry" unit="%"  standard_name="" long_name="" description="Input, Fraction of Industrial water demand to be satisfied by Reservoirs"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="swAbstractionFraction_Res_Irrigation" unit="%"  standard_name="" long_name="" description="Input, Fraction of Irrigation demand to be satisfied by Reservoirs"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="gwAbstractionFraction_Livestock" unit="%"  standard_name="" long_name="" description="Fraction of livestock water demand to be satisfied by groundwater"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="gwAbstractionFraction_Industry" unit="%"  standard_name="" long_name="" description="Fraction of industrial water demand to be satisfied by groundwater"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="gwAbstractionFraction_Irrigation" unit="%"  standard_name="" long_name="" description="Fraction of irrigation water demand to be satisfied by groundwater"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="using_reservoir_command_areas" unit="bool"  standard_name="" long_name="" description="True if using_reservoir_command_areas = True, False otherwise"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="swAbstractionFraction_Lift_Livestock" unit="%"  standard_name="" long_name="" description="Input, Fraction of Livestock water demands to be satisfied from Lift areas"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="swAbstractionFraction_Lift_Industry" unit="%"  standard_name="" long_name="" description="Input, Fraction of Industrial water demand to be satisfied from Lift areas"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="swAbstractionFraction_Lift_Irrigation" unit="%"  standard_name="" long_name="" description="Input, Fraction of Irrigation demand to be satisfied from Lift areas"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="using_lift_areas" unit="bool"  standard_name="" long_name="" description="True if using_lift_areas = True in Settings, False otherwise"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="swAbstractionFraction" unit="%"  standard_name="" long_name="Fraction of water tkaen from surface or groundwater  (discharge / (discharge + baseflow)" description="Input, Fraction of demands to be satisfied with surface water"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="leakage" unit="m3"  standard_name="" long_name="" description="Canal leakage leading to either groundwater recharge or runoff"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="Pumping_daily" unit="m"  standard_name="" long_name="" description="Groundwater abstraction asked of MODFLOW. modfPumpingM_actual is the result."  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_irrWithdrawalSW_month" unit="m"  standard_name="" long_name="" description="Running total agent surface water withdrawals for the month"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_irrWithdrawalGW_month" unit="m"  standard_name="" long_name="" description="Running total agent groundwater withdrawals for the month"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Channel_Domestic" unit="m"  standard_name="" long_name="" description="Channel water abstracted for domestic"  title="CWATM" author="IIASA WAT" />
@@ -783,24 +827,27 @@
 <metanetcdf varname="GW_Livestock" unit="m"  standard_name="" long_name="" description="Groundwater withdrawals to satisfy Livestock water requests"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="GW_Irrigation" unit="m"  standard_name="" long_name="" description="Groundwater withdrawals for Irrigation"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="abstractedLakeReservoirM3" unit="m3"  standard_name="" long_name="" description="Abstractions from lakes and reservoirs at the location of the waterbody"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="act_totalIrrConsumption" unit="m"  standard_name="" long_name="" description="Total irrigation consumption"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="act_totalWaterConsumption" unit="m"  standard_name="" long_name="" description="Total water consumption"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="act_indConsumption" unit="m"  standard_name="" long_name="" description="Industrial consumption"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="act_domConsumption" unit="m"  standard_name="" long_name="" description="Domestic consumption"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="act_livConsumption" unit="m"  standard_name="" long_name="" description="Livestock consumptions"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_indDemand" unit="m"  standard_name="" long_name="" description="Industrial demand"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_domDemand" unit="m"  standard_name="" long_name="" description="Domestic demand"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_livDemand" unit="m"  standard_name="" long_name="" description="Livestock demands"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="totalWaterDemand" unit="m"  standard_name="" long_name="" description="Irrigation and non-irrigation demand"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="act_indConsumption" unit="m"  standard_name="" long_name="" description="Industrial consumption"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="act_domConsumption" unit="m"  standard_name="" long_name="" description="Domestic consumption"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="act_livConsumption" unit="m"  standard_name="" long_name="" description="Livestock consumptions"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_indWithdrawal" unit="m"  standard_name="" long_name="" description="Industrial withdrawal"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_domWithdrawal" unit="m"  standard_name="" long_name="" description="Domestic withdrawal"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_livWithdrawal" unit="m"  standard_name="" long_name="" description="Livestock withdrawals"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="act_totalIrrConsumption" unit="m"  standard_name="" long_name="" description="Total irrigation consumption"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="act_totalWaterConsumption" unit="m"  standard_name="" long_name="" description="Total water consumption"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="pot_GroundwaterAbstract" unit="m"  standard_name="" long_name="" description="Potential groundwater abstraction. Primarily used without MODFLOW."  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="WB_elec" unit="366-day netcdf map"  standard_name="" long_name="" description="Fractions of live storage to be exported from basin"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_nonpaddyConsumption" unit="m"  standard_name="" long_name="" description="Non-paddy irrigation consumption"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_paddyConsumption" unit="m"  standard_name="" long_name="" description="Paddy consumption"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_channelAbst" unit="m"  standard_name="" long_name="" description="Abstractions to satisfy demands from channels"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_channelAbstract_Lift" unit="m"  standard_name="" long_name="" description="Abstractions from the channel in lift areas at the location of the channel"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="abstractedLakeReservoirM3C" unit="m3"  standard_name="" long_name="" description="Compressed abstractedLakeReservoirM3"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_lakeAbst" unit="m"  standard_name="" long_name="" description="Abstractions from lakes at demand location"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="swAbstractionFraction_nonIrr" unit="%"  standard_name="" long_name="" description="Input, Fraction of non-irrigation demands to be satisfied with surface water"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_ResAbst" unit="m"  standard_name="" long_name="" description="Abstractions from reservoirs at demand location"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_irrPaddyDemand" unit="m"  standard_name="" long_name="" description="paddy irrigation demand"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="act_irrNonpaddyDemand" unit="m"  standard_name="" long_name="" description="non-paddy irrigation demand"  title="CWATM" author="IIASA WAT" />

@@ -20,7 +20,7 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../..'))
 
 # -- General configuration ------------------------------------------------
 
@@ -70,7 +70,7 @@ napoleon_use_rtype = True
 math_number_all = False
 # 'sphinx.ext.imgmath'  instead of 'rst2pdf.pdfbuilder',
 
-pdf_documents = [('index', u'CWatM', u'CommunityWaterModel_V-1,1', u'Peter Burek'),]
+pdf_documents = [('index', u'CWatM', u'CommunityWaterModel_V-1,1', u'IIASA Water Security'),]
 # index - master document
 # rst2pdf - name of the generated pdf
 # Sample rst2pdf doc - title of the pdf
@@ -115,7 +115,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'Community Water Model'
 copyright = u'2021, IIASA Water Security'
-author = u'PB'
+author = u'Water Security Research Group'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -220,7 +220,7 @@ html_logo = '_static/CWatM_logo.png'
 # html_favicon = None
 
 # Using  python-stub
-html_logo = "_static/iiasa_logo_white.png"
+html_logo = "_static/IIASA_logo_white.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -341,7 +341,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'CWatM.tex', u'CWatM Documentation',
-     u'Peter Burek, IIASA WAT ', 'manual'),
+     u'IIASA Water Security ', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

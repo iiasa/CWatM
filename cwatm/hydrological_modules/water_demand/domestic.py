@@ -35,15 +35,15 @@ class waterdemand_domestic:
     activate_domestic_agents               Input, True if activate_domestic_agents = True                          bool 
     domesticDemand                         Domestic demand                                                         m    
     swAbstractionFraction_domestic         With domestic agents, derived from surface water over total water requ  %    
-    demand_unit                                                                                                         
-    pot_domesticConsumption                                                                                             
-    sectorSourceAbstractionFractions                                                                                    
+    demand_unit                                                                                                    --   
+    pot_domesticConsumption                                                                                        --   
+    sectorSourceAbstractionFractions                                                                               --   
     swAbstractionFraction_Channel_Domesti  Input, Fraction of Domestic demands to be satisfied with Channel        %    
     swAbstractionFraction_Lift_Domestic    Input, Fraction of Domestic demands to be satisfied with Lift           %    
     swAbstractionFraction_Res_Domestic     Input, Fraction of Domestic demands to be satisfied with Reservoirs     %    
     swAbstractionFraction_Lake_Domestic    Input, Fraction of Domestic demands to be satisfied with Lake           %    
     gwAbstractionFraction_Domestic         Fraction of domestic water demand to be satisfied by groundwater        %    
-    dom_efficiency                                                                                                      
+    dom_efficiency                                                                                                 --   
     =====================================  ======================================================================  =====
 
     **Functions**

@@ -14,66 +14,58 @@ Setup python version
 Python
 ---------------
 
-Requirements are a 64-bit `Python 3.7.x or 3.8.x version <https://www.python.org/downloads/>`_
+CWatM requires having `Python <https://www.python.org/downloads/>`_.
+Downloading Python and the required Python packages is covered in our `YouTube tutorial <https://youtu.be/l3OW9b32SVo>`_.
 
-.. warning:: a 32-bit version is not able to handle the data requirements!
+.. note:: CWatM is tested for Python 3.7+. We recommend using the most recent release.
 
-.. warning:: CWatM is tested for Python 3.7 and 3.8 and will for sure not work with Python versions lower than 3.6. We recommend using Python 3.7 or 3.8
+.. warning:: a 64-bit version is necessary. This is generally the download default.
 
 External libraries
 -------------------
 
-These external libraries are needed:
+These five Python packages are needed:
 
-* `NumPy <http://www.numpy.org>`_
-* `SciPy <https://www.scipy.org>`_
-* `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
-* `GDAL <http://www.gdal.org>`_
+1. `NumPy <http://www.numpy.org>`_
+2. `SciPy <https://www.scipy.org>`_
+3. `netCDF4 <https://pypi.python.org/pypi/netCDF4>`_
+4. `pandas <https://pypi.org/project/pandas>`_
 
-The four libraries can be installed with conda, pip or downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
+These four libraries can be installed with pip, conda, or downloaded at `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
 
-Additional libraries for CWatM - MODFLOW
+5. `GDAL <http://www.gdal.org>`_
+
+.. note::
+   | **Troublemaker GDAL**
+   | Installing GDAL via pip can be troublesome. We recommend downloading the library from
+   | `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_
+   | as GDAL-3.0.4-cp311-cp311m-win_amd64.whl (depending on your Python version) and installing as:
+   | pip install C:/Users/XXXXX/Downloads/GDAL-3.0.4-cp37-cp37m-win_amd64.whl
+   |
+   | Sometimes problems occur if you have installed GDAL separately (or a software did, like QGIS)
+
+These additional packages are used for the post-processing Notebooks (in CWatM/Toolkit)
+
+* `Jupyter Notebook <https://pypi.org/project/notebook/>`_
+* `plotly <https://pypi.org/project/plotly/>`_
+* `XlsxWriter <https://pypi.org/project/XlsxWriter/>`_
+
+These additional packages are used for CWatM-MODFLOW
 
 * `FloPy <https://www.usgs.gov/software/flopy-python-package-creating-running-and-post-processing-modflow-based-models>`_
 * `xmipy <https://pypi.org/project/xmipy>`_
 
-Additional libraries for CWatM - crop specific
-
-* `Pandas <https://pandas.pydata.org>`_
-* `xlrd <https://xlrd.readthedocs.io>`_
-* `openpyxl <https://openpyxl.readthedocs.io/en/stable>`_
-
-
-.. warning::
-   | **Troublemaker GDAL**
-   | Installing GDAL via pip causes sometimes problems. We recommend downloading the library from
-   | `Unofficial Windows Binaries for Python Extension Packages <http://www.lfd.uci.edu/~gohlke/pythonlibs>`_ 
-   | as GDAL-3.0.4-cp37-cp37m-win_amd64.whl (or a later version depending on your Python version) and installing them as: 
-   | pip install C:/Users/XXXXX/Downloads/GDAL-3.0.4-cp37-cp37m-win_amd64.whl
-   | 
-   | Sometimes problems occure if you have installed GDAL separately (or a software did, like QGIS)
-   
-
-.. warning::
-   | **Still troublemaker GDAL**  
-   | for Python version 3.8 we changed import gdal to:
-   | from osgeo import gdal
-   | from osgeo import osr
-   | from osgeo import gdalconst   
-   | gdal can be installed for Python 3.8 from pip or conda
 
 Installing
 ------------
+CWatM can be cloned through our `CWatM GitHub repository <https://github.com/iiasa/CWatM>`_.
 
-Finally the model can be installed with pip.
+For those new to GitHub, we recommend using `GitHub desktop <https://desktop.github.com/>`_.
 
-.. code-block:: python
+Getting CWatM with GitHub desktop is covered in our `YouTube tutorial <https://youtu.be/9JMBwo4eESk>`_.
 
-   pip install git+git://github.com/iiasa/CWatM
-
-or directly downloaded via **'clone or download'** from: https://github.com/iiasa/CWatM
-
-and installing them in a folder.
+Input data to run CWatM at 30 arcminutes (~50 km x 50km) are available through our
+`CWatM-Earth-30min GitHub repository <https://github.com/iiasa/CWatM-Earth-30min>`_.
 
 C++ libraries
 ----------------
@@ -150,11 +142,9 @@ If you get an output with an error number please look at :ref:`rst_error`
 Test the Python version
 -------------------------
 
-Run from the command line::
+From a terminal inside the CWatM folder, Run from the command line::
 
-    run_cwatm
-    or
-    python run_cwatm.py if you installed CWatM not with pip
+    python run_cwatm.py
 
 The output should be::
 
@@ -166,7 +156,7 @@ The output should be::
 	
 .. warning:: If python is not set in the environment path, the full path of python has to be used
 
-.. warning:: Please use the right version of CWatM with the right version of Python (either 3.7 or 3.8)
+.. warning:: We are using run_cwatm.py inside the main repository (CWatM\\run_cwatm.py), not one folder deeper (CWatM\\cwatm\\run_cwatm.py).
 
 
 Run the Python version
@@ -174,19 +164,16 @@ Run the Python version
 
 Run from the command line::
 
-    run_cwatm settingsfile flags
-    or
-    python run_cwatm settingsfile flags
-    
+    python run_cwatm.py settingsfile flags
     
 
-example::
+example (from inside the CWatM folder)::
 
-   python run_cwatm settings1.ini
+   python run_cwatm.py settings.ini
 
 or with more information and an overview of computational runtime::
 
-   python run_cwatm settings1.ini -l -t
+   python run_cwatm.py settings.ini -l -t
 	
 .. warning:: If python is not set in the environment path, the full path of python has to be used
 
@@ -217,34 +204,6 @@ example::
     -h --noheader    .tss file have no header and start immediately with the time series
     -t --printtime   the computation time for hydrological modules are printed
 	-w --warranty    copyright and warranty information
-
-
-Windows executable Python version
-===================================
-
-| A CWatM executable cwatm.exe can be used instead of the Python version
-
-* ADVANTAGE: You can run it without installing or knowledge of Python
-* DISADVANTAGE 1: You cannot see the source code or change it 
-* DISADVANTAGE 2: We do not update this version as often as the Python version
-
-* It is done with cx_freeze library 
-* It includes all Python libraries
-
-.. note::
-    | A cwatmexe.zip (around 300 MB with all Python libraries) is stored on:
-    | `Source code on Github repository of CWatM <https://github.com/iiasa/CWatM>`_
-    | `Executable cwatmexe.zip on Github repository of CWatM <https://github.com/iiasa/CWatM/tree/version1.05/tutorial/CWATM_model>`_
-
-.. note::
-    | We recommend using the Python 3.7.x version, 
-    | but if you not experienced in Python or have problems installing CWatM, please use the executable version.     
-    | Either start it in DOS box (command cmd), or use the batch file cwatmbat.bat to start it
-
-
-.. todo::
-    We will put a whole example of 30 deg Rhine basin with all necessary data in another zip file. Just for an easier start.
-
 
 	
 NetCDF meta data 

@@ -6,8 +6,9 @@ List of output variables
 
 This list of variables gives an overview of possible output variables.
 
-.. warning:: this list is still under construction. We have to complete descriptions and units for all variables
+The description of output variables (under construction) is available here: CWatM\\cwatm\\variable_documentation\\selfvar.xlsx
 
+.. warning:: this list is still under construction. We have to complete descriptions and units for all variables.
 
 .. csv-table::
   :header: "ID", "VariableName", "Description", "Unit", "Module"

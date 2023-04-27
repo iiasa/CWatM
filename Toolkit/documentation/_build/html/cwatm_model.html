@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cwatm_model module &mdash; Community Water Model</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="_static/iiasa.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="cwatm_dynamic module" href="cwatm_dynamic.html" />
+    <link rel="prev" title="run_cwatm" href="run_cwatm.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Community Water Model
+              <img src="_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.6
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="errorHandling.html">6. Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="listVariables.html">7. List of output variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="results.html">8. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="todo.html">9. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">10. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration.html">11. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="calibration_tutorial.html">12. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resolution.html">13. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zambezi.html">14. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">15. License and download info</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="sourcecode.html">16. Source code</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="sourcecode.html#source-code-on-github">Source code on Github</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="sourcecode.html#id1">Source code</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="sourcecode.html#modules-of-cwatm">Modules of CWatM</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="sourcecode.html#source-code-description">Source code description</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="run_cwatm.html">run_cwatm</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">cwatm_model module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cwatm_dynamic.html">cwatm_dynamic module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cwatm_initial.html">cwatm_initial module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydrological_modules.html">hydrological_modules package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="management_modules.html">management_modules package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="sourcecode.html#download-manual-as-pdf">Download Manual as pdf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sourcecode.html#global-dataset">Global dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sourcecode.html#contact-cwatm">Contact CWatM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sourcecode.html#remarks">Remarks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="forum.html">17. Forum</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Community Water Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="sourcecode.html"><span class="section-number">16. </span>Source code</a></li>
+      <li class="breadcrumb-item active">cwatm_model module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/cwatm_model.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cwatm-model-module">
+<h1>cwatm_model module<a class="headerlink" href="#cwatm-model-module" title="Permalink to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Base module: run from root with settings file e.g. python run_cwatm.py settings.ini</p>
+</div>
+<span class="target" id="module-cwatm.cwatm_model"></span><dl class="py class">
+<dt class="sig sig-object py" id="cwatm.cwatm_model.CWATModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cwatm.cwatm_model.</span></span><span class="sig-name descname"><span class="pre">CWATModel</span></span><a class="reference internal" href="_modules/cwatm/cwatm_model.html#CWATModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cwatm.cwatm_model.CWATModel" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="cwatm_initial.html#cwatm.cwatm_initial.CWATModel_ini" title="cwatm.cwatm_initial.CWATModel_ini"><code class="xref py py-class docutils literal notranslate"><span class="pre">CWATModel_ini</span></code></a>, <a class="reference internal" href="cwatm_dynamic.html#cwatm.cwatm_dynamic.CWATModel_dyn" title="cwatm.cwatm_dynamic.CWATModel_dyn"><code class="xref py py-class docutils literal notranslate"><span class="pre">CWATModel_dyn</span></code></a></p>
+<p>Initial and dynamic part of the CWATM model
+* initial part takes care of all the non temporal initialiation procedures
+* dynamic part loops over time</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="cwatm.cwatm_model.CWATModel.dynamic">
+<span class="sig-name descname"><span class="pre">dynamic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cwatm.cwatm_model.CWATModel.dynamic" title="Permalink to this definition"></a></dt>
+<dd><p>Dynamic part of CWATM
+calls the dynamic part of the hydrological modules
+Looping through time and space</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>if flags set the output on the screen can be changed e.g.</p>
+<ul class="simple">
+<li><p>v: no output at all</p></li>
+<li><p>l: time and first gauge discharge</p></li>
+<li><p>t: timing of different processes at the end</p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cwatm.cwatm_model.CWATModel.i">
+<span class="sig-name descname"><span class="pre">i</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#cwatm.cwatm_model.CWATModel.i" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="run_cwatm.html" class="btn btn-neutral float-left" title="run_cwatm" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cwatm_dynamic.html" class="btn btn-neutral float-right" title="cwatm_dynamic module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, IIASA Water Security.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

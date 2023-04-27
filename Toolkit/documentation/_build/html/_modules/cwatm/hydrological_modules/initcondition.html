@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cwatm.hydrological_modules.initcondition &mdash; Community Water Model</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/iiasa.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Community Water Model
+              <img src="../../../_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.6
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../errorHandling.html">6. Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../listVariables.html">7. List of output variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../results.html">8. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../todo.html">9. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data.html">10. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration.html">11. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration_tutorial.html">12. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../resolution.html">13. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zambezi.html">14. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">15. License and download info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcecode.html">16. Source code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../forum.html">17. Forum</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Community Water Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cwatm.hydrological_modules.initcondition</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cwatm.hydrological_modules.initcondition</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -------------------------------------------------------------------------</span>
+<span class="c1"># Name:        INITCONDITION</span>
+<span class="c1"># Purpose:	   Read/write initial condtions for warm start</span>
+<span class="c1">#</span>
+<span class="c1"># Author:      PB</span>
+<span class="c1">#</span>
+<span class="c1"># Created:     19/08/2016</span>
+<span class="c1"># Copyright:   (c) PB 2016</span>
+<span class="c1"># -------------------------------------------------------------------------</span>
+
+<span class="kn">from</span> <span class="nn">cwatm.management_modules.data_handling</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
+<span class="c1"># importlib to import pandas as pd in has crop sentitive version is used</span>
+<span class="c1"># import pandas as pd</span>
+
+<div class="viewcode-block" id="initcondition"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.initcondition.initcondition">[docs]</a><span class="k">class</span> <span class="nc">initcondition</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    READ/WRITE INITIAL CONDITIONS</span>
+<span class="sd">    all initial condition can be stored at the end of a run to be used as a **warm** start for a following up run</span>
+
+
+<span class="sd">    **Global variables**</span>
+
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    Variable [self.var]                    Description                                                             Unit </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    modflow                                Flag: True if modflow_coupling = True in settings file                  --   </span>
+<span class="sd">    Crops_names                            Internal: List of specific crops                                        --   </span>
+<span class="sd">    includeCrops                           1 when includeCrops=True in Settings, 0 otherwise                       bool </span>
+<span class="sd">    Crops                                  Internal: List of specific crops and Kc/Ky parameters                   --   </span>
+<span class="sd">    includeDesal                                                                                                   --   </span>
+<span class="sd">    unlimitedDesal                                                                                                 --   </span>
+<span class="sd">    desalAnnualCap                                                                                                 --   </span>
+<span class="sd">    reservoir_transfers                    [[&#39;Giving reservoir&#39;][i], [&#39;Receiving reservoir&#39;][i], [&#39;Fraction of li  array</span>
+<span class="sd">    wwt_def                                                                                                        --   </span>
+<span class="sd">    wastewater_to_reservoirs                                                                                       --   </span>
+<span class="sd">    loadInit                               Flag: if true initial conditions are loaded                             --   </span>
+<span class="sd">    initLoadFile                           load file name of the initial condition data                            --   </span>
+<span class="sd">    saveInit                               Flag: if true initial conditions are saved                              --   </span>
+<span class="sd">    saveInitFile                           save file name of the initial condition data                            --   </span>
+<span class="sd">    coverTypes                             land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+
+<span class="sd">    **Functions**</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+
+<div class="viewcode-block" id="initcondition.crops_initialise"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.initcondition.initcondition.crops_initialise">[docs]</a>    <span class="k">def</span> <span class="nf">crops_initialise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xl_settings_file_path</span><span class="p">):</span>
+        <span class="n">pd</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;pandas&quot;</span><span class="p">,</span> <span class="n">package</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">xl_settings_file_path</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;Crops&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Crops = [ [planting month, [length of growth stage i, kc_i, ky_i]_i]_c]</span>
+        <span class="n">Crops</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">Crops_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="n">crop</span> <span class="o">=</span> <span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Planting month&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]]</span>
+
+            <span class="n">growth_stage_end_month</span><span class="o">=</span><span class="mi">0</span>
+            <span class="k">for</span> <span class="n">gs</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+                <span class="c1">#gs_parameters = [df[&#39;EM&#39; + str(gs)][i], df[&#39;KC&#39; + str(gs)][i], df[&#39;KY&#39; + str(gs)][i]]</span>
+
+                <span class="n">growth_stage_end_month</span><span class="o">+=</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;GS&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">gs</span><span class="p">)][</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">gs_parameters</span> <span class="o">=</span> <span class="p">[</span><span class="n">growth_stage_end_month</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;KC&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">gs</span><span class="p">)][</span><span class="n">i</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;KY&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">gs</span><span class="p">)][</span><span class="n">i</span><span class="p">]]</span>
+                <span class="n">crop</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gs_parameters</span><span class="p">)</span>
+
+            <span class="n">Crops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">crop</span><span class="p">)</span>
+            <span class="n">Crops_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Crop&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">Crops</span><span class="p">,</span> <span class="n">Crops_names</span></div>
+
+<div class="viewcode-block" id="initcondition.reservoir_transfers"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.initcondition.initcondition.reservoir_transfers">[docs]</a>    <span class="k">def</span> <span class="nf">reservoir_transfers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xl_settings_file_path</span><span class="p">):</span>
+        <span class="n">pd</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;pandas&quot;</span><span class="p">,</span> <span class="n">package</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">xl_settings_file_path</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;Reservoir_transfers&#39;</span><span class="p">)</span>
+
+        <span class="c1"># reservoir_transfers = [ [Giving reservoir, Receiving reservoir, fraction of live storage] ]</span>
+        <span class="n">reservoir_transfers</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="n">transfer</span> <span class="o">=</span> <span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Giving reservoir&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Receiving reservoir&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Fraction of live storage&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">transfer</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">reservoir_transfers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">transfer</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">reservoir_transfers</span></div>
+    
+ 
+    <span class="c1"># To initialize wastewater2reservoir; and wastewater attributes</span>
+<div class="viewcode-block" id="initcondition.wastewater_to_reservoirs"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.initcondition.initcondition.wastewater_to_reservoirs">[docs]</a>    <span class="k">def</span> <span class="nf">wastewater_to_reservoirs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xl_settings_file_path</span><span class="p">):</span>
+        <span class="c1"># fix - build an object with wwtp_id as key and res as values.</span>
+        <span class="c1"># get unique wwtp_id and iterate</span>
+        <span class="n">pd</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;pandas&quot;</span><span class="p">,</span> <span class="n">package</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">xl_settings_file_path</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;Wastewater_to_reservoirs&#39;</span><span class="p">)</span>
+        
+       
+        <span class="n">wwtp_to_reservoir</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">wwtpid</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Sending WWTP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+            <span class="n">wwtp_to_reservoir</span><span class="p">[</span><span class="n">wwtpid</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Sending WWTP&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">wwtpid</span><span class="p">][</span><span class="s1">&#39;Receiving Reservoir&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="c1">#transfer = [df[&#39;Sending WWTP&#39;][i], df[&#39;Receiving Reservoir&#39;][i]]</span>
+            <span class="c1">#wwtp_to_reservoir.append(transfer)</span>
+        <span class="c1">#print(wwtp_to_reservoir)</span>
+        <span class="k">return</span> <span class="n">wwtp_to_reservoir</span></div>
+    
+<div class="viewcode-block" id="initcondition.wasterwater_def"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.initcondition.initcondition.wasterwater_def">[docs]</a>    <span class="k">def</span> <span class="nf">wasterwater_def</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xl_settings_file_path</span><span class="p">):</span>
+        <span class="n">pd</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;pandas&quot;</span><span class="p">,</span> <span class="n">package</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">xl_settings_file_path</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;Wastewater_def&#39;</span><span class="p">)</span>
+        
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;From year&#39;</span><span class="p">,</span> <span class="s1">&#39;To year&#39;</span><span class="p">,</span> <span class="s1">&#39;Volume (cubic m per day)&#39;</span><span class="p">,</span> <span class="s1">&#39;Treatment days&#39;</span><span class="p">,</span> <span class="s1">&#39;Treatment level&#39;</span><span class="p">,</span> <span class="s1">&#39;Export share&#39;</span><span class="p">,</span> <span class="s1">&#39;Domestic&#39;</span><span class="p">,</span> <span class="s1">&#39;Industrial&#39;</span><span class="p">,</span> <span class="s1">&#39;min_HRT&#39;</span><span class="p">]</span>
+        <span class="n">wwtp_definitions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">wwtpid</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;WWTP ID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+            <span class="n">wwtp_definitions</span><span class="p">[</span><span class="n">wwtpid</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;WWTP ID&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">wwtpid</span><span class="p">][</span><span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">wwtp_definitions</span></div>
+    
+<div class="viewcode-block" id="initcondition.desalinationCapacity"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.initcondition.initcondition.desalinationCapacity">[docs]</a>    <span class="k">def</span> <span class="nf">desalinationCapacity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xl_settings_file_path</span><span class="p">):</span>
+        <span class="n">pd</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;pandas&quot;</span><span class="p">,</span> <span class="n">package</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">xl_settings_file_path</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;Desalination&#39;</span><span class="p">)</span>
+        
+        <span class="n">s_year</span> <span class="o">=</span> <span class="nb">globals</span><span class="o">.</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;dateBegin&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">year</span>
+        <span class="n">e_year</span> <span class="o">=</span> <span class="nb">globals</span><span class="o">.</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;dateEnd&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">year</span>
+        
+        <span class="n">desalCap</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">lastDesal</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">s_year</span><span class="p">,</span> <span class="n">e_year</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Year&#39;</span><span class="p">]):</span>
+                <span class="n">lastDesal</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Year&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">year</span><span class="p">][</span><span class="s1">&#39;Capacity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_list</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">desalCap</span><span class="p">[</span><span class="n">year</span><span class="p">]</span> <span class="o">=</span> <span class="n">lastDesal</span>
+        <span class="k">return</span> <span class="n">desalCap</span></div>
+        
+    
+<div class="viewcode-block" id="initcondition.initial"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.initcondition.initcondition.initial">[docs]</a>    <span class="k">def</span> <span class="nf">initial</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        initial part of the initcondition module</span>
+<span class="sd">		Puts all the variables which has to be stored in 2 lists:</span>
+
+<span class="sd">		* initCondVar: the name of the variable in the init netcdf file</span>
+<span class="sd">		* initCondVarValue: the variable as it can be read with the &#39;eval&#39; command</span>
+
+<span class="sd">		Reads the parameter *save_initial* and *save_initial* to know if to save or load initial values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># list all initiatial variables</span>
+        <span class="c1"># Snow &amp; Frost</span>
+        <span class="n">number</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;NumberSnowLayers&#39;</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number</span><span class="p">):</span>
+            <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;SnowCover&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;SnowCoverS[&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;]&quot;</span><span class="p">)</span>
+        <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;FrostIndex&quot;</span><span class="p">)</span>
+        <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;FrostIndex&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;includeRunoffConcentration&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+                <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;runoff_conc&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;runoff_conc[&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span><span class="p">)</span>
+
+        <span class="c1"># soil / landcover</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">coverTypes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">strip</span><span class="p">,</span> <span class="n">cbinding</span><span class="p">(</span><span class="s2">&quot;coverTypes&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)))</span>
+
+        <span class="c1"># soil paddy irrigation</span>
+        <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;topwater&quot;</span><span class="p">)</span>
+        <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;topwater&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">coverType</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">coverTypes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">coverType</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;forest&#39;</span><span class="p">,</span> <span class="s1">&#39;grassland&#39;</span><span class="p">,</span> <span class="s1">&#39;irrPaddy&#39;</span><span class="p">,</span> <span class="s1">&#39;irrNonPaddy&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;interceptStor&quot;</span><span class="p">,</span> <span class="s2">&quot;w1&quot;</span><span class="p">,</span><span class="s2">&quot;w2&quot;</span><span class="p">,</span><span class="s2">&quot;w3&quot;</span><span class="p">]:</span>
+                    <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coverType</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span> <span class="n">cond</span><span class="p">)</span>
+                    <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cond</span><span class="o">+</span><span class="s2">&quot;[&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;]&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">coverType</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;sealed&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;interceptStor&quot;</span><span class="p">]:</span>
+                    <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coverType</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span> <span class="n">cond</span><span class="p">)</span>
+                    <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cond</span><span class="o">+</span><span class="s2">&quot;[&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;]&quot;</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeCrops</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="s2">&quot;includeCrops&quot;</span> <span class="ow">in</span> <span class="n">option</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeCrops</span> <span class="o">=</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;includeCrops&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeCrops</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="s1">&#39;Excel_settings_file&#39;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+                <span class="n">xl_settings_file_path</span> <span class="o">=</span> <span class="n">cbinding</span><span class="p">(</span><span class="s1">&#39;Excel_settings_file&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Crops</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Crops_names</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">crops_initialise</span><span class="p">(</span><span class="n">xl_settings_file_path</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;The Excel settings file needs to be included into the settings file:</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                      <span class="s2">&quot;Excel_settings_file =&quot;</span><span class="o">+</span><span class="sa">r</span><span class="s2">&quot;*PATH*\cwatm_settings.xlsx&quot;</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="k">raise</span> <span class="n">CWATMError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+            <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;frac_totalIrr_max&#39;</span><span class="p">)</span>
+            <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;frac_totalIrr_max&#39;</span><span class="p">)</span>
+
+            <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;frac_totalnonIrr_max&#39;</span><span class="p">)</span>
+            <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;frac_totalnonIrr_max&#39;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Crops</span><span class="p">)):</span>
+
+                <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;monthCounter_&#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+                <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;monthCounter[&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;]&#39;</span><span class="p">)</span>
+
+                <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;fracCrops_Irr_&#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+                <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;fracCrops_Irr[&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;]&#39;</span><span class="p">)</span>
+
+                <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;fracCrops_nonIrr_&#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+                <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;fracCrops_nonIrr[&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;]&#39;</span><span class="p">)</span>
+
+                <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;activatedCrops_&#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+                <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;activatedCrops[&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;]&#39;</span><span class="p">)</span>
+
+        <span class="c1"># water demand</span>
+        <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;unmetDemandPaddy&quot;</span><span class="p">)</span>
+        <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;unmetDemandPaddy&quot;</span><span class="p">)</span>
+        <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;unmetDemandNonpaddy&quot;</span><span class="p">)</span>
+        <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;unmetDemandNonpaddy&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Desalination</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeDesal</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">unlimitedDesal</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="s1">&#39;includeDesalination&#39;</span> <span class="ow">in</span> <span class="n">option</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeDesal</span> <span class="o">=</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;includeDesalination&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeDesal</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">unlimitedDesal</span> <span class="o">=</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;unlimitedDesalinationCapacity&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">unlimitedDesal</span><span class="p">:</span>
+                <span class="n">xl_settings_file_path</span> <span class="o">=</span> <span class="n">cbinding</span><span class="p">(</span><span class="s1">&#39;Excel_settings_file&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">desalAnnualCap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">desalinationCapacity</span><span class="p">(</span><span class="n">xl_settings_file_path</span><span class="p">)</span>
+        
+        <span class="c1"># groundwater</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">modflow</span><span class="p">:</span>
+            <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;storGroundwater&quot;</span><span class="p">)</span>
+            <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;storGroundwater&quot;</span><span class="p">)</span>
+
+        <span class="c1"># routing</span>
+        <span class="n">Var1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;channelStorage&quot;</span><span class="p">,</span> <span class="s2">&quot;discharge&quot;</span><span class="p">,</span> <span class="s2">&quot;riverbedExchange&quot;</span><span class="p">]</span>
+        <span class="n">Var2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;channelStorage&quot;</span><span class="p">,</span> <span class="s2">&quot;discharge&quot;</span><span class="p">,</span> <span class="s2">&quot;riverbedExchange&quot;</span><span class="p">]</span>
+
+        <span class="n">initCondVar</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">Var1</span><span class="p">)</span>
+        <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">Var2</span><span class="p">)</span>
+
+        <span class="c1"># lakes &amp; reservoirs</span>
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;includeWaterBodies&#39;</span><span class="p">):</span>
+            <span class="n">Var1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;lakeInflow&quot;</span><span class="p">,</span> <span class="s2">&quot;lakeStorage&quot;</span><span class="p">,</span><span class="s2">&quot;reservoirStorage&quot;</span><span class="p">,</span><span class="s2">&quot;outLake&quot;</span><span class="p">,</span><span class="s2">&quot;lakeOutflow&quot;</span><span class="p">]</span>
+            <span class="n">Var2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;lakeInflow&quot;</span><span class="p">,</span><span class="s2">&quot;lakeVolume&quot;</span><span class="p">,</span><span class="s2">&quot;reservoirStorage&quot;</span><span class="p">,</span><span class="s2">&quot;outLake&quot;</span><span class="p">,</span><span class="s2">&quot;lakeOutflow&quot;</span><span class="p">]</span>
+            <span class="n">initCondVar</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">Var1</span><span class="p">)</span>
+            <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">Var2</span><span class="p">)</span>
+
+        <span class="c1"># lakes &amp; reservoirs</span>
+
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;includeWaterBodies&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;useSmallLakes&#39;</span><span class="p">):</span>
+                <span class="n">Var1</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;smalllakeInflow&quot;</span><span class="p">,</span><span class="s2">&quot;smalllakeStorage&quot;</span><span class="p">,</span><span class="s2">&quot;smalllakeOutflow&quot;</span><span class="p">]</span>
+                <span class="n">Var2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;smalllakeInflowOld&quot;</span><span class="p">,</span><span class="s2">&quot;smalllakeVolumeM3&quot;</span><span class="p">,</span><span class="s2">&quot;smalllakeOutflow&quot;</span><span class="p">]</span>
+                <span class="n">initCondVar</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">Var1</span><span class="p">)</span>
+                <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">Var2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s1">&#39;reservoir_transfers&#39;</span> <span class="ow">in</span> <span class="n">option</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;reservoir_transfers&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="s1">&#39;Excel_settings_file&#39;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+                    <span class="n">xl_settings_file_path</span> <span class="o">=</span> <span class="n">cbinding</span><span class="p">(</span><span class="s1">&#39;Excel_settings_file&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">reservoir_transfers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reservoir_transfers</span><span class="p">(</span><span class="n">xl_settings_file_path</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="s1">&#39;includeWastewater&#39;</span> <span class="ow">in</span> <span class="n">option</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;includeWastewater&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="s1">&#39;Excel_settings_file&#39;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+                    <span class="n">xl_settings_file_path</span> <span class="o">=</span> <span class="n">cbinding</span><span class="p">(</span><span class="s1">&#39;Excel_settings_file&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wwt_def</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wasterwater_def</span><span class="p">(</span><span class="n">xl_settings_file_path</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wastewater_to_reservoirs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wastewater_to_reservoirs</span><span class="p">(</span><span class="n">xl_settings_file_path</span><span class="p">)</span>
+                    
+        
+        <span class="k">if</span> <span class="s1">&#39;relax_irrigation_agents&#39;</span> <span class="ow">in</span> <span class="n">option</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;relax_irrigation_agents&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="s1">&#39;irrigation_agent_SW_request_month_m3&#39;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+                    <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;relaxSWagent&quot;</span><span class="p">)</span>
+                    <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;relaxSWagent&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s1">&#39;irrigation_agent_GW_request_month_m3&#39;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+                    <span class="n">initCondVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;relaxGWagent&quot;</span><span class="p">)</span>
+                    <span class="n">initCondVarValue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;relaxGWagent&quot;</span><span class="p">)</span>
+
+        <span class="c1"># ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</span>
+        <span class="c1"># Load init file - a single file can be loaded - needs path and file name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">loadInit</span> <span class="o">=</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;load_initial&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">loadInit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">initLoadFile</span> <span class="o">=</span> <span class="n">cbinding</span><span class="p">(</span><span class="s1">&#39;initLoad&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Safe init file</span>
+        <span class="c1"># several initial conditions can be stored in different netcdf files</span>
+        <span class="c1"># initSave has the path and the first part of the name</span>
+        <span class="c1"># intInit has the dates - as a single date, as several dates</span>
+        <span class="c1"># or in certain interval e.g. 2y = every 2 years, 3m = every 3 month, 15d = every 15 days</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">saveInit</span> <span class="o">=</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;save_initial&#39;</span><span class="p">)</span>
+        <span class="c1">#self.var.initmap = {}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">saveInit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">saveInitFile</span> <span class="o">=</span> <span class="n">cbinding</span><span class="p">(</span><span class="s1">&#39;initSave&#39;</span><span class="p">)</span>
+            <span class="n">initdates</span> <span class="o">=</span> <span class="n">cbinding</span><span class="p">(</span><span class="s1">&#39;StepInit&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">datetosaveInit</span><span class="p">(</span><span class="n">initdates</span><span class="p">,</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;dateBegin&#39;</span><span class="p">],</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;dateEnd&#39;</span><span class="p">])</span></div>
+
+            <span class="c1">#for d in initdates:</span>
+            <span class="c1">#    dd = datetoInt(d, dateVar[&#39;dateBegin&#39;])</span>
+            <span class="c1">#    dateVar[&#39;intInit&#39;].append(datetoInt(d, dateVar[&#39;dateBegin&#39;]))</span>
+
+<div class="viewcode-block" id="initcondition.dynamic"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.initcondition.initcondition.dynamic">[docs]</a>    <span class="k">def</span> <span class="nf">dynamic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dynamic part of the initcondition module</span>
+<span class="sd">        write initital conditions into a single netcdf file</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            Several dates can be stored in different netcdf files</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">saveInit</span><span class="p">:</span>
+            <span class="k">if</span>  <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;curr&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;intInit&#39;</span><span class="p">]:</span>
+                <span class="n">saveFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">saveInitFile</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%02d%02d%02d</span><span class="s2">.nc&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">year</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">day</span><span class="p">)</span>
+                <span class="n">initVar</span><span class="o">=</span><span class="p">[]</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">initCondVar</span><span class="p">:</span>
+                    <span class="n">variabel</span> <span class="o">=</span> <span class="s2">&quot;self.var.&quot;</span><span class="o">+</span><span class="n">initCondVarValue</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="c1">#print variabel</span>
+                    <span class="n">initVar</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="n">variabel</span><span class="p">))</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">writeIniNetcdf</span><span class="p">(</span><span class="n">saveFile</span><span class="p">,</span> <span class="n">initCondVar</span><span class="p">,</span><span class="n">initVar</span><span class="p">)</span></div></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, IIASA Water Security.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

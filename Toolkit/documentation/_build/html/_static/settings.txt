@@ -1,0 +1,44 @@
+[DEFAULT]
+Root = /c/watmodel/CWATM
+RootPC = C:/watmodel/CWATM
+Rootbasin = calibration_rhine
+
+ForcingStart = 1/1/2000
+ForcingEnd = 31/12/2010
+timeperiod = daily
+
+[ObservedData]
+Qtss = observed_data/lobith.csv
+Column = lobith
+Header = River: Rhine  station: Lobith
+
+[Validate]
+Qtss = observed_data/lobith_val.csv
+ValStart = 1/1/1990
+ValEnd = 31/12/1999
+
+
+[Path]
+Templates = templates
+SubCatchmentPath = catchments
+ParamRanges = ParamRanges.csv
+
+[Templates]
+ModelSettings = settings.ini
+RunModel = runpy.sh
+
+[Option]
+firstrun = False
+para_first = [0.0022, 1.72, 1.24, 7.07, 0.55, 1.92, 2.81, 0.74,1.34,0.35,2.04,1.0, 1.]
+# Snowmelt, crop KC, soil depth,pref. flow, arno beta, interflow factor, groundwater recession,
+# runoff conc., routing, manning factor, normalStorageLimit, lakeAFactor,lakeEvaFactor,No of run
+bestrun = True
+
+[DEAP]
+maximize = True
+use_multiprocessing = 1
+ngen = 30
+mu = 256
+lambda_ = 32
+
+

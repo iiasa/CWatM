@@ -27,12 +27,12 @@ class miscInitial(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 
     cellArea                               Area of cell                                                            m2   
     DtSec                                  number of seconds per timestep (default = 86400)                        s    
     twothird                               2/3                                                                     --   
     MtoM3                                  Coefficient to change units                                             --   
-    InvDtSec                                                                                                            
+    InvDtSec                                                                                                       --   
+    InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 
     DtDay                                  seconds in a timestep (default=86400)                                   s    
     InvDtDay                               inverse seconds in a timestep (default=86400)                           1/s  
     MMtoM                                  Coefficient to change units                                             --   
