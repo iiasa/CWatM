@@ -376,9 +376,15 @@ class water_demand:
             else:
                 self.var.relax_abstraction_fraction_initial = 0.5 + globals.inZero.copy()
 
+        self.var.includeWastewaterPits = False
+        if 'includePitLatrine' in option:
+            self.var.includeWastewaterPits = checkOption('includePitLatrine')
+
         # =======================================================
 
         if checkOption('includeWaterDemand'):
+
+
 
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
 
@@ -710,7 +716,7 @@ class water_demand:
             self.var.act_livConsumption = globals.inZero.copy()
             self.var.returnflowIrr = globals.inZero.copy()
             self.var.returnflowNonIrr = globals.inZero.copy()
-
+            self.var.pitLatrinToGW = globals.inZero.copy()
 
         else:  # no water demand
             self.var.nonIrrReturnFlowFraction = globals.inZero.copy()
@@ -2346,7 +2352,14 @@ class water_demand:
             self.var.addtoevapotrans = self.var.addtoevapotrans * unmet_div_ww
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 self.var.returnflowNonIrr = self.var.returnflowNonIrr * unmet_div_ww
-
+            
+            if self.var.includeWastewaterPits:
+                shareNonIrrReturnFlowToGW = globals.inZero.copy()
+                if 'pitLatrinShare' in binding:
+                    shareNonIrrReturnFlowToGW = loadmap('pitLatrinShare')
+                self.var.pitLatrinToGW = self.var.returnflowNonIrr * shareNonIrrReturnFlowToGW
+                self.var.returnflowNonIrr = self.var.returnflowNonIrr * (1 - shareNonIrrReturnFlowToGW)
+                
             if self.var.includeWastewater & self.var.includeIndusDomesDemand:  # all demands are taken into account
                 ## create domestic, industry returnFlows
                 # Simple implementation - not precise. Don't allow livestock returnFlow
