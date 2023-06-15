@@ -860,7 +860,10 @@ class landcoverType(object):
 
                     # adding leakage from lakes and reservoirs to the groundwater recharge
                     self.var.sum_gwRecharge += lakebedExchangeM_temp
-
+        
+        if self.var.includeWastewaterPits:
+            self.var.sum_gwRecharge += self.var.pitLatrinToGW
+            
         soilVars = ['w1','w2','w3']
         for variable in soilVars:
                 vars(self.var)["sum_" + variable] = globals.inZero.copy()
