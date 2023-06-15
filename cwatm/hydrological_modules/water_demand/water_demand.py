@@ -376,13 +376,15 @@ class water_demand:
             else:
                 self.var.relax_abstraction_fraction_initial = 0.5 + globals.inZero.copy()
 
+        self.var.includeWastewaterPits = False
+        if 'includePitLatrine' in option:
+            self.var.includeWastewaterPits = checkOption('includePitLatrine')
+
         # =======================================================
 
         if checkOption('includeWaterDemand'):
-        
-            self.var.includeWastewaterPits =  False
-            if 'includePitLatrine' in option:
-                self.var.includeWastewaterPits =  checkOption('includePitLatrine')
+
+
 
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
 
