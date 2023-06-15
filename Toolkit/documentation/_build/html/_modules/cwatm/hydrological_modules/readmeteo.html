@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cwatm.hydrological_modules.readmeteo &mdash; Community Water Model</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/iiasa.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Community Water Model
+              <img src="../../../_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.6
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../errorHandling.html">6. Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../listVariables.html">7. List of output variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../results.html">8. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../todo.html">9. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data.html">10. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration.html">11. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration_tutorial.html">12. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../resolution.html">13. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zambezi.html">14. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">15. License and download info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcecode.html">16. Source code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../forum.html">17. Forum</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Community Water Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cwatm.hydrological_modules.readmeteo</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cwatm.hydrological_modules.readmeteo</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -------------------------------------------------------------------------</span>
+<span class="c1"># Name:        READ METEO input maps</span>
+<span class="c1"># Purpose:</span>
+<span class="c1">#</span>
+<span class="c1"># Author:      PB</span>
+<span class="c1">#</span>
+<span class="c1"># Created:     13/07/2016</span>
+<span class="c1"># Copyright:   (c) PB 2016</span>
+<span class="c1"># -------------------------------------------------------------------------</span>
+
+<span class="kn">from</span> <span class="nn">cwatm.management_modules.data_handling</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">scipy.ndimage</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">RegularGridInterpolator</span>
+
+<div class="viewcode-block" id="readmeteo"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.readmeteo.readmeteo">[docs]</a><span class="k">class</span> <span class="nc">readmeteo</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    READ METEOROLOGICAL DATA</span>
+
+<span class="sd">    reads all meteorological data from netcdf4 files</span>
+
+
+<span class="sd">    **Global variables**</span>
+
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    Variable [self.var]                    Description                                                             Unit </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    DtDay                                  seconds in a timestep (default=86400)                                   s    </span>
+<span class="sd">    con_precipitation                      conversion factor for precipitation                                     --   </span>
+<span class="sd">    con_e                                  conversion factor for evaporation                                       --   </span>
+<span class="sd">    ETRef                                  potential evapotranspiration rate from reference crop                   m    </span>
+<span class="sd">    Precipitation                          Precipitation (input for the model)                                     m    </span>
+<span class="sd">    only_radition                                                                                                  --   </span>
+<span class="sd">    TMin                                   minimum air temperature                                                 K    </span>
+<span class="sd">    TMax                                   maximum air temperature                                                 K    </span>
+<span class="sd">    Tavg                                   Input, average air Temperature                                          K    </span>
+<span class="sd">    Rsds                                   short wave downward surface radiation fluxes                            W/m2 </span>
+<span class="sd">    EAct                                                                                                           --   </span>
+<span class="sd">    Psurf                                  Instantaneous surface pressure                                          Pa   </span>
+<span class="sd">    Qair                                   specific humidity                                                       kg/kg</span>
+<span class="sd">    Rsdl                                   long wave downward surface radiation fluxes                             W/m2 </span>
+<span class="sd">    Wind                                   wind speed                                                              m/s  </span>
+<span class="sd">    EWRef                                  potential evaporation rate from water surface                           m    </span>
+<span class="sd">    meteomapsscale                         if meteo maps have the same extend as the other spatial static maps -&gt;  --   </span>
+<span class="sd">    meteodown                              if meteo maps should be downscaled                                      --   </span>
+<span class="sd">    InterpolationMethod                                                                                            --   </span>
+<span class="sd">    buffer                                                                                                         --   </span>
+<span class="sd">    preMaps                                choose between steady state precipitation maps for steady state modflo  --   </span>
+<span class="sd">    tempMaps                               choose between steady state temperature maps for steady state modflow   --   </span>
+<span class="sd">    evaTMaps                               choose between steady state ETP water maps for steady state modflow or  --   </span>
+<span class="sd">    eva0Maps                               choose between steady state ETP reference maps for steady state modflo  --   </span>
+<span class="sd">    glaciermeltMaps                                                                                                --   </span>
+<span class="sd">    glacierrainMaps                                                                                                --   </span>
+<span class="sd">    wc2_tavg                               High resolution WorldClim map for average temperature                   K    </span>
+<span class="sd">    wc4_tavg                               upscaled to low resolution WorldClim map for average temperature        K    </span>
+<span class="sd">    wc2_tmin                               High resolution WorldClim map for min temperature                       K    </span>
+<span class="sd">    wc4_tmin                               upscaled to low resolution WorldClim map for min temperature            K    </span>
+<span class="sd">    wc2_tmax                               High resolution WorldClim map for max temperature                       K    </span>
+<span class="sd">    wc4_tmax                               upscaled to low resolution WorldClim map for max temperature            K    </span>
+<span class="sd">    wc2_prec                               High resolution WorldClim map for precipitation                         m    </span>
+<span class="sd">    wc4_prec                               upscaled to low resolution WorldClim map for precipitation              m    </span>
+<span class="sd">    xcoarse_prec                                                                                                   --   </span>
+<span class="sd">    ycoarse_prec                                                                                                   --   </span>
+<span class="sd">    xfine_prec                                                                                                     --   </span>
+<span class="sd">    yfine_prec                                                                                                     --   </span>
+<span class="sd">    meshlist_prec                                                                                                  --   </span>
+<span class="sd">    xcoarse_tavg                                                                                                   --   </span>
+<span class="sd">    ycoarse_tavg                                                                                                   --   </span>
+<span class="sd">    xfine_tavg                                                                                                     --   </span>
+<span class="sd">    yfine_tavg                                                                                                     --   </span>
+<span class="sd">    meshlist_tavg                                                                                                  --   </span>
+<span class="sd">    meteo                                                                                                          --   </span>
+<span class="sd">    prec                                   precipitation in m                                                      m    </span>
+<span class="sd">    temp                                   average temperature in Celsius deg                                      °C   </span>
+<span class="sd">    WtoMJ                                  Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6          --   </span>
+<span class="sd">    includeGlaciers                                                                                                --   </span>
+<span class="sd">    includeOnlyGlaciersMelt                                                                                        --   </span>
+<span class="sd">    GlacierMelt                                                                                                    --   </span>
+<span class="sd">    GlacierRain                                                                                                    --   </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+
+<span class="sd">    **Functions**</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">var</span>
+
+<div class="viewcode-block" id="readmeteo.initial"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.readmeteo.readmeteo.initial">[docs]</a>    <span class="k">def</span> <span class="nf">initial</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initial part of meteo</span>
+
+<span class="sd">        read multiple file of input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># fit meteorological forcing data to size and resolution of mask map</span>
+        <span class="c1">#-------------------------------------------------------------------</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="n">cbinding</span><span class="p">(</span><span class="s1">&#39;PrecipitationMaps&#39;</span><span class="p">)</span>
+        <span class="n">nameall</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">nameall</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Error 215: In readmeteo, cannot find precipitation maps &quot;</span>
+            <span class="k">raise</span> <span class="n">CWATMFileError</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">sname</span><span class="o">=</span><span class="s1">&#39;PrecipitationMaps&#39;</span><span class="p">)</span>
+        <span class="n">namemeteo</span> <span class="o">=</span> <span class="n">nameall</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">latmeteo</span><span class="p">,</span> <span class="n">lonmeteo</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">invcellmeteo</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">readCoordNetCDF</span><span class="p">(</span><span class="n">namemeteo</span><span class="p">)</span>
+
+        <span class="n">nameldd</span> <span class="o">=</span> <span class="n">cbinding</span><span class="p">(</span><span class="s1">&#39;Ldd&#39;</span><span class="p">)</span>
+        <span class="c1">#nameldd = os.path.splitext(nameldd)[0] + &#39;.nc&#39;</span>
+        <span class="c1">#latldd, lonldd, cell, invcellldd, row, cols = readCoordNetCDF(nameldd)</span>
+        <span class="n">latldd</span><span class="p">,</span> <span class="n">lonldd</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">invcellldd</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span> <span class="o">=</span> <span class="n">readCoord</span><span class="p">(</span><span class="n">nameldd</span><span class="p">)</span>
+        <span class="n">maskmapAttr</span><span class="p">[</span><span class="s1">&#39;reso_mask_meteo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">invcellldd</span> <span class="o">/</span> <span class="n">invcellmeteo</span><span class="p">)</span>
+
+        <span class="c1"># if meteo maps have the same extend as the other spatial static maps -&gt; meteomapsscale = True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">invcellmeteo</span> <span class="o">!=</span> <span class="n">invcellldd</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span><span class="p">(</span><span class="n">Flags</span><span class="p">[</span><span class="s1">&#39;quiet&#39;</span><span class="p">]))</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span><span class="p">(</span><span class="n">Flags</span><span class="p">[</span><span class="s1">&#39;veryquiet&#39;</span><span class="p">]))</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span><span class="p">(</span><span class="n">Flags</span><span class="p">[</span><span class="s1">&#39;check&#39;</span><span class="p">])):</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Resolution of meteo forcing is &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">maskmapAttr</span><span class="p">[</span><span class="s1">&#39;reso_mask_meteo&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot; times higher than base maps.&quot;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">cutmap</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cutmap</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cutmap</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">cutmap</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapattrNetCDF</span><span class="p">(</span><span class="n">nameldd</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span> <span class="n">cutmapFine</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cutmap</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="c1"># for downscaling meteomaps , Wordclim data at a finer resolution is used</span>
+        <span class="c1"># here it is necessary to clip the wordclim data so that they fit to meteo dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteodown</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># if interpolationmethod not defined in settingsfil, use spline interpolation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">=</span> <span class="s1">&#39;spline&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">buffer</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="s2">&quot;usemeteodownscaling&quot;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteodown</span> <span class="o">=</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;usemeteodownscaling&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;InterpolationMethod&#39;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+                <span class="c1"># interpolation option can be spline or bilinear</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">=</span> <span class="n">cbinding</span><span class="p">(</span><span class="s1">&#39;InterpolationMethod&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">!=</span> <span class="s1">&#39;bilinear&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">!=</span> <span class="s1">&#39;spline&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">!=</span> <span class="s1">&#39;kron&#39;</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Error: InterpolationMethod in settings file must be one of the following: &quot;spline&quot; or  &quot;bilinear&quot;, but it is </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">CWATMError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">buffer</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">check_clim</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteodown</span><span class="p">:</span>
+            <span class="n">check_clim</span> <span class="o">=</span> <span class="n">checkMeteo_Wordclim</span><span class="p">(</span><span class="n">namemeteo</span><span class="p">,</span> <span class="n">cbinding</span><span class="p">(</span><span class="s1">&#39;downscale_wordclim_prec&#39;</span><span class="p">))</span>
+
+        <span class="c1"># in case other mapsets are used e.g. Cordex RCM meteo data</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">latldd</span> <span class="o">!=</span> <span class="n">latmeteo</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">lonldd</span> <span class="o">!=</span> <span class="n">lonmeteo</span><span class="p">):</span>
+            <span class="n">cutmapFine</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cutmapFine</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cutmapFine</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">cutmapFine</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapattrNetCDFMeteo</span><span class="p">(</span><span class="n">namemeteo</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">:</span>
+            <span class="c1"># if the cellsize of the spatial dataset e.g. ldd, soil etc is not the same as the meteo maps than:</span>
+            <span class="n">cutmapFine</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cutmapFine</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">cutmapFine</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">cutmapFine</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>  <span class="o">=</span> <span class="n">mapattrNetCDFMeteo</span><span class="p">(</span><span class="n">namemeteo</span><span class="p">)</span>
+            <span class="c1"># downscaling wordlclim maps</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span> <span class="n">cutmapGlobal</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cutmapFine</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="n">check_clim</span><span class="p">):</span>
+               <span class="c1"># for downscaling it is always cut from the global map</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">latldd</span> <span class="o">!=</span> <span class="n">latmeteo</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">lonldd</span> <span class="o">!=</span> <span class="n">lonmeteo</span><span class="p">):</span>
+                    <span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cutmap</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">maskmapAttr</span><span class="p">[</span><span class="s1">&#39;reso_mask_meteo&#39;</span><span class="p">])</span>
+                    <span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cutmap</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">maskmapAttr</span><span class="p">[</span><span class="s1">&#39;reso_mask_meteo&#39;</span><span class="p">])</span>
+                    <span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cutmap</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">maskmapAttr</span><span class="p">[</span><span class="s1">&#39;reso_mask_meteo&#39;</span><span class="p">]</span><span class="o">+</span><span class="mf">0.999</span><span class="p">)</span>
+                    <span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cutmap</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="n">maskmapAttr</span><span class="p">[</span><span class="s1">&#39;reso_mask_meteo&#39;</span><span class="p">]</span><span class="o">+</span><span class="mf">0.999</span><span class="p">)</span>
+
+        <span class="c1"># -------------------------------------------------------------------</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeGlaciers</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeOnlyGlaciersMelt</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="s1">&#39;includeGlaciers&#39;</span> <span class="ow">in</span> <span class="n">option</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeGlaciers</span> <span class="o">=</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;includeGlaciers&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;includeOnlyGlaciersMelt&#39;</span> <span class="ow">in</span> <span class="n">option</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeOnlyGlaciersMelt</span> <span class="o">=</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;includeOnlyGlaciersMelt&#39;</span><span class="p">)</span>
+           
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">preMaps</span> <span class="o">=</span> <span class="s1">&#39;PrecipitationMaps&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tempMaps</span> <span class="o">=</span> <span class="s1">&#39;TavgMaps&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">evaTMaps</span> <span class="o">=</span> <span class="s1">&#39;ETMaps&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">eva0Maps</span> <span class="o">=</span> <span class="s1">&#39;E0Maps&#39;</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeGlaciers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">glaciermeltMaps</span> <span class="o">=</span> <span class="s1">&#39;MeltGlacierMaps&#39;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeOnlyGlaciersMelt</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">glacierrainMaps</span> <span class="o">=</span> <span class="s1">&#39;PrecGlacierMaps&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">only_radition</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="s1">&#39;only_radiation&#39;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">only_radition</span> <span class="o">=</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;only_radiation&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;calc_evaporation&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">only_radition</span><span class="p">:</span>
+                <span class="c1"># for maps from EMO-5 with total radiation and vapor pressure instead of huss, air pressure, rsds and rlds</span>
+                <span class="n">meteomaps</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">preMaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tempMaps</span><span class="p">,</span><span class="s1">&#39;TminMaps&#39;</span><span class="p">,</span><span class="s1">&#39;TmaxMaps&#39;</span><span class="p">,</span><span class="s1">&#39;WindMaps&#39;</span><span class="p">,</span><span class="s1">&#39;RGDMaps&#39;</span><span class="p">,</span><span class="s1">&#39;EActMaps&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="n">meteomaps</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">preMaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tempMaps</span><span class="p">,</span><span class="s1">&#39;TminMaps&#39;</span><span class="p">,</span><span class="s1">&#39;TmaxMaps&#39;</span><span class="p">,</span><span class="s1">&#39;PSurfMaps&#39;</span><span class="p">,</span><span class="s1">&#39;WindMaps&#39;</span><span class="p">,</span><span class="s1">&#39;RSDSMaps&#39;</span><span class="p">,</span><span class="s1">&#39;RSDLMaps&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;useHuss&#39;</span><span class="p">):</span>
+                    <span class="n">meteomaps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;QAirMaps&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">meteomaps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;RhsMaps&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeGlaciers</span><span class="p">:</span>
+                <span class="n">meteomaps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">glaciermeltMaps</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeOnlyGlaciersMelt</span><span class="p">:</span>
+                    <span class="n">meteomaps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">glacierrainMaps</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeGlaciers</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeOnlyGlaciersMelt</span><span class="p">:</span>
+                    <span class="n">meteomaps</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">preMaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tempMaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">evaTMaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">eva0Maps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">glaciermeltMaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">glacierrainMaps</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">meteomaps</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">preMaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tempMaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">evaTMaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">eva0Maps</span><span class="p">,</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">glaciermeltMaps</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">meteomaps</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">preMaps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tempMaps</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">evaTMaps</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">eva0Maps</span><span class="p">]</span>
+
+        <span class="c1">#meteomaps = [&quot;PrecipitationMaps&quot;,&quot;TavgMaps&quot;]</span>
+        <span class="n">multinetdf</span><span class="p">(</span><span class="n">meteomaps</span><span class="p">)</span>
+
+        <span class="c1"># downscaling to wordclim, set parameter to 0 in case they are only used as dummy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tavg</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tavg</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tmin</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tmin</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tmax</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tmax</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_prec</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_prec</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">:</span>
+            <span class="c1">#these variables are generated to avoid calculating them at each timestep</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xcoarse_prec</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ycoarse_prec</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xfine_prec</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">yfine_prec</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meshlist_prec</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xcoarse_tavg</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ycoarse_tavg</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xfine_tavg</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">yfine_tavg</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meshlist_tavg</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+        <span class="c1"># read dem for making a anomolydem between high resolution dem and low resoultion dem</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        # for downscaling1</span>
+<span class="sd">        dem = loadmap(&#39;Elevation&#39;, compress = False, cut = False)</span>
+<span class="sd">        demHigh = dem[cutmapFine[2]*6:cutmapFine[3]*6, cutmapFine[0]*6:cutmapFine[1]*6]</span>
+<span class="sd">        rows = demHigh.shape[0]</span>
+<span class="sd">        cols = demHigh.shape[1]</span>
+<span class="sd">        dem2 = demHigh.reshape(rows/6,6,cols/6,6)</span>
+<span class="sd">        dem3 = np.average(dem2, axis=(1, 3))</span>
+<span class="sd">        demLow = np.kron(dem3, np.ones((6, 6)))</span>
+
+<span class="sd">        demAnomaly = demHigh - demLow</span>
+<span class="sd">        self.var.demHigh = compressArray(demHigh[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]],pcr = False)</span>
+<span class="sd">        self.var.demAnomaly = compressArray(demAnomaly[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]],pcr = False)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+
+
+<span class="c1"># --------------------------------------------------------------------------</span>
+<span class="c1"># --------------------------------------------------------------------------</span>
+
+    <span class="c1">#def downscaling1(self,input, downscale = 0):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Downscaling based on elevation correction for temperature and pressure</span>
+
+<span class="sd">        :param input:</span>
+<span class="sd">        :param downscale: 0 for no change, 1: for temperature change 6 deg per 1km , 2 for psurf</span>
+<span class="sd">        :return: input - downscaled input data</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        # if meteo maps have the same extend as the other spatial static maps -&gt; meteomapsscale = True</span>
+<span class="sd">        if not self.var.meteomapsscale:</span>
+<span class="sd">            down1 = np.kron(input, np.ones((6, 6)))</span>
+<span class="sd">            down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)</span>
+<span class="sd">            down3 = compressArray(down2)</span>
+<span class="sd">            if downscale == 0:</span>
+<span class="sd">                input = down3</span>
+
+<span class="sd">            if downscale == 1:</span>
+<span class="sd">                # temperature scaling 6 deg per 1000m difference in altitude</span>
+<span class="sd">                # see overview in Minder et al 2010 - http://onlinelibrary.wiley.com/doi/10.1029/2009JD013493/full</span>
+<span class="sd">                tempdiff = -0.006 * self.var.demAnomaly</span>
+<span class="sd">                input = down3 + tempdiff</span>
+<span class="sd">            if downscale == 2:</span>
+<span class="sd">                # psurf correction</span>
+<span class="sd">                # https://www.sandhurstweather.org.uk/barometric.pdf</span>
+<span class="sd">                # factor = exp(-elevation / (Temp x 29.263)  Temp in deg K</span>
+<span class="sd">                demLow = self.var.demHigh - self.var.demAnomaly</span>
+<span class="sd">                tavgK = self.var.Tavg + 273.15</span>
+<span class="sd">                factor1 = np.exp(-1 * demLow / (tavgK * 29.263))</span>
+<span class="sd">                factor2 = np.exp(-1 * self.var.demHigh / (tavgK * 29.263))</span>
+<span class="sd">                sealevelpressure = down3 / factor1</span>
+<span class="sd">                input = sealevelpressure * factor2</span>
+<span class="sd">        return input</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+    <span class="c1"># def downscaling2_peter(self,input, downscaleName = &quot;&quot;, wc2 = 0 , wc4 = 0, x=None, y=None, xfine=None, yfine=None, meshlist=None, downscale = 0):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Downscaling with only internal (inside the coarse gridcell) interpolation</span>
+    <span class="c1">#</span>
+    <span class="c1">#     :param input: low input map</span>
+    <span class="c1">#     :param downscaleName: High resolution monthly map from WorldClim</span>
+    <span class="c1">#     :param wc2: High resolution WorldClim map</span>
+    <span class="c1">#     :param wc4: upscaled to low resolution</span>
+    <span class="c1">#     :param downscale: 0 for no change, 1: for temperature , 2 for pprecipitation, 3 for psurf</span>
+    <span class="c1">#     :return: input - downscaled input data</span>
+    <span class="c1">#     :return: wc2</span>
+    <span class="c1">#     :return: wc4</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     reso = maskmapAttr[&#39;reso_mask_meteo&#39;]</span>
+    <span class="c1">#     resoint = int(reso)</span>
+    <span class="c1">#     if self.var.meteomapsscale:</span>
+    <span class="c1">#         if downscale == 0:</span>
+    <span class="c1">#             return input</span>
+    <span class="c1">#         else:</span>
+    <span class="c1">#             return input, wc2, wc4</span>
+    <span class="c1">#</span>
+    <span class="c1">#     down3 = np.kron(input, np.ones((resoint, resoint)))</span>
+    <span class="c1">#     # this is creating an array resoint times bigger than input, by copying each item resoint times in x and y direction</span>
+    <span class="c1">#</span>
+    <span class="c1">#     if downscale == 0:</span>
+    <span class="c1">#         down2 = down3[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)</span>
+    <span class="c1">#         input = compressArray(down2)</span>
+    <span class="c1">#         return input</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         if dateVar[&#39;newStart&#39;] or dateVar[&#39;newMonth&#39;]:  # loading every month a new map</span>
+    <span class="c1">#             # wc1 = readnetcdf2(downscaleName, dateVar[&#39;currDate&#39;], useDaily=&#39;month&#39;, compress = False, cut = False)</span>
+    <span class="c1">#             # wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]</span>
+    <span class="c1">#             #print(&#39;\n&#39;.join([&#39; &#39;.join([&#39;{:4}&#39;.format(item) for item in row]) for row in wc2]))</span>
+    <span class="c1">#</span>
+    <span class="c1">#             if downscale == 2:  # precipitation</span>
+    <span class="c1">#                 #wc3 looks a like wc3</span>
+    <span class="c1">#                 wc3 = wc2.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)</span>
+    <span class="c1">#                 #wc3mean looks like w4</span>
+    <span class="c1">#                 wc3mean = np.nanmean(wc3, axis=(1, 3))</span>
+    <span class="c1">#                 # Average of wordclim on the bigger input raster scale</span>
+    <span class="c1">#                 wc3kron = np.kron(wc3mean, np.ones((resoint, resoint)))</span>
+    <span class="c1">#                 # the average values are spread out to the fine scale</span>
+    <span class="c1">#                 #looks like quot_wc, but wc2 = input, wc3kron = wc4</span>
+    <span class="c1">#                 wc4 = divideValues(wc2, wc3kron)</span>
+    <span class="c1">#                 # wc4 holds the correction multiplicator on fine scale</span>
+    <span class="c1">#</span>
+    <span class="c1">#     if downscale == 1: # Temperature</span>
+    <span class="c1">#         #diff wc is different because originally it is wc4 - input</span>
+    <span class="c1">#         #diff_wc is difference on small scale</span>
+    <span class="c1">#         diff_wc = wc2 - down3</span>
+    <span class="c1">#         # on fine scale: wordclim fine scale - spreaded input data (same value for each big cell)</span>
+    <span class="c1">#         wc3 = diff_wc.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)</span>
+    <span class="c1">#         wc4 = np.nanmean(wc3, axis=(1, 3))</span>
+    <span class="c1">#         wc4kron = np.kron(wc4, np.ones((resoint, resoint)))</span>
+    <span class="c1">#         # wordclim is averaged on big cell scale and the average is spread out to fine raster</span>
+    <span class="c1">#         down1 = diff_wc - wc4kron + down3</span>
+    <span class="c1">#         # result is the fine scale input data + the difference of wordclim - input data - the average difference of wordclim - input</span>
+    <span class="c1">#         down1 = np.where(np.isnan(down1),down3,down1)</span>
+    <span class="c1">#     if downscale == 2:  # precipitation</span>
+    <span class="c1">#         # in the other interpolations this is wc2 * quotSmooth, wc2 being the fine worldclimmap cut to map extent, quotSmooth being the interpolated difference between the input and summed worldclim</span>
+    <span class="c1">#         down1 = down3 * wc4</span>
+    <span class="c1">#         down1 = np.where(np.isnan(down1),down3,down1)</span>
+    <span class="c1">#         down1 = np.where(np.isinf(down1), down3, down1)</span>
+    <span class="c1">#</span>
+    <span class="c1">#     down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)</span>
+    <span class="c1">#     input = compressArray(down2)</span>
+    <span class="c1">#     return input, wc2, wc4</span>
+
+     <span class="c1"># --- end downscaling ----------------------------</span>
+
+<div class="viewcode-block" id="readmeteo.downscaling2"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.readmeteo.readmeteo.downscaling2">[docs]</a>    <span class="k">def</span> <span class="nf">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="nb">input</span><span class="p">,</span> <span class="n">downscaleName</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">wc2</span> <span class="o">=</span> <span class="mi">0</span> <span class="p">,</span> <span class="n">wc4</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xfine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">yfine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">meshlist</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">MaskMapBoundaries</span><span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">downscale</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Downscaling based on Delta method:</span>
+
+<span class="sd">        Note:</span>
+
+<span class="sd">            | **References**</span>
+<span class="sd">            | Moreno and Hasenauer  2015:</span>
+<span class="sd">            | ftp://palantir.boku.ac.at/Public/ClimateData/Moreno_et_al-2015-International_Journal_of_Climatology.pdf</span>
+<span class="sd">            | Mosier et al. 2018:</span>
+<span class="sd">            | http://onlinelibrary.wiley.com/doi/10.1002/joc.5213/epdf\</span>
+
+<span class="sd">        :param input: low input map</span>
+<span class="sd">        :param downscaleName: High resolution monthly map from WorldClim</span>
+<span class="sd">        :param wc2: High resolution WorldClim map</span>
+<span class="sd">        :param wc4: upscaled to low resolution</span>
+<span class="sd">        :param MaskMapBoundaries: if 1 maskmap does not touch meteo input dataset boundary, if 0 maskmap touches it</span>
+<span class="sd">        :param downscale: 0 for no change, 1: for temperature , 2 for pprecipitation, 3 for psurf</span>
+<span class="sd">        :return: input - downscaled input data</span>
+<span class="sd">        :return: wc2</span>
+<span class="sd">        :return: wc4</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">reso</span> <span class="o">=</span> <span class="n">maskmapAttr</span><span class="p">[</span><span class="s1">&#39;reso_mask_meteo&#39;</span><span class="p">]</span>
+        <span class="n">resoint</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">reso</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;bilinear&#39;</span> <span class="ow">and</span> <span class="p">(</span><span class="n">downscale</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">downscale</span> <span class="o">==</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">buffer</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">buffer1</span><span class="p">,</span> <span class="n">buffer2</span><span class="p">,</span> <span class="n">buffer3</span><span class="p">,</span> <span class="n">buffer4</span> <span class="o">=</span> <span class="n">MaskMapBoundaries</span>
+            <span class="c1">#if 1: does not touch boundaries of meteo input map, if 0 touches boundary of input map</span>
+            <span class="c1">#          buffer1</span>
+            <span class="c1">#         ---------</span>
+            <span class="c1"># buffer3ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦        ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦ buffer4</span>
+            <span class="c1">#        ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦        ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦</span>
+            <span class="c1">#         ---------</span>
+            <span class="c1">#          buffer2</span>
+            <span class="c1"># to perform bilinear interpolation a buffer around the maskmap is needed, if maskmap touches bounary of input map an artifical buffer has to be created by duplicating the last row/column</span>
+            <span class="k">if</span> <span class="n">buffer1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">input_first_row</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+                <span class="nb">input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">input_first_row</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:],</span> <span class="nb">input</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">buffer2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">input_last_row</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+                <span class="nb">input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="nb">input</span><span class="p">,</span> <span class="n">input_last_row</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]))</span>
+            <span class="k">if</span> <span class="n">buffer3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">input_first_column</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+                <span class="nb">input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">input_first_column</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="nb">input</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">buffer4</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">input_last_column</span> <span class="o">=</span> <span class="nb">input</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="nb">input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="nb">input</span><span class="p">,</span> <span class="n">input_last_column</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;newStart&#39;</span><span class="p">]:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="nb">input</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="nb">input</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span>
+                <span class="n">xfine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">resoint</span> <span class="o">*</span> <span class="mi">2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="nb">input</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">resoint</span><span class="p">)</span>
+                <span class="n">yfine</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">resoint</span> <span class="o">*</span> <span class="mi">2</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="nb">input</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">resoint</span><span class="p">)</span>
+                <span class="n">xmesh</span><span class="p">,</span> <span class="n">ymesh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">xfine</span><span class="p">,</span> <span class="n">yfine</span><span class="p">)</span>
+                <span class="n">meshlist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">xmesh</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">ymesh</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">buffer</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">downscale</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">input</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">input</span><span class="p">,</span> <span class="n">wc2</span><span class="p">,</span> <span class="n">wc4</span>
+
+        <span class="k">if</span> <span class="n">buffer</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="c1"># this is creating an array resoint times bigger than input, by copying each item resoint times in x and y direction</span>
+            <span class="n">down3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">resoint</span><span class="p">,</span> <span class="n">resoint</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">down3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="nb">input</span><span class="p">[</span><span class="n">buffer</span><span class="p">:</span><span class="o">-</span><span class="n">buffer</span><span class="p">,</span> <span class="n">buffer</span><span class="p">:</span><span class="o">-</span><span class="n">buffer</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">resoint</span><span class="p">,</span> <span class="n">resoint</span><span class="p">)))</span>
+
+
+        <span class="k">if</span> <span class="n">downscale</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">down2</span> <span class="o">=</span> <span class="n">down3</span><span class="p">[</span><span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span><span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+            <span class="nb">input</span> <span class="o">=</span> <span class="n">compressArray</span><span class="p">(</span><span class="n">down2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">input</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;newStart&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;newMonth&#39;</span><span class="p">]:</span>  <span class="c1"># loading every month a new map</span>
+                <span class="n">wc1</span> <span class="o">=</span> <span class="n">readnetcdf2</span><span class="p">(</span><span class="n">downscaleName</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">useDaily</span><span class="o">=</span><span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="n">compress</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">cut</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">:</span>
+                    <span class="c1"># to perform bilinear interpolation a buffer around the maskmap is needed, if maskmap touches bounary of input map an artifical buffer has to be created by duplicating the last row/column</span>
+                    <span class="k">if</span> <span class="n">buffer1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">wc1_first_row</span> <span class="o">=</span> <span class="n">wc1</span><span class="p">[:</span><span class="n">resoint</span><span class="p">,</span> <span class="p">:]</span>
+                        <span class="n">wc1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">wc1_first_row</span><span class="p">,</span> <span class="n">wc1</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">buffer2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">wc1_last_row</span> <span class="o">=</span> <span class="n">wc1</span><span class="p">[</span><span class="o">-</span><span class="n">resoint</span><span class="p">:,</span> <span class="p">:]</span>
+                        <span class="n">wc1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">wc1</span><span class="p">,</span> <span class="n">wc1_last_row</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">buffer3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">wc1_first_column</span> <span class="o">=</span> <span class="n">wc1</span><span class="p">[:,</span> <span class="p">:</span><span class="n">resoint</span><span class="p">]</span>
+                        <span class="n">wc1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">wc1_first_column</span><span class="p">,</span> <span class="n">wc1</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">buffer4</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">wc1_last_column</span> <span class="o">=</span> <span class="n">wc1</span><span class="p">[:,</span> <span class="o">-</span><span class="n">resoint</span><span class="p">:]</span>
+                        <span class="n">wc1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">wc1</span><span class="p">,</span> <span class="n">wc1_last_column</span><span class="p">))</span>
+                    <span class="c1">#include buffer</span>
+                    <span class="k">if</span> <span class="n">buffer1</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="c1">#if maskmap reaches upper boundary you cannot do -buffer because than index would be negative</span>
+                        <span class="n">wc2</span> <span class="o">=</span> <span class="n">wc1</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">*</span> <span class="n">reso</span><span class="p">)):</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">buffer</span><span class="o">*</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">reso</span><span class="p">)),</span> <span class="p">:]</span>
+                        <span class="k">if</span> <span class="n">buffer3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">wc2</span> <span class="o">=</span> <span class="n">wc2</span><span class="p">[:,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">reso</span><span class="p">)):</span> <span class="nb">int</span><span class="p">(</span>
+                                <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">buffer</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">reso</span><span class="p">))]</span>
+                    <span class="k">elif</span> <span class="n">buffer3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="c1"># if maskmap reaches left boundary you cannot do -buffer because than index would be negative</span>
+                        <span class="n">wc2</span> <span class="o">=</span> <span class="n">wc1</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">buffer</span><span class="p">)</span> <span class="o">*</span> <span class="n">reso</span><span class="p">)):</span><span class="nb">int</span><span class="p">(</span>
+                                    <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">buffer</span><span class="p">)</span> <span class="o">*</span> <span class="n">reso</span><span class="p">)),</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">reso</span><span class="p">))</span> <span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">buffer</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">reso</span><span class="p">))]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">wc2</span> <span class="o">=</span> <span class="n">wc1</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">buffer</span><span class="p">)</span> <span class="o">*</span> <span class="n">reso</span><span class="p">)):</span><span class="nb">int</span><span class="p">(</span>
+                                    <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">buffer</span><span class="p">)</span> <span class="o">*</span> <span class="n">reso</span><span class="p">)),</span>
+                                      <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">buffer</span><span class="p">)</span> <span class="o">*</span> <span class="n">reso</span><span class="p">)):</span><span class="nb">int</span><span class="p">(</span>
+                                          <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">buffer</span><span class="p">)</span> <span class="o">*</span> <span class="n">reso</span><span class="p">))]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">wc2</span> <span class="o">=</span> <span class="n">wc1</span><span class="p">[(</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">buffer</span><span class="p">)</span> <span class="o">*</span> <span class="n">resoint</span><span class="p">:</span> <span class="p">(</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">buffer</span><span class="p">)</span> <span class="o">*</span> <span class="n">resoint</span><span class="p">,</span>
+                          <span class="p">(</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">buffer</span><span class="p">)</span> <span class="o">*</span> <span class="n">resoint</span><span class="p">:</span> <span class="p">(</span><span class="n">cutmapGlobal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">buffer</span><span class="p">)</span> <span class="o">*</span> <span class="n">resoint</span><span class="p">]</span>
+                <span class="n">rows</span> <span class="o">=</span> <span class="n">wc2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">cols</span> <span class="o">=</span> <span class="n">wc2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">wc3</span> <span class="o">=</span>  <span class="n">wc2</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">rows</span><span class="o">//</span><span class="n">resoint</span><span class="p">,</span><span class="n">resoint</span><span class="p">,</span><span class="n">cols</span><span class="o">//</span><span class="n">resoint</span><span class="p">,</span><span class="n">resoint</span><span class="p">)</span>
+                <span class="n">wc4</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">wc3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+                <span class="c1"># wc4 is as big as the input array -&gt; average of the fine scale downscale map</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;kron&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">downscale</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># precipitation</span>
+                        <span class="c1"># wc3 looks a like wc3</span>
+                        <span class="n">wc3</span> <span class="o">=</span> <span class="n">wc2</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">wc2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">resoint</span><span class="p">,</span> <span class="n">resoint</span><span class="p">,</span> <span class="n">wc2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="n">resoint</span><span class="p">,</span> <span class="n">resoint</span><span class="p">)</span>
+                        <span class="c1"># wc3mean looks like w4</span>
+                        <span class="n">wc3mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">wc3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+                        <span class="c1"># Average of wordclim on the bigger input raster scale</span>
+                        <span class="n">wc3kron</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">wc3mean</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">resoint</span><span class="p">,</span> <span class="n">resoint</span><span class="p">)))</span>
+                        <span class="c1"># the average values are spread out to the fine scale</span>
+                        <span class="c1"># looks like quot_wc, but wc2 = input, wc3kron = wc4</span>
+                        <span class="n">wc4</span> <span class="o">=</span> <span class="n">divideValues</span><span class="p">(</span><span class="n">wc2</span><span class="p">,</span> <span class="n">wc3kron</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">downscale</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># Temperature</span>
+            <span class="n">diff_wc</span> <span class="o">=</span> <span class="n">wc4</span> <span class="o">-</span> <span class="nb">input</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;spline&#39;</span><span class="p">:</span>
+                <span class="n">diffSmooth</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">zoom</span><span class="p">(</span><span class="n">diff_wc</span><span class="p">,</span> <span class="n">resoint</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">down1</span> <span class="o">=</span> <span class="n">wc2</span> <span class="o">-</span> <span class="n">diffSmooth</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">:</span>
+                <span class="n">bilinear_interpolation</span> <span class="o">=</span> <span class="n">RegularGridInterpolator</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">diff_wc</span><span class="p">)</span>
+                <span class="n">diffSmooth</span> <span class="o">=</span> <span class="n">bilinear_interpolation</span><span class="p">(</span><span class="n">meshlist</span><span class="p">)</span>
+                <span class="n">diffSmooth</span> <span class="o">=</span> <span class="n">diffSmooth</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xfine</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">yfine</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+                <span class="c1">#no buffer for real downscaled values</span>
+                <span class="n">crop</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">resoint</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">diffSmooth</span> <span class="o">=</span> <span class="n">diffSmooth</span><span class="p">[</span><span class="n">crop</span><span class="p">:</span><span class="o">-</span><span class="n">crop</span><span class="p">,</span> <span class="n">crop</span><span class="p">:</span><span class="o">-</span><span class="n">crop</span><span class="p">]</span>
+                <span class="n">down1</span> <span class="o">=</span> <span class="n">wc2</span><span class="p">[</span><span class="n">buffer</span> <span class="o">*</span> <span class="n">resoint</span><span class="p">:</span><span class="o">-</span><span class="n">buffer</span> <span class="o">*</span> <span class="n">resoint</span><span class="p">,</span> <span class="n">buffer</span> <span class="o">*</span> <span class="n">resoint</span><span class="p">:</span><span class="o">-</span><span class="n">buffer</span> <span class="o">*</span> <span class="n">resoint</span><span class="p">]</span> <span class="o">-</span> <span class="n">diffSmooth</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;kron&#39;</span><span class="p">:</span>
+                <span class="n">diff_wc</span> <span class="o">=</span> <span class="n">wc2</span> <span class="o">-</span> <span class="n">down3</span>
+                <span class="c1"># on fine scale: wordclim fine scale - spreaded input data (same value for each big cell)</span>
+                <span class="n">wc3</span> <span class="o">=</span> <span class="n">diff_wc</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">wc2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">resoint</span><span class="p">,</span> <span class="n">resoint</span><span class="p">,</span> <span class="n">wc2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="n">resoint</span><span class="p">,</span> <span class="n">resoint</span><span class="p">)</span>
+                <span class="n">wc4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">wc3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+                <span class="n">wc4kron</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">wc4</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">resoint</span><span class="p">,</span> <span class="n">resoint</span><span class="p">)))</span>
+                <span class="c1"># wordclim is averaged on big cell scale and the average is spread out to fine raster</span>
+                <span class="n">down1</span> <span class="o">=</span> <span class="n">diff_wc</span> <span class="o">-</span> <span class="n">wc4kron</span> <span class="o">+</span> <span class="n">down3</span>
+                <span class="c1"># result is the fine scale input data + the difference of wordclim - input data - the average difference of wordclim - input</span>
+                <span class="c1">#down1 = np.where(np.isnan(down1), down3, down1)</span>
+            
+            <span class="n">down1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">down1</span><span class="p">),</span><span class="n">down3</span><span class="p">,</span><span class="n">down1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">downscale</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># precipitation</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;spline&#39;</span><span class="p">:</span>
+                <span class="n">quot_wc</span> <span class="o">=</span> <span class="n">divideValues</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">wc4</span><span class="p">)</span>
+                <span class="n">quotSmooth</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">zoom</span><span class="p">(</span><span class="n">quot_wc</span><span class="p">,</span> <span class="n">resoint</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">down1</span> <span class="o">=</span> <span class="n">wc2</span> <span class="o">*</span> <span class="n">quotSmooth</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">:</span>
+                <span class="n">quot_wc</span> <span class="o">=</span> <span class="n">divideValues</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">wc4</span><span class="p">)</span>
+                <span class="n">bilinear_interpolation</span> <span class="o">=</span> <span class="n">RegularGridInterpolator</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">quot_wc</span><span class="p">)</span>
+                <span class="n">quotSmooth</span> <span class="o">=</span> <span class="n">bilinear_interpolation</span><span class="p">(</span><span class="n">meshlist</span><span class="p">)</span>
+                <span class="n">quotSmooth</span> <span class="o">=</span> <span class="n">quotSmooth</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xfine</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">yfine</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+                <span class="n">crop</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">resoint</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">quotSmooth</span> <span class="o">=</span> <span class="n">quotSmooth</span><span class="p">[</span><span class="n">crop</span><span class="p">:</span><span class="o">-</span><span class="n">crop</span><span class="p">,</span> <span class="n">crop</span><span class="p">:</span><span class="o">-</span><span class="n">crop</span><span class="p">]</span>
+                <span class="n">down1</span> <span class="o">=</span> <span class="n">wc2</span><span class="p">[</span><span class="n">buffer</span> <span class="o">*</span> <span class="n">resoint</span><span class="p">:</span><span class="o">-</span><span class="n">buffer</span> <span class="o">*</span> <span class="n">resoint</span><span class="p">,</span> <span class="n">buffer</span> <span class="o">*</span> <span class="n">resoint</span><span class="p">:</span><span class="o">-</span><span class="n">buffer</span> <span class="o">*</span> <span class="n">resoint</span><span class="p">]</span> <span class="o">*</span> <span class="n">quotSmooth</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;kron&#39;</span><span class="p">:</span>
+                <span class="n">down1</span> <span class="o">=</span> <span class="n">down3</span> <span class="o">*</span> <span class="n">wc4</span>
+
+            <span class="n">down1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">down1</span><span class="p">),</span><span class="n">down3</span><span class="p">,</span><span class="n">down1</span><span class="p">)</span>
+            <span class="n">down1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">down1</span><span class="p">),</span> <span class="n">down3</span><span class="p">,</span> <span class="n">down1</span><span class="p">)</span>
+
+        <span class="n">down2</span> <span class="o">=</span> <span class="n">down1</span><span class="p">[</span><span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span><span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="n">cutmapVfine</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="nb">input</span> <span class="o">=</span> <span class="n">compressArray</span><span class="p">(</span><span class="n">down2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;bilinear&#39;</span> <span class="ow">and</span> <span class="p">(</span><span class="n">downscale</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">downscale</span> <span class="o">==</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">input</span><span class="p">,</span> <span class="n">wc2</span><span class="p">,</span> <span class="n">wc4</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">xfine</span><span class="p">,</span> <span class="n">yfine</span><span class="p">,</span> <span class="n">meshlist</span>
+        <span class="k">return</span> <span class="nb">input</span><span class="p">,</span> <span class="n">wc2</span><span class="p">,</span> <span class="n">wc4</span></div>
+
+     <span class="c1"># --- end downscaling ----------------------------</span>
+
+
+
+
+
+<div class="viewcode-block" id="readmeteo.dynamic"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.readmeteo.readmeteo.dynamic">[docs]</a>    <span class="k">def</span> <span class="nf">dynamic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dynamic part of the readmeteo module</span>
+
+<span class="sd">        Read meteo input maps from netcdf files</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            If option *calc_evaporation* is False only precipitation, avg. temp., and 2 evaporation vlaues are read</span>
+<span class="sd">            Otherwise all the variable needed for Penman-Monteith</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            If option *TemperatureInKelvin* = True temperature is assumed to be Kelvin instead of Celsius!</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">Flags</span><span class="p">[</span><span class="s1">&#39;warm&#39;</span><span class="p">]:</span>
+            <span class="c1"># if warmstart use stored meteo variables</span>
+            <span class="n">no</span> <span class="o">=</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;curr&#39;</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">no</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="n">no</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">no</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="n">no</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeGlaciers</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">GlacierMelt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="n">no</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeOnlyGlaciersMelt</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">GlacierRain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="n">no</span><span class="p">]</span>
+            <span class="k">return</span>
+
+        <span class="n">ZeroKelvin</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;TemperatureInKelvin&#39;</span><span class="p">):</span>
+            <span class="c1"># if temperature is in Kelvin -&gt; conversion to deg C</span>
+            <span class="c1"># TODO in initial there could be a check if temperature &gt; 200 -&gt; automatic change to Kelvin</span>
+            <span class="n">ZeroKelvin</span> <span class="o">=</span> <span class="mf">273.15</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">preMaps</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">buffer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DtDay</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">con_precipitation</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeGlaciers</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">GlacierMelt</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">glaciermeltMaps</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeOnlyGlaciersMelt</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">GlacierRain</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">glacierrainMaps</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteodown</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xcoarse_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ycoarse_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xfine_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">yfine_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meshlist_prec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">,</span> <span class="s2">&quot;downscale_wordclim_prec&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_prec</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xcoarse_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ycoarse_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xfine_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">yfine_prec</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meshlist_prec</span><span class="p">,</span> <span class="n">MaskMapBoundary</span><span class="p">,</span> <span class="n">downscale</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_prec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">,</span> <span class="s2">&quot;downscale_wordclim_prec&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_prec</span><span class="p">,</span> <span class="n">downscale</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">,</span> <span class="s2">&quot;downscale_wordclim_prec&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_prec</span><span class="p">,</span> <span class="n">downscale</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1">#self.var.Precipitation = self.var.Precipitation * 1000</span>
+        
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">prec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">con_precipitation</span>
+        <span class="c1"># precipitation (conversion to [m] per time step)  `</span>
+        <span class="k">if</span> <span class="n">Flags</span><span class="p">[</span><span class="s1">&#39;check&#39;</span><span class="p">]:</span>
+            <span class="n">checkmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">preMaps</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">)</span>
+
+        <span class="c1">#self.var.Tavg = readnetcdf2(&#39;TavgMaps&#39;, dateVar[&#39;currDate&#39;], addZeros = True, zeros = ZeroKelvin, meteo = True)</span>
+
+        <span class="n">tzero</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;TemperatureInKelvin&#39;</span><span class="p">):</span>
+            <span class="n">tzero</span> <span class="o">=</span> <span class="n">ZeroKelvin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tempMaps</span><span class="p">,</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">zeros</span> <span class="o">=</span> <span class="n">tzero</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">buffer</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteodown</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xcoarse_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ycoarse_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xfine_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">yfine_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meshlist_tavg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span><span class="p">,</span> <span class="s2">&quot;downscale_wordclim_tavg&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xcoarse_tavg</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ycoarse_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xfine_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">yfine_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meshlist_tavg</span><span class="p">,</span> <span class="n">MaskMapBoundary</span><span class="p">,</span> <span class="n">downscale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tavg</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span><span class="p">,</span> <span class="s2">&quot;downscale_wordclim_tavg&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tavg</span><span class="p">,</span> <span class="n">downscale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span><span class="p">,</span> <span class="s2">&quot;downscale_wordclim_tavg&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tavg</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tavg</span><span class="p">,</span> <span class="n">downscale</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># average DAILY temperature (even if you are running the model</span>
+        <span class="c1"># on say an hourly time step) [degrees C]</span>
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;TemperatureInKelvin&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span> <span class="o">-=</span> <span class="n">ZeroKelvin</span>
+
+        <span class="k">if</span> <span class="n">Flags</span><span class="p">[</span><span class="s1">&#39;check&#39;</span><span class="p">]:</span>
+            <span class="n">checkmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tempMaps</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span><span class="p">)</span>
+
+
+        <span class="c1">#self.var.Tavg = downscaling(self.var.Tavg, downscale = 0)</span>
+
+        <span class="c1"># -----------------------------------------------------------------------</span>
+        <span class="c1"># if evaporation has to be calculated load all the meteo map sets</span>
+        <span class="c1"># Temparture min, max;  Windspeed,  specific humidity or relative humidity</span>
+        <span class="c1"># psurf, radiation</span>
+        <span class="c1"># -----------------------------------------------------------------------</span>
+
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;calc_evaporation&#39;</span><span class="p">):</span>
+
+            <span class="c1">#self.var.TMin = readnetcdf2(&#39;TminMaps&#39;, dateVar[&#39;currDate&#39;], addZeros = True, zeros = ZeroKelvin, meteo = True)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="s1">&#39;TminMaps&#39;</span><span class="p">,</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">zeros</span><span class="o">=</span><span class="n">ZeroKelvin</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">buffer</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteodown</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tmin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tmin</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span><span class="p">,</span>
+                                                                                                           <span class="s2">&quot;downscale_wordclim_tmin&quot;</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tmin</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tmin</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xcoarse_tavg</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ycoarse_tavg</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xfine_tavg</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">yfine_tavg</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meshlist_tavg</span><span class="p">,</span> <span class="n">MaskMapBoundary</span><span class="p">,</span>
+                                                                                                           <span class="n">downscale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tmin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tmin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span><span class="p">,</span> <span class="s2">&quot;downscale_wordclim_tmin&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tmin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tmin</span><span class="p">,</span> <span class="n">downscale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span><span class="p">,</span> <span class="s2">&quot;downscale_wordclim_tmin&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tmin</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tmin</span><span class="p">,</span> <span class="n">downscale</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">Flags</span><span class="p">[</span><span class="s1">&#39;check&#39;</span><span class="p">]:</span>
+                <span class="n">checkmap</span><span class="p">(</span><span class="s1">&#39;TminMaps&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span><span class="p">)</span>
+
+            <span class="c1">#self.var.TMax = readnetcdf2(&#39;TmaxMaps&#39;, dateVar[&#39;currDate&#39;], addZeros = True, zeros = ZeroKelvin, meteo = True)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="s1">&#39;TmaxMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">zeros</span><span class="o">=</span><span class="n">ZeroKelvin</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">,</span> <span class="n">buffering</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">buffer</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteodown</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InterpolationMethod</span> <span class="o">==</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tmax</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tmax</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span><span class="p">,</span>
+                                                                                                           <span class="s2">&quot;downscale_wordclim_tmin&quot;</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tmax</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tmax</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xcoarse_tavg</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ycoarse_tavg</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">xfine_tavg</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">yfine_tavg</span><span class="p">,</span>
+                                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meshlist_tavg</span><span class="p">,</span> <span class="n">MaskMapBoundary</span><span class="p">,</span>
+                                                                                                           <span class="n">downscale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tmax</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tmax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span><span class="p">,</span> <span class="s2">&quot;downscale_wordclim_tmin&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tmax</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tmax</span><span class="p">,</span> <span class="n">downscale</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span><span class="p">,</span> <span class="s2">&quot;downscale_wordclim_tmin&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_tmax</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_tmax</span><span class="p">,</span> <span class="n">downscale</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">Flags</span><span class="p">[</span><span class="s1">&#39;check&#39;</span><span class="p">]:</span> <span class="n">checkmap</span><span class="p">(</span><span class="s1">&#39;TmaxMaps&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;TemperatureInKelvin&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span> <span class="o">-=</span> <span class="n">ZeroKelvin</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span> <span class="o">-=</span> <span class="n">ZeroKelvin</span>
+
+            <span class="c1">#self.var.Wind = readnetcdf2(&#39;WindMaps&#39;, dateVar[&#39;currDate&#39;], addZeros = True, meteo = True)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Wind</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="s1">&#39;WindMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Wind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Wind</span><span class="p">)</span>
+                <span class="c1"># wind speed maps at 10m [m/s]</span>
+
+            <span class="c1"># Adjust wind speed for measurement height: wind speed measured at</span>
+            <span class="c1"># 10 m, but needed at 2 m height</span>
+            <span class="c1"># Shuttleworth, W.J. (1993) in Maidment, D.R. (1993), p. 4.36</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Wind</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Wind</span> <span class="o">*</span> <span class="mf">0.749</span>
+
+
+
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">only_radition</span><span class="p">:</span>
+                <span class="c1"># read daily calculated radiation [in KJ/m2/day]</span>
+                <span class="c1"># named here Rsds instead of rds, because use in evaproationPot in the same way as rsds</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="s1">&#39;RGDMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">)</span>
+                <span class="c1">#self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.001  # convert from KJ to MJ/m2/day</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.000001</span>  <span class="c1"># convert from KJ to MJ/m2/day</span>
+                <span class="c1"># but for EMO it is 1e6 instead 1000 it seems it is J instead of KJ</span>
+
+                <span class="c1"># read daily vapor pressure [in hPa]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EAct</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="s1">&#39;EActMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EAct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EAct</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span>  <span class="c1"># convert from hP to kP</span>
+                <span class="k">return</span>
+
+
+            <span class="c1">#self.var.Psurf = readnetcdf2(&#39;PSurfMaps&#39;, dateVar[&#39;currDate&#39;], addZeros = True, meteo = True)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Psurf</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="s1">&#39;PSurfMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Psurf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Psurf</span><span class="p">)</span>
+                <span class="c1"># Instantaneous surface pressure[Pa]</span>
+
+            <span class="k">if</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;useHuss&#39;</span><span class="p">):</span>
+                <span class="c1">#self.var.Qair = readnetcdf2(&#39;QAirMaps&#39;, dateVar[&#39;currDate&#39;], addZeros = True, meteo = True)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Qair</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="s1">&#39;QAirMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">)</span>
+                <span class="c1"># 2 m istantaneous specific humidity[kg / kg]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1">#self.var.Qair = readnetcdf2(&#39;RhsMaps&#39;, dateVar[&#39;currDate&#39;], addZeros = True, meteo = True)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Qair</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="s1">&#39;RhsMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Qair</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Qair</span><span class="p">)</span>
+
+            <span class="c1">#self.var.Rsds = readnetcdf2(&#39;RSDSMaps&#39;, dateVar[&#39;currDate&#39;], addZeros = True, meteo = True)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="s1">&#39;RSDSMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span><span class="p">)</span>
+                <span class="c1"># radiation surface downwelling shortwave maps [W/m2]</span>
+            <span class="c1">#self.var.Rsdl = readnetcdf2(&#39;RSDLMaps&#39;, dateVar[&#39;currDate&#39;], addZeros = True, meteo = True)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsdl</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="s1">&#39;RSDLMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsdl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsdl</span><span class="p">)</span>
+                <span class="c1"># radiation surface downwelling longwave maps [W/m2]</span>
+
+            <span class="c1">#--------------------------------------------------------</span>
+            <span class="c1"># conversions</span>
+
+            <span class="c1"># [Pa] to [KPa]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Psurf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Psurf</span> <span class="o">*</span> <span class="mf">0.001</span>
+
+            <span class="c1"># Conversion factor from [W] to [MJ]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">WtoMJ</span> <span class="o">=</span> <span class="mi">86400</span> <span class="o">*</span> <span class="mf">1E-6</span>
+
+            <span class="c1"># conversion from W/m2 to MJ/m2/day</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">WtoMJ</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsdl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsdl</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">WtoMJ</span>
+
+        <span class="c1"># if pot evaporation is already precalulated</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="c1"># in case ET_ref is the same resolution as the other meteo input map, there is an optional flag in settings which checks this</span>
+            <span class="n">ETsamePr</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="s2">&quot;ETsamePr&quot;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;ETsamePr&#39;</span><span class="p">):</span>
+                    <span class="n">ETsamePr</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">if</span> <span class="n">ETsamePr</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">evaTMaps</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="n">mapsscale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DtDay</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">con_e</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span><span class="p">,</span> <span class="s2">&quot;downscale_wordclim_prec&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_prec</span><span class="p">,</span> <span class="n">downscale</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">eva0Maps</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="n">mapsscale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteomapsscale</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DtDay</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">con_e</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downscaling2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span><span class="p">,</span> <span class="s2">&quot;downscale_wordclim_prec&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc2_prec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wc4_prec</span><span class="p">,</span> <span class="n">downscale</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">evaTMaps</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DtDay</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">con_e</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span><span class="p">,</span> <span class="n">MaskMapBoundary</span> <span class="o">=</span> <span class="n">readmeteodata</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">eva0Maps</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">addZeros</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mapsscale</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DtDay</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">con_e</span>
+                <span class="c1"># potential evaporation rate from water surface (conversion to [m] per time step)</span>
+                <span class="c1"># potential evaporation rate from a bare soil surface (conversion # to [m] per time step)</span>
+
+        <span class="k">if</span> <span class="n">Flags</span><span class="p">[</span><span class="s1">&#39;calib&#39;</span><span class="p">]:</span>
+            <span class="c1"># if first clibration run, store all meteo data in a variable</span>
+            <span class="k">if</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;curr&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeGlaciers</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeOnlyGlaciersMelt</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">dateVar</span><span class="p">[</span><span class="s2">&quot;intEnd&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">dateVar</span><span class="p">[</span><span class="s2">&quot;intStart&quot;</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">)])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">dateVar</span><span class="p">[</span><span class="s2">&quot;intEnd&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">dateVar</span><span class="p">[</span><span class="s2">&quot;intStart&quot;</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">)])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span> <span class="o">+</span> <span class="n">dateVar</span><span class="p">[</span><span class="s2">&quot;intEnd&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">dateVar</span><span class="p">[</span><span class="s2">&quot;intStart&quot;</span><span class="p">],</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">)])</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span> <span class="o">+</span> <span class="n">dateVar</span><span class="p">[</span><span class="s2">&quot;intEnd&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">dateVar</span><span class="p">[</span><span class="s2">&quot;intStart&quot;</span><span class="p">],</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">)])</span>
+                <span class="c1">#self.var.ETRef_all,self.var.EWRef_all,self.var.Tavg_all, self.var.Precipitation_all = [],[],[],[]</span>
+            <span class="n">no</span> <span class="o">=</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;curr&#39;</span><span class="p">]</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">no</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="n">no</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="n">no</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="n">no</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeGlaciers</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="n">no</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">GlacierMelt</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">includeOnlyGlaciersMelt</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">meteo</span><span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="n">no</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">GlacierRain</span>
+            <span class="c1">#self.var.ETRef_all.append(self.var.ETRef)</span>
+            <span class="c1">#self.var.EWRef_all.append(self.var.EWRef)</span>
+            <span class="c1">#self.var.Tavg_all.append(self.var.Tavg)</span>
+            <span class="c1">#self.var.Precipitation_all.append(self.var.Precipitation)</span>
+            <span class="n">ii</span> <span class="o">=</span><span class="mi">1</span></div></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, IIASA Water Security.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

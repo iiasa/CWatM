@@ -56,70 +56,79 @@ class waterdemand_wastewater(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    wwt_def                                                                                                             
-    wastewater_to_reservoirs                                                                                            
+    wwt_def                                                                                                        --   
+    wastewater_to_reservoirs                                                                                       --   
     waterBodyOut                           biggest outlet (biggest accumulation of ldd network) of a waterbody     --   
     compress_LR                            boolean map as mask map for compressing lake/reservoir                  --   
     decompress_LR                          boolean map as mask map for decompressing lake/reservoir                --   
     waterBodyOutC                          compressed map biggest outlet of each lake/reservoir                    --   
-    resVolumeC                             compressed map of reservoir volume                                      Milli
+    resYear                                Settings waterBodyYear, with first operating year of reservoirs         map  
+    waterBodyTyp_unchanged                                                                                         --   
+    resVolume                                                                                                      --   
     cellArea                               Area of cell                                                            m2   
     EWRef                                  potential evaporation rate from water surface                           m    
-    wwtUrbanLeakage                                                                                                     
-    wwtColArea                                                                                                          
-    urbanleak                                                                                                           
-    wwtID                                                                                                               
-    compress_WWT                                                                                                        
-    decompress_WWT                                                                                                      
-    wwtC                                                                                                                
-    wwtOverflow                                                                                                         
-    toResManageC                                                                                                        
-    wwtStorage                                                                                                          
-    wwtColShare                                                                                                         
-    wwtSewerCollectedC                                                                                                  
-    wwtSewerTreatedC                                                                                                    
-    wwtExportedTreatedC                                                                                                 
-    wwtSewerToTreatmentC                                                                                                
-    wwtSewerOverflowC                                                                                                   
-    wwtSewerResOverflowC                                                                                                
-    wwtTreatedOverflowC                                                                                                 
-    wwtSentToResC                                                                                                       
-    wwtOverflowOut                                                                                                      
-    wwtEvapC                                                                                                            
-    wwtSewerCollected                                                                                                   
-    wwtSewerTreated                                                                                                     
-    wwtExportedTreated                                                                                                  
-    wwtSewerToTreatment                                                                                                 
-    wwtSewerExported                                                                                                    
-    wwtSewerOverflow                                                                                                    
-    wwtSentToRes                                                                                                        
-    wwtSewerResOverflow                                                                                                 
-    wwtTreatedOverflow                                                                                                  
-    wwtEvap                                                                                                             
-    wwtInTreatment                                                                                                      
-    wwtIdsOrdered                                                                                                       
-    wwtVolC                                                                                                             
-    wwtTimeC                                                                                                            
-    extensive                                                                                                           
-    noPools_extensive                                                                                                   
-    poolVolume_extensive                                                                                                
-    wwtSurfaceAreaC                                                                                                     
-    extensive_counter                                                                                                   
-    wwtResIDTemp_compress                                                                                               
-    wwtResIDC                                                                                                           
-    wwtResTypC                                                                                                          
-    wwtResYearC                                                                                                         
-    wwtSentToResC_LR                                                                                                    
-    wwtOverflowOutM                                                                                                     
-    lakeResStorage                                                                                                      
+    wwtUrbanLeakage                                                                                                --   
+    wwtColArea                                                                                                     --   
+    urbanleak                                                                                                      --   
+    wwtID                                                                                                          --   
+    compress_WWT                                                                                                   --   
+    decompress_WWT                                                                                                 --   
+    wwtC                                                                                                           --   
+    act_bigLakeResAbst_UNRestricted                                                                                --   
+    act_bigLakeResAbst_Restricted                                                                                  --   
+    wwtOverflow                                                                                                    --   
+    wwtStorage                                                                                                     --   
+    wwtColShare                                                                                                    --   
+    wwtSewerCollectedC                                                                                             --   
+    wwtSewerTreatedC                                                                                               --   
+    wwtExportedTreatedC                                                                                            --   
+    wwtSewerToTreatmentC                                                                                           --   
+    wwtSewerOverflowC                                                                                              --   
+    wwtSewerResOverflowC                                                                                           --   
+    wwtTreatedOverflowC                                                                                            --   
+    wwtSentToResC                                                                                                  --   
+    wwtSewerCollection                                                                                             --   
+    wwtOverflowOut                                                                                                 --   
+    wwtEvapC                                                                                                       --   
+    wwtSewerCollected                                                                                              --   
+    wwtExportedCollected                                                                                           --   
+    wwtSewerTreated                                                                                                --   
+    wwtExportedTreated                                                                                             --   
+    wwtSewerToTreatment                                                                                            --   
+    wwtSewerExported                                                                                               --   
+    wwtSewerOverflow                                                                                               --   
+    wwtSentToRes                                                                                                   --   
+    wwtSewerResOverflow                                                                                            --   
+    wwtTreatedOverflow                                                                                             --   
+    wwtEvap                                                                                                        --   
+    wwtInTreatment                                                                                                 --   
+    wwtIdsOrdered                                                                                                  --   
+    wwtVolC                                                                                                        --   
+    wwtTimeC                                                                                                       --   
+    toResManageC                                                                                                   --   
+    minHRTC                                                                                                        --   
+    maskDomesticCollection                                                                                         --   
+    maskIndustryCollection                                                                                         --   
+    extensive                                                                                                      --   
+    noPools_extensive                                                                                              --   
+    poolVolume_extensive                                                                                           --   
+    wwtSurfaceAreaC                                                                                                --   
+    extensive_counter                                                                                              --   
+    wwtResIDTemp_compress                                                                                          --   
+    wwtResIDC                                                                                                      --   
+    wwtResTypC                                                                                                     --   
+    wwtResYearC                                                                                                    --   
+    wwtSentToResC_LR                                                                                               --   
+    wwtOverflowOutM                                                                                                --   
+    includeWastewater                                                                                              --   
     lakeVolumeM3C                          compressed map of lake volume                                           m3   
-    lakeStorageC                                                                                                   m3   
-    reservoirStorageM3C                                                                                                 
-    lakeResStorageC                                                                                                     
-    includeWastewater                                                                                                   
-    wwtEffluentsGenerated                                                                                               
-    wwtSewerCollection                                                                                                  
-    wwtExportedCollected                                                                                                
+    lakeStorageC                                                                                                   --   
+    reservoirStorageM3C                                                                                            --   
+    lakeResStorageC                                                                                                --   
+    lakeResStorage                                                                                                 --   
+    wwtEffluentsGenerated                                                                                          --   
+    wwtSewerCollection_domestic                                                                                    --   
+    wwtSewerCollection_industry                                                                                    --   
     =====================================  ======================================================================  =====
 
     **Functions**

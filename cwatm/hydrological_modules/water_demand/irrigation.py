@@ -58,11 +58,11 @@ class waterdemand_irrigation:
     availWaterInfiltration                 quantity of water reaching the soil after interception, more snowmelt   m    
     ws1                                    Maximum storage capacity in layer 1                                     m    
     ws2                                    Maximum storage capacity in layer 2                                     m    
-    wfc1                                   Soil moisture at field capacity in layer 1                                   
-    wfc2                                   Soil moisture at field capacity in layer 2                                   
-    wwp1                                   Soil moisture at wilting point in layer 1                                    
-    wwp2                                   Soil moisture at wilting point in layer 2                                    
-    arnoBeta                                                                                                            
+    wfc1                                   Soil moisture at field capacity in layer 1                              --   
+    wfc2                                   Soil moisture at field capacity in layer 2                              --   
+    wwp1                                   Soil moisture at wilting point in layer 1                               --   
+    wwp2                                   Soil moisture at wilting point in layer 2                               --   
+    arnoBeta                                                                                                       --   
     maxtopwater                            maximum heigth of topwater                                              m    
     totAvlWater                            Field capacity minus wilting point in soil layers 1 and 2               m    
     InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 
@@ -70,11 +70,11 @@ class waterdemand_irrigation:
     w1                                     Simulated water storage in the layer 1                                  m    
     w2                                     Simulated water storage in the layer 2                                  m    
     fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
-    unmetDemand                            Unmet demand                                                            m    
+    unmetDemand                            Unmet groundwater demand to determine potential fossil groundwaterwate  m    
     unmetDemandPaddy                       Unmet paddy demand                                                      m    
     unmetDemandNonpaddy                    Unmet nonpaddy demand                                                   m    
     irrDemand                              Cover-specific Irrigation demand                                        m/m  
-    irrNonpaddyDemand                                                                                                   
+    irrNonpaddyDemand                                                                                              --   
     totalIrrDemand                         Irrigation demand                                                       m    
     =====================================  ======================================================================  =====
 

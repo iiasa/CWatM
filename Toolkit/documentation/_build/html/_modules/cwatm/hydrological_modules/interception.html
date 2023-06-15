@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cwatm.hydrological_modules.interception &mdash; Community Water Model</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/iiasa.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Community Water Model
+              <img src="../../../_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.6
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../errorHandling.html">6. Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../listVariables.html">7. List of output variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../results.html">8. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../todo.html">9. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data.html">10. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration.html">11. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration_tutorial.html">12. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../resolution.html">13. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zambezi.html">14. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">15. License and download info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcecode.html">16. Source code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../forum.html">17. Forum</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Community Water Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cwatm.hydrological_modules.interception</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cwatm.hydrological_modules.interception</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -------------------------------------------------------------------------</span>
+<span class="c1"># Name:        Interception module</span>
+<span class="c1"># Purpose:</span>
+<span class="c1">#</span>
+<span class="c1"># Author:      PB</span>
+<span class="c1">#</span>
+<span class="c1"># Created:     01/08/2016</span>
+<span class="c1"># Copyright:   (c) PB 2016</span>
+<span class="c1"># -------------------------------------------------------------------------</span>
+
+<span class="kn">from</span> <span class="nn">cwatm.management_modules.data_handling</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="interception"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.interception.interception">[docs]</a><span class="k">class</span> <span class="nc">interception</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    INTERCEPTION</span>
+
+
+<span class="sd">    **Global variables**</span>
+
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    Variable [self.var]                    Description                                                             Unit </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    snowEvap                               total evaporation from snow for a snow layers                           m    </span>
+<span class="sd">    potTranspiration                       Potential transpiration (after removing of evaporation)                 m    </span>
+<span class="sd">    interceptCap                           interception capacity of vegetation                                     m    </span>
+<span class="sd">    interceptEvap                          simulated evaporation from water intercepted by vegetation              m    </span>
+<span class="sd">    minInterceptCap                        Maximum interception read from file for forest and grassland land cove  m    </span>
+<span class="sd">    interceptStor                          simulated vegetation interception storage                               m    </span>
+<span class="sd">    availWaterInfiltration                 quantity of water reaching the soil after interception, more snowmelt   m    </span>
+<span class="sd">    twothird                               2/3                                                                     --   </span>
+<span class="sd">    EWRef                                  potential evaporation rate from water surface                           m    </span>
+<span class="sd">    SnowMelt                               total snow melt from all layers                                         m    </span>
+<span class="sd">    Rain                                   Precipitation less snow                                                 m    </span>
+<span class="sd">    actualET                               simulated evapotranspiration from soil, flooded area and vegetation     m    </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+
+<span class="sd">    **Functions**</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+
+    <span class="c1"># noinspection PyTypeChecker</span>
+<div class="viewcode-block" id="interception.dynamic"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.interception.interception.dynamic">[docs]</a>    <span class="k">def</span> <span class="nf">dynamic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">coverType</span><span class="p">,</span> <span class="n">No</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dynamic part of the interception module</span>
+<span class="sd">        calculating interception for each land cover class</span>
+
+<span class="sd">        :param coverType: Land cover type: forest, grassland  ...</span>
+<span class="sd">        :param No: number of land cover type: forest = 0, grassland = 1 ...</span>
+<span class="sd">        :return: interception evaporation, interception storage, reduced pot. transpiration</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">coverType</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;forest&#39;</span><span class="p">,</span><span class="s1">&#39;grassland&#39;</span><span class="p">]:</span>
+            <span class="c1">## interceptCap Maximum interception read from file for forest and grassland land cover</span>
+            <span class="c1"># for specific days of the year - repeated every year</span>
+            <span class="k">if</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;newStart&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;new10day&#39;</span><span class="p">]:</span>  <span class="c1"># check if first day  of the year</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptCap</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>  <span class="o">=</span> <span class="n">readnetcdf2</span><span class="p">(</span><span class="n">coverType</span> <span class="o">+</span> <span class="s1">&#39;_interceptCapNC&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;10day&#39;</span><span class="p">],</span> <span class="s2">&quot;10day&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptCap</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptCap</span><span class="p">[</span><span class="n">No</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">minInterceptCap</span><span class="p">[</span><span class="n">No</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptCap</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">minInterceptCap</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;calcWaterBalance&#39;</span><span class="p">):</span>
+            <span class="n">prevState</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptStor</span><span class="p">[</span><span class="n">No</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+
+
+        <span class="c1"># Rain instead Pr, because snow is substracted later</span>
+        <span class="c1"># assuming that all interception storage is used the other time step</span>
+        <span class="n">throughfall</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rain</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptStor</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptCap</span><span class="p">[</span><span class="n">No</span><span class="p">])</span>
+
+        <span class="c1"># update interception storage after throughfall</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptStor</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptStor</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rain</span> <span class="o">-</span> <span class="n">throughfall</span>
+
+        <span class="c1"># availWaterInfiltration Available water for infiltration: throughfall + snow melt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">availWaterInfiltration</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">throughfall</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowMelt</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">IceMelt</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">coverType</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;forest&#39;</span><span class="p">,</span> <span class="s1">&#39;grassland&#39;</span><span class="p">,</span> <span class="s1">&#39;irrPaddy&#39;</span><span class="p">,</span> <span class="s1">&#39;irrNonPaddy&#39;</span><span class="p">]:</span>
+            <span class="n">mult</span> <span class="o">=</span> <span class="n">divideValues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptStor</span><span class="p">[</span><span class="n">No</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptCap</span><span class="p">[</span><span class="n">No</span><span class="p">])</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">twothird</span>
+            <span class="c1"># interceptEvap evaporation from intercepted water (based on potTranspiration)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptEvap</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptStor</span><span class="p">[</span><span class="n">No</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">potTranspiration</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">*</span> <span class="n">mult</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">coverType</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;sealed&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptEvap</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptStor</span><span class="p">[</span><span class="n">No</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span><span class="p">),</span><span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="p">)</span>
+
+
+        <span class="c1"># update interception storage and potTranspiration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptStor</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptStor</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptEvap</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">potTranspiration</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">potTranspiration</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptEvap</span><span class="p">[</span><span class="n">No</span><span class="p">])</span>
+
+        <span class="c1"># update actual evaporation (after interceptEvap)</span>
+        <span class="c1"># interceptEvap is the first flux in ET, soil evapo and transpiration are added later</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">actualET</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptEvap</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>  <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">snowEvap</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">iceEvap</span>
+
+
+
+        <span class="c1">#if (dateVar[&#39;curr&#39;] == 15):</span>
+        <span class="c1">#    ii=1</span>
+
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;calcWaterBalance&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">waterbalance_module</span><span class="o">.</span><span class="n">waterBalanceCheck</span><span class="p">(</span>
+               <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rain</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowMelt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">IceMelt</span><span class="p">],</span>  <span class="c1"># In</span>
+               <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">availWaterInfiltration</span><span class="p">[</span><span class="n">No</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptEvap</span><span class="p">[</span><span class="n">No</span><span class="p">]],</span>  <span class="c1"># Out</span>
+               <span class="p">[</span><span class="n">prevState</span><span class="p">],</span>  <span class="c1"># prev storage</span>
+               <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">interceptStor</span><span class="p">[</span><span class="n">No</span><span class="p">]],</span>
+               <span class="s2">&quot;Interception&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, IIASA Water Security.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

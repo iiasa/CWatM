@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cwatm.management_modules.configuration &mdash; Community Water Model</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/iiasa.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Community Water Model
+              <img src="../../../_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.6
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../errorHandling.html">6. Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../listVariables.html">7. List of output variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../results.html">8. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../todo.html">9. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data.html">10. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration.html">11. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration_tutorial.html">12. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../resolution.html">13. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zambezi.html">14. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">15. License and download info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcecode.html">16. Source code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../forum.html">17. Forum</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Community Water Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cwatm.management_modules.configuration</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cwatm.management_modules.configuration</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -------------------------------------------------------------------------</span>
+<span class="c1"># Name:        Configuration</span>
+<span class="c1"># Purpose:</span>
+<span class="c1">#</span>
+<span class="c1"># Author:      burekpe</span>
+<span class="c1">#</span>
+<span class="c1"># Created:     16/05/2016</span>
+<span class="c1"># Copyright:   (c) burekpe 2016</span>
+<span class="c1"># -------------------------------------------------------------------------</span>
+
+<span class="kn">from</span> <span class="nn">cwatm.management_modules.globals</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">import</span> <span class="nn">configparser</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">xml.dom.minidom</span>
+<span class="kn">from</span> <span class="nn">cwatm.management_modules.messages</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<span class="kn">import</span> <span class="nn">difflib</span>  <span class="c1"># to check the closest word in settingsfile, if an error occurs</span>
+
+
+<div class="viewcode-block" id="ExtParser"><a class="viewcode-back" href="../../../management_modules.html#cwatm.management_modules.configuration.ExtParser">[docs]</a><span class="k">class</span> <span class="nc">ExtParser</span><span class="p">(</span><span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    addition to the parser to replace placeholders</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        PathRoot = C:/work</span>
+<span class="sd">        MaskMap = $(FILE_PATHS:PathRoot)/data/areamaps/area.tif</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1">#implementing extended interpolation</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_depth</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ExtParser.get"><a class="viewcode-back" href="../../../management_modules.html#cwatm.management_modules.configuration.ExtParser.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">vars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        def get(self, section, option, raw=False, vars=None</span>
+<span class="sd">        placeholder replacement</span>
+
+<span class="sd">        :param section: section part of the settings file</span>
+<span class="sd">        :param option: option part of the settings file</span>
+<span class="sd">        :param raw:</span>
+<span class="sd">        :param vars:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#h1 = sys.tracebacklimit</span>
+        <span class="c1">#sys.tracebacklimit = 0  # no long error message</span>
+        <span class="k">try</span><span class="p">:</span>
+           <span class="n">r_opt</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="nb">vars</span><span class="o">=</span><span class="nb">vars</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+             <span class="nb">print</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)</span>
+             <span class="n">closest</span> <span class="o">=</span> <span class="n">difflib</span><span class="o">.</span><span class="n">get_close_matches</span><span class="p">(</span><span class="n">option</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">binding</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+             <span class="k">if</span> <span class="ow">not</span> <span class="n">closest</span><span class="p">:</span> <span class="n">closest</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;- no match -&quot;</span><span class="p">]</span>
+             <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Error 116: Closest key to the required one is: </span><span class="se">\&quot;</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">closest</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">&quot;</span>
+             <span class="k">raise</span> <span class="n">CWATMError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1">#sys.tracebacklimit = h1   # set error message back to default</span>
+        <span class="k">if</span> <span class="n">raw</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">r_opt</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">r_opt</span>
+        <span class="n">re_newintp1</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;\$\((\w*):(\w*)\)&#39;</span>  <span class="c1"># other section</span>
+        <span class="n">re_newintp2</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;\$\((\w*)\)&#39;</span>  <span class="c1"># same section</span>
+
+        <span class="n">re_old1</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;\$\(\w*:\w*\)&#39;</span><span class="p">,</span> <span class="n">r_opt</span><span class="p">)</span>
+        <span class="n">re_old2</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;\$\(\w*\)&#39;</span><span class="p">,</span> <span class="n">r_opt</span><span class="p">)</span>
+
+        <span class="n">m_new1</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">re_newintp1</span><span class="p">,</span> <span class="n">r_opt</span><span class="p">)</span>
+        <span class="n">m_new2</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">re_newintp2</span><span class="p">,</span> <span class="n">r_opt</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">m_new1</span><span class="p">:</span>
+             <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+             <span class="k">for</span> <span class="n">f_section</span><span class="p">,</span> <span class="n">f_option</span> <span class="ow">in</span> <span class="n">m_new1</span><span class="p">:</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">cur_depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_depth</span> <span class="o">+</span> <span class="mi">1</span>
+                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_depth</span> <span class="o">&lt;</span> <span class="n">configparser</span><span class="o">.</span><span class="n">MAX_INTERPOLATION_DEPTH</span><span class="p">:</span>
+                     <span class="n">sub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f_section</span><span class="p">,</span><span class="n">f_option</span><span class="p">,</span> <span class="nb">vars</span><span class="o">=</span><span class="nb">vars</span><span class="p">)</span>
+                     <span class="n">ret</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">re_old1</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">sub</span><span class="p">)</span>
+                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                 <span class="k">else</span><span class="p">:</span>
+                     <span class="k">raise</span> <span class="n">configparser</span><span class="o">.</span><span class="n">InterpolationDepthError</span><span class="p">(</span><span class="n">option</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">r_opt</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">m_new2</span><span class="p">:</span>
+             <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+             <span class="k">for</span> <span class="n">l_option</span> <span class="ow">in</span> <span class="n">m_new2</span><span class="p">:</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">cur_depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_depth</span> <span class="o">+</span> <span class="mi">1</span>
+                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_depth</span> <span class="o">&lt;</span> <span class="n">configparser</span><span class="o">.</span><span class="n">MAX_INTERPOLATION_DEPTH</span><span class="p">:</span>
+                     <span class="n">sub</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">l_option</span><span class="p">,</span> <span class="nb">vars</span><span class="o">=</span><span class="nb">vars</span><span class="p">)</span>
+                     <span class="n">ret</span> <span class="o">=</span> <span class="n">ret</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">re_old2</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">sub</span><span class="p">)</span>
+                     <span class="n">i</span> <span class="o">=+</span> <span class="mi">1</span>
+                 <span class="k">else</span><span class="p">:</span>
+                     <span class="k">raise</span> <span class="n">configparser</span><span class="o">.</span><span class="n">InterpolationDepthError</span><span class="p">(</span><span class="n">option</span><span class="p">,</span> <span class="n">section</span><span class="p">,</span> <span class="n">r_opt</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cur_depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_depth</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">ret</span></div></div>
+
+
+
+<div class="viewcode-block" id="parse_configuration"><a class="viewcode-back" href="../../../management_modules.html#cwatm.management_modules.configuration.parse_configuration">[docs]</a><span class="k">def</span> <span class="nf">parse_configuration</span><span class="p">(</span><span class="n">settingsFileName</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse settings file</span>
+
+<span class="sd">    :param settingsFileName: name of the settings file</span>
+<span class="sd">    :return: parameters in list: binding, options in list: option</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">splitout</span><span class="p">(</span><span class="n">varin</span><span class="p">,</span> <span class="n">check</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        split variable in several one, seperator = ,</span>
+
+<span class="sd">        :param varin:</span>
+<span class="sd">        :param check:</span>
+<span class="sd">        :return: list with several variables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">strip</span><span class="p">,</span> <span class="n">varin</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;None&quot;</span>
+        <span class="k">if</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;None&quot;</span><span class="p">:</span> <span class="n">check</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">check</span>
+
+    <span class="k">if</span> <span class="ow">not</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">settingsFileName</span><span class="p">)):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Error 302: Settingsfile not found!</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="n">CWATMFileError</span><span class="p">(</span><span class="n">settingsFileName</span><span class="p">,</span><span class="n">msg</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">ExtParser</span><span class="p">()</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">optionxform</span> <span class="o">=</span> <span class="nb">str</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">()</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">settingsFileName</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
+        <span class="c1">#print sec</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span>
+        <span class="n">check_section</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sec</span><span class="o">==</span><span class="s2">&quot;OPTIONS&quot;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">option</span><span class="p">[</span><span class="n">opt</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="n">opt</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="n">option</span><span class="p">[</span><span class="n">opt</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="n">opt</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Check if config line = output line</span>
+                <span class="k">if</span> <span class="n">opt</span><span class="o">.</span><span class="n">lower</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;out_&quot;</span><span class="p">:</span>
+                    <span class="n">index</span> <span class="o">=</span> <span class="n">sec</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;_&quot;</span><span class="o">+</span><span class="n">opt</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+                    <span class="k">if</span> <span class="n">opt</span><span class="o">.</span><span class="n">lower</span><span class="p">()[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">==</span><span class="s2">&quot;_dir&quot;</span><span class="p">:</span>
+                        <span class="n">outDir</span><span class="p">[</span><span class="n">sec</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="n">opt</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># split into timeseries and maps</span>
+                        <span class="k">if</span> <span class="n">opt</span><span class="o">.</span><span class="n">lower</span><span class="p">()[</span><span class="mi">4</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;tss_&quot;</span><span class="p">:</span>
+                            <span class="n">outTss</span><span class="p">[</span><span class="n">index</span><span class="p">],</span><span class="n">check_section</span> <span class="o">=</span> <span class="n">splitout</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="n">opt</span><span class="p">),</span><span class="n">check_section</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">outMap</span><span class="p">[</span><span class="n">index</span><span class="p">],</span><span class="n">check_section</span> <span class="o">=</span> <span class="n">splitout</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="n">opt</span><span class="p">),</span><span class="n">check_section</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># binding: all the parameters which are not output or option are collected</span>
+                    <span class="n">binding</span><span class="p">[</span><span class="n">opt</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="n">opt</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">check_section</span><span class="p">:</span>
+            <span class="n">outsection</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span>
+
+    <span class="n">outputDir</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">binding</span><span class="p">[</span><span class="s2">&quot;PathOut&quot;</span><span class="p">])</span></div>
+     <span class="c1"># Output directory is stored in a separat global array</span>
+
+
+<div class="viewcode-block" id="read_metanetcdf"><a class="viewcode-back" href="../../../management_modules.html#cwatm.management_modules.configuration.read_metanetcdf">[docs]</a><span class="k">def</span> <span class="nf">read_metanetcdf</span><span class="p">(</span><span class="n">metaxml</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read the metadata for netcdf output files</span>
+<span class="sd">    unit, long name, standard name and additional information</span>
+
+<span class="sd">    :param metaxml: file mit information for netcdf files (metadata)</span>
+<span class="sd">    :param name: file name information</span>
+<span class="sd">    :return: List with metadata information: metaNetcdfVar</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">metaxml</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">metaparse</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">dom</span><span class="o">.</span><span class="n">minidom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">metaxml</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Error 303: using option file: &quot;</span> <span class="o">+</span> <span class="n">metaxml</span>
+            <span class="k">raise</span> <span class="n">CWATMError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Cannot find option file: &quot;</span> <span class="o">+</span> <span class="n">metaxml</span> <span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">path</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">metaxml</span><span class="p">)</span>
+        <span class="c1">#metaxml = os.path.join(os.getcwd(), name)</span>
+        <span class="c1"># using program name</span>
+        <span class="n">metaxml</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])),</span><span class="s1">&#39;cwatm&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">metaxml</span><span class="p">):</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;Using file: &quot;</span> <span class="o">+</span> <span class="n">metaxml</span> <span class="o">+</span> <span class="s2">&quot; instead.&quot;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">CWATMWarning</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Error 304: Cannot find alternative option file: &quot;</span> <span class="o">+</span> <span class="n">metaxml</span>
+            <span class="k">raise</span> <span class="n">CWATMFileError</span><span class="p">(</span><span class="n">metaxml</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">sname</span> <span class="o">=</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">metaparse</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">dom</span><span class="o">.</span><span class="n">minidom</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">metaxml</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Error 305: Error using alternative option file: &quot;</span> <span class="o">+</span> <span class="n">metaxml</span>
+            <span class="k">raise</span> <span class="n">CWATMError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="c1"># running through all output variable</span>
+    <span class="c1"># if an output variable is not defined here the standard metadata is used</span>
+    <span class="c1"># unit = &quot;undefined&quot;, standard name = long name = variable name</span>
+    <span class="n">meta</span> <span class="o">=</span> <span class="n">metaparse</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;CWATM&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">metavar</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">getElementsByTagName</span><span class="p">(</span><span class="s2">&quot;metanetcdf&quot;</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">metavar</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">&#39;varname&#39;</span><span class="p">:</span>
+                <span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">metavar</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">metavar</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;varname&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">metaNetcdfVar</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span></div>
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, IIASA Water Security.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

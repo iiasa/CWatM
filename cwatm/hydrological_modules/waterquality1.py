@@ -27,16 +27,16 @@ class waterquality1(object):
     cellArea                               Area of cell                                                            m2   
     DtSec                                  number of seconds per timestep (default = 86400)                        s    
     Tavg                                   Input, average air Temperature                                          K    
-    discharge                              discharge                                                               m3/s 
+    discharge                              Channel discharge                                                       m3/s 
     chanLength                             Input, Channel length                                                   m    
-    totalCrossSectionArea                                                                                               
-    waterquality                                                                                                        
+    totalCrossSectionArea                                                                                          --   
+    waterquality                                                                                                   --   
     celllength                             Cell length, defined as the square root of cell area                    m    
-    downdist                                                                                                            
-    travelDistance                                                                                                      
-    travelTime                                                                                                          
-    waterLevel                                                                                                          
-    waterTemperature                                                                                                    
+    downdist                                                                                                       --   
+    travelDistance                                                                                                 --   
+    travelTime                                                                                                     --   
+    waterLevel                                                                                                     --   
+    waterTemperature                                                                                               --   
     =====================================  ======================================================================  =====
 
     **Functions**
@@ -84,7 +84,7 @@ class waterquality1(object):
           crossArea = 0.4148 * dis ** 0.898
           # van Vliet et al. 2012
           #van Vliet, M.T.H., Yearsley, J.R., Franssen, W.H.P., Ludwig, F., Haddeland, I., Lettenmaier, D.P., and Kabat, P.: Coupled daily streamflow and water
-          #temperature modelling in large river  basins, Hydrol.Earth Syst.Sci., 16, 4303Ã¢â‚¬â€œ4321, https: // doi.org / 10.5194 / hess - 16 - 4303 - 2012, 2012.
+          #temperature modelling in large river  basins, Hydrol.Earth Syst.Sci., 16, 4303ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ4321, https: // doi.org / 10.5194 / hess - 16 - 4303 - 2012, 2012.
 
           #flowVelocity = np.minimum(self.var.discharge /self.var.totalCrossSectionArea, 0.36*self.var.discharge**0.24)
           flowVelocity = np.minimum(self.var.discharge / crossArea,0.36 * dis ** 0.24)

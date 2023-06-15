@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cwatm.hydrological_modules.snow_frost &mdash; Community Water Model</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/iiasa.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Community Water Model
+              <img src="../../../_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.6
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../errorHandling.html">6. Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../listVariables.html">7. List of output variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../results.html">8. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../todo.html">9. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data.html">10. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration.html">11. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration_tutorial.html">12. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../resolution.html">13. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zambezi.html">14. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">15. License and download info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcecode.html">16. Source code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../forum.html">17. Forum</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Community Water Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cwatm.hydrological_modules.snow_frost</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cwatm.hydrological_modules.snow_frost</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -------------------------------------------------------------------------</span>
+<span class="c1"># Name:        Snow module</span>
+<span class="c1"># Purpose:</span>
+<span class="c1">#</span>
+<span class="c1"># Author:      PB</span>
+<span class="c1">#</span>
+<span class="c1"># Created:     13/07/2016</span>
+<span class="c1"># Copyright:   (c) PB 2016</span>
+<span class="c1"># -------------------------------------------------------------------------</span>
+
+<span class="kn">from</span> <span class="nn">cwatm.management_modules.data_handling</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="snow_frost"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.snow_frost.snow_frost">[docs]</a><span class="k">class</span> <span class="nc">snow_frost</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    RAIN AND SNOW</span>
+
+<span class="sd">    Domain: snow calculations evaluated for center points of up to 7 sub-pixel</span>
+<span class="sd">    snow zones 1 -7 which each occupy a part of the pixel surface</span>
+
+<span class="sd">    Variables *snow* and *rain* at end of this module are the pixel-average snowfall and rain</span>
+
+
+<span class="sd">    **Global variables**</span>
+
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    Variable [self.var]                    Description                                                             Unit </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    load_initial                           Settings initLoad holds initial conditions for variables                input</span>
+<span class="sd">    fracGlacierCover                                                                                               --   </span>
+<span class="sd">    DtDay                                  seconds in a timestep (default=86400)                                   s    </span>
+<span class="sd">    Precipitation                          Precipitation (input for the model)                                     m    </span>
+<span class="sd">    Tavg                                   Input, average air Temperature                                          K    </span>
+<span class="sd">    SnowMelt                               total snow melt from all layers                                         m    </span>
+<span class="sd">    Rain                                   Precipitation less snow                                                 m    </span>
+<span class="sd">    prevSnowCover                          snow cover of previous day (only for water balance)                     m    </span>
+<span class="sd">    SnowCover                              snow cover (sum over all layers)                                        m    </span>
+<span class="sd">    ElevationStD                                                                                                   --   </span>
+<span class="sd">    numberSnowLayersFloat                                                                                          --   </span>
+<span class="sd">    numberSnowLayers                       Number of snow layers (up to 10)                                        --   </span>
+<span class="sd">    glaciertransportZone                   Number of layers which can be mimiced as glacier transport zone         --   </span>
+<span class="sd">    deltaInvNorm                           Quantile of the normal distribution (for different numbers of snow lay  --   </span>
+<span class="sd">    frac_snow_redistribution                                                                                       --   </span>
+<span class="sd">    DeltaTSnow                             Temperature lapse rate x std. deviation of elevation                    °C   </span>
+<span class="sd">    SnowDayDegrees                         day of the year to degrees: 360/365.25 = 0.9856                         --   </span>
+<span class="sd">    SeasonalSnowMeltSin                                                                                            --   </span>
+<span class="sd">    excludeGlacierArea                                                                                             --   </span>
+<span class="sd">    summerSeasonStart                      day when summer season starts = 165                                     --   </span>
+<span class="sd">    IceDayDegrees                          days of summer (15th June-15th Sept.) to degree: 180/(259-165)          --   </span>
+<span class="sd">    SnowSeason                             seasonal melt factor                                                    m (Ce</span>
+<span class="sd">    TempSnowLow                            Temperature below which all precipitation is snow                       °C   </span>
+<span class="sd">    TempSnowHigh                           Temperature above which all precipitation is rain                       °C   </span>
+<span class="sd">    TempSnow                               Average temperature at which snow melts                                 °C   </span>
+<span class="sd">    SnowFactor                             Multiplier applied to precipitation that falls as snow                  --   </span>
+<span class="sd">    SnowMeltCoef                           Snow melt coefficient - default: 0.004                                  --   </span>
+<span class="sd">    IceMeltCoef                            Ice melt coefficnet - default  0.007                                    --   </span>
+<span class="sd">    TempMelt                               Average temperature at which snow melts                                 °C   </span>
+<span class="sd">    SnowCoverS                             snow cover for each layer                                               m    </span>
+<span class="sd">    Kfrost                                 Snow depth reduction coefficient, (HH, p. 7.28)                         m-1  </span>
+<span class="sd">    Afrost                                 Daily decay coefficient, (Handbook of Hydrology, p. 7.28)               --   </span>
+<span class="sd">    FrostIndexThreshold                    Degree Days Frost Threshold (stops infiltration, percolation and capil  --   </span>
+<span class="sd">    SnowWaterEquivalent                    Snow water equivalent, (based on snow density of 450 kg/m3) (e.g. Tarb  --   </span>
+<span class="sd">    FrostIndex                             FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Inde  --   </span>
+<span class="sd">    extfrostindex                          Flag for second frostindex                                              --   </span>
+<span class="sd">    FrostIndexThreshold2                   FrostIndex2 - Molnau and Bissel (1983), A Continuous Frozen Ground Ind  --   </span>
+<span class="sd">    frostInd1                              forstindex 1                                                            --   </span>
+<span class="sd">    frostInd2                              frostindex 2                                                            --   </span>
+<span class="sd">    frostindexS                            array for frostindex                                                    --   </span>
+<span class="sd">    Snow                                   Snow (equal to a part of Precipitation)                                 m    </span>
+<span class="sd">    snow_redistributed_previous                                                                                    --   </span>
+<span class="sd">    SnowM1                                                                                                         --   </span>
+<span class="sd">    IceM1                                                                                                          --   </span>
+<span class="sd">    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+
+<span class="sd">    **Functions**</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+
+
+<div class="viewcode-block" id="snow_frost.initial"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.snow_frost.snow_frost.initial">[docs]</a>    <span class="k">def</span> <span class="nf">initial</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initial part of the snow and frost module</span>
+
+<span class="sd">        * loads all the parameters for the day-degree approach for rain, snow and snowmelt</span>
+<span class="sd">        * loads the parameter for frost</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayersFloat</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;NumberSnowLayers&#39;</span><span class="p">)</span>    <span class="c1"># default 3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayers</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayersFloat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">glaciertransportZone</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;GlacierTransportZone&#39;</span><span class="p">))</span>  <span class="c1"># default 1 -&gt; highest zone is transported to middle zone</span>
+
+        <span class="c1"># Difference between (average) air temperature at average elevation of</span>
+        <span class="c1"># pixel and centers of upper- and lower elevation zones [deg C]</span>
+        <span class="c1"># ElevationStD:   Standard Deviation of the DEM</span>
+        <span class="c1"># 0.9674:    Quantile of the normal distribution: u(0,833)=0.9674 to split the pixel in 3 equal parts.</span>
+        <span class="c1"># for different number of layers</span>
+        <span class="c1">#  Number: 2 ,3, 4, 5, 6, 7, ,8, 9, 10</span>
+        <span class="n">dn</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">dn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">dn</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.67448975</span><span class="p">,</span>  <span class="mf">0.67448975</span><span class="p">])</span>
+        <span class="n">dn</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.96742157</span><span class="p">,</span>  <span class="mf">0.</span><span class="p">,</span>  <span class="mf">0.96742157</span><span class="p">])</span>
+        <span class="n">dn</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.28155157</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.52440051</span><span class="p">,</span>  <span class="mf">0.</span><span class="p">,</span>  <span class="mf">0.52440051</span><span class="p">,</span>  <span class="mf">1.28155157</span><span class="p">])</span>
+        <span class="n">dn</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.46523379</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.79163861</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.36610636</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.36610636</span><span class="p">,</span><span class="mf">0.79163861</span><span class="p">,</span> <span class="mf">1.46523379</span><span class="p">])</span>
+        <span class="n">dn</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.59321882</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.96742157</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5894558</span> <span class="p">,</span> <span class="o">-</span><span class="mf">0.28221615</span><span class="p">,</span>  <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.28221615</span><span class="p">,</span>  <span class="mf">0.5894558</span> <span class="p">,</span>  <span class="mf">0.96742157</span><span class="p">,</span>  <span class="mf">1.59321882</span><span class="p">])</span>
+        <span class="n">dn</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.64485363</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.03643339</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.67448975</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.38532047</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.12566135</span><span class="p">,</span> <span class="mf">0.12566135</span><span class="p">,</span>  <span class="mf">0.38532047</span><span class="p">,</span>  <span class="mf">0.67448975</span><span class="p">,</span>  <span class="mf">1.03643339</span><span class="p">,</span>  <span class="mf">1.64485363</span><span class="p">])</span>
+
+        <span class="c1">#divNo = 1./float(self.var.numberSnowLayers)</span>
+        <span class="c1">#deltaNorm = np.linspace(divNo/2, 1-divNo/2, self.var.numberSnowLayers)</span>
+        <span class="c1">#self.var.deltaInvNorm = norm.ppf(deltaNorm)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">deltaInvNorm</span> <span class="o">=</span> <span class="n">dn</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayers</span><span class="p">]</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ElevationStD</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;ElevationStD&#39;</span><span class="p">)</span>
+        <span class="c1"># max_frac_snow_redistriution = 0.5</span>
+        <span class="c1"># max_ELevationStD = 1500</span>
+        <span class="n">min_ElevationStD_snow_redistr</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="c1"># 0.46 is the maximum fraction that can be redistributed if snow density is assumed to be 350kg/m3 according to eq. 13 in Frey &amp; Holzmann (2015)</span>
+        <span class="c1"># this fraction has to be multiplied with the slope, highest slope is 90 degrees</span>
+        <span class="c1"># the mean slope of each grid cell is the mean of all slopes of the 3&#39;&#39; SRTM DEM</span>
+        <span class="c1"># the maximum fraction that can be redistributed if snow density is assumed to be 200kg/m3 according to eq. 13 in Frey &amp; Holzmann (2015) is 0.35</span>
+        <span class="n">slope_degrees</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arctan</span><span class="p">(</span><span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;tanslope&#39;</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frac_snow_redistribution</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.35</span> <span class="o">*</span> <span class="n">slope_degrees</span> <span class="o">/</span> <span class="mi">90</span><span class="p">,</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DeltaTSnow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ElevationStD</span> <span class="o">*</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;TemperatureLapseRate&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowDayDegrees</span> <span class="o">=</span> <span class="mf">0.9856</span>
+        <span class="c1">#to get the seasonal cycle in snow melt coefficient, value is 81 (263) for northern (southern) hemisphere</span>
+        <span class="k">if</span> <span class="s1">&#39;SeasonalSnowMeltSin&#39;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SeasonalSnowMeltSin</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;SeasonalSnowMeltSin&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">excludeGlacierArea</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="s2">&quot;excludeGlacierArea&quot;</span> <span class="ow">in</span> <span class="n">option</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">excludeGlacierArea</span> <span class="o">=</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;excludeGlacierArea&#39;</span><span class="p">)</span>
+
+        <span class="c1"># day of the year to degrees: 360/365.25 = 0.9856</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">summerSeasonStart</span> <span class="o">=</span> <span class="mi">165</span>
+        <span class="c1">#self.var.IceDayDegrees = 1.915</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">IceDayDegrees</span> <span class="o">=</span> <span class="mf">180.</span><span class="o">/</span><span class="p">(</span><span class="mi">259</span><span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">summerSeasonStart</span><span class="p">)</span>
+        <span class="c1"># days of summer (15th June-15th Sept.) to degree: 180/(259-165)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowSeason</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;SnowSeasonAdj&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.5</span>
+        <span class="c1"># default value of range  of seasonal melt factor is set to 0.001 m C-1 day-1</span>
+        <span class="c1"># 0.5 x range of sinus function [-1,1]</span>
+        <span class="k">if</span> <span class="s1">&#39;TempSnowLow&#39;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TempSnowLow</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;TempSnowLow&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TempSnowHigh</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;TempSnowHigh&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TempSnow</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;TempSnow&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowFactor</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;SnowFactor&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowMeltCoef</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;SnowMeltCoef&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">IceMeltCoef</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;IceMeltCoef&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TempMelt</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;TempMelt&#39;</span><span class="p">)</span>
+
+        <span class="c1"># initialize as many snow covers as snow layers -&gt; read them as SnowCover1 , SnowCover2 ...</span>
+        <span class="c1"># SnowCover1 is the highest zone</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayers</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">load_initial</span><span class="p">(</span><span class="s2">&quot;SnowCover&quot;</span><span class="p">,</span><span class="n">number</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># initial snow depth in elevation zones A, B, and C, respectively  [mm]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCover</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayersFloat</span> <span class="o">+</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span>
+
+
+        <span class="c1"># Pixel-average initial snow cover: average of values in 3 elevation</span>
+        <span class="c1"># zones</span>
+
+        <span class="c1"># ---------------------------------------------------------------------------------</span>
+        <span class="c1"># Initial part of frost index</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Kfrost</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;Kfrost&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Afrost</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;Afrost&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">FrostIndexThreshold</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;FrostIndexThreshold&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowWaterEquivalent</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;SnowWaterEquivalent&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">FrostIndex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">load_initial</span><span class="p">(</span><span class="s1">&#39;FrostIndex&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">extfrostindex</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="s2">&quot;morefrost&quot;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">extfrostindex</span> <span class="o">=</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;morefrost&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">FrostIndexThreshold2</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;FrostIndexThreshold2&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostInd1</span> <span class="o">=</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostInd2</span> <span class="o">=</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostindexS</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayers</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostindexS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="p">)</span></div>
+
+
+    <span class="c1"># --------------------------------------------------------------------------</span>
+<span class="c1"># --------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="snow_frost.dynamic"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.snow_frost.snow_frost.dynamic">[docs]</a>    <span class="k">def</span> <span class="nf">dynamic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dynamic part of the snow module</span>
+
+<span class="sd">        Distinguish between rain/snow and calculates snow melt and glacier melt</span>
+<span class="sd">        The equation is a modification of:</span>
+
+<span class="sd">        References:</span>
+<span class="sd">            Speers, D.D., Versteeg, J.D. (1979) Runoff forecasting for reservoir operations - the pastand the future. In: Proceedings 52nd Western Snow Conference, 149-156</span>
+
+<span class="sd">        Frost index in soil [degree days] based on:</span>
+
+<span class="sd">        References:</span>
+<span class="sd">            Molnau and Bissel (1983, A Continuous Frozen Ground Index for Flood Forecasting. In: Maidment, Handbook of Hydrology, p. 7.28, 7.55)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;calcWaterBalance&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">prevSnowCover</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCover</span>
+        <span class="c1"># sinus shaped function between the</span>
+        <span class="c1"># annual minimum (December 21st) and annual maximum (June 21st) for the northern hemisphere</span>
+        <span class="c1"># annual maximum (December 21st) and annual minimum (June 21st) for the northern hemisphere</span>
+        <span class="k">if</span> <span class="s1">&#39;SeasonalSnowMeltSin&#39;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+            <span class="n">SnowMeltCycle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">((</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;doy&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SeasonalSnowMeltSin</span><span class="p">)</span>
+                                    <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowDayDegrees</span><span class="p">))</span>
+            <span class="n">SeasSnowMeltCoef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowSeason</span> <span class="o">*</span> <span class="n">SnowMeltCycle</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowMeltCoef</span>
+
+            <span class="c1"># IceMelt is adjusted to account for southern hemisphere</span>
+            <span class="c1"># for northern hemisphere Icemelt can occur between doy 166 and doy 256</span>
+            <span class="c1"># for southern hemisphere Icemelt can occur between doy 348 and doy 73</span>
+            <span class="c1"># amplitude and curve shape are the same</span>
+
+            <span class="n">SummerSeason</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span>
+                <span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">((</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;doy&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">summerSeasonStart</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowDayDegrees</span> <span class="o">*</span> <span class="mi">2</span><span class="p">))</span>
+
+            <span class="n">SummerSeason</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">SummerSeason</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">SnowMeltCycle</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="p">,</span> <span class="n">SummerSeason</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">SeasSnowMeltCoef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowSeason</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">((</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;doy&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">81</span><span class="p">)</span>
+                                                                         <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowDayDegrees</span><span class="p">))</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowMeltCoef</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;doy&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">summerSeasonStart</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;doy&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">260</span><span class="p">):</span>
+                <span class="n">SummerSeason</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">radians</span><span class="p">((</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;doy&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">summerSeasonStart</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">IceDayDegrees</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">SummerSeason</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Snow</span> <span class="o">=</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rain</span> <span class="o">=</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowMelt</span> <span class="o">=</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">IceMelt</span> <span class="o">=</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCover</span> <span class="o">=</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">snow_redistributed_previous</span> <span class="o">=</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1">#get number of elevation zones with forest</span>
+        <span class="c1">#assume forest is most present at lowest location</span>
+        <span class="n">nr_frac_forest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayers</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">fracVegCover</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayers</span><span class="p">))</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">excludeGlacierArea</span><span class="p">:</span>
+            <span class="n">current_fracGlacierCover</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">fracGlacierCover</span> <span class="c1">#percentage area of each layer</span>
+            <span class="c1"># elev_red = 5</span>
+            <span class="c1"># current_fracGlacierCover = self.var.fracGlacierCover / elev_red</span>
+        <span class="c1">#substract glacier area from highest areas</span>
+        <span class="c1">#loops through snow layers from highest to lowest</span>
+        <span class="c1">#the capacity depends on the fraction of forest or grassland</span>
+        <span class="c1">#self.var.SnowCoverSCapacity[i]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayers</span><span class="p">):</span>
+            <span class="n">TavgS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DeltaTSnow</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">deltaInvNorm</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="c1"># Temperature at center of each zone (temperature at zone B equals Tavg)</span>
+            <span class="c1"># i=0 -&gt; highest zone</span>
+            <span class="c1"># i=2 -&gt; lower zone</span>
+            <span class="k">if</span> <span class="s1">&#39;TempSnowLow&#39;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+                <span class="c1">#fraction of solid precipitation maximum 1, minimum 0</span>
+                <span class="n">frac_solid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">TavgS</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TempSnowLow</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TempSnowHigh</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TempSnowLow</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">SnowS</span> <span class="o">=</span> <span class="n">frac_solid</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowFactor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span>
+                <span class="n">RainS</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">frac_solid</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">SnowS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">TavgS</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TempSnow</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowFactor</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">,</span>
+                                 <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="p">)</span>
+                <span class="c1"># Precipitation is assumed to be snow if daily average temperature is below TempSnow</span>
+                <span class="c1"># Snow is multiplied by correction factor to account for undercatch of</span>
+                <span class="c1"># snow precipitation (which is common)</span>
+                <span class="n">RainS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">TavgS</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TempSnow</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Precipitation</span><span class="p">,</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="p">)</span>
+
+            <span class="c1">#if SWE higher than 1m it is assumed that this is unrealistic, therefore it will be melted faster to avoid</span>
+            <span class="c1">#snow accumulation (similar to implementation in WaterGAP)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="c1"># the temperature of the lowest elevation zone is used for melting</span>
+                <span class="c1"># this will result in an increase in temp for every elevation zone in the grid cell</span>
+                <span class="c1"># this change in temp will only become relevant if T &gt; TempMelt</span>
+                <span class="n">TavgHighSWE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DeltaTSnow</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">deltaInvNorm</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">SnowMeltNormal</span> <span class="o">=</span> <span class="p">(</span><span class="n">TavgS</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TempMelt</span><span class="p">)</span> <span class="o">*</span> <span class="n">SeasSnowMeltCoef</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">RainS</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DtDay</span>
+                <span class="n">SnowMeltHighSWE</span> <span class="o">=</span> <span class="p">(</span><span class="n">TavgHighSWE</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TempMelt</span><span class="p">)</span> <span class="o">*</span> <span class="n">SeasSnowMeltCoef</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">RainS</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DtDay</span>
+                <span class="n">SnowMeltS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="n">SnowMeltNormal</span><span class="p">,</span> <span class="n">SnowMeltHighSWE</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">SnowMeltS</span> <span class="o">=</span> <span class="p">(</span><span class="n">TavgS</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TempMelt</span><span class="p">)</span> <span class="o">*</span> <span class="n">SeasSnowMeltCoef</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">RainS</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DtDay</span>
+            <span class="n">SnowMeltS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">SnowMeltS</span><span class="p">,</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="p">)</span>
+
+            <span class="c1"># for which layer the ice melt is calculated with the middle temp.</span>
+            <span class="c1"># for the others it is calculated with the corrected temp</span>
+            <span class="c1"># this is to mimic glacier transport to lower zones</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">glaciertransportZone</span><span class="p">:</span>
+                <span class="n">IceMeltS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">IceMeltCoef</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DtDay</span> <span class="o">*</span> <span class="n">SummerSeason</span>
+                <span class="c1"># if i = 0 and 1 -&gt; higher and middle zone</span>
+                <span class="c1"># Ice melt coeff in m/C/deg</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">IceMeltS</span> <span class="o">=</span> <span class="n">TavgS</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">IceMeltCoef</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DtDay</span> <span class="o">*</span> <span class="n">SummerSeason</span>
+
+            <span class="n">IceMeltS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">IceMeltS</span><span class="p">,</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="p">)</span>
+            <span class="n">SnowIceMeltS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">SnowMeltS</span> <span class="o">+</span> <span class="n">IceMeltS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="p">)</span>
+            <span class="n">IceMeltS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">SnowIceMeltS</span> <span class="o">-</span> <span class="n">SnowMeltS</span><span class="p">,</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="p">)</span>
+            <span class="n">SnowMeltS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">SnowIceMeltS</span> <span class="o">-</span> <span class="n">IceMeltS</span><span class="p">,</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="p">)</span>
+            <span class="c1"># check if snow+ice not bigger than snowcover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">SnowS</span> <span class="o">-</span> <span class="n">SnowIceMeltS</span>
+
+            <span class="c1">#snow redistribution inspired by Frey and Holzmann (2015) doi:10.5194/hess-19-4517-2015</span>
+            <span class="c1">#if snow cover higher than snow holding capacity redistribution</span>
+            <span class="c1"># get the thresholds for the snow based on the snow density and snow depth values in Frey and Holzmann (2015)</span>
+            <span class="c1">#capacity of forest 2.5m snow cover, assumed snow density 250kg/m3: 0.25 * 1000 * 2.5 / 1000</span>
+            <span class="c1"># capacity of other land cover 0.25m snow cover, assumed snow density 250kg/m3: 0.25 * 1000 * 0.25 / 1000</span>
+            <span class="c1">#but only for cells with std above 100m</span>
+            <span class="n">swe_forest</span> <span class="o">=</span> <span class="mf">0.625</span>
+            <span class="n">swe_other</span> <span class="o">=</span> <span class="mf">0.0625</span>
+            <span class="c1"># snow capacity depends on whether there is frost cover in the elevation zone</span>
+            <span class="n">snowcapacity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">i</span> <span class="o">&lt;=</span> <span class="n">nr_frac_forest</span><span class="p">,</span> <span class="n">swe_other</span><span class="p">,</span> <span class="n">swe_forest</span><span class="p">)</span>
+            <span class="c1"># where snow cover is higher than capacity, a fraction of snow will be redistributed</span>
+            <span class="n">snow_redistributed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">snowcapacity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frac_snow_redistribution</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># the lowest elevation zone cannot redistribute snow</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayers</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">snow_redistributed</span> <span class="o">=</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span>
+            <span class="c1"># the current snow cover will be reduced by the amount of snow that is redistributed</span>
+            <span class="c1"># the redistributed snow from higher elevation zone will be added</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">snow_redistributed</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">snow_redistributed_previous</span>
+            <span class="c1"># redistributed snow will be added to next elevation zone in next loop</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">snow_redistributed_previous</span> <span class="o">=</span> <span class="n">snow_redistributed</span>
+
+
+            <span class="c1"># here outputs are just summed up because equal distribution across elevation zones</span>
+            <span class="c1"># when glaciers are included the higher elevations should play less of a role</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">excludeGlacierArea</span><span class="p">:</span>
+                <span class="c1"># the weight is the fraction of current elevation zone that is not covered by glacier</span>
+                <span class="c1"># the glacier is subtracted from the highest elevation zone first</span>
+                <span class="n">weight</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayers</span> <span class="o">-</span> <span class="n">current_fracGlacierCover</span>
+                <span class="c1"># the fraction of glacier cover is decreased by fraction that is covered by glacier in current elevation zone</span>
+                <span class="n">current_fracGlacierCover</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">weight</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">weight</span><span class="p">))</span>
+                <span class="c1">#weight below zero is set to zero</span>
+                <span class="n">weight</span><span class="p">[</span><span class="n">weight</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">assert</span> <span class="p">(</span><span class="n">weight</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Snow</span> <span class="o">+=</span> <span class="n">SnowS</span> <span class="o">*</span> <span class="n">weight</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rain</span> <span class="o">+=</span> <span class="n">RainS</span> <span class="o">*</span> <span class="n">weight</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowMelt</span> <span class="o">+=</span> <span class="n">SnowMeltS</span> <span class="o">*</span> <span class="n">weight</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">IceMelt</span> <span class="o">+=</span> <span class="n">IceMeltS</span> <span class="o">*</span> <span class="n">weight</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCover</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">weight</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Snow</span> <span class="o">+=</span> <span class="n">SnowS</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rain</span> <span class="o">+=</span> <span class="n">RainS</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowMelt</span> <span class="o">+=</span> <span class="n">SnowMeltS</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">IceMelt</span> <span class="o">+=</span> <span class="n">IceMeltS</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCover</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">extfrostindex</span><span class="p">:</span>
+                <span class="n">Kfrost</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">TavgS</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+                <span class="n">FrostIndexChangeRate</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Afrost</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostindexS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">TavgS</span> <span class="o">*</span>\
+                        <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.4</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">Kfrost</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCoverS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowWaterEquivalent</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostindexS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostindexS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">FrostIndexChangeRate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DtDay</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">extfrostindex</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;curr&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;intSpin&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayers</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostInd1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostindexS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">FrostIndexThreshold</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostInd1</span>  <span class="o">+</span> <span class="mi">1</span><span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayers</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostInd1</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostInd2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostindexS</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">FrostIndexThreshold2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostInd2</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayers</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostInd2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;dateEnd&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostInd1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostInd1</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;diffdays&#39;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostInd2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">frostInd2</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;diffdays&#39;</span><span class="p">])</span>
+
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">excludeGlacierArea</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Snow</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayersFloat</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rain</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayersFloat</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowMelt</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayersFloat</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">IceMelt</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayersFloat</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCover</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">numberSnowLayersFloat</span>
+
+        <span class="c1"># all in pixel</span>
+
+        <span class="c1"># DEBUG Snow</span>
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;calcWaterBalance&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">waterbalance_module</span><span class="o">.</span><span class="n">waterBalanceCheck</span><span class="p">(</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Snow</span><span class="p">],</span>  <span class="c1"># In</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowMelt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">IceMelt</span><span class="p">],</span>  <span class="c1"># Out</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">prevSnowCover</span><span class="p">],</span>   <span class="c1"># prev storage</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCover</span><span class="p">],</span>
+                <span class="s2">&quot;Snow1&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+
+        <span class="c1"># ---------------------------------------------------------------------------------</span>
+        <span class="c1"># Dynamic part of frost index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Kfrost</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">FrostIndexChangeRate</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Afrost</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">FrostIndex</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span> <span class="o">*</span> \
+            <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.4</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Kfrost</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowCover</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">SnowWaterEquivalent</span><span class="p">))</span>
+        <span class="c1"># Rate of change of frost index (expressed as rate, [degree days/day])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">FrostIndex</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">FrostIndex</span> <span class="o">+</span> <span class="n">FrostIndexChangeRate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">DtDay</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># frost index in soil [degree days] based on Molnau and Bissel (1983, A Continuous Frozen Ground Index for Flood</span>
+        <span class="c1"># Forecasting. In: Maidment, Handbook of Hydrology, p. 7.28, 7.55)</span>
+        <span class="c1"># if Tavg is above zero, FrostIndex will stay 0</span>
+        <span class="c1"># if Tavg is negative, FrostIndex will increase with 1 per degree C per day</span>
+        <span class="c1"># Exponent of 0.04 (instead of 0.4 in HoH): conversion [cm] to [mm]!  -&gt; from cm to m HERE -&gt; 100 * 0.4</span>
+        <span class="c1"># maximum snowlayer = 1.0 m</span>
+        <span class="c1"># Division by SnowDensity because SnowDepth is expressed as equivalent water depth(always less than depth of snow pack)</span>
+        <span class="c1"># SnowWaterEquivalent taken as 0.45</span>
+        <span class="c1"># Afrost, (daily decay coefficient) is taken as 0.97 (Handbook of Hydrology, p. 7.28)</span>
+        <span class="c1"># Kfrost, (snow depth reduction coefficient) is taken as 0.57 [1/cm], (HH, p. 7.28) -&gt; from Molnau taken as 0.5 for t&gt; 0 and 0.08 for T&lt;0</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        if self.var.extfrostindex:</span>
+
+<span class="sd">            if dateVar[&#39;curr&#39;] &gt;= dateVar[&#39;intSpin&#39;]:</span>
+<span class="sd">                self.var.frostInd1 = np.where(self.var.FrostIndex &gt; self.var.FrostIndexThreshold, self.var.frostInd1  +1., self.var.frostInd1)</span>
+<span class="sd">                self.var.frostInd2 = np.where(self.var.FrostIndex &gt; 84., self.var.frostInd2  +1., self.var.frostInd2)</span>
+
+<span class="sd">            if dateVar[&#39;currDate&#39;] == dateVar[&#39;dateEnd&#39;]:</span>
+<span class="sd">                self.var.frostInd1 = self.var.frostInd1 / float(dateVar[&#39;diffdays&#39;])</span>
+<span class="sd">                self.var.frostInd2 = self.var.frostInd2 / float(dateVar[&#39;diffdays&#39;])</span>
+<span class="sd">                ii = 1</span>
+<span class="sd">        &quot;&quot;&quot;</span></div></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, IIASA Water Security.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

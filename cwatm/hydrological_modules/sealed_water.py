@@ -31,7 +31,7 @@ class sealed_water(object):
     openWaterEvap                          Simulated evaporation from open areas                                   m    
     actTransTotal                          Total actual transpiration from the three soil layers                   m    
     actBareSoilEvap                        Simulated evaporation from the first soil layer                         m    
-    capillar                               Simulated flow from groundwater to the third CWATM soil layer           m    
+    capillar                               Flow from groundwater to the third CWATM soil layer. Used with MODFLOW  m    
     =====================================  ======================================================================  =====
 
     **Functions**
@@ -46,27 +46,25 @@ class sealed_water(object):
         Dynamic part of the sealed_water module
 
         runoff calculation for open water and sealed areas
-
-        :param coverType: Land cover type: forest, grassland  ...
-        :param No: number of land cover type: forest = 0, grassland = 1 ...
         """
 
-        if No > 3:
+        if No > 3:  # 4 = sealed areas, 5 = water
             if coverType == "water":
                 # bigger than 1.0 because of wind evaporation
                 mult = 1.0
             else:
                 mult = 0.2  # evaporation from open areas on sealed area estimated as 0.2 EWRef
 
-            if self.var.modflow:  # Capillary rise from ModFlow occuring under lakes is sent to runoff
-                self.var.openWaterEvap[No] = np.minimum(mult * self.var.EWRef, self.var.availWaterInfiltration[No] + self.var.capillar)
-                self.var.directRunoff[No] = self.var.availWaterInfiltration[No] - self.var.openWaterEvap[No] + self.var.capillar
-                # GW capillary rise in sealed area is added to the runoff
+            if self.var.modflow:  # ModFlow Capillary rise under sealed areas and water bodies is sent to runoff
+                self.var.openWaterEvap[No] = np.minimum(mult * self.var.EWRef,
+                                                        self.var.availWaterInfiltration[No] + self.var.capillar)
+                self.var.directRunoff[No] = self.var.availWaterInfiltration[No] \
+                                            - self.var.openWaterEvap[No] + self.var.capillar
             else:
                 self.var.openWaterEvap[No] =  np.minimum(mult * self.var.EWRef, self.var.availWaterInfiltration[No])
                 self.var.directRunoff[No] = self.var.availWaterInfiltration[No] - self.var.openWaterEvap[No]
 
-            # open water evaporation is directly substracted from the river, lakes, reservoir
+            # open water evaporation is directly subtracted from the rivers, lakes, and reservoirs
             self.var.actualET[No] = self.var.actualET[No] +  self.var.openWaterEvap[No]
 
         if checkOption('calcWaterBalance') and (No>3):

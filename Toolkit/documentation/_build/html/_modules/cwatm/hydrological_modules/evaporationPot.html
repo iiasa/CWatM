@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cwatm.hydrological_modules.evaporationPot &mdash; Community Water Model</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/iiasa.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Community Water Model
+              <img src="../../../_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.6
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../errorHandling.html">6. Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../listVariables.html">7. List of output variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../results.html">8. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../todo.html">9. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../data.html">10. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration.html">11. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../calibration_tutorial.html">12. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../resolution.html">13. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zambezi.html">14. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">15. License and download info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sourcecode.html">16. Source code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../forum.html">17. Forum</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Community Water Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cwatm.hydrological_modules.evaporationPot</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cwatm.hydrological_modules.evaporationPot</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -------------------------------------------------------------------------</span>
+<span class="c1"># Name:        POTENTIAL REFERENCE EVAPO(TRANSPI)RATION</span>
+<span class="c1"># Purpose:</span>
+<span class="c1">#</span>
+<span class="c1"># Author:      PB</span>
+<span class="c1">#</span>
+<span class="c1"># Created:     10/01/2017</span>
+<span class="c1"># Copyright:   (c) PB 2017</span>
+<span class="c1"># -------------------------------------------------------------------------</span>
+
+<span class="kn">from</span> <span class="nn">cwatm.management_modules.data_handling</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="evaporationPot"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.evaporationPot.evaporationPot">[docs]</a><span class="k">class</span> <span class="nc">evaporationPot</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    POTENTIAL REFERENCE EVAPO(TRANSPI)RATION</span>
+<span class="sd">    Calculate potential evapotranspiration from climate data mainly based on FAO 56 and LISVAP</span>
+<span class="sd">    Based on Penman Monteith</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        http://www.fao.org/docrep/X0490E/x0490e08.htm#penman%20monteith%20equation</span>
+<span class="sd">        http://www.fao.org/docrep/X0490E/x0490e06.htm  http://www.fao.org/docrep/X0490E/x0490e06.htm</span>
+<span class="sd">        https://ec.europa.eu/jrc/en/publication/eur-scientific-and-technical-research-reports/lisvap-evaporation-pre-processor-lisflood-water-balance-and-flood-simulation-model</span>
+
+<span class="sd">    **Global variables**</span>
+
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    Variable [self.var]                    Description                                                             Unit </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    cropCorrect                            calibration factor of crop KC factor                                    --   </span>
+<span class="sd">    pet_modus                              Flag: index which ETP approach is used e.g. 1 for Penman-Monteith       bool </span>
+<span class="sd">    AlbedoCanopy                           Albedo of vegetation canopy (FAO,1998) default =0.23                    --   </span>
+<span class="sd">    AlbedoSoil                             Albedo of bare soil surface (Supit et. al. 1994) default = 0.15         --   </span>
+<span class="sd">    AlbedoWater                            Albedo of water surface (Supit et. al. 1994) default = 0.05             --   </span>
+<span class="sd">    dem                                                                                                            --   </span>
+<span class="sd">    lat                                                                                                            --   </span>
+<span class="sd">    co2                                                                                                            --   </span>
+<span class="sd">    albedoLand                             albedo from land surface (from GlobAlbedo database)                     --   </span>
+<span class="sd">    albedoOpenWater                        albedo from open water surface (from GlobAlbedo database)               --   </span>
+<span class="sd">    ETRef                                  potential evapotranspiration rate from reference crop                   m    </span>
+<span class="sd">    only_radition                                                                                                  --   </span>
+<span class="sd">    TMin                                   minimum air temperature                                                 K    </span>
+<span class="sd">    TMax                                   maximum air temperature                                                 K    </span>
+<span class="sd">    Tavg                                   Input, average air Temperature                                          K    </span>
+<span class="sd">    Rsds                                   short wave downward surface radiation fluxes                            W/m2 </span>
+<span class="sd">    EAct                                                                                                           --   </span>
+<span class="sd">    Psurf                                  Instantaneous surface pressure                                          Pa   </span>
+<span class="sd">    Qair                                   specific humidity                                                       kg/kg</span>
+<span class="sd">    Rsdl                                   long wave downward surface radiation fluxes                             W/m2 </span>
+<span class="sd">    Wind                                   wind speed                                                              m/s  </span>
+<span class="sd">    EWRef                                  potential evaporation rate from water surface                           m    </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+
+<span class="sd">    **Functions**</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The constructor evaporationPot</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        
+<div class="viewcode-block" id="evaporationPot.initial"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.evaporationPot.evaporationPot.initial">[docs]</a>    <span class="k">def</span> <span class="nf">initial</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initial part of evaporation type module</span>
+<span class="sd">        Load inictial parameters</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            Only run if *calc_evaporation* is True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1">#self.var.sumETRef = globals.inZero.copy()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">cropCorrect</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;crop_correct&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;calc_evaporation&#39;</span><span class="p">):</span>
+
+
+            <span class="c1"># Default calculation method is Penman Monteith</span>
+            <span class="c1"># if PET_modus is missing use Penman Monteith</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pet_modus</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="s2">&quot;PET_modus&quot;</span> <span class="ow">in</span> <span class="n">option</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pet_modus</span> <span class="o">=</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;PET_modus&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">initial_1</span><span class="p">()</span></div>
+            <span class="c1">#if self.var.pet_modus == 1: self.initial_1()</span>
+
+    <span class="c1"># --------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="evaporationPot.initial_1"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.evaporationPot.evaporationPot.initial_1">[docs]</a>    <span class="k">def</span> <span class="nf">initial_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initial part of evaporation type module</span>
+<span class="sd">        Load initial parameters</span>
+<span class="sd">        1: Penman Monteith</span>
+<span class="sd">        2: Milly and Dunne method</span>
+<span class="sd">        P. C. D. Milly* and K. A. Dunne, 2016: Potential evapotranspiration and continental drying, Nature Climate Change, DOI: 10.1038/NCLIMATE3046</span>
+<span class="sd">        Energy only PET: ET=0.8(Rn ?)   equation 8</span>
+<span class="sd">        3: Yang et al. Penman Montheith correction method</span>
+<span class="sd">        Yang, Y., Roderick, M. L., Zhang, S., McVicar, T. R., and Donohue, R. J.: Hydrologic implications of vegetation response to elevated CO2 in climate projections, Nat. Clim. Change, 9, 44-48, 10.1038/s41558-018-0361-0, 2019.</span>
+<span class="sd">        Equation 14: where the term 2.14 accounts for changing [CO2] on rs</span>
+
+<span class="sd">        </span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">AlbedoCanopy</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;AlbedoCanopy&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">AlbedoSoil</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;AlbedoSoil&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">AlbedoWater</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;AlbedoWater&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">only_radition</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dem</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;dem&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lat</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;latitude&#39;</span><span class="p">)</span></div>
+
+    <span class="c1"># --------------------------------------------------------------------------</span>
+    <span class="c1"># --------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="evaporationPot.dynamic"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.evaporationPot.evaporationPot.dynamic">[docs]</a>    <span class="k">def</span> <span class="nf">dynamic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dynamic part of the potential evaporation module</span>
+
+<span class="sd">        :return: </span>
+<span class="sd">            - ETRef - potential reference evapotranspiration rate [m/day]</span>
+<span class="sd">            - EWRef - potential evaporation rate from water surface [m/day]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;calc_evaporation&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pet_modus</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dynamic_1</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pet_modus</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dynamic_2</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pet_modus</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dynamic_1</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pet_modus</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dynamic_4</span><span class="p">()</span></div>
+
+    <span class="c1"># --------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="evaporationPot.dynamic_1"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.evaporationPot.evaporationPot.dynamic_1">[docs]</a>    <span class="k">def</span> <span class="nf">dynamic_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dynamic part of the potential evaporation module</span>
+<span class="sd">        Based on Penman Monteith - FAO 56</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pet_modus</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="c1">#Yang et al.Penman Montheith correction method</span>
+            <span class="c1"># loading CO2 concentration RCP2.6-RCP8.5</span>
+            <span class="k">if</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;newStart&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;newYear&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">co2</span> <span class="o">=</span> <span class="n">readnetcdf2</span><span class="p">(</span><span class="s1">&#39;co2conc&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="s2">&quot;yearly&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;CO2&quot;</span><span class="p">,</span> <span class="n">cut</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">ESatmin</span> <span class="o">=</span> <span class="mf">0.6108</span><span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="mf">17.27</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span> <span class="o">+</span> <span class="mf">237.3</span><span class="p">))</span>
+        <span class="n">ESatmax</span> <span class="o">=</span> <span class="mf">0.6108</span><span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="mf">17.27</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span> <span class="o">+</span> <span class="mf">237.3</span><span class="p">))</span>
+        <span class="n">ESat</span> <span class="o">=</span> <span class="p">(</span><span class="n">ESatmin</span> <span class="o">+</span> <span class="n">ESatmax</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>   <span class="c1"># [KPa]</span>
+        <span class="c1"># http://www.fao.org/docrep/X0490E/x0490e07.htm   equation 11/12</span>
+        <span class="n">RNup</span> <span class="o">=</span> <span class="mf">4.903E-9</span> <span class="o">*</span> <span class="p">(((</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span> <span class="o">+</span> <span class="mf">273.16</span><span class="p">)</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span> <span class="o">+</span> <span class="mf">273.16</span><span class="p">)</span> <span class="o">**</span> <span class="mi">4</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="c1"># Up longwave radiation [MJ/m2/day]</span>
+        <span class="n">LatHeatVap</span> <span class="o">=</span> <span class="mf">2.501</span> <span class="o">-</span> <span class="mf">0.002361</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span>
+        <span class="c1"># latent heat of vaporization [MJ/kg]</span>
+
+        <span class="c1"># --------------------------------</span>
+        <span class="c1"># if only daily calculate radiation is given instead of longwave down and shortwave down radiation</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">only_radition</span><span class="p">:</span>
+            <span class="c1"># FAO 56 - https://www.fao.org/3/x0490E/x0490e07.htm#solar%20radiation  equation 39</span>
+            <span class="n">radian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lat</span>
+            <span class="n">distanceSun</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="mf">0.033</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;doy&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">365</span><span class="p">)</span>
+            <span class="c1"># Chapter 3: equation 24</span>
+            <span class="n">declin</span> <span class="o">=</span> <span class="mf">0.409</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;doy&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">365</span> <span class="o">-</span> <span class="mf">1.39</span><span class="p">)</span>
+            <span class="n">ws</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">radian</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">declin</span><span class="p">)))</span>
+            <span class="n">Ra</span> <span class="o">=</span> <span class="mi">24</span> <span class="o">*</span><span class="mi">60</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">0.082</span> <span class="o">*</span> <span class="n">distanceSun</span> <span class="o">*</span> <span class="p">(</span><span class="n">ws</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">radian</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">declin</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">radian</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">declin</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ws</span><span class="p">))</span>
+            <span class="c1"># Equation 21 Chapter 3</span>
+            <span class="n">Rso</span> <span class="o">=</span> <span class="n">Ra</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.75</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">**</span> <span class="o">-</span><span class="mi">5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dem</span><span class="p">))</span> <span class="c1"># in MJ/m2/day</span>
+            <span class="c1"># Equation 37 Chapter 3</span>
+            <span class="n">RsRso</span> <span class="o">=</span> <span class="mf">1.35</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span><span class="o">/</span><span class="n">Rso</span> <span class="o">-</span> <span class="mf">0.35</span>
+            <span class="n">RsRso</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">RsRso</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">EmNet</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.34</span> <span class="o">-</span> <span class="mf">0.14</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EAct</span><span class="p">))</span>  <span class="c1"># Eact in hPa but needed in kPa : kpa = 0.1 * hPa - conversion done in readmeteo</span>
+            <span class="n">RLN</span> <span class="o">=</span> <span class="n">RNup</span> <span class="o">*</span> <span class="n">EmNet</span> <span class="o">*</span> <span class="n">RsRso</span>
+            <span class="c1"># Equation 39 Chapter 3</span>
+
+            <span class="n">Psycon</span> <span class="o">=</span> <span class="mf">0.00163</span> <span class="o">*</span> <span class="p">(</span><span class="mf">101.3</span> <span class="o">/</span> <span class="n">LatHeatVap</span><span class="p">)</span>
+            <span class="c1"># psychrometric constant at sea level [mbar/deg C]</span>
+            <span class="c1">#Psycon = 0.665E-3 * self.var.Psurf</span>
+            <span class="c1"># psychrometric constant [kPa C-1]</span>
+            <span class="c1"># http://www.fao.org/docrep/X0490E/x0490e07.htm  Equation 8</span>
+            <span class="c1"># see http://www.fao.org/docrep/X0490E/x0490e08.htm#penman%20monteith%20equation</span>
+            <span class="n">Psycon</span> <span class="o">=</span> <span class="n">Psycon</span> <span class="o">*</span> <span class="p">((</span><span class="mi">293</span> <span class="o">-</span> <span class="mf">0.0065</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dem</span><span class="p">)</span> <span class="o">/</span> <span class="mi">293</span><span class="p">)</span> <span class="o">**</span> <span class="mf">5.26</span>  <span class="c1"># in [KPa deg C-1]</span>
+            <span class="c1"># http://www.fao.org/docrep/X0490E/x0490e07.htm  Equation 7</span>
+
+
+
+
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Psycon</span> <span class="o">=</span> <span class="mf">0.665E-3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Psurf</span>
+            <span class="c1"># psychrometric constant [kPa C-1]</span>
+            <span class="c1"># http://www.fao.org/docrep/X0490E/x0490e07.htm  Equation 8</span>
+            <span class="c1"># see http://www.fao.org/docrep/X0490E/x0490e08.htm#penman%20monteith%20equation</span>
+
+            <span class="c1"># calculate vapor pressure</span>
+            <span class="c1"># Fao 56 Page 36</span>
+            <span class="c1"># calculate actual vapour pressure</span>
+            <span class="k">if</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;useHuss&#39;</span><span class="p">):</span>
+                <span class="c1"># if specific humidity calculate actual vapour pressure this way</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EAct</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Psurf</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Qair</span><span class="p">)</span> <span class="o">/</span> <span class="p">((</span><span class="mf">0.378</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Qair</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.622</span><span class="p">)</span>
+                <span class="c1"># http://www.eol.ucar.edu/projects/ceop/dm/documents/refdata_report/eqns.html</span>
+                <span class="c1"># (self.var.Psurf * self.var.Qair)/0.622</span>
+                <span class="c1"># old calculation not completely ok</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># if relative humidity</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EAct</span> <span class="o">=</span> <span class="n">ESat</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Qair</span> <span class="o">/</span> <span class="mf">100.0</span>
+                <span class="c1"># longwave radiation balance</span>
+            <span class="n">RLN</span> <span class="o">=</span> <span class="n">RNup</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsdl</span>
+            <span class="c1"># RDL is stored on disk as W/m2 but converted in MJ/m2/s in readmeteo.py</span>
+
+        <span class="c1"># ************************************************************</span>
+        <span class="c1"># ***** NET ABSORBED RADIATION *******************************</span>
+        <span class="c1"># ************************************************************</span>
+
+        <span class="k">if</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;albedo&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;newStart&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;newMonth&#39;</span><span class="p">]:</span>  <span class="c1"># loading every month a new map</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">albedoLand</span> <span class="o">=</span> <span class="n">readnetcdf2</span><span class="p">(</span><span class="s1">&#39;albedoMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">useDaily</span><span class="o">=</span><span class="s1">&#39;month&#39;</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;albedoLand&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">albedoOpenWater</span> <span class="o">=</span> <span class="n">readnetcdf2</span><span class="p">(</span><span class="s1">&#39;albedoMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">useDaily</span><span class="o">=</span><span class="s1">&#39;month&#39;</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;albedoWater&#39;</span><span class="p">)</span>
+            <span class="n">RNA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">albedoLand</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">-</span> <span class="n">RLN</span><span class="p">)</span> <span class="o">/</span> <span class="n">LatHeatVap</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">RNAWater</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">albedoOpenWater</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">-</span> <span class="n">RLN</span><span class="p">)</span> <span class="o">/</span> <span class="n">LatHeatVap</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">RNA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">AlbedoCanopy</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">-</span> <span class="n">RLN</span><span class="p">)</span> <span class="o">/</span> <span class="n">LatHeatVap</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="c1"># net absorbed radiation of reference vegetation canopy [mm/d]</span>
+            <span class="c1"># RNASoil = np.maximum(((1 - self.var.AlbedoSoil) * self.var.Rsds - RLN) / LatHeatVap, 0.0)</span>
+            <span class="c1"># net absorbed radiation of bare soil surface</span>
+            <span class="n">RNAWater</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">AlbedoWater</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">-</span> <span class="n">RLN</span><span class="p">)</span> <span class="o">/</span> <span class="n">LatHeatVap</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="c1"># net absorbed radiation of water surface</span>
+
+        <span class="n">VapPressDef</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">ESat</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EAct</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">Delta</span> <span class="o">=</span> <span class="p">((</span><span class="mf">4098.0</span> <span class="o">*</span> <span class="n">ESat</span><span class="p">)</span> <span class="o">/</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span> <span class="o">+</span> <span class="mf">237.3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="c1"># slope of saturated vapour pressure curve [kPa/deg C]</span>
+        <span class="c1"># Equation 13 Chapter 3</span>
+
+        <span class="c1"># Chapter 2 Equation 6</span>
+        <span class="n">windpart</span> <span class="o">=</span> <span class="mi">900</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Wind</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span> <span class="o">+</span> <span class="mf">273.16</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pet_modus</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">denominator</span> <span class="o">=</span> <span class="n">Delta</span> <span class="o">+</span> <span class="n">Psycon</span> <span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.34</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Wind</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Yang et al.Penman Montheith correction method:  term 2 accounts for changing [CO2] on rs.</span>
+            <span class="n">denominator</span> <span class="o">=</span> <span class="n">Delta</span> <span class="o">+</span> <span class="n">Psycon</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Wind</span><span class="o">*</span><span class="p">(</span><span class="mf">0.34</span><span class="o">+</span><span class="mf">0.00024</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">co2</span><span class="o">-</span><span class="mf">300.</span><span class="p">)))</span>
+
+        <span class="n">numerator1</span> <span class="o">=</span> <span class="n">Delta</span> <span class="o">/</span> <span class="n">denominator</span>
+        <span class="n">numerator2</span> <span class="o">=</span> <span class="n">Psycon</span> <span class="o">/</span> <span class="n">denominator</span>
+        <span class="c1"># the 0.408 constant is replace by 1/LatHeatVap see above</span>
+
+        <span class="n">RNAN</span> <span class="o">=</span> <span class="n">RNA</span> <span class="o">*</span> <span class="n">numerator1</span>
+        <span class="c1">#RNANSoil = RNASoil * numerator1</span>
+        <span class="n">RNANWater</span> <span class="o">=</span> <span class="n">RNAWater</span> <span class="o">*</span> <span class="n">numerator1</span>
+
+        <span class="n">EA</span> <span class="o">=</span> <span class="n">windpart</span> <span class="o">*</span> <span class="n">VapPressDef</span> <span class="o">*</span> <span class="n">numerator2</span>
+
+        <span class="c1"># Potential evapo(transpi)ration is calculated for two reference surfaces:</span>
+        <span class="c1"># 1. Reference vegetation canopy</span>
+        <span class="c1"># 2. Open water surface</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span> <span class="o">=</span> <span class="p">(</span><span class="n">RNAN</span> <span class="o">+</span> <span class="n">EA</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.001</span>
+        <span class="c1"># potential reference evapotranspiration rate [m/day]  # from mm to m with 0.001</span>
+        <span class="c1">#self.var.ESRef = RNANSoil + EA</span>
+        <span class="c1"># potential evaporation rate from a bare soil surface [m/day]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span> <span class="o">=</span> <span class="p">(</span><span class="n">RNANWater</span> <span class="o">+</span> <span class="n">EA</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.001</span>
+        <span class="n">ii</span> <span class="o">=</span><span class="mi">1</span></div>
+        <span class="c1"># potential evaporation rate from water surface [m/day]</span>
+
+        <span class="c1"># -&gt; here we are at ET0 (see http://www.fao.org/docrep/X0490E/x0490e04.htm#TopOfPage figure 4:)</span>
+
+        <span class="c1">#self.var.sumETRef = self.var.sumETRef + self.var.ETRef*1000</span>
+
+
+        <span class="c1">#if dateVar[&#39;curr&#39;] ==32:</span>
+        <span class="c1">#ii=1</span>
+
+        <span class="c1">#report(decompress(self.var.sumETRef), &quot;C:\work\output2/sumetref.map&quot;)</span>
+
+<div class="viewcode-block" id="evaporationPot.dynamic_2"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.evaporationPot.evaporationPot.dynamic_2">[docs]</a>    <span class="k">def</span> <span class="nf">dynamic_2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dynamic part of the potential evaporation module</span>
+<span class="sd">        2: Milly and Dunne method</span>
+<span class="sd">        P. C. D. Milly* and K. A. Dunne, 2016: Potential evapotranspiration and continental drying, Nature Climate Change, DOI: 10.1038/NCLIMATE3046</span>
+<span class="sd">        Energy only PET = 0.8(Rn ? )   equation 8</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">LatHeatVap</span> <span class="o">=</span> <span class="mf">2.501</span> <span class="o">-</span> <span class="mf">0.002361</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span>
+        <span class="c1"># latent heat of vaporization [MJ/kg]</span>
+        <span class="n">RNup</span> <span class="o">=</span> <span class="mf">4.903E-9</span> <span class="o">*</span> <span class="p">(((</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span> <span class="o">+</span> <span class="mf">273.16</span><span class="p">)</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span> <span class="o">+</span> <span class="mf">273.16</span><span class="p">)</span> <span class="o">**</span> <span class="mi">4</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="c1"># Up longwave radiation [MJ/m2/day]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">only_radition</span><span class="p">:</span>
+            <span class="c1"># FAO 56 - https://www.fao.org/3/x0490E/x0490e07.htm#solar%20radiation  equation 39</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;doy&#39;</span><span class="p">]</span>
+            <span class="c1">#radian = np.pi / 180 * self.var.lat</span>
+            <span class="n">radian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span> <span class="o">*</span> <span class="o">-</span><span class="mi">20</span>
+            <span class="c1">#distanceSun = 1 + 0.033 *  np.cos(2 * np.pi * dateVar[&#39;doy&#39;] / 365)</span>
+            <span class="n">distanceSun</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="mf">0.033</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mi">246</span> <span class="o">/</span> <span class="mi">365</span><span class="p">)</span>
+            <span class="c1">#declin = 0.409 * np.sin(2 * np.pi * dateVar[&#39;doy&#39;] / 365 - 1.39)</span>
+            <span class="n">declin</span> <span class="o">=</span> <span class="mf">0.409</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mi">246</span> <span class="o">/</span> <span class="mi">365</span> <span class="o">-</span> <span class="mf">1.39</span><span class="p">)</span>
+
+            <span class="n">ws</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">radian</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">declin</span><span class="p">)))</span>
+            <span class="n">Ra</span> <span class="o">=</span> <span class="mi">24</span> <span class="o">*</span><span class="mi">60</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">0.082</span> <span class="o">*</span> <span class="n">distanceSun</span> <span class="o">*</span> <span class="p">(</span><span class="n">ws</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">radian</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">declin</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">radian</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">declin</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ws</span><span class="p">))</span>
+            <span class="n">Rso</span> <span class="o">=</span> <span class="n">Ra</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.75</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">**</span> <span class="o">-</span><span class="mi">5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dem</span><span class="p">))</span>  <span class="c1"># in MJ/m2/day</span>
+
+            <span class="n">RsRso</span> <span class="o">=</span> <span class="mf">1.35</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span><span class="o">/</span><span class="n">Rso</span> <span class="o">-</span> <span class="mf">0.35</span>
+            <span class="n">RsRso</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">RsRso</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">EmNet</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.34</span> <span class="o">-</span> <span class="mf">0.14</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EAct</span><span class="p">))</span>  <span class="c1"># Eact in hPa but needed in kPa : kpa = 0.1 * hPa - conversion done in readmeteo</span>
+            <span class="n">RLN</span> <span class="o">=</span> <span class="n">RNup</span> <span class="o">*</span> <span class="n">EmNet</span> <span class="o">*</span> <span class="n">RsRso</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">RLN</span> <span class="o">=</span> <span class="n">RNup</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsdl</span>
+            <span class="c1"># RDL is stored on disk as W/m2 but converted in MJ/m2/s in readmeteo.py</span>
+
+        <span class="k">if</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;albedo&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;newStart&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;newMonth&#39;</span><span class="p">]:</span>  <span class="c1"># loading every month a new map</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">albedoLand</span> <span class="o">=</span> <span class="n">readnetcdf2</span><span class="p">(</span><span class="s1">&#39;albedoMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">useDaily</span><span class="o">=</span><span class="s1">&#39;month&#39;</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;albedoLand&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">albedoOpenWater</span> <span class="o">=</span> <span class="n">readnetcdf2</span><span class="p">(</span><span class="s1">&#39;albedoMaps&#39;</span><span class="p">,</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;currDate&#39;</span><span class="p">],</span> <span class="n">useDaily</span><span class="o">=</span><span class="s1">&#39;month&#39;</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;albedoWater&#39;</span><span class="p">)</span>
+            <span class="n">RNA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">albedoLand</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">-</span> <span class="n">RLN</span><span class="p">)</span> <span class="o">/</span> <span class="n">LatHeatVap</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">RNAWater</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">albedoOpenWater</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">-</span> <span class="n">RLN</span><span class="p">)</span> <span class="o">/</span> <span class="n">LatHeatVap</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">RNA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">AlbedoCanopy</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">-</span> <span class="n">RLN</span><span class="p">)</span> <span class="o">/</span> <span class="n">LatHeatVap</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="c1"># net absorbed radiation of reference vegetation canopy [mm/d]</span>
+            <span class="c1"># RNASoil = np.maximum(((1 - self.var.AlbedoSoil) * self.var.Rsds - RLN) / LatHeatVap, 0.0)</span>
+            <span class="c1"># net absorbed radiation of bare soil surface</span>
+            <span class="n">RNAWater</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">AlbedoWater</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">-</span> <span class="n">RLN</span><span class="p">)</span> <span class="o">/</span> <span class="n">LatHeatVap</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="c1"># net absorbed radiation of water surface</span>
+
+        <span class="c1"># 1. Reference vegetation canopy</span>
+        <span class="c1"># 2. Open water surface</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span> <span class="o">=</span> <span class="mf">0.8</span> <span class="o">*</span> <span class="n">RNA</span> <span class="o">*</span> <span class="mf">0.001</span>
+        <span class="c1"># potential reference evapotranspiration rate [m/day]  # from mm to m with 0.001</span>
+        <span class="c1"># potential evaporation rate from a bare soil surface [m/day]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span> <span class="o">=</span> <span class="mf">0.8</span> <span class="o">*</span> <span class="n">RNAWater</span> <span class="o">*</span> <span class="mf">0.001</span></div>
+
+<div class="viewcode-block" id="evaporationPot.dynamic_4"><a class="viewcode-back" href="../../../hydrological_modules.html#cwatm.hydrological_modules.evaporationPot.evaporationPot.dynamic_4">[docs]</a>    <span class="k">def</span> <span class="nf">dynamic_4</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dynamic part of the potential evaporation module</span>
+<span class="sd">        4. Priestley-Taylor  1.26 * delat</span>
+<span class="sd">        https://wetlandscapes.github.io/blog/blog/penman-monteith-and-priestley-taylor/</span>
+<span class="sd">        uses only tmin, tmax, tavg, rsds, rlds (or rsd)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ESatmin</span> <span class="o">=</span> <span class="mf">0.6108</span><span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="mf">17.27</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span> <span class="o">+</span> <span class="mf">237.3</span><span class="p">))</span>
+        <span class="n">ESatmax</span> <span class="o">=</span> <span class="mf">0.6108</span><span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="mf">17.27</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span> <span class="o">+</span> <span class="mf">237.3</span><span class="p">))</span>
+        <span class="n">ESat</span> <span class="o">=</span> <span class="p">(</span><span class="n">ESatmin</span> <span class="o">+</span> <span class="n">ESatmax</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>   <span class="c1"># [KPa]</span>
+        <span class="c1"># http://www.fao.org/docrep/X0490E/x0490e07.htm   equation 11/12</span>
+        <span class="n">RNup</span> <span class="o">=</span> <span class="mf">4.903E-9</span> <span class="o">*</span> <span class="p">(((</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMin</span> <span class="o">+</span> <span class="mf">273.16</span><span class="p">)</span> <span class="o">**</span> <span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">TMax</span> <span class="o">+</span> <span class="mf">273.16</span><span class="p">)</span> <span class="o">**</span> <span class="mi">4</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="c1"># Up longwave radiation [MJ/m2/day]</span>
+        <span class="n">LatHeatVap</span> <span class="o">=</span> <span class="mf">2.501</span> <span class="o">-</span> <span class="mf">0.002361</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span>
+        <span class="c1"># latent heat of vaporization [MJ/kg]</span>
+
+
+        <span class="c1"># if only daily calculate radiation is given instead of longwave down and shortwave down radiation</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">only_radition</span><span class="p">:</span>
+            <span class="c1"># FAO 56 - https://www.fao.org/3/x0490E/x0490e07.htm#solar%20radiation  equation 39</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;doy&#39;</span><span class="p">]</span>
+            <span class="c1">#radian = np.pi / 180 * self.var.lat</span>
+            <span class="n">radian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span> <span class="o">*</span> <span class="o">-</span><span class="mi">20</span>
+            <span class="c1">#distanceSun = 1 + 0.033 *  np.cos(2 * np.pi * dateVar[&#39;doy&#39;] / 365)</span>
+            <span class="n">distanceSun</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="mf">0.033</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mi">246</span> <span class="o">/</span> <span class="mi">365</span><span class="p">)</span>
+            <span class="c1">#declin = 0.409 * np.sin(2 * np.pi * dateVar[&#39;doy&#39;] / 365 - 1.39)</span>
+            <span class="n">declin</span> <span class="o">=</span> <span class="mf">0.409</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mi">246</span> <span class="o">/</span> <span class="mi">365</span> <span class="o">-</span> <span class="mf">1.39</span><span class="p">)</span>
+
+            <span class="n">ws</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">radian</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">(</span><span class="n">declin</span><span class="p">)))</span>
+            <span class="n">Ra</span> <span class="o">=</span> <span class="mi">24</span> <span class="o">*</span><span class="mi">60</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">0.082</span> <span class="o">*</span> <span class="n">distanceSun</span> <span class="o">*</span> <span class="p">(</span><span class="n">ws</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">radian</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">declin</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">radian</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">declin</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ws</span><span class="p">))</span>
+            <span class="n">Rso</span> <span class="o">=</span> <span class="n">Ra</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.75</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">**</span> <span class="o">-</span><span class="mi">5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dem</span><span class="p">))</span>  <span class="c1"># in MJ/m2/day</span>
+
+            <span class="n">RsRso</span> <span class="o">=</span> <span class="mf">1.35</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span><span class="o">/</span><span class="n">Rso</span> <span class="o">-</span> <span class="mf">0.35</span>
+            <span class="n">RsRso</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">RsRso</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">EmNet</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.34</span> <span class="o">-</span> <span class="mf">0.14</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EAct</span><span class="p">))</span>  <span class="c1"># Eact in hPa but needed in kPa : kpa = 0.1 * hPa - conversion done in readmeteo</span>
+            <span class="n">RLN</span> <span class="o">=</span> <span class="n">RNup</span> <span class="o">*</span> <span class="n">EmNet</span> <span class="o">*</span> <span class="n">RsRso</span>
+
+            <span class="n">Psycon</span> <span class="o">=</span> <span class="mf">0.00163</span> <span class="o">*</span> <span class="p">(</span><span class="mf">101.3</span> <span class="o">/</span> <span class="n">LatHeatVap</span><span class="p">)</span>
+            <span class="c1"># psychrometric constant at sea level [mbar/deg C]</span>
+            <span class="c1">#Psycon = 0.665E-3 * self.var.Psurf</span>
+            <span class="c1"># psychrometric constant [kPa C-1]</span>
+            <span class="c1"># http://www.fao.org/docrep/X0490E/x0490e07.htm  Equation 8</span>
+            <span class="c1"># see http://www.fao.org/docrep/X0490E/x0490e08.htm#penman%20monteith%20equation</span>
+            <span class="n">Psycon</span> <span class="o">=</span> <span class="n">Psycon</span> <span class="o">*</span> <span class="p">((</span><span class="mi">293</span> <span class="o">-</span> <span class="mf">0.0065</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dem</span><span class="p">)</span> <span class="o">/</span> <span class="mi">293</span><span class="p">)</span> <span class="o">**</span> <span class="mf">5.26</span>  <span class="c1"># in [KPa deg C-1]</span>
+            <span class="c1"># http://www.fao.org/docrep/X0490E/x0490e07.htm  Equation 7</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">RLN</span> <span class="o">=</span> <span class="n">RNup</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsdl</span>
+            <span class="n">Psycon</span> <span class="o">=</span> <span class="mf">0.665E-3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Psurf</span>
+            <span class="c1"># psychrometric constant [kPa C-1]</span>
+            <span class="c1"># http://www.fao.org/docrep/ X0490E/ x0490e07.htm  Equation 8</span>
+            <span class="c1"># see http://www.fao.org/docrep/X0490E/x0490e08.htm#penman%20monteith%20equation</span>
+
+        <span class="c1"># RDL is stored on disk as W/m2 but converted in MJ/m2/s in readmeteo.py</span>
+        <span class="n">RNA</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">AlbedoCanopy</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">-</span> <span class="n">RLN</span><span class="p">)</span> <span class="o">/</span> <span class="n">LatHeatVap</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">RNAWater</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(((</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">AlbedoWater</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Rsds</span> <span class="o">-</span> <span class="n">RLN</span><span class="p">)</span> <span class="o">/</span> <span class="n">LatHeatVap</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="n">Delta</span> <span class="o">=</span> <span class="p">((</span><span class="mf">4098.0</span> <span class="o">*</span> <span class="n">ESat</span><span class="p">)</span> <span class="o">/</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">Tavg</span> <span class="o">+</span> <span class="mf">237.3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="c1"># slope of saturated vapour pressure curve [mbar/deg C]</span>
+
+        <span class="n">RNAN</span> <span class="o">=</span> <span class="mf">1.1</span> <span class="o">*</span> <span class="n">Delta</span> <span class="o">/</span> <span class="p">(</span><span class="n">Delta</span> <span class="o">+</span> <span class="n">Psycon</span><span class="p">)</span>  <span class="o">*</span> <span class="n">RNA</span>
+        <span class="c1">#RNANSoil = RNASoil * numerator1</span>
+        <span class="n">RNANWater</span> <span class="o">=</span> <span class="mf">1.26</span> <span class="o">*</span> <span class="n">Delta</span> <span class="o">/</span> <span class="p">(</span><span class="n">Delta</span> <span class="o">+</span> <span class="n">Psycon</span><span class="p">)</span> <span class="o">*</span> <span class="n">RNAWater</span>
+
+        <span class="c1"># 1. Reference vegetation canopy</span>
+        <span class="c1"># 2. Open water surface</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ETRef</span> <span class="o">=</span> <span class="n">RNAN</span> <span class="o">*</span> <span class="mf">0.001</span>
+        <span class="c1"># potential reference evapotranspiration rate [m/day]  # from mm to m with 0.001</span>
+        <span class="c1"># potential evaporation rate from a bare soil surface [m/day]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EWRef</span> <span class="o">=</span> <span class="n">RNANWater</span> <span class="o">*</span> <span class="mf">0.001</span></div></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, IIASA Water Security.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
