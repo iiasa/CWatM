@@ -2335,7 +2335,11 @@ class water_demand:
                                                            self.var.act_totalWaterWithdrawal + self.var.unmetDemand))
 
             # 'fossil_water_treated_normally' means that there is no lost fossil water
-            if checkOption('limitAbstraction') or checkOption('fossil_water_treated_normally'):
+            if 'fossil_water_treated_normally' in option:
+                if checkOption('fossil_water_treated_normally'):
+                    unmet_div_ww = 1
+
+            if checkOption('limitAbstraction'):
                 unmet_div_ww = 1
 
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
