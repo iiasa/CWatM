@@ -900,11 +900,11 @@ class lakes_reservoirs(object):
 
             # Output maps for lakeResInflow and lakeResOutflow when using type-4 res.
             # The standard map inflate the overall res. water volumes
-            if self.var.includeType4:
-                self.var.lakeResInflowM_2 = np.where(self.var.waterBodyTyp == 4,
-                                                     self.var.lakeResInflowM - self.var.lakeResOutflowM,
-                                                     self.var.lakeResInflowM)
-                self.var.lakeResOutflowM_2 = np.where(self.var.waterBodyTyp == 4, 0., self.var.lakeResOutflowM)
+            
+            self.var.lakeResInflowM_2 = np.where(self.var.waterBodyTyp == 4,
+                                                self.var.lakeResInflowM - self.var.lakeResOutflowM,
+                                                self.var.lakeResInflowM)
+            self.var.lakeResOutflowM_2 = np.where(self.var.waterBodyTyp == 4, 0., self.var.lakeResOutflowM)
 
             np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
             np.put(self.var.lakeStorage, self.var.decompress_LR, lakeStorageC)
