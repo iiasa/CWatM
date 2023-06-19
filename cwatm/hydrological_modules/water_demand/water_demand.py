@@ -2334,7 +2334,8 @@ class water_demand:
             unmet_div_ww = 1. - np.minimum(1, divideValues(self.var.unmetDemand,
                                                            self.var.act_totalWaterWithdrawal + self.var.unmetDemand))
 
-            if checkOption('limitAbstraction'):
+            # 'fossil_water_treated_normally' means that there is no lost fossil water
+            if checkOption('limitAbstraction') or checkOption('fossil_water_treated_normally'):
                 unmet_div_ww = 1
 
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
