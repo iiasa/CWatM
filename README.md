@@ -10,14 +10,17 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3528097.svg)](https://doi.org/10.5281/zenodo.3528097)
 
 
-**User manual and model documentation on [https://cwatm.iiasa.ac.at](https://cwatm.iiasa.ac.at)**
+User manual and model documentation at [https://cwatm.iiasa.ac.at](https://cwatm.iiasa.ac.at).
 
-**Questions? Start a discussion on our [forum](https://github.com/iiasa/CWatM/discussions)**
-**and check out our tutorials on [YouTube](https://youtube.com/playlist?list=PLyT8dd_rWLaymQIewMyzVcjMYvPR8Rqtw)**
+Questions? Start a discussion on our [GitHub forum](https://github.com/iiasa/CWatM/discussions) and 
+check out our [CWatM tutorials on YouTube](https://www.youtube.com/playlist?list=PLyT8dd_rWLaymQIewMyzVcjMYvPR8Rqtw).
+
+Our repository [CWatM-Earth-30min](https://github.com/iiasa/CWatM-Earth-30min) contains input data for CWatM at 30 arcminutes and further links to climate and higher resolution input data.
+
 
 ## Overview and scope
 
-Community Water Model (CWatM) is a hydrological model simulating the water cycle daily at global and local levels, historically and into the future, maintained by IIASA’s Water Security group. CWatM assesses water supply, demand, and environmental needs, including water management and human influence within the water cycle. CWatM includes an accounting of how future water demands will evolve in response to socioeconomic change and how water availability will change in response to climate and management.
+Community Water Model (CWatM) is a hydrological model simulating the water cycle daily at global and local levels, historically and into the future, maintained by IIASAâ€™s Water Security group. CWatM assesses water supply, demand, and environmental needs, including water management and human influence within the water cycle. CWatM includes an accounting of how future water demands will evolve in response to socioeconomic change and how water availability will change in response to climate and management.
 
 CWatM is open source, and its modular structure facilitates integration with other models. CWatM will be a basis to develop next-generation global hydro-economic modelling coupled with existing IIASA models like MESSAGE and GLOBIOM.
 
