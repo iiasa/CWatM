@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cwatm.hydrological_modules.routing_reservoirs.routing_sub &mdash; Community Water Model</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/iiasa.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            Community Water Model
+              <img src="../../../../_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.6
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../errorHandling.html">6. Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../listVariables.html">7. List of output variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../results.html">8. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../todo.html">9. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../data.html">10. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../calibration.html">11. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../calibration_tutorial.html">12. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../resolution.html">13. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zambezi.html">14. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../license.html">15. License and download info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../sourcecode.html">16. Source code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../forum.html">17. Forum</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Community Water Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cwatm.hydrological_modules.routing_reservoirs.routing_sub</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cwatm.hydrological_modules.routing_reservoirs.routing_sub</h1><div class="highlight"><pre>
+<span></span><span class="c1">#-------------------------------------------------------------------------------</span>
+<span class="c1"># Name:        routing_sub</span>
+<span class="c1"># Purpose:     subroutines for routing kinematic waves</span>
+<span class="c1">#</span>
+<span class="c1"># Author:      burekpe</span>
+<span class="c1">#</span>
+<span class="c1"># Created:     17/01/2017</span>
+<span class="c1"># Copyright:   (c) burek 2017</span>
+<span class="c1">#-------------------------------------------------------------------------------</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">cwatm.management_modules.data_handling</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">ROUTING subroutines</span>
+<span class="sd">partly using C++ for speeding up</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="Compress"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.Compress">[docs]</a><span class="k">def</span> <span class="nf">Compress</span> <span class="p">(</span><span class="nb">map</span><span class="p">,</span><span class="n">mask</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    compressing map from 2D to 1D without missing values</span>
+
+<span class="sd">    :param map:  input map</span>
+<span class="sd">    :param mask: mask map</span>
+<span class="sd">    :return: compressed map</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">maskmap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="nb">map</span><span class="p">,</span><span class="n">mask</span><span class="p">)</span>
+    <span class="n">compmap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">compressed</span><span class="p">(</span><span class="n">maskmap</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">compmap</span></div>
+
+
+<div class="viewcode-block" id="decompress1"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.decompress1">[docs]</a><span class="k">def</span> <span class="nf">decompress1</span><span class="p">(</span><span class="nb">map</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decompressing map from 1D to 2D with missing values</span>
+
+<span class="sd">    :param map: compressed map</span>
+<span class="sd">    :return: decompressed 2D map</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dmap</span> <span class="o">=</span> <span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;maskall&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">dmap</span><span class="p">[</span><span class="o">~</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;maskflat&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">map</span><span class="p">[:]</span>
+    <span class="n">dmap</span> <span class="o">=</span> <span class="n">dmap</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">dmap</span></div>
+
+
+<div class="viewcode-block" id="postorder"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.postorder">[docs]</a><span class="k">def</span> <span class="nf">postorder</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span><span class="n">catchment</span><span class="p">,</span><span class="n">node</span><span class="p">,</span><span class="n">catch</span><span class="p">,</span><span class="n">dirDown</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Routine to run a postorder tree traversal</span>
+
+<span class="sd">    :param dirUp:</span>
+<span class="sd">    :param catchment:</span>
+<span class="sd">    :param node:</span>
+<span class="sd">    :param catch:</span>
+<span class="sd">    :param dirDown:</span>
+<span class="sd">    :return: dirDown and catchment</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="n">postorder</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span><span class="n">catchment</span><span class="p">,</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">catch</span><span class="p">,</span><span class="n">dirDown</span><span class="p">)</span>
+        <span class="n">catchment</span><span class="p">[</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span><span class="o">=</span><span class="n">catch</span>
+        <span class="n">dirDown</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">postorder</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span><span class="n">catchment</span><span class="p">,</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span><span class="n">catch</span><span class="p">,</span><span class="n">dirDown</span><span class="p">)</span>
+            <span class="n">catchment</span><span class="p">[</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span><span class="o">=</span><span class="n">catch</span>
+            <span class="n">dirDown</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">2</span><span class="p">:</span>
+               <span class="n">postorder</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span><span class="n">catchment</span><span class="p">,</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span><span class="n">catch</span><span class="p">,</span><span class="n">dirDown</span><span class="p">)</span>
+               <span class="n">catchment</span><span class="p">[</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">2</span><span class="p">]]</span><span class="o">=</span><span class="n">catch</span>
+               <span class="n">dirDown</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+               <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">3</span><span class="p">:</span>
+                <span class="n">postorder</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span><span class="n">catchment</span><span class="p">,</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span><span class="n">catch</span><span class="p">,</span><span class="n">dirDown</span><span class="p">)</span>
+                <span class="n">catchment</span><span class="p">[</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">3</span><span class="p">]]</span><span class="o">=</span><span class="n">catch</span>
+                <span class="n">dirDown</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">4</span><span class="p">:</span>
+                 <span class="n">postorder</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span><span class="n">catchment</span><span class="p">,</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">4</span><span class="p">],</span><span class="n">catch</span><span class="p">,</span><span class="n">dirDown</span><span class="p">)</span>
+                 <span class="n">catchment</span><span class="p">[</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">4</span><span class="p">]]</span><span class="o">=</span><span class="n">catch</span>
+                 <span class="n">dirDown</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">4</span><span class="p">])</span>
+                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">5</span><span class="p">:</span>
+                  <span class="n">postorder</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span><span class="n">catchment</span><span class="p">,</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">5</span><span class="p">],</span><span class="n">catch</span><span class="p">,</span><span class="n">dirDown</span><span class="p">)</span>
+                  <span class="n">catchment</span><span class="p">[</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">5</span><span class="p">]]</span><span class="o">=</span><span class="n">catch</span>
+                  <span class="n">dirDown</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">5</span><span class="p">])</span>
+                  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">6</span><span class="p">:</span>
+                   <span class="n">postorder</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span><span class="n">catchment</span><span class="p">,</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">6</span><span class="p">],</span><span class="n">catch</span><span class="p">,</span><span class="n">dirDown</span><span class="p">)</span>
+                   <span class="n">catchment</span><span class="p">[</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">6</span><span class="p">]]</span><span class="o">=</span><span class="n">catch</span>
+                   <span class="n">dirDown</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">6</span><span class="p">])</span>
+                   <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">])</span><span class="o">&gt;</span><span class="mi">7</span><span class="p">:</span>
+                    <span class="n">postorder</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span><span class="n">catchment</span><span class="p">,</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">7</span><span class="p">],</span><span class="n">catch</span><span class="p">,</span><span class="n">dirDown</span><span class="p">)</span>
+                    <span class="n">catchment</span><span class="p">[</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">7</span><span class="p">]]</span><span class="o">=</span><span class="n">catch</span>
+                    <span class="n">dirDown</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">node</span><span class="p">][</span><span class="mi">7</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="dirUpstream"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.dirUpstream">[docs]</a><span class="k">def</span> <span class="nf">dirUpstream</span><span class="p">(</span><span class="n">dirshort</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    runs the network tree upstream from outlet to source</span>
+
+<span class="sd">    :param dirshort:</span>
+<span class="sd">    :return: direction upstream</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># -- up direction</span>
+    <span class="n">dirUp</span> <span class="o">=</span> <span class="nb">list</span><span class="p">([]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mapC&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dirshort</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">dirshort</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+           <span class="n">dirUp</span><span class="p">[</span><span class="n">value</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="n">dirupLen</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dirupID</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dirshort</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">j</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">dirupLen</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
+            <span class="n">dirupID</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dirUp</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">k</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">dirUp</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dirupLen</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dirupID</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="dirDownstream"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.dirDownstream">[docs]</a><span class="k">def</span> <span class="nf">dirDownstream</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span><span class="n">lddcomp</span><span class="p">,</span><span class="n">dirDown</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    runs the river network tree downstream - from source to outlet</span>
+
+<span class="sd">    :param dirUp:</span>
+<span class="sd">    :param lddcomp:</span>
+<span class="sd">    :param dirDown:</span>
+<span class="sd">    :return: direction downstream</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">catchment</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mapC&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">j</span><span class="o">=</span><span class="mi">0</span>
+    <span class="k">for</span> <span class="n">pit</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mapC&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">lddcomp</span><span class="p">[</span><span class="n">pit</span><span class="p">]</span><span class="o">==</span><span class="mi">5</span><span class="p">:</span>
+            <span class="n">j</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="n">postorder</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span><span class="n">catchment</span><span class="p">,</span><span class="n">pit</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">dirDown</span><span class="p">)</span>
+            <span class="n">dirDown</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pit</span><span class="p">)</span>
+            <span class="n">catchment</span><span class="p">[</span><span class="n">pit</span><span class="p">]</span><span class="o">=</span><span class="n">j</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dirDown</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">catchment</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="upstreamArea"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.upstreamArea">[docs]</a><span class="k">def</span> <span class="nf">upstreamArea</span><span class="p">(</span><span class="n">dirDown</span><span class="p">,</span><span class="n">dirshort</span><span class="p">,</span><span class="n">area</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    calculates upstream area</span>
+
+<span class="sd">    :param dirDown: array which point from each cell to the next downstream cell</span>
+<span class="sd">    :param dirshort:</span>
+<span class="sd">    :param area: area in m2 for a single gridcell</span>
+<span class="sd">    :return: upstream area</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ups</span> <span class="o">=</span> <span class="n">area</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">lib2</span><span class="o">.</span><span class="n">ups</span><span class="p">(</span><span class="n">dirDown</span><span class="p">,</span><span class="n">dirshort</span><span class="p">,</span> <span class="n">ups</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">dirDown</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ups</span></div>
+
+<div class="viewcode-block" id="upstream1"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.upstream1">[docs]</a><span class="k">def</span> <span class="nf">upstream1</span><span class="p">(</span><span class="n">downstruct</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates 1 cell upstream</span>
+
+<span class="sd">    :param downstruct:</span>
+<span class="sd">    :param weight:</span>
+<span class="sd">    :return: upstream 1cell</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">downstruct</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weight</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="downstream1"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.downstream1">[docs]</a><span class="k">def</span> <span class="nf">downstream1</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span><span class="n">weight</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    calculated 1 cell downstream</span>
+
+<span class="sd">    :param dirUp:</span>
+<span class="sd">    :param weight:</span>
+<span class="sd">    :return: dowmnstream 1 cell</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">downstream</span> <span class="o">=</span> <span class="n">weight</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dirUp</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">i</span><span class="p">:</span>
+           <span class="n">downstream</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">=</span><span class="n">weight</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">downstream</span></div>
+
+
+<div class="viewcode-block" id="catchment1"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.catchment1">[docs]</a><span class="k">def</span> <span class="nf">catchment1</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    calculates all cells which belongs to a catchment from point onward</span>
+
+<span class="sd">    :param dirUp:</span>
+<span class="sd">    :param points:</span>
+<span class="sd">    :return: subcatchment</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">subcatch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mapC&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="c1"># if subcatchment = true -&gt;  calculation of subcatchment: every point is calculated</span>
+    <span class="c1"># if false : calculation of catchment: only point calculated which are not inside a bigger catchment from another point</span>
+
+
+    <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mapC&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">cell</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">subcatch</span><span class="p">[</span><span class="n">cell</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">dirDown</span> <span class="o">=</span><span class="p">[]</span>
+            <span class="n">postorder</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span> <span class="n">subcatch</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span><span class="n">dirDown</span><span class="p">)</span>
+            <span class="n">subcatch</span><span class="p">[</span><span class="n">cell</span><span class="p">]</span> <span class="o">=</span> <span class="n">j</span>
+    <span class="k">return</span> <span class="n">subcatch</span></div>
+
+
+
+<div class="viewcode-block" id="subcatchment1"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.subcatchment1">[docs]</a><span class="k">def</span> <span class="nf">subcatchment1</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span><span class="n">ups</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    calculates subcatchments of points</span>
+
+<span class="sd">    :param dirUp:</span>
+<span class="sd">    :param points:</span>
+<span class="sd">    :param ups:</span>
+<span class="sd">    :return: subcatchment</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">subcatch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mapC&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="c1"># if subcatchment = true -&gt;  calculation of subcatchment: every point is calculated</span>
+    <span class="c1"># if false : calculation of catchment: only point calculated which are not inside a bigger catchment from another point</span>
+
+    <span class="n">subs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1">#sort waterbodies of reverse upstream area</span>
+    <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mapC&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">points</span><span class="p">[</span><span class="n">cell</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">subs</span><span class="p">[</span><span class="n">points</span><span class="p">[</span><span class="n">cell</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="n">cell</span><span class="p">,</span> <span class="n">ups</span><span class="p">[</span><span class="n">cell</span><span class="p">]]</span>
+    <span class="n">subsort</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">subs</span><span class="o">.</span><span class="n">items</span><span class="p">()),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+    <span class="c1">#for cell in xrange(maskinfo[&#39;mapC&#39;][0]):</span>
+    <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">subsort</span><span class="p">:</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">sub</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cell</span> <span class="o">=</span> <span class="n">sub</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">dirDown</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">postorder</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span> <span class="n">subcatch</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span><span class="n">dirDown</span><span class="p">)</span>
+        <span class="n">subcatch</span><span class="p">[</span><span class="n">cell</span><span class="p">]</span> <span class="o">=</span> <span class="n">j</span>
+
+    <span class="k">return</span> <span class="n">subcatch</span></div>
+
+
+<span class="c1"># ----------------------------------------------------------------</span>
+
+
+
+<div class="viewcode-block" id="defLdd2"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.defLdd2">[docs]</a><span class="k">def</span> <span class="nf">defLdd2</span><span class="p">(</span><span class="n">ldd</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    defines river network</span>
+
+<span class="sd">    :param ldd: river network</span>
+<span class="sd">    :return: ldd variables</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># decompressing ldd from 1D -&gt; 2D</span>
+    <span class="n">dmap</span> <span class="o">=</span> <span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;maskall&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">dmap</span><span class="p">[</span><span class="o">~</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;maskflat&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">ldd</span><span class="p">[:]</span>
+    <span class="n">ldd2D</span> <span class="o">=</span> <span class="n">dmap</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">ldd2D</span><span class="p">[</span><span class="n">ldd2D</span><span class="o">.</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># every cell gets an order starting from 0 ...</span>
+    <span class="n">lddshortOrder</span> <span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mapC&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="c1"># decompress this map to 2D</span>
+    <span class="n">lddOrder</span> <span class="o">=</span> <span class="n">decompress1</span><span class="p">(</span><span class="n">lddshortOrder</span><span class="p">)</span>
+    <span class="n">lddOrder</span><span class="p">[</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]]</span><span class="o">=-</span><span class="mi">1</span>
+    <span class="n">lddOrder</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">lddOrder</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+
+
+    <span class="n">lddCompress</span><span class="p">,</span> <span class="n">dirshort</span> <span class="o">=</span> <span class="n">lddrepair</span><span class="p">(</span><span class="n">ldd2D</span><span class="p">,</span> <span class="n">lddOrder</span><span class="p">)</span>
+    <span class="n">dirUp</span><span class="p">,</span> <span class="n">dirupLen</span><span class="p">,</span> <span class="n">dirupID</span> <span class="o">=</span> <span class="n">dirUpstream</span><span class="p">(</span><span class="n">dirshort</span><span class="p">)</span>
+
+    <span class="c1"># for upstream calculation</span>
+    <span class="n">inAr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mapC&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="c1"># each upstream pixel gets the id of the downstream pixel</span>
+    <span class="n">downstruct</span> <span class="o">=</span> <span class="n">downstream1</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span> <span class="n">inAr</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="c1"># all pits gets a high number</span>
+    <span class="n">downstruct</span><span class="p">[</span><span class="n">lddCompress</span> <span class="o">==</span> <span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mapC&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># self.var.dirDown: direction downstream - from each cell the pointer to a downstream cell (can only be 1)</span>
+    <span class="c1"># self.var.catchment: each catchment with a pit gets a own ID</span>
+    <span class="n">dirDown</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dirDown</span><span class="p">,</span> <span class="n">catchment</span> <span class="o">=</span> <span class="n">dirDownstream</span><span class="p">(</span><span class="n">dirUp</span><span class="p">,</span> <span class="n">lddCompress</span><span class="p">,</span><span class="n">dirDown</span><span class="p">)</span>
+    <span class="n">lendirDown</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dirDown</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">lddCompress</span><span class="p">,</span> <span class="n">dirshort</span><span class="p">,</span> <span class="n">dirUp</span><span class="p">,</span> <span class="n">dirupLen</span><span class="p">,</span> <span class="n">dirupID</span><span class="p">,</span> <span class="n">downstruct</span><span class="p">,</span> <span class="n">catchment</span><span class="p">,</span> <span class="n">dirDown</span><span class="p">,</span> <span class="n">lendirDown</span></div>
+
+
+<div class="viewcode-block" id="lddshort"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.lddshort">[docs]</a><span class="k">def</span> <span class="nf">lddshort</span><span class="p">(</span><span class="n">lddnp</span><span class="p">,</span><span class="n">lddOrder</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    return short for calculating a catchment from a river network</span>
+
+<span class="sd">    :param lddnp: rivernetwork as 1D array</span>
+<span class="sd">    :param lddOrder:</span>
+<span class="sd">    :return: short ldd</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">yi</span><span class="o">=</span><span class="n">lddnp</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">xi</span><span class="o">=</span><span class="n">lddnp</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># direction downstream naming the order of the cell</span>
+    <span class="nb">dir</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="nb">dir</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1">#lib2.repairLdd1(lddnp, yi,xi)</span>
+
+    <span class="n">lddcomp</span> <span class="o">=</span> <span class="n">compressArray</span><span class="p">(</span><span class="n">lddnp</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">lib2</span><span class="o">.</span><span class="n">dirID</span><span class="p">(</span><span class="n">lddOrder</span><span class="p">,</span> <span class="n">lddnp</span><span class="p">,</span> <span class="nb">dir</span><span class="p">,</span><span class="n">yi</span><span class="p">,</span><span class="n">xi</span><span class="p">)</span>
+    <span class="n">dirshort</span> <span class="o">=</span> <span class="n">compressArray</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dirshort</span></div>
+
+
+<div class="viewcode-block" id="lddrepair"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.routing_reservoirs.routing_sub.lddrepair">[docs]</a><span class="k">def</span> <span class="nf">lddrepair</span><span class="p">(</span><span class="n">lddnp</span><span class="p">,</span><span class="n">lddOrder</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    repairs a river network</span>
+
+<span class="sd">    * eliminate unsound parts</span>
+<span class="sd">    * add pits at points with no connections</span>
+
+<span class="sd">    :param lddnp: rivernetwork as 1D array</span>
+<span class="sd">    :param lddOrder:</span>
+<span class="sd">    :return: repaired ldd</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">yi</span><span class="o">=</span><span class="n">lddnp</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">xi</span><span class="o">=</span><span class="n">lddnp</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1">#print &quot;========= repair 1&quot;</span>
+
+    <span class="c1"># direction downstream naming the order of the cell</span>
+    <span class="nb">dir</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;shape&#39;</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="nb">dir</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">lib2</span><span class="o">.</span><span class="n">repairLdd1</span><span class="p">(</span><span class="n">lddnp</span><span class="p">,</span> <span class="n">yi</span><span class="p">,</span><span class="n">xi</span><span class="p">)</span>
+
+    <span class="n">lddcomp</span> <span class="o">=</span> <span class="n">compressArray</span><span class="p">(</span><span class="n">lddnp</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">lib2</span><span class="o">.</span><span class="n">dirID</span><span class="p">(</span><span class="n">lddOrder</span><span class="p">,</span> <span class="n">lddnp</span><span class="p">,</span> <span class="nb">dir</span><span class="p">,</span><span class="n">yi</span><span class="p">,</span><span class="n">xi</span><span class="p">)</span>
+    <span class="n">dirshort</span> <span class="o">=</span> <span class="n">compressArray</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+
+    <span class="n">check</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mapC&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">lib2</span><span class="o">.</span><span class="n">repairLdd2</span><span class="p">(</span><span class="n">lddcomp</span><span class="p">,</span> <span class="n">dirshort</span><span class="p">,</span> <span class="n">check</span><span class="p">,</span><span class="n">maskinfo</span><span class="p">[</span><span class="s1">&#39;mapC&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="p">)</span>
+
+	
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    for i in range(maskinfo[&#39;mapC&#39;][0]):</span>
+<span class="sd">       path=[]</span>
+<span class="sd">       j=i</span>
+<span class="sd">       while 1:</span>
+<span class="sd">          if j in path:</span>
+<span class="sd">            lddcomp[path[-1]] = 5</span>
+<span class="sd">            dirshort[path[-1]] = -1</span>
+<span class="sd">            break</span>
+<span class="sd">          if (lddcomp[j]==5) or (check[j]==1): break</span>
+<span class="sd">          path.append(j)</span>
+<span class="sd">          j = dirshort[j]</span>
+<span class="sd">       check[path]=1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">lddcomp</span><span class="p">,</span> <span class="n">dirshort</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, IIASA Water Security.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

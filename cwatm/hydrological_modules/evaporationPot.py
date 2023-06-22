@@ -27,23 +27,27 @@ class evaporationPot(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    cropCorrect                            calibration factor of crop KC factor                                         
+    cropCorrect                            calibration factor of crop KC factor                                    --   
     pet_modus                              Flag: index which ETP approach is used e.g. 1 for Penman-Monteith       bool 
-    AlbedoCanopy                           Albedo of vegetation canopy (FAO,1998) default =0.23                         
-    AlbedoSoil                             Albedo of bare soil surface (Supit et. al. 1994) default = 0.15              
-    AlbedoWater                            Albedo of water surface (Supit et. al. 1994) default = 0.05                  
-    co2                                                                                                                 
+    AlbedoCanopy                           Albedo of vegetation canopy (FAO,1998) default =0.23                    --   
+    AlbedoSoil                             Albedo of bare soil surface (Supit et. al. 1994) default = 0.15         --   
+    AlbedoWater                            Albedo of water surface (Supit et. al. 1994) default = 0.05             --   
+    dem                                                                                                            --   
+    lat                                                                                                            --   
+    co2                                                                                                            --   
     albedoLand                             albedo from land surface (from GlobAlbedo database)                     --   
     albedoOpenWater                        albedo from open water surface (from GlobAlbedo database)               --   
+    ETRef                                  potential evapotranspiration rate from reference crop                   m    
+    only_radition                                                                                                  --   
     TMin                                   minimum air temperature                                                 K    
     TMax                                   maximum air temperature                                                 K    
+    Tavg                                   Input, average air Temperature                                          K    
+    Rsds                                   short wave downward surface radiation fluxes                            W/m2 
+    EAct                                                                                                           --   
     Psurf                                  Instantaneous surface pressure                                          Pa   
     Qair                                   specific humidity                                                       kg/kg
-    Tavg                                   Input, average air Temperature                                          K    
     Rsdl                                   long wave downward surface radiation fluxes                             W/m2 
-    Rsds                                   short wave downward surface radiation fluxes                            W/m2 
     Wind                                   wind speed                                                              m/s  
-    ETRef                                  potential evapotranspiration rate from reference crop                   m    
     EWRef                                  potential evaporation rate from water surface                           m    
     =====================================  ======================================================================  =====
 

@@ -41,12 +41,12 @@ class outputTssMap(object):
     =====================================  ======================================================================  =====
     dirUp                                  river network in upstream direction                                     --   
     cellArea                               Area of cell                                                            m2   
-    sampleAdresses                                                                                                      
-    noOutpoints                                                                                                         
-    evalCatch                                                                                                           
-    catcharea                                                                                                           
-    firstout                                                                                                            
-    discharge                              discharge                                                               m3/s 
+    sampleAdresses                                                                                                 --   
+    noOutpoints                                                                                                    --   
+    evalCatch                                                                                                      --   
+    catcharea                                                                                                      --   
+    firstout                                                                                                       --   
+    discharge                              Channel discharge                                                       m3/s 
     =====================================  ======================================================================  =====
 
     **Functions**

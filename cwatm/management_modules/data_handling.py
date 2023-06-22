@@ -1653,8 +1653,8 @@ def report(valueIn,name,compr=True):
         outband = ds.GetRasterBand(1)
         # set NoData value
         outband.SetNoDataValue(-9999)
-        outband.SetStatistics(np.nanmin(value).astype(np.float), np.nanmax(value).astype(np.float),
-                              np.nanmean(value).astype(np.float), np.nanstd(value).astype(np.float))
+        outband.SetStatistics(np.nanmin(value).astype(float), np.nanmax(value).astype(float),
+                              np.nanmean(value).astype(float), np.nanstd(value).astype(float))
 
     outband.WriteArray(value)
     ds.FlushCache()

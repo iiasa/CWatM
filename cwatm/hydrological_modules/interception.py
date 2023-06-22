@@ -21,17 +21,17 @@ class interception(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
+    snowEvap                               total evaporation from snow for a snow layers                           m    
+    potTranspiration                       Potential transpiration (after removing of evaporation)                 m    
     interceptCap                           interception capacity of vegetation                                     m    
     interceptEvap                          simulated evaporation from water intercepted by vegetation              m    
-    potTranspiration                       Potential transpiration (after removing of evaporation)                 m    
-    snowEvap                               total evaporation from snow for a snow layers                           m    
     minInterceptCap                        Maximum interception read from file for forest and grassland land cove  m    
     interceptStor                          simulated vegetation interception storage                               m    
     availWaterInfiltration                 quantity of water reaching the soil after interception, more snowmelt   m    
     twothird                               2/3                                                                     --   
     EWRef                                  potential evaporation rate from water surface                           m    
-    Rain                                   Precipitation less snow                                                 m    
     SnowMelt                               total snow melt from all layers                                         m    
+    Rain                                   Precipitation less snow                                                 m    
     actualET                               simulated evapotranspiration from soil, flooded area and vegetation     m    
     =====================================  ======================================================================  =====
 
@@ -76,7 +76,7 @@ class interception(object):
         self.var.interceptStor[No] = self.var.interceptStor[No] + self.var.Rain - throughfall
 
         # availWaterInfiltration Available water for infiltration: throughfall + snow melt
-        self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + self.var.SnowMelt)
+        self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + self.var.SnowMelt + self.var.IceMelt)
 
         if coverType in ['forest', 'grassland', 'irrPaddy', 'irrNonPaddy']:
             mult = divideValues(self.var.interceptStor[No],self.var.interceptCap[No]) ** self.var.twothird
@@ -93,7 +93,7 @@ class interception(object):
 
         # update actual evaporation (after interceptEvap)
         # interceptEvap is the first flux in ET, soil evapo and transpiration are added later
-        self.var.actualET[No] = self.var.interceptEvap[No]  + self.var.snowEvap
+        self.var.actualET[No] = self.var.interceptEvap[No]  + self.var.snowEvap + self.var.iceEvap
 
 
 
@@ -102,7 +102,7 @@ class interception(object):
 
         if checkOption('calcWaterBalance'):
             self.model.waterbalance_module.waterBalanceCheck(
-               [self.var.Rain, self.var.SnowMelt],  # In
+               [self.var.Rain, self.var.SnowMelt, self.var.IceMelt],  # In
                [self.var.availWaterInfiltration[No], self.var.interceptEvap[No]],  # Out
                [prevState],  # prev storage
                [self.var.interceptStor[No]],

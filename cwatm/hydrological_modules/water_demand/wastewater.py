@@ -16,8 +16,11 @@ from cwatm.management_modules.globals import *
 class waterdemand_wastewater(object):
     """
     WASTEWATER TREATMENT
-    Update 28/06/21:
-    * In progess: allowing many-to-many relations between WWTP and reservoirs. Based on Excel input to replace reservoirs maps.
+    Update 13/07/21:
+    * Allows many-to-many relations between WWTP and reservoirs. Based on Excel input to replace reservoirs maps.
+    * Allows setting wastewater source (domestic/industrial/both), min Hydrological Response Time,/
+      Tretament time, daily capcity, and Export share per WWTP based on Excel input sheet.
+    * Allows to set different instances of any WWTP id, based on years of operation (from, to) using the Excel input sheet.
     
     Update 14/04/21:
      * Now include urban lekage: allow share of direct runoff from sealed areas to be added to wastewater.
@@ -53,71 +56,79 @@ class waterdemand_wastewater(object):
     =====================================  ======================================================================  =====
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
-    wwt_def                                                                                                             
-    wastewater_to_reservoirs                                                                                            
+    wwt_def                                                                                                        --   
+    wastewater_to_reservoirs                                                                                       --   
     waterBodyOut                           biggest outlet (biggest accumulation of ldd network) of a waterbody     --   
     compress_LR                            boolean map as mask map for compressing lake/reservoir                  --   
     decompress_LR                          boolean map as mask map for decompressing lake/reservoir                --   
     waterBodyOutC                          compressed map biggest outlet of each lake/reservoir                    --   
-    resVolumeC                             compressed map of reservoir volume                                      Milli
+    resYear                                Settings waterBodyYear, with first operating year of reservoirs         map  
+    waterBodyTyp_unchanged                                                                                         --   
+    resVolume                                                                                                      --   
     cellArea                               Area of cell                                                            m2   
     EWRef                                  potential evaporation rate from water surface                           m    
-    wwtUrbanLeakage                                                                                                     
-    wwtColArea                                                                                                          
-    urbanleak                                                                                                           
-    wwtID                                                                                                               
-    compress_WWT                                                                                                        
-    decompress_WWT                                                                                                      
-    wwtC                                                                                                                
-    minHRT                                                                                                              
-    wwtOverflow                                                                                                         
-    toResManageC                                                                                                        
-    wwtStorage                                                                                                          
-    wwtColShare                                                                                                         
-    wwtSewerCollectedC                                                                                                  
-    wwtSewerTreatedC                                                                                                    
-    wwtExportedTreatedC                                                                                                 
-    wwtSewerToTreatmentC                                                                                                
-    wwtSewerOverflowC                                                                                                   
-    wwtSewerResOverflowC                                                                                                
-    wwtTreatedOverflowC                                                                                                 
-    wwtSentToResC                                                                                                       
-    wwtOverflowOut                                                                                                      
-    wwtEvapC                                                                                                            
-    wwtSewerCollected                                                                                                   
-    wwtSewerTreated                                                                                                     
-    wwtExportedTreated                                                                                                  
-    wwtSewerToTreatment                                                                                                 
-    wwtSewerExported                                                                                                    
-    wwtSewerOverflow                                                                                                    
-    wwtSentToRes                                                                                                        
-    wwtSewerResOverflow                                                                                                 
-    wwtTreatedOverflow                                                                                                  
-    wwtEvap                                                                                                             
-    wwtInTreatment                                                                                                      
-    wwtIdsOrdered                                                                                                       
-    wwtVolC                                                                                                             
-    wwtTimeC                                                                                                            
-    extensive                                                                                                           
-    noPools_extensive                                                                                                   
-    poolVolume_extensive                                                                                                
-    wwtSurfaceAreaC                                                                                                     
-    extensive_counter                                                                                                   
-    wwtResIDTemp_compress                                                                                               
-    wwtResIDC                                                                                                           
-    wwtResTypC                                                                                                          
-    wwtResYearC                                                                                                         
-    wwtSentToResC_LR                                                                                                    
-    wwtOverflowOutM                                                                                                     
+    wwtUrbanLeakage                                                                                                --   
+    wwtColArea                                                                                                     --   
+    urbanleak                                                                                                      --   
+    wwtID                                                                                                          --   
+    compress_WWT                                                                                                   --   
+    decompress_WWT                                                                                                 --   
+    wwtC                                                                                                           --   
+    act_bigLakeResAbst_UNRestricted                                                                                --   
+    act_bigLakeResAbst_Restricted                                                                                  --   
+    wwtOverflow                                                                                                    --   
+    wwtStorage                                                                                                     --   
+    wwtColShare                                                                                                    --   
+    wwtSewerCollectedC                                                                                             --   
+    wwtSewerTreatedC                                                                                               --   
+    wwtExportedTreatedC                                                                                            --   
+    wwtSewerToTreatmentC                                                                                           --   
+    wwtSewerOverflowC                                                                                              --   
+    wwtSewerResOverflowC                                                                                           --   
+    wwtTreatedOverflowC                                                                                            --   
+    wwtSentToResC                                                                                                  --   
+    wwtSewerCollection                                                                                             --   
+    wwtOverflowOut                                                                                                 --   
+    wwtEvapC                                                                                                       --   
+    wwtSewerCollected                                                                                              --   
+    wwtExportedCollected                                                                                           --   
+    wwtSewerTreated                                                                                                --   
+    wwtExportedTreated                                                                                             --   
+    wwtSewerToTreatment                                                                                            --   
+    wwtSewerExported                                                                                               --   
+    wwtSewerOverflow                                                                                               --   
+    wwtSentToRes                                                                                                   --   
+    wwtSewerResOverflow                                                                                            --   
+    wwtTreatedOverflow                                                                                             --   
+    wwtEvap                                                                                                        --   
+    wwtInTreatment                                                                                                 --   
+    wwtIdsOrdered                                                                                                  --   
+    wwtVolC                                                                                                        --   
+    wwtTimeC                                                                                                       --   
+    toResManageC                                                                                                   --   
+    minHRTC                                                                                                        --   
+    maskDomesticCollection                                                                                         --   
+    maskIndustryCollection                                                                                         --   
+    extensive                                                                                                      --   
+    noPools_extensive                                                                                              --   
+    poolVolume_extensive                                                                                           --   
+    wwtSurfaceAreaC                                                                                                --   
+    extensive_counter                                                                                              --   
+    wwtResIDTemp_compress                                                                                          --   
+    wwtResIDC                                                                                                      --   
+    wwtResTypC                                                                                                     --   
+    wwtResYearC                                                                                                    --   
+    wwtSentToResC_LR                                                                                               --   
+    wwtOverflowOutM                                                                                                --   
+    includeWastewater                                                                                              --   
     lakeVolumeM3C                          compressed map of lake volume                                           m3   
-    lakeStorageC                                                                                                   m3   
-    reservoirStorageM3C                                                                                                 
-    lakeResStorageC                                                                                                     
-    lakeResStorage                                                                                                      
-    includeWastewater                                                                                                   
-    wwtEffluentsGenerated                                                                                               
-    wwtSewerCollection                                                                                                  
-    wwtExportedCollected                                                                                                
+    lakeStorageC                                                                                                   --   
+    reservoirStorageM3C                                                                                            --   
+    lakeResStorageC                                                                                                --   
+    lakeResStorage                                                                                                 --   
+    wwtEffluentsGenerated                                                                                          --   
+    wwtSewerCollection_domestic                                                                                    --   
+    wwtSewerCollection_industry                                                                                    --   
     =====================================  ======================================================================  =====
 
     **Functions**
@@ -135,32 +146,19 @@ class waterdemand_wastewater(object):
             self.var.compress_WWT = self.var.wwtID > 0
             self.var.decompress_WWT = np.nonzero(self.var.compress_WWT)
             self.var.wwtC =  np.compress(self.var.compress_WWT, self.var.wwtID)
- 
-            ### make adjustement for low-tech basin - e.g., set maximum pools to 5. 
-            ## Build extensive differently, e.g. 5 days and more in treatment is extensive - set max surface area or as function of reservoir volume with 6 meter depth.
-            
-            # Currently assumes each treatment pond to be a cylinder-like shape with 6 meters depth - daily surface area
+                
+            # Create maps for resLake irrigation/waster use
+            if checkOption('includeWaterBodies'):
+                self.var.act_bigLakeResAbst_UNRestricted = globals.inZero.copy()        
+                self.var.act_bigLakeResAbst_Restricted = globals.inZero.copy()            
             
             # share to collect urban leakage
             self.var.urbanleak = loadmap('urbanleak')
-            
-            # share defines the minimum HRT allowed before sending water to the sewers
-            self.var.minHRT = np.maximum(loadmap('minHRT'), 0.01)
 
             # create outlet for overflow
             self.var.wwtOverflow = loadmap('wwtOverflow').astype(np.int64) 
 
-            # toResManageC control wwt2reservoir operations:
-            '''
-                -1: only send to overflow point as discharge (do not send to reservoir)
-                0 -1: between zero to one gives the fraction of treated wastewater to export; the rest are sent to reservoir (if exists)
-                An extreme case of 0 tries sending all treated wastewater to the reservoir (if exists), it send it to overflow point when it is full 
             
-            THIS PART IS IN DYNAMIC_INIT
-            # CONSIDER INCLUDING
-            if "wwtExportCoeffcient" in binding:
-                self.var.toResManageC = np.minimum(self.var.toResManageC + loadmap('wwtExportCoeffcient'), 1.) * (self.var.toResManageC > 0)
-            '''
             # Initiate WWTP Storage
             self.var.wwtStorage = {}
             
@@ -182,11 +180,11 @@ class waterdemand_wastewater(object):
             self.var.wwtExportedTreatedC = np.compress(self.var.compress_WWT, globals.inZero.copy())
             self.var.wwtSewerToTreatmentC = np.compress(self.var.compress_WWT, globals.inZero.copy())
             self.var.wwtSewerOverflowC = np.compress(self.var.compress_WWT, globals.inZero.copy())
-            # use self.var.decompress_LR to decompress
-            self.var.wwtSewerResOverflowC = np.compress(self.var.compress_LR, globals.inZero.copy())
+
+            self.var.wwtSewerResOverflowC = np.compress(self.var.compress_WWT, globals.inZero.copy())
             self.var.wwtTreatedOverflowC = np.compress(self.var.compress_WWT, globals.inZero.copy())
-            self.var.wwtSentToResC = np.compress(self.var.compress_LR, globals.inZero.copy())
-            # maybe another approach?? -> compress and decompress?
+            if checkOption('includeWaterBodies'):
+                self.var.wwtSentToResC = np.compress(self.var.compress_LR, globals.inZero.copy())
             self.var.wwtUrbanLeakage = globals.inZero.copy()
             self.var.wwtEffluentsGenerated = globals.inZero.copy()
             self.var.wwtSewerCollection =  globals.inZero.copy()
@@ -228,7 +226,7 @@ class waterdemand_wastewater(object):
              
             
              The variable is a dictionary with keys as WWTP ID and np,array for each instance. The variable order is as follows:
-             ['From year', 'To year', 'Volume (cubic m per day)', 'Treatment days', 'Treatment level', 'Export share', 'Domestic', 'Industrial']
+             ['From year', 'To year', 'Volume (cubic m per day)', 'Treatment days', 'Treatment level', 'Export share', 'Domestic', 'Industrial', 'min_HRT']
             
         '''
         
@@ -259,24 +257,42 @@ class waterdemand_wastewater(object):
         
         ## Create annual inputs
         
-        # Volume, treatementTime, ExportAndMangement
+        # Volume, treatementTime, ExportAndMangement, minimum Hydrological Retention Time
 
         self.var.wwtVolC = []
         self.var.wwtTimeC = []
         self.var.toResManageC = []
+        self.var.minHRTC = []
+        
+        # initiate sector collection masks
+        self.var.maskDomesticCollection = 1 + globals.inZero.copy()
+        self.var.maskIndustryCollection = 1 + globals.inZero.copy()
         
         for wwtid in self.var.wwtIdsOrdered:
+
             i = np.in1d(self.var.wwtIdsOrdered, wwtid)
             self.var.wwtVolC.append(self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][2])
             self.var.wwtTimeC.append(self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][3]) 
-            # if no management data - assume 0 -> try to send to reservoir, and discharge if no free volume
+            self.var.minHRTC.append(np.maximum(self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][8], 0.001))
+            # toResManageC control wwt2reservoir operations:
+            #   0: attempt to send all to reservior
+            #   1: export all treated wastewater
+            # 0-1: export the fraction and attempt sending the rest to reservoir
+            #  -1: only send to overflow point as discharge (do not send to reservoir)
+            
             mng = self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][5]
-            self.var.toResManageC.append(int(np.where(np.isnan(mng), 0., mng)))
-        
+            self.var.toResManageC.append(float(np.where(np.isnan(mng), 0., mng)))
+            # sector collection masks
+            self.var.maskDomesticCollection = np.where(self.var.wwtColArea == wwtid, self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][6], self.var.maskDomesticCollection)
+            self.var.maskIndustryCollection = np.where(self.var.wwtColArea == wwtid, self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][7], self.var.maskIndustryCollection)
+           
         self.var.wwtVolC = np.array(self.var.wwtVolC)
         self.var.wwtTimeC = np.array(self.var.wwtTimeC)
+        self.var.minHRTC = np.array(self.var.minHRTC)
         self.var.toResManageC = np.array(self.var.toResManageC)
         self.var.wwtIdsOrdered = np.array(self.var.wwtIdsOrdered)
+       
+        
         ### Extensive WWTP ####
         # Identify extensive systems - if timeLag >= 5
         self.var.extensive = self.var.wwtTimeC >= 5
@@ -288,7 +304,7 @@ class waterdemand_wastewater(object):
         self.var.poolVolume_extensive = self.var.wwtVolC * daysToFill_extensive
         
         # Calculate surface area of treatment pools for evaporation
-        self.var.wwtSurfaceAreaC = np.where(self.var.extensive, self.var.poolVolume_extensive, self.var.wwtVolC) / np.where(self.var.wwtIdsOrdered  > 0, 6.0, 1.0)        
+        self.var.wwtSurfaceAreaC = np.where(self.var.extensive, self.var.poolVolume_extensive, self.var.wwtVolC)/ np.where(self.var.wwtIdsOrdered  > 0, 6.0, 1.0)
         
         #### Build WWTP Storage ####
         
@@ -303,7 +319,8 @@ class waterdemand_wastewater(object):
             
         # create storage variable
         self.var.wwtStorage = {}
-            
+        
+        
         # extensive wastewater treatement facilites have less pools than days
         timeForStorage = np.where(self.var.extensive,  self.var.noPools_extensive, self.var.wwtTimeC)
         for i in range(self.var.wwtIdsOrdered.shape[0]):
@@ -317,10 +334,13 @@ class waterdemand_wastewater(object):
                         self.var.wwtStorage[wwtid] = wwtStroage_last[wwtid]
                     else:
                         self.var.wwtStorage[wwtid] = (self.var.wwtStorage[wwtid] + 1) * (1 / l_new) * sum(wwtStroage_last[wwtid])
+            
+            
         self.var.extensive_counter = self.var.wwtStorage.copy()
         #print(self.var.wwtStorage)
         #print(np.array(self.var.wwtStorage))
         #print(np.nansum(np.array(self.var.wwtStorage), axis = 1))
+        
     def dynamic(self):
         if dateVar['newStart'] or dateVar['newYear']:
             self.dynamic_init()
@@ -330,6 +350,8 @@ class waterdemand_wastewater(object):
         overflow_temp =  globals.inZero.copy()  
         self.var.wwtSentToRes = globals.inZero.copy()
 
+        # Calculate total sewer collection
+        self.var.wwtSewerCollection = (self.var.wwtSewerCollection_domestic  * self.var.maskDomesticCollection + self.var.wwtSewerCollection_industry  * self.var.maskIndustryCollection) * self.var.wwtColShare + self.var.wwtUrbanLeakage
         
         # identify a list of collection areas with wastewater treatment facilities outside of the mask
         # use wwtC instead of wwtIdsOrdered - so WWTP that are not present due to time constraints would not cause export.
@@ -345,12 +367,10 @@ class waterdemand_wastewater(object):
         
         self.var.wwtInTreatment =  globals.inZero.copy()
         
-        
-        
-        
         for wwt_id in self.var.wwtIdsOrdered:
             idIndex = np.where(self.var.wwtIdsOrdered == wwt_id)[0].item()
             # check year established
+            
             
             simulatedYear =  globals.dateVar['currDate'].year
             
@@ -359,12 +379,13 @@ class waterdemand_wastewater(object):
             
             # if year established <= simulated year:
             collectionAreaMask = np.where(self.var.wwtColArea == wwt_id, 1, 0)
+            # Check WWTP sectoral sewer collection preferences
             
             # sum sewer collection per facility [m3]
-            self.var.wwtSewerCollectedC[idIndex] = np.nansum(collectionAreaMask * (self.var.wwtSewerCollection) * self.var.cellArea) #  - self.var.wwtExportedCollected 
+            self.var.wwtSewerCollectedC[idIndex] = np.nansum(collectionAreaMask * (self.var.wwtSewerCollection) * self.var.cellArea)
 
             # calculate max water allowed
-            max_collected_idIndex = self.var.wwtVolC[idIndex] / self.var.minHRT 
+            max_collected_idIndex = self.var.wwtVolC[idIndex] / self.var.minHRTC[idIndex] 
           
             
             # calculate to overflow
@@ -379,12 +400,7 @@ class waterdemand_wastewater(object):
            
             # calculate overflow - if summed volume excceds daily capacity [m3]
             self.var.wwtSewerOverflowC[idIndex] = toOverflow
-            '''
-            if wwt_id == 32:
-                print(np.nansum(collectionAreaMask))
-                print(self.var.wwtSewerCollectedC[idIndex])
-                print(self.var.wwtSewerOverflowC[idIndex])
-            '''
+
             # calculate toTreatment [m3]
             self.var.wwtSewerToTreatmentC[idIndex] = np.maximum(self.var.wwtSewerCollectedC[idIndex] - self.var.wwtSewerOverflowC[idIndex], 0.)
             # calculate evaporation from treatment facilities - for daily
@@ -400,62 +416,58 @@ class waterdemand_wastewater(object):
             # update storage with evaporation
             self.var.wwtStorage[wwt_id] -= wwtEvapArray
             
+            self.var.wwtSewerTreatedC[idIndex] = 0
+            
             # handle storage 
             if self.var.extensive[idIndex]:
-                
+      
                 #print(idIndex)
                 #print("last Storage Ext" + str(np.round(self.var.wwtStorage[idIndex][-1], 0)))
                 # extensive
                 # calculate remainStorage in pool 0
-                remainStorage0 = self.var.poolVolume_extensive[idIndex] - self.var.wwtStorage[wwt_id][0]
+                remainStorage0 = np.maximum(self.var.poolVolume_extensive[idIndex] - self.var.wwtStorage[wwt_id][0], 0.)
                 
                 # calculate volume to add to storage0 and add to storage1
                 addToStorage0 = np.minimum(remainStorage0, self.var.wwtSewerToTreatmentC[idIndex])
                 addToStorage1 =  self.var.wwtSewerToTreatmentC[idIndex] - addToStorage0
-                    
+
                 # add to storage
                 self.var.wwtStorage[wwt_id][0] += addToStorage0
                 
                 # if reservoir routing is off
-                self.var.wwtSewerTreatedC[idIndex] = 0
                 if addToStorage1 > 0:
                     #last storage to TreatedC [m3] - if all treatment pools are with water and more capacity is required
                     self.var.wwtSewerTreatedC[idIndex] = self.var.wwtStorage[wwt_id][-1]
                     
                     # update storage - each element i to i+1; eliminate last [m3] 
                     self.var.wwtStorage[wwt_id][1:] = self.var.wwtStorage[wwt_id][0:-1]
-                    
                     # move counter values respecitvely
                     self.var.extensive_counter[wwt_id][1:] = self.var.extensive_counter[wwt_id][0:-1]
                     
                     # update storage - element 0 is new collected [m3]
                     self.var.wwtStorage[wwt_id][0] = addToStorage1
-                
-                
+
                 cond = self.var.extensive_counter[wwt_id] >= (self.var.wwtTimeC[idIndex] - 1)
+  
                 # empty pool if time in active pool exceeds treatment time
                 if cond.any():
-                    self.var.wwtSewerTreatedC[idIndex] =  np.nansum(self.var.wwtStorage[wwt_id][cond])
-                
+                    
+                    self.var.wwtSewerTreatedC[idIndex] +=  np.nansum(self.var.wwtStorage[wwt_id][cond])
+
                     # update storage
                     self.var.wwtStorage[wwt_id] = np.where(cond, 0., self.var.wwtStorage[wwt_id])
-                
+
+                    #self.var.extensive_counter[wwt_id] += (cond * 1)
                 # active treatement pools are those which are not receieving water inflows. Ther are being emptied (e.g., water are used after the defined treatment days)
                 # count days with positive water volume in active treatement pools
                 cond = self.var.wwtStorage[wwt_id][1:] > 0
+      
                 if cond.any():
                     
                     self.var.extensive_counter[wwt_id][1:] += (cond * 1)
-                    
                     self.var.extensive_counter[wwt_id][1:] = np.where(np.logical_not(cond), 0, self.var.extensive_counter[wwt_id][1:])
-                '''
-                Example from Sorek - print for water quality code dev.
-                if idIndex == 2:
-                    print(idIndex)
-                    print(self.var.wwtStorage[idIndex])
-                    print(self.var.extensive_counter[idIndex])
-                    print(self.var.wwtSewerTreatedC[idIndex])
-                '''
+
+                self.var.wwtInTreatment[self.var.wwtID == wwt_id] = np.nansum(self.var.wwtStorage[wwt_id])  
             else:
                 #last storage to TreatedC [m3]         
                 self.var.wwtSewerTreatedC[idIndex] = self.var.wwtStorage[wwt_id][-1]
@@ -471,9 +483,7 @@ class waterdemand_wastewater(object):
             # update overflow output map [m3]
             overflowMask = np.where(self.var.wwtOverflow == wwt_id, 1, 0)
             overflow_temp += overflowMask * self.var.wwtSewerOverflowC[idIndex]
-            
-            #print("Raw sewer")
-            #print(np.nansum(overflow_temp))
+
             # toResManageC control wwt2reservoir operations:
             '''
                 -1: only send to overflow point as discharge (do not send to reservoir)
@@ -484,11 +494,11 @@ class waterdemand_wastewater(object):
             toResManage = self.var.toResManageC[idIndex]
                 
             dischargeTreatedWaterBool = False
-            if toResManage == -1:
+            if toResManage == -1 or  not checkOption('includeWaterBodies'):
                 dischargeTreatedWaterBool = True
             
             
-            if (toResManage > 1) | (toResManage < 0):
+            if (toResManage > 1) | (toResManage < 0 and toResManage != -1):
                 msg = "Error: unexpected value in 'wwtToResManagement'"
                 raise CWATMFileError(msg)
             
@@ -499,18 +509,18 @@ class waterdemand_wastewater(object):
                 overflow_temp += overflowMask * self.var.wwtSewerTreatedC[idIndex]
                 self.var.wwtTreatedOverflowC[idIndex] = self.var.wwtSewerTreatedC[idIndex]
             
+            
             elif np.invert(wwt_id in self.var.wastewater_to_reservoirs.keys()):
-                
                 # account for exported treated water 
                 self.var.wwtExportedTreatedC[idIndex] = self.var.wwtSewerTreatedC[idIndex] * toResManage
                 self.var.wwtSewerTreatedC[idIndex] -= self.var.wwtExportedTreatedC[idIndex]
-                    
+
                 # treated water are being discharged to overflow point
                 overflow_temp += overflowMask * self.var.wwtSewerTreatedC[idIndex]
-                #print(wwt_id)
-                #print(np.nansum(overflow_temp))
                 self.var.wwtTreatedOverflowC[idIndex] = self.var.wwtSewerTreatedC[idIndex]
                 self.var.wwtSewerTreatedC[idIndex] -= self.var.wwtTreatedOverflowC[idIndex]
+               
+
                 
             else:
                 # treated water are being sent to one or more reservoirs. If one reservoir, all water sent until it is full, access water are added to OverflowOut
@@ -526,51 +536,56 @@ class waterdemand_wastewater(object):
                 self.var.wwtResIDTemp_compress = np.in1d(self.var.waterBodyOut, np.compress(srch, self.var.wastewater_to_reservoirs[wwt_id]))
                     
                 self.var.wwtResIDC = np.compress(self.var.wwtResIDTemp_compress, self.var.waterBodyOut)
-                self.var.wwtResTypC = np.compress(self.var.wwtResIDTemp_compress, loadmap('waterBodyTyp').astype(np.int64))
-                self.var.wwtResYearC = np.compress(self.var.wwtResIDTemp_compress, loadmap('waterBodyYear'))
+                self.var.wwtResTypC = np.compress(self.var.wwtResIDTemp_compress, self.var.waterBodyTyp_unchanged)
+                self.var.wwtResYearC = np.compress(self.var.wwtResIDTemp_compress, self.var.resYear)
                     
                 # do not alow reservoir use if their type ids is zero (e.g., wetland) or id they have not been yet established
                 self.var.wwtResIDC =  np.where(self.var.wwtResTypC == 0, 0,  np.where(self.var.wwtResYearC > simulatedYear, 0,  self.var.wwtResIDC))
                     
                 # calculate allocation weights
-                resVolumeC = np.compress(self.var.wwtResIDTemp_compress, loadmap('waterBodyVolRes')) * 1000000
+                resVolumeC = np.compress(self.var.wwtResIDTemp_compress, self.var.resVolume)
                     
                 resVolumeLeftC = np.minimum(np.maximum(resVolumeC - np.compress(self.var.wwtResIDTemp_compress, self.var.lakeResStorage), 0.), resVolumeC)
-                   
-                resAllocWeights = divideValues(resVolumeLeftC, npareatotal(resVolumeLeftC, self.var.wwtResIDC > 0)) * (self.var.wwtResIDC > 0)
                 
-                # Do not allow all reservoir to be zero - split wastewater proportionally to total storage
-                if np.nansum(resAllocWeights) == 0:
-                    resAllocWeights = divideValues(resVolumeC, npareatotal(resVolumeC, self.var.wwtResIDC > 0)) * (self.var.wwtResIDC > 0)
-                        
-                    
-                    
-                #print(np.nansum(self.var.wwtSewerTreatedC[idIndex]))
-                # get location of res
-                #wwtResindex = self.var.wwtResID_LRC == wwt_id
+                treatedSewer = self.var.wwtSewerTreatedC[idIndex]
+                #### Iterate to allocate as much water as possible to res ####
                 wwtResindex = np.in1d(self.var.waterBodyOutC, self.var.wastewater_to_reservoirs[wwt_id])
-                sendToRes = self.var.wwtSewerTreatedC[idIndex] * resAllocWeights
-                    
-
-                self.var.wwtSentToResC[wwtResindex] = np.where((sendToRes - resVolumeLeftC) >= 0, resVolumeLeftC, sendToRes)
+                maxIter = 50
+                iterCounter = 0
+                sendToRes = 0
+                while treatedSewer > 1e-10 and np.nansum(resVolumeLeftC) > 1e-10 and iterCounter <= maxIter:
+                    resAllocWeights = divideValues(resVolumeLeftC, npareatotal(resVolumeLeftC, self.var.wwtResIDC > 0)) * (self.var.wwtResIDC > 0)
+                
+                    # Do not allow all reservoir to be zero - split wastewater proportionally to total storage
+                    if np.nansum(resAllocWeights) == 0:
+                        resAllocWeights = divideValues(resVolumeC, npareatotal(resVolumeC, self.var.wwtResIDC > 0)) * (self.var.wwtResIDC > 0)
+                        
+                    tmpSendToRes = np.minimum(treatedSewer * resAllocWeights, resVolumeLeftC)
+                    sendToRes += tmpSendToRes
+                    resVolumeLeftC -= tmpSendToRes
+                    treatedSewer -= np.nansum(tmpSendToRes)
+                    iterCounter +=1
+                ###
+                
+                
+                self.var.wwtSentToResC[wwtResindex] = sendToRes
                 # split water and calcualte overflow in reservoirs - continute here ! error! - something doesnot work with res overflow - it is not written to the layer
                 # see lines 286 -295 for clues
 
                 # below it was originaly assignes (=); I suspect it overwritten
-                    
-                self.var.wwtSewerResOverflowC[wwtResindex] = sendToRes - self.var.wwtSentToResC[wwtResindex]
-                  
-                #self.var.wwtSewerResOverflowC[wwtResindex] = np.where(self.var.wwtSewerResOverflowC[wwtResindex] < 0, resVolumeLeftC, self.var.wwtSewerResOverflowC[wwtResindex])
-                #self.var.wwtSentToResC[wwtResindex] -= self.var.wwtSewerResOverflowC[wwtResindex]
-                  
+                self.var.wwtSewerResOverflowC[idIndex] = self.var.wwtSewerTreatedC[idIndex] - np.nansum(sendToRes)
+
                 # update overflow
                     
-                overflow_temp += overflowMask * np.nansum(self.var.wwtSewerResOverflowC[wwtResindex])
+                overflow_temp += overflowMask * np.nansum(self.var.wwtSewerResOverflowC[idIndex])
+      
                 wwtSentToRes = np.where(np.in1d(np.compress(self.var.compress_LR, self.var.waterBodyOut), self.var.wwtResIDC), self.var.wwtSentToResC, 0.)
                 addToSend = globals.inZero.copy()
                 np.put(addToSend, self.var.decompress_LR, wwtSentToRes)
-                    
+
+                
                 self.var.wwtSentToRes += addToSend 
+
                 # get relevant reservoirs ids and their fill status. create an output status to save wwtSentToRes
                 # split treated between reservoirs
                 # check for access water - if no allocate, if yes - update: OverflowOut, SewerResOverflowC
@@ -585,12 +600,14 @@ class waterdemand_wastewater(object):
         np.put(self.var.wwtSewerTreated, self.var.decompress_WWT, self.var.wwtSewerTreatedC)     
         np.put(self.var.wwtSewerToTreatment, self.var.decompress_WWT, self.var.wwtSewerToTreatmentC)
         np.put(self.var.wwtSewerOverflow, self.var.decompress_WWT, self.var.wwtSewerOverflowC) 
-        np.put(self.var.wwtSewerResOverflow, self.var.decompress_LR, self.var.wwtSewerResOverflowC)
+        #np.put(self.var.wwtSewerResOverflow, self.var.decompress_LR, self.var.wwtSewerResOverflowC)
+        np.put(self.var.wwtSewerResOverflow, self.var.decompress_WWT, self.var.wwtSewerResOverflowC)
         np.put(self.var.wwtTreatedOverflow, self.var.decompress_WWT, self.var.wwtTreatedOverflowC)   
         np.put(self.var.wwtEvap, self.var.decompress_WWT, self.var.wwtEvapC)
         np.put(self.var.wwtExportedTreated, self.var.decompress_WWT, self.var.wwtExportedTreatedC)
         self.var.wwtSewerExported =  self.var.wwtExportedTreated + self.var.wwtExportedCollected
-        self.var.wwtSentToResC_LR = np.compress(self.var.compress_LR, self.var.wwtSentToRes)
+        if  checkOption('includeWaterBodies'):
+            self.var.wwtSentToResC_LR = np.compress(self.var.compress_LR, self.var.wwtSentToRes)
         
         
         
@@ -598,60 +615,13 @@ class waterdemand_wastewater(object):
         ## add water from other source to distribution reservoirs
     
         # Reservoir inflow in [m3] at the end of all sub-timestep - source treated wastewater
-        #print(np.nansum(self.var.lakeResStorageC - self.var.resVolumeC > 0))
-               
-        self.var.lakeVolumeM3C += self.var.wwtSentToResC_LR
-        self.var.lakeStorageC += self.var.wwtSentToResC_LR
-        self.var.lakeResStorageC += self.var.wwtSentToResC_LR 
-        self.var.reservoirStorageM3C += self.var.wwtSentToResC_LR 
-        #resStorageC += self.var.wwtSentToResC_LR
-                
-        sendToResOverflow_LR = np.where((self.var.lakeResStorageC - self.var.resVolumeC) > 0, self.var.lakeResStorageC - self.var.resVolumeC, 0.)
-        addTowwtSewerResOverflow = globals.inZero.copy()
-        np.put(addTowwtSewerResOverflow, self.var.decompress_WWT, sendToResOverflow_LR)
-        self.var.wwtSewerResOverflow += addTowwtSewerResOverflow
-        self.var.wwtOverflowOut += addTowwtSewerResOverflow
+        if checkOption('includeWaterBodies'):               
+            self.var.lakeVolumeM3C += self.var.wwtSentToResC_LR
+            self.var.lakeStorageC += self.var.wwtSentToResC_LR
+            self.var.lakeResStorageC += self.var.wwtSentToResC_LR 
+            self.var.reservoirStorageM3C += self.var.wwtSentToResC_LR 
         
-        '''
-        # correct urbanlekage and wastewater collection from deleted wwtp and send to overflow.
-        deletedWWTPIDs = self.var.wwtC[np.in1d(self.var.wwtC, self.var.wwtIdsOrdered)]
-        deletedWWTPIDs_mask = np.where(np.in1d(self.var.wwtColArea, deletedWWTPIDs), 1, 0)
-        deletedWWTPIDsOverflow_mask = np.where(np.in1d(self.var.wwtOverflow, deletedWWTPIDs), 0, 1) * (self.var.wwtOverflow > 0)
-        collection2returnflow = np.nansum(self.var.wwtSewerCollection * self.var.cellArea * deletedWWTPIDs_mask) * deletedWWTPIDsOverflow_mask
-        
-        # update nonIrr runoff
-        self.var.wwtOverflowOut += collection2returnflow
-        
-        # update also sewerOverflow outmap
-        self.var.wwtSewerOverflow += collection2returnflow
-        '''
         
         # convert OverflowOut from m3 to m
         self.var.wwtOverflowOutM = self.var.wwtOverflowOut / self.var.cellArea
-        
-        
-        
-        
-        
-        
-        # UPDATE wwtSendToRes
-        self.var.wwtSentToRes -= addTowwtSewerResOverflow
-                
-        # UPDATE LAKERESSTORAGE
-        self.var.lakeVolumeM3C -= sendToResOverflow_LR
-        self.var.lakeStorageC -= sendToResOverflow_LR
-        self.var.lakeResStorageC -= sendToResOverflow_LR
-        self.var.reservoirStorageM3C -= sendToResOverflow_LR
-        #resStorageC -= sendToResOverflow_LR
-        
-        printError = False
-        if (printError):
-            # print balance
-            inputs = np.nansum(self.var.wwtSewerCollected)
-            outputs = np.nansum(self.var.wwtSewerOverflow + self.var.wwtSewerResOverflow + self.var.wwtTreatedOverflow + self.var.wwtEvap +  self.var.wwtSewerExported + self.var.wwtSentToRes)
-            sto = np.nansum(self.var.wwtInTreatment)
-        
-            wwt_error = (inputs - outputs + (sto - sto_0))/ ((inputs + outputs) / 2)
-            print("wastewater error: ", str(wwt_error))
-        #print(np.nansum(self.var.wwtSentToResC_LR))
         

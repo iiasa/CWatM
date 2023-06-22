@@ -39,30 +39,31 @@ class runoff_concentration(object):
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
     load_initial                           Settings initLoad holds initial conditions for variables                input
-    leakageIntoRunoff                                                                                                   
-    fracGlacierCover                                                                                                    
-    sum_interflow                                                                                                       
+    leakageIntoRunoff                      Canal leakage leading to runoff                                         m    
+    fracGlacierCover                                                                                               --   
+    sum_interflow                                                                                                  --   
     cellArea                               Area of cell                                                            m2   
     coverTypes                             land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
-    runoff                                                                                                              
-    includeGlaciers                                                                                                     
-    GlacierMelt                                                                                                         
-    GlacierRain                                                                                                         
+    runoff                                                                                                         --   
+    includeGlaciers                                                                                                --   
+    includeOnlyGlaciersMelt                                                                                        --   
+    GlacierMelt                                                                                                    --   
+    GlacierRain                                                                                                    --   
     runoff_peak                            peak time of runoff in seconds for each land use class                  s    
     tpeak_interflow                        peak time of interflow                                                  s    
     tpeak_baseflow                         peak time of baseflow                                                   s    
-    tpeak_glaciers                                                                                                      
+    tpeak_glaciers                                                                                                 --   
     maxtime_runoff_conc                    maximum time till all flow is at the outlet                             s    
     runoff_conc                            runoff after concentration - triangular-weighting method                m    
-    gridcell_storage                                                                                                    
+    gridcell_storage                                                                                               --   
     sum_landSurfaceRunoff                  Runoff concentration above the soil more interflow including all landc  m    
     landSurfaceRunoff                      Runoff concentration above the soil more interflow                      m    
-    directRunoffGlacier                                                                                                 
+    directRunoffGlacier                                                                                            --   
     directRunoff                           Simulated surface runoff                                                m    
     interflow                              Simulated flow reaching runoff instead of groundwater                   m    
     baseflow                               simulated baseflow (= groundwater discharge to river)                   m    
     fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
-    prergridcell                                                                                                        
+    prergridcell                                                                                                   --   
     =====================================  ======================================================================  =====
 
     **Functions**

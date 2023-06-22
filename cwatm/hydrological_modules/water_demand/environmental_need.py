@@ -24,12 +24,12 @@ class waterdemand_environmental_need:
     Variable [self.var]                    Description                                                             Unit 
     =====================================  ======================================================================  =====
     cut_ef_map                             if TRUE calculated maps of environmental flow are clipped to the area   bool 
-    use_environflow                                                                                                     
-    envFlowm3s                                                                                                          
+    use_environflow                                                                                                --   
+    envFlowm3s                                                                                                     --   
     M3toM                                  Coefficient to change units                                             --   
     chanLength                             Input, Channel length                                                   m    
-    channelAlpha                                                                                                        
-    envFlow                                                                                                             
+    channelAlpha                                                                                                   --   
+    envFlow                                                                                                        --   
     =====================================  ======================================================================  =====
 
     **Functions**

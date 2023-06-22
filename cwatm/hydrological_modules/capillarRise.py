@@ -34,10 +34,10 @@ class capillarRise(object):
     dzRel0005                              relative elevation above flood plains (5% elevation above plain)        m    
     dzRel0001                              relative elevation above flood plains (1% elevation above plain)        m    
     capRiseFrac                            fraction of a grid cell where capillar rise may happen                  m    
-    storGroundwater                        simulated groundwater storage                                           m    
+    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
+    storGroundwater                        Groundwater storage (non-fossil). This is primarily used when not usin  m    
     specificYield                          groundwater reservoir parameters (if ModFlow is not used) used to comp  m    
     maxGWCapRise                           influence of capillary rise above groundwater level                     m    
-    modflow                                Flag: True if modflow_coupling = True in settings file                  --   
     =====================================  ======================================================================  =====
 
     **Functions**
