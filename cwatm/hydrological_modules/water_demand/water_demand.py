@@ -505,6 +505,9 @@ class water_demand:
                     # load command areas & command areas_wwt
                     if self.var.load_command_areas:
                         self.var.reservoir_command_areas = loadmap('reservoir_command_areas').astype(int)
+                        self.var.reservoir_command_areas = np.where(self.var.reservoir_command_areas<0,
+                                                                    0,
+                                                                    self.var.reservoir_command_areas)
 
                         # Lakes/restricted reservoirs within command areas are removed from the command area
                         self.var.reservoir_command_areas = np.where(self.var.waterBodyTyp_unchanged == 1,
@@ -861,7 +864,7 @@ class water_demand:
 
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
                 if globals.dateVar['newStart'] or globals.dateVar['newMonth'] \
-                        or 'basin_transfers_daily_operations' in option or 'reservoir_transfers' in option:
+                        or 'reservoir_transfers' in option:
                     # total (potential) non irrigation water demand
                     self.var.nonIrrDemand = self.var.domesticDemand + self.var.industryDemand + self.var.livestockDemand
                     self.var.pot_nonIrrConsumption = np.minimum(self.var.nonIrrDemand,
@@ -1720,11 +1723,14 @@ class water_demand:
                         # Domestic, livestock, and industrial demands are satisfied before irrigation
 
                         remainNeedPre = pot_Res_Domestic + pot_Res_Livestock + pot_Res_Industry
+                        #print('water_demand.py: np.sum(remainNeedPre) with reservoirs', np.sum(remainNeedPre))
 
                         demand_Segment = np.where(self.var.reservoir_command_areas > 0,
                                                   npareatotal(remainNeedPre * self.var.cellArea,
                                                               self.var.reservoir_command_areas),
                                                   0)  # [M3]
+
+                        #print('water_demand.py: np.sum(demand_Segment) with reservoirs', np.sum(demand_Segment))
 
                         # Reservoir associated with the Command Area
                         #
@@ -1865,7 +1871,7 @@ class water_demand:
                         resStorage_maxFracForIrrigation = readnetcdf2('Reservoir_releases', day_of_year,
                                                                       useDaily='DOY', value='Fraction of Volume')
                     else:
-                        resStorage_maxFracForIrrigation = 0.05 + globals.inZero.copy()
+                        resStorage_maxFracForIrrigation = 0.03 + globals.inZero.copy()
 
                     # resStorage_maxFracForIrrigationC holds the fractional rules found for each reservoir,
                     #   so we must null those that are not the maximum-storage reservoirs
