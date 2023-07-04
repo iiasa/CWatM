@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cwatm.hydrological_modules.water_demand.irrigation &mdash; Community Water Model</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/iiasa.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            Community Water Model
+              <img src="../../../../_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.6
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../errorHandling.html">6. Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../listVariables.html">7. List of output variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../results.html">8. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../todo.html">9. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../data.html">10. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../calibration.html">11. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../calibration_tutorial.html">12. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../resolution.html">13. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zambezi.html">14. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../license.html">15. License and download info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../sourcecode.html">16. Source code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../forum.html">17. Forum</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Community Water Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cwatm.hydrological_modules.water_demand.irrigation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cwatm.hydrological_modules.water_demand.irrigation</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -------------------------------------------------------------------------</span>
+<span class="c1"># Name:        Waterdemand modules</span>
+<span class="c1"># Purpose:</span>
+<span class="c1">#</span>
+<span class="c1"># Author:      PB, YS, MS, JdB</span>
+<span class="c1">#</span>
+<span class="c1"># Created:     15/07/2016</span>
+<span class="c1"># Copyright:   (c) PB 2016</span>
+<span class="c1"># -------------------------------------------------------------------------</span>
+
+<span class="kn">from</span> <span class="nn">cwatm.management_modules</span> <span class="kn">import</span> <span class="nb">globals</span>
+<span class="kn">from</span> <span class="nn">cwatm.management_modules.data_handling</span> <span class="kn">import</span> <span class="n">returnBool</span><span class="p">,</span> <span class="n">binding</span><span class="p">,</span> <span class="n">cbinding</span><span class="p">,</span> <span class="n">loadmap</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<span class="c1"># from cwatm.management_modules.data_handling import *  # luca for testing</span>
+<span class="c1"># import matplotlib.pyplot as plt</span>
+
+
+<span class="c1"># def decompress(map, nanvalue=None):</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#    Decompressing CWatM maps from 1D to 2D with missing values</span>
+<span class="c1">#</span>
+<span class="c1">#    :param map: compressed map</span>
+<span class="c1">#    :return: decompressed 2D map</span>
+<span class="c1">#    &quot;&quot;&quot;</span>
+<span class="c1">#</span>
+<span class="c1">#    dmap = maskinfo[&#39;maskall&#39;].copy()</span>
+<span class="c1">#    dmap[~maskinfo[&#39;maskflat&#39;]] = map[:]</span>
+<span class="c1">#    if nanvalue is not None:</span>
+<span class="c1">#        dmap.data[np.isnan(dmap.data)] = nanvalue</span>
+<span class="c1">#</span>
+<span class="c1">#    return dmap.data</span>
+
+<div class="viewcode-block" id="waterdemand_irrigation"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.water_demand.irrigation.waterdemand_irrigation">[docs]</a><span class="k">class</span> <span class="nc">waterdemand_irrigation</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    WATERDEMAND</span>
+
+<span class="sd">    calculating water demand - irrigation</span>
+<span class="sd">    Agricultural water demand based on water need by plants</span>
+
+<span class="sd">    **Global variables**</span>
+
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    Variable [self.var]                    Description                                                             Unit </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+<span class="sd">    load_initial                           Settings initLoad holds initial conditions for variables                input</span>
+<span class="sd">    cropKC                                 crop coefficient for each of the 4 different land cover types (forest,  --   </span>
+<span class="sd">    topwater                               quantity of water above the soil (flooding)                             m    </span>
+<span class="sd">    efficiencyPaddy                        Input, irrPaddy_efficiency, paddy irrigation efficiency, the amount of  frac </span>
+<span class="sd">    efficiencyNonpaddy                     Input, irrNonPaddy_efficiency, non-paddy irrigation efficiency, the am  frac </span>
+<span class="sd">    returnfractionIrr                      Input, irrigation_returnfraction, the fraction of non-efficient water   frac </span>
+<span class="sd">    alphaDepletion                         Input, alphaDepletion, irrigation aims to alphaDepletion of field capa  frac </span>
+<span class="sd">    minimum_irrigation                     Cover-specific irrigation in metres is 0 if less than this, currently   1/m2 </span>
+<span class="sd">    pot_irrConsumption                     Cover-specific potential irrigation consumption                         m/m  </span>
+<span class="sd">    fraction_IncreaseIrrigation_Nonpaddy   Input, fraction_IncreaseIrrigation_Nonpaddy, scales pot_irrConsumption  frac </span>
+<span class="sd">    irrPaddyDemand                         Paddy irrigation demand                                                 m    </span>
+<span class="sd">    availWaterInfiltration                 quantity of water reaching the soil after interception, more snowmelt   m    </span>
+<span class="sd">    ws1                                    Maximum storage capacity in layer 1                                     m    </span>
+<span class="sd">    ws2                                    Maximum storage capacity in layer 2                                     m    </span>
+<span class="sd">    wfc1                                   Soil moisture at field capacity in layer 1                              --   </span>
+<span class="sd">    wfc2                                   Soil moisture at field capacity in layer 2                              --   </span>
+<span class="sd">    wwp1                                   Soil moisture at wilting point in layer 1                               --   </span>
+<span class="sd">    wwp2                                   Soil moisture at wilting point in layer 2                               --   </span>
+<span class="sd">    arnoBeta                                                                                                       --   </span>
+<span class="sd">    maxtopwater                            maximum heigth of topwater                                              m    </span>
+<span class="sd">    totAvlWater                            Field capacity minus wilting point in soil layers 1 and 2               m    </span>
+<span class="sd">    InvCellArea                            Inverse of cell area of each simulated mesh                             1/m2 </span>
+<span class="sd">    totalPotET                             Potential evaporation per land use class                                m    </span>
+<span class="sd">    w1                                     Simulated water storage in the layer 1                                  m    </span>
+<span class="sd">    w2                                     Simulated water storage in the layer 2                                  m    </span>
+<span class="sd">    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    </span>
+<span class="sd">    unmetDemand                            Unmet groundwater demand to determine potential fossil groundwaterwate  m    </span>
+<span class="sd">    unmetDemandPaddy                       Unmet paddy demand                                                      m    </span>
+<span class="sd">    unmetDemandNonpaddy                    Unmet nonpaddy demand                                                   m    </span>
+<span class="sd">    irrDemand                              Cover-specific Irrigation demand                                        m/m  </span>
+<span class="sd">    irrNonpaddyDemand                                                                                              --   </span>
+<span class="sd">    totalIrrDemand                         Irrigation demand                                                       m    </span>
+<span class="sd">    =====================================  ======================================================================  =====</span>
+
+<span class="sd">    **Functions**</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+
+<div class="viewcode-block" id="waterdemand_irrigation.initial"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.water_demand.irrigation.waterdemand_irrigation.initial">[docs]</a>    <span class="k">def</span> <span class="nf">initial</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initial part of the water demand module</span>
+<span class="sd">        irrigation</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># init unmetWaterDemand -&gt; to calculate actual one the the unmet water demand from previous day is needed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">unmetDemandPaddy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">load_initial</span><span class="p">(</span><span class="s1">&#39;unmetDemandPaddy&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">unmetDemandNonpaddy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">load_initial</span><span class="p">(</span><span class="s1">&#39;unmetDemandNonpaddy&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="c1"># in case fossil water abstraction is allowed this will be filled</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">unmetDemand</span> <span class="o">=</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># irrigation efficiency</span>
+        <span class="c1"># at the moment a single map, but will be replaced by map stack for every year</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">efficiencyPaddy</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s2">&quot;irrPaddy_efficiency&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">efficiencyNonpaddy</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s2">&quot;irrNonPaddy_efficiency&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">returnfractionIrr</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s2">&quot;irrigation_returnfraction&quot;</span><span class="p">)</span>
+
+        <span class="c1"># for Xiaogang&#39;s agent model</span>
+        <span class="k">if</span> <span class="s2">&quot;alphaDepletion&quot;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">alphaDepletion</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span><span class="s1">&#39;alphaDepletion&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">alphaDepletion</span> <span class="o">=</span> <span class="mf">0.7</span>
+
+        <span class="c1"># ignore demand if less than self.var.minimum_irrigation #1 m3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">minimum_irrigation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InvCellArea</span></div>
+        <span class="c1"># print(&#39;=&gt; If irrigation demand is smaller than &#39;, np.nanmean(self.var.minimum_irrigation), &#39; m/day, the demand is set to zero&#39;)</span>
+
+<div class="viewcode-block" id="waterdemand_irrigation.dynamic"><a class="viewcode-back" href="../../../../hydrological_modules.html#cwatm.hydrological_modules.water_demand.irrigation.waterdemand_irrigation.dynamic">[docs]</a>    <span class="k">def</span> <span class="nf">dynamic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dynamic part of the water demand module</span>
+
+<span class="sd">        * calculate the fraction of water from surface water vs. groundwater</span>
+<span class="sd">        * get non-Irrigation water demand and its return flow fraction</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Paddy irrigation -&gt; No = 2</span>
+        <span class="c1"># Non paddy irrigation -&gt; No = 3</span>
+
+        <span class="c1"># irrigation water demand for paddy  </span>
+        <span class="n">No</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="c1"># a function of cropKC (evaporation and transpiration) and available water see Wada et al. 2014 p. 19</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">cropKC</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.75</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">alphaDepletion</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">maxtopwater</span> <span class="o">-</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">topwater</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">availWaterInfiltration</span><span class="p">[</span><span class="n">No</span><span class="p">]))),</span>
+            <span class="mf">0.</span>
+        <span class="p">)</span>
+        <span class="c1"># ignore demand if less than 1 m3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InvCellArea</span><span class="p">,</span>
+                                                   <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">irrDemand</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">efficiencyPaddy</span>
+
+        <span class="c1"># -----------------</span>
+        <span class="c1"># irrNonPaddy</span>
+        <span class="n">No</span> <span class="o">=</span> <span class="mi">3</span>
+
+        <span class="c1"># Infiltration capacity</span>
+        <span class="c1">#  ========================================</span>
+        <span class="c1"># first 2 soil layers to estimate distribution between runoff and infiltration</span>
+        <span class="n">soilWaterStorage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">w1</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">w2</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+        <span class="n">soilWaterStorageCap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ws1</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">ws2</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+        <span class="n">relSat</span> <span class="o">=</span> <span class="n">soilWaterStorage</span> <span class="o">/</span> <span class="n">soilWaterStorageCap</span>
+        <span class="n">satAreaFrac</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">relSat</span><span class="p">)</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">arnoBeta</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+        <span class="n">satAreaFrac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">satAreaFrac</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="n">store</span> <span class="o">=</span> <span class="n">soilWaterStorageCap</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">arnoBeta</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">potBeta</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">arnoBeta</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">arnoBeta</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+        <span class="n">potInf</span> <span class="o">=</span> <span class="n">store</span> <span class="o">-</span> <span class="n">store</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">satAreaFrac</span><span class="p">)</span> <span class="o">**</span> <span class="n">potBeta</span><span class="p">)</span>
+        <span class="c1"># ----------------------------------------------------------</span>
+        <span class="n">availWaterPlant1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">w1</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wwp1</span><span class="p">[</span>
+            <span class="n">No</span><span class="p">])</span>  <span class="c1"># * self.var.rootDepth[0][No]  should not be multiplied again with soildepth</span>
+        <span class="n">availWaterPlant2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">w2</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wwp2</span><span class="p">[</span><span class="n">No</span><span class="p">])</span>  <span class="c1"># * self.var.rootDepth[1][No]</span>
+        <span class="c1"># availWaterPlant3 = np.maximum(0., self.var.w3[No] - self.var.wwp3[No])  #* self.var.rootDepth[2][No]</span>
+        <span class="n">readAvlWater</span> <span class="o">=</span> <span class="n">availWaterPlant1</span> <span class="o">+</span> <span class="n">availWaterPlant2</span>  <span class="c1"># + availWaterPlant3</span>
+
+        <span class="c1"># calculate   ****** SOIL WATER STRESS ************************************</span>
+
+        <span class="c1"># The crop group number is a indicator of adaptation to dry climate,</span>
+        <span class="c1"># e.g. olive groves are adapted to dry climate, therefore they can extract more water from drying out soil than e.g. rice.</span>
+        <span class="c1"># The crop group number of olive groves is 4 and of rice fields is 1</span>
+        <span class="c1"># for irrigation it is expected that the crop has a low adaptation to dry climate</span>
+        <span class="c1"># cropGroupNumber = 1.0</span>
+        <span class="n">etpotMax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalPotET</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1000.</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="c1"># print(&#39;-----------------------------etpotMax---------: &#39;, np.sum(etpotMax * self.var.cellArea))</span>
+        <span class="c1"># to avoid a strange behaviour of the p-formula&#39;s, ETRef is set to a maximum of 10 mm/day.</span>
+
+        <span class="c1"># for group number 1 -&gt; those are plants which needs irrigation</span>
+        <span class="c1"># p = 1 / (0.76 + 1.5 * np.minimum(0.1 * (self.var.totalPotET[No] * 1000.), 1.0)) - 0.10 * ( 5 - cropGroupNumber)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mf">0.76</span> <span class="o">+</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">etpotMax</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.4</span>
+        <span class="c1"># soil water depletion fraction (easily available soil water) # Van Diepen et al., 1988: WOFOST 6.0, p.87.</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">p</span> <span class="o">+</span> <span class="p">(</span><span class="n">etpotMax</span> <span class="o">-</span> <span class="mf">0.6</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span>
+        <span class="c1"># correction for crop group 1  (Van Diepen et al, 1988) -&gt; p between 0.14 - 0.77</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="mf">0.</span><span class="p">)</span>
+        <span class="c1"># p is between 0 and 1 =&gt; if p =1 wcrit = wwp, if p= 0 wcrit = wfc</span>
+        <span class="c1"># p is closer to 0 if evapo is bigger and cropgroup is smaller</span>
+
+        <span class="n">wCrit1</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wfc1</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wwp1</span><span class="p">[</span><span class="n">No</span><span class="p">]))</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wwp1</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+        <span class="n">wCrit2</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wfc2</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wwp2</span><span class="p">[</span><span class="n">No</span><span class="p">]))</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wwp2</span><span class="p">[</span><span class="n">No</span><span class="p">]</span>
+        <span class="c1"># wCrit3 = ((1 - p) * (self.var.wfc3[No] - self.var.wwp3[No])) + self.var.wwp3[No]</span>
+
+        <span class="n">critWaterPlant1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">wCrit1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wwp1</span><span class="p">[</span><span class="n">No</span><span class="p">])</span>  <span class="c1"># * self.var.rootDepth[0][No]</span>
+        <span class="n">critWaterPlant2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">wCrit2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">wwp2</span><span class="p">[</span><span class="n">No</span><span class="p">])</span>  <span class="c1"># * self.var.rootDepth[1][No]</span>
+        <span class="c1"># critWaterPlant3 = np.maximum(0., wCrit3 - self.var.wwp3[No]) # * self.var.rootDepth[2][No]</span>
+        <span class="n">critAvlWater</span> <span class="o">=</span> <span class="n">critWaterPlant1</span> <span class="o">+</span> <span class="n">critWaterPlant2</span>  <span class="c1"># + critWaterPlant3</span>
+
+        <span class="c1"># with alpha from Xiaogang He, to adjust irrigation to farmer&#39;s need</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">cropKC</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.20</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">readAvlWater</span> <span class="o">&lt;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">alphaDepletion</span> <span class="o">*</span> <span class="n">critAvlWater</span><span class="p">),</span>
+                                                        <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">alphaDepletion</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totAvlWater</span> <span class="o">-</span> <span class="n">readAvlWater</span><span class="p">),</span>  <span class="mf">0.</span><span class="p">),</span> <span class="mf">0.</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;fraction_IncreaseIrrigation_Nonpaddy&quot;</span> <span class="ow">in</span> <span class="n">binding</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">fraction_IncreaseIrrigation_Nonpaddy</span> <span class="o">=</span> <span class="n">loadmap</span><span class="p">(</span>
+                <span class="s1">&#39;fraction_IncreaseIrrigation_Nonpaddy&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">globals</span><span class="o">.</span><span class="n">inZero</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">fraction_IncreaseIrrigation_Nonpaddy</span>
+
+        <span class="c1"># should not be bigger than infiltration capacity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">],</span> <span class="n">potInf</span><span class="p">)</span>
+
+        <span class="c1"># ignore demand if less than self.var.minimum_irrigation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">minimum_irrigation</span><span class="p">,</span>
+                                                   <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">irrDemand</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">pot_irrConsumption</span><span class="p">[</span><span class="n">No</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">efficiencyNonpaddy</span>
+
+        <span class="c1"># Sum up irrigation water demand with area fraction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">irrNonpaddyDemand</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">fracVegCover</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">irrDemand</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">irrPaddyDemand</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">fracVegCover</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">irrDemand</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalIrrDemand</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">irrPaddyDemand</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">irrNonpaddyDemand</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, IIASA Water Security.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

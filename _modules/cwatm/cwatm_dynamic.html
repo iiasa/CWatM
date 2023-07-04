@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cwatm.cwatm_dynamic &mdash; Community Water Model</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/iiasa.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Community Water Model
+              <img src="../../_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                1.0.6
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modeldesign.html">2. Model Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../publication.html">3. Publication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../setup.html">4. Setup of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">5. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../errorHandling.html">6. Error handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../listVariables.html">7. List of output variables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../results.html">8. Demo of the model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../todo.html">9. The Model Itself</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data.html">10. Data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calibration.html">11. Calibration tool</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../calibration_tutorial.html">12. Calibration tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../resolution.html">13. Increasing resolution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zambezi.html">14. Example Zambezi</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">15. License and download info</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sourcecode.html">16. Source code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../forum.html">17. Forum</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Community Water Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cwatm.cwatm_dynamic</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cwatm.cwatm_dynamic</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -------------------------------------------------------------------------</span>
+<span class="c1"># Name:       CWAT Model Dynamic</span>
+<span class="c1"># Purpose:</span>
+<span class="c1">#</span>
+<span class="c1"># Author:      burekpe</span>
+<span class="c1">#</span>
+<span class="c1"># Created:     16/05/2016</span>
+<span class="c1"># Copyright:   (c) burekpe 2016</span>
+<span class="c1"># -------------------------------------------------------------------------</span>
+
+<span class="kn">from</span> <span class="nn">cwatm.management_modules.data_handling</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">cwatm.management_modules.messages</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+
+
+<div class="viewcode-block" id="CWATModel_dyn"><a class="viewcode-back" href="../../cwatm_dynamic.html#cwatm.cwatm_dynamic.CWATModel_dyn">[docs]</a><span class="k">class</span> <span class="nc">CWATModel_dyn</span><span class="p">(</span><span class="n">DynamicModel</span><span class="p">):</span>
+
+    <span class="c1"># =========== DYNAMIC ====================================================</span>
+
+<div class="viewcode-block" id="CWATModel_dyn.dynamic"><a class="viewcode-back" href="../../cwatm_dynamic.html#cwatm.cwatm_dynamic.CWATModel_dyn.dynamic">[docs]</a>    <span class="k">def</span> <span class="nf">dynamic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dynamic part of CWATM</span>
+<span class="sd">        calls the dynamic part of the hydrological modules</span>
+<span class="sd">        Looping through time and space</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            if flags set the output on the screen can be changed e.g.</span>
+
+<span class="sd">            * v: no output at all</span>
+<span class="sd">            * l: time and first gauge discharge</span>
+<span class="sd">            * t: timing of different processes at the end</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># self.CalendarDate = dateVar[&#39;dateStart&#39;] + datetime.timedelta(days=dateVar[&#39;curr&#39;])</span>
+        <span class="c1"># self.CalendarDay = int(self.CalendarDate.strftime(&quot;%j&quot;))</span>
+        <span class="n">timestep_dynamic</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">del</span> <span class="n">timeMes</span><span class="p">[:]</span>
+        <span class="n">timemeasure</span><span class="p">(</span><span class="s2">&quot;Start dynamic&quot;</span><span class="p">)</span>
+
+        <span class="c1"># ************************************************************</span>
+        <span class="sd">&quot;&quot;&quot; up to here it was fun, now the real stuff starts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;calc_environflow&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;calc_ef_afterRun&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="c1"># if only the dis is used for calculation of EF</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">environflow_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">(</span><span class="n">ef</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2"> ======================== CWATM ONLY EF calculation===========</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">header</span> <span class="o">+</span> <span class="s2">&quot;done with Environmental Flow</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">400</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">readmeteo_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="n">timemeasure</span><span class="p">(</span><span class="s2">&quot;Read meteo&quot;</span><span class="p">)</span>  <span class="c1"># 1. timing after read input maps</span>
+
+        <span class="k">if</span> <span class="n">Flags</span><span class="p">[</span><span class="s1">&#39;calib&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaporationPot_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="n">timemeasure</span><span class="p">(</span><span class="s2">&quot;ET pot&quot;</span><span class="p">)</span>  <span class="c1"># 2. timing after read input maps</span>
+
+        <span class="c1"># if Flags[&#39;check&#39;]: return  # if check than finish here</span>
+
+        <span class="sd">&quot;&quot;&quot; Here it starts with hydrological modules:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># ***** INFLOW HYDROGRAPHS (OPTIONAL)****************</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inflow_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lakes_reservoirs_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+
+        <span class="c1"># ***** RAIN AND SNOW *****************************************</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">snowfrost_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="n">timemeasure</span><span class="p">(</span><span class="s2">&quot;Snow&quot;</span><span class="p">)</span>  <span class="c1"># 3. timing</span>
+
+        <span class="c1"># ***** READ land use fraction maps***************************</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">landcoverType_module</span><span class="o">.</span><span class="n">dynamic_fracIrrigation</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="n">dateVar</span><span class="p">[</span><span class="s1">&#39;newYear&#39;</span><span class="p">],</span> <span class="n">dynamic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">dynamicLandcover</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">capillarRise_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="n">timemeasure</span><span class="p">(</span><span class="s2">&quot;Soil 1.Part&quot;</span><span class="p">)</span>  <span class="c1"># 4. timing</span>
+
+        <span class="c1"># *********  Soil splitted in different land cover fractions *************</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">landcoverType_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="n">timemeasure</span><span class="p">(</span><span class="s2">&quot;Soil main&quot;</span><span class="p">)</span>  <span class="c1"># 5. timing</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">modflow</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">groundwater_modflow_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">groundwater_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="n">timemeasure</span><span class="p">(</span><span class="s2">&quot;Groundwater&quot;</span><span class="p">)</span>  <span class="c1"># 7. timing</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">runoff_concentration_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="n">timemeasure</span><span class="p">(</span><span class="s2">&quot;Runoff conc.&quot;</span><span class="p">)</span>  <span class="c1"># 8. timing</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lakes_res_small_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="n">timemeasure</span><span class="p">(</span><span class="s2">&quot;Small lakes&quot;</span><span class="p">)</span>  <span class="c1"># 9. timing</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">routing_kinematic_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="n">timemeasure</span><span class="p">(</span><span class="s2">&quot;Routing_Kin&quot;</span><span class="p">)</span>  <span class="c1"># 10. timing</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">waterquality1</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+
+        <span class="c1"># calculate Total water storage (tws) [m] as a sum of</span>
+        <span class="c1"># Groundwater [m] + soil [m] + lake and reservoir storage [m3] + channel storage [m3]</span>
+        <span class="c1"># [m3] &gt;&gt; [m] --&gt; * InvCellArea</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">modflow</span><span class="p">:</span>
+            <span class="n">groundwater_storage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">groundwater_storage_available</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">groundwater_storage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">storGroundwater</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;includeRouting&#39;</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalET_WB</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EvapoChannel</span>
+            <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;includeWaterBodies&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;useSmallLakes&#39;</span><span class="p">):</span>
+                    <span class="c1"># Sum off lake and reservoirs and small lakes</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeReservoirStorage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeResStorage</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">smalllakeStorage</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Sum off lake and reservoirs - here without small lakes</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeReservoirStorage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeResStorage</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tws</span> <span class="o">=</span> <span class="n">groundwater_storage</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalSto</span> \
+                               <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">lakeReservoirStorage</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InvCellArea</span> \
+                               <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">channelStorage</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InvCellArea</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalET_WB</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalET_WB</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalET</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">EvapWaterBodyM</span>
+                <span class="k">if</span> <span class="n">returnBool</span><span class="p">(</span><span class="s1">&#39;useSmallLakes&#39;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalET_WB</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalET_WB</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">smallevapWaterBody</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tws</span> <span class="o">=</span> <span class="n">groundwater_storage</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalSto</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">channelStorage</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">InvCellArea</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tws</span> <span class="o">=</span> <span class="n">groundwater_storage</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">totalSto</span>
+
+        <span class="k">if</span> <span class="n">checkOption</span><span class="p">(</span><span class="s1">&#39;includeRunoffConcentration&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tws</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">tws</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">gridcell_storage</span>
+
+        <span class="c1"># *******  Calculate CUMULATIVE MASS BALANCE ERROR  **********</span>
+        <span class="c1"># self.waterbalance_module.dynamic()</span>
+
+        <span class="c1"># ------------------------------------------------------</span>
+        <span class="c1"># End of calculation -----------------------------------</span>
+        <span class="c1"># ------------------------------------------------------</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">waterbalance_module</span><span class="o">.</span><span class="n">checkWaterSoilGround</span><span class="p">()</span>
+        <span class="n">timemeasure</span><span class="p">(</span><span class="s2">&quot;Waterbalance&quot;</span><span class="p">)</span>  <span class="c1"># 11. timing</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">environflow_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="c1"># in case environmental flow is calculated last</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+        <span class="n">timemeasure</span><span class="p">(</span><span class="s2">&quot;Output&quot;</span><span class="p">)</span>  <span class="c1"># 12. timing</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_module</span><span class="o">.</span><span class="n">dynamic</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">timeMes</span><span class="p">)):</span>
+            <span class="c1"># if self.currentTimeStep() == self.firstTimeStep():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentStep</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstStep</span><span class="p">:</span>
+                <span class="n">timeMesSum</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">timeMes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">timeMes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">timeMesSum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">timeMes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">timeMes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># if modflow is used, the temporary files produced by Modflow/Flopy have to be closed with finalize</span>
+        <span class="c1"># otherwise they cannot be opend in the next run by pytest or calibration</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">modflow</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentStep</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastStep</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">groundwater_modflow_module</span><span class="o">.</span><span class="n">modflow</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span></div></div>
+
+
+        <span class="c1">#self.var.sumsum_directRunoff += self.var.sum_directRunoff</span>
+        <span class="c1">#self.var.sumsum_Runoff += self.var.sum_directRunoff</span>
+        <span class="c1">#self.var.sumsum_Precipitation += self.var.Precipitation</span>
+        <span class="c1">#self.var.sumsum_gwRecharge += self.var.sum_gwRecharge</span>
+        <span class="c1">#runoff = self.var.baseflow + self.var.sum_landSurfaceRunoff</span>
+        <span class="c1">#self.var.sumsum_Runoff += runoff</span>
+
+        <span class="c1">#print self.sum_directRunoff,  self.sum_interflowTotal, self.sum_landSurfaceRunoff, self.baseflow, runoff</span>
+        <span class="c1">#print self.sumsum_Precipitation, self.sumsum_Runoff</span>
+
+        <span class="c1">#report(decompress(self.var.sum_potTranspiration), &quot;c:\work\output/trans.map&quot;)</span>
+        <span class="c1">#report(decompress(self.var.directRunoff[3 ]), &quot;c:\work\output\dir.map&quot;)</span>
+        <span class="c1">#report(decompress(runoff), &quot;c:\work\output\dirsum.map&quot;)</span>
+        <span class="c1">#report(decompress(self.sumsum_Precipitation), &quot;c:\work\output\prsum.map&quot;)</span>
+        <span class="c1">#report(decompress(runoff), &quot;c:\work\output/runoff.map&quot;)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, IIASA Water Security.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
