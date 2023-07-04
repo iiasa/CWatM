@@ -16,7 +16,6 @@ This part deals with genuine problems. Please look for your error number
 .. csv-table::
   :header: "Error No", "Description", "Settingsfile", "Measure", "Module", "Procedure"
 
-
     "`E101`_", "Gauges in settingsfile is not a coordinate e.g. Gauges = bad bad", "Gauges", "Put in pairs of coordinates or a map with coordinates", "datahandling", "valuecell"
     "`E102`_", "One of the gauges is outside the map extend of the mask map", "Gauges", "Make sure that all gauges are inside the mask map area", "datahandling", "valuecell"
     "`E103`_", "Maskmap is not a valid mask map nor valid coordinates nor valid point e.g. MaskMap = 1 2 3 4 5 6 ", "MaskMap", "Put in a pair of coordinates, a defined rectangle (5 numbers) or a filename", "datahandling", "loadsetclone"

@@ -179,22 +179,19 @@ Source code description
 Download Manual as pdf
 ======================
 
-:download:`CWatM_MANUAL.pdf<_static/CWatM.pdf>`
+Burek, P., Smilovic, M., Guillaumot, L., de Bruijn, J., Greve, P., Satoh, Y., Islaam, A., Virgen-Urcelay, A., Tang, T., Kahil, T., and Wada, Y.: Community Water Model CWatM Manual, Laxenburg, Austria, IIASA Report, 2020.
+
+`Link to manual <http://pure.iiasa.ac.at/id/eprint/16802/>`_
+
 
 
 Global dataset
 ==============
 
 | If you are interested in obtaining the gloabl data set,
-| please send an email to wfas.info@iiasa.ac.at
 | We will give you access to our ftp server
 
 
-Contact CWatM
-=============
-
-| `www.iiasa.ac.at/cwatm <http://www.iiasa.ac.at/cwatm>`_ 
-| wfas.info@iiasa.ac.at
 
 Remarks
 =======

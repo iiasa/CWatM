@@ -1,51 +1,101 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
   <title>12. Calibration tutorial &mdash; Community Water Model</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
-      <link rel="stylesheet" href="_static/iiasa.css" type="text/css" />
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/iiasa.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/js/theme.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="13. Increasing resolution" href="resolution.html" />
     <link rel="prev" title="11. Calibration tool" href="calibration.html" /> 
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
+
+   
   <div class="wy-grid-for-nav">
+    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
+          
 
           
+            <a href="index.html" class="icon icon-home"> Community Water Model
           
-          <a href="index.html" class="icon icon-home">
-            Community Water Model
-              <img src="_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+
+          
+            
+            <img src="_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          
           </a>
+
+          
+            
+            
               <div class="version">
                 1.0.6
               </div>
+            
+          
+
+          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modeldesign.html">2. Model Design</a></li>
@@ -91,34 +141,75 @@
 <li class="toctree-l1"><a class="reference internal" href="forum.html">17. Forum</a></li>
 </ul>
 
+            
+          
         </div>
+        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Community Water Model</a>
+        
       </nav>
 
+
       <div class="wy-nav-content">
+        
         <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">12. </span>Calibration tutorial</li>
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li><span class="section-number">12. </span>Calibration tutorial</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
+        
+          
             <a href="_sources/calibration_tutorial.rst.txt" rel="nofollow"> View page source</a>
+          
+        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
-  <section id="calibration-tutorial">
-<h1><span class="section-number">12. </span>Calibration tutorial<a class="headerlink" href="#calibration-tutorial" title="Permalink to this heading"></a></h1>
-<section id="what-you-need">
-<h2>What you need<a class="headerlink" href="#what-you-need" title="Permalink to this heading"></a></h2>
+            
+  <div class="section" id="calibration-tutorial">
+<h1><span class="section-number">12. </span>Calibration tutorial<a class="headerlink" href="#calibration-tutorial" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="what-you-need">
+<h2>What you need<a class="headerlink" href="#what-you-need" title="Permalink to this headline">¶</a></h2>
 <p>Python 2.7.x 64 bit and a running CWatM (libraries netCDF4, numpy, scipy, GDAL)
 In addition: <strong>library deap</strong></p>
 <p>Calibration is using a distributed evolutionary algorithms in python: DEAP library</p>
@@ -134,9 +225,9 @@ Pip install deap (you might change into the folder ../python/Scripts/)</p>
 <li><p>Make sure that CWatM is running in non calibration mode</p></li>
 <li><p>For some of the following steps it is easier to have PCRaster installed: <a class="reference external" href="http://pcraster.geo.uu.nl/">http://pcraster.geo.uu.nl/</a></p></li>
 </ul>
-</section>
-<section id="running-calibration">
-<h2>Running calibration<a class="headerlink" href="#running-calibration" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="running-calibration">
+<h2>Running calibration<a class="headerlink" href="#running-calibration" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic">
 <li><p>Look into the settings file of the calibration folder.</p></li>
 <li><p>look into runCalibration.bat. If python is in your computer path everything should be ok, otherwise put in the path to python</p></li>
@@ -159,18 +250,18 @@ PathMeteo = $(PathRoot)/climate
 </li>
 <li><p>make sure the folder catchments is empty! Before each try this folder has to be empty</p></li>
 </ol>
-</section>
-<section id="run-runcalibration-bat">
-<h2>Run runCalibration.bat<a class="headerlink" href="#run-runcalibration-bat" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="run-runcalibration-bat">
+<h2>Run runCalibration.bat<a class="headerlink" href="#run-runcalibration-bat" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>go for testing (see below)</p></li>
 <li><p>go for testing again (see below)</p></li>
 <li><p>Change use_multiprocessing =1 in settings.txt</p></li>
 <li><p>Run runCalibration.bat and after some time something should appear on your window</p></li>
 </ol>
-</section>
-<section id="for-testing">
-<h2>For testing<a class="headerlink" href="#for-testing" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="for-testing">
+<h2>For testing<a class="headerlink" href="#for-testing" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Change use_multiprocessing = 0 in settings.txt</p></li>
 <li><p>Delete catchments but keep the empty folder</p></li>
@@ -183,9 +274,9 @@ PathMeteo = $(PathRoot)/climate
 <li><p>Change template/setting.ini in the same way</p></li>
 <li><p>Do this again and again till no error</p></li>
 </ol>
-</section>
-<section id="running-it-on-your-computer">
-<h2>Running it on your computer<a class="headerlink" href="#running-it-on-your-computer" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="running-it-on-your-computer">
+<h2>Running it on your computer<a class="headerlink" href="#running-it-on-your-computer" title="Permalink to this headline">¶</a></h2>
 <p>It will be really slow on Windows using data on the the server – next step run it on your PC</p>
 <ul>
 <li><p>copy the whole folder P:watmodelCWatMcalibration_tutorial to your PC (only 15 GB)</p></li>
@@ -197,11 +288,11 @@ PathMeteo = $(PathRoot)/climate
 </div>
 </li>
 </ul>
-</section>
-<section id="preparation-for-another-catchment">
-<h2>Preparation for another catchment<a class="headerlink" href="#preparation-for-another-catchment" title="Permalink to this heading"></a></h2>
-<section id="preparing-the-observed-dataset-discharge">
-<h3>Preparing the observed dataset – discharge<a class="headerlink" href="#preparing-the-observed-dataset-discharge" title="Permalink to this heading"></a></h3>
+</div>
+<div class="section" id="preparation-for-another-catchment">
+<h2>Preparation for another catchment<a class="headerlink" href="#preparation-for-another-catchment" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="preparing-the-observed-dataset-discharge">
+<h3>Preparing the observed dataset – discharge<a class="headerlink" href="#preparing-the-observed-dataset-discharge" title="Permalink to this headline">¶</a></h3>
 <p>Calibration works by comparing simulated discharge with observed discharge using an objective function:
 Here we use the Kling-Gupta Efficiency but we can also use Nash-Sutcliffe Efficiency . Please find some more information on the objective function an on the evolutionary computation framework used for calibration on: <a class="reference external" href="https://cwatm.github.io/calibration.html">https://cwatm.github.io/calibration.html</a></p>
 <ul>
@@ -258,10 +349,10 @@ date,yukon_pilot_station
 </pre></div>
 </div>
 <p>Should correspondent to the amount of lines in the observed discharge.cvs</p>
-</section>
-</section>
-<section id="creating-an-initial-netcdf-file-for-warm-start">
-<h2>Creating an initial netcdf file for warm start<a class="headerlink" href="#creating-an-initial-netcdf-file-for-warm-start" title="Permalink to this heading"></a></h2>
+</div>
+</div>
+<div class="section" id="creating-an-initial-netcdf-file-for-warm-start">
+<h2>Creating an initial netcdf file for warm start<a class="headerlink" href="#creating-an-initial-netcdf-file-for-warm-start" title="Permalink to this headline">¶</a></h2>
 <p>It is best to have a long warm up phase especially for groundwater:
 See also: <a class="reference external" href="https://cwatm.github.io/setup.html#initialisation">https://cwatm.github.io/setup.html#initialisation</a></p>
 <p>You can run CWatM for a couple of years (20 years or more) and store the last days storage values in a file. This file can be read in to enable a ‘warm” start</p>
@@ -322,9 +413,9 @@ See also: <a class="reference external" href="https://cwatm.github.io/setup.html
 <p class="admonition-title">Note</p>
 <p>You have now a “warm” start for every calibration run</p>
 </div>
-</section>
-<section id="cutting-out-a-catchment-as-mask-map">
-<h2>Cutting out a catchment as mask map<a class="headerlink" href="#cutting-out-a-catchment-as-mask-map" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="cutting-out-a-catchment-as-mask-map">
+<h2>Cutting out a catchment as mask map<a class="headerlink" href="#cutting-out-a-catchment-as-mask-map" title="Permalink to this headline">¶</a></h2>
 <p>See the .doc file in
 P:watmodelCWatMcalibration_tutorialcalibrationtoolscut_catchmentFor a description:</p>
 <p><strong>Requirements:</strong> PCRASTER:</p>
@@ -363,9 +454,9 @@ OUT_MAP_Daily = ETRef, EWRef
 </div>
 <p><strong>Test it:</strong>  Run runpy00_001.bat</p>
 <p>And change the settings.ini in templates in the same way</p>
-</section>
-<section id="calibration-of-a-downstream-catchment">
-<h2>Calibration of a downstream catchment<a class="headerlink" href="#calibration-of-a-downstream-catchment" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="calibration-of-a-downstream-catchment">
+<h2>Calibration of a downstream catchment<a class="headerlink" href="#calibration-of-a-downstream-catchment" title="Permalink to this headline">¶</a></h2>
 <p>Calibration of a downstream catchment (upstream catchment is already calibrated) can be done using:</p>
 <ul class="simple">
 <li><p>The catchment area of the downstream catchment minus the upstream catchment</p></li>
@@ -384,8 +475,8 @@ OUT_MAP_Daily = ETRef, EWRef
 </ol>
 <p><strong>Test it!</strong>
 7. Create initial file for warm start</p>
-<section id="cutting-the-mask-map">
-<h3>Cutting the mask map<a class="headerlink" href="#cutting-the-mask-map" title="Permalink to this heading"></a></h3>
+<div class="section" id="cutting-the-mask-map">
+<h3>Cutting the mask map<a class="headerlink" href="#cutting-the-mask-map" title="Permalink to this headline">¶</a></h3>
 <p>Assuming you have a mask map of the whole catchment (e.g. Yangtze.map and the station points (here Zhutuo 105.75 28.75 and Yichang 111.25 30.75
 1. Creating catchment for Zhutuo: catchment 105.75 28.75 ldd_yangtze.map zhu1.map
 2. Creating catchment for Yichang: catchment 111.25 30.75 ldd_yangtze.map yi1.map
@@ -397,16 +488,16 @@ OUT_MAP_Daily = ETRef, EWRef
 <p>Result is a maskmap: Yichang.map</p>
 <a class="reference internal image-reference" href="_images/cal_tutor1.jpg"><img alt="_images/cal_tutor1.jpg" src="_images/cal_tutor1.jpg" style="width: 600px;" /></a>
 <p>Figure 1: Upstream catchment (blue) and downstream catchment (red)</p>
-</section>
-<section id="detecting-the-downstream-point">
-<h3>Detecting the downstream point<a class="headerlink" href="#detecting-the-downstream-point" title="Permalink to this heading"></a></h3>
+</div>
+<div class="section" id="detecting-the-downstream-point">
+<h3>Detecting the downstream point<a class="headerlink" href="#detecting-the-downstream-point" title="Permalink to this headline">¶</a></h3>
 <p>The inflow point of the new catchment has to be in the new mask and preferable one grid cell in flow direction below the upstream station e.g. 1 gridcell North East of Zhutuo (see purple circle in fig. 2)</p>
 <p>The inflow point has the lon/lat   106.25 29.25</p>
 <a class="reference internal image-reference" href="_images/cal_tutor2.jpg"><img alt="_images/cal_tutor2.jpg" src="_images/cal_tutor2.jpg" style="width: 600px;" /></a>
 <p>Figure 2: Downstream point</p>
-</section>
-<section id="run-the-best-calibration-scenario-upstream">
-<h3>Run the best calibration scenario upstream<a class="headerlink" href="#run-the-best-calibration-scenario-upstream" title="Permalink to this heading"></a></h3>
+</div>
+<div class="section" id="run-the-best-calibration-scenario-upstream">
+<h3>Run the best calibration scenario upstream<a class="headerlink" href="#run-the-best-calibration-scenario-upstream" title="Permalink to this headline">¶</a></h3>
 <p>In order to get a long inflow timeserie for the inflow point (here:  Zhutuo)  you need to run the best scenario of the upstream catchment (here: 31_best)</p>
 <ul>
 <li><p>Change into the folder ../catchments/best</p></li>
@@ -426,16 +517,16 @@ OUT_MAP_Daily = ETRef, EWRef
 </li>
 </ul>
 <p>Results is a time series from 1/1/1990 – 31/12/2013 in: discharge_daily.tss</p>
-</section>
-<section id="create-an-inflow-file-from-the-long-timeseries-of-outlet-s">
-<h3>Create an inflow file from the long timeseries of outlet(s)<a class="headerlink" href="#create-an-inflow-file-from-the-long-timeseries-of-outlet-s" title="Permalink to this heading"></a></h3>
+</div>
+<div class="section" id="create-an-inflow-file-from-the-long-timeseries-of-outlet-s">
+<h3>Create an inflow file from the long timeseries of outlet(s)<a class="headerlink" href="#create-an-inflow-file-from-the-long-timeseries-of-outlet-s" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Create a folder ../inflow</p></li>
 <li><p>Copy the  ../catchments/31_best/discharge_daily.tss to ../inflow/zhutuo.tss</p></li>
 </ul>
-</section>
-<section id="create-a-downstream-calibration-settings-directories-templates-etc">
-<h3>Create a downstream calibration settings (directories, templates etc.)<a class="headerlink" href="#create-a-downstream-calibration-settings-directories-templates-etc" title="Permalink to this heading"></a></h3>
+</div>
+<div class="section" id="create-a-downstream-calibration-settings-directories-templates-etc">
+<h3>Create a downstream calibration settings (directories, templates etc.)<a class="headerlink" href="#create-a-downstream-calibration-settings-directories-templates-etc" title="Permalink to this headline">¶</a></h3>
 <p>Create downstream calibration settings as before</p>
 <ul class="simple">
 <li><p>Copy everything from upstream catchment (e.g. zhutuo) but not catchments</p></li>
@@ -446,9 +537,9 @@ OUT_MAP_Daily = ETRef, EWRef
 </ul>
 <p><strong>Test the catchment setting!</strong></p>
 <p><strong>But do not create an initial run yet!</strong></p>
-</section>
-<section id="change-the-settings-file">
-<h3>Change the settings file<a class="headerlink" href="#change-the-settings-file" title="Permalink to this heading"></a></h3>
+</div>
+<div class="section" id="change-the-settings-file">
+<h3>Change the settings file<a class="headerlink" href="#change-the-settings-file" title="Permalink to this headline">¶</a></h3>
 <p>Change the settings file of the downstream calibration so that it includes the inflow from upstream
 Change the part of the settings.ini:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[Option]
@@ -472,10 +563,10 @@ QInTS = zhutuo.tss
 <p><strong>Test it!</strong></p>
 <p>Generate initial file for warm start
 Use initial file for calibration</p>
-</section>
-</section>
-<section id="joining-best-sub-basin-results-to-calibration-maps">
-<h2>Joining best sub-basin results to calibration maps<a class="headerlink" href="#joining-best-sub-basin-results-to-calibration-maps" title="Permalink to this heading"></a></h2>
+</div>
+</div>
+<div class="section" id="joining-best-sub-basin-results-to-calibration-maps">
+<h2>Joining best sub-basin results to calibration maps<a class="headerlink" href="#joining-best-sub-basin-results-to-calibration-maps" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
 <li><p>You need all runs done for all sub-basins</p></li>
 <li><p>A region map</p></li>
@@ -514,12 +605,12 @@ Use initial file for calibration</p>
 </li>
 <li><p>Run python CAL_5_PARAMETER_MAPS.py</p></li>
 </ol>
-</section>
-<section id="calibration-tool-structure">
-<h2>Calibration tool structure<a class="headerlink" href="#calibration-tool-structure" title="Permalink to this heading"></a></h2>
-</section>
-<section id="references">
-<h2>References<a class="headerlink" href="#references" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="calibration-tool-structure">
+<h2>Calibration tool structure<a class="headerlink" href="#calibration-tool-structure" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p>Beck, H. E., A. I. J. M. van Dijk, A. de Roo, D. G. Miralles, T. R. McVicar, J. Schellekens and L. A. Bruijnzeel (2016). “Global-scale regionalization of hydrologic model parameters.” Water Resources Research 52(5): 3599-3622.</p></li>
 <li><p>Deb, K., A. Pratap, S. Agarwal and T. Meyarivan (2002). “A fast and elitist multiobjective genetic algorithm: NSGA-II.” IEEE Transactions on Evolutionary Computation 6(2): 182-197.</p></li>
@@ -529,38 +620,55 @@ Use initial file for calibration</p>
 <li><p>Kling, H., M. Fuchs and M. Paulin (2012). “Runoff conditions in the upper Danube basin under an ensemble of climate change scenarios.” Journal of Hydrology 424-425: 264-277.</p></li>
 <li><p>Samaniego, L., R. Kumar, S. Thober, O. Rakovec, M. Zink, N. Wanders, S. Eisner, H. Müller Schmied, E. Sutanudjaja, K. Warrach-Sagi and S. Attinger (2017). “Toward seamless hydrologic predictions across spatial scales.” Hydrology and Earth System Sciences 21(9): 4323-4346.</p></li>
 </ul>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>
+           
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="calibration.html" class="btn btn-neutral float-left" title="11. Calibration tool" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="resolution.html" class="btn btn-neutral float-right" title="13. Increasing resolution" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="calibration.html" class="btn btn-neutral float-left" title="11. Calibration tool" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2021, IIASA Water Security.</p>
-  </div>
+    <p>
+        &#169; Copyright 2021, IIASA Water Security.
 
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
         </div>
       </div>
+
     </section>
+
   </div>
-  <script>
+  
+
+  <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
