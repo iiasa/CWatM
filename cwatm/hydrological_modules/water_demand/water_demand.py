@@ -1275,7 +1275,9 @@ class water_demand:
                             resStorage_maxFracForIrrigationC = np.compress(self.var.compress_LR,
                                                                        resStorage_maxFracForIrrigation)
                             if self.var.reservoir_releases_excel_option:
-                                resStorage_maxFracForIrrigationC = self.var.reservoir_releases[dateVar['doy']]
+                                resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
+                                                                            self.var.reservoir_releases[dateVar['doy']],
+                                                                            0.03)
 
                             resStorage_maxFracForIrrigationC = np.multiply(
                                 resStorageTotal_allocC == self.var.reservoirStorageM3C, resStorage_maxFracForIrrigationC)
