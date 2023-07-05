@@ -1274,6 +1274,9 @@ class water_demand:
                             # so we must null those that are not the maximum-storage reservoirs
                             resStorage_maxFracForIrrigationC = np.compress(self.var.compress_LR,
                                                                        resStorage_maxFracForIrrigation)
+                            if self.var.reservoir_releases_excel_option:
+                                resStorage_maxFracForIrrigationC = self.var.reservoir_releases[dateVar['doy']]
+
                             resStorage_maxFracForIrrigationC = np.multiply(
                                 resStorageTotal_allocC == self.var.reservoirStorageM3C, resStorage_maxFracForIrrigationC)
                             np.put(resStorage_maxFracForIrrigation, self.var.decompress_LR,

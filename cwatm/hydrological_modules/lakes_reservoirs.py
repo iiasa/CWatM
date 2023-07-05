@@ -12,6 +12,7 @@ from cwatm.management_modules.data_handling import *
 from cwatm.hydrological_modules.routing_reservoirs.routing_sub import *
 
 from cwatm.management_modules.globals import *
+import importlib
 
 
 class lakes_reservoirs(object):
@@ -200,6 +201,21 @@ class lakes_reservoirs(object):
         self.var = model.var
         self.model = model
 
+    def reservoir_releases(self, xl_settings_file_path):
+        pd = importlib.import_module("pandas", package=None)
+        df = pd.read_excel(xl_settings_file_path, sheet_name='Reservoirs_downstream')
+        waterBodyID_C_tolist = self.var.waterBodyID_C.tolist()
+
+        reservoir_release = [[-1 for i in self.var.waterBodyID_C] for i in range(366)]
+
+        for res in list(df)[2:]:
+            res_index = waterBodyID_C_tolist.index(int(float(res)))
+
+            for day in range(366):
+                reservoir_release[day][res_index] = df[res][day]
+
+        return reservoir_release
+
     def initWaterbodies(self):
         """
         Initialize water bodies
@@ -238,6 +254,8 @@ class lakes_reservoirs(object):
                                         buffer[yy, xx] = id
             buffer[buffer == 1.0e15] = 0.
             return compressArray(buffer).astype(np.int64)
+
+
 
         if checkOption('includeWaterBodies'):
 
@@ -395,6 +413,14 @@ class lakes_reservoirs(object):
 
             if checkOption('calcWaterBalance'):
                 self.var.lakedaycorrect = globals.inZero.copy()
+
+            self.var.reservoir_releases_excel_option = False
+            if 'reservoir_releases_in_Excel_settings' in option:
+                if checkOption('reservoir_releases_in_Excel_settings'):
+                    if 'Excel_settings_file' in binding:
+                        self.var.reservoir_releases_excel_option = True
+                        xl_settings_file_path = cbinding('Excel_settings_file')
+                        self.var.reservoir_releases = np.array(self.reservoir_releases(xl_settings_file_path))
 
     def initial_lakes(self):
         """
@@ -564,6 +590,9 @@ class lakes_reservoirs(object):
 
                 self.var.lakeResStorage_release_ratioC = np.compress(self.var.compress_LR,
                                                                      self.var.lakeResStorage_release_ratio)
+
+            elif self.var.reservoir_releases_excel_option:
+                self.var.lakeResStorage_release_ratioC = self.var.reservoir_releases[dateVar['doy']]
 
     def dynamic_inloop(self, NoRoutingExecuted):
         """
@@ -780,6 +809,11 @@ class lakes_reservoirs(object):
                                             np.where(self.var.lakeResStorage_release_ratioC > 0,
                                                      self.var.lakeResStorage_release_ratioC * self.var.reservoirStorageM3C * (
                                                              1 / (60 * 60 * 24)), 0))
+
+            if self.var.reservoir_releases_excel_option:
+                reservoirOutflow = np.where(self.var.lakeResStorage_release_ratioC > -1,
+                                            self.var.lakeResStorage_release_ratioC * self.var.reservoirStorageM3C *
+                                            (1 / (60 * 60 * 24)), reservoirOutflow)
 
             # Apply reservoirOutflowLimitMask to limit resOutflows based on storagre relative to threshold volume
             # This may override the reservoir_releases behaviour - ATTENTION FROM MIKHAIL/DOR
