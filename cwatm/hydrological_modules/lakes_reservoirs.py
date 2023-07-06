@@ -253,6 +253,11 @@ class lakes_reservoirs(object):
                                     if id < buffer[yy, xx]:
                                         buffer[yy, xx] = id
             buffer[buffer == 1.0e15] = 0.
+
+            # In the case of overlapping buffers, we ensure that each waterbody
+            # is at least inside its own command area, and not the CA of another waterbody
+            buffer = np.where(waterBody > 0, waterBody, buffer)
+
             return compressArray(buffer).astype(np.int64)
 
 
