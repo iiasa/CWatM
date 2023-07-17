@@ -118,8 +118,9 @@ class snow_frost(object):
 
         self.var.ElevationStD = loadmap('ElevationStD')
 
-        self.var.ElevationMin = loadmap('Elevation')
-        self.var.ElevationMean = loadmap('Elevation_avg')
+        #self.var.ElevationMin = loadmap('Elevation')
+        #self.var.ElevationMean = loadmap('Elevation_avg')
+
         # max_frac_snow_redistriution = 0.5
         # max_ELevationStD = 1500
         min_ElevationStD_snow_redistr = 100
