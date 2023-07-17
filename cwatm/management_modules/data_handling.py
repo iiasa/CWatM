@@ -154,20 +154,24 @@ def loadsetclone(self,name):
             nf1 = Dataset(filename, 'r')
             value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
-            #x1 = nf1.variables.values()[0][0]
-            #x2 = nf1.variables.values()[0][1]
-            #xlast = nf1.variables.values()[0][-1]
-            x1 = nf1.variables['lon'][0]
-            x2 = nf1.variables['lon'][1]
-            xlast = nf1.variables['lon'][-1]
+            x1 = list(nf1.variables.values())[0][0]
+            x2 = list(nf1.variables.values())[0][1]
+            xlast = list(nf1.variables.values())[0][-1]
+            #x1 = nf1.variables['lon'][0]
+            #x2 = nf1.variables['lon'][1]
+            #xlast = nf1.variables['lon'][-1]
 
-            y1 = nf1.variables['lat'][0]
-            ylast = nf1.variables['lat'][-1]
+            #y1 = nf1.variables['lat'][0]
+            #ylast = nf1.variables['lat'][-1]
+            y1 = list(nf1.variables.values())[1][0]
+            ylast = list(nf1.variables.values())[1][-1]
+
             # swap to make y1 the biggest number
             if y1 < ylast:  y1, ylast = ylast, y1
 
             cellSize = np.abs(x2 - x1)
             invcell = round(1/cellSize)
+            if invcell == 0: invcell = 1/cellSize
             nrRows = int(0.5 + np.abs(ylast - y1) * invcell + 1)
             nrCols = int(0.5 + np.abs(xlast - x1) * invcell + 1)
             x = x1 - cellSize / 2
@@ -624,14 +628,20 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
         msg = "Error 206: Checking netcdf map \n"
         raise CWATMFileError(meteodata, msg)
 
-    lonM0 = nf1.variables['lon'][0]
-    lon1 = nf1.variables['lon'][1]
+    if 'lon' in list(nf1.variables.keys()):
+        xy = ["lon", "lat"]
+    else:
+        xy = ["x", "y"]
+
+    lonM0 = nf1.variables[xy[0]][0]
+    lon1 = nf1.variables[xy[0]][1]
+
     cellM = round(np.abs(lon1 - lonM0) / 2.,8)
     lonM0 = round(lonM0 - cellM,8)
 
-    lonM1 = round(nf1.variables['lon'][-1] + cellM,8)
-    latM0 = nf1.variables['lat'][0]
-    latM1 = nf1.variables['lat'][-1]
+    lonM1 = round(nf1.variables[xy[0]][-1] + cellM,8)
+    latM0 = nf1.variables[xy[1]][0]
+    latM1 = nf1.variables[xy[1]][-1]
     nf1.close()
 
     # swap to make lat0 the biggest number
@@ -647,15 +657,15 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
         msg = "Error 207: Checking netcdf map \n"
         raise CWATMFileError(wordclimdata, msg)
 
-    lonW0 = nf1.variables['lon'][0]
-    lon1 = nf1.variables['lon'][1]
+    lonW0 = nf1.variables[xy[0]][0]
+    lon1 = nf1.variables[xy[0]][1]
     cellW = round(np.abs(lon1 - lonW0) / 2.,8)
     lonW0 = round(lonW0 - cellW,8)
-    lonW1 = round(nf1.variables['lon'][-1] + cellW,8)
+    lonW1 = round(nf1.variables[xy[0]][-1] + cellW,8)
 
 
-    latW0 = nf1.variables['lat'][0]
-    latW1 = nf1.variables['lat'][-1]
+    latW0 = nf1.variables[xy[1]][0]
+    latW1 = nf1.variables[xy[1]][-1]
     nf1.close()
     # swap to make lat0 the biggest number
     if latW0 < latW1:
@@ -851,12 +861,11 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
             except:
                 datediv = 1
 
-            datestart = num2date(nctime[:][0] ,units=nctime.units,calendar=nctime.calendar)
+            datestart = num2date(int(nctime[:][0]), units=nctime.units,calendar=nctime.calendar)
 
             # sometime daily records have a strange hour to start with -> it is changed to 0:00 to haqve the same record
             datestart = datestart.replace(hour=0, minute=0)
-            dateend = num2date(nctime[:][-1], units=nctime.units, calendar=nctime.calendar)
-
+            dateend = num2date(int(nctime[:][-1]), units=nctime.units, calendar=nctime.calendar)
             datestartint = int(nctime[0]) // datediv
             dateendint = int(nctime[:][-1]) // datediv
 
