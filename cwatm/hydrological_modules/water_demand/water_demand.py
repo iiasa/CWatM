@@ -720,8 +720,13 @@ class water_demand:
             self.var.returnflowIrr = globals.inZero.copy()
             self.var.returnflowNonIrr = globals.inZero.copy()
             self.var.pitLatrinToGW = globals.inZero.copy()
+            self.var.act_irrNonpaddyWithdrawal = globals.inZero.copy()
+            self.var.act_irrPaddyWithdrawal = globals.inZero.copy()
 
         else:  # no water demand
+            self.var.ratio_irrWithdrawalGW_month = globals.inZero.copy()
+            self.var.ratio_irrWithdrawalSW_month = globals.inZero.copy()
+
             self.var.nonIrrReturnFlowFraction = globals.inZero.copy()
             self.var.nonFossilGroundwaterAbs = globals.inZero.copy()
             self.var.nonIrruse = globals.inZero.copy()
@@ -780,6 +785,11 @@ class water_demand:
             self.var.Channel_Livestock = globals.inZero.copy()
             self.var.Channel_Irrigation = globals.inZero.copy()
 
+            self.var.Lift_Domestic = globals.inZero.copy()
+            self.var.Lift_Industry = globals.inZero.copy()
+            self.var.Lift_Livestock = globals.inZero.copy()
+            self.var.Lift_Irrigation = globals.inZero.copy()
+
             self.var.Lake_Domestic = globals.inZero.copy()
             self.var.Lake_Industry = globals.inZero.copy()
             self.var.Lake_Livestock = globals.inZero.copy()
@@ -800,6 +810,17 @@ class water_demand:
 
             self.var.act_nonpaddyConsumption = globals.inZero.copy()
             self.var.act_paddyConsumption = globals.inZero.copy()
+            self.var.act_irrNonpaddyWithdrawal = globals.inZero.copy()
+            self.var.act_irrPaddyWithdrawal = globals.inZero.copy()
+
+            self.var.modfPumpingM = globals.inZero.copy()
+            self.var.Pumping_daily = globals.inZero.copy()
+
+            self.var.act_irrPaddyDemand = globals.inZero.copy()
+            self.var.act_irrNonpaddyDemand = globals.inZero.copy()
+            self.var.domesticDemand = globals.inZero.copy()
+            self.var.industryDemand = globals.inZero.copy()
+            self.var.livestockDemand = globals.inZero.copy()
 
             # for wastewater package
             if checkOption('includeWaterBodies'):
