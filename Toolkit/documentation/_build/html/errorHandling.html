@@ -1,51 +1,101 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
   <title>6. Error handling &mdash; Community Water Model</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
-      <link rel="stylesheet" href="_static/iiasa.css" type="text/css" />
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+  <link rel="stylesheet" href="_static/iiasa.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-    <script src="_static/js/theme.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="7. List of output variables" href="listVariables.html" />
     <link rel="prev" title="5. Tutorial" href="tutorial.html" /> 
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
+
+   
   <div class="wy-grid-for-nav">
+    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
+          
 
           
+            <a href="index.html" class="icon icon-home"> Community Water Model
           
-          <a href="index.html" class="icon icon-home">
-            Community Water Model
-              <img src="_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+
+          
+            
+            <img src="_static/IIASA_logo_white.png" class="logo" alt="Logo"/>
+          
           </a>
+
+          
+            
+            
               <div class="version">
                 1.0.6
               </div>
+            
+          
+
+          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modeldesign.html">2. Model Design</a></li>
@@ -125,32 +175,73 @@
 <li class="toctree-l1"><a class="reference internal" href="forum.html">17. Forum</a></li>
 </ul>
 
+            
+          
         </div>
+        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Community Water Model</a>
+        
       </nav>
 
+
       <div class="wy-nav-content">
+        
         <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">6. </span>Error handling</li>
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li><span class="section-number">6. </span>Error handling</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
+        
+          
             <a href="_sources/errorHandling.rst.txt" rel="nofollow"> View page source</a>
+          
+        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
-  <section id="error-handling">
-<span id="rst-error"></span><h1><span class="section-number">6. </span>Error handling<a class="headerlink" href="#error-handling" title="Permalink to this heading"></a></h1>
+            
+  <div class="section" id="error-handling">
+<span id="rst-error"></span><h1><span class="section-number">6. </span>Error handling<a class="headerlink" href="#error-handling" title="Permalink to this headline">¶</a></h1>
 <p>We try to make our program behave properly when encountering unexpected conditions. The problematic situations that a program can encounter fall into two categories.</p>
 <ul class="simple">
 <li><p>Programmer mistakes: If someone forgets to pass a required argument to a function</p></li>
@@ -158,6 +249,14 @@
 </ul>
 <p>This part deals with genuine problems. Please look for your error number</p>
 <table class="docutils align-default">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Error No</p></th>
 <th class="head"><p>Description</p></th>
@@ -575,1124 +674,1141 @@
 </tr>
 </tbody>
 </table>
-<section id="e101">
-<h2>E101<a class="headerlink" href="#e101" title="Permalink to this heading"></a></h2>
+<div class="section" id="e101">
+<h2>E101<a class="headerlink" href="#e101" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Gauges in settingsfile is not a coordinate e.g. Gauges = bad bad</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Gauges</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Put in pairs of coordinates or a map with coordinates</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, valuecell</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e102">
-<h2>E102<a class="headerlink" href="#e102" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e102">
+<h2>E102<a class="headerlink" href="#e102" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>One of the gauges is outside the map extend of the mask map</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Gauges</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure that all gauges are inside the mask map area</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, valuecell</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e103">
-<h2>E103<a class="headerlink" href="#e103" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e103">
+<h2>E103<a class="headerlink" href="#e103" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Maskmap is not a valid mask map nor valid coordinates nor valid point e.g. MaskMap = 1 2 3 4 5 6</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>MaskMap</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Put in a pair of coordinates, a defined rectangle (5 numbers) or a filename</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, loadsetclone</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e104">
-<h2>E104<a class="headerlink" href="#e104" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e104">
+<h2>E104<a class="headerlink" href="#e104" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>MaskMap point does not have a valid value in the river network (LDD)</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>MaskMap</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>You put in a coordinate as MaskMap, but at this coordinate there is no valid river network value</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, maskfrompoint</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e105">
-<h2>E105<a class="headerlink" href="#e105" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e105">
+<h2>E105<a class="headerlink" href="#e105" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>The map you are loading has a different shape (different cols,rows) than the other maps</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Any map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure your map has the same resolution, rows, cols than the river network map</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, compressArray</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e106">
-<h2>E106<a class="headerlink" href="#e106" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e106">
+<h2>E106<a class="headerlink" href="#e106" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>The map you are loading has missing cell values (NaNs) where the river network and the mask map has valid values</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Any map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check the map and include cell values where the river network map has valid (non NaNs) values</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, compressArray</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e107">
-<h2>E107<a class="headerlink" href="#e107" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e107">
+<h2>E107<a class="headerlink" href="#e107" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>The netCDF map has different attributes (resolution, rows,cols) than your standard map</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Any netCDF map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure your map has the same resolution, rows, cols as the river network map</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, mapattrNetCDF</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e108">
-<h2>E108<a class="headerlink" href="#e108" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e108">
+<h2>E108<a class="headerlink" href="#e108" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>The tif map has different attributes (resolution, rows,cols) than your standard map</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Any tif map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure your map has the same resolution, rows, cols as the river network map</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, mapattrTiff</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e109">
-<h2>E109<a class="headerlink" href="#e109" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e109">
+<h2>E109<a class="headerlink" href="#e109" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>The meteo map (e.g. temperature, precipitation, evaporation..) has different attributes (resolution, rows,cols) than your standard map</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Meteo netCDF map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure your meteo input maps have the same resolution, rows, cols as the river network map. If it is the ET maps, it might be from another run with different mask. Please look at the option: calc_evaporation</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, readmeteodata</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e110">
-<h2>E110<a class="headerlink" href="#e110" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e110">
+<h2>E110<a class="headerlink" href="#e110" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>The netcdf map with a time variable (e.g. waterdemand, land cover, lakes..) has different attributes (resolution, rows,cols) than your standard map</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>All time depending netCDF maps appart from meteo maps</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure your netCDF input maps have the same resolution, rows, cols as the river network map</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, readnetcdf2</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e111">
-<h2>E111<a class="headerlink" href="#e111" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e111">
+<h2>E111<a class="headerlink" href="#e111" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>The netcdf maps without time is turned upside dowm</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Any netCDF map without time</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure your map is in right order e.g. latitude coordinate are turned</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, readnetcdfWithoutTime</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e112">
-<h2>E112<a class="headerlink" href="#e112" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e112">
+<h2>E112<a class="headerlink" href="#e112" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>The initial map (load_initial) stack is turned upside down</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Initload</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure your initial map (in initial_load) is in right order e.g. latitude coordinate are turned</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, readnetcdfInitial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e113">
-<h2>E113<a class="headerlink" href="#e113" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e113">
+<h2>E113<a class="headerlink" href="#e113" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>The initial map stack (initial_load) has different attributes (resolution, rows,cols) than your standard map</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Initload</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure your initial maps (in initial_load)has the same attributes. Maybe your initial maps are from a different run with a different mask?</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, readnetcdfInitial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e114">
-<h2>E114<a class="headerlink" href="#e114" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e114">
+<h2>E114<a class="headerlink" href="#e114" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Problem reading initial maps</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Initload</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Initial maps has maybe not the same shape as the mask map. Maybe put load_initial = False</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, readnetcdfInitial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e115">
-<h2>E115<a class="headerlink" href="#e115" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e115">
+<h2>E115<a class="headerlink" href="#e115" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Variable with a  True or False value can not be read</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Any flag (True or False)</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure the variable has either: varname = False or varname = True. Ttrue or faalse is not working!</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, returnBool</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e116">
-<h2>E116<a class="headerlink" href="#e116" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e116">
+<h2>E116<a class="headerlink" href="#e116" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>One of the variable names in [Option] is written wrong</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Any variable in [Option]</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>A keyword in option is maybe written wrong e.g. CaaapillarRise instead CapillarRise</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, checkOption</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e117">
-<h2>E117<a class="headerlink" href="#e117" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e117">
+<h2>E117<a class="headerlink" href="#e117" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>One of the variable names is written wrong</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Any variable after [Option]</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>A keyword in option is maybe written wrong e.g. MaaaskMap instead MaskMap. Pay attention: in Linux words are case sensitive!</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, cbinding</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e118">
-<h2>E118<a class="headerlink" href="#e118" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e118">
+<h2>E118<a class="headerlink" href="#e118" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Timing in the section TIME-RELATED_CONSTANTS is wrong</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>StepStart, SpinUp, StepEnd</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Please check the variables StepStart, SpinUp, StartEnd</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>timestep, ctbinding</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e119">
-<h2>E119<a class="headerlink" href="#e119" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e119">
+<h2>E119<a class="headerlink" href="#e119" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Either date in StepStart is not a date or in SpinUp or StepEnd it is neither a number or a date</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>StepStart, SpinUp, StepEnd</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Please check the variables StepStart, SpinUp, StartEnd - A date is missing</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>timestep, Calendar</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e120">
-<h2>E120<a class="headerlink" href="#e120" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e120">
+<h2>E120<a class="headerlink" href="#e120" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>First date in StepInit is neither a number or a date</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>StepInit</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check StepInit in INITITIAL CONDITIONS. It is not a date or a number</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>timestep, Calendar</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e121">
-<h2>E121<a class="headerlink" href="#e121" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e121">
+<h2>E121<a class="headerlink" href="#e121" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Second value in StepInit is not a number or date nor indicating a repetition of year(y), month(m) or day(d) e.g. 2y for every 2 years or 6m for every 6 month</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>StepInit</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check StepInit. The second part is neither a date or d,m,y</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>timestep, datetosaveInit</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e122">
-<h2>E122<a class="headerlink" href="#e122" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e122">
+<h2>E122<a class="headerlink" href="#e122" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Third value in StepInit is not an integer after ‘y’ or ‘m’ or ‘d’</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>StepInit</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check StepInit. The third part after d,m,y is not an integer</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>timestep, datetosaveInit</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e123">
-<h2>E123<a class="headerlink" href="#e123" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e123">
+<h2>E123<a class="headerlink" href="#e123" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>StepStart has to be a valid date</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>StepStart</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check StepStart. It has to be a date e.g.  01/01/2009</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>timestep, checkifDate</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e124">
-<h2>E124<a class="headerlink" href="#e124" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e124">
+<h2>E124<a class="headerlink" href="#e124" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>StepEnd is earlier than StepStart</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>StepStart, StepEnd</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check StepStart and StepEnd. StepEnd has to be later than StepStart</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>timestep, checkifDate</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e125">
-<h2>E125<a class="headerlink" href="#e125" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e125">
+<h2>E125<a class="headerlink" href="#e125" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Spin Date is smaller/bigger than the first/last time step date</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>StepStart, SpinUp, StepEnd</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check that SpinDate is in between StepStart and StepEnd</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>timestep, checkifDate</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e127">
-<h2>E127<a class="headerlink" href="#e127" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e127">
+<h2>E127<a class="headerlink" href="#e127" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Coordinates are not pairs</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>InflowPoints</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check that location in InflowPoints comes in pairs</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>inflow, initial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e128">
-<h2>E128<a class="headerlink" href="#e128" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e128">
+<h2>E128<a class="headerlink" href="#e128" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>OUT_MAP_Daily = discharge may be not defined in [OUTPUT]</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>calc_ef_afterRun, Out_MAP_Daily</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure that you define Out_MAP_Daily = discharge. Is seems daily discharge is not stored</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>environflow, initial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e129">
-<h2>E129<a class="headerlink" href="#e129" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e129">
+<h2>E129<a class="headerlink" href="#e129" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Output points in Gauges are not pairs e.g. Gauges = 17.5 55.6 18.5</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Gauges</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check that output-points in Gauges are of coordinate e.g. Gauges = 6.25 51.75</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>output, initial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e130">
-<h2>E130<a class="headerlink" href="#e130" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e130">
+<h2>E130<a class="headerlink" href="#e130" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Out_TSS or Out_MAP is not one of these: daily, monthend, monthtot, monthavg, annualend, annualtot, annualavg</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Out_TSS, Out_MAP</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Please check that the wording after Out_TSS or Out_MAP is correct. Only a few keywords are valid e.g. Out_MAP_Daily, Out_TSS_monthavg</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>output, initial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e131">
-<h2>E131<a class="headerlink" href="#e131" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e131">
+<h2>E131<a class="headerlink" href="#e131" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Second keyword after TSS or MAP is wrong</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Out_TSS, Out_MAP</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Use TSS for point value, AreaSum for sum of area, AreaAvg for average of area e.g. OUT_TSS_AreaSum_Daily</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>output, initial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e132">
-<h2>E132<a class="headerlink" href="#e132" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e132">
+<h2>E132<a class="headerlink" href="#e132" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Variable is not defined in list of variables</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Out_TSS, Out_MAP</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Please correct the writing of the variable name, check also case sensitive e.g. Precipitation instead precipitation</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>output, dynamic</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e201">
-<h2>E201<a class="headerlink" href="#e201" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e201">
+<h2>E201<a class="headerlink" href="#e201" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Cannot load the maskmap as a file e.g. MaskMap = notexisting.tif</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>MaskMap</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure the file you put in MaskMap is existing and is a map e.g. .nc, .map, .tif</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, loadsetclone</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e202">
-<h2>E202<a class="headerlink" href="#e202" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e202">
+<h2>E202<a class="headerlink" href="#e202" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Your map is upside down</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Any map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure your map is in right order e.g. latitude coordinate are turned</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, loadmap</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e203">
-<h2>E203<a class="headerlink" href="#e203" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e203">
+<h2>E203<a class="headerlink" href="#e203" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Cannot find the map, filename does not exists at this location</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Any map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>the datafile cannot be found, the location is wrong or the file is missing</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, loadmap</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e204">
-<h2>E204<a class="headerlink" href="#e204" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e204">
+<h2>E204<a class="headerlink" href="#e204" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Trying to read the precipitation map metadata</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Precipitation map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure the precipitation netcdf are existing and correct</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, metaNetCDF</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e205">
-<h2>E205<a class="headerlink" href="#e205" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e205">
+<h2>E205<a class="headerlink" href="#e205" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Read error  while reading netcdf map</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>any netcdf map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure netcdf map is existing and correct</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, readCoordNetCDF</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e206">
-<h2>E206<a class="headerlink" href="#e206" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e206">
+<h2>E206<a class="headerlink" href="#e206" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>read error while reading meteo maps</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>any meteo maps</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure the meteo input maps are in the right location and chave correct attributes</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, checkMeteo_Wordclim</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e207">
-<h2>E207<a class="headerlink" href="#e207" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e207">
+<h2>E207<a class="headerlink" href="#e207" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>read error while reading the wordclim map for downscaling meteo maps</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Wordlclim maps</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure the wordclim maps are in the right location and chave correct attributes</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, checkMeteo_Wordclim</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e208">
-<h2>E208<a class="headerlink" href="#e208" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e208">
+<h2>E208<a class="headerlink" href="#e208" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Cannot find meteomaps</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>any meteomap</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure the meteo input maps are at the right location</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, multinetdf</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e209">
-<h2>E209<a class="headerlink" href="#e209" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e209">
+<h2>E209<a class="headerlink" href="#e209" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Error loading meteomaps</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>any meteomap</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check if the filenames of the meteomaps are ok. Does the filename exist at this location</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, multinetdf</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e210">
-<h2>E210<a class="headerlink" href="#e210" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e210">
+<h2>E210<a class="headerlink" href="#e210" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Meteomap does not have this date</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>any meteomap</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>The netCDF file does not contain this date. Check your start and end date</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, readmeteodata</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e211">
-<h2>E211<a class="headerlink" href="#e211" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e211">
+<h2>E211<a class="headerlink" href="#e211" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Error loading meteomaps</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>any meteomap</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check if the filenames of the meteomaps are ok. Does the filename exist at this location</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, readmeteodata</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e212">
-<h2>E212<a class="headerlink" href="#e212" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e212">
+<h2>E212<a class="headerlink" href="#e212" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Error loading any other time depending map but not meteomaps</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>any time dependending netCDF map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check if the filenames of the map is ok. Does the filename exist at this location</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, readnetcdf2</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e213">
-<h2>E213<a class="headerlink" href="#e213" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e213">
+<h2>E213<a class="headerlink" href="#e213" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Error loading netCDF maps without time</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>any non time depending netCDF map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check if the filenames of the map is ok. Does the filename exist at this location</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, readnetcdfWithoutTime</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e214">
-<h2>E214<a class="headerlink" href="#e214" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e214">
+<h2>E214<a class="headerlink" href="#e214" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Error loading the initial map</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>initial netCDF map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check if the loaction of the initial  map is o. Please check filename in initLoad</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>datahandling, readnetcdfInitial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e215">
-<h2>E215<a class="headerlink" href="#e215" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e215">
+<h2>E215<a class="headerlink" href="#e215" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Trying to read the precipitation map metadata</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Precipitation map</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure the precipitation netcdf are existing and correct</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>timestep, checkifDate</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e216">
-<h2>E216<a class="headerlink" href="#e216" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e216">
+<h2>E216<a class="headerlink" href="#e216" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Outflow/Inflow point file cannot be loaded</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>InflowPoints</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check if filename of InflowPoints exists</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>inflow, initial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e217">
-<h2>E217<a class="headerlink" href="#e217" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e217">
+<h2>E217<a class="headerlink" href="#e217" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Mistake reading inflow file, name of inflow points are used twice</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>In_Dir</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check inflow file header</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>inflow, initial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e218">
-<h2>E218<a class="headerlink" href="#e218" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e218">
+<h2>E218<a class="headerlink" href="#e218" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Mistake reading inflow file</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>In_Dir</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check if filename of inflow file exists</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>inflow, initial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e219">
-<h2>E219<a class="headerlink" href="#e219" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e219">
+<h2>E219<a class="headerlink" href="#e219" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Mistake in discharge daily netcdf file</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Out_MAP_Daily = discharge</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Something is wrong with the daily discharge file. Check location and content</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>environment, initial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e220">
-<h2>E220<a class="headerlink" href="#e220" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e220">
+<h2>E220<a class="headerlink" href="#e220" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Output file path is wrong</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>OUT_Dir, PathOut</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Check OUT_Dir and PathOut. OUT_Dir can be used several times in the settings file.</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>output, appendinfo</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e221">
-<h2>E221<a class="headerlink" href="#e221" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e221">
+<h2>E221<a class="headerlink" href="#e221" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Error using file in Gauges</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>Gauges</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Please check if file in Gauges exists and is correct</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>output, initial</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e301">
-<h2>E301<a class="headerlink" href="#e301" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e301">
+<h2>E301<a class="headerlink" href="#e301" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Python version is not 64 bit</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><ul class="simple">
 <li></li>
 </ul>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure that you use a 64 bit version of Python</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>global, main</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e302">
-<h2>E302<a class="headerlink" href="#e302" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e302">
+<h2>E302<a class="headerlink" href="#e302" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Settingsfile not found</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><ul class="simple">
 <li></li>
 </ul>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Make sure the settings file exists and is at the right location</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>configuration, parse_configuration</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e303">
-<h2>E303<a class="headerlink" href="#e303" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e303">
+<h2>E303<a class="headerlink" href="#e303" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>An error occured while reading metaNetcdf.xml</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>metaNetcdfFile</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Please check that metaNetcdf is a valid .xml file</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>configuration, read_metanetcdf</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e304">
-<h2>E304<a class="headerlink" href="#e304" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e304">
+<h2>E304<a class="headerlink" href="#e304" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>Cannot find alternative option file metaNetcdf.xml not found</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>metaNetcdfFile</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Please check in metaNetcdfFile that the file exists</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>configuration, read_metanetcdf</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-<section id="e305">
-<h2>E305<a class="headerlink" href="#e305" title="Permalink to this heading"></a></h2>
+</div>
+<div class="section" id="e305">
+<h2>E305<a class="headerlink" href="#e305" title="Permalink to this headline">¶</a></h2>
 <blockquote>
 <div><dl class="field-list simple">
-<dt class="field-odd">Description<span class="colon">:</span></dt>
+<dt class="field-odd">Description</dt>
 <dd class="field-odd"><p>An error occured while reading alternative metaNetcdf.xml</p>
 </dd>
-<dt class="field-even">Where<span class="colon">:</span></dt>
+<dt class="field-even">Where</dt>
 <dd class="field-even"><p>metaNetcdfFile</p>
 </dd>
-<dt class="field-odd">What to do<span class="colon">:</span></dt>
+<dt class="field-odd">What to do</dt>
 <dd class="field-odd"><p>Please check that metaNetcdf is a valid .xml file</p>
 </dd>
-<dt class="field-even">Module<span class="colon">:</span></dt>
+<dt class="field-even">Module</dt>
 <dd class="field-even"><p>configuration, read_metanetcdf</p>
 </dd>
 </dl>
 </div></blockquote>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>
+           
           </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="tutorial.html" class="btn btn-neutral float-left" title="5. Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="listVariables.html" class="btn btn-neutral float-right" title="7. List of output variables" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tutorial.html" class="btn btn-neutral float-left" title="5. Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2021, IIASA Water Security.</p>
-  </div>
+    <p>
+        &#169; Copyright 2021, IIASA Water Security.
 
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
         </div>
       </div>
+
     </section>
+
   </div>
-  <script>
+  
+
+  <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
