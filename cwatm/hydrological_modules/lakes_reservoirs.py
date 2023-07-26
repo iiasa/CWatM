@@ -816,10 +816,10 @@ class lakes_reservoirs(object):
                                                              1 / (60 * 60 * 24)), 0))
 
             if self.var.reservoir_releases_excel_option:
-                reservoirOutflow = np.where(self.var.lakeResStorage_release_ratioC > -1 and
-                                            self.var.reservoirFillC < self.var.floodLimitC,
+                reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow,
+                                            np.where(self.var.lakeResStorage_release_ratioC > -1,
                                             self.var.lakeResStorage_release_ratioC * self.var.reservoirStorageM3C *
-                                            (1 / (60 * 60 * 24)), reservoirOutflow)
+                                            (1 / (60 * 60 * 24)), reservoirOutflow))
 
             # Apply reservoirOutflowLimitMask to limit resOutflows based on storagre relative to threshold volume
             # This may override the reservoir_releases behaviour - ATTENTION FROM MIKHAIL/DOR
