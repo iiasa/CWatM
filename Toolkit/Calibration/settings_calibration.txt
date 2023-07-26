@@ -10,13 +10,6 @@ timeperiod = daily
 
 [ObservedData]
 Qtss = observed_data/lobith2006.csv
-Column = lobith
-Header = River: Rhine  station: Lobith
-
-[Validate]
-Qtss = observed_data/lobith1980.csv
-ValStart = 1/1/1980
-ValEnd = 31/12/1994
 
 [Path]
 Templates = templates_CWatM
@@ -28,25 +21,32 @@ ModelSettings = settings_CWatM_template.ini
 RunModel = runpy.bat
 
 [Option]
+# Sets initial parameter values according to the para_first array
 firstrun = False
-para_first = [1.2, 1.0, 4.0, 0.5, 1.0, 1.0, 1.0, 0.5, 1.]
+
+# Standard calibation parameter set
 # crop KC, soil depth, pref. flow, arno beta, interflow factor, groundwater recession, routing, normalStorageLimit, No of run
+para_first = [1.2, 1.0, 4.0, 0.5, 1.0, 1.0, 1.0, 0.5, 1.]
+
+# the model runs with the best parameter set after the calibration
 bestrun = True
 
 [DEAP]
 maximize = True
+
+# if more than one node is to be used for parallel processing 
 use_multiprocessing = 1
 
-# Number of nodes used for multiprocessing
+# Number of nodes used for multiprocessing, recommended 1-8
 pool_limit = 2
 
-# Number of generations
-ngen = 5
+# Number of generations, recommended 10-40
+ngen = 6
 
-# Initial population
+# Initial population, recommended 16-128
 mu = 16
 
-# Runs per generation
+# Runs per generation, recommended 8-16
 lambda_ = 8
 
 

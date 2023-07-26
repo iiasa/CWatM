@@ -82,7 +82,7 @@ ParamRangesPath = os.path.join(rootbasin,parser.get('Path','ParamRanges'))
 SubCatchmentPath = os.path.join(rootbasin,parser.get('Path','SubCatchmentPath'))
 #SubCatchmentPath = parser.get('Path','SubCatchmentPath')
 Qtss_csv = os.path.join(rootbasin,parser.get('ObservedData', 'Qtss'))
-Qtss_col = parser.get('ObservedData', 'Column')
+#Qtss_col = parser.get('ObservedData', 'Column')
 
 modeltemplate = parser.get('Path','Templates')
 ModelSettings_template = parser.get('Templates','ModelSettings')
@@ -135,7 +135,9 @@ ParamRanges = pandas.read_csv(ParamRangesPath,sep=",",index_col=0)
 
 # Load observed streamflow
 streamflow_data = pandas.read_csv(Qtss_csv,sep=",", parse_dates=True, index_col=0)
-observed_streamflow = streamflow_data[Qtss_col]
+#observed_streamflow = streamflow_data['lobith']
+#observed_streamflow = streamflow_data[Qtss_col]
+observed_streamflow = streamflow_data.values.astype(np.float32)
 observed_streamflow[observed_streamflow<-9000]= np.nan
 
 
