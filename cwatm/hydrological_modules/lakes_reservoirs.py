@@ -816,7 +816,8 @@ class lakes_reservoirs(object):
                                                              1 / (60 * 60 * 24)), 0))
 
             if self.var.reservoir_releases_excel_option:
-                reservoirOutflow = np.where(self.var.lakeResStorage_release_ratioC > -1,
+                reservoirOutflow = np.where(self.var.lakeResStorage_release_ratioC > -1 and
+                                            self.var.reservoirFillC < self.var.floodLimitC,
                                             self.var.lakeResStorage_release_ratioC * self.var.reservoirStorageM3C *
                                             (1 / (60 * 60 * 24)), reservoirOutflow)
 
