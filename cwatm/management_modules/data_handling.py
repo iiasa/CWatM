@@ -1143,6 +1143,11 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
            mapnp = np.flipud(mapnp)
     except:
        ii = 1
+    if 'Glacier' in namebinding:
+        cutcheckmask = maskinfo['shape'][0] * maskinfo['shape'][1]
+        cutcheckmap = nf1.variables[value].shape[1] * nf1.variables[value].shape[2]
+        cut = True
+        if cutcheckmask == cutcheckmap: cut = False
 
     if cut:
         if turn_latitude:
