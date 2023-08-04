@@ -85,9 +85,9 @@ class waterdemand_industry:
             # Allows for user to scale industrial demand and potential consumption through the settings file.
             # Industrial demand and potential consumption will be multiplied by the scaling factor.
             if 'scale_industrial_demand' in binding:
-                scale_industrial_demand = cbinding('scale_industrial_demand')
-                self.var.industryDemand *= scale_industrial_demand
-                self.var.pot_industryConsumption *= scale_industrial_demand
+                scale_industrial_demand = loadmap('scale_industrial_demand') + globals.inZero
+                self.var.industryDemand = self.var.industryDemand * scale_industrial_demand
+                self.var.pot_industryConsumption = self.var.pot_industryConsumption * scale_industrial_demand
 
             self.var.industryDemand = np.where(self.var.industryDemand > self.var.InvCellArea, self.var.industryDemand, 0.0)
             self.var.pot_industryConsumption = np.where(self.var.pot_industryConsumption > self.var.InvCellArea, self.var.pot_industryConsumption, 0.0)
