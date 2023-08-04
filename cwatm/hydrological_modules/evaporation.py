@@ -395,15 +395,16 @@ class evaporation(object):
                     # Irrigated fallow land is moved to non-irrigated fallow land. Irrigated fallow land is
 
                     #UNDER CONSTRUCTION
-                    if checkOption('moveIrrFallowToNonIrr'):
+                    if 'moveIrrFallowToNonIrr' in binding:
+                        if checkOption('moveIrrFallowToNonIrr'):
 
-                        self.var.fracVegCover[3] = self.var.frac_totalIrr + self.var.GeneralCrop_Irr
-                        remainderLand = np.maximum(
-                            globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
-                            self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
-                            globals.inZero.copy())
+                            self.var.fracVegCover[3] = self.var.frac_totalIrr + self.var.GeneralCrop_Irr
+                            remainderLand = np.maximum(
+                                globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
+                                self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
+                                globals.inZero.copy())
 
-                        self.var.fracVegCover[1] = remainderLand.copy()
+                            self.var.fracVegCover[1] = remainderLand.copy()
 
 
                     if 'GeneralCrop_nonIrr' in binding and checkOption('use_GeneralCropnonIrr') == True:
