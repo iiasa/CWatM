@@ -290,7 +290,7 @@ class initcondition(object):
         # or in certain interval e.g. 2y = every 2 years, 3m = every 3 month, 15d = every 15 days
 
         self.var.saveInit = returnBool('save_initial')
-        #self.var.initmap = {}
+        self.var.initmap = {}
 
         if self.var.saveInit:
             self.var.saveInitFile = cbinding('initSave')
