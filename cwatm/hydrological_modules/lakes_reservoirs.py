@@ -597,7 +597,7 @@ class lakes_reservoirs(object):
                                                                      self.var.lakeResStorage_release_ratio)
 
             elif self.var.reservoir_releases_excel_option:
-                self.var.lakeResStorage_release_ratioC = self.var.reservoir_releases[dateVar['doy']]
+                self.var.lakeResStorage_release_ratioC = self.var.reservoir_releases[dateVar['doy']-1]
 
     def dynamic_inloop(self, NoRoutingExecuted):
         """

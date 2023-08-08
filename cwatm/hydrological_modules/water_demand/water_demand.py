@@ -1906,16 +1906,17 @@ class water_demand:
                     resStorage_maxFracForIrrigation = readnetcdf2('Reservoir_releases', day_of_year,
                                                                   useDaily='DOY', value='Fraction of Volume')
                 elif self.var.reservoir_releases_excel_option:
+                    resStorage_maxFracForIrrigation = globals.inZero.copy()
                     resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
-                                                                self.var.reservoir_releases[dateVar['doy']],
+                                                                self.var.reservoir_releases[dateVar['doy']-1],
                                                                 0.03)
+                    np.put(resStorage_maxFracForIrrigation, self.var.decompress_LR, resStorage_maxFracForIrrigationC)
                 else:
                     resStorage_maxFracForIrrigation = 0.03 + globals.inZero.copy()
 
                 # resStorage_maxFracForIrrigationC holds the fractional rules found for each reservoir,
                 #   so we must null those that are not the maximum-storage reservoirs
-                resStorage_maxFracForIrrigationC = np.compress(self.var.compress_LR,
-                                                               resStorage_maxFracForIrrigation)
+                resStorage_maxFracForIrrigationC = np.compress(self.var.compress_LR, resStorage_maxFracForIrrigation)
                 resStorage_maxFracForIrrigationC = np.multiply(
                     resStorageTotal_allocC == self.var.reservoirStorageM3C, resStorage_maxFracForIrrigationC)
                 np.put(resStorage_maxFracForIrrigation, self.var.decompress_LR, resStorage_maxFracForIrrigationC)
