@@ -1960,9 +1960,8 @@ class water_demand:
                 np.put(self.var.leakage, self.var.decompress_LR, self.var.leakageC_daily + self.var.leakage_wwtC_daily)
 
                 # self.var.leakageC += self.var.leakageC_daily
-
-                self.var.leakageCanalsC_M = np.where(self.var.canalsAreaC > 0,
-                                                      (self.var.leakageC_daily +  self.var.leakage_wwtC_daily) / self.var.canalsAreaC, 0)
+                divleak_canal = divideValues((self.var.leakageC_daily +  self.var.leakage_wwtC_daily) ,self.var.canalsAreaC)
+                self.var.leakageCanalsC_M = np.where(self.var.canalsAreaC > 0,divleak_canal, 0)
 
                 # Without this, npareamaximum uses the historical maximum
                 self.var.leakageCanals_M = globals.inZero.copy()
