@@ -8,13 +8,15 @@
 #ifdef __unix__
    #define OS_Windows 0
    #define DLLEXPORT  extern "C" __attribute__ ((visibility("default")))
-  
 #elif defined(_WIN32) || defined(WIN32)
    #define OS_Windows 1   
    #define DLLEXPORT extern "C" __declspec(dllexport)
+#else
+   #define OS_Windows 0
+   #define DLLEXPORT  extern "C" __attribute__ ((visibility("default")))
 #endif
 
-
+/* https://bumbershootsoft.wordpress.com/2019/04/07/working-with-dlls-on-windows-mac-and-linux/ */
 
 DLLEXPORT void ups(long long* in_array,long long* dirshort, double * out_array, int size);
 DLLEXPORT void dirID(long long* lddorder, long long* ldd, long long* out_array, int sizei, int sizej);
