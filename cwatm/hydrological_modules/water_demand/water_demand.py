@@ -1297,7 +1297,7 @@ class water_demand:
                                                                        resStorage_maxFracForIrrigation)
                             if self.var.reservoir_releases_excel_option:
                                 resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
-                                                                            self.var.reservoir_releases[dateVar['doy']],
+                                                                            self.var.reservoir_releases[dateVar['doy']-1],
                                                                             0.03)
 
                             resStorage_maxFracForIrrigationC = np.multiply(
@@ -1797,7 +1797,7 @@ class water_demand:
                     elif self.var.reservoir_releases_excel_option:
                         resStorage_maxFracForIrrigation = globals.inZero.copy()
                         resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
-                                                                    self.var.reservoir_releases[dateVar['doy']],
+                                                                    self.var.reservoir_releases[dateVar['doy']-1],
                                                                     0.03)
                     else:
                         resStorage_maxFracForIrrigation = 0.03 + globals.inZero.copy()
@@ -2276,6 +2276,14 @@ class water_demand:
                                 self.var.GW_Irrigation += self.var.GW_Irrigation_fromZone.copy()
 
                             # end of zonal abstraction
+
+                        else:
+                            self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
+                            if self.var.sectorSourceAbstractionFractions:
+                                self.var.GW_Domestic = pot_GW_Domestic
+                                self.var.GW_Industry = pot_GW_Industry
+                                self.var.GW_Livestock = pot_GW_Livestock
+                                self.var.GW_Irrigation = pot_GW_Irrigation
 
                     else:
                         self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
