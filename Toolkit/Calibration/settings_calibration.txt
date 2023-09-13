@@ -10,6 +10,7 @@ timeperiod = daily
 
 [ObservedData]
 Qtss = observed_data/lobith2006.csv
+Qgis = observed_data/Qgis_otta.csv
 
 [Path]
 Templates = templates_CWatM

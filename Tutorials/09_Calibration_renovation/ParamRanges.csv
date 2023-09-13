@@ -1,0 +1,10 @@
+ParameterName,MinValue,MaxValue
+crop,0.8,1.8
+soildepthF,0.8,1.5
+pref,0.5,8
+arnoB,0.01,1
+interF,0.33,3
+reces,0.1,10
+CCM,0.1,10
+normalStorageLimit,0.15,0.85
+No,1,100
