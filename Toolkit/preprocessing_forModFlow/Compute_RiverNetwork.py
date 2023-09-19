@@ -31,13 +31,12 @@ def Compute_RiverNetwork(reso, Inputs_folder, Input_map, modflow_affine, ncol_Mo
     # Compute the river network
     #grid = Grid.from_raster('C:\GitHub\CWatM_priv\preprocessing_forModFlow\Required_initial_maps\elevation_modflow.tif')
     #dem = grid.read_raster('C:\GitHub\CWatM_priv\preprocessing_forModFlow\Required_initial_maps\elevation_modflow.tif')
-    grid = Grid.from_raster(Input_map)
-    dem = grid.read_raster(Input_map)
+    grid = Grid.from_raster(Input_map, data_name = 'dem')
 
     fig, ax = plt.subplots(figsize=(8, 6))
     fig.patch.set_alpha(0)
 
-    plt.imshow(dem, extent=grid.extent, cmap='terrain', zorder=1)
+    plt.imshow(grid.dem, extent=grid.extent, cmap='terrain', zorder=1)
     plt.colorbar(label='Elevation (m)')
     plt.grid(zorder=0)
     plt.title('Digital elevation map', size=14)
@@ -48,12 +47,12 @@ def Compute_RiverNetwork(reso, Inputs_folder, Input_map, modflow_affine, ncol_Mo
     # Condition DEM
     # ----------------------
     # Fill pits in DEM
-    pit_filled_dem = grid.fill_pits(dem)
+    pit_filled_dem = grid.fill_pits(data = 'dem', out_name = 'dem_filled')
 
     # Fill depressions in DEM
-    flooded_dem = grid.fill_depressions(pit_filled_dem)
+    flooded_dem = grid.fill_depressions(data = 'dem_filled', out_name = 'flooded_dem')
     # Resolve flats in DEM
-    inflated_dem = grid.resolve_flats(flooded_dem)
+    inflated_dem = grid.resolve_flats(data = 'flooded_dem', out_name = 'inflated_dem')
 
     """grid = Grid.from_raster(Input_map, data_name='dem')
     # Fill depressions in DEM
@@ -66,12 +65,12 @@ def Compute_RiverNetwork(reso, Inputs_folder, Input_map, modflow_affine, ncol_Mo
     """
     grid.flowdir(data='inflated_dem', out_name='dir', dirmap=dirmap)
     """
-    fdir = grid.flowdir(inflated_dem, dirmap=dirmap)
+    grid.flowdir(data = 'inflated_dem', out_name = 'flowd', dirmap=dirmap)
 
     fig = plt.figure(figsize=(8, 6))
     fig.patch.set_alpha(0)
 
-    plt.imshow(fdir, extent=grid.extent, cmap='viridis', zorder=2)
+    plt.imshow(grid.flowd, extent=grid.extent, cmap='viridis', zorder=2)
     boundaries = ([0] + sorted(list(dirmap)))
     plt.colorbar(boundaries=boundaries,
                  values=sorted(dirmap))
@@ -86,16 +85,16 @@ def Compute_RiverNetwork(reso, Inputs_folder, Input_map, modflow_affine, ncol_Mo
     """
     grid.accumulation(data='dir', dirmap=dirmap, out_name='acc')
     """
-    acc = grid.accumulation(fdir, dirmap=dirmap)
-
+    grid.accumulation(data = 'flowd', out_name = 'flowacc', dirmap=dirmap)
+    
     #import seaborn as sns
     #import seaborn as sns
     fig, ax = plt.subplots(figsize=(8, 6))
     fig.patch.set_alpha(0)
     plt.grid('on', zorder=0)
-    im = ax.imshow(acc, extent=grid.extent, zorder=2,
+    im = ax.imshow(grid.flowacc, extent=grid.extent, zorder=2,
                    cmap='cubehelix',
-                   norm=colors.LogNorm(1, acc.max()),
+                   norm=colors.LogNorm(1, grid.flowacc.max()),
                    interpolation='bilinear')
     plt.colorbar(im, ax=ax, label='Upstream Cells')
     plt.title('Flow Accumulation', size=14)
@@ -108,7 +107,7 @@ def Compute_RiverNetwork(reso, Inputs_folder, Input_map, modflow_affine, ncol_Mo
     """
     temp_acc = np.array(grid.view('acc'))
     """
-    temp_acc = np.array(grid.view(acc))
+    temp_acc = np.array(grid.flowacc)
     stream_network_200 = np.where(temp_acc > (min_area ** 2) / (reso ** 2), 1, 0)
 
     np.save(Inputs_folder + output_name, stream_network_200)  # Save this river network in numpy format
