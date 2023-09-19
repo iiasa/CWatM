@@ -1297,7 +1297,7 @@ class water_demand:
                                                                        resStorage_maxFracForIrrigation)
                             if self.var.reservoir_releases_excel_option:
                                 resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
-                                                                            self.var.reservoir_releases[dateVar['doy']],
+                                                                            self.var.reservoir_releases[dateVar['doy']-1],
                                                                             0.03)
 
                             resStorage_maxFracForIrrigationC = np.multiply(
@@ -1797,7 +1797,7 @@ class water_demand:
                     elif self.var.reservoir_releases_excel_option:
                         resStorage_maxFracForIrrigation = globals.inZero.copy()
                         resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
-                                                                    self.var.reservoir_releases[dateVar['doy']],
+                                                                    self.var.reservoir_releases[dateVar['doy']-1],
                                                                     0.03)
                     else:
                         resStorage_maxFracForIrrigation = 0.03 + globals.inZero.copy()
@@ -1906,16 +1906,17 @@ class water_demand:
                     resStorage_maxFracForIrrigation = readnetcdf2('Reservoir_releases', day_of_year,
                                                                   useDaily='DOY', value='Fraction of Volume')
                 elif self.var.reservoir_releases_excel_option:
+                    resStorage_maxFracForIrrigation = globals.inZero.copy()
                     resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
-                                                                self.var.reservoir_releases[dateVar['doy']],
+                                                                self.var.reservoir_releases[dateVar['doy']-1],
                                                                 0.03)
+                    np.put(resStorage_maxFracForIrrigation, self.var.decompress_LR, resStorage_maxFracForIrrigationC)
                 else:
                     resStorage_maxFracForIrrigation = 0.03 + globals.inZero.copy()
 
                 # resStorage_maxFracForIrrigationC holds the fractional rules found for each reservoir,
                 #   so we must null those that are not the maximum-storage reservoirs
-                resStorage_maxFracForIrrigationC = np.compress(self.var.compress_LR,
-                                                               resStorage_maxFracForIrrigation)
+                resStorage_maxFracForIrrigationC = np.compress(self.var.compress_LR, resStorage_maxFracForIrrigation)
                 resStorage_maxFracForIrrigationC = np.multiply(
                     resStorageTotal_allocC == self.var.reservoirStorageM3C, resStorage_maxFracForIrrigationC)
                 np.put(resStorage_maxFracForIrrigation, self.var.decompress_LR, resStorage_maxFracForIrrigationC)
@@ -1959,9 +1960,8 @@ class water_demand:
                 np.put(self.var.leakage, self.var.decompress_LR, self.var.leakageC_daily + self.var.leakage_wwtC_daily)
 
                 # self.var.leakageC += self.var.leakageC_daily
-
-                self.var.leakageCanalsC_M = np.where(self.var.canalsAreaC > 0,
-                                                      (self.var.leakageC_daily +  self.var.leakage_wwtC_daily) / self.var.canalsAreaC, 0)
+                divleak_canal = divideValues((self.var.leakageC_daily +  self.var.leakage_wwtC_daily) ,self.var.canalsAreaC)
+                self.var.leakageCanalsC_M = np.where(self.var.canalsAreaC > 0,divleak_canal, 0)
 
                 # Without this, npareamaximum uses the historical maximum
                 self.var.leakageCanals_M = globals.inZero.copy()
@@ -2276,6 +2276,14 @@ class water_demand:
                                 self.var.GW_Irrigation += self.var.GW_Irrigation_fromZone.copy()
 
                             # end of zonal abstraction
+
+                        else:
+                            self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs
+                            if self.var.sectorSourceAbstractionFractions:
+                                self.var.GW_Domestic = pot_GW_Domestic
+                                self.var.GW_Industry = pot_GW_Industry
+                                self.var.GW_Livestock = pot_GW_Livestock
+                                self.var.GW_Irrigation = pot_GW_Irrigation
 
                     else:
                         self.var.unmetDemand = self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs

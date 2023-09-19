@@ -80,8 +80,8 @@ SubCatchmentPath =  rootbasin +"/"+ parser.get('Path','SubCatchmentPath')
 #path_result = parser.get('Path', 'Result')
 
 Qtss_csv = os.path.join(rootbasin,parser.get('ObservedData', 'Qtss'))
-Qtss_col = parser.get('ObservedData', 'Column')
-Header = parser.get('ObservedData', 'Header')
+#Qtss_col = parser.get('ObservedData', 'Column')
+Header = 'Calibration results' #parser.get('ObservedData', 'Header')
 
 ##PB Qgis_csv = parser.get('CSV', 'Qgis')
 

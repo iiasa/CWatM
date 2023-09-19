@@ -65,6 +65,8 @@ class groundwater(object):
 
         # initial conditions
         self.var.storGroundwater = self.var.load_initial('storGroundwater')
+        if 'storGroundwater' in binding and not self.var.loadInit:
+            self.var.storGroundwater = loadmap('storGroundwater')
         self.var.storGroundwater = np.maximum(0.0, self.var.storGroundwater) + globals.inZero
 
         # for water demand to have some initial value

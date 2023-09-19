@@ -209,10 +209,12 @@ class lakes_reservoirs(object):
         reservoir_release = [[-1 for i in self.var.waterBodyID_C] for i in range(366)]
 
         for res in list(df)[2:]:
-            res_index = waterBodyID_C_tolist.index(int(float(res)))
+            if res in waterBodyID_C_tolist:
+                res_index = waterBodyID_C_tolist.index(int(float(res)))
 
-            for day in range(366):
-                reservoir_release[day][res_index] = df[res][day]
+                for day in range(366):
+                    reservoir_release[day][res_index] = df[res][day]
+
 
         return reservoir_release
 
@@ -597,7 +599,7 @@ class lakes_reservoirs(object):
                                                                      self.var.lakeResStorage_release_ratio)
 
             elif self.var.reservoir_releases_excel_option:
-                self.var.lakeResStorage_release_ratioC = self.var.reservoir_releases[dateVar['doy']]
+                self.var.lakeResStorage_release_ratioC = self.var.reservoir_releases[dateVar['doy']-1]
 
     def dynamic_inloop(self, NoRoutingExecuted):
         """
