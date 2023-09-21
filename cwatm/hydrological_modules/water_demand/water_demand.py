@@ -307,7 +307,11 @@ class water_demand:
         Initial part of the water demand module
         """
 
-        self.var.includeIndusDomesDemand = True
+        if checkOption('includeWaterDemand'):
+            self.var.includeIndusDomesDemand = True
+        else:
+            self.var.includeIndusDomesDemand = False
+
         # True if all demands are taken into account,
         # False if not only irrigation is considered
         # This variable has no impact if includeWaterDemand is False
