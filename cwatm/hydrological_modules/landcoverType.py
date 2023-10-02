@@ -624,13 +624,15 @@ class landcoverType(object):
             
             if 'excludeGlacierArea' in option:
                 if checkOption('excludeGlacierArea'):
+                    # substract glacier area from sealed area first
                     #substract glacier area from grassland fraction later on
                     self.var.fracGlacierCover = readnetcdf2('fractionGlaciercover', landcoverYear, useDaily="yearly",
                                                          value='on_area', cut = False)
-                    self.var.fracVegCover[1] = self.var.fracVegCover[1] - self.var.fracGlacierCover
-                    #if there are some pixels where grassland is not large enough to substract glacier area, the other lancovertypes have to be used
+                    self.var.fracVegCover[4] = self.var.fracVegCover[4] - self.var.fracGlacierCover
+                    #if there are some pixels where sealed area is not large enough to substract glacier area, the other lancovertypes have to be used
                     # forest, irrNonPaddy, irrPaddy, sealed, water
-                    ind_landcovertype_glaciers = [1,0,3,2,4,5]
+                    #ind_landcovertype_glaciers = [1,0,3,2,4,5]
+                    ind_landcovertype_glaciers = [4, 1, 0, 5, 2, 3]
                     for i, ind in enumerate(ind_landcovertype_glaciers[:-1]):
                         if any(self.var.fracVegCover[ind] < 0):
                             #substract glacier area from landcovertype

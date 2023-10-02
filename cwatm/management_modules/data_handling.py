@@ -583,6 +583,12 @@ def readCoordNetCDF(name,check = True):
             maskmapAttr['coordx'] = 'x'
             maskmapAttr['coordy'] = 'y'
 
+    if 'X' in nf1.variables.keys():
+        maskmapAttr['coordx'] = 'X'
+        maskmapAttr['coordy'] = 'Y'
+    if 'x' in nf1.variables.keys():
+        maskmapAttr['coordx'] = 'x'
+        maskmapAttr['coordy'] = 'y'
 
     rows = nf1.variables[maskmapAttr['coordy']].shape[0]
     cols = nf1.variables[maskmapAttr['coordx']].shape[0]
@@ -861,13 +867,13 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
             except:
                 datediv = 1
 
-            datestart = num2date(int(nctime[:][0]), units=nctime.units,calendar=nctime.calendar)
+            datestart = num2date(int(round(nctime[:][0],0)), units=nctime.units,calendar=nctime.calendar)
 
             # sometime daily records have a strange hour to start with -> it is changed to 0:00 to haqve the same record
             datestart = datestart.replace(hour=0, minute=0)
-            dateend = num2date(int(nctime[:][-1]), units=nctime.units, calendar=nctime.calendar)
-            datestartint = int(nctime[0]) // datediv
-            dateendint = int(nctime[:][-1]) // datediv
+            dateend = num2date(int(round(nctime[:][-1],0)), units=nctime.units, calendar=nctime.calendar)
+            datestartint = int(round(nctime[0].data.tolist(),0)) // datediv
+            dateendint = int(round(nctime[:][-1].data.tolist(),0)) // datediv
 
             dateend = dateend.replace(hour=0, minute=0)
             #if dateVar['leapYear'] > 0:
@@ -950,10 +956,10 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     warnings.filterwarnings("ignore")
     if value == "None":
         value = list(nf1.variables.items())[-1][0]  # get the last variable name
-        if value in ["x","y","lon","lat","time"]:
+        if value in ["X","Y","x","y","lon","lat","time"]:
             for i in range(2,5):
                value = list(nf1.variables.items())[-i][0]
-               if not(value in ["x","y","lon","lat","time"]) : break
+               if not(value in ["X","Y","x","y","lon","lat","time"]) : break
 
     # check if mask = map size -> if yes do not cut the map
     cutcheckmask = maskinfo['shape'][0] * maskinfo['shape'][1]
@@ -961,9 +967,15 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     cutcheck = True
     if cutcheckmask == cutcheckmap: cutcheck = False
 
+    # check if it is x or X
+    yy = maskmapAttr['coordy']
+    if yy == "y":
+        if "Y" in nf1.variables.keys():
+            yy = "Y"
+
     #checkif latitude is reversed
     turn_latitude = False
-    if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
+    if (nf1.variables[yy][0] - nf1.variables[yy][-1]) < 0:
         turn_latitude = True
         mapnp = nf1.variables[value][idx].astype(np.float64)
         mapnp = np.flipud(mapnp)
@@ -1235,6 +1247,12 @@ def readnetcdfInitial(name, value,default = 0.0):
         raise CWATMFileError(filename,msg)
     if value in list(nf1.variables.keys()):
         try:
+            if 'X' in nf1.variables.keys():
+                maskmapAttr['coordx'] = 'X'
+                maskmapAttr['coordy'] = 'Y'
+            if 'x' in nf1.variables.keys():
+                maskmapAttr['coordx'] = 'x'
+                maskmapAttr['coordy'] = 'y'
 
             if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
                 msg = "Error 112: Latitude is in wrong order\n"

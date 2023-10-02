@@ -414,7 +414,7 @@ class water_demand:
 
             if 'sectorSourceAbstractionFractions' in option:
                 if checkOption('sectorSourceAbstractionFractions'):
-                    print('Sector- and source-specific abstraction fractions are activated (water_demand.py)')
+                    #print('Sector- and source-specific abstraction fractions are activated (water_demand.py)')
                     self.var.sectorSourceAbstractionFractions = True
 
                     self.var.swAbstractionFraction_Channel_Domestic = loadmap(
@@ -2502,38 +2502,39 @@ class water_demand:
 
             # ---------------------------------------------
             # testing
+            if checkOption('calcWaterBalance'):
+                if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                    self.model.waterbalance_module.waterBalanceCheck(
+                        [self.var.act_irrWithdrawal],  # In
+                        [self.var.act_totalIrrConsumption, self.var.unmet_lostirr, self.var.addtoevapotrans,
+                         self.var.returnflowIrr],  # Out
+                        [globals.inZero],
+                        [globals.inZero],
+                        "Waterdemand5a", False)
 
-            if self.var.includeIndusDomesDemand:  # all demands are taken into account
-                self.model.waterbalance_module.waterBalanceCheck(
-                    [self.var.act_irrWithdrawal],  # In
-                    [self.var.act_totalIrrConsumption, self.var.unmet_lostirr, self.var.addtoevapotrans,
-                     self.var.returnflowIrr],  # Out
-                    [globals.inZero],
-                    [globals.inZero],
-                    "Waterdemand5a", False)
+                    self.model.waterbalance_module.waterBalanceCheck(
+                        [self.var.act_nonIrrWithdrawal],  # In
+                        [self.var.act_nonIrrConsumption, self.var.returnflowNonIrr, self.var.unmet_lostNonirr],  # Out
+                        [globals.inZero],
+                        [globals.inZero],
+                        "Waterdemand5b", False)
 
-                self.model.waterbalance_module.waterBalanceCheck(
-                    [self.var.act_nonIrrWithdrawal],  # In
-                    [self.var.act_nonIrrConsumption, self.var.returnflowNonIrr, self.var.unmet_lostNonirr],  # Out
-                    [globals.inZero],
-                    [globals.inZero],
-                    "Waterdemand5b", False)
+                    self.model.waterbalance_module.waterBalanceCheck(
+                        [self.var.ind_efficiency * frac_industry * self.var.act_nonIrrWithdrawal],  # In
+                        [self.var.act_indConsumption],  # Out
+                        [globals.inZero],
+                        [globals.inZero],
+                        "Waterdemand5c", False)
 
-                self.model.waterbalance_module.waterBalanceCheck(
-                    [self.var.ind_efficiency * frac_industry * self.var.act_nonIrrWithdrawal],  # In
-                    [self.var.act_indConsumption],  # Out
-                    [globals.inZero],
-                    [globals.inZero],
-                    "Waterdemand5c", False)
-
-                self.model.waterbalance_module.waterBalanceCheck(
-                    [self.var.act_indWithdrawal],  # In
-                    [self.var.act_indConsumption / self.var.ind_efficiency],  # Out
-                    [globals.inZero],
-                    [globals.inZero],
-                    "Waterdemand5d", False)
+                    self.model.waterbalance_module.waterBalanceCheck(
+                        [self.var.act_indWithdrawal],  # In
+                        [self.var.act_indConsumption / self.var.ind_efficiency],  # Out
+                        [globals.inZero],
+                        [globals.inZero],
+                        "Waterdemand5d", False)
 
             # ----------------------------------------------------------------
+
             if checkOption('calcWaterBalance'):
                 self.model.waterbalance_module.waterBalanceCheck(
                     [self.var.act_irrWithdrawal],  # In
