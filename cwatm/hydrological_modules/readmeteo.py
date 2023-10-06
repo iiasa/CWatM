@@ -579,8 +579,9 @@ class readmeteo(object):
             self.var.Tavg = self.var.meteo[1,no]
             self.var.ETRef = self.var.meteo[2,no]
             self.var.EWRef = self.var.meteo[3,no]
-            self.var.Rsds = self.var.meteo[4,no]
-            self.var.Rsdl = self.var.meteo[5,no]
+            if not only_radiaion:
+                self.var.Rsds = self.var.meteo[4,no]
+                self.var.Rsdl = self.var.meteo[5,no]
             if self.var.includeGlaciers:
                 self.var.GlacierMelt = self.var.meteo[6, no]
                 if not self.var.includeOnlyGlaciersMelt:
@@ -651,23 +652,23 @@ class readmeteo(object):
 
 
         #self.var.Tavg = downscaling(self.var.Tavg, downscale = 0)
+        if not only_radiation:
+            # for new snow calculation radiation is needed
+            #self.var.Rsds = readnetcdf2('RSDSMaps', dateVar['currDate'], addZeros = True, meteo = True)
+            self.var.Rsds, MaskMapBoundary = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+            self.var.Rsds = self.downscaling2(self.var.Rsds)
+                # radiation surface downwelling shortwave maps [W/m2]
+            #self.var.Rsdl = readnetcdf2('RSDLMaps', dateVar['currDate'], addZeros = True, meteo = True)
+            self.var.Rsdl, MaskMapBoundary = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+            self.var.Rsdl = self.downscaling2(self.var.Rsdl)
+                # radiation surface downwelling longwave maps [W/m2]
 
-		# for new snow calculation radiation is needed
-        #self.var.Rsds = readnetcdf2('RSDSMaps', dateVar['currDate'], addZeros = True, meteo = True)
-        self.var.Rsds, MaskMapBoundary = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-        self.var.Rsds = self.downscaling2(self.var.Rsds)
-            # radiation surface downwelling shortwave maps [W/m2]
-        #self.var.Rsdl = readnetcdf2('RSDLMaps', dateVar['currDate'], addZeros = True, meteo = True)
-        self.var.Rsdl, MaskMapBoundary = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-        self.var.Rsdl = self.downscaling2(self.var.Rsdl)
-            # radiation surface downwelling longwave maps [W/m2]
+            # Conversion factor from [W] to [MJ]
+            self.var.WtoMJ = 86400 * 1E-6
 
-        # Conversion factor from [W] to [MJ]
-        self.var.WtoMJ = 86400 * 1E-6
-
-        # conversion from W/m2 to MJ/m2/day
-        self.var.Rsds = self.var.Rsds * self.var.WtoMJ
-        self.var.Rsdl = self.var.Rsdl * self.var.WtoMJ
+            # conversion from W/m2 to MJ/m2/day
+            self.var.Rsds = self.var.Rsds * self.var.WtoMJ
+            self.var.Rsdl = self.var.Rsdl * self.var.WtoMJ
 
         # -----------------------------------------------------------------------
         # if evaporation has to be calculated load all the meteo map sets

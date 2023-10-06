@@ -289,18 +289,20 @@ class snow_frost(object):
             else:
             """
 
-            #SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef * (1 + 0.01 * RainS) * self.var.DtDay
             # Snow melt with with radiation
             # radiation part from evaporationPot -> snowmelt has now a temperature part and a radiation part
             # from Erlandsen et al. Hydrology Research 52.2 2021
-            
-            RNup = 4.903E-9 * (TavgS + 273.16) ** 4
-            RLN = RNup - self.var.Rsdl
-            RN = (self.var.Rsds - RLN) / 334.0  
-            # latent heat of fusion = 0.334 mJKg-1 * desity of water = 1000 khm-3
-            
-            SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef + self.var.SnowMeltRad * RN
-            SnowMeltS = SnowMeltS * (1 + 0.01 * RainS) * self.var.DtDay
+            if not only_radiation:
+                RNup = 4.903E-9 * (TavgS + 273.16) ** 4
+                RLN = RNup - self.var.Rsdl
+                RN = (self.var.Rsds - RLN) / 334.0
+                # latent heat of fusion = 0.334 mJKg-1 * desity of water = 1000 khm-3
+
+                SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef + self.var.SnowMeltRad * RN
+                SnowMeltS = SnowMeltS * (1 + 0.01 * RainS) * self.var.DtDay
+            else:
+                SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef * (1 + 0.01 * RainS) * self.var.DtDay
+
             SnowMeltS = np.maximum(SnowMeltS, globals.inZero)
 
             # for which layer the ice melt is calculated with the middle temp.
