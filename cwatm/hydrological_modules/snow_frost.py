@@ -161,7 +161,10 @@ class snow_frost(object):
         self.var.TempMelt = loadmap('TempMelt')
 
         # New snowmelt includes radiation and a calibration factor for radition
-        self.var.SnowMeltRad = loadmap('SnowMeltRad')        # initialize as many snow covers as snow layers -> read them as SnowCover1 , SnowCover2 ...
+        if 'SnowMeltRad' in binding:
+            self.var.SnowMeltRad = loadmap('SnowMeltRad')        # initialize as many snow covers as snow layers -> read them as SnowCover1 , SnowCover2 ...
+        else:
+            self.var.SnowMeltRad = 1 + globals.inZero
         # SnowCover1 is the highest zone
         self.var.SnowCoverS = []
         for i in range(self.var.numberSnowLayers):
