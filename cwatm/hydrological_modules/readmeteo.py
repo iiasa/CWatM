@@ -579,7 +579,7 @@ class readmeteo(object):
             self.var.Tavg = self.var.meteo[1,no]
             self.var.ETRef = self.var.meteo[2,no]
             self.var.EWRef = self.var.meteo[3,no]
-            if not only_radiation:
+            if not self.var.only_radiation:
                 self.var.Rsds = self.var.meteo[4,no]
                 self.var.Rsdl = self.var.meteo[5,no]
             if self.var.includeGlaciers:
@@ -652,7 +652,7 @@ class readmeteo(object):
 
 
         #self.var.Tavg = downscaling(self.var.Tavg, downscale = 0)
-        if not only_radiation:
+        if not self.var.only_radiation:
             # for new snow calculation radiation is needed
             #self.var.Rsds = readnetcdf2('RSDSMaps', dateVar['currDate'], addZeros = True, meteo = True)
             self.var.Rsds, MaskMapBoundary = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
