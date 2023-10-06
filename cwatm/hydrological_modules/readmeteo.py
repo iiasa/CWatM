@@ -179,12 +179,12 @@ class readmeteo(object):
             if not self.var.includeOnlyGlaciersMelt:
                 self.var.glacierrainMaps = 'PrecGlacierMaps'
 
-        self.var.only_radition = False
+        self.var.only_radiation = False
         if 'only_radiation' in binding:
-            self.var.only_radition = returnBool('only_radiation')
+            self.var.only_radiation = returnBool('only_radiation')
 
         if checkOption('calc_evaporation'):
-            if self.var.only_radition:
+            if self.var.only_radiation:
                 # for maps from EMO-5 with total radiation and vapor pressure instead of huss, air pressure, rsds and rlds
                 meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps']
             else:
@@ -579,7 +579,7 @@ class readmeteo(object):
             self.var.Tavg = self.var.meteo[1,no]
             self.var.ETRef = self.var.meteo[2,no]
             self.var.EWRef = self.var.meteo[3,no]
-            if not only_radiaion:
+            if not only_radiation:
                 self.var.Rsds = self.var.meteo[4,no]
                 self.var.Rsdl = self.var.meteo[5,no]
             if self.var.includeGlaciers:
@@ -737,7 +737,7 @@ class readmeteo(object):
 
 
 
-            if self.var.only_radition:
+            if self.var.only_radiation:
                 # read daily calculated radiation [in KJ/m2/day]
                 # named here Rsds instead of rds, because use in evaproationPot in the same way as rsds
                 self.var.Rsds, MaskMapBoundary = readmeteodata('RGDMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
