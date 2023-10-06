@@ -292,7 +292,7 @@ class snow_frost(object):
             # Snow melt with with radiation
             # radiation part from evaporationPot -> snowmelt has now a temperature part and a radiation part
             # from Erlandsen et al. Hydrology Research 52.2 2021
-            if not only_radiation:
+            if not self.var.only_radiation:
                 RNup = 4.903E-9 * (TavgS + 273.16) ** 4
                 RLN = RNup - self.var.Rsdl
                 RN = (self.var.Rsds - RLN) / 334.0
