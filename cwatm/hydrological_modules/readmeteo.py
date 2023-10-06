@@ -186,7 +186,7 @@ class readmeteo(object):
         if checkOption('calc_evaporation'):
             if self.var.only_radition:
                 # for maps from EMO-5 with total radiation and vapor pressure instead of huss, air pressure, rsds and rlds
-                meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps','RSDSMaps','RSDLMaps']
+                meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps']
             else:
 
                 meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','PSurfMaps','WindMaps','RSDSMaps','RSDLMaps']
@@ -210,7 +210,7 @@ class readmeteo(object):
                     meteomaps = [self.var.preMaps, self.var.tempMaps, self.var.evaTMaps, self.var.eva0Maps,self.var.RSDSMaps,self.var.RSDLMaps,
                                  self.var.glaciermeltMaps]
             else:
-                meteomaps = [self.var.preMaps, self.var.tempMaps,self.var.evaTMaps,self.var.eva0Maps,self.var.RSDSMaps,self.var.RSDLMaps]
+                meteomaps = [self.var.preMaps, self.var.tempMaps,self.var.evaTMaps,self.var.eva0Maps]
 
         #meteomaps = ["PrecipitationMaps","TavgMaps"]
         multinetdf(meteomaps)
