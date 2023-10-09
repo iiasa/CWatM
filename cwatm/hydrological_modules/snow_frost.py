@@ -10,7 +10,6 @@
 
 from cwatm.management_modules.data_handling import *
 
-
 class snow_frost(object):
 
     """

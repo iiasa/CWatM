@@ -18,7 +18,6 @@ class readmeteo(object):
 
     reads all meteorological data from netcdf4 files
 
-
     **Global variables**
 
     =====================================  ======================================================================  =====
@@ -795,7 +794,7 @@ class readmeteo(object):
                 # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
 
         if Flags['calib']:
-            # if first calibration run, store all meteo data in a variable
+            # if first clibration run, store all meteo data in a variable
             if dateVar['curr'] == 1:
                 number = 4
                 if self.var.snowmelt_radiation:
