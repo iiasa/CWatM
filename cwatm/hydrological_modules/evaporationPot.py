@@ -38,7 +38,7 @@ class evaporationPot(object):
     albedoLand                             albedo from land surface (from GlobAlbedo database)                     --   
     albedoOpenWater                        albedo from open water surface (from GlobAlbedo database)               --   
     ETRef                                  potential evapotranspiration rate from reference crop                   m    
-    only_radition                                                                                                  --   
+    only_radiation                                                                                                  --
     TMin                                   minimum air temperature                                                 K    
     TMax                                   maximum air temperature                                                 K    
     Tavg                                   Input, average air Temperature                                          K    

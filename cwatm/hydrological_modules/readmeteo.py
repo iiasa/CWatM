@@ -28,7 +28,7 @@ class readmeteo(object):
     con_e                                  conversion factor for evaporation                                       --   
     ETRef                                  potential evapotranspiration rate from reference crop                   m    
     Precipitation                          Precipitation (input for the model)                                     m    
-    only_radition                                                                                                  --   
+    only_radiation                                                                                                  --
     TMin                                   minimum air temperature                                                 K    
     TMax                                   maximum air temperature                                                 K    
     Tavg                                   Input, average air Temperature                                          K    
@@ -184,14 +184,14 @@ class readmeteo(object):
         if 'snowmelt_radiation' in binding:
             self.var.snowmelt_radiation = returnBool('snowmelt_radiation')
 
-        self.var.only_radition = False
+        self.var.only_radiation = False
         if 'only_radiation' in binding:
-            self.var.only_radition = returnBool('only_radiation')
-            # if radition then now snow_melt radition because it needs rsds and rsdl maps
+            self.var.only_radiation = returnBool('only_radiation')
+            # if radiation then now snow_melt radiation because it needs rsds and rsdl maps
             self.var.snowmelt_radiation = False
 
         if checkOption('calc_evaporation'):
-            if self.var.only_radition:
+            if self.var.only_radiation:
                 # for maps from EMO-5 with total radiation and vapor pressure instead of huss, air pressure, rsds and rlds
                 meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps']
             else:
@@ -654,21 +654,32 @@ class readmeteo(object):
 
         if checkOption('calc_evaporation') or self.var.snowmelt_radiation:
             # for new snow calculation radiation is needed
-            #self.var.Rsds = readnetcdf2('RSDSMaps', dateVar['currDate'], addZeros = True, meteo = True)
-            self.var.Rsds, MaskMapBoundary = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-            self.var.Rsds = self.downscaling2(self.var.Rsds)
-                # radiation surface downwelling shortwave maps [W/m2]
-            #self.var.Rsdl = readnetcdf2('RSDLMaps', dateVar['currDate'], addZeros = True, meteo = True)
-            self.var.Rsdl, MaskMapBoundary = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-            self.var.Rsdl = self.downscaling2(self.var.Rsdl)
-                # radiation surface downwelling longwave maps [W/m2]
+            if self.var.only_radiation:
+                # read daily calculated radiation [in KJ/m2/day]
+                # named here Rsds instead of rds, because use in evaproationPot in the same way as rsds
+                self.var.Rsds, MaskMapBoundary = readmeteodata('RGDMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
+                #self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.001  # convert from KJ to MJ/m2/day
+                self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.000001  # convert from KJ to MJ/m2/day
+                # but for EMO it is 1e6 instead 1000 it seems it is J instead of KJ
 
-            # Conversion factor from [W] to [MJ]
-            self.var.WtoMJ = 86400 * 1E-6
+                # read daily vapor pressure [in hPa]
+                self.var.EAct, MaskMapBoundary = readmeteodata('EActMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
+                self.var.EAct = self.downscaling2(self.var.EAct) * 0.1  # convert from hP to kP
+            else:
+                self.var.Rsds, MaskMapBoundary = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+                self.var.Rsds = self.downscaling2(self.var.Rsds)
+                    # radiation surface downwelling shortwave maps [W/m2]
+                #self.var.Rsdl = readnetcdf2('RSDLMaps', dateVar['currDate'], addZeros = True, meteo = True)
+                self.var.Rsdl, MaskMapBoundary = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+                self.var.Rsdl = self.downscaling2(self.var.Rsdl)
+                    # radiation surface downwelling longwave maps [W/m2]
 
-            # conversion from W/m2 to MJ/m2/day
-            self.var.Rsds = self.var.Rsds * self.var.WtoMJ
-            self.var.Rsdl = self.var.Rsdl * self.var.WtoMJ
+                # Conversion factor from [W] to [MJ]
+                self.var.WtoMJ = 86400 * 1E-6
+
+                # conversion from W/m2 to MJ/m2/day
+                self.var.Rsds = self.var.Rsds * self.var.WtoMJ
+                self.var.Rsdl = self.var.Rsdl * self.var.WtoMJ
 
         # -----------------------------------------------------------------------
         # if evaporation has to be calculated load all the meteo map sets
@@ -734,38 +745,27 @@ class readmeteo(object):
             # Shuttleworth, W.J. (1993) in Maidment, D.R. (1993), p. 4.36
             self.var.Wind = self.var.Wind * 0.749
 
-            if self.var.only_radition:
-                # read daily calculated radiation [in KJ/m2/day]
-                # named here Rsds instead of rds, because use in evaproationPot in the same way as rsds
-                self.var.Rsds, MaskMapBoundary = readmeteodata('RGDMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
-                #self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.001  # convert from KJ to MJ/m2/day
-                self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.000001  # convert from KJ to MJ/m2/day
-                # but for EMO it is 1e6 instead 1000 it seems it is J instead of KJ
+            if not self.var.only_radiation:
 
-                # read daily vapor pressure [in hPa]
-                self.var.EAct, MaskMapBoundary = readmeteodata('EActMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
-                self.var.EAct = self.downscaling2(self.var.EAct) * 0.1  # convert from hP to kP
-                return
+                #self.var.Psurf = readnetcdf2('PSurfMaps', dateVar['currDate'], addZeros = True, meteo = True)
+                self.var.Psurf, MaskMapBoundary = readmeteodata('PSurfMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+                self.var.Psurf = self.downscaling2(self.var.Psurf)
+                    # Instantaneous surface pressure[Pa]
 
-            #self.var.Psurf = readnetcdf2('PSurfMaps', dateVar['currDate'], addZeros = True, meteo = True)
-            self.var.Psurf, MaskMapBoundary = readmeteodata('PSurfMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-            self.var.Psurf = self.downscaling2(self.var.Psurf)
-                # Instantaneous surface pressure[Pa]
+                if returnBool('useHuss'):
+                    #self.var.Qair = readnetcdf2('QAirMaps', dateVar['currDate'], addZeros = True, meteo = True)
+                    self.var.Qair, MaskMapBoundary = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
+                    # 2 m istantaneous specific humidity[kg / kg]
+                else:
+                    #self.var.Qair = readnetcdf2('RhsMaps', dateVar['currDate'], addZeros = True, meteo = True)
+                    self.var.Qair, MaskMapBoundary = readmeteodata('RhsMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
+                self.var.Qair = self.downscaling2(self.var.Qair)
 
-            if returnBool('useHuss'):
-                #self.var.Qair = readnetcdf2('QAirMaps', dateVar['currDate'], addZeros = True, meteo = True)
-                self.var.Qair, MaskMapBoundary = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
-                # 2 m istantaneous specific humidity[kg / kg]
-            else:
-                #self.var.Qair = readnetcdf2('RhsMaps', dateVar['currDate'], addZeros = True, meteo = True)
-                self.var.Qair, MaskMapBoundary = readmeteodata('RhsMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
-            self.var.Qair = self.downscaling2(self.var.Qair)
+                #--------------------------------------------------------
+                # conversions
 
-            #--------------------------------------------------------
-            # conversions
-
-            # [Pa] to [KPa]
-            self.var.Psurf = self.var.Psurf * 0.001
+                # [Pa] to [KPa]
+                self.var.Psurf = self.var.Psurf * 0.001
 
 
         # if pot evaporation is already precalulated
