@@ -152,36 +152,16 @@ def loadsetclone(self,name):
         filename = os.path.splitext(cbinding(name))[0] + '.nc'
         try:
             nf1 = Dataset(filename, 'r')
+            y, x, cell, invcell, rows, cols = readCoordNetCDF(filename)
+            setmaskmapAttr(x, y, cols, rows, cell)
+
             value = list(nf1.variables.items())[-1][0]  # get the last variable name
-
-            x1 = list(nf1.variables.values())[0][0]
-            x2 = list(nf1.variables.values())[0][1]
-            xlast = list(nf1.variables.values())[0][-1]
-            #x1 = nf1.variables['lon'][0]
-            #x2 = nf1.variables['lon'][1]
-            #xlast = nf1.variables['lon'][-1]
-
-            #y1 = nf1.variables['lat'][0]
-            #ylast = nf1.variables['lat'][-1]
-            y1 = list(nf1.variables.values())[1][0]
-            ylast = list(nf1.variables.values())[1][-1]
-
-            # swap to make y1 the biggest number
-            if y1 < ylast:  y1, ylast = ylast, y1
-
-            cellSize = np.abs(x2 - x1)
-            invcell = round(1/cellSize)
-            if invcell == 0: invcell = 1/cellSize
-            nrRows = int(0.5 + np.abs(ylast - y1) * invcell + 1)
-            nrCols = int(0.5 + np.abs(xlast - x1) * invcell + 1)
-            x = x1 - cellSize / 2
-            y = y1 + cellSize / 2
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                mapnp = np.array(nf1.variables[value][0:nrRows, 0:nrCols])
+                #mapnp = np.array(nf1.variables[value][0:nrRows, 0:nrCols])
+                mapnp = np.array(nf1.variables[value][0:rows, 0:cols])
             nf1.close()
-            setmaskmapAttr( x, y, nrCols, nrRows, cellSize)
 
             flagmap = True
 

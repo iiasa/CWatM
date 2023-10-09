@@ -621,9 +621,9 @@ class landcoverType(object):
             sum = np.sum(self.var.fracVegCover, axis=0)
             self.var.fracVegCover[0] = np.maximum(0., self.var.fracVegCover[0] + 1.0 - sum)
             sum = np.sum(self.var.fracVegCover,axis=0)
-            
-            if 'excludeGlacierArea' in option:
-                if checkOption('excludeGlacierArea'):
+
+            if self.var.includeGlaciers:
+                if returnBool('excludeGlacierArea'):
                     # substract glacier area from sealed area first
                     #substract glacier area from grassland fraction later on
                     self.var.fracGlacierCover = readnetcdf2('fractionGlaciercover', landcoverYear, useDaily="yearly",

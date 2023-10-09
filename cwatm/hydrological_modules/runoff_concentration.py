@@ -142,12 +142,6 @@ class runoff_concentration(object):
             #self.var.tpeak_baseflow = 0.5
             self.var.tpeak_baseflow = np.minimum(np.maximum(self.var.tpeak_baseflow, 0.5, ), 5.0)
             
-            self.var.includeGlaciers = False
-            if 'includeGlaciers' in option:
-                self.var.includeGlaciers = checkOption('includeGlaciers')
-            if 'includeOnlyGlaciersMelt' in option:
-                self.var.includeOnlyGlaciersMelt = checkOption('includeOnlyGlaciersMelt')
-                
             if self.var.includeGlaciers:
                 self.var.tpeak_glaciers = runoffConc_factor * tpeak * loadmap("glaciers_runoff_peaktime")
                 self.var.tpeak_glaciers = np.minimum(np.maximum(self.var.tpeak_glaciers, 0.5,),3.0)

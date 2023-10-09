@@ -160,11 +160,11 @@ class readmeteo(object):
 
         # -------------------------------------------------------------------
         self.var.includeGlaciers = False
-        self.var.includeOnlyGlaciersMelt = False
         if 'includeGlaciers' in option:
             self.var.includeGlaciers = checkOption('includeGlaciers')
-        if 'includeOnlyGlaciersMelt' in option:
-            self.var.includeOnlyGlaciersMelt = checkOption('includeOnlyGlaciersMelt')
+            self.var.includeOnlyGlaciersMelt = False
+            if 'includeOnlyGlaciersMelt' in binding:
+                self.var.includeOnlyGlaciersMelt = returnBool('includeOnlyGlaciersMelt')
 
         self.var.preMaps = 'PrecipitationMaps'
         self.var.tempMaps = 'TavgMaps'

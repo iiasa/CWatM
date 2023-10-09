@@ -137,8 +137,8 @@ class snow_frost(object):
             self.var.SeasonalSnowMeltSin = loadmap('SeasonalSnowMeltSin')
 
         self.var.excludeGlacierArea = False
-        if "excludeGlacierArea" in option:
-            self.var.excludeGlacierArea = checkOption('excludeGlacierArea')
+        if self.var.includeGlaciers:
+            self.var.excludeGlacierArea = returnBool('excludeGlacierArea')
 
         # day of the year to degrees: 360/365.25 = 0.9856
         self.var.summerSeasonStart = 165
@@ -248,8 +248,10 @@ class snow_frost(object):
         #get number of elevation zones with forest
         #assume forest is most present at lowest location
         nr_frac_forest = self.var.numberSnowLayers - np.round(self.var.fracVegCover[0] / (1 / self.var.numberSnowLayers)) - 1
-        if self.var.excludeGlacierArea:
-            current_fracGlacierCover = self.var.fracGlacierCover.copy() #percentage area of each layer
+
+        if self.var.includeGlaciers:
+            if self.var.excludeGlacierArea:
+                current_fracGlacierCover = self.var.fracGlacierCover.copy() #percentage area of each layer
             # elev_red = 5
             # current_fracGlacierCover = self.var.fracGlacierCover / elev_red
         #substract glacier area from highest areas
