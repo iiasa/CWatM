@@ -1301,7 +1301,7 @@ class water_demand:
                                                                        resStorage_maxFracForIrrigation)
                             if self.var.reservoir_releases_excel_option:
                                 resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
-                                                                            self.var.reservoir_releases[dateVar['doy']-1],
+                                                                            self.var.reservoir_supply[dateVar['doy']-1],
                                                                             0.03)
 
                             resStorage_maxFracForIrrigationC = np.multiply(
@@ -1801,7 +1801,7 @@ class water_demand:
                     elif self.var.reservoir_releases_excel_option:
                         resStorage_maxFracForIrrigation = globals.inZero.copy()
                         resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
-                                                                    self.var.reservoir_releases[dateVar['doy']-1],
+                                                                    self.var.reservoir_supply[dateVar['doy']-1],
                                                                     0.03)
                     else:
                         resStorage_maxFracForIrrigation = 0.03 + globals.inZero.copy()
@@ -1912,7 +1912,7 @@ class water_demand:
                 elif self.var.reservoir_releases_excel_option:
                     resStorage_maxFracForIrrigation = globals.inZero.copy()
                     resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
-                                                                self.var.reservoir_releases[dateVar['doy']-1],
+                                                                self.var.reservoir_supply[dateVar['doy']-1],
                                                                 0.03)
                     np.put(resStorage_maxFracForIrrigation, self.var.decompress_LR, resStorage_maxFracForIrrigationC)
                 else:
