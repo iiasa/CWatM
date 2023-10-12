@@ -14,7 +14,6 @@ from cwatm.hydrological_modules.routing_reservoirs.routing_sub import *
 from cwatm.management_modules.globals import *
 import importlib
 
-
 class lakes_reservoirs(object):
     """
     LAKES AND RESERVOIRS
@@ -436,7 +435,10 @@ class lakes_reservoirs(object):
                         self.var.reservoir_releases_excel_option = True
                         xl_settings_file_path = cbinding('Excel_settings_file')
                         self.var.reservoir_releases, self.var.reservoir_supply = \
-                            np.array(self.reservoir_releases(xl_settings_file_path))
+                            self.reservoir_releases(xl_settings_file_path)
+
+                        self.var.reservoir_releases = np.array(self.var.reservoir_releases)
+                        self.var.reservoir_supply = np.array(self.var.reservoir_supply)
 
 
     def initial_lakes(self):
