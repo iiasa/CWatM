@@ -261,9 +261,6 @@ class readmeteo(object):
         self.var.demAnomaly = compressArray(demAnomaly[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]],pcr = False)
         """
 
-
-
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 

@@ -49,7 +49,6 @@ def valuecell( coordx, coordstr, returnmap = True):
             msg = "Error 101: Gauges in settings file: " + xy + " in " + coordstr + " is not a coordinate"
             raise CWATMError(msg)
 
-
     null = np.zeros((maskmapAttr['row'], maskmapAttr['col']))
     null[null == 0] = -9999
 

@@ -565,6 +565,7 @@ class landcoverType(object):
 
         * loads the fraction of landcover for each year from netcdf maps
         * calculate the fraction of 6 land cover types based on the maps
+        * if used add glacier maps
 
         :param init: (optional) True: set for the first time of a run
         :param dynamic: used in the dynmic run not in the initial phase
