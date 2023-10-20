@@ -868,7 +868,8 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
             #    start = dateVar[startcheck]
 
             if startfile == 0:  # search first file where dynamic run starts
-                if (dateendint >= startint) and (datestartint <= startint):  # if enddate of a file is bigger than the start of run
+                if (dateendint >= startint): # if enddate of a file is bigger than the start of run
+                    # and (datestartint <= startint):  # remove thiis, because glacier maps could start latter, than the day of the year of first year is  use
                     startfile = 1
                     #indstart = (start - datestart).days
                     indstart = startint - datestartint
@@ -882,6 +883,11 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
                     #start = start.replace(hour=0, minute=0)
                     startint = dateendint + 1
                     start = num2date(startint * datediv, units=nctime.units, calendar=nctime.calendar)
+
+                    # counter is set to a minus value - for some maps (e.g. glacier) if the counte ris negativ
+                    # the doy of a year of first year is loaded -> to use runs  before glacier maps are calculated
+
+
 
             else:
                 if (datestartint >= startint) and (datestartint < endint ):
@@ -901,7 +907,7 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
 
 
 
-def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapsscale = True, buffering=False):
+def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapsscale = True, buffering=False, extendback = False):
     """
     load stack of maps 1 at each timestamp in netcdf format
 
@@ -926,6 +932,16 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
         date1 = "%02d/%02d/%02d" % (date.day, date.month, date.year)
         msg = "Error 210: Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date1 + ": \n"
         raise CWATMError(msg)
+
+    # for glaciermaps extend back into past if glaciermaps start later -> use day of the year of first year
+    if idx < 0:
+        if extendback:
+            idx = dateVar['doy'] - 1
+        else:
+            date1 = "%02d/%02d/%02d" % (date.day, date.month, date.year)
+            msg = "Error 211: Netcdf map: " + name + " -> " + cbinding(name) + " starts later than first date of simulation on: " + date1 + ": \n"
+            raise CWATMError(msg)
+
 
     try:
        nf1 = Dataset(filename, 'r')
