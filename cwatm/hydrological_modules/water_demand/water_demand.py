@@ -754,6 +754,7 @@ class water_demand:
             self.var.act_totalIrrConsumption = globals.inZero.copy()
             self.var.act_totalWaterConsumption = globals.inZero.copy()
             self.var.unmetDemand = globals.inZero.copy()
+            self.var.unmetDemand_runningSum = globals.inZero.copy()
             self.var.addtoevapotrans = globals.inZero.copy()
             self.var.returnflowIrr = globals.inZero.copy()
             self.var.returnflowNonIrr = globals.inZero.copy()
