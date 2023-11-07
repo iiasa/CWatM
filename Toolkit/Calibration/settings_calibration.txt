@@ -1,0 +1,53 @@
+[DEFAULT]
+Root = P:\watmodel\CWATM\model\GitHub_Mikhail\CWatM\Toolkit
+RootPC = P:\watmodel\CWATM\model\GitHub_Mikhail\CWatM\Toolkit
+Rootbasin = Calibration
+
+# start date of simulation outputs
+ForcingStart = 1/1/2006
+ForcingEnd = 31/12/2007
+timeperiod = daily
+
+[ObservedData]
+Qtss = observed_data/lobith2006.csv
+Qgis = observed_data/Qgis_otta.csv
+
+[Path]
+Templates = templates_CWatM
+SubCatchmentPath = runs_calibration
+ParamRanges = ParamRanges.csv
+
+[Templates]
+ModelSettings = settings_CWatM_template.ini
+RunModel = runpy.bat
+
+[Option]
+# Sets initial parameter values according to the para_first array
+firstrun = False
+
+# Standard calibation parameter set
+# crop KC, soil depth, pref. flow, arno beta, interflow factor, groundwater recession, routing, normalStorageLimit, No of run
+para_first = [1.2, 1.0, 4.0, 0.5, 1.0, 1.0, 1.0, 0.5, 1.]
+
+# the model runs with the best parameter set after the calibration
+bestrun = True
+
+[DEAP]
+maximize = True
+
+# if more than one node is to be used for parallel processing 
+use_multiprocessing = 1
+
+# Number of nodes used for multiprocessing, recommended 1-8
+pool_limit = 2
+
+# Number of generations, recommended 10-40
+ngen = 6
+
+# Initial population, recommended 16-128
+mu = 16
+
+# Runs per generation, recommended 8-16
+lambda_ = 8
+
+

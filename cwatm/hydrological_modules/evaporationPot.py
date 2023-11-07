@@ -38,7 +38,7 @@ class evaporationPot(object):
     albedoLand                             albedo from land surface (from GlobAlbedo database)                     --   
     albedoOpenWater                        albedo from open water surface (from GlobAlbedo database)               --   
     ETRef                                  potential evapotranspiration rate from reference crop                   m    
-    only_radition                                                                                                  --   
+    only_radiation                                                                                                  --
     TMin                                   minimum air temperature                                                 K    
     TMax                                   maximum air temperature                                                 K    
     Tavg                                   Input, average air Temperature                                          K    
@@ -107,7 +107,7 @@ class evaporationPot(object):
         self.var.AlbedoSoil = loadmap('AlbedoSoil')
         self.var.AlbedoWater = loadmap('AlbedoWater')
 
-        if self.var.only_radition:
+        if self.var.only_radiation:
             self.var.dem = loadmap('dem')
             self.var.lat = loadmap('latitude')
 
@@ -158,7 +158,7 @@ class evaporationPot(object):
 
         # --------------------------------
         # if only daily calculate radiation is given instead of longwave down and shortwave down radiation
-        if self.var.only_radition:
+        if self.var.only_radiation:
             # FAO 56 - https://www.fao.org/3/x0490E/x0490e07.htm#solar%20radiation  equation 39
             radian = np.pi / 180 * self.var.lat
             distanceSun = 1 + 0.033 * np.cos(2 * np.pi * dateVar['doy'] / 365)
@@ -287,7 +287,7 @@ class evaporationPot(object):
         RNup = 4.903E-9 * (((self.var.TMin + 273.16) ** 4) + ((self.var.TMax + 273.16) ** 4)) / 2
         # Up longwave radiation [MJ/m2/day]
 
-        if self.var.only_radition:
+        if self.var.only_radiation:
             # FAO 56 - https://www.fao.org/3/x0490E/x0490e07.htm#solar%20radiation  equation 39
             a = dateVar['doy']
             #radian = np.pi / 180 * self.var.lat
@@ -351,7 +351,7 @@ class evaporationPot(object):
 
 
         # if only daily calculate radiation is given instead of longwave down and shortwave down radiation
-        if self.var.only_radition:
+        if self.var.only_radiation:
             # FAO 56 - https://www.fao.org/3/x0490E/x0490e07.htm#solar%20radiation  equation 39
             a = dateVar['doy']
             #radian = np.pi / 180 * self.var.lat

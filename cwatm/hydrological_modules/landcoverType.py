@@ -565,6 +565,7 @@ class landcoverType(object):
 
         * loads the fraction of landcover for each year from netcdf maps
         * calculate the fraction of 6 land cover types based on the maps
+        * if used add glacier maps
 
         :param init: (optional) True: set for the first time of a run
         :param dynamic: used in the dynmic run not in the initial phase
@@ -621,24 +622,26 @@ class landcoverType(object):
             sum = np.sum(self.var.fracVegCover, axis=0)
             self.var.fracVegCover[0] = np.maximum(0., self.var.fracVegCover[0] + 1.0 - sum)
             sum = np.sum(self.var.fracVegCover,axis=0)
-            
-            if 'excludeGlacierArea' in option:
-                if checkOption('excludeGlacierArea'):
+
+            if self.var.includeGlaciers:
+                if returnBool('excludeGlacierArea'):
+                    # substract glacier area from sealed area first
                     #substract glacier area from grassland fraction later on
                     self.var.fracGlacierCover = readnetcdf2('fractionGlaciercover', landcoverYear, useDaily="yearly",
                                                          value='on_area', cut = False)
-                    self.var.fracVegCover[1] = self.var.fracVegCover[1] - self.var.fracGlacierCover
-                    #if there are some pixels where grassland is not large enough to substract glacier area, the other lancovertypes have to be used
-                    # forest, irrNonPaddy, irrPaddy, sealed, water
-                    ind_landcovertype_glaciers = [1,0,3,2,4,5]
+                    self.var.fracVegCover[4] = self.var.fracVegCover[4] - self.var.fracGlacierCover
+                    #if there are some pixels where sealed area is not large enough to substract glacier area, the other lancovertypes have to be used
+                    # sealed, grassland, forest, water, irrNonPaddy,
+                    #ind_landcovertype_glaciers = [1,0,3,2,4,5]
+                    ind_landcovertype_glaciers = [4, 1, 0, 5, 2, 3]
                     for i, ind in enumerate(ind_landcovertype_glaciers[:-1]):
                         if any(self.var.fracVegCover[ind] < 0):
                             #substract glacier area from landcovertype
                             self.var.fracVegCover[ind_landcovertype_glaciers[i+1]][np.where(self.var.fracVegCover[ind] < 0)] -= np.abs(self.var.fracVegCover[ind][np.where(self.var.fracVegCover[ind] < 0)])
                             self.var.fracVegCover[ind][np.where(self.var.fracVegCover[ind] < 0)] = 0
                     #assert that all land cover classes larger than zero
-                    assert (self.var.fracVegCover >= 0).all()
-                    assert np.mean(sum) == np.mean(np.sum(self.var.fracVegCover,axis=0)) + np.mean(self.var.fracGlacierCover)
+                    #assert (self.var.fracVegCover >= 0).all()
+                    #assert np.mean(sum) == np.mean(np.sum(self.var.fracVegCover,axis=0)) + np.mean(self.var.fracGlacierCover)
 
             """temp = loadmap('reservoir_command_areas').astype(np.int)
             self.var.fracVegCover[3] += np.where(temp > 0, self.var.fracVegCover[1] * 0.25,

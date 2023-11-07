@@ -230,17 +230,23 @@ Flags = {'quiet': False, 'veryquiet': False, 'loud': False,
 
 
 python_bit = ctypes.sizeof(ctypes.c_voidp) * 8
-#print "Running under platform: ", platform1
+print("Running under platform: ", platform1)
 if python_bit  < 64:
    msg = "Error 301: The Python version used is not a 64 bit version! Python " + str(python_bit) + "bit"
    raise CWATMError(msg)
 
 path_global = os.path.dirname(__file__)
+
 if platform1 == "Windows":
     dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t5.dll")
 elif platform1 == "CYGWIN_NT-6.1":
     # CYGWIN_NT-6.1 - compiled with cygwin
     dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t5cyg.so")
+elif platform1 == "Darwin":
+    # Apple
+    dll_routing = os.path.join(os.path.split(path_global)[0], "hydrological_modules", "routing_reservoirs",
+                                   "t5_mac.so")
+
 else:
     print("Linux\n")
     dll_routing = os.path.join(os.path.split(path_global)[0],"hydrological_modules","routing_reservoirs","t5_linux.so")

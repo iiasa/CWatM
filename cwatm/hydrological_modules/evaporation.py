@@ -209,21 +209,22 @@ class evaporation(object):
 
                 if dateVar['currDate'].day == 1:
 
-                    if checkOption('moveIrrFallowToNonIrr'):
+                    if 'moveIrrFallowToNonIrr' in option:
+                        if checkOption('moveIrrFallowToNonIrr'):
 
-                        # The irrigated land class may have given up fallow land to the grasslands land class.
-                        # If this is the case, these fallow lands are returned to the irrigated land class briefly to
-                        # allow them to be planted on in the irrigated land class, and then returned to the
-                        # grasslands land class.
+                            # The irrigated land class may have given up fallow land to the grasslands land class.
+                            # If this is the case, these fallow lands are returned to the irrigated land class briefly to
+                            # allow them to be planted on in the irrigated land class, and then returned to the
+                            # grasslands land class.
 
-                        self.var.fracVegCover[3] = self.var.irrigatedArea_original.copy()
+                            self.var.fracVegCover[3] = self.var.irrigatedArea_original.copy()
 
-                        remainderLand = np.maximum(
-                            globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
-                            self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
-                            globals.inZero.copy())
+                            remainderLand = np.maximum(
+                                globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
+                                self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
+                                globals.inZero.copy())
 
-                        self.var.fracVegCover[1] = remainderLand.copy()
+                            self.var.fracVegCover[1] = remainderLand.copy()
 
 
                     for c in range(len(self.var.Crops)):
@@ -301,13 +302,14 @@ class evaporation(object):
                             np.where(remainder_land_Irr - self.var.fracCrops_IrrLandDemand[c] > 0,
                                      self.var.fracCrops_IrrLandDemand[c], 0), self.var.fracCrops_Irr[c])
 
-                        if checkOption('leftoverIrrigatedCropIsRainfed'):
-                            self.var.fracCrops_nonIrrLandDemand[c] = self.var.fracCrops_IrrLandDemand[c] - \
-                                                                     self.var.fracCrops_Irr[c]
+                        if 'leftoverIrrigatedCropIsRainfed' in option:
+                            if checkOption('leftoverIrrigatedCropIsRainfed'):
+                                self.var.fracCrops_nonIrrLandDemand[c] = self.var.fracCrops_IrrLandDemand[c] - \
+                                                                         self.var.fracCrops_Irr[c]
 
-                            if 'crops_leftoverNotIrrigated' in binding:
-                                if c <= int(cbinding('crops_leftoverNotIrrigated')):
-                                    self.var.fracCrops_nonIrrLandDemand[c] = globals.inZero.copy()
+                                if 'crops_leftoverNotIrrigated' in binding:
+                                    if c <= int(cbinding('crops_leftoverNotIrrigated')):
+                                        self.var.fracCrops_nonIrrLandDemand[c] = globals.inZero.copy()
 
                         self.var.fracCrops_nonIrr[c] = np.where(
                             self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 0,
@@ -395,15 +397,16 @@ class evaporation(object):
                     # Irrigated fallow land is moved to non-irrigated fallow land. Irrigated fallow land is
 
                     #UNDER CONSTRUCTION
-                    if checkOption('moveIrrFallowToNonIrr'):
+                    if 'moveIrrFallowToNonIrr' in option:
+                        if checkOption('moveIrrFallowToNonIrr'):
 
-                        self.var.fracVegCover[3] = self.var.frac_totalIrr + self.var.GeneralCrop_Irr
-                        remainderLand = np.maximum(
-                            globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
-                            self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
-                            globals.inZero.copy())
+                            self.var.fracVegCover[3] = self.var.frac_totalIrr + self.var.GeneralCrop_Irr
+                            remainderLand = np.maximum(
+                                globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
+                                self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
+                                globals.inZero.copy())
 
-                        self.var.fracVegCover[1] = remainderLand.copy()
+                            self.var.fracVegCover[1] = remainderLand.copy()
 
 
                     if 'GeneralCrop_nonIrr' in binding and checkOption('use_GeneralCropnonIrr') == True:

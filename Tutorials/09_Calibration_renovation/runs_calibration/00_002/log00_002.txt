@@ -1,0 +1,4 @@
+OUTPUT:
+b'\r\nC:\\GitHub\\CWatM\\Tutorials\\09_Calibration_renovation\\runs_calibration\\00_002>python ../../../../run_cwatm.py settings_CWatM_template_30min-Run00_002.ini -v \r\n'
+ERRORS:
+b'Traceback (most recent call last):\r\n  File "C:\\GitHub\\CWatM\\run_cwatm.py", line 35, in <module>\r\n    from cwatm.run_cwatm import main, parse_args, usage, GNU\r\n  File "C:\\GitHub\\CWatM\\cwatm\\run_cwatm.py", line 49, in <module>\r\n  File "C:\\Users\\smilovic\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\site-packages\\osgeo\\gdal.py", line 2117, in <module>\r\nMemoryError\r\n'
