@@ -555,6 +555,8 @@ class landcoverType(object):
         #totalWaterPlant3 = np.maximum(0., self.var.wfc3[3] - self.var.wwp3[3]) * self.var.rootDepth[2][3]
         self.var.totAvlWater = totalWaterPlant1 + totalWaterPlant2 #+ totalWaterPlant3
 
+        self.var.Rain_times_fracPaddy = globals.inZero.copy()
+        self.var.Rain_times_fracNonPaddy = globals.inZero.copy()
     # --------------------------------------------------------------------------
 
     def dynamic_fracIrrigation(self, init = False, dynamic = True):
@@ -883,6 +885,9 @@ class landcoverType(object):
 
         # leakageIntoRunoff is also added in runoff_concentration
         self.var.sum_runoff = self.var.sum_directRunoff + self.var.sum_interflow + self.var.leakageIntoRunoff
+
+        self.var.Rain_times_fracPaddy = self.var.fracVegCover[2] * self.var.Rain
+        self.var.Rain_times_fracNonPaddy = self.var.fracVegCover[3] * self.var.Rain
 
         ### Printing the soil+GW water balance (considering no pumping), without the surface part
         #print('Date : ', dateVar['currDatestr'])
