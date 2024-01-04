@@ -213,17 +213,21 @@ class lakes_reservoirs(object):
                 for day in range(366):
                     reservoir_release[day][res_index] = df[res][day]
 
-        reservoir_supply = reservoir_release.copy()
+        reservoir_supply = [[-1 for i in self.var.waterBodyID_C] for i in range(366)]
+        #reservoir_release.copy()
         if 'Reservoirs_supply' in pd.read_excel(xl_settings_file_path, None).keys():
-            df = pd.read_excel(xl_settings_file_path, sheet_name='Reservoirs_supply')
-            for res in list(df)[2:]:
+            df2 = pd.read_excel(xl_settings_file_path, sheet_name='Reservoirs_supply')
+            for res in list(df2)[2:]:
                 if res in waterBodyID_C_tolist:
                     res_index = waterBodyID_C_tolist.index(int(float(res)))
 
                     for day in range(366):
-                        reservoir_supply[day][res_index] = df[res][day]
-
+                        reservoir_supply[day][res_index] = df2[res][day]
+        else:
+            reservoir_supply = reservoir_release.copy()
+        
         return reservoir_release, reservoir_supply
+
 
     def initWaterbodies(self):
         """

@@ -110,7 +110,8 @@ class CWATModel_dyn(DynamicModel):
         elif checkOption('limitAbstraction'):
             groundwater_storage = self.var.storGroundwater
         else:
-            groundwater_storage = self.var.storGroundwater - self.var.unmetDemand
+            self.var.unmetDemand_runningSum += self.var.unmetDemand
+            groundwater_storage = self.var.storGroundwater - self.var.unmetDemand_runningSum
 
         if (checkOption('includeRouting')):
             self.var.totalET_WB = self.var.EvapoChannel
