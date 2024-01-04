@@ -629,6 +629,7 @@ class landcoverType(object):
                     #substract glacier area from grassland fraction later on
                     self.var.fracGlacierCover = readnetcdf2('fractionGlaciercover', landcoverYear, useDaily="yearly",
                                                          value='on_area', cut = False)
+                    self.var.fracGlacierCover  = np.minimum(np.maximum(self.var.fracGlacierCover , 0.0), 1.0)
                     self.var.fracVegCover[4] = self.var.fracVegCover[4] - self.var.fracGlacierCover
                     #if there are some pixels where sealed area is not large enough to substract glacier area, the other lancovertypes have to be used
                     # sealed, grassland, forest, water, irrNonPaddy,

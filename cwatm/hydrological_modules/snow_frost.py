@@ -159,7 +159,7 @@ class snow_frost(object):
 
         self.var.TempMelt = loadmap('TempMelt')
 
-        # New snowmelt includes radiation and a calibration factor for radition
+        # New snowmelt includes radiation and a calibration factor for radiation
         if 'SnowMeltRad' in binding:
             self.var.SnowMeltRad = loadmap('SnowMeltRad')        # initialize as many snow covers as snow layers -> read them as SnowCover1 , SnowCover2 ...
         else:
