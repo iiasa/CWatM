@@ -459,7 +459,7 @@ class evaporation(object):
 
         # calculate potential ET
         ##  self.var.totalPotET total potential evapotranspiration for a reference crop for a land cover class [m]
-        self.var.totalPotET[No] = self.var.cropCorrect * self.var.cropKC[No] * self.var.ETRef
+        self.var.totalPotET[No] = self.var.cropCorrect * self.var.crop_correct_landCover[No] * self.var.cropKC[No] * self.var.ETRef
 
         # calculate transpiration
 
@@ -473,7 +473,7 @@ class evaporation(object):
 
                 for c in range(len(self.var.Crops)):
 
-                    self.var.PotET_crop[c] = self.var.cropCorrect * self.var.currentKC[c] * self.var.ETRef
+                    self.var.PotET_crop[c] = self.var.cropCorrect * self.var.crop_correct_landCover[No] * self.var.currentKC[c] * self.var.ETRef
                     self.var.totalPotET_month[c] += self.var.PotET_crop[c] #self.var.cropCorrect * self.var.currentKC[c] * self.var.ETRef #np.maximum(0., self.var.cropCorrect * self.var.currentKC[c] * self.var.ETRef - self.var.potBareSoilEvap - self.var.snowEvap)
 
                     #For creating named crop maps
