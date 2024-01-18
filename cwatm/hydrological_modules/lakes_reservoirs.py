@@ -14,7 +14,6 @@ from cwatm.hydrological_modules.routing_reservoirs.routing_sub import *
 from cwatm.management_modules.globals import *
 import importlib
 
-
 class lakes_reservoirs(object):
     """
     LAKES AND RESERVOIRS
@@ -207,7 +206,6 @@ class lakes_reservoirs(object):
         waterBodyID_C_tolist = self.var.waterBodyID_C.tolist()
 
         reservoir_release = [[-1 for i in self.var.waterBodyID_C] for i in range(366)]
-
         for res in list(df)[2:]:
             if res in waterBodyID_C_tolist:
                 res_index = waterBodyID_C_tolist.index(int(float(res)))
@@ -215,8 +213,21 @@ class lakes_reservoirs(object):
                 for day in range(366):
                     reservoir_release[day][res_index] = df[res][day]
 
+        reservoir_supply = [[-1 for i in self.var.waterBodyID_C] for i in range(366)]
+        #reservoir_release.copy()
+        if 'Reservoirs_supply' in pd.read_excel(xl_settings_file_path, None).keys():
+            df2 = pd.read_excel(xl_settings_file_path, sheet_name='Reservoirs_supply')
+            for res in list(df2)[2:]:
+                if res in waterBodyID_C_tolist:
+                    res_index = waterBodyID_C_tolist.index(int(float(res)))
 
-        return reservoir_release
+                    for day in range(366):
+                        reservoir_supply[day][res_index] = df2[res][day]
+        else:
+            reservoir_supply = reservoir_release.copy()
+        
+        return reservoir_release, reservoir_supply
+
 
     def initWaterbodies(self):
         """
@@ -427,7 +438,12 @@ class lakes_reservoirs(object):
                     if 'Excel_settings_file' in binding:
                         self.var.reservoir_releases_excel_option = True
                         xl_settings_file_path = cbinding('Excel_settings_file')
-                        self.var.reservoir_releases = np.array(self.reservoir_releases(xl_settings_file_path))
+                        self.var.reservoir_releases, self.var.reservoir_supply = \
+                            self.reservoir_releases(xl_settings_file_path)
+
+                        self.var.reservoir_releases = np.array(self.var.reservoir_releases)
+                        self.var.reservoir_supply = np.array(self.var.reservoir_supply)
+
 
     def initial_lakes(self):
         """

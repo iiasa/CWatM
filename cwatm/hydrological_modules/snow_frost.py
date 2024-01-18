@@ -10,7 +10,6 @@
 
 from cwatm.management_modules.data_handling import *
 
-
 class snow_frost(object):
 
     """
@@ -138,8 +137,8 @@ class snow_frost(object):
             self.var.SeasonalSnowMeltSin = loadmap('SeasonalSnowMeltSin')
 
         self.var.excludeGlacierArea = False
-        if "excludeGlacierArea" in option:
-            self.var.excludeGlacierArea = checkOption('excludeGlacierArea')
+        if self.var.includeGlaciers:
+            self.var.excludeGlacierArea = returnBool('excludeGlacierArea')
 
         # day of the year to degrees: 360/365.25 = 0.9856
         self.var.summerSeasonStart = 165
@@ -160,7 +159,12 @@ class snow_frost(object):
 
         self.var.TempMelt = loadmap('TempMelt')
 
-        # initialize as many snow covers as snow layers -> read them as SnowCover1 , SnowCover2 ...
+        # New snowmelt includes radiation and a calibration factor for radiation
+        if 'SnowMeltRad' in binding:
+            self.var.SnowMeltRad = loadmap('SnowMeltRad')        # initialize as many snow covers as snow layers -> read them as SnowCover1 , SnowCover2 ...
+        else:
+            self.var.SnowMeltRad = 1 + globals.inZero
+            
         # SnowCover1 is the highest zone
         self.var.SnowCoverS = []
         for i in range(self.var.numberSnowLayers):
@@ -244,8 +248,10 @@ class snow_frost(object):
         #get number of elevation zones with forest
         #assume forest is most present at lowest location
         nr_frac_forest = self.var.numberSnowLayers - np.round(self.var.fracVegCover[0] / (1 / self.var.numberSnowLayers)) - 1
-        if self.var.excludeGlacierArea:
-            current_fracGlacierCover = self.var.fracGlacierCover.copy() #percentage area of each layer
+
+        if self.var.includeGlaciers:
+            if self.var.excludeGlacierArea:
+                current_fracGlacierCover = self.var.fracGlacierCover.copy() #percentage area of each layer
             # elev_red = 5
             # current_fracGlacierCover = self.var.fracGlacierCover / elev_red
         #substract glacier area from highest areas
@@ -271,21 +277,20 @@ class snow_frost(object):
                 # snow precipitation (which is common)
                 RainS = np.where(TavgS >= self.var.TempSnow, self.var.Precipitation, globals.inZero)
 
-            #if SWE higher than 1m it is assumed that this is unrealistic, therefore it will be melted faster to avoid
-            #snow accumulation (similar to implementation in WaterGAP)
-            """
-            if np.any(self.var.SnowCoverS[i] >= 1):
-                # the temperature of the lowest elevation zone is used for melting
-                # this will result in an increase in temp for every elevation zone in the grid cell
-                # this change in temp will only become relevant if T > TempMelt
-                TavgHighSWE = self.var.Tavg + self.var.DeltaTSnow * self.var.deltaInvNorm[-1]
-                SnowMeltNormal = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef * (1 + 0.01 * RainS) * self.var.DtDay
-                SnowMeltHighSWE = (TavgHighSWE - self.var.TempMelt) * SeasSnowMeltCoef * (1 + 0.01 * RainS) * self.var.DtDay
-                SnowMeltS = np.where(self.var.SnowCoverS[i] < 1, SnowMeltNormal, SnowMeltHighSWE)
-            else:
-            """
+            # Snow melt with with radiation
+            # radiation part from evaporationPot -> snowmelt has now a temperature part and a radiation part
+            # from Erlandsen et al. Hydrology Research 52.2 2021
+            if self.var.snowmelt_radiation:
+                RNup = 4.903E-9 * (TavgS + 273.16) ** 4
+                RLN = RNup - self.var.Rsdl
+                RN = (self.var.Rsds - RLN) / 334.0
+                # latent heat of fusion = 0.334 mJKg-1 * desity of water = 1000 khm-3
 
-            SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef * (1 + 0.01 * RainS) * self.var.DtDay
+                SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef + self.var.SnowMeltRad * RN
+                SnowMeltS = SnowMeltS * (1 + 0.01 * RainS) * self.var.DtDay
+            else:
+                # without radiation
+                SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef * (1 + 0.01 * RainS) * self.var.DtDay
             SnowMeltS = np.maximum(SnowMeltS, globals.inZero)
 
             # for which layer the ice melt is calculated with the middle temp.

@@ -230,7 +230,7 @@ Flags = {'quiet': False, 'veryquiet': False, 'loud': False,
 
 
 python_bit = ctypes.sizeof(ctypes.c_voidp) * 8
-print("Running under platform: ", platform1)
+#print("Running under platform: ", platform1)
 if python_bit  < 64:
    msg = "Error 301: The Python version used is not a 64 bit version! Python " + str(python_bit) + "bit"
    raise CWATMError(msg)

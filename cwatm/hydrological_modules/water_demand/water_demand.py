@@ -307,7 +307,11 @@ class water_demand:
         Initial part of the water demand module
         """
 
-        self.var.includeIndusDomesDemand = True
+        if checkOption('includeWaterDemand'):
+            self.var.includeIndusDomesDemand = True
+        else:
+            self.var.includeIndusDomesDemand = False
+
         # True if all demands are taken into account,
         # False if not only irrigation is considered
         # This variable has no impact if includeWaterDemand is False
@@ -414,7 +418,7 @@ class water_demand:
 
             if 'sectorSourceAbstractionFractions' in option:
                 if checkOption('sectorSourceAbstractionFractions'):
-                    print('Sector- and source-specific abstraction fractions are activated (water_demand.py)')
+                    #print('Sector- and source-specific abstraction fractions are activated (water_demand.py)')
                     self.var.sectorSourceAbstractionFractions = True
 
                     self.var.swAbstractionFraction_Channel_Domestic = loadmap(
@@ -750,6 +754,7 @@ class water_demand:
             self.var.act_totalIrrConsumption = globals.inZero.copy()
             self.var.act_totalWaterConsumption = globals.inZero.copy()
             self.var.unmetDemand = globals.inZero.copy()
+            self.var.unmetDemand_runningSum = globals.inZero.copy()
             self.var.addtoevapotrans = globals.inZero.copy()
             self.var.returnflowIrr = globals.inZero.copy()
             self.var.returnflowNonIrr = globals.inZero.copy()
@@ -1297,7 +1302,7 @@ class water_demand:
                                                                        resStorage_maxFracForIrrigation)
                             if self.var.reservoir_releases_excel_option:
                                 resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
-                                                                            self.var.reservoir_releases[dateVar['doy']-1],
+                                                                            self.var.reservoir_supply[dateVar['doy']-1],
                                                                             0.03)
 
                             resStorage_maxFracForIrrigationC = np.multiply(
@@ -1797,7 +1802,7 @@ class water_demand:
                     elif self.var.reservoir_releases_excel_option:
                         resStorage_maxFracForIrrigation = globals.inZero.copy()
                         resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
-                                                                    self.var.reservoir_releases[dateVar['doy']-1],
+                                                                    self.var.reservoir_supply[dateVar['doy']-1],
                                                                     0.03)
                     else:
                         resStorage_maxFracForIrrigation = 0.03 + globals.inZero.copy()
@@ -1908,7 +1913,7 @@ class water_demand:
                 elif self.var.reservoir_releases_excel_option:
                     resStorage_maxFracForIrrigation = globals.inZero.copy()
                     resStorage_maxFracForIrrigationC = np.where(self.var.lakeResStorage_release_ratioC > -1,
-                                                                self.var.reservoir_releases[dateVar['doy']-1],
+                                                                self.var.reservoir_supply[dateVar['doy']-1],
                                                                 0.03)
                     np.put(resStorage_maxFracForIrrigation, self.var.decompress_LR, resStorage_maxFracForIrrigationC)
                 else:
@@ -2510,38 +2515,39 @@ class water_demand:
 
             # ---------------------------------------------
             # testing
+            if checkOption('calcWaterBalance'):
+                if self.var.includeIndusDomesDemand:  # all demands are taken into account
+                    self.model.waterbalance_module.waterBalanceCheck(
+                        [self.var.act_irrWithdrawal],  # In
+                        [self.var.act_totalIrrConsumption, self.var.unmet_lostirr, self.var.addtoevapotrans,
+                         self.var.returnflowIrr],  # Out
+                        [globals.inZero],
+                        [globals.inZero],
+                        "Waterdemand5a", False)
 
-            if self.var.includeIndusDomesDemand:  # all demands are taken into account
-                self.model.waterbalance_module.waterBalanceCheck(
-                    [self.var.act_irrWithdrawal],  # In
-                    [self.var.act_totalIrrConsumption, self.var.unmet_lostirr, self.var.addtoevapotrans,
-                     self.var.returnflowIrr],  # Out
-                    [globals.inZero],
-                    [globals.inZero],
-                    "Waterdemand5a", False)
+                    self.model.waterbalance_module.waterBalanceCheck(
+                        [self.var.act_nonIrrWithdrawal],  # In
+                        [self.var.act_nonIrrConsumption, self.var.returnflowNonIrr, self.var.unmet_lostNonirr],  # Out
+                        [globals.inZero],
+                        [globals.inZero],
+                        "Waterdemand5b", False)
 
-                self.model.waterbalance_module.waterBalanceCheck(
-                    [self.var.act_nonIrrWithdrawal],  # In
-                    [self.var.act_nonIrrConsumption, self.var.returnflowNonIrr, self.var.unmet_lostNonirr],  # Out
-                    [globals.inZero],
-                    [globals.inZero],
-                    "Waterdemand5b", False)
+                    self.model.waterbalance_module.waterBalanceCheck(
+                        [self.var.ind_efficiency * frac_industry * self.var.act_nonIrrWithdrawal],  # In
+                        [self.var.act_indConsumption],  # Out
+                        [globals.inZero],
+                        [globals.inZero],
+                        "Waterdemand5c", False)
 
-                self.model.waterbalance_module.waterBalanceCheck(
-                    [self.var.ind_efficiency * frac_industry * self.var.act_nonIrrWithdrawal],  # In
-                    [self.var.act_indConsumption],  # Out
-                    [globals.inZero],
-                    [globals.inZero],
-                    "Waterdemand5c", False)
-
-                self.model.waterbalance_module.waterBalanceCheck(
-                    [self.var.act_indWithdrawal],  # In
-                    [self.var.act_indConsumption / self.var.ind_efficiency],  # Out
-                    [globals.inZero],
-                    [globals.inZero],
-                    "Waterdemand5d", False)
+                    self.model.waterbalance_module.waterBalanceCheck(
+                        [self.var.act_indWithdrawal],  # In
+                        [self.var.act_indConsumption / self.var.ind_efficiency],  # Out
+                        [globals.inZero],
+                        [globals.inZero],
+                        "Waterdemand5d", False)
 
             # ----------------------------------------------------------------
+
             if checkOption('calcWaterBalance'):
                 self.model.waterbalance_module.waterBalanceCheck(
                     [self.var.act_irrWithdrawal],  # In

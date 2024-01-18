@@ -636,6 +636,10 @@ class soil(object):
             subperc1to2 =  np.minimum(availWater1,np.minimum(kUnSat1 * DtSub, capLayer2))
             subperc2to3 =  np.minimum(availWater2,np.minimum(kUnSat2 * DtSub, capLayer3))
 
+            # Frozen soils do not facilitate percolation
+            subperc1to2 = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0, subperc1to2)
+            subperc2to3 = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0, subperc2to3)
+
             if self.var.modflow:
                 subperc3toGW = np.minimum(availWater3, np.minimum(kUnSat3 * DtSub, availWater3)) * (
                             1 - self.var.capriseindex)  # multiplied by the fraction of ModFlow unsaturated cells
@@ -656,8 +660,8 @@ class soil(object):
             capLayer2 = self.var.ws2[No] - wtemp2
             capLayer3 = self.var.ws3[No] - wtemp3
 
-            self.var.perc1to2[No]  += subperc1to2
-            self.var.perc2to3[No]  += subperc2to3
+            self.var.perc1to2[No]  += subperc1to2   # 0 if frozen
+            self.var.perc2to3[No]  += subperc2to3   # 0 if frozen
             self.var.perc3toGW[No] += subperc3toGW
 
         # When the soil is frozen (frostindex larger than threshold), no perc1 and 2

@@ -151,6 +151,14 @@ class waterdemand_domestic:
                                                       value=self.var.domWithdrawalVar)
                 self.var.pot_domesticConsumption = readnetcdf2('domesticWaterDemandFile', wd_date,
                                                                self.var.domesticTime, value=self.var.domConsumptionVar)
+
+                # Allows for user to scale domestic demand and potential consumption through the settings file.
+                # Domestic demand and potential consumption will be multiplied by the scaling factor.
+                if 'scale_domestic_demand' in binding:
+                    scale_domestic_demand = loadmap('scale_domestic_demand') + globals.inZero
+                    self.var.domesticDemand = self.var.domesticDemand * scale_domestic_demand
+                    self.var.pot_domesticConsumption = self.var.pot_domesticConsumption * scale_domestic_demand
+
                 # avoid small values (less than 1 m3):
                 self.var.domesticDemand = np.where(self.var.domesticDemand > self.var.InvCellArea,
                                                    self.var.domesticDemand, 0.0)

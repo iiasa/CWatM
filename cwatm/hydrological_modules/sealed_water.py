@@ -13,10 +13,13 @@ from cwatm.management_modules.data_handling import *
 
 class sealed_water(object):
     """
-    Sealed and open water runoff
+    Sealed (impermeable surface) and open water (water landcover) runoff and evaporation
 
-    calculated runoff from impermeable surface (sealed) and into water bodies
-
+    Open water evaporation is evaporation from the land classes sealed and water.
+        For water, this is performed as lakes & reservoirs and channels may not represent all the water, such as
+        smaller rivers, ponds, and wetlands. For example, in a cell, lakes, reservoirs, and channels may make 10%,
+        while the water land class makes up 20%. This is one way of allowing evaporation to happen on these
+        other surfaces, although limited by the days' precipitation.
 
     **Global variables**
 
@@ -50,21 +53,22 @@ class sealed_water(object):
 
         if No > 3:  # 4 = sealed areas, 5 = water
             if coverType == "water":
-                # bigger than 1.0 because of wind evaporation
+                # bigger than 0.2 because of wind evaporation
                 mult = 1.0
             else:
-                mult = 0.2  # evaporation from open areas on sealed area estimated as 0.2 EWRef
+                # evaporation from open areas on sealed area estimated as 0.2 EWRef
+                mult = 0.2
 
-            if self.var.modflow:  # ModFlow Capillary rise under sealed areas and water bodies is sent to runoff
+            if self.var.modflow:  # ModFlow capillary rise under sealed areas and water is sent to runoff
                 self.var.openWaterEvap[No] = np.minimum(mult * self.var.EWRef,
-                                                        self.var.availWaterInfiltration[No] + self.var.capillar)
+                                                        self.var.availWaterInfiltration[No])
                 self.var.directRunoff[No] = self.var.availWaterInfiltration[No] \
                                             - self.var.openWaterEvap[No] + self.var.capillar
             else:
                 self.var.openWaterEvap[No] =  np.minimum(mult * self.var.EWRef, self.var.availWaterInfiltration[No])
                 self.var.directRunoff[No] = self.var.availWaterInfiltration[No] - self.var.openWaterEvap[No]
 
-            # open water evaporation is directly subtracted from the rivers, lakes, and reservoirs
+            # open water evaporation is removed from the rivers, lakes, and reservoirs later
             self.var.actualET[No] = self.var.actualET[No] +  self.var.openWaterEvap[No]
 
         if checkOption('calcWaterBalance') and (No>3):

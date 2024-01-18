@@ -419,7 +419,8 @@ def date2indexNew(date, nctime, calendar, select='nearest', name =""):
             msg = " - " + date.strftime('%Y-%m') + " is later then the last dataset in " + name + " -"
             msg += " instead last year/month dataset is used"
             if Flags['loud']:
-                print(CWATMWarning(msg))
+                iiii = 1
+                #print(CWATMWarning(msg))
 
 
         index = np.where(nctime[:] == value)[0][0]
@@ -431,13 +432,15 @@ def date2indexNew(date, nctime, calendar, select='nearest', name =""):
             msg = " - " + date.strftime('%Y') + " is later then the last dataset in " + name + " -"
             msg += " instead last year dataset is used"
             if Flags['loud']:
-                print(CWATMWarning(msg))
+                iiii = 1
+                #print(CWATMWarning(msg))
         if value < min(nctime[:]):
             value = min(nctime[:])
             msg = " - " + date.strftime('%Y') + " is earlier then the first dataset in " + name + " -"
             msg += " instead first year dataset is used"
             if Flags['loud']:
-                print(CWATMWarning(msg))
+                iiii =1
+                #print(CWATMWarning(msg))
 
 
         index = np.where(nctime[:] == value)[0][0]
@@ -459,7 +462,7 @@ def timestep_dynamic(self):
     #print "leap:", globals.leap_flag[0]
     #dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
     d1 = datenum(dateVar['dateBegin'])
-    dateVar['currDate'] = numdate(d1, dateVar['curr'])
+    dateVar['currDate'] = numdate(d1, dateVar['curr'] * dateVar['unitConv'])
     datevarInt = d1 + dateVar['curr']
 
     #dateVar['currDatestr'] = dateVar['currDate'].strftime("%d/%m/%Y")
