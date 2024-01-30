@@ -213,6 +213,9 @@ class initcondition(object):
         initCondVarValue.append("unmetDemandPaddy")
         initCondVar.append("unmetDemandNonpaddy")
         initCondVarValue.append("unmetDemandNonpaddy")
+
+        initCondVar.append('unmetDemand_runningSum')
+        initCondVarValue.append('unmetDemand_runningSum')
         
         # Desalination
         self.var.includeDesal = False

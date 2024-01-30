@@ -555,6 +555,8 @@ class landcoverType(object):
         #totalWaterPlant3 = np.maximum(0., self.var.wfc3[3] - self.var.wwp3[3]) * self.var.rootDepth[2][3]
         self.var.totAvlWater = totalWaterPlant1 + totalWaterPlant2 #+ totalWaterPlant3
 
+        self.var.Rain_times_fracPaddy = globals.inZero.copy()
+        self.var.Rain_times_fracNonPaddy = globals.inZero.copy()
     # --------------------------------------------------------------------------
 
     def dynamic_fracIrrigation(self, init = False, dynamic = True):
@@ -629,6 +631,7 @@ class landcoverType(object):
                     #substract glacier area from grassland fraction later on
                     self.var.fracGlacierCover = readnetcdf2('fractionGlaciercover', landcoverYear, useDaily="yearly",
                                                          value='on_area', cut = False)
+                    self.var.fracGlacierCover  = np.minimum(np.maximum(self.var.fracGlacierCover , 0.0), 1.0)
                     self.var.fracVegCover[4] = self.var.fracVegCover[4] - self.var.fracGlacierCover
                     #if there are some pixels where sealed area is not large enough to substract glacier area, the other lancovertypes have to be used
                     # sealed, grassland, forest, water, irrNonPaddy,
@@ -883,6 +886,9 @@ class landcoverType(object):
 
         # leakageIntoRunoff is also added in runoff_concentration
         self.var.sum_runoff = self.var.sum_directRunoff + self.var.sum_interflow + self.var.leakageIntoRunoff
+
+        self.var.Rain_times_fracPaddy = self.var.fracVegCover[2] * self.var.Rain
+        self.var.Rain_times_fracNonPaddy = self.var.fracVegCover[3] * self.var.Rain
 
         ### Printing the soil+GW water balance (considering no pumping), without the surface part
         #print('Date : ', dateVar['currDatestr'])

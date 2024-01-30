@@ -91,7 +91,7 @@ class ExtParser(configparser.ConfigParser):
                  if self.cur_depth < configparser.MAX_INTERPOLATION_DEPTH:
                      sub = self.get(section, l_option, vars=vars)
                      ret = ret.replace(re_old2[i], sub)
-                     i =+ 1
+                     i += 1
                  else:
                      raise configparser.InterpolationDepthError(option, section, r_opt)
 

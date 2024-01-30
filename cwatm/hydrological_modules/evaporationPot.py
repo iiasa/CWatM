@@ -72,10 +72,17 @@ class evaporationPot(object):
 
         #self.var.sumETRef = globals.inZero.copy()
         self.var.cropCorrect = loadmap('crop_correct')
+        self.var.crop_correct_landCover= np.tile(1 + globals.inZero,(4,1))
+        if 'crop_correct_forest' in binding:
+            self.var.crop_correct_landCover[0] = loadmap('crop_correct_forest')
+        if 'crop_correct_grassland' in binding:
+            self.var.crop_correct_landCover[1] = loadmap('crop_correct_grassland')
+        if 'crop_correct_irrpaddy' in binding:
+            self.var.crop_correct_landCover[2] = loadmap('crop_correct_irrpaddy')
+        if 'crop_correct_irrnonpaddy' in binding:
+            self.var.crop_correct_landCover[3] = loadmap('crop_correct_irrnonpaddy')
 
         if checkOption('calc_evaporation'):
-
-
             # Default calculation method is Penman Monteith
             # if PET_modus is missing use Penman Monteith
             self.var.pet_modus = 1
