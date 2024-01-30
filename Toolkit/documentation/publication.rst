@@ -72,7 +72,7 @@ CWatM started in April 2016
 | **Leading WAT Program and group:**
 | David Wiberg (2014-2015), Bill Cosgrove and Peter Burek (2016), Simon Langan (2016-2019), Yoshihide Wada (2019-2020), Taher Kahil (2021-)
 | **Hydrology and Programming:** 
-| Peter Burek (2016-), Yoshihide Wada(2016-), Yusuke Satoh(2016-), Peter Greve(2017-), Mikhail Smilovic(2018-), Luca Guillaumot(2018-), Jens de Bruijn(2019-), Sarah Hanus (2022-)
+| Peter Burek (2016-), Yoshihide Wada(2016-), Yusuke Satoh(2016-), Peter Greve(2017-2022), Mikhail Smilovic(2018-), Luca Guillaumot(2018-), Jens de Bruijn(2019-), Sarah Hanus (2022-), Dor Fridman (2022-), Emilio Politti (2023-)
 | **Interface to Water Quality and Hydro-economic modeling:**
 | Taher Kahil (2016-), Ting Tang (2018-)
 | **GIS:** 

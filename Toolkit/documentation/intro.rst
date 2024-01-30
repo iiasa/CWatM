@@ -27,7 +27,7 @@ Figure: CWatM - Water-related processes included in the model design
 Acknowledgement of Funding
 ==========================
 
-The development of  CWatM is supported by financial support from the Austrian Research Promotion Agency (FFG) under the FUSE project funded by the Belmont Forum Urbanisation Global Initiative (SUGI)/Food–Water–Energy Nexus theme for which coordination was supported by the US National Science Foundation under grant ICER/EAR-1829999 to Stanford University (Grant Agreement: 730254), EUCP (European Climate Prediction System) project funded by the European Union under Horizon 2020 (Grant Agreement: 776613), and CO-MICC project (Project No: 863633) which is part of ERA4CS, an ERA-NET initiated by JPI Climate with co-funding by the European Union and the Austrian Federal Ministry of Science, Research and Economy (BMWFW).
+The development of  CWatM is supported by financial support from the Austrian Research Promotion Agency (FFG) under the FUSE project funded by the Belmont Forum Urbanisation Global Initiative (SUGI)/Food–Water–Energy Nexus theme for which coordination was supported by the US National Science Foundation under grant ICER/EAR-1829999 to Stanford University (Grant Agreement: 730254), EUCP (European Climate Prediction System) project funded by the European Union under Horizon 2020 (Grant Agreement: 776613), SOS-Water (Safe Operating Space for the water resources) project funded by European Union’s Horizon EUROPE Research and Innovation Programme (Agreement N° 101059264), and CO-MICC project (Project No: 863633) which is part of ERA4CS, an ERA-NET initiated by JPI Climate with co-funding by the European Union and the Austrian Federal Ministry of Science, Research and Economy (BMWFW).
 
 
 Contact CWatM
