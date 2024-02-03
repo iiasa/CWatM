@@ -305,7 +305,7 @@ def mainwarm(settings, args, meteo):
     Flags['warm'] = True
 
     headerinfo()
-    if meteo == []:
+    if meteo.size == 0:
         Flags['warm'] = False
         success, last_dis = CWATMexe(settingsfile[0])
     else:

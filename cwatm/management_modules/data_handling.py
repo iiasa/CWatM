@@ -49,6 +49,7 @@ def valuecell( coordx, coordstr, returnmap = True):
             msg = "Error 101: Gauges in settings file: " + xy + " in " + coordstr + " is not a coordinate"
             raise CWATMError(msg)
 
+
     null = np.zeros((maskmapAttr['row'], maskmapAttr['col']))
     null[null == 0] = -9999
 
@@ -151,15 +152,17 @@ def loadsetclone(self,name):
         filename = os.path.splitext(cbinding(name))[0] + '.nc'
         try:
             nf1 = Dataset(filename, 'r')
-            #y, x, cell, invcell, rows, cols = readCoordNetCDF(filename)
-            #setmaskmapAttr(x, y, cols, rows, cell)
-
             value = list(nf1.variables.items())[-1][0]  # get the last variable name
 
             x1 = list(nf1.variables.values())[0][0]
             x2 = list(nf1.variables.values())[0][1]
             xlast = list(nf1.variables.values())[0][-1]
+            #x1 = nf1.variables['lon'][0]
+            #x2 = nf1.variables['lon'][1]
+            #xlast = nf1.variables['lon'][-1]
 
+            #y1 = nf1.variables['lat'][0]
+            #ylast = nf1.variables['lat'][-1]
             y1 = list(nf1.variables.values())[1][0]
             ylast = list(nf1.variables.values())[1][-1]
 
@@ -902,8 +905,7 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
                     start = num2date(startint * datediv, units=nctime.units, calendar=nctime.calendar)
 
                     # counter is set to a minus value - for some maps (e.g. glacier) if the counter is negativ
-                    # the doy of a year of first year is loaded -> to use runs  before glacier maps are calculated
-
+                    # the doy of a year of first year is loaded -> to use runs  before glacier maps are calculated            else:
             else:
                 if (datestartint >= startint) and (datestartint < endint ):
                     startfile += 1
@@ -947,6 +949,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
         date1 = "%02d/%02d/%02d" % (date.day, date.month, date.year)
         msg = "Error 210: Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date1 + ": \n"
         raise CWATMError(msg)
+
 
     # for glaciermaps extend back into past if glaciermaps start later -> use day of the year of first year
     if idx < 0:
@@ -1373,6 +1376,7 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
                 exec('%s="%s"' % ("latitude." + i, metadataNCDF['modflow_y'][i]))
 
         else:
+
             latlon = True
             if 'x' in list(metadataNCDF.keys()):
                 lon = nf1.createDimension('x', col)  # x 1000
@@ -1408,6 +1412,7 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
                     latitude = nf1.createVariable('lat', 'f8', 'lat')
                     for i in metadataNCDF['lat']:
                         exec('%s="%s"' % ("latitude." + i, metadataNCDF['lat'][i]))
+
         # projection
         if 'laea' in list(metadataNCDF.keys()):
             proj = nf1.createVariable('laea', 'i4')
@@ -1489,6 +1494,7 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
                   if 'lon' in list(metadataNCDF.keys()):
                      # for world lat/lon coordinates
                      value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
+
         value.standard_name = getmeta("standard_name",prename,varname)
         p1 = getmeta("long_name",prename,prename)
         p2 = getmeta("time", addname, addname)
@@ -1657,6 +1663,7 @@ def writeIniNetcdf(netfile,varlist, inputlist):
             if 'lon' in list(metadataNCDF.keys()):
                 # for world lat/lon coordinates
                 value = nf1.createVariable(varname, 'f8', ('lat', 'lon'), zlib=True, fill_value=1e20)
+
         value.standard_name= getmeta("standard_name",varname,varname)
         value.long_name= getmeta("long_name",varname,varname)
         value.units= getmeta("unit",varname,"undefined")

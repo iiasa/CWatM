@@ -73,6 +73,7 @@ class snow_frost(object):
     fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     =====================================  ======================================================================  =====
 
+
     **Functions**
     """
 

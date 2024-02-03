@@ -8,7 +8,6 @@
 # Copyright:   (c) burekpe 2016
 # -------------------------------------------------------------------------
 
-
 import os
 import calendar
 import datetime
