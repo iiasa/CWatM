@@ -294,13 +294,16 @@ class evaporation(object):
                         remainder_land_Irr = self.var.fracVegCover[3] - frac_totalIrr
 
                         # Sowing seeds, if crop is not already growing, if there is sufficient space
-
-                        # If it is the planting month of the crop, the crop is planted both irrigated and non-irrigated, assuming the demanded land can be satisfied.
+                        # If it is the planting month of the crop,
+                        # the crop is planted both irrigated and non-irrigated,
+                        # in the remaining available land.
 
                         self.var.fracCrops_Irr[c] = np.where(
                             self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 0,
-                            np.where(remainder_land_Irr - self.var.fracCrops_IrrLandDemand[c] > 0,
-                                     self.var.fracCrops_IrrLandDemand[c], 0), self.var.fracCrops_Irr[c])
+                            np.where(remainder_land_Irr > 0,
+                                     np.minimum(remainder_land_Irr, self.var.fracCrops_IrrLandDemand[c]),
+                                     0),
+                            self.var.fracCrops_Irr[c])
 
                         if 'leftoverIrrigatedCropIsRainfed' in option:
                             if checkOption('leftoverIrrigatedCropIsRainfed'):
@@ -313,8 +316,10 @@ class evaporation(object):
 
                         self.var.fracCrops_nonIrr[c] = np.where(
                             self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 0,
-                            np.where(remainder_land_nonIrr - self.var.fracCrops_nonIrrLandDemand[c] > 0,
-                                     self.var.fracCrops_nonIrrLandDemand[c], 0), self.var.fracCrops_nonIrr[c])
+                            np.where(remainder_land_nonIrr > 0,
+                                     np.minimum(remainder_land_nonIrr, self.var.fracCrops_nonIrrLandDemand[c]),
+                                     0),
+                            self.var.fracCrops_nonIrr[c])
 
                         frac_totalIrr, frac_totalnonIrr = globals.inZero.copy(), globals.inZero.copy()
                         for i in range(len(self.var.Crops)):
