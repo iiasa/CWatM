@@ -384,11 +384,16 @@ class water_demand:
         if 'includePitLatrine' in option:
             self.var.includeWastewaterPits = checkOption('includePitLatrine')
 
+        # init unmetWaterDemand -> to calculate actual one the the unmet water demand from previous day is needed
+        self.var.unmetDemandPaddy = self.var.load_initial('unmetDemandPaddy', default=globals.inZero.copy())
+        self.var.unmetDemandNonpaddy = self.var.load_initial('unmetDemandNonpaddy', default=globals.inZero.copy())
+        # in case fossil water abstraction is allowed this will be filled
+        self.var.unmetDemand = globals.inZero.copy()
+        self.var.unmetDemand_runningSum = self.var.load_initial('unmetDemand_runningSum', default=globals.inZero.copy())
+
         # =======================================================
 
         if checkOption('includeWaterDemand'):
-
-
 
             if self.var.includeIndusDomesDemand:  # all demands are taken into account
 
