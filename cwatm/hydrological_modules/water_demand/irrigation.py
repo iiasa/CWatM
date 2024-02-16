@@ -92,13 +92,6 @@ class waterdemand_irrigation:
 
         """
 
-        # init unmetWaterDemand -> to calculate actual one the the unmet water demand from previous day is needed
-        self.var.unmetDemandPaddy = self.var.load_initial('unmetDemandPaddy', default=globals.inZero.copy())
-        self.var.unmetDemandNonpaddy = self.var.load_initial('unmetDemandNonpaddy', default=globals.inZero.copy())
-        # in case fossil water abstraction is allowed this will be filled
-        self.var.unmetDemand = globals.inZero.copy()
-        self.var.unmetDemand_runningSum = self.var.load_initial('unmetDemand_runningSum', default=globals.inZero.copy())
-
         # irrigation efficiency
         # at the moment a single map, but will be replaced by map stack for every year
         self.var.efficiencyPaddy = loadmap("irrPaddy_efficiency")
