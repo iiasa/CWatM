@@ -628,6 +628,13 @@ class landcoverType(object):
 
             if self.var.includeGlaciers:
                 if returnBool('excludeGlacierArea'):
+                
+                    #reading land cover year in case static land is used for other land classes
+                    if self.var.dynamicLandcover:
+                        landcoverYear = dateVar['currDate']
+                    else:
+                        landcoverYear = datetime.datetime(int(binding['fixLandcoverYear']), 1, 1) 
+                        
                     # substract glacier area from sealed area first
                     #substract glacier area from grassland fraction later on
                     self.var.fracGlacierCover = readnetcdf2('fractionGlaciercover', landcoverYear, useDaily="yearly",
