@@ -517,7 +517,7 @@ class water_demand:
                                                                 0,
                                                                 self.var.reservoir_command_areas)
                 else:
-                    self.var.reservoir_command_areas = self.var.waterBodyBuffer
+                    self.var.reservoir_command_areas = globals.inZero
 
                 # Lakes/restricted reservoirs within command areas are removed from the command area
                 self.var.reservoir_command_areas = np.where(self.var.waterBodyTyp_unchanged == 1,
