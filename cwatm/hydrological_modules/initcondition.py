@@ -78,8 +78,8 @@ class initcondition(object):
                 KC_crop_daily_stage_1 = [df['KC1'][i]]*df['GS1'][i]
                 KC_crop_daily_stage_2 = [df['KC1'][i] * (1 - (d / df['GS2'][i])) + df['KC2'][i] * (d / df['GS2'][i]) for
                                          d in range(df['GS2'][i])]
-                KC_crop_daily_stage_3 = [df['KC3'][i]]*df['GS3'][i]
-                KC_crop_daily_stage_4 = [df['KC3'][i] * (1 - (d / df['GS4'][i])) + df['KC4'][i] * (d / df['GS4'][i]) for
+                KC_crop_daily_stage_3 = [df['KC2'][i]]*df['GS3'][i]
+                KC_crop_daily_stage_4 = [df['KC2'][i] * (1 - (d / df['GS4'][i])) + df['KC3'][i] * (d / df['GS4'][i]) for
                                          d in range(df['GS4'][i])]
 
                 # crop = [planting date,
