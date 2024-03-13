@@ -496,8 +496,8 @@ class water_demand:
             if checkOption('includeWaterBodies'):
                     
                 # initiate reservoir_command_areas & reservoir_command_areas_wwt
-                self.var.reservoir_command_areas = globals.inZero.copy()
-                self.var.reservoir_command_areas_wwt = globals.inZero.copy()
+                self.var.reservoir_command_areas = globals.inZero.astype(int)
+                self.var.reservoir_command_areas_wwt = globals.inZero.astype(int)
 
                 if 'reservoir_command_areas' in binding:
                     self.var.load_command_areas = True
@@ -516,15 +516,14 @@ class water_demand:
                     self.var.reservoir_command_areas = np.where(self.var.reservoir_command_areas<0,
                                                                 0,
                                                                 self.var.reservoir_command_areas)
-                else:
-                    self.var.reservoir_command_areas = globals.inZero
+
 
                 # Lakes/restricted reservoirs within command areas are removed from the command area
                 self.var.reservoir_command_areas = np.where(self.var.waterBodyTyp_unchanged == 1,
                                                         0, np.where(self.var.resId_restricted > 0, 0, self.var.reservoir_command_areas))
                 self.var.segmentArea = np.where(self.var.reservoir_command_areas > 0,
-                                                npareatotal(self.var.cellArea,
-                                                            self.var.reservoir_command_areas), self.var.cellArea)
+                                                npareatotal(self.var.cellArea,self.var.reservoir_command_areas),
+                                                self.var.cellArea)
 
                 if self.var.load_command_areas_wwt:
                     self.var.reservoir_command_areas_wwt = loadmap('reservoir_command_areas_restricted').astype(int)
@@ -548,7 +547,7 @@ class water_demand:
                 # canals for reservoir conveyance and loss
                 self.var.canals = np.where(self.var.canals != self.var.reservoir_command_areas, 0, self.var.canals)
 
-                # When there are no set canals, the entire command area expereinces leakage
+                # When there are no set canals, the entire command area experiences leakage
                 self.var.canals = np.where(npareamaximum(self.var.canals, self.var.reservoir_command_areas) == 0,
                                         self.var.reservoir_command_areas, self.var.canals)
                 self.var.canalsArea = np.where(self.var.canals > 0, npareatotal(self.var.cellArea, self.var.canals),
