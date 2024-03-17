@@ -9,15 +9,11 @@ import os
 from osgeo import gdal, osr
 import geopandas as gpd
 
-#GDAL_POLYGONIZE = r"C:\Users\jadeb\Miniconda3\envs\abm\Scripts\gdal_polygonize.py"
-GDAL_POLYGONIZE = 'C:/Users/smilovic/AppData/Local/Programs/Python/Python310/Scripts/gdal_polygonize.py'
-assert os.path.exists(GDAL_POLYGONIZE)
-
 # these lines are necessary sometimes
 from shapely import speedups
 speedups.disable()
 
-def create_raster(gt, xsize, ysize, epsg, entrys_file, output_shp):
+def create_raster(gt, xsize, ysize, epsg, entrys_file, output_shp, pyscriptpth):
     """This function creates rasters from CWatM and grid informations in the aim to use them in QGIS.
     arg1: gt : geotransform (x limit, x resolution, 0, y limit, 0, y resolution)
     arg2: x size : number of rows in the grid
@@ -26,6 +22,8 @@ def create_raster(gt, xsize, ysize, epsg, entrys_file, output_shp):
     arg5: entrys_file : path where new information are saved
     arg6: output_shp : Name of the shapefile created created
     """
+    GDAL_POLYGONIZE = os.path.join(pyscriptpth , "gdal_polygonize.py")
+    assert os.path.exists(GDAL_POLYGONIZE)
 
     tif_file = os.path.join(entrys_file, 'tmp.tif')
 
