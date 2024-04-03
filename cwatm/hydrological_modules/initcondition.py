@@ -54,19 +54,40 @@ class initcondition(object):
         pd = importlib.import_module("pandas", package=None)
         df = pd.read_excel(xl_settings_file_path, sheet_name='Crops')
 
-        # Crops = [ [planting month, [length of growth stage i, kc_i, ky_i]_i]_c]
+        # Crops = [ [planting date, [length of growth stage i from planting, kc_i, ky_i]_i]_crop]
         Crops = []
         Crops_names = []
         for i in df.index:
             crop = [df['Planting month'][i]]
+            growth_stage_end_month = 0
 
-            growth_stage_end_month=0
+            # crop = [planting date, [GS1, KC1, KY1], [GS1+GS2, KC2, KY2], ..., [GS1+GS2+GS3+GS4, KC4, KY4]]
             for gs in range(1, 5):
-                #gs_parameters = [df['EM' + str(gs)][i], df['KC' + str(gs)][i], df['KY' + str(gs)][i]]
-
-                growth_stage_end_month+=df['GS' + str(gs)][i]
+                growth_stage_end_month += df['GS' + str(gs)][i]
                 gs_parameters = [growth_stage_end_month, df['KC' + str(gs)][i], df['KY' + str(gs)][i]]
                 crop.append(gs_parameters)
+
+            # If the crop inputs are given in days, we pre-calculate the annual cycle of crop coefficients
+            # using the first three crop coefficients and four growth stages, following the
+            # flat - linear increase - flat - linear decrease standard FAO/AEZ crop coefficient timeseries
+
+            # We detect if the crop inputs are given in days if the total growing season is less than 36:
+            # This assumes crops have growing to harvest lengths of less than 60 months and a minimum of 60 days
+            if growth_stage_end_month > 60:
+
+                KC_crop_daily_stage_1 = [df['KC1'][i]]*df['GS1'][i]
+                KC_crop_daily_stage_2 = [df['KC1'][i] * (1 - (d / df['GS2'][i])) + df['KC2'][i] * (d / df['GS2'][i]) for
+                                         d in range(df['GS2'][i])]
+                KC_crop_daily_stage_3 = [df['KC2'][i]]*df['GS3'][i]
+                KC_crop_daily_stage_4 = [df['KC2'][i] * (1 - (d / df['GS4'][i])) + df['KC3'][i] * (d / df['GS4'][i]) for
+                                         d in range(df['GS4'][i])]
+
+                # crop = [planting date,
+                #        [length of growth stage i from planting, kc_i, ky_i]_i,
+                #        [growing cycle of daily KCs]]
+
+                crop.append(
+                    KC_crop_daily_stage_1 + KC_crop_daily_stage_2 + KC_crop_daily_stage_3 + KC_crop_daily_stage_4)
 
             Crops.append(crop)
             Crops_names.append(df['Crop'][i])
