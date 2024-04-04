@@ -73,7 +73,9 @@ class initcondition(object):
 
             # We detect if the crop inputs are given in days if the total growing season is less than 36:
             # This assumes crops have growing to harvest lengths of less than 60 months and a minimum of 60 days
+            self.var.daily_crop_KC = False
             if growth_stage_end_month > 60:
+                self.var.daily_crop_KC = True
 
                 KC_crop_daily_stage_1 = [df['KC1'][i]]*df['GS1'][i]
                 KC_crop_daily_stage_2 = [df['KC1'][i] * (1 - (d / df['GS2'][i])) + df['KC2'][i] * (d / df['GS2'][i]) for
