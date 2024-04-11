@@ -506,7 +506,7 @@ class landcoverType(object):
             # b = max( (oh - o0)/(oh + omax), 0.01)
             # oh: the standard deviation of orography, o0: minimum std dev, omax: max std dev
 
-			self.var.ElevationStD = loadmap('ElevationStD')
+            self.var.ElevationStD = loadmap('ElevationStD')
             self.var.arnoBetaOro = (self.var.ElevationStD - 10.0) / (self.var.ElevationStD + 1500.0)
 
             # for CALIBRATION

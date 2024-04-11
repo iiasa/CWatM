@@ -100,15 +100,16 @@ class evaporation(object):
 
     def initial(self):
         #no_types = len (self.var.coverTypes)
-        self.var.cropKC = np.zeros((4, 13, len(globals.inZero)))
+        self.var.cropKCmonth = np.zeros((4, 13, len(globals.inZero)))
+        self.var.cropKC = np.zeros((4, len(globals.inZero)))
         self.var.interceptCap = np.zeros((2, 13, len(globals.inZero)))
         j = 0
         for coverType in self.var.coverTypes:
 
             if coverType in ['forest', 'grassland', 'irrPaddy', 'irrNonPaddy']:
                 for i in range(13):
-                    self.var.cropKC[j,i,:] = readnetcdf2(coverType + '_cropCoefficientNC', i*3, "10day")
-                    self.var.cropKC[j,i,:] = np.maximum(self.var.cropKC[j,i,:], self.var.minCropKC)
+                    self.var.cropKCmonth[j,i,:] = readnetcdf2(coverType + '_cropCoefficientNC', i*3, "10day")
+                    self.var.cropKCmonth[j,i,:] = np.maximum(self.var.cropKCmonth[j,i,:], self.var.minCropKC)
                 iii =1
 
             if coverType in ['forest', 'grassland']:
@@ -158,8 +159,8 @@ class evaporation(object):
         dplus = dateVar['30day'] + 1
         dpart = dateVar['doy'] % 30
         if dplus > 12: dplus = 0
-        cropKC = (self.var.cropKC[No, dplus, :] - self.var.cropKC[No,dateVar['30day'],:]) / 30. * dpart + self.var.cropKC[No,dateVar['30day'],:]
-        cropKC_landCover = cropKC.copy()
+        self.var.cropKC[No] = (self.var.cropKCmonth[No, dplus, :] - self.var.cropKCmonth[No,dateVar['30day'],:]) / 30. * dpart + self.var.cropKCmonth[No,dateVar['30day'],:]
+        cropKC_landCover = self.var.cropKC[No]
 
 
         if self.var.includeCrops:
@@ -470,7 +471,7 @@ class evaporation(object):
                 self.var.weighted_KC_nonIrr += self.var.fallownonIrr * self.var.minCropKC
                 self.var.weighted_KC_nonIrr = np.where(self.var.fracVegCover[1] > 0,
                                                     self.var.weighted_KC_nonIrr / self.var.fracVegCover[1], 0)
-                cropKC = self.var.weighted_KC_nonIrr.copy()
+                self.var.cropKC[1] = self.var.weighted_KC_nonIrr.copy()
 
             if No == 3:
 
@@ -482,7 +483,7 @@ class evaporation(object):
                 self.var.weighted_KC_Irr += self.var.fallowIrr * self.var.minCropKC
                 self.var.weighted_KC_Irr = np.where(self.var.fracVegCover[3] > 0,
                                                     self.var.weighted_KC_Irr / self.var.fracVegCover[3], 0)
-                cropKC = self.var.weighted_KC_Irr.copy()
+                self.var.cropKC[3] = self.var.weighted_KC_Irr.copy()
 
                 self.var._weighted_KC_Irr = self.var.GeneralCrop_Irr * (cropKC_landCover - self.var.minCropKC)
                 for c in range(len(self.var.Crops)):
@@ -492,8 +493,8 @@ class evaporation(object):
         # without crops
         # calculate potential ET
         ##  self.var.totalPotET total potential evapotranspiration for a reference crop for a land cover class [m]
-        #self.var.totalPotET[No] = self.var.cropCorrect * self.var.crop_correct_landCover[No] * self.var.cropKC[No] * self.var.ETRef
-		self.var.totalPotET[No] = self.var.cropCorrect * self.var.crop_correct_landCover[No] * cropKC * self.var.ETRef
+        self.var.totalPotET[No] = self.var.cropCorrect * self.var.crop_correct_landCover[No] * self.var.cropKC[No] * self.var.ETRef
+
 
         # calculate transpiration
 
