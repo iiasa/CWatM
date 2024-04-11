@@ -13,6 +13,7 @@ import numpy as np
 import math
 from cwatm.management_modules.data_handling import *
 
+sys.setrecursionlimit(5000)
 """
 ROUTING subroutines
 partly using C++ for speeding up

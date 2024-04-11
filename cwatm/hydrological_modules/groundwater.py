@@ -74,7 +74,7 @@ class groundwater(object):
         self.var.readAvlStorGroundwater = np.where(self.var.storGroundwater > tresholdStorGroundwater,
                                                    self.var.storGroundwater - tresholdStorGroundwater, 0.0)
 
-
+        self.var.nonFossilGroundwaterAbs = globals.inZero
 # --------------------------------------------------------------------------
 
     def dynamic(self):
@@ -87,6 +87,7 @@ class groundwater(object):
             self.var.prestorGroundwater = self.var.storGroundwater.copy()
 
         # WATER DEMAND
+
         # update storGoundwater after self.var.nonFossilGroundwaterAbs
         self.var.storGroundwater = np.maximum(0., self.var.storGroundwater - self.var.nonFossilGroundwaterAbs)
         # PS: We assume only local groundwater abstraction can happen (only to satisfy water demand within a cell).

@@ -188,20 +188,21 @@ class readmeteo(object):
         self.var.only_radiation = False
         if 'only_radiation' in binding:
             self.var.only_radiation = returnBool('only_radiation')
-            # if radiation then now snow_melt radiation because it needs rsds and rsdl maps
-            self.var.snowmelt_radiation = False
 
         if checkOption('calc_evaporation'):
             if self.var.only_radiation:
-                # for maps from EMO-5 with total radiation and vapor pressure instead of huss, air pressure, rsds and rlds
-                meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps']
+                # if addiation snowmlet from radiation
+                if self.var.snowmelt_radiation:
+                    meteomaps = [self.var.preMaps, self.var.tempMaps, 'RGDMaps','EActMaps']
+                else:
+                    # for maps from EMO-5 with total radiation and vapor pressure instead of huss, air pressure, rsds and rlds
+                    meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps']
             else:
                 meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','PSurfMaps','WindMaps','RSDSMaps','RSDLMaps']
                 if returnBool('useHuss'):
                     meteomaps.append('QAirMaps')
                 else:
                     meteomaps.append('RhsMaps')
-
 
             if self.var.includeGlaciers:
                 meteomaps.append(self.var.glaciermeltMaps)
@@ -212,8 +213,12 @@ class readmeteo(object):
         else:
             meteomaps = [self.var.preMaps, self.var.tempMaps, self.var.evaTMaps, self.var.eva0Maps]
             if self.var.snowmelt_radiation:
-                meteomaps.append(self.var.RSDSMaps)
-                meteomaps.append(self.var.RSDLMaps)
+                if self.var.only_radiation:
+                    meteomaps.append('RGDMaps')
+                    meteomaps.append('EActMaps')
+                else:
+                    meteomaps.append(self.var.RSDSMaps)
+                    meteomaps.append(self.var.RSDLMaps)
             if self.var.includeGlaciers:
                 meteomaps.append(self.var.glaciermeltMaps)
                 if not self.var.includeOnlyGlaciersMelt:
@@ -578,8 +583,13 @@ class readmeteo(object):
             self.var.EWRef = self.var.meteo[3,no]
             j = 3
             if self.var.snowmelt_radiation:
-                self.var.Rsds = self.var.meteo[4,no]
-                self.var.Rsdl = self.var.meteo[5,no]
+                # for EMO meteo datasets
+                if self.var.only_radiation:
+                    self.var.Rsds = self.var.meteo[4,no]
+                    self.var.EAct = self.var.meteo[5, no]
+                else:
+                    self.var.Rsds = self.var.meteo[4,no]
+                    self.var.Rsdl = self.var.meteo[5,no]
                 j = 5
             if self.var.includeGlaciers:
                 self.var.GlacierMelt = self.var.meteo[j+1, no]
@@ -649,6 +659,16 @@ class readmeteo(object):
         if checkOption('TemperatureInKelvin'):
             self.var.Tavg -= ZeroKelvin
 
+        # check on the first date if Temperature is really kelvin
+        if dateVar['curr'] == 1:
+            testtemp = np.nanmin(self.var.Tavg)
+            if (testtemp < -100) or (testtemp > 100):
+                name = cbinding('TavgMaps')
+                msg = "Error 601: Check temperature flag in [Option]. Temperature might be Kelvin instead Celsius or vice versa\n"
+                msg = msg + "Temperature file in: " + name + "\n"
+                raise CWATMError(msg)
+
+
         if Flags['check']:
             checkmap(self.var.tempMaps, "", self.var.Tavg, True, True, self.var.Tavg)
 
@@ -661,7 +681,6 @@ class readmeteo(object):
                 #self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.001  # convert from KJ to MJ/m2/day
                 self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.000001  # convert from KJ to MJ/m2/day
                 # but for EMO it is 1e6 instead 1000 it seems it is J instead of KJ
-
                 # read daily vapor pressure [in hPa]
                 self.var.EAct, MaskMapBoundary = readmeteodata('EActMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
                 self.var.EAct = self.downscaling2(self.var.EAct) * 0.1  # convert from hP to kP
@@ -813,8 +832,12 @@ class readmeteo(object):
             self.var.meteo[3,no] = self.var.EWRef
             j =3
             if self.var.snowmelt_radiation:
-                self.var.meteo[4,no] = self.var.Rsds
-                self.var.meteo[5,no] = self.var.Rsdl
+                if self.var.only_radiation:
+                    self.var.meteo[4,no] = self.var.Rsds
+                    self.var.meteo[5, no] = self.var.EAct
+                else:
+                    self.var.meteo[4,no] = self.var.Rsds
+                    self.var.meteo[5,no] = self.var.Rsdl
                 j = 5
             if self.var.includeGlaciers:
                 self.var.meteo[j+1, no] = self.var.GlacierMelt

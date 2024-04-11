@@ -150,14 +150,6 @@ class soil(object):
         """
 
         self.var.soilLayers = 3
-        # --- Topography -----------------------------------------------------
-        # maps of relative elevation above flood plains
-        dzRel = ['dzRel0001','dzRel0005',
-                 'dzRel0010','dzRel0020','dzRel0030','dzRel0040','dzRel0050',
-                 'dzRel0060','dzRel0070','dzRel0080','dzRel0090','dzRel0100']
-        for i in dzRel:
-            vars(self.var)[i] = readnetcdfWithoutTime(cbinding('relativeElevation'),i)
-
         # Fraction of area where percolation to groundwater is impeded [dimensionless]
         self.var.percolationImp = np.maximum(0,np.minimum(1,loadmap('percolationImp') * loadmap('factor_interflow')))
 
