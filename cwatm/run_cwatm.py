@@ -305,12 +305,12 @@ def mainwarm(settings, args, meteo):
     Flags['warm'] = True
 
     headerinfo()
-    if meteo.size == 0:
+    
+    if isinstance(meteo, np.ndarray):
+        success, last_dis = CWATMexe2(settingsfile[0],meteo)
+    else:
         Flags['warm'] = False
         success, last_dis = CWATMexe(settingsfile[0])
-    else:
-        success, last_dis = CWATMexe2(settingsfile[0],meteo)
-
     return success, last_dis
 
 

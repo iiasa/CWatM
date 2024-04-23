@@ -1237,6 +1237,33 @@ def readnetcdfWithoutTime(name, value="None"):
         checkmap(value, filename, mapnp, True, True, mapC)
     return mapC
 
+def readnetcdf12month(name, month,value="None"):
+    """
+    load maps in netcdf format (12 maps for each month)
+
+    :param namebinding: file name in settings file
+    :month number: of month from 0 to 11
+    :param value: (optional) netcdf variable name. If not given -> last variable is taken
+    :return: Compressed 1D array of netcdf stored data
+    """
+
+    filename =  os.path.normpath(name)
+
+    try:
+       nf1 = Dataset(filename, 'r')
+    except:
+        msg = "Error 213: Netcdf map stacks: \n"
+        raise CWATMFileError(filename,msg)
+    if value == "None":
+        value = list(nf1.variables.items())[-1][0]  # get the last variable name
+
+    mapnp = nf1.variables[value][month,cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
+    nf1.close()
+
+    mapC = compressArray(mapnp, name=filename)
+    if Flags['check']:
+        checkmap(value, filename, mapnp, True, True, mapC)
+    return mapC
 
 
 def readnetcdfInitial(name, value,default = 0.0):
@@ -1266,12 +1293,16 @@ def readnetcdfInitial(name, value,default = 0.0):
             if 'x' in nf1.variables.keys():
                 maskmapAttr['coordx'] = 'x'
                 maskmapAttr['coordy'] = 'y'
+            
+            cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check=False)
 
             if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
                 msg = "Error 112: Latitude is in wrong order\n"
                 raise CWATMFileError(filename, msg)
 
-            mapnp = (nf1.variables[value][:].astype(np.float64))
+            #mapnp = (nf1.variables[value][:].astype(np.float64))
+            mapnp = nf1.variables[value][cut2:cut3, cut0:cut1].astype(np.float64)
+            
             nf1.close()
             mapC = compressArray(mapnp, name=filename)
             if Flags['check']:
