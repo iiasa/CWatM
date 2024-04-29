@@ -437,6 +437,7 @@ class snow_frost(object):
                 self.var.IceMelt += IceMeltS
                 self.var.SnowCover += self.var.SnowCoverS[i]
 
+
         if not self.var.excludeGlacierArea:
             self.var.Snow /= self.var.numberSnowLayersFloat
             self.var.Rain /= self.var.numberSnowLayersFloat
@@ -444,7 +445,8 @@ class snow_frost(object):
             self.var.IceMelt /= self.var.numberSnowLayersFloat
             self.var.SnowCover /= self.var.numberSnowLayersFloat
 
-        # all in pixel
+
+
 
         # DEBUG Snow
         if checkOption('calcWaterBalance'):

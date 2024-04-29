@@ -1327,7 +1327,7 @@ def readnetcdfInitial(name, value,default = 0.0):
 
 # --------------------------------------------------------------------------------------------
 
-def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, flag,flagTime, nrdays=None, dateunit="days"):
+def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, flag,flagTime, nrdays=None, dateunit="days",netcdfindex=False):
     """
     write a netcdf stack
 
@@ -1366,6 +1366,10 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
     # create real varname with variable name + time depending name e.g. discharge + monthavg
     varname = prename + addname
 
+    # save only index values:
+    if netcdfindex:
+        netfile = netfile.split(".")[0] + "_index.nc"
+
     if not flag:
         nf1 = Dataset(netfile, 'w', format='NETCDF4')
 
@@ -1380,10 +1384,11 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
         nf1.title = cbinding ("title")
         nf1.source = 'CWATM output maps'
         nf1.Conventions = 'CF-1.6'
-        if 'save_git' in option:
-            if checkOption("save_git"):
-                import git
-                nf1.git_commit = git.Repo(search_parent_directories=True).head.object.hexsha
+        try:
+            import git
+            nf1.git_commit = git.Repo(search_parent_directories=True).head.object.hexsha
+        except:
+            ii =1
 
         # put the additional genaral meta data information from the xml file into the netcdf file
         # infomation from the settingsfile comes first
@@ -1487,9 +1492,10 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
             nf1.createDimension('time', nrdays)
             time = nf1.createVariable('time', 'f8', 'time')
             time.standard_name = 'time'
-            if dateunit == "days": time.units = 'Days since ' + yearstr + '-01-01'
-            if dateunit == "months": time.units = 'Months since ' + yearstr + '-01-01'
-            if dateunit == "years": time.units = 'Years since ' + yearstr + '-01-01'
+            time.units = 'Days since ' + yearstr + '-01-01'
+            #if dateunit == "days": time.units = 'Days since ' + yearstr + '-01-01'
+            #if dateunit == "months": time.units = 'Months since ' + yearstr + '-01-01'
+            #if dateunit == "years": time.units = 'Years since ' + yearstr + '-01-01'
             #time.calendar = 'standard'
             time.calendar = dateVar['calendar']
 
@@ -1507,9 +1513,23 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
                     value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True, fill_value=1e20,
                                                chunksizes=(1, row, col))
                 if latlon:
-                    if 'lon' in list(metadataNCDF.keys()):
-                        #value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20)
-                        value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20,chunksizes=(1,row,col))
+                    if netcdfindex:
+                        size = maskinfo['mapC'][0]
+                        sizeall = len(maskinfo['maskflat'].data)
+                        index = nf1.createDimension('index', size)
+                        index1 = nf1.createVariable('index', 'i4', 'index')
+                        indexlatlon = nf1.createDimension('indexlatlon', sizeall)
+                        indexlatlon1 = nf1.createVariable('indexlatlon', 'i4', 'indexlatlon')
+                        index1[:] = np.arange(size)
+                        indexlatlon1[:] = np.arange(sizeall)
+                        latlon = nf1.createVariable("latlon", 'i1', ('indexlatlon'))
+                        latlon[:] = maskinfo['maskflat'].data
+                        value = nf1.createVariable(varname, 'f4', ('time', 'index'), zlib=True, fill_value=1e20, chunksizes=(1, size))
+
+                    else:
+                        if 'lon' in list(metadataNCDF.keys()):
+                            #value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20)
+                            value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20,chunksizes=(1,row,col))
         else:
           if modflow:
               value = nf1.createVariable(varname, 'f4', ('y', 'x'), zlib=True, fill_value=1e20)
@@ -1522,6 +1542,16 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
                   latlon = False
                   value = nf1.createVariable(varname, 'f4', ('y', 'x'), zlib=True,fill_value=1e20)
               if latlon:
+                  if netcdfindex:
+                      size = maskinfo['mapC'][0]
+                      index = nf1.createDimension('index', size)  # x 950
+                      index1 = nf1.createVariable('index', 'i4', 'index')
+                      indexlatlon = nf1.createDimension('indexlatlon', len(maskinfo['maskflat'].data))
+                      indexlatlon1 = nf1.createVariable('indexlatlon', 'i1', 'indexlatlon')
+                      index1[:] = np.arange(42396)
+                      indexlatlon1[:] = maskinfo['maskflat'].data
+                      value = nf1.createVariable(varname, 'f4', ('index'), zlib=True, fill_value=1e20)
+
                   if 'lon' in list(metadataNCDF.keys()):
                      # for world lat/lon coordinates
                      value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
@@ -1543,9 +1573,10 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
 
     if flagTime:
         date_time = nf1.variables['time']
-        if dateunit == "days": nf1.variables['time'][posCnt-1] = date2num(timeStamp, date_time.units, date_time.calendar)
-        if dateunit == "months": nf1.variables['time'][posCnt - 1] = (timeStamp.year - 1901) * 12 + timeStamp.month - 1
-        if dateunit == "years":  nf1.variables['time'][posCnt - 1] = timeStamp.year - 1901
+        nf1.variables['time'][posCnt - 1] = date2num(timeStamp, date_time.units, date_time.calendar)
+        #if dateunit == "days": nf1.variables['time'][posCnt-1] = date2num(timeStamp, date_time.units, date_time.calendar)
+        #if dateunit == "months": nf1.variables['time'][posCnt - 1] = (timeStamp.year - 1901) * 12 + timeStamp.month - 1
+        #if dateunit == "years":  nf1.variables['time'][posCnt - 1] = timeStamp.year - 1901
 
         #nf1.variables['time'][posCnt - 1] = 60 + posCnt
 
@@ -1562,6 +1593,17 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
 
     if modflow:
         mapnp = inputmap
+    elif netcdfindex:
+        if flagTime:
+            nf1.variables[varname][posCnt - 1, :] = inputmap
+        else:
+            # without timeflag
+            nf1.variables[varname][:] = inputmap
+        nf1.close()
+        flag = True
+        return flag
+
+
     else:
         mapnp[~maskinfo['maskflat']] = inputmap[:]
         #mapnp = mapnp.reshape(maskinfo['shape']).data
