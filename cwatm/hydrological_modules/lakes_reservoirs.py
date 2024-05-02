@@ -50,7 +50,7 @@ class lakes_reservoirs(object):
 
         c: for a perfect weir with mu=0.577 and Poleni: :math:`{2 \\over{3}} \\mu * \\sqrt{2*g} = 1.7`
 
-        c: for a parabolic weir: around 1.8
+        c: for a parabolic weir: around 1.8 
 
         because it is a imperfect weir: :math:`C = c * 0.85 = 1.5`
 
