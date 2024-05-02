@@ -186,6 +186,7 @@ class lakes_res_small(object):
             self.var.smallevapWaterBody = self.var.lakeEvaFactor * self.var.EWRef * self.var.smalllakeArea
 
             self.var.smallevapWaterBody = np.where((self.var.smalllakeVolumeM3 - self.var.smallevapWaterBody) > 0., self.var.smallevapWaterBody, self.var.smalllakeVolumeM3)
+            self.var.smallevapWaterBody = np.maximum(0., self.var.smallevapWaterBody)
             self.var.smalllakeVolumeM3 = self.var.smalllakeVolumeM3 - self.var.smallevapWaterBody
             # lakestorage - evaporation from lakes
 

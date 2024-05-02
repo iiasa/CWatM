@@ -1544,17 +1544,20 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
               if latlon:
                   if netcdfindex:
                       size = maskinfo['mapC'][0]
-                      index = nf1.createDimension('index', size)  # x 950
+                      sizeall = len(maskinfo['maskflat'].data)
+                      index = nf1.createDimension('index', size)
                       index1 = nf1.createVariable('index', 'i4', 'index')
-                      indexlatlon = nf1.createDimension('indexlatlon', len(maskinfo['maskflat'].data))
-                      indexlatlon1 = nf1.createVariable('indexlatlon', 'i1', 'indexlatlon')
-                      index1[:] = np.arange(42396)
-                      indexlatlon1[:] = maskinfo['maskflat'].data
+                      indexlatlon = nf1.createDimension('indexlatlon', sizeall)
+                      indexlatlon1 = nf1.createVariable('indexlatlon', 'i4', 'indexlatlon')
+                      index1[:] = np.arange(size)
+                      indexlatlon1[:] = np.arange(sizeall)
+                      latlon = nf1.createVariable("latlon", 'i1', ('indexlatlon'))
+                      latlon[:] = maskinfo['maskflat'].data
                       value = nf1.createVariable(varname, 'f4', ('index'), zlib=True, fill_value=1e20)
-
-                  if 'lon' in list(metadataNCDF.keys()):
-                     # for world lat/lon coordinates
-                     value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
+                  else:
+                      if 'lon' in list(metadataNCDF.keys()):
+                         # for world lat/lon coordinates
+                         value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
 
         value.standard_name = getmeta("standard_name",prename,varname)
         p1 = getmeta("long_name",prename,prename)
@@ -1573,13 +1576,10 @@ def writenetcdf(netfile,prename,addname,varunits,inputmap, timeStamp, posCnt, fl
 
     if flagTime:
         date_time = nf1.variables['time']
+        # if dateunit is month or year then set date to the first days of the period
+        if dateunit == "months": timeStamp = timeStamp.replace(day=1)
+        if dateunit == "years": timeStamp = timeStamp.replace(day=1,month =1)
         nf1.variables['time'][posCnt - 1] = date2num(timeStamp, date_time.units, date_time.calendar)
-        #if dateunit == "days": nf1.variables['time'][posCnt-1] = date2num(timeStamp, date_time.units, date_time.calendar)
-        #if dateunit == "months": nf1.variables['time'][posCnt - 1] = (timeStamp.year - 1901) * 12 + timeStamp.month - 1
-        #if dateunit == "years":  nf1.variables['time'][posCnt - 1] = timeStamp.year - 1901
-
-        #nf1.variables['time'][posCnt - 1] = 60 + posCnt
-
 
     mapnp = maskinfo['maskall'].copy()
 

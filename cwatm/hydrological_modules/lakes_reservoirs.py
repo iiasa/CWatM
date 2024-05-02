@@ -960,13 +960,17 @@ class lakes_reservoirs(object):
             # --------------- correction PB May 2024
             # calculate evaporation for each cell of the lake
             # each lake cell fraction of the total lake area
-            wlakefracsum = npareatotal(self.var.fracVegCover[5], self.var.waterBodyID)
+            # a lake cell has at minimum 5% water
+            fracwatermin = np.where(self.var.waterBodyID > 0, np.maximum(self.var.fracVegCover[5],0.05),0)
+            wlakefracsum = npareatotal(fracwatermin, self.var.waterBodyID)
             # -> part of each cell of the total lake -> sum for each lake = 1
-            wlakefrac = self.var.fracVegCover[5] / wlakefracsum
+            wlakefrac = divideValues(self.var.fracVegCover[5], wlakefracsum)
             # all lake id cells get the evaporation of the outlet cell
             ebody = npareatotal(self.var.EvapWaterBodyMOutlet, self.var.waterBodyID)
             # 3) step evoporation is distributed by the water frac of each lake
             self.var.EvapWaterBodyM = ebody * wlakefrac
+            self.var.EvapWaterBodyM[np.isnan(self.var.EvapWaterBodyM)] = 0.
+
 
 
             # Output maps for lakeResInflow and lakeResOutflow when using type-4 res.
