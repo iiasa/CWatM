@@ -1175,6 +1175,9 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
         if cutcheckmask == cutcheckmap: cut = False
 
     if cut:
+        if 'maps_cut_individually' in option:
+            if checkOption('maps_cut_individually'):
+                cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(name)
         if turn_latitude:
             mapnp = mapnp[cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
         else:
