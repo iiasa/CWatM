@@ -2,7 +2,7 @@
 # Name:        Data handling
 # Purpose:     Transforming netcdf to numpy arrays, checking mask file
 #
-# Author:      PB 
+# Author:      PB
 #
 # Created:     13/07/2016
 # Copyright:   (c) PB 2016

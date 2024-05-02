@@ -22,8 +22,7 @@ class lakes_res_small(object):
 
     Note:
 
-        Calculate water retention in lakes and reservoirs 
-
+        Calculate water retention in lakes and reservoirs
         Using the **Modified Puls approach** to calculate retention of a lake
         See also: LISFLOOD manual Annex 3 (Burek et al. 2013)
 
