@@ -4,7 +4,7 @@
 #
 # Author:      PB
 #
-# Created:     13/07/2016
+# Created:     13/07/2016 
 # Copyright:   (c) PB 2016
 # -------------------------------------------------------------------------
 
@@ -30,6 +30,91 @@ from osgeo import osr
 from osgeo import gdalconst
 import warnings
 
+#import xarray as xr
+#from concurrent.futures import ThreadPoolExecutor
+#import asyncio
+
+# -------------------------------------
+"""
+# Asychron reading of meteomaps to speed up - with the help of Jens de Bruijn
+
+class AsyncReader:
+    def __init__(self, filepath, variable_name):
+    #def __init__(self,no):
+        #filepath = netcdf_file[no]
+        self.filepath = filepath
+        #variable_name = varnameGl[no]
+        #self.nf1 = Dataset(filepath,"r")
+        #self.ds = self.nf1.variables[variable_name]
+        self.ds = xr.open_dataset(filepath, chunks={"time": 1})[variable_name]
+        #self.ds = xr.open_dataarray(filepath)
+
+        # Adjust chunk size based on your data
+        self.executor = ThreadPoolExecutor(max_workers=1)
+        self.preloaded_data_future = None
+        self.current_index = -1  # Initialize to -1 to indicate no data loaded yet
+        #self.time_index = self.ds.time.values
+        #self.time_index = nf1.variables["time"][:]
+        try:
+            self.loop = asyncio.get_running_loop()
+        except RuntimeError:
+            self.loop = asyncio.new_event_loop()
+
+    def load(self, index,loc):
+        #a = self.ds[index + 1, loc[0]:loc[1], loc[2]:loc[3]]
+        #a = self.ds.values[index,loc[0]:loc[1],loc[2]:loc[3]]
+        #a = self.ds.isel(time=index).values
+        a = self.ds.isel(time=index, lat=slice(loc[0], loc[1]), lon=slice(loc[2],loc[3])).values
+        return a
+
+
+    def preload_next(self, index,loc):
+        # Preload the next timestep asynchronously
+        #if index + 1 < self.ds.time.size:
+        if index+1 < 14444111:
+            future = self.loop.run_in_executor(
+                self.executor, lambda: self.load(index + 1,loc) )
+            return future
+        return None
+
+    async def read_timestep_async(self, index, loc):
+        #assert index < self.ds.time.size, "Index out of bounds."
+        #assert index >= 0, "Index out of bounds."
+        # Check if the requested data is already preloaded, if so, just return that data
+        if index == self.current_index:
+            return self.current_data
+        # Check if the data for the next timestep is preloaded, if so, await for it to complete
+        if self.preloaded_data_future is not None and self.current_index + 1 == index:
+            data = await self.preloaded_data_future
+        # Load the requested data if not preloaded
+        else:
+            data = await self.loop.run_in_executor(
+                self.executor, lambda: self.load(index,loc))
+
+        # Initiate preloading the next timestep, do not await here, this returns a future
+        self.preloaded_data_future = self.preload_next(index,loc)
+
+        self.current_index = index
+        self.current_data = data
+        return data
+
+    def read_timestep(self, index, loc):
+        #index = self.get_index(date)
+        return self.loop.run_until_complete(self.read_timestep_async(index,loc))
+
+    def read_timestepxxx(self, index,loc):
+        #def read_timestep_not_async(self, index):
+        #index = self.get_index(date)
+        return self.load(index,loc)
+        #return self.ds[index,loc[0]:loc[1],loc[2]:loc[3]]
+
+    def close(self):
+        #self.nf1.close()
+        self.ds.close()
+        self.executor.shutdown()
+
+"""
+# --------------------------------------
 def valuecell( coordx, coordstr, returnmap = True):
     """
     to put a value into a raster map -> invert of cellvalue, map is converted into a numpy array first
@@ -829,18 +914,20 @@ def mapattrTiff(nf2):
     return cut0, cut1, cut2, cut3
 
 
-def multinetdf(meteomaps, startcheck = 'dateBegin'):
+def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
     """
 
     :param meteomaps: list of meteomaps to define start and end time
+    .param usebuffer: for certain map downscaling an additional cell around the maps is needed
     :param startcheck: date of beginning simulation
-    :return:
+    :return
 
     :raises if no map stack in meteo map folder: :meth:`management_modules.messages.CWATMFileError`
     """
 
     end = dateVar['dateEnd']
 
+    no = 0
     for maps in meteomaps:
         name = cbinding(maps)
         nameall = glob.glob(os.path.normpath(name))
@@ -852,6 +939,8 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
         startfile = 0
 
         for filename in nameall:
+
+            # --- Netcdf -------------
             try:
                 nf1 = Dataset(filename, 'r')
             except:
@@ -886,6 +975,66 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
 
             #else:
             #    start = dateVar[startcheck]
+            value = list(nf1.variables.items())[-1][0]  # get the last variable name
+            if value in ["X", "Y", "x", "y", "lon", "lat", "time"]:
+                for i in range(2, 5):
+                    value = list(nf1.variables.items())[-i][0]
+                    if not (value in ["X", "Y", "x", "y", "lon", "lat", "time"]): break
+
+            # check if mask = map size -> if yes do not cut the map
+            cutcheckmask = maskinfo['shape'][0] * maskinfo['shape'][1]
+            shapey = nf1.variables[value].shape[1]
+            shapex = nf1.variables[value].shape[2]
+            cutcheckmap = shapey * shapex
+            cutcheck = True
+            if cutcheckmask == cutcheckmap: cutcheck = False
+
+            # check if it is x or X
+            yy = maskmapAttr['coordy']
+            if yy == "y":
+                if "Y" in nf1.variables.keys():
+                    yy = "Y"
+
+            # checkif latitude is reversed
+            turn_latitude = False
+            if (nf1.variables[yy][0] - nf1.variables[yy][-1]) < 0:
+                turn_latitude = True
+
+            # calculate buffer
+            if not(usebuffer):
+                buffer = [0,0,0,0]
+            else:
+                buffer = 1
+                #          buffer1
+                #         ---------
+                # buffer3¦        ¦ buffer4
+                #        ¦        ¦
+                #         ---------
+                #          buffer2
+                buffer4, buffer2 = [1,1]
+                #if the input map should be used until the last column there is no buffer
+                if shapex == cutmapFine[1]:
+                    buffer4 = 0
+                # if the input map should be used at the last row there is no buffer
+                if shapey == cutmapFine[3]:
+                    buffer2 = 0
+                # if the input map should be used at the first row or column there is no buffer
+                if (cutmapFine[2] == 0) and (cutmapFine[0] == 0):
+                     buffer1 = 0
+                     buffer3 = 0
+                # if the input map should be used at the first row there is no buffer
+                elif cutmapFine[2] == 0:
+                    buffer1 = 0
+                    buffer3 = -1
+                # if the input map should be used at the first column there is no buffer
+                elif cutmapFine[0] == 0:
+                    buffer1 = -1
+                    buffer3 = 0
+                else:
+                    buffer1 = -1
+                    buffer3 = -1
+                buffer = [buffer1,buffer2,buffer3,buffer4]
+
 
             if startfile == 0:  # search first file where dynamic run starts
                 if (dateendint >= startint): # if enddate of a file is bigger than the start of run
@@ -897,30 +1046,43 @@ def multinetdf(meteomaps, startcheck = 'dateBegin'):
                     #indend = (dateend -datestart).days
                     indend = dateendint - datestartint
 
-                    meteolist[startfile-1] = [filename,indstart,indend, start,dateend]
+                    # value varname of netcdf as index: 5
+                    # cutmap as index 6
+                    # name of y or latitude: 7
+                    # if map is turned )North is down): 8
+                    # buffer atound the map for interpolation: 9
+                    # shapey, shapex : shape y and y of total map  10, 11
+                    # Number - no of meteofile  12
+                    meteolist[startfile-1] = [filename,indstart,indend, start,dateend,value,cutcheck,yy,turn_latitude, buffer, shapey, shapex,no]
                     inputcounter[maps] = indstart  # startindex of timestep 1
-                    #start = dateend + datetime.timedelta(days=1)
-                    #start = start.replace(hour=0, minute=0)
                     startint = dateendint + 1
                     start = num2date(startint * datediv, units=nctime.units, calendar=nctime.calendar)
+                    no += 1
 
                     # counter is set to a minus value - for some maps (e.g. glacier) if the counter is negativ
-                    # the doy of a year of first year is loaded -> to use runs  before glacier maps are calculated            else:
+                    # the doy of a year of first year is loaded -> to use runs  before glacier maps are calculated
             else:
                 if (datestartint >= startint) and (datestartint < endint ):
                     startfile += 1
                     indstart = startint - datestartint
                     indend = dateendint - datestartint
-                    meteolist[startfile - 1] = [filename, indstart,indend, start, dateend,]
+                    #meteolist[startfile - 1] = [filename, indstart,indend, start, dateend,value,cutcheck,yy,turn_latitude, buffer, shapey, shapex,no,
+                    #                            AsyncReader(filename,value)]
+                    meteolist[startfile - 1] = [filename, indstart,indend, start, dateend,value,cutcheck,yy,turn_latitude, buffer, shapey, shapex,no]
+
                     #start = dateend + datetime.timedelta(days=1)
                     #start = start.replace(hour=0, minute=0)
                     startint = dateendint + 1
                     start = num2date(startint * datediv, units=nctime.units, calendar=nctime.calendar)
+                    no += 1
 
             nf1.close()
+            # --- End Netcdf -------------
+
         meteofiles[maps] =  meteolist
         flagmeteo[maps] = 0
 
+    return
 
 
 
@@ -945,6 +1107,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
         meteoInfo = meteofiles[name][flagmeteo[name]]
         idx = inputcounter[name]
         filename =  os.path.normpath(meteoInfo[0])
+
     except:
         date1 = "%02d/%02d/%02d" % (date.day, date.month, date.year)
         msg = "Error 210: Netcdf map error for: " + name + " -> " + cbinding(name) + " on: " + date1 + ": \n"
@@ -960,84 +1123,43 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
             msg = "Error 211: Netcdf map: " + name + " -> " + cbinding(name) + " starts later than first date of simulation on: " + date1 + ": \n"
             raise CWATMError(msg)
 
+    warnings.filterwarnings("ignore")
+    if value == "None":
+        value = meteofiles[name][flagmeteo[name]][5]
+    cutcheck = meteofiles[name][flagmeteo[name]][6]
+    yy = meteofiles[name][flagmeteo[name]][7]
+    turn_latitude = meteofiles[name][flagmeteo[name]][8]
+
+    if cutcheck:
+        loc = [cutmapFine[2],cutmapFine[3],cutmapFine[0], cutmapFine[1]]
+        if buffering:
+            buffer = meteofiles[name][flagmeteo[name]][9]
+            loc = loc + buffer
+    else:
+        loc = [0,meteofiles[name][flagmeteo[name]][10], 0, meteofiles[name][flagmeteo[name]][11]]
+
+
+    # +++++++++++++++ Netcdf ++++++++++++++++++++++
+
     try:
        nf1 = Dataset(filename, 'r')
     except:
         msg = "Error 211: Netcdf map stacks: \n"
         raise CWATMFileError(filename,msg, sname = name)
 
-    warnings.filterwarnings("ignore")
-    if value == "None":
-        value = list(nf1.variables.items())[-1][0]  # get the last variable name
-        if value in ["X","Y","x","y","lon","lat","time"]:
-            for i in range(2,5):
-               value = list(nf1.variables.items())[-i][0]
-               if not(value in ["X","Y","x","y","lon","lat","time"]) : break
+    mapnp = nf1.variables[value][idx, loc[0]:loc[1],loc[2]:loc[3]]
+    nf1.close()
+    """
+    reader = meteofiles[name][flagmeteo[name]][13]
+    mapnp = reader.read_timestep(idx,loc)
+    
+    """
+    # +++++++++++++++ Netcdf End++++++++++++++++++++++
 
-    # check if mask = map size -> if yes do not cut the map
-    cutcheckmask = maskinfo['shape'][0] * maskinfo['shape'][1]
-    cutcheckmap = nf1.variables[value].shape[1] * nf1.variables[value].shape[2]
-    cutcheck = True
-    if cutcheckmask == cutcheckmap: cutcheck = False
+    mapnp = mapnp.astype(np.float64)
 
-    # check if it is x or X
-    yy = maskmapAttr['coordy']
-    if yy == "y":
-        if "Y" in nf1.variables.keys():
-            yy = "Y"
-
-    #checkif latitude is reversed
-    turn_latitude = False
-    if (nf1.variables[yy][0] - nf1.variables[yy][-1]) < 0:
-        turn_latitude = True
-        mapnp = nf1.variables[value][idx].astype(np.float64)
+    if turn_latitude:
         mapnp = np.flipud(mapnp)
-
-    if cutcheck:
-        if turn_latitude:
-            mapnp = mapnp[cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]]
-            #TODO: make buffering work if lattitude is turned
-        else:
-            if buffering:
-                buffer = 1
-                #          buffer1
-                #         ---------
-                # buffer3¦        ¦ buffer4
-                #        ¦        ¦
-                #         ---------
-                #          buffer2
-                buffer4, buffer2 = [1,1]
-                #if the input map should be used until the last column there is no buffer
-                if nf1.variables[value].shape[2] == cutmapFine[1]:
-                    buffer4 = 0
-                # if the input map should be used at the last row there is no buffer
-                if nf1.variables[value].shape[1] == cutmapFine[3]:
-                    buffer2 = 0
-                # if the input map should be used at the first row or column there is no buffer
-                if (cutmapFine[2] == 0) and (cutmapFine[0] == 0):
-                    mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3] + buffer2,
-                            cutmapFine[0]:cutmapFine[1] + buffer4].astype(np.float64)
-                    buffer1, buffer3 = [0,0]
-                # if the input map should be used at the first row there is no buffer
-                elif cutmapFine[2] == 0:
-                    mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3] + buffer2,
-                            cutmapFine[0] - buffer:cutmapFine[1] + buffer4].astype(np.float64)
-                    buffer1, buffer3 = [0, 1]
-                # if the input map should be used at the first column there is no buffer
-                elif cutmapFine[0] == 0:
-                    mapnp = nf1.variables[value][idx, cutmapFine[2] - buffer:cutmapFine[3] + buffer2,
-                            cutmapFine[0]:cutmapFine[1] + buffer4].astype(np.float64)
-                    buffer1, buffer3 = [1,0]
-                else:
-                    mapnp = nf1.variables[value][idx, cutmapFine[2] - buffer:cutmapFine[3] + buffer2,
-                            cutmapFine[0] - buffer:cutmapFine[1] + buffer4].astype(np.float64)
-                    buffer1, buffer3 = [1, 1]
-
-            else:
-                mapnp = nf1.variables[value][idx, cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]].astype(np.float64)
-    else:
-        if not(turn_latitude):
-            mapnp = nf1.variables[value][idx].astype(np.float64)
     try:
         mapnp.mask.all()
         mapnp = mapnp.data
@@ -1045,11 +1167,9 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
     except:
         ii =1
 
-    nf1.close()
 
     # add zero values to maps in order to supress missing values
     if addZeros: mapnp[np.isnan(mapnp)] = zeros
-
 
     if mapsscale:  # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
         if maskinfo['shapeflat'][0]!= mapnp.size:
@@ -1076,11 +1196,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
         inputcounter[name] = 0
         flagmeteo[name] += 1
 
-    if buffering:
-        buffer = [buffer1, buffer2, buffer3, buffer4]
-    else:
-        buffer = None
-    return mapC, buffer
+    return mapC
 
 
 

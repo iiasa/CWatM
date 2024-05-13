@@ -143,8 +143,8 @@ class lakes_reservoirs(object):
     adjust_Normal_FloodC                                                                                           --   
     norm_floodLimitC                                                                                               --   
     minQC                                                                                                          --   
-    normQC                                                                                                         --   
-    nondmgQC                                                                                                       --   
+    normQC                                                                                                         m3/s
+    nondmgQC                                                                                                       m3/s
     deltaO                                                                                                         --   
     deltaLN                                                                                                        --   
     deltaLF                                                                                                        --   
@@ -796,8 +796,10 @@ class lakes_reservoirs(object):
                         (self.var.reservoirFillC - self.var.norm_floodLimitC) / self.var.deltaNFL) * (
                                             self.var.nondmgQC - self.var.normQC)
             # Reservoir outflow [m3/s] if FloodStorageLimit le ReservoirFill gt NormalStorageLimit
+            inflowCQ = inflowC * self.var.InvDtSec * self.var.noRoutingSteps
 
-            temp = np.minimum(self.var.nondmgQC, np.maximum(inflowC * 1.2, self.var.normQC))
+            temp = np.minimum(self.var.nondmgQC,
+                              np.maximum(inflowCQ, self.var.normQC))
             reservoirOutflow4 = np.maximum(
                 (self.var.reservoirFillC - self.var.floodLimitC - 0.01) * self.var.resVolumeC * self.var.InvDtSec, temp)
 
@@ -816,9 +818,9 @@ class lakes_reservoirs(object):
             reservoirOutflow = np.where(self.var.reservoirFillC > self.var.floodLimitC, reservoirOutflow4,
                                         reservoirOutflow)
 
-            temp = np.minimum(reservoirOutflow, np.maximum(inflowC, self.var.normQC))
+            temp = np.minimum(reservoirOutflow, np.maximum(inflowCQ, self.var.normQC))
 
-            reservoirOutflow = np.where((reservoirOutflow > 1.2 * inflowC) &
+            reservoirOutflow = np.where((reservoirOutflow > 1.2 * inflowCQ) &
                                         (reservoirOutflow > self.var.normQC) &
                                         (self.var.reservoirFillC < self.var.floodLimitC), temp, reservoirOutflow)
 
