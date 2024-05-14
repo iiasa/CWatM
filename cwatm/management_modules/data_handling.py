@@ -958,11 +958,14 @@ def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
 
             datestart = num2date(int(round(nctime[:][0],0)), units=nctime.units,calendar=nctime.calendar)
 
-            # sometime daily records have a strange hour to start with -> it is changed to 0:00 to haqve the same record
+            # sometime daily records have a strange hour to start with -> it is changed to 0:00 to have the same record
             datestart = datestart.replace(hour=0, minute=0)
-            dateend = num2date(int(round(nctime[:][-1],0)), units=nctime.units, calendar=nctime.calendar)
             datestartint = int(round(nctime[0].data.tolist(),0)) // datediv
-            dateendint = int(round(nctime[:][-1].data.tolist(),0)) // datediv
+            datelen= len(nctime[:])
+            dateendint = datestartint + datelen - 1
+            dateend = num2date(dateendint, units=nctime.units, calendar=nctime.calendar)
+            #dateend = num2date(int(round(nctime[:][-1],0)), units=nctime.units, calendar=nctime.calendar)
+            #dateendint = int(round(nctime[:][-1].data.tolist(),0)) // datediv
 
             dateend = dateend.replace(hour=0, minute=0)
             #if dateVar['leapYear'] > 0:
@@ -1148,6 +1151,7 @@ def readmeteodata(name, date, value='None', addZeros = False, zeros = 0.0,mapssc
         raise CWATMFileError(filename,msg, sname = name)
 
     mapnp = nf1.variables[value][idx, loc[0]:loc[1],loc[2]:loc[3]]
+
     nf1.close()
     """
     reader = meteofiles[name][flagmeteo[name]][13]
