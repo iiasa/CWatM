@@ -703,22 +703,39 @@ class soil(object):
                                 self.var.fracCrops_Irr[c] * (self.var.currentKC[c]-self.var.minCropKC)) / self.var.weighted_KC_Irr_woFallow,
                         0) * self.var.actTransTotal_nonpaddy
 
-                    self.var.actTransTotal_month_Irr[c] += self.var.actTransTotal_crops_Irr[c] + \
-                                                           self.var.actBareSoilEvap[3] * self.var.fracCrops_Irr[c]
+                    self.var.ET_crop_Irr[c] = (self.var.actTransTotal_crops_Irr[c] +
+                                               self.var.actBareSoilEvap[3] * self.var.fracCrops_Irr[c])
+
+                    self.var.actTransTotal_month_Irr[c] += self.var.ET_crop_nonIrr[c]
 
                     self.var.actTransTotal_crops_nonIrr[c] = \
                         np.where(self.var.fracCrops_nonIrr[c] * self.var.cropKC[1] > 0,
                                  (self.var.fracCrops_nonIrr[c] * (self.var.currentKC[c]-self.var.minCropKC)) /
                                  self.var.weighted_KC_nonIrr_woFallow, 0) * self.var.actTransTotal_grasslands
 
-                    self.var.actTransTotal_month_nonIrr[c] += self.var.actTransTotal_crops_nonIrr[c] + \
-                                                              self.var.actBareSoilEvap[1] * self.var.fracCrops_nonIrr[c]
+                    self.var.ET_crop_nonIrr[c] = (self.var.actTransTotal_crops_nonIrr[c] +
+                                                  self.var.actBareSoilEvap[1] * self.var.fracCrops_nonIrr[c])
+
+                    self.var.actTransTotal_month_nonIrr[c] += self.var.ET_crop_nonIrr[c]
 
                     self.var.irr_crop[c] = np.where(
                         self.var.frac_totalIrr * self.var.weighted_KC_Irr_woFallow > 0, (
                                 self.var.fracCrops_Irr[c] * self.var.currentKC[c]) / self.var.weighted_KC_Irr_woFallow_fullKc,
                         0) * self.var.act_irrNonpaddyWithdrawal
 
+
+                    # daily ratio of actual transpiration to potential ET
+                    self.var.ratio_a_p_nonIrr_daily[c] = np.where(
+                        self.var.PotET_crop[c] * self.var.activatedCrops[c] > 0,
+                        (self.var.actTransTotal_crops_nonIrr[c] +  self.var.actBareSoilEvap[1] * self.var.fracCrops_nonIrr[c]) / (
+                                    self.var.PotET_crop[c] * self.var.fracCrops_nonIrr[c]),
+                        0)  # This should always be <= 1.
+
+                    self.var.ratio_a_p_Irr_daily[c] = np.where(
+                        self.var.PotET_crop[c] * self.var.activatedCrops[c] > 0,
+                        (self.var.actTransTotal_month_Irr[c] + self.var.actBareSoilEvap[3] * self.var.fracCrops_Irr[c]) / (
+                                    self.var.totalPotET_month[c] * self.var.fracCrops_Irr[c]),
+                        0)  # This should always be <= 1.
 
 
                     self.var.irr_crop_month[c] += self.var.irr_crop[c]

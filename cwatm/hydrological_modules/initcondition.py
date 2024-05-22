@@ -73,7 +73,9 @@ class initcondition(object):
 
             # We detect if the crop inputs are given in days if the total growing season is less than 36:
             # This assumes crops have growing to harvest lengths of less than 60 months and a minimum of 60 days
+            self.var.daily_crop_KC = False
             if growth_stage_end_month > 60:
+                self.var.daily_crop_KC = True
 
                 KC_crop_daily_stage_1 = [df['KC1'][i]]*df['GS1'][i]
                 KC_crop_daily_stage_2 = [df['KC1'][i] * (1 - (d / df['GS2'][i])) + df['KC2'][i] * (d / df['GS2'][i]) for
@@ -96,17 +98,17 @@ class initcondition(object):
 
     def reservoir_transfers(self, xl_settings_file_path):
         pd = importlib.import_module("pandas", package=None)
-        df = pd.read_excel(xl_settings_file_path, sheet_name='Reservoir_transfers')
+        df = pd.read_excel(xl_settings_file_path, header=None, sheet_name='Reservoir_transfers')
 
-        # reservoir_transfers = [ [Giving reservoir, Receiving reservoir, fraction of live storage] ]
+        # reservoir_transfers = [ [Giving reservoir, Receiving reservoir, [366-day array of releases]] ]
         reservoir_transfers = []
 
-        for i in df.index:
-            transfer = [df['Giving reservoir'][i], df['Receiving reservoir'][i], df['Fraction of live storage'][i]]
-            if transfer[2] > 0:
-                reservoir_transfers.append(transfer)
+        for col in list(df)[5:]:
+            releases = [df[col][4+day] for day in range(366)]
+            transfer = [int(df[col][1]), int(df[col][2]), releases]
+            reservoir_transfers.append(transfer)
+
         return reservoir_transfers
-    
  
     # To initialize wastewater2reservoir; and wastewater attributes
     def wastewater_to_reservoirs(self, xl_settings_file_path):

@@ -181,7 +181,8 @@ class evaporation(object):
                               'fracCrops_IrrLandDemand', 'fracCrops_Irr', 'areaCrops_Irr_segment', 'areaCrops_nonIrr_segment', 'fracCrops_nonIrrLandDemand', 'fracCrops_nonIrr',
                               'activatedCrops', 'monthCounter', 'currentKC', 'totalPotET_month', 'PET_cropIrr_m3',
                               'actTransTotal_month_Irr', 'actTransTotal_month_nonIrr', 'currentKY', 'Yield_Irr',
-                              'Yield_nonIrr', 'actTransTotal_crops_Irr', 'actTransTotal_crops_nonIrr', 'PotET_crop', 'PotETaverage_crop_segments', 'totalPotET_month_segment']:
+                              'Yield_nonIrr', 'actTransTotal_crops_Irr', 'actTransTotal_crops_nonIrr', 'PotET_crop', 'PotETaverage_crop_segments', 'totalPotET_month_segment',
+                              'ET_crop_nonIrr', 'ET_crop_Irr', 'ratio_a_p_nonIrr_daily', 'ratio_a_p_Irr_daily']:
                         vars(self.var)[z] = np.tile(globals.inZero, (len(self.var.Crops), 1))
 
                     self.var.irr_Paddy_month = globals.inZero
@@ -234,9 +235,7 @@ class evaporation(object):
                                                                             self.var.fracCrops_nonIrrLandDemand[i] + 0.99999) // 1,
                                                                            self.var.activatedCrops[i]), 1)
 
-
-
-                if dateVar['currDate'].day == 1:
+                if dateVar['currDate'].day == 1 or self.var.daily_crop_KC:
 
                     if 'moveIrrFallowToNonIrr' in option:
                         if checkOption('moveIrrFallowToNonIrr'):
@@ -296,22 +295,31 @@ class evaporation(object):
                         self.var.irr_Paddy_month = globals.inZero.copy()
 
                         # Harvest crops that are finished growing: reset month counter and KC. New seeds are sown after harvesting towards the end.
-                        self.var.monthCounter[c] = np.where(self.var.monthCounter[c] > self.var.Crops[c][-1][0], 0,
+                        # todo experiment keeping flexible crop_counter, now monthCounter
+                        if self.var.daily_crop_KC:
+                            self.var.monthCounter[c] = np.where(
+                                self.var.monthCounter[c] > len(self.var.Crops[c][-1]), 0, self.var.monthCounter[c])
+                        else:
+                            self.var.monthCounter[c] = np.where(self.var.monthCounter[c] > self.var.Crops[c][-1][0], 0,
                                                             self.var.monthCounter[c])
-                        self.var.currentKC[c] = np.where(self.var.monthCounter[c] == 0, 0, self.var.currentKC[c])
-
 
                         # Removing crops that been harvested
                         self.var.fracCrops_Irr[c] = np.where(self.var.monthCounter[c] > 0, self.var.fracCrops_Irr[c], 0)
                         self.var.fracCrops_nonIrr[c] = np.where(self.var.monthCounter[c] > 0, self.var.fracCrops_nonIrr[c],
                                                                 0)
-
-                        for a in range(1, 4):
-
-                            self.var.currentKC[c] = np.where(self.var.monthCounter[c] > self.var.Crops[c][a][0],
-                                                             self.var.Crops[c][a + 1][1], self.var.currentKC[c])
-                            self.var.currentKY[c] = np.where(self.var.monthCounter[c] > self.var.Crops[c][a][0],
-                                                             self.var.Crops[c][a + 1][2], self.var.currentKY[c])
+                        if self.var.daily_crop_KC:
+                            self.var.currentKC[c] = np.where(self.var.monthCounter[c] > 0,
+                                                             self.var.Crops[c][-1][self.var.monthCounter[c]-1], 0)
+                            for a in range(1, 4):
+                                self.var.currentKY[c] = np.where(self.var.monthCounter[c] > self.var.Crops[c][a][0],
+                                                                 self.var.Crops[c][a + 1][2], self.var.currentKY[c])
+                        else:
+                            self.var.currentKC[c] = np.where(self.var.monthCounter[c] == 0, 0, self.var.currentKC[c])
+                            for a in range(1, 4):
+                                self.var.currentKC[c] = np.where(self.var.monthCounter[c] > self.var.Crops[c][a][0],
+                                                                 self.var.Crops[c][a + 1][1], self.var.currentKC[c])
+                                self.var.currentKY[c] = np.where(self.var.monthCounter[c] > self.var.Crops[c][a][0],
+                                                                 self.var.Crops[c][a + 1][2], self.var.currentKY[c])
 
                         # This calculates the current land being used for irrigated and non-irrigated crops
                         frac_totalIrr, frac_totalnonIrr = globals.inZero.copy(), globals.inZero.copy()
@@ -326,13 +334,20 @@ class evaporation(object):
                         # If it is the planting month of the crop,
                         # the crop is planted both irrigated and non-irrigated,
                         # in the remaining available land.
-
-                        self.var.fracCrops_Irr[c] = np.where(
-                            self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 0,
-                            np.where(remainder_land_Irr > 0,
-                                     np.minimum(remainder_land_Irr, self.var.fracCrops_IrrLandDemand[c]),
-                                     0),
-                            self.var.fracCrops_Irr[c])
+                        if self.var.daily_crop_KC:
+                            self.var.fracCrops_Irr[c] = np.where(
+                                self.var.Crops[c][0] == dateVar['doy'] and self.var.monthCounter[c] == 0,
+                                np.where(remainder_land_Irr > 0,
+                                         np.minimum(remainder_land_Irr, self.var.fracCrops_IrrLandDemand[c]),
+                                         0),
+                                self.var.fracCrops_Irr[c])
+                        else:
+                            self.var.fracCrops_Irr[c] = np.where(
+                                self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 0,
+                                np.where(remainder_land_Irr > 0,
+                                         np.minimum(remainder_land_Irr, self.var.fracCrops_IrrLandDemand[c]),
+                                         0),
+                                self.var.fracCrops_Irr[c])
 
                         if 'leftoverIrrigatedCropIsRainfed' in option:
                             if checkOption('leftoverIrrigatedCropIsRainfed'):
@@ -343,12 +358,20 @@ class evaporation(object):
                                     if c <= int(cbinding('crops_leftoverNotIrrigated')):
                                         self.var.fracCrops_nonIrrLandDemand[c] = globals.inZero.copy()
 
-                        self.var.fracCrops_nonIrr[c] = np.where(
-                            self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 0,
-                            np.where(remainder_land_nonIrr > 0,
-                                     np.minimum(remainder_land_nonIrr, self.var.fracCrops_nonIrrLandDemand[c]),
-                                     0),
-                            self.var.fracCrops_nonIrr[c])
+                        if self.var.daily_crop_KC:
+                            self.var.fracCrops_nonIrr[c] = np.where(
+                                self.var.Crops[c][0] == dateVar['doy'] and self.var.monthCounter[c] == 0,
+                                np.where(remainder_land_nonIrr > 0,
+                                         np.minimum(remainder_land_nonIrr, self.var.fracCrops_nonIrrLandDemand[c]),
+                                         0),
+                                self.var.fracCrops_nonIrr[c])
+                        else:
+                            self.var.fracCrops_nonIrr[c] = np.where(
+                                self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 0,
+                                np.where(remainder_land_nonIrr > 0,
+                                         np.minimum(remainder_land_nonIrr, self.var.fracCrops_nonIrrLandDemand[c]),
+                                         0),
+                                self.var.fracCrops_nonIrr[c])
 
                         frac_totalIrr, frac_totalnonIrr = globals.inZero.copy(), globals.inZero.copy()
                         for i in range(len(self.var.Crops)):
@@ -365,18 +388,32 @@ class evaporation(object):
                         # The counter only starts if there is some of the crop growing in the cell (it is activated).
                         # Otherwise, the month counter is kept constant
 
-                        self.var.monthCounter[c] = np.where(
-                            self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 0,
-                            self.var.activatedCrops[c], self.var.monthCounter[c])
+                        if self.var.daily_crop_KC:
+                            self.var.monthCounter[c] = np.where(
+                                self.var.Crops[c][0] == dateVar['doy'] and self.var.monthCounter[c] == 0,
+                                self.var.activatedCrops[c], self.var.monthCounter[c])
 
-                        self.var.currentKC[c] = np.where(
-                            self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 1,
-                            self.var.Crops[c][1][1],
-                            self.var.currentKC[c])
-                        self.var.currentKY[c] = np.where(
-                            self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 1,
-                            self.var.Crops[c][1][2],
-                            self.var.currentKY[c])
+                            self.var.currentKC[c] = np.where(self.var.monthCounter[c] > 0,
+                                                             self.var.Crops[c][-1][self.var.monthCounter[c] - 1], 0)
+
+                            self.var.currentKY[c] = np.where(
+                                self.var.Crops[c][0] == dateVar['doy'] and self.var.monthCounter[c] == 1,
+                                self.var.Crops[c][1][2],
+                                self.var.currentKY[c])
+
+                        else:
+                            self.var.monthCounter[c] = np.where(
+                                self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 0,
+                                self.var.activatedCrops[c], self.var.monthCounter[c])
+
+                            self.var.currentKC[c] = np.where(
+                                self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 1,
+                                self.var.Crops[c][1][1],
+                                self.var.currentKC[c])
+                            self.var.currentKY[c] = np.where(
+                                self.var.Crops[c][0] == dateVar['currDate'].month and self.var.monthCounter[c] == 1,
+                                self.var.Crops[c][1][2],
+                                self.var.currentKY[c])
 
                 #if No == 3 and (dateVar['newStart'] or dateVar['currDate'].day == 1):
                 if dateVar['newStart'] or dateVar['currDate'].day == 1:
