@@ -98,17 +98,17 @@ class initcondition(object):
 
     def reservoir_transfers(self, xl_settings_file_path):
         pd = importlib.import_module("pandas", package=None)
-        df = pd.read_excel(xl_settings_file_path, sheet_name='Reservoir_transfers')
+        df = pd.read_excel(xl_settings_file_path, header=None, sheet_name='Reservoir_transfers')
 
-        # reservoir_transfers = [ [Giving reservoir, Receiving reservoir, fraction of live storage] ]
+        # reservoir_transfers = [ [Giving reservoir, Receiving reservoir, [366-day array of releases]] ]
         reservoir_transfers = []
 
-        for i in df.index:
-            transfer = [df['Giving reservoir'][i], df['Receiving reservoir'][i], df['Fraction of live storage'][i]]
-            if transfer[2] > 0:
-                reservoir_transfers.append(transfer)
+        for col in list(df)[5:]:
+            releases = [df[col][4+day] for day in range(366)]
+            transfer = [int(df[col][1]), int(df[col][2]), releases]
+            reservoir_transfers.append(transfer)
+
         return reservoir_transfers
-    
  
     # To initialize wastewater2reservoir; and wastewater attributes
     def wastewater_to_reservoirs(self, xl_settings_file_path):

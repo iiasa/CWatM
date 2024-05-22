@@ -1592,10 +1592,11 @@ class water_demand:
                                 else:
                                     reservoir_storage_giver = self.var.reservoirStorageM3C[index_giver]
 
-                                reservoir_transfer_actual = np.minimum(reservoir_unused_receiver * 0.95,
-                                                                       np.where(transfer[2] <= 1,
-                                                                                reservoir_storage_giver * transfer[2],
-                                                                                transfer[2]))
+                                reservoir_transfer_actual = \
+                                    np.minimum(reservoir_unused_receiver * 0.95,
+                                               np.where(transfer[2][dateVar['doy']-1] <= 1,
+                                                        reservoir_storage_giver * transfer[2][dateVar['doy']-1],
+                                                        transfer[2][dateVar['doy']-1]))
 
                                 # print(transfer[0], 'donated', reservoir_transfer_actual, 'm3 to', transfer[1])
 
