@@ -488,19 +488,7 @@ class landcoverType(object):
                 self.var.w1[i] = self.var.load_initial(coverType + "_w1", default=self.var.wwp1[i] + start_soil_humid*(self.var.wfc1[i]-self.var.wwp1[i]))
                 self.var.w2[i] = self.var.load_initial(coverType + "_w2", default=self.var.wwp2[i] + start_soil_humid*(self.var.wfc2[i]-self.var.wwp2[i]))
                 self.var.w3[i] = self.var.load_initial(coverType + "_w3", default=self.var.wwp3[i] + start_soil_humid*(self.var.wfc3[i]-self.var.wwp3[i]))
-
-            soilVars = ['w1', 'w2', 'w3']
-            for variable in soilVars:
-                vars(self.var)["sum_" + variable] = globals.inZero.copy()
-                for No in range(4):
-                    vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
-
-            # for paddy irrigation flooded paddy fields
-            self.var.topwater = self.var.load_initial("topwater", default= 0.) * globals.inZero.copy()
-            self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
-            self.var.sum_soil = self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
-            self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_soil
-
+            
             # Improved Arno's scheme parameters: Hageman and Gates 2003
             # arnoBeta defines the shape of soil water capacity distribution curve as a function of  topographic variability
             # b = max( (oh - o0)/(oh + omax), 0.01)
@@ -539,7 +527,17 @@ class landcoverType(object):
                 self.var.adjRoot[soilLayer][i] = rootFrac[soilLayer] / rootFracSum
             i += 1
 
+        soilVars = ['w1', 'w2', 'w3']
+        for variable in soilVars:
+            vars(self.var)["sum_" + variable] = globals.inZero.copy()
+            for No in range(4):
+                vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
+        # for paddy irrigation flooded paddy fields
+        self.var.topwater = self.var.load_initial("topwater", default= 0.) * globals.inZero.copy()
+        self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
+        self.var.sum_soil = self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
+        self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_soil
 
         # for maximum of topwater flooding (default = 0.05m)
         self.var.maxtopwater = 0.05
