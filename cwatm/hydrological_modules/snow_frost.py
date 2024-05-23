@@ -92,8 +92,8 @@ class snow_frost(object):
 
         self.var.numberSnowLayersFloat = loadmap('NumberSnowLayers')
         # now using dz_relative -> fix to 1 or several
-        if self.var.numberSnowLayersFloat > 1.0:
-            self.var.numberSnowLayersFloat = 5.0
+        #if self.var.numberSnowLayersFloat > 1.0:
+        #    self.var.numberSnowLayersFloat = 5.0
         self.var.numberSnowLayers = int(self.var.numberSnowLayersFloat)
         self.var.glaciertransportZone = int(loadmap('GlacierTransportZone'))  # default 1 -> highest zone is transported to middle zone
 
@@ -114,12 +114,19 @@ class snow_frost(object):
             self.var.dzRel.append(readnetcdfWithoutTime(cbinding('relativeElevation'),i))
 
         # from relative elevation take 5 levels: 80-100% -> 90% -> id11, 60-80% -> 70% -> id9  ...
-        if self.var.numberSnowLayers == 1:
-            self.var.dzSnow = [7]
-        else:
-            # highest zone to lowest
-            self.var.dzSnow = [11,9,7,5,3]
+        dzSnow = \
+            [[7],
+            [9, 5],
+            [9, 7, 5],
+            [11, 8, 5, 3],
+            [11, 9, 7, 5, 3],
+            [11, 9, 7, 5, 3, 1],
+            [11, 9, 8, 7, 5, 3, 1],
+            [11, 9, 8, 7, 6, 5, 3, 1],
+            [11, 10, 9, 8, 7, 6, 5, 3, 1],
+            [11, 10, 9, 8, 7, 6, 5, 4, 3, 1]]
 
+        self.var.dzSnow = dzSnow[self.var.numberSnowLayers]
 
         self.var.lapseratevar = False
         if 'LapseRateVariable' in binding:
