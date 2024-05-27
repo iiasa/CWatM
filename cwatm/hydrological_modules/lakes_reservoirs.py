@@ -1004,6 +1004,9 @@ class lakes_reservoirs(object):
         # use only the value of the outflow point
         self.var.outLake = np.where(self.var.waterBodyOut > 0, outLakein, 0.)
 
+        # Puts the value of lakeResStorage into all cells covered by the waterbody
+        self.var.lakeResStorage_filled = npareamaximum(self.var.lakeResStorage, self.var.waterBodyID)
+
         if checkOption('calcWaterBalance'):
             self.model.waterbalance_module.waterBalanceCheck(
                 [inflowCorrC],  # In
