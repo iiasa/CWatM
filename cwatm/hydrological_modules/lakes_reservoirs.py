@@ -1006,6 +1006,7 @@ class lakes_reservoirs(object):
 
         # Puts the value of lakeResStorage into all cells covered by the waterbody
         self.var.lakeResStorage_filled = npareamaximum(self.var.lakeResStorage, self.var.waterBodyID)
+        self.var.lakeResStorage_buffer = npareamaximum(self.var.lakeResStorage, self.var.waterBodyBuffer)
 
         if checkOption('calcWaterBalance'):
             self.model.waterbalance_module.waterBalanceCheck(
