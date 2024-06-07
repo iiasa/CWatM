@@ -9,6 +9,7 @@
 # -------------------------------------------------------------------------
 
 from cwatm.management_modules.data_handling import *
+import pandas as pd
 
 class snow_frost(object):
 
@@ -281,9 +282,16 @@ class snow_frost(object):
             # radiation part from evaporationPot -> snowmelt has now a temperature part and a radiation part
             # from Erlandsen et al. Hydrology Research 52.2 2021
             if self.var.snowmelt_radiation:
+             # R Shrestha: added albedo decay as a function of snow age based on VIC model (Liang et al., 1994), Minimum snowfall to refresh snow albedo [10 mm/d]
+             # max snow albedo 0.85, min 0.50 (0.23 vegetation canopy albedo)
+                sn0=pd.Series((SnowS<0.01).astype(int))
+                sngrp = sn0.eq(0).cumsum()
+                SnowAge = sn0.eq(1).groupby(sngrp).cumsum().to_numpy()
+                #Different SnowAlb decay coefficient under frozen and melting conditions based on TempSnow, VIC uses snow temperature not TavgS.          
+                SnowAlb = np.where(SnowAge >= 1, np.where(TavgS >= self.var.TempSnow, np.maximum((0.85 * 0.82 ** (SnowAge ** 0.46)), 0.5), np.maximum((0.85 * 0.94 ** (SnowAge ** 0.58)), 0.5)), 0.85)           
                 RNup = 4.903E-9 * (TavgS + 273.16) ** 4
                 RLN = RNup - self.var.Rsdl
-                RN = (self.var.Rsds - RLN) / 334.0
+                RN = (self.var.Rsds* (1 - SnowAlb) - RLN) / 334.0
                 # latent heat of fusion = 0.334 mJKg-1 * desity of water = 1000 khm-3
 
                 SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef + self.var.SnowMeltRad * RN
