@@ -33,7 +33,7 @@ class waterbalance(object):
     smallLakeIn                                                                                                    --   
     smallevapWaterBody                                                                                             --   
     smallLakeout                                                                                                   --   
-    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   m    
+    EvapWaterBodyMOutlet                         Evaporation from lakes and reservoirs                                   m    
     lakeResInflowM                                                                                                 --   
     lakeResOutflowM                                                                                                --   
     sum_gwRecharge                         groundwater recharge                                                    m    
@@ -57,7 +57,7 @@ class waterbalance(object):
     prelakeResStorage                                                                                              --   
     catchmentAll                                                                                                   --   
     sumsideflow                                                                                                    --   
-    EvapoChannel                           Channel evaporation                                                     m3   
+    EvapoChannel                           Channel evaporation                                                     m   
     prechannelStorage                                                                                              --   
     runoff                                                                                                         --   
     gridcell_storage                                                                                               --   
@@ -336,7 +336,7 @@ class waterbalance(object):
 
                     self.model.waterbalance_module.waterBalanceCheck(
                         [self.var.lakeResInflowM],  # In
-                        [self.var.lakeResOutflowM, self.var.EvapWaterBodyM],  # Out  self.var.evapWaterBodyC
+                        [self.var.lakeResOutflowM, self.var.EvapWaterBodyMOutlet],  # Out  self.var.evapWaterBodyC
                         [self.var.prelakeResStorage / self.var.cellArea],  # prev storage
                         [self.var.lakeResStorage / self.var.cellArea],
                         "LR1", True)
@@ -373,25 +373,18 @@ class waterbalance(object):
 
             self.model.waterbalance_module.waterBalanceCheckSum(
                 [self.var.runoff, self.var.returnFlow],  # In
-                [self.var.sumsideflow / self.var.cellArea, self.var.EvapoChannel / self.var.cellArea, self.var.act_SurfaceWaterAbstract, ],  # Out
+                [self.var.sumsideflow / self.var.cellArea, self.var.EvapoChannel, self.var.act_SurfaceWaterAbstract, ],  # Out
                 [],  # prev storage
                 [],
                 "rout11", False)
 
             self.model.waterbalance_module.waterBalanceCheckSum(
                 [self.var.runoff],  # In
-                [DisOut, self.var.EvapoChannel / self.var.cellArea],  # Out
+                [DisOut, self.var.EvapoChannel],  # Out
                 [self.var.prechannelStorage / self.var.cellArea],  # prev storage
                 [self.var.channelStorage / self.var.cellArea],
                 "rout2", False)
 
-
-            self.model.waterbalance_module.waterBalanceCheckSum(
-                [self.var.runoff, self.var.returnFlow],  # In
-                [DisOut, self.var.EvapoChannel, self.var.act_SurfaceWaterAbstract],  # Out
-                [self.var.prechannelStorage / self.var.cellArea],  # prev storage
-                [self.var.channelStorage / self.var.cellArea],
-                "rout4", False)
 
             #print self.var.channelStorageBefore[10],
             # print "%10.8f %10.8f %10.8f " % (income[10], out[10], store[10]),

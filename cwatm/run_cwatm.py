@@ -77,7 +77,6 @@ def usage():
     * -v --veryquiet   no output progression is given
     * -l --loud        output progression given as time step, date and discharge
     * -c --check       input maps and stack maps are checked, output for each input map BUT no model run
-    * -h --noheader    .tss file have no header and start immediately with the time series
     * -t --printtime   the computation time for hydrological modules are printed
 
     """
@@ -94,7 +93,6 @@ def usage():
     -v --veryquiet   no output progression is given
     -l --loud        output progression given as time step, date and discharge
     -c --check       input maps and stack maps are checked, output for each input map BUT no model run
-    -h --noheader    .tss file have no header and start immediately with the time series
     -t --printtime   the computation time for hydrological modules are printed
     -w --warranty    copyright and warranty information
     """)
@@ -305,12 +303,12 @@ def mainwarm(settings, args, meteo):
     Flags['warm'] = True
 
     headerinfo()
-    if meteo == []:
+    
+    if isinstance(meteo, np.ndarray):
+        success, last_dis = CWATMexe2(settingsfile[0],meteo)
+    else:
         Flags['warm'] = False
         success, last_dis = CWATMexe(settingsfile[0])
-    else:
-        success, last_dis = CWATMexe2(settingsfile[0],meteo)
-
     return success, last_dis
 
 

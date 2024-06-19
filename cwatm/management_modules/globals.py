@@ -222,9 +222,9 @@ platform1 = platform.uname()[0]
 
 # ----------------------------------
 FlagName = ['quiet', 'veryquiet', 'loud',
-            'checkfiles', 'noheader', 'printtime','warranty','calib','warm']
+            'checkfiles', 'printtime','warranty','calib','warm']
 Flags = {'quiet': False, 'veryquiet': False, 'loud': False,
-         'check': False, 'noheader': False, 'printtime': False, 'warranty': False, 'use': False,
+         'check': False, 'printtime': False, 'warranty': False, 'use': False,
          'test': False,'calib': False,'warm': False}
 
 
@@ -293,7 +293,7 @@ lib2.runoffConc.argtypes = [array_2d_double,array_1d_double,array_1d_double,arra
 def globalFlags(setting, arg,settingsfile,Flags):
     """
     Read flags - according to the flags the output is adjusted
-    quiet,veryquiet, loud, checkfiles, noheader,printtime, warranty
+    quiet,veryquiet, loud, checkfiles, printtime, warranty
 
     :param arg: argument from calling cwatm
     """
@@ -316,8 +316,6 @@ def globalFlags(setting, arg,settingsfile,Flags):
             Flags['loud'] = True
         if o in ('-c', '--checkfiles'):
             Flags['check'] = True
-        if o in ('-h', '--noheader'):
-            Flags['noheader'] = True
         if o in ('-t', '--printtime'):
             Flags['printtime'] = True
         if o in ('-w', '--warranty'):

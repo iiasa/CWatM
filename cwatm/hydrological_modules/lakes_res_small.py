@@ -23,7 +23,6 @@ class lakes_res_small(object):
     Note:
 
         Calculate water retention in lakes and reservoirs
-
         Using the **Modified Puls approach** to calculate retention of a lake
         See also: LISFLOOD manual Annex 3 (Burek et al. 2013)
 
@@ -186,6 +185,7 @@ class lakes_res_small(object):
             self.var.smallevapWaterBody = self.var.lakeEvaFactor * self.var.EWRef * self.var.smalllakeArea
 
             self.var.smallevapWaterBody = np.where((self.var.smalllakeVolumeM3 - self.var.smallevapWaterBody) > 0., self.var.smallevapWaterBody, self.var.smalllakeVolumeM3)
+            self.var.smallevapWaterBody = np.maximum(0., self.var.smallevapWaterBody)
             self.var.smalllakeVolumeM3 = self.var.smalllakeVolumeM3 - self.var.smallevapWaterBody
             # lakestorage - evaporation from lakes
 

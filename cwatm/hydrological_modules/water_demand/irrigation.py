@@ -97,9 +97,7 @@ class waterdemand_irrigation:
         self.var.unmetDemandNonpaddy = self.var.load_initial('unmetDemandNonpaddy', default=globals.inZero.copy())
         # in case fossil water abstraction is allowed this will be filled
         self.var.unmetDemand = globals.inZero.copy()
-        self.var.unmetDemand_runningSum = self.var.load_initial('unmetDemand_runningSum', default=globals.inZero.copy())
-
-        # irrigation efficiency
+        self.var.unmetDemand_runningSum = self.var.load_initial('unmetDemand_runningSum', default=globals.inZero.copy())        # irrigation efficiency
         # at the moment a single map, but will be replaced by map stack for every year
         self.var.efficiencyPaddy = loadmap("irrPaddy_efficiency")
         self.var.efficiencyNonpaddy = loadmap("irrNonPaddy_efficiency")
@@ -129,12 +127,9 @@ class waterdemand_irrigation:
         # irrigation water demand for paddy  
         No = 2
         # a function of cropKC (evaporation and transpiration) and available water see Wada et al. 2014 p. 19
-        self.var.pot_irrConsumption[No] = np.where(
-            self.var.cropKC[No] > 0.75,
+        self.var.pot_irrConsumption[No] = np.where(self.var.cropKC[No] > 0.75,
             np.maximum(0., (self.var.alphaDepletion * self.var.maxtopwater - (
-                        self.var.topwater + self.var.availWaterInfiltration[No]))),
-            0.
-        )
+            self.var.topwater + self.var.availWaterInfiltration[No]))), 0.)
         # ignore demand if less than 1 m3
         self.var.pot_irrConsumption[No] = np.where(self.var.pot_irrConsumption[No] > self.var.InvCellArea,
                                                    self.var.pot_irrConsumption[No], 0)
