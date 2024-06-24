@@ -158,6 +158,7 @@ class CWATModel_ini(DynamicModel):
             self.groundwater_module.initial()
 
         self.landcoverType_module.initial()
+        self.evaporation_module.initial()
 
         self.runoff_concentration_module.initial()
         self.lakes_res_small_module.initial()

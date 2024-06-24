@@ -8,7 +8,6 @@
 # Copyright:   (c) burekpe 2016
 # -------------------------------------------------------------------------
 
-
 import os
 import calendar
 import datetime
@@ -475,6 +474,7 @@ def timestep_dynamic(self):
     firstdoyInt = datenum(firstdoy)
     dateVar['doy'] = int(datevarInt  - firstdoyInt + 1)
     dateVar['10day'] = int((dateVar['doy']-1)/10)
+    dateVar['30day'] = int((dateVar['doy'] - 1) / 30)
 
     dateVar['laststep'] = False
     if (dateVar['intStart'] + dateVar['curr']) == dateVar['intEnd']:
@@ -494,7 +494,7 @@ def timestep_dynamic(self):
     dateVar['newMonth'] = dateVar['currDate'].day == 1
     dateVar['newYear'] = (dateVar['currDate'].day == 1) and (dateVar['currDate'].month == 1)
     dateVar['new10day'] = ((dateVar['doy'] - 1) / 10.0) == dateVar['10day']
-
+    dateVar['new30day'] = ((dateVar['doy'] - 1) / 30.0) == dateVar['30day']
 
     d1month = datenum(datetime.datetime(year=dateVar['currDate'].year, month=dateVar['currDate'].month, day=1))
     if dateVar['currDate'].month == 12:

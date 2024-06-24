@@ -39,7 +39,7 @@ class routing_kinematic(object):
     compress_LR                            boolean map as mask map for compressing lake/reservoir                  --   
     lakeArea                               area of each lake/reservoir                                             m2   
     lakeEvaFactorC                         compressed map of a factor which increases evaporation from lake becau  --   
-    EvapWaterBodyM                         Evaporation from lakes and reservoirs                                   m    
+    EvapWaterBodyMOutlet                         Evaporation from lakes and reservoirs                                   m    
     lakeResInflowM                                                                                                 --   
     lakeResOutflowM                                                                                                --   
     downstruct                                                                                                     --   
@@ -63,7 +63,7 @@ class routing_kinematic(object):
     prelakeResStorage                                                                                              --   
     catchmentAll                                                                                                   --   
     sumsideflow                                                                                                    --   
-    EvapoChannel                           Channel evaporation                                                     m3   
+    EvapoChannel                           Channel evaporation                                                     m
     prechannelStorage                                                                                              --   
     chanLength                             Input, Channel length                                                   m    
     totalCrossSectionArea                                                                                          --   
@@ -351,7 +351,7 @@ class routing_kinematic(object):
         # put all the water area in which is not reflected in the lakes ,res
         #channelFraction = np.maximum(self.var.fracVegCover[5], channelFraction)
 
-        EWRefact =  self.var.lakeEvaFactor * self.var.EWRef - self.var.openWaterEvap[5]
+        EWRefact = np.maximum(0.0, self.var.lakeEvaFactor * self.var.EWRef - self.var.openWaterEvap[5])
         # evaporation from channel minus the calculated evaporation from rainfall
         self.var.EvapoChannel = EWRefact * channelFraction * self.var.cellArea
         #self.var.EvapoChannel = self.var.EWRef * channelFraction * self.var.cellArea
@@ -505,8 +505,8 @@ class routing_kinematic(object):
         if checkOption('inflow'):
              self.var.QInM3Old = self.var.inflowM3.copy()
 
-        # maybe later, but for now it is known as m3
-        #self.var.EvapoChannel = self.var.EvapoChannel / self.var.cellArea
+        # maybe later, but for now it is known as m3 -> put this active again PB May 2024
+        self.var.EvapoChannel = self.var.EvapoChannel / self.var.cellArea
 
 
         self.var.humanConsumption = globals.inZero.copy()
@@ -519,6 +519,7 @@ class routing_kinematic(object):
                     self.var.humanUse += self.var.actTransTotal_crops_nonIrr[i]
 
         #self.var.natureUse = actTransTotal_grasslands - self.var.humanUse + self.var.EvapoChannel + self.var.sum_actBareSoilEvap + self.var.sum_interceptEvap + self.var.EvapWaterBodyM
+        # EvapWaterBodyM is EvapWaterBodyMOutlet spread over the lake
 
         self.var.humanConsumption += self.var.act_nonIrrConsumption + self.var.actTransTotal_paddy + self.var.addtoevapotrans + self.var.actTransTotal_nonpaddy + self.var.sum_openWaterEvap
         self.var.humanUse += self.var.act_nonIrrWithdrawal + self.var.act_irrWithdrawal #+ self.var.sum_openWaterEvap #+ self.var.leakage #+reservoir evaporation
@@ -543,7 +544,7 @@ class routing_kinematic(object):
             if checkOption('calcWaterBalance'):
                 self.model.waterbalance_module.waterBalanceCheck(
                     [self.var.lakeResInflowM],  # In
-                    [self.var.lakeResOutflowM , self.var.EvapWaterBodyM]  ,  # Out  self.var.evapWaterBodyC
+                    [self.var.lakeResOutflowM , self.var.EvapWaterBodyMOutlet]  ,  # Out  self.var.evapWaterBodyC
                     [self.var.prelakeResStorage / self.var.cellArea] ,  # prev storage
                     [self.var.lakeResStorage / self.var.cellArea],
                     "lake_res", False)
@@ -600,7 +601,7 @@ class routing_kinematic(object):
         if checkOption('calcWaterBalance'): # [m3] without waterbodies
             self.model.waterbalance_module.waterBalanceCheckSum(
                 [self.var.runoff * self.var.cellArea],  # In
-                [self.var.dis_outlet * self.var.DtSec, self.var.EvapoChannel, self.var.EvapWaterBodyM * self.var.cellArea],  # Out
+                [self.var.dis_outlet * self.var.DtSec, self.var.EvapoChannel, self.var.EvapWaterBodyMOutlet * self.var.cellArea],  # Out
                 [self.var.prechannelStorage, self.var.prelakeResStorage],   # prev storage
                 [self.var.channelStorage, self.var.lakeResStorage],
                 "rout8", False)  # without waterbody

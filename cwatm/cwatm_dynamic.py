@@ -114,14 +114,14 @@ class CWATModel_dyn(DynamicModel):
             groundwater_storage = self.var.storGroundwater - self.var.unmetDemand_runningSum
 
         if (checkOption('includeRouting')):
-            self.var.totalET_WB = self.var.EvapoChannel
+            self.var.totalET_WB = self.var.EvapoChannel.copy()
             if checkOption('includeWaterBodies'):
                 if returnBool('useSmallLakes'):
                     # Sum off lake and reservoirs and small lakes
                     self.var.lakeReservoirStorage = self.var.lakeResStorage + self.var.smalllakeStorage
                 else:
                     # Sum off lake and reservoirs - here without small lakes
-                    self.var.lakeReservoirStorage = self.var.lakeResStorage
+                    self.var.lakeReservoirStorage = self.var.lakeResStorage.copy()
 
                 self.var.tws = groundwater_storage + self.var.totalSto \
                                + self.var.lakeReservoirStorage * self.var.InvCellArea \

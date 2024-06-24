@@ -4,7 +4,7 @@
 #
 # Author:      PB
 #
-# Created:     13/07/2016
+# Created:     13/07/2016 
 # Copyright:   (c) PB 2016
 # -------------------------------------------------------------------------
 
@@ -76,6 +76,7 @@ class readmeteo(object):
     GlacierMelt                                                                                                    --   
     GlacierRain                                                                                                    --   
     =====================================  ======================================================================  =====
+
 
     **Functions**
     """
@@ -187,20 +188,21 @@ class readmeteo(object):
         self.var.only_radiation = False
         if 'only_radiation' in binding:
             self.var.only_radiation = returnBool('only_radiation')
-            # if radiation then now snow_melt radiation because it needs rsds and rsdl maps
-            self.var.snowmelt_radiation = False
 
         if checkOption('calc_evaporation'):
             if self.var.only_radiation:
-                # for maps from EMO-5 with total radiation and vapor pressure instead of huss, air pressure, rsds and rlds
-                meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps']
+                # if addiation snowmlet from radiation
+                if self.var.snowmelt_radiation:
+                    meteomaps = [self.var.preMaps, self.var.tempMaps, 'RGDMaps','EActMaps']
+                else:
+                    # for maps from EMO-5 with total radiation and vapor pressure instead of huss, air pressure, rsds and rlds
+                    meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps']
             else:
                 meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','PSurfMaps','WindMaps','RSDSMaps','RSDLMaps']
                 if returnBool('useHuss'):
                     meteomaps.append('QAirMaps')
                 else:
                     meteomaps.append('RhsMaps')
-
 
             if self.var.includeGlaciers:
                 meteomaps.append(self.var.glaciermeltMaps)
@@ -211,14 +213,18 @@ class readmeteo(object):
         else:
             meteomaps = [self.var.preMaps, self.var.tempMaps, self.var.evaTMaps, self.var.eva0Maps]
             if self.var.snowmelt_radiation:
-                meteomaps.append(self.var.RSDSMaps)
-                meteomaps.append(self.var.RSDLMaps)
+                if self.var.only_radiation:
+                    meteomaps.append('RGDMaps')
+                    meteomaps.append('EActMaps')
+                else:
+                    meteomaps.append(self.var.RSDSMaps)
+                    meteomaps.append(self.var.RSDLMaps)
             if self.var.includeGlaciers:
                 meteomaps.append(self.var.glaciermeltMaps)
                 if not self.var.includeOnlyGlaciersMelt:
                     meteomaps.append(self.var.glacierrainMaps)
 
-        multinetdf(meteomaps)
+        multinetdf(meteomaps,self.var.buffer)
 
         # downscaling to wordclim, set parameter to 0 in case they are only used as dummy
         self.var.wc2_tavg = 0
@@ -396,7 +402,7 @@ class readmeteo(object):
         resoint = int(reso)
 
         if self.var.InterpolationMethod == 'bilinear' and (downscale == 1 or downscale == 2):
-            buffer = 1
+
             buffer1, buffer2, buffer3, buffer4 = MaskMapBoundaries
             #if 1: does not touch boundaries of meteo input map, if 0 touches boundary of input map
             # to perform bilinear interpolation a buffer around the maskmap is needed, if maskmap touches bounary of input map an artifical buffer has to be created by duplicating the last row/column
@@ -577,8 +583,13 @@ class readmeteo(object):
             self.var.EWRef = self.var.meteo[3,no]
             j = 3
             if self.var.snowmelt_radiation:
-                self.var.Rsds = self.var.meteo[4,no]
-                self.var.Rsdl = self.var.meteo[5,no]
+                # for EMO meteo datasets
+                if self.var.only_radiation:
+                    self.var.Rsds = self.var.meteo[4,no]
+                    self.var.EAct = self.var.meteo[5, no]
+                else:
+                    self.var.Rsds = self.var.meteo[4,no]
+                    self.var.Rsdl = self.var.meteo[5,no]
                 j = 5
             if self.var.includeGlaciers:
                 self.var.GlacierMelt = self.var.meteo[j+1, no]
@@ -586,28 +597,15 @@ class readmeteo(object):
                     self.var.GlacierRain = self.var.meteo[j+2, no]
             return
 
-        ZeroKelvin = 0.0
-        if checkOption('TemperatureInKelvin'):
-            # if temperature is in Kelvin -> conversion to deg C
-            # TODO in initial there could be a check if temperature > 200 -> automatic change to Kelvin
-            ZeroKelvin = 273.15
-
-        self.var.Precipitation, MaskMapBoundary = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
+        # -------------------------------------------------------------
+        # read netcdf data
+        self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
         self.var.Precipitation = self.var.Precipitation * self.var.DtDay * self.var.con_precipitation
 
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
-        
-        if self.var.includeGlaciers:
-            self.var.GlacierMelt, MaskMapBoundary = readmeteodata(self.var.glaciermeltMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = True)
-            # Glaciermelt and Glacierrain is preprocessed after OGGM to have a factor of 1.0 
-            # -> here glacier melt is again multiplied by the CwatM snow factor to have the same values
-            self.var.GlacierMelt = self.var.GlacierMelt * self.var.SnowFactor
-            # extendback -> if simulation starts earlier than first glacier map -> day of the year of first year is used
-            if not self.var.includeOnlyGlaciersMelt:
-                self.var.GlacierRain, MaskMapBoundary = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = True)
-
         if self.var.meteodown:
             if self.var.InterpolationMethod == 'bilinear':
+                MaskMapBoundary = meteofiles[self.var.preMaps][0][9]
                 self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec, self.var.xcoarse_prec, self.var.ycoarse_prec, self.var.xfine_prec, self.var.yfine_prec, self.var.meshlist_prec = self.downscaling2(
                     self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec,
                     self.var.xcoarse_prec, self.var.ycoarse_prec, self.var.xfine_prec, self.var.yfine_prec,
@@ -617,23 +615,23 @@ class readmeteo(object):
         else:
             self.var.Precipitation = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
 
-        #self.var.Precipitation = self.var.Precipitation * 1000
-        
-
         self.var.prec = self.var.Precipitation / self.var.con_precipitation
         # precipitation (conversion to [m] per time step)  `
         if Flags['check']:
             checkmap(self.var.preMaps, "", self.var.Precipitation, True, True, self.var.Precipitation)
 
-        #self.var.Tavg = readnetcdf2('TavgMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
 
-        tzero = 0
+        ZeroKelvin = 0.0
         if checkOption('TemperatureInKelvin'):
-            tzero = ZeroKelvin
-        self.var.Tavg, MaskMapBoundary = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = tzero, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
+            # if temperature is in Kelvin -> conversion to deg C
+            # TODO in initial there could be a check if temperature > 200 -> automatic change to Kelvin
+            ZeroKelvin = 273.15
+
+        self.var.Tavg = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
 
         if self.var.meteodown:
             if self.var.InterpolationMethod == 'bilinear':
+                MaskMapBoundary = meteofiles[self.var.tempMaps][0][9]
                 self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg, self.var.xcoarse_tavg, self.var.ycoarse_tavg, self.var.xfine_tavg, self.var.yfine_tavg, self.var.meshlist_tavg = self.downscaling2(
                     self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, self.var.xcoarse_tavg,
                     self.var.ycoarse_tavg, self.var.xfine_tavg, self.var.yfine_tavg, self.var.meshlist_tavg, MaskMapBoundary, downscale=1)
@@ -648,6 +646,26 @@ class readmeteo(object):
         if checkOption('TemperatureInKelvin'):
             self.var.Tavg -= ZeroKelvin
 
+        # check on the first date if Temperature is really kelvin
+        if dateVar['curr'] == 1:
+            testtemp = np.nanmin(self.var.Tavg)
+            if (testtemp < -100) or (testtemp > 100):
+                name = cbinding('TavgMaps')
+                msg = "Error 601: Check temperature flag in [Option]. Temperature might be Kelvin instead Celsius or vice versa\n"
+                msg = msg + "Temperature file in: " + name + "\n"
+                raise CWATMError(msg)
+
+
+        if self.var.includeGlaciers:
+            self.var.GlacierMelt = readmeteodata(self.var.glaciermeltMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = True)
+            # Glaciermelt and Glacierrain is preprocessed after OGGM to have a factor of 1.0
+            # -> here glacier melt is again multiplied by the CwatM snow factor to have the same values
+            self.var.GlacierMelt = self.var.GlacierMelt * self.var.SnowFactor
+            # extendback -> if simulation starts earlier than first glacier map -> day of the year of first year is used
+            if not self.var.includeOnlyGlaciersMelt:
+                self.var.GlacierRain = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = True)
+
+
         if Flags['check']:
             checkmap(self.var.tempMaps, "", self.var.Tavg, True, True, self.var.Tavg)
 
@@ -656,20 +674,18 @@ class readmeteo(object):
             if self.var.only_radiation:
                 # read daily calculated radiation [in KJ/m2/day]
                 # named here Rsds instead of rds, because use in evaproationPot in the same way as rsds
-                self.var.Rsds, MaskMapBoundary = readmeteodata('RGDMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
-                #self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.001  # convert from KJ to MJ/m2/day
+                self.var.Rsds = readmeteodata('RGDMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
                 self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.000001  # convert from KJ to MJ/m2/day
                 # but for EMO it is 1e6 instead 1000 it seems it is J instead of KJ
-
                 # read daily vapor pressure [in hPa]
-                self.var.EAct, MaskMapBoundary = readmeteodata('EActMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
+                self.var.EAct = readmeteodata('EActMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
                 self.var.EAct = self.downscaling2(self.var.EAct) * 0.1  # convert from hP to kP
             else:
-                self.var.Rsds, MaskMapBoundary = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+                self.var.Rsds = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
                 self.var.Rsds = self.downscaling2(self.var.Rsds)
                     # radiation surface downwelling shortwave maps [W/m2]
-                #self.var.Rsdl = readnetcdf2('RSDLMaps', dateVar['currDate'], addZeros = True, meteo = True)
-                self.var.Rsdl, MaskMapBoundary = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+
+                self.var.Rsdl = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
                 self.var.Rsdl = self.downscaling2(self.var.Rsdl)
                     # radiation surface downwelling longwave maps [W/m2]
 
@@ -688,19 +704,13 @@ class readmeteo(object):
         if checkOption('calc_evaporation'):
 
             #self.var.TMin = readnetcdf2('TminMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
-            self.var.TMin, MaskMapBoundary = readmeteodata('TminMaps',dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
+            self.var.TMin = readmeteodata('TminMaps',dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
             if self.var.meteodown:
                 if self.var.InterpolationMethod == 'bilinear':
+                    MaskMapBoundary = meteofiles['TminMaps'][0][9]
                     self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin, _, _, _, _, _ = self.downscaling2(self.var.TMin,
-                                                                                                           "downscale_wordclim_tmin",
-                                                                                                           self.var.wc2_tmin,
-                                                                                                           self.var.wc4_tmin,
-                                                                                                           self.var.xcoarse_tavg,
-                                                                                                           self.var.ycoarse_tavg,
-                                                                                                           self.var.xfine_tavg,
-                                                                                                           self.var.yfine_tavg,
-                                                                                                           self.var.meshlist_tavg, MaskMapBoundary,
-                                                                                                           downscale=1)
+                        "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, self.var.xcoarse_tavg, self.var.ycoarse_tavg,
+                        self.var.xfine_tavg, self.var.yfine_tavg, self.var.meshlist_tavg, MaskMapBoundary, downscale=1)
                 else:
                     self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=1)
             else:
@@ -710,19 +720,13 @@ class readmeteo(object):
                 checkmap('TminMaps', "", self.var.TMin, True, True, self.var.TMin)
 
             #self.var.TMax = readnetcdf2('TmaxMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
-            self.var.TMax, MaskMapBoundary = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
+            self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
             if self.var.meteodown:
                 if self.var.InterpolationMethod == 'bilinear':
+                    MaskMapBoundary = meteofiles['TmaxMaps'][0][9]
                     self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax, _, _, _, _, _ = self.downscaling2(self.var.TMax,
-                                                                                                           "downscale_wordclim_tmin",
-                                                                                                           self.var.wc2_tmax,
-                                                                                                           self.var.wc4_tmax,
-                                                                                                           self.var.xcoarse_tavg,
-                                                                                                           self.var.ycoarse_tavg,
-                                                                                                           self.var.xfine_tavg,
-                                                                                                           self.var.yfine_tavg,
-                                                                                                           self.var.meshlist_tavg, MaskMapBoundary,
-                                                                                                           downscale=1)
+                         "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, self.var.xcoarse_tavg, self.var.ycoarse_tavg,
+                         self.var.xfine_tavg, self.var.yfine_tavg, self.var.meshlist_tavg, MaskMapBoundary, downscale=1)
                 else:
                     self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=1)
             else:
@@ -734,8 +738,7 @@ class readmeteo(object):
                 self.var.TMin -= ZeroKelvin
                 self.var.TMax -= ZeroKelvin
 
-            #self.var.Wind = readnetcdf2('WindMaps', dateVar['currDate'], addZeros = True, meteo = True)
-            self.var.Wind, MaskMapBoundary = readmeteodata('WindMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+            self.var.Wind = readmeteodata('WindMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
             self.var.Wind = self.downscaling2(self.var.Wind)
                 # wind speed maps at 10m [m/s]
 
@@ -747,17 +750,17 @@ class readmeteo(object):
             if not self.var.only_radiation:
 
                 #self.var.Psurf = readnetcdf2('PSurfMaps', dateVar['currDate'], addZeros = True, meteo = True)
-                self.var.Psurf, MaskMapBoundary = readmeteodata('PSurfMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+                self.var.Psurf = readmeteodata('PSurfMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
                 self.var.Psurf = self.downscaling2(self.var.Psurf)
                     # Instantaneous surface pressure[Pa]
 
                 if returnBool('useHuss'):
                     #self.var.Qair = readnetcdf2('QAirMaps', dateVar['currDate'], addZeros = True, meteo = True)
-                    self.var.Qair, MaskMapBoundary = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
+                    self.var.Qair = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
                     # 2 m istantaneous specific humidity[kg / kg]
                 else:
                     #self.var.Qair = readnetcdf2('RhsMaps', dateVar['currDate'], addZeros = True, meteo = True)
-                    self.var.Qair, MaskMapBoundary = readmeteodata('RhsMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
+                    self.var.Qair = readmeteodata('RhsMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
                 self.var.Qair = self.downscaling2(self.var.Qair)
 
                 #--------------------------------------------------------
@@ -777,18 +780,20 @@ class readmeteo(object):
                     ETsamePr = True
 
             if ETsamePr:
-                self.var.ETRef, MaskMapBoundary = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale)
+                self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale)
+                self.var.EWRef = self.var.EWRef * self.var.DtDay * self.var.con_e
+                self.var.EWRef = self.downscaling2(self.var.EWRef, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
+
+                self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale)
                 self.var.ETRef = self.var.ETRef *self.var.DtDay * self.var.con_e
                 self.var.ETRef = self.downscaling2(self.var.ETRef, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
 
-                self.var.EWRef, MaskMapBoundary = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale)
-                self.var.EWRef = self.var.EWRef * self.var.DtDay * self.var.con_e
-                self.var.EWRef = self.downscaling2(self.var.EWRef, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
             else:
-                self.var.ETRef, MaskMapBoundary = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True, mapsscale = True)
-                self.var.ETRef = self.var.ETRef *self.var.DtDay * self.var.con_e
-                self.var.EWRef, MaskMapBoundary = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True, mapsscale = True)
+                self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True, mapsscale = True)
                 self.var.EWRef = self.var.EWRef * self.var.DtDay * self.var.con_e
+                self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True, mapsscale = True)
+                self.var.ETRef = self.var.ETRef *self.var.DtDay * self.var.con_e
+
                 # potential evaporation rate from water surface (conversion to [m] per time step)
                 # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
 
@@ -812,8 +817,12 @@ class readmeteo(object):
             self.var.meteo[3,no] = self.var.EWRef
             j =3
             if self.var.snowmelt_radiation:
-                self.var.meteo[4,no] = self.var.Rsds
-                self.var.meteo[5,no] = self.var.Rsdl
+                if self.var.only_radiation:
+                    self.var.meteo[4,no] = self.var.Rsds
+                    self.var.meteo[5, no] = self.var.EAct
+                else:
+                    self.var.meteo[4,no] = self.var.Rsds
+                    self.var.meteo[5,no] = self.var.Rsdl
                 j = 5
             if self.var.includeGlaciers:
                 self.var.meteo[j+1, no] = self.var.GlacierMelt
