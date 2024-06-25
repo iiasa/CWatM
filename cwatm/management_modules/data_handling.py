@@ -309,7 +309,7 @@ def loadsetclone(self,name):
     # if there is no ldd at a cell, this cell should be excluded from modelling
 
     maskldd = loadmap('Ldd', compress = False)
-    maskarea = np.bool8(mapnp)
+    maskarea = np.bool_(mapnp)
     mask = np.logical_not(np.logical_and(maskldd,maskarea))
 
 #    mask=np.isnan(mapnp)
@@ -375,7 +375,7 @@ def maskfrompoint(mask2D, xleft, yup):
     maskmapAttr['col'] = mask2D.shape[1]
     maskmapAttr['row'] = mask2D.shape[0]
 
-    mask = np.invert(np.bool8(mask2D))
+    mask = np.invert(np.bool_(mask2D))
     mapC = np.ma.compressed(np.ma.masked_array(mask, mask))
 
     # Definition of compressed array and info how to blow it up again
