@@ -1,6 +1,6 @@
 [DEFAULT]
-Root = P:\watmodel\CWATM\model\GitHub_Mikhail\CWatM\Toolkit
-RootPC = P:\watmodel\CWATM\model\GitHub_Mikhail\CWatM\Toolkit
+Root = C:\GitHub\CWatM\Toolkit
+RootPC = C:\GitHub\CWatM\Toolkit
 Rootbasin = Calibration
 
 # start date of simulation outputs
@@ -39,13 +39,13 @@ maximize = True
 use_multiprocessing = 1
 
 # Number of nodes used for multiprocessing, recommended 1-8
-pool_limit = 2
+pool_limit = 4
 
 # Number of generations, recommended 10-40
-ngen = 6
+ngen = 3
 
 # Initial population, recommended 16-128
-mu = 16
+mu = 8
 
 # Runs per generation, recommended 8-16
 lambda_ = 8
