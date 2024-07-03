@@ -217,6 +217,7 @@ def RunModel(Individual):
 			if use_multiprocessing == 0:
 				template_bat_new = template_bat_new.split()[0] + " " + template_bat_new.split()[1] + " " + template_bat_new.split()[2] + " -l"
 		f = open(runfile, "w")
+		os.chmod(runfile, 0o744)
 		f.write(template_bat_new)
 		f.close()
 
@@ -539,6 +540,7 @@ if __name__ == "__main__":
 		else:
 			runfile = runfile + ".sh"
 		f = open(runfile, "w")
+		os.chmod(runfile, 0o744)
 		f.write(template_bat_new)
 		f.close()
 
