@@ -44,7 +44,6 @@ t = time.time()
 iniFile = os.path.normpath(sys.argv[1])
 savefig = os.path.normpath(sys.argv[2])
 
-station = "lobith"
 loadsim = "streamflow_simulated_best.csv"
 #savefig = "calibration_plot.pdf"
 
@@ -91,7 +90,7 @@ Header = 'Calibration results' #parser.get('ObservedData', 'Header')
 #   Loop through catchments and perform calibration
 ########################################################################
 
-print (">> Reading Qgis2.csv file...")
+#print (">> Reading Qgis2.csv file...")
 #stationdata = pandas.read_csv(os.path.join(path_result,"Qgis2.csv"),sep=",",index_col=0)
 #stationdata_sorted = stationdata.sort_index(by=['CatchmentArea'],ascending=True)
 stationdata_sorted = [1]
@@ -148,10 +147,11 @@ for index in stationdata_sorted:
 	Cal_End = ForcingEnd
 
 	# Load observed streamflow
-	streamflow_data = pandas.read_csv(Qtss_csv, sep=",", parse_dates=True, index_col=0)
+	streamflow_data = pandas.read_csv(Qtss_csv, sep=",", parse_dates=True, index_col=0, header = None, skiprows = 1,
+									  names=['Date', 'Observation'], dayfirst=True)
 	#Qobs1 = streamflow_data[Qtss_col] * 1.0
 
-	Qobs1 = streamflow_data[station] * 1.0
+	Qobs1 = streamflow_data['Observation'] * 1.0
 	#streamflow_data = pandas.read_csv(Qtss_csv,sep=",", parse_dates=True, index_col=0, infer_datetime_format=True)
 	#Qobs = streamflow_data[row['ID']]
 	#Qobs[Qobs<0] = np.NaN
@@ -210,7 +210,7 @@ for index in stationdata_sorted:
 	#Q_sim_Cal = Q.loc[Cal_Start:Cal_End].ix[:,0].values
 	#Q_obs_Cal = Q.loc[Cal_Start:Cal_End].ix[:,1].values
 	Q_sim_Cal = Q[1].values
-	Q_obs_Cal = Q[station].values
+	Q_obs_Cal = Q['Observation'].values
 
 
 
