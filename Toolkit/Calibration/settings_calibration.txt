@@ -1,6 +1,6 @@
 [DEFAULT]
-Root = C:\GitHub\CWatM\Toolkit
-RootPC = C:\GitHub\CWatM\Toolkit
+Root = /Users/admin/Documents/GitHub/CWatM/Toolkit
+RootPC = /Users/admin/Documents/GitHub/CWatM/Toolkit
 Rootbasin = Calibration
 
 # start date of simulation outputs
@@ -10,7 +10,6 @@ timeperiod = daily
 
 [ObservedData]
 Qtss = observed_data/lobith2006.csv
-Qgis = observed_data/Qgis_otta.csv
 
 [Path]
 Templates = templates_CWatM
@@ -19,7 +18,12 @@ ParamRanges = ParamRanges.csv
 
 [Templates]
 ModelSettings = settings_CWatM_template.ini
+
+# for Windows use runpy.bat
 RunModel = runpy.bat
+
+# for Linux and Mac use runpy.sh
+#RunModel = runpy.sh
 
 [Option]
 # Sets initial parameter values according to the para_first array
