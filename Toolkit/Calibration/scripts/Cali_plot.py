@@ -314,10 +314,10 @@ for index in stationdata_sorted:
 	"""
 		
 	# FIGURE OF MONTHLY CLIMATOLOGY FOR CALIBRATION PERIOD
-	Q_obs_clim_Cal = np.zeros(shape=(12,1))*np.NaN
-	Q_sim_clim_Cal = np.zeros(shape=(12,1))*np.NaN
-	Q_obs_clim_Cal_stddev = np.zeros(shape=(12,1))*np.NaN
-	Q_sim_clim_Cal_stddev = np.zeros(shape=(12,1))*np.NaN
+	Q_obs_clim_Cal = np.zeros(shape=(12,1))*np.nan
+	Q_sim_clim_Cal = np.zeros(shape=(12,1))*np.nan
+	Q_obs_clim_Cal_stddev = np.zeros(shape=(12,1))*np.nan
+	Q_sim_clim_Cal_stddev = np.zeros(shape=(12,1))*np.nan
 	for month in range(1,13):
 		mask = ~np.isnan(Q_obs_Cal) & ~np.isnan(Q_sim_Cal)
 		Q_obs_clim_Cal[month-1] = np.mean(Q_obs_Cal[(Dates_Cal.month==month) & mask])
