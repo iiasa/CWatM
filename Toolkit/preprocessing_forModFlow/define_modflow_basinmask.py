@@ -19,7 +19,7 @@ import os
 
 
 def define_modflow_basinmask(res_ModFlow, namefile_map, entrys_file, modflow_crs, modflow_affine, ncol_ModFlow,
-                             nrow_ModFlow, ncol_CWatM, nrow_CWatM, cwatmarea, relative_area):
+                             nrow_ModFlow, ncol_CWatM, nrow_CWatM, cwatmarea):
     """This function uses the mask map of the basin used in CWATM, so the basin is defined at CWATM resolution,
     here we project and interpolate at the choosen resolution the map for ModFlow regular grid.
     arg1: res_ModFlow : choosen ModFlow resolution
@@ -63,9 +63,8 @@ def define_modflow_basinmask(res_ModFlow, namefile_map, entrys_file, modflow_crs
     # Opening the file containing basin cells flag in the rectangular CWATM area (Mask)
     with rasterio.open(namefile_map) as src:
         mask_basin = src.read(1)  # Save basin cells values
-        
-    # 255 is defined as no data
-    tempmask = np.where(mask_basin == 255, 0.0, mask_basin)
+
+    tempmask = np.where(mask_basin == 255, 0.0, 1.0)
 
     cwatmarea = np.where(tempmask == 1, cwatmarea, 0)  # In case, remove cell areas outside of the mask
 
@@ -94,7 +93,7 @@ def define_modflow_basinmask(res_ModFlow, namefile_map, entrys_file, modflow_crs
 
     basin_limits = np.zeros(nrow_ModFlow * ncol_ModFlow, dtype=np.int32)  # Creating the ModFlow basin/region mask
     # Keeping ModFlow cells where more than 50 % of the area is inside the CWATM basin/region mask
-    basin_limits[ratio_ModFlowcellarea > relative_area] = 1  # Cell = 0 will be INACTIVE in ModFlow simulation
+    basin_limits[ratio_ModFlowcellarea > 0.5] = 1  # Cell = 0 will be INACTIVE in ModFlow simulation
     basin_limits = basin_limits.reshape(nrow_ModFlow, ncol_ModFlow)
 
 
