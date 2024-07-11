@@ -128,7 +128,7 @@ def parse_configuration(settingsFileName):
     config = ExtParser()
     config.optionxform = str
     config.sections()
-    config.read(settingsFileName)
+    config.read(settingsFileName, encoding='utf8')
     for sec in config.sections():
         #print sec
         options = config.options(sec)

@@ -362,6 +362,8 @@ class lakes_reservoirs(object):
                 #if "buffer_waterbodies" in binding:
                 #    rectangular = int(loadmap('buffer_waterbodies'))
                 #self.var.waterBodyBuffer = buffer_waterbody(rectangular)
+            else:
+                self.var.waterBodyBuffer = self.var.waterBodyID.copy()
                 
             # ================================
             # Lakes
