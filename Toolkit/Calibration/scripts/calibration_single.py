@@ -134,8 +134,11 @@ ParamRanges = pandas.read_csv(ParamRangesPath,sep=",",index_col=0)
 # ar = np.recfromcsv('example.csv'), my_data = genfromtxt('my_file.csv', delimiter=',')
 
 # Load observed streamflow
-streamflow_data = pandas.read_csv(Qtss_csv,sep=",", parse_dates=True, index_col=0)
-#observed_streamflow = streamflow_data['lobith']
+streamflow_data = pandas.read_csv(Qtss_csv,sep=",", dayfirst=True, parse_dates=True,
+								  index_col=0, header = None, skiprows = 1,
+								  names=['Date', 'Observation'])
+
+observed_streamflow = streamflow_data['Observation']
 #observed_streamflow = streamflow_data[Qtss_col]
 observed_streamflow = streamflow_data.values.astype(np.float32)
 observed_streamflow[observed_streamflow<-9000]= np.nan
