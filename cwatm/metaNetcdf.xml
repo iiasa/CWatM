@@ -478,6 +478,7 @@
 <metanetcdf varname="IceMeltCoef" unit="-"  standard_name="" long_name="" description="Ice melt coefficnet - default  0.007"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="TempMelt" unit="deg C"  standard_name="" long_name="" description="Average temperature at which snow melts"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="SnowCoverS" unit="m"  standard_name="" long_name="" description="snow cover for each layer"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="SnowAge" unit="d"  standard_name="" long_name="" description="Age of snow"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Kfrost" unit="m-1"  standard_name="" long_name="" description="Snow depth reduction coefficient, (HH, p. 7.28)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Afrost" unit="-"  standard_name="" long_name="" description="Daily decay coefficient, (Handbook of Hydrology, p. 7.28)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="FrostIndexThreshold" unit="-"  standard_name="" long_name="" description="Degree Days Frost Threshold (stops infiltration, percolation and capillary rise)"  title="CWATM" author="IIASA WAT" />

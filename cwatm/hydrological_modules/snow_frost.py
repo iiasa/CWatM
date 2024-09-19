@@ -9,6 +9,7 @@
 # -------------------------------------------------------------------------
 
 from cwatm.management_modules.data_handling import *
+import numpy as np
 
 class snow_frost(object):
 
@@ -203,6 +204,13 @@ class snow_frost(object):
         # initial snow depth in elevation zones A, B, and C, respectively  [mm]
         self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / self.var.numberSnowLayersFloat + globals.inZero
 
+
+        # SnowAge
+        self.var.SnowAge = []
+        for i in range(self.var.numberSnowLayers):
+            self.var.SnowAge.append(globals.inZero)
+
+
         # if the EMO dataset for meteo data is used, only rd is given, so we need additional data like elevation and latitude
         # it is loaded in evapopot, but not always evapopot is calculated
         if self.var.only_radiation:
@@ -345,13 +353,29 @@ class snow_frost(object):
             # radiation part from evaporationPot -> snowmelt has now a temperature part and a radiation part
             # from Erlandsen et al. Hydrology Research 52.2 2021
             if self.var.snowmelt_radiation:
+                # R Shrestha and A. Lima: added albedo decay as a function of snow age based on VIC model (Liang et al., 1994)
+                nosnowtoday = (SnowS<0.01).astype(int)
+                # if snowday -> snowage = 0 otherwise it is added up
+                self.var.SnowAge[i] = self.var.SnowAge[i] * nosnowtoday + nosnowtoday
+                
+                # if it melts snow is decaying faster - snow decay from
+                # Livneh et al 2010 https://doi.org/10.1175/2009JHM1174.1
+                SnowAlb = np.where(TavgS >= self.var.TempSnow,
+                                    np.maximum((0.85 * 0.82 ** (self.var.SnowAge[i] ** 0.46)),
+                                              0.4),
+                                    np.maximum((0.85 * 0.94 ** (self.var.SnowAge[i] ** 0.58)),
+                                              0.4))
+                
+                SnowAlb = np.minimum(SnowAlb, 0.85)
+                # For radiation (RNup, Rsdl, Rsds) there is a conversion from W/m2 to MJ/m2/d
                 RNup = 4.903E-9 * (TavgS + 273.16) ** 4
                 # if only radiation is given like in the EMO meteo dataset:
                 if self.var.only_radiation:
                     RLN = RNup * RSNet
                 else:
                     RLN = RNup - self.var.Rsdl
-                RN = (self.var.Rsds - RLN) / 334.0
+                    
+                RN = (self.var.Rsds* (1 - SnowAlb) - RLN) / 334.0 
                 # latent heat of fusion = 0.334 mJKg-1 * desity of water = 1000 khm-3
 
                 SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef + self.var.SnowMeltRad * RN
@@ -359,6 +383,7 @@ class snow_frost(object):
             else:
                 # without radiation
                 SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef * (1 + 0.01 * RainS) * self.var.DtDay
+
             SnowMeltS = np.maximum(SnowMeltS, globals.inZero)
 
             # for which layer the ice melt is calculated with the middle temp.
@@ -374,7 +399,9 @@ class snow_frost(object):
             # Check snowcover and snowmelt
             IceMeltS = np.maximum(IceMeltS, globals.inZero)
 
-            SnowIceMeltS = np.maximum(np.minimum(SnowMeltS + IceMeltS + snowIceM_surplus, self.var.SnowCoverS[i]), globals.inZero)
+            SnowIceMeltS = np.maximum(np.minimum(SnowMeltS + IceMeltS + snowIceM_surplus, 
+                                                 self.var.SnowCoverS[i]), 
+                                      globals.inZero)
 
             # snowIceM_surplus: each elevation band snow melt potential is collected -> one way to melt additianl snow which might
             # be colleted in the valley because of snow retribution
