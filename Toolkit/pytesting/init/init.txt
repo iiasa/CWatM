@@ -1,1 +1,0 @@
-init folder for initial files used to "warm" start CWatM

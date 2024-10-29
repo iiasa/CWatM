@@ -1278,6 +1278,7 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros = Fa
 
             if meteo: inputcounter[value] = idx
 
+
     #checkif latitude is reversed
     turn_latitude = False
     try:

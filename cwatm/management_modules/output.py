@@ -250,7 +250,17 @@ class outputTssMap(object):
             """
 
             first = sorted(list(self.var.sampleAdresses))[0]
-            value = map[self.var.sampleAdresses[first]]
+            #value = map[self.var.sampleAdresses[first]]
+            # changed for snowmodel
+            if self.var.sampleAdresses[first] < 0:
+                value = -999
+            else:
+                try:
+                    value = map[self.var.sampleAdresses[first]]
+                except:
+                    value = -999
+
+
             return value
 
         def checkifvariableexists(name, vari, space):
@@ -312,6 +322,53 @@ class outputTssMap(object):
                     writeTssFileNew(expression, daymonthyear)
                 else:
                     writeTssFile(expression, daymonthyear)
+
+            return expression
+
+        def sample4(expression, what, daymonthyear):
+            """
+            Collects outputpoint value to write it into a time series file
+            calls function :meth:`management_modules.writeTssFile`
+
+            :param expression: array of outputpoint information
+            :param map: 1D array of data
+            :param daymonthyear: day =0 , month =1 , year =2
+            :return: expression
+            """
+
+            #if dateVar['checked'][dateVar['currwrite'] - 1] >= daymonthyear:
+            # using a list with is 1 for monthend and 2 for year end to check for execution
+            value = []
+            #tss.split('_')[-2]
+            map10 = []
+            for i in range(self.var.numberSnowLayers):
+                w = what +"["+str(i)+"]"
+                map10.append(eval(w))
+
+            #map = eval(what)
+
+
+            # if inputmap is not an array give out error message
+            if not (hasattr(map10, '__len__')):
+                msg = "No values in: " + expression[1] + "\nCould not write: " + expression[0]
+                print(CWATMWarning(msg))
+                return expression
+
+            ii = 0
+            for key in sorted(self.var.sampleAdresses):
+                if self.var.sampleAdresses[key] < 0:
+                    v = -999
+                else:
+                    # eval('self.var.SnowCoverS['+str(+self.var.elepoint[ii])+']')[self.var.sampleAdresses[key]]
+                    #print(ii,key, self.var.elepoint[ii],self.var.sampleAdresses[key] )
+                    v = map10[self.var.elepoint[ii]][self.var.sampleAdresses[key]]
+                value.append(v)
+                ii += 1
+
+            expression[3].append(value)
+
+            if dateVar['laststep']:
+                writeTssFile(expression, daymonthyear)
 
             return expression
 
@@ -643,7 +700,11 @@ class outputTssMap(object):
                                 # ************************************************************
         # ***** WRITING RESULTS: TIME SERIES *************************
         # ************************************************************
-        self.var.firstout = firstout(self.var.discharge)
+        # snowcover change for snowmodelling
+        if checkOption('onlysnowmodel'):
+            self.var.firstout = firstout(self.var.SnowCoverS[3])
+        else:
+            self.var.firstout = firstout(self.var.discharge)
 
         if Flags['loud']:
             print("\r%-6i %10s %10.2f     " %(dateVar['currStart'],dateVar['currDatestr'],self.var.firstout), end='')
@@ -684,8 +745,11 @@ class outputTssMap(object):
                         # what = 'changed'
                         # print i, outTss[tss][i][1], what
                         #outTss[tss][i][0].sample2(decompress(eval(what)), 0 )
-                        outTss[tss][i] = sample3(outTss[tss][i],eval(what),0)
-
+                        if checkOption('reportsnowstations'):
+                            if not (Flags['calib']):
+                                outTss[tss][i] = sample4(outTss[tss][i],what,0)
+                        else:
+                            outTss[tss][i] = sample3(outTss[tss][i], eval(what), 0)
                     if tss[-8:] == "monthend":
                         # reporting at the end of the month:
                         outTss[tss][i] = sample3(outTss[tss][i], eval(what), 1)

@@ -609,10 +609,10 @@ class routing_kinematic(object):
 
 
         """
-        a = readmap("C:/work/output/q_pcr")
+        a = readmap("C:\work\output/q_pcr")
         b = nominal(a*100)
         c = ifthenelse(b == 105779, scalar(9999), scalar(0))
-        report(c,"C:/work/output/t3.map")
+        report(c,"C:\work\output/t3.map")
         d = compressArray(c)
         np.where(d == 9999)   #23765
         e = pcr2numpy(c, 0).astype(np.float64)

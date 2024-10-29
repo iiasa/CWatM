@@ -1,1 +1,0 @@
-Exercise 6 output are directed here

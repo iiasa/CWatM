@@ -17,14 +17,16 @@ class runoff_concentration(object):
 
     """
     Runoff concentration
+
     this is the part between runoff generation and routing
     for each gridcell and for each land cover class the generated runoff is concentrated at a corner of a gridcell
     this concentration needs some lag-time (and peak time) and leads to diffusion
     lag-time/ peak time is calculated using slope, length and land cover class
     diffusion is calculated using a triangular-weighting-function
 
-    :math:`Q(t) = sum_{i=0}^{max} c(i) * Q_{mathrm{GW}} (t - i + 1)`
-    where :math:`c(i) = int_{i-1}^{i} {2 over{max}} - | u - {max over {2}} | * {4 over{max^2}} du`
+    :math:`Q(t) = sum_{i=0}^{max} c(i) * Q_{\mathrm{GW}} (t - i + 1)`
+
+    where :math:`c(i) = \int_{i-1}^{i} {2 \over{max}} - | u - {max \over {2}} | * {4 \over{max^2}} du`
 
     see also:
 

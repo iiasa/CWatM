@@ -58,6 +58,9 @@ from cwatm.management_modules.dynamicModel import ModelFrame
 from cwatm.cwatm_model import CWATModel
 from cwatm.management_modules.globals import *
 
+import warnings
+warnings.filterwarnings("ignore")
+
 if "modflow_coupling" in option:
     if checkOption('modflow_coupling'):
         import flopy
@@ -65,7 +68,6 @@ if "modflow_coupling" in option:
 
 #import xlrd
 #import openpyxl
-gdal.UseExceptions()
 
 # ---------------------------
 
@@ -114,6 +116,7 @@ def CWATMexe(settings):
 
 
     """
+
     parse_configuration(settings)
     # print option
     # print binding

@@ -67,8 +67,8 @@ class ExtParser(configparser.ConfigParser):
         re_newintp1 = r'\$\((\w*):(\w*)\)'  # other section
         re_newintp2 = r'\$\((\w*)\)'  # same section
 
-        re_old1 = re.findall(r'\$\(\w*:\w*\)', r_opt)
-        re_old2 = re.findall(r'\$\(\w*\)', r_opt)
+        re_old1 = re.findall('\$\(\w*:\w*\)', r_opt)
+        re_old2 = re.findall('\$\(\w*\)', r_opt)
 
         m_new1 = re.findall(re_newintp1, r_opt)
         m_new2 = re.findall(re_newintp2, r_opt)

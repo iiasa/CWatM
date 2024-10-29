@@ -1,1 +1,0 @@
-This is the folder where output from exercise 4 for basin Rhine will be stored.

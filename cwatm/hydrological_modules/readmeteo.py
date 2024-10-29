@@ -700,7 +700,7 @@ class readmeteo(object):
         # if evaporation has to be calculated load all the meteo map sets
         # Temparture min, max;  Windspeed,  specific humidity or relative humidity, psurf
         # -----------------------------------------------------------------------
-
+        """
         if checkOption('calc_evaporation'):
 
             #self.var.TMin = readnetcdf2('TminMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
@@ -796,7 +796,7 @@ class readmeteo(object):
 
                 # potential evaporation rate from water surface (conversion to [m] per time step)
                 # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
-
+        """
         if Flags['calib']:
             # if first clibration run, store all meteo data in a variable
             if dateVar['curr'] == 1:
@@ -813,17 +813,19 @@ class readmeteo(object):
             no = dateVar['curr'] -1
             self.var.meteo[0,no] = self.var.Precipitation
             self.var.meteo[1,no] = self.var.Tavg
-            self.var.meteo[2,no] = self.var.ETRef
-            self.var.meteo[3,no] = self.var.EWRef
-            j =3
+            #self.var.meteo[2,no] = self.var.ETRef
+            #self.var.meteo[3,no] = self.var.EWRef
+            #j =3
+            j = 1
             if self.var.snowmelt_radiation:
                 if self.var.only_radiation:
-                    self.var.meteo[4,no] = self.var.Rsds
-                    self.var.meteo[5, no] = self.var.EAct
+                    self.var.meteo[j+1,no] = self.var.Rsds
+                    self.var.meteo[j+2, no] = self.var.EAct
                 else:
-                    self.var.meteo[4,no] = self.var.Rsds
-                    self.var.meteo[5,no] = self.var.Rsdl
-                j = 5
+                    self.var.meteo[j+1,no] = self.var.Rsds
+                    self.var.meteo[j+1,no] = self.var.Rsdl
+                #j = 5
+                j = 3
             if self.var.includeGlaciers:
                 self.var.meteo[j+1, no] = self.var.GlacierMelt
                 if not self.var.includeOnlyGlaciersMelt:

@@ -2377,15 +2377,12 @@ class water_demand:
 
                     act_gw = np.copy(self.var.pot_GroundwaterAbstract)
 
-                self.var.waterAbstract = self.var.unmetDemand + self.var.nonFossilGroundwaterAbs + self.var.act_SurfaceWaterAbstract
-
                 self.var.act_irrNonpaddyWithdrawal = self.var.fracVegCover[3] * self.var.irrDemand[3]
                 self.var.act_irrPaddyWithdrawal = self.var.fracVegCover[2] * self.var.irrDemand[2]
 
                 self.var.act_irrNonpaddyDemand = self.var.act_irrNonpaddyWithdrawal.copy()
                 self.var.act_irrPaddyDemand = self.var.act_irrPaddyWithdrawal.copy()
 
-                # end of limit_abstraction = False
             ## End of limit extraction if, then
 
             self.var.act_irrConsumption[2] = divideValues(self.var.act_irrPaddyWithdrawal,

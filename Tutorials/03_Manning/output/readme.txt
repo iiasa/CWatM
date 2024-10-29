@@ -1,1 +1,0 @@
-This is the folder where output from exercise 3 will be stored.

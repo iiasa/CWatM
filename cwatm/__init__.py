@@ -30,7 +30,7 @@ GNU General Public License for more details
 # --------------------------------------------------
 """
 
-__author__ = "Peter Burek, Mikhail Smilovic, Jens de Bruijn, Dor Fridman, Luca Guillaumot, Yusuke Satoh, Peter Greve, Sarah Hanus, Jessica Fennel"
+__author__ = "Peter Burek, Mikhail Smilovic, Jens de Bruijn, Dor Fridman, Luca Guillaumot, Yusuke Satoh, Peter Greve"
 __email__ = 'burek@iiasa.ac.at'
 __version__ = "1.5"
 __date__ = "01/01/2023"

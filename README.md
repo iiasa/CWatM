@@ -17,6 +17,9 @@ check out our [CWatM tutorials on YouTube](https://www.youtube.com/playlist?list
 
 Our repository [CWatM-Earth-30min](https://github.com/iiasa/CWatM-Earth-30min) contains input data for CWatM at 30 arcminutes and further links to climate and higher resolution input data.
 
+# Snow version of CWatM
+
+This version runs only the the snow part (precipitation -> snow, rain, snowmelt. It does not run soil, groundwater, routing.
 
 ## Overview and scope
 

@@ -103,28 +103,28 @@ class CWATModel_ini(DynamicModel):
         # include all the hydrological modules
         self.misc_module = miscInitial(self)
         self.init_module = initcondition(self)
-        self.waterbalance_module = waterbalance(self)
+        #self.waterbalance_module = waterbalance(self)
         self.readmeteo_module = readmeteo(self)
-        self.environflow_module = environflow(self)
-        self.evaporationPot_module = evaporationPot(self)
-        self.inflow_module = inflow(self)
+        #self.environflow_module = environflow(self)
+        #self.evaporationPot_module = evaporationPot(self)
+        #self.inflow_module = inflow(self)
         self.snowfrost_module = snow_frost(self)
         self.soil_module = soil(self)
         self.landcoverType_module = landcoverType(self)
-        self.evaporation_module = evaporation(self)
-        self.groundwater_module = groundwater(self)
-        self.groundwater_modflow_module = groundwater_modflow(self)
-        self.waterdemand_module = water_demand(self)
-        self.wastewater_module = wastewater(self)
-        self.capillarRise_module = capillarRise(self)
-        self.interception_module = interception(self)
-        self.sealed_water_module = sealed_water(self)
-        self.runoff_concentration_module = runoff_concentration(self)
-        self.lakes_res_small_module = lakes_res_small(self)
+        #self.evaporation_module = evaporation(self)
+        #self.groundwater_module = groundwater(self)
+        #self.groundwater_modflow_module = groundwater_modflow(self)
+        #self.waterdemand_module = water_demand(self)
+        #self.wastewater_module = wastewater(self)
+        #self.capillarRise_module = capillarRise(self)
+        #self.interception_module = interception(self)
+        #self.sealed_water_module = sealed_water(self)
+        #self.runoff_concentration_module = runoff_concentration(self)
+        #self.lakes_res_small_module = lakes_res_small(self)
         self.routing_kinematic_module = routing_kinematic(self)
-        self.lakes_reservoirs_module = lakes_reservoirs(self)
-        self.waterquality1 = waterquality1(self)
-        self.waterbalance = waterbalance(self)
+        #self.lakes_reservoirs_module = lakes_reservoirs(self)
+        #self.waterquality1 = waterquality1(self)
+        #self.waterbalance = waterbalance(self)
 
         # ----------------------------------------
 
@@ -143,27 +143,32 @@ class CWATModel_ini(DynamicModel):
         self.misc_module.initial()
         self.init_module.initial()
 
-        self.readmeteo_module.initial()
-        self.inflow_module.initial()
+        self.routing_kinematic_module.initial()
 
-        self.evaporationPot_module.initial()
+        self.output_module.initial()
+        self.readmeteo_module.initial()
+        #self.inflow_module.initial()
+
+        #self.evaporationPot_module.initial()
 
         self.snowfrost_module.initial()
         self.soil_module.initial()
 
         # groundwater before meteo, bc it checks steady state
+        """
         if self.var.modflow and not(Flags['calib']):
             self.groundwater_modflow_module.initial()
         else:
             self.groundwater_module.initial()
-
+        """
         self.landcoverType_module.initial()
-        self.evaporation_module.initial()
+        ###self.evaporation_module.initial()
 
-        self.runoff_concentration_module.initial()
-        self.lakes_res_small_module.initial()
+        #self.runoff_concentration_module.initial()
+        #self.lakes_res_small_module.initial()
 
-        self.routing_kinematic_module.initial()
+
+        """
         if checkOption('includeWaterBodies'):
             self.lakes_reservoirs_module.initWaterbodies()
             self.lakes_reservoirs_module.initial_lakes()
@@ -171,10 +176,11 @@ class CWATModel_ini(DynamicModel):
 
         self.waterdemand_module.initial()
         self.waterbalance_module.initial()
+        """
         # calculate initial amount of water in the catchment
 
-        self.output_module.initial()
-        self.environflow_module.initial()
-        self.waterquality1.initial()
+        #self.output_module.initial()
+        #self.environflow_module.initial()
+        #self.waterquality1.initial()
 
 

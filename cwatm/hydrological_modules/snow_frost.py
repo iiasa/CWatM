@@ -224,6 +224,51 @@ class snow_frost(object):
 
         self.var.FrostIndex = self.var.load_initial('FrostIndex')
 
+
+        # snowcaluclation
+        self.var.snowThreshold = loadmap('SnowFractionThreshold')
+
+        if checkOption('reportsnowstations'):
+        
+            # PB 31/8 Snow calibration
+            where = "GaugesElev"
+            outelev = cbinding(where).split()
+            self.var.outelevation = list(map(int, outelev))
+
+            # self.var.dzRel[11]+self.var.dzRel[7] -> maximal elevation m.a.sl
+            # self.var.dzRel[0]+self.var.dzRel[7] -> minimmal elevation m.a.sl
+
+            elevation = loadmap('Elevation_min')
+
+            self.var.elepoint = []
+            i = 0
+            for key in sorted(self.var.sampleAdresses):
+                hoehe = self.var.outelevation[i]
+
+                if self.var.sampleAdresses[key] < 0:
+                    self.var.elepoint.append(0)
+                else:
+                    # zero level of a cell can be higher than min elevation
+                    e1 = elevation[self.var.sampleAdresses[key]] - self.var.dzRel[0][self.var.sampleAdresses[key]]
+                    erange = []
+                    for dz in self.var.dzSnow:
+                        rel_elev = self.var.dzRel[dz][self.var.sampleAdresses[key]]
+                        erange.append(e1 + rel_elev)
+                    #std1 = self.var.ElevationStD[self.var.sampleAdresses[key]]
+                    #erange = (e1 - std1 * self.var.deltaInvNorm).tolist()
+                    erange.append(-9999.)
+
+                    for e2 in range(len(self.var.dzSnow)):
+                        testE = erange[e2]-(erange[e2]-erange[e2+1])/2
+                        if hoehe > testE:
+                            break
+                    self.var.elepoint.append(e2)
+
+                i += 1
+            ii =1
+
+        
+
     # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
@@ -298,7 +343,7 @@ class snow_frost(object):
 
 
         # if only radiation is given like in the EMO meteo dataset:
-        # then rsdl has to be calculted in this way
+        # then rsdl has to be calculated in this way
         if self.var.snowmelt_radiation:
             if self.var.only_radiation:
                 radian = np.pi / 180 * self.var.lat
@@ -415,11 +460,8 @@ class snow_frost(object):
             self.var.snow_redistributed_previous = snow_redistributed.copy()
 
             # calculation of snow fraction in each elevation band
-            # =< 0.02 SnowCoverS -> no snow
-            sfrac = np.where(self.var.SnowCoverS[i] > 0.02,0.25,0)
-            sfrac = np.where(self.var.SnowCoverS[i] > 0.05, 0.5,sfrac)
-            sfrac = np.where(self.var.SnowCoverS[i] > 0.10, 1.0, sfrac)
-
+            # =< Threshold (e.g.0.05m) SnowCoverS -> no snow
+            sfrac = np.where(self.var.SnowCoverS[i] > self.var.snowThreshold, 1.0, 0.0)
             self.var.SnowFraction += sfrac / self.var.numberSnowLayers
 
             # here outputs are just summed up because equal distribution across elevation zones

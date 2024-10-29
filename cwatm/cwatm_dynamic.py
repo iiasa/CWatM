@@ -58,8 +58,8 @@ class CWATModel_dyn(DynamicModel):
             self.output_module.dynamic()
             return
 
-        self.evaporationPot_module.dynamic()
-        timemeasure("ET pot")  # 2. timing after read input maps
+        #self.evaporationPot_module.dynamic()
+        #timemeasure("ET pot")  # 2. timing after read input maps
 
         # if Flags['check']: return  # if check than finish here
 
@@ -67,15 +67,18 @@ class CWATModel_dyn(DynamicModel):
         """
 
         # ***** INFLOW HYDROGRAPHS (OPTIONAL)****************
-        self.inflow_module.dynamic()
-        self.lakes_reservoirs_module.dynamic()
+        #self.inflow_module.dynamic()
+        #self.lakes_reservoirs_module.dynamic()
 
         # ***** RAIN AND SNOW *****************************************
         self.snowfrost_module.dynamic()
-        timemeasure("Snow")  # 3. timing
+        #timemeasure("Snow")  # 3. timing
+
+        self.output_module.dynamic()
 
         # ***** READ land use fraction maps***************************
 
+        """
         self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'], dynamic=self.var.dynamicLandcover)
         self.capillarRise_module.dynamic()
         timemeasure("Soil 1.Part")  # 4. timing
@@ -184,3 +187,4 @@ class CWATModel_dyn(DynamicModel):
         #report(decompress(runoff), "c:\work\output\dirsum.map")
         #report(decompress(self.sumsum_Precipitation), "c:\work\output\prsum.map")
         #report(decompress(runoff), "c:\work\output/runoff.map")
+        """
