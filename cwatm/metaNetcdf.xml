@@ -812,4 +812,32 @@
 <metanetcdf varname="travelTime" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="waterLevel" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="waterTemperature" unit=""  standard_name="" long_name="" description=""  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="Tdew" unit="C" standard_name="" long_name="" description="Dew point temperature" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="usepySnowClim" unit="-" standard_name="" long_name="if snowclim will be used or not" description="Boolean variable if snowclim will be used or not" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="snowclimParameters" unit="-" standard_name="" long_name="Parameters of snowclim" description="All the parameters needed to run snowclim" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="hours_in_ts" unit="hours" standard_name="" long_name="Hours in time step" description="Hours in time step (default: 4)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="stability" unit="-" standard_name="" long_name="Stability setting" description="Stability setting (default: 1)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="windHt" unit="meters" standard_name="" long_name="Wind height" description="Wind height (default: 10 meters)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="tempHt" unit="meters" standard_name="" long_name="Temperature height" description="Temperature height (default: 2 meters)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="snowoff_month" unit="-" standard_name="" long_name="Month of snow-off" description="Month of snow-off (default: 9)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="snowoff_day" unit="-" standard_name="" long_name="Day of snow-off" description="Day of snow-off (default: 1)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="albedo_option" unit="-" standard_name="" long_name="Albedo option" description="Albedo option (default: 2)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="max_albedo" unit="-" standard_name="" long_name="Maximum albedo" description="Maximum albedo (default: 0.85)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="z_0" unit="meters" standard_name="" long_name="Roughness length" description="Roughness length (default: 0.00001 m)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="z_h" unit="meters" standard_name="" long_name="Roughness length for heat" description="Roughness length for heat (default: z_0/10)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="lw_max" unit="-" standard_name="" long_name="Maximum longwave radiation" description="Maximum longwave radiation (default: 0.1)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="Tstart" unit="°C" standard_name="" long_name="Starting temperature" description="Starting temperature (default: 0°C)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="Tadd" unit="°C" standard_name="" long_name="Temperature adjustment" description="Temperature adjustment (default: -10000°C)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="maxtax" unit="-" standard_name="" long_name="Maximum tax" description="Maximum tax (default: 0.9)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="E0_value" unit="-" standard_name="" long_name="Windless exchange coefficient" description="Windless exchange coefficient (default: 1)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="E0_app" unit="-" standard_name="" long_name="Windless exchange application option" description="Windless exchange application option (default: 1)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="E0_stable" unit="-" standard_name="" long_name="Windless exchange stability option" description="Windless exchange stability option (default: 2)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="Ts_add" unit="°C" standard_name="" long_name="Temperature add factor" description="Temperature add factor (default: 2°C)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="smooth_time_steps" unit="-" standard_name="" long_name="Smoothing time steps" description="Smoothing time steps (default: 12)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="ground_albedo" unit="-" standard_name="" long_name="Ground albedo" description="Ground albedo (default: 0.25)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="snow_emis" unit="-" standard_name="" long_name="Snow emissivity" description="Snow emissivity (default: 0.98)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="snow_dens_default" unit="kg/m³" standard_name="" long_name="Default snow density" description="Default snow density (default: 250 kg/m³)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="G" unit="kJ/m²/s" standard_name="" long_name="Ground conduction" description="Ground conduction (default: 173/86400 kJ/m²/s)" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="snowpack" unit="" standard_name="" long_name="Snowpack variables" description="Representative variables of the snowpack" title="pySnowClim" author="ECCC" />
+<metanetcdf varname="snowModelvars" unit="" standard_name="" long_name="Snowpack variables" description="Representative variables of the snowpack" title="pySnowClim" author="ECCC" />
 </CWATM>

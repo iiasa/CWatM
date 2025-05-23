@@ -11,6 +11,14 @@
 from cwatm.management_modules.data_handling import *
 import numpy as np
 
+from cwatm.hydrological_modules.pySnowClim.snowclim_model import _process_forcings_and_energy, _run_snowclim_step, _prepare_outputs
+from cwatm.hydrological_modules.pySnowClim.createParameterFile import create_dict_parameters
+from cwatm.hydrological_modules.pySnowClim.SnowpackVariables import Snowpack
+from cwatm.hydrological_modules.pySnowClim.SnowModelVariables import SnowModelVariables
+import cwatm.hydrological_modules.pySnowClim.constants as const
+import metpy.calc as mpcalc
+from metpy.units import units
+
 class snow_frost(object):
 
     """
@@ -25,52 +33,52 @@ class snow_frost(object):
     **Global variables**
 
     =====================================  ======================================================================  =====
-    Variable [self.var]                    Description                                                             Unit 
+    Variable [self.var]                    Description                                                             Unit
     =====================================  ======================================================================  =====
     load_initial                           Settings initLoad holds initial conditions for variables                input
-    fracGlacierCover                                                                                               --   
+    fracGlacierCover                                                                                               --
     DtDay                                  seconds in a timestep (default=86400)                                   s
     dzRel                                  relative elevation above flood plains (max elevation above plain)       m
-    Precipitation                          Precipitation (input for the model)                                     m    
-    Tavg                                   Input, average air Temperature                                          K    
-    SnowMelt                               total snow melt from all layers                                         m    
-    Rain                                   Precipitation less snow                                                 m    
-    prevSnowCover                          snow cover of previous day (only for water balance)                     m    
-    SnowCover                              snow cover (sum over all layers)                                        m    
+    Precipitation                          Precipitation (input for the model)                                     m
+    Tavg                                   Input, average air Temperature                                          K
+    SnowMelt                               total snow melt from all layers                                         m
+    Rain                                   Precipitation less snow                                                 m
+    prevSnowCover                          snow cover of previous day (only for water balance)                     m
+    SnowCover                              snow cover (sum over all layers)                                        m
     numberSnowLayersFloat                                                                                          --
-    numberSnowLayers                       Number of snow layers (up to 10)                                        --   
-    glaciertransportZone                   Number of layers which can be mimiced as glacier transport zone         --   
+    numberSnowLayers                       Number of snow layers (up to 10)                                        --
+    glaciertransportZone                   Number of layers which can be mimiced as glacier transport zone         --
     frac_snow_redistribution                                                                                       --
-    DeltaTSnow                             Temperature lapse rate x std. deviation of elevation                    °C   
-    SnowDayDegrees                         day of the year to degrees: 360/365.25 = 0.9856                         --   
-    SeasonalSnowMeltSin                                                                                            --   
-    excludeGlacierArea                                                                                             --   
-    summerSeasonStart                      day when summer season starts = 165                                     --   
-    IceDayDegrees                          days of summer (15th June-15th Sept.) to degree: 180/(259-165)          --   
+    DeltaTSnow                             Temperature lapse rate x std. deviation of elevation                    °C
+    SnowDayDegrees                         day of the year to degrees: 360/365.25 = 0.9856                         --
+    SeasonalSnowMeltSin                                                                                            --
+    excludeGlacierArea                                                                                             --
+    summerSeasonStart                      day when summer season starts = 165                                     --
+    IceDayDegrees                          days of summer (15th June-15th Sept.) to degree: 180/(259-165)          --
     SnowSeason                             seasonal melt factor                                                    m (Ce
-    TempSnowLow                            Temperature below which all precipitation is snow                       °C   
-    TempSnowHigh                           Temperature above which all precipitation is rain                       °C   
-    TempSnow                               Average temperature at which snow melts                                 °C   
-    SnowFactor                             Multiplier applied to precipitation that falls as snow                  --   
-    SnowMeltCoef                           Snow melt coefficient - default: 0.004                                  --   
-    IceMeltCoef                            Ice melt coefficnet - default  0.007                                    --   
-    TempMelt                               Average temperature at which snow melts                                 °C   
-    SnowCoverS                             snow cover for each layer                                               m    
-    Kfrost                                 Snow depth reduction coefficient, (HH, p. 7.28)                         m-1  
-    Afrost                                 Daily decay coefficient, (Handbook of Hydrology, p. 7.28)               --   
-    FrostIndexThreshold                    Degree Days Frost Threshold (stops infiltration, percolation and capil  --   
-    SnowWaterEquivalent                    Snow water equivalent, (based on snow density of 450 kg/m3) (e.g. Tarb  --   
-    FrostIndex                             FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Inde  --   
-    extfrostindex                          Flag for second frostindex                                              --   
-    FrostIndexThreshold2                   FrostIndex2 - Molnau and Bissel (1983), A Continuous Frozen Ground Ind  --   
-    frostInd1                              forstindex 1                                                            --   
-    frostInd2                              frostindex 2                                                            --   
-    frostindexS                            array for frostindex                                                    --   
-    Snow                                   Snow (equal to a part of Precipitation)                                 m    
-    snow_redistributed_previous                                                                                    --   
-    SnowM1                                                                                                         --   
-    IceM1                                                                                                          --   
-    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
+    TempSnowLow                            Temperature below which all precipitation is snow                       °C
+    TempSnowHigh                           Temperature above which all precipitation is rain                       °C
+    TempSnow                               Average temperature at which snow melts                                 °C
+    SnowFactor                             Multiplier applied to precipitation that falls as snow                  --
+    SnowMeltCoef                           Snow melt coefficient - default: 0.004                                  --
+    IceMeltCoef                            Ice melt coefficnet - default  0.007                                    --
+    TempMelt                               Average temperature at which snow melts                                 °C
+    SnowCoverS                             snow cover for each layer                                               m
+    Kfrost                                 Snow depth reduction coefficient, (HH, p. 7.28)                         m-1
+    Afrost                                 Daily decay coefficient, (Handbook of Hydrology, p. 7.28)               --
+    FrostIndexThreshold                    Degree Days Frost Threshold (stops infiltration, percolation and capil  --
+    SnowWaterEquivalent                    Snow water equivalent, (based on snow density of 450 kg/m3) (e.g. Tarb  --
+    FrostIndex                             FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Inde  --
+    extfrostindex                          Flag for second frostindex                                              --
+    FrostIndexThreshold2                   FrostIndex2 - Molnau and Bissel (1983), A Continuous Frozen Ground Ind  --
+    frostInd1                              forstindex 1                                                            --
+    frostInd2                              frostindex 2                                                            --
+    frostindexS                            array for frostindex                                                    --
+    Snow                                   Snow (equal to a part of Precipitation)                                 m
+    snow_redistributed_previous                                                                                    --
+    SnowM1                                                                                                         --
+    IceM1                                                                                                          --
+    fracVegCover                           Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %
     =====================================  ======================================================================  =====
 
 
@@ -92,12 +100,16 @@ class snow_frost(object):
         """
 
         self.var.numberSnowLayersFloat = loadmap('NumberSnowLayers')
+
         # now using dz_relative -> fix to 1 or several
         #if self.var.numberSnowLayersFloat > 1.0:
         #    self.var.numberSnowLayersFloat = 5.0
         self.var.numberSnowLayers = int(self.var.numberSnowLayersFloat)
         self.var.glaciertransportZone = int(loadmap('GlacierTransportZone'))  # default 1 -> highest zone is transported to middle zone
 
+        self.var.usepySnowClim = returnBool('usepySnowClim')
+        # if self.var.usepySnowClim:
+        #     self.var.numberSnowLayers = 1
         # Difference between (average) air temperature at average elevation of
         # pixel and centers of upper- and lower elevation zones [deg C]
         # ElevationStD:   Standard Deviation of the DEM
@@ -195,7 +207,7 @@ class snow_frost(object):
             self.var.SnowMeltRad = loadmap('SnowMeltRad')        # initialize as many snow covers as snow layers -> read them as SnowCover1 , SnowCover2 ...
         else:
             self.var.SnowMeltRad = 1 + globals.inZero
-            
+
         # SnowCover1 is the highest zone
         self.var.SnowCoverS = []
         for i in range(self.var.numberSnowLayers):
@@ -204,19 +216,16 @@ class snow_frost(object):
         # initial snow depth in elevation zones A, B, and C, respectively  [mm]
         self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / self.var.numberSnowLayersFloat + globals.inZero
 
-
         # SnowAge
         self.var.SnowAge = []
         for i in range(self.var.numberSnowLayers):
             self.var.SnowAge.append(globals.inZero)
-
 
         # if the EMO dataset for meteo data is used, only rd is given, so we need additional data like elevation and latitude
         # it is loaded in evapopot, but not always evapopot is calculated
         if self.var.only_radiation:
             self.var.dem = loadmap('dem')
             self.var.lat = loadmap('latitude')
-
 
         # Pixel-average initial snow cover: average of values in 3 elevation
         # zones
@@ -230,6 +239,64 @@ class snow_frost(object):
         self.var.SnowWaterEquivalent = loadmap('SnowWaterEquivalent')
 
         self.var.FrostIndex = self.var.load_initial('FrostIndex')
+
+        if self.var.usepySnowClim:
+            # self.var.lat = loadmap('latitude')
+
+            self.var.stability = loadmap('stability')
+            self.var.windHt = loadmap('windHt')
+            self.var.tempHt = loadmap('tempHt')
+            self.var.snowoff_month = loadmap('snowoff_month')
+            self.var.snowoff_day = loadmap('snowoff_day')
+            self.var.albedo_option = loadmap('albedo_option')
+            self.var.max_albedo = loadmap('max_albedo')
+            self.var.z_0 = loadmap('z_0')
+            self.var.z_h = loadmap('z_h')
+            self.var.lw_max = loadmap('lw_max')
+            self.var.Tstart = loadmap('Tstart')
+            self.var.Tadd = loadmap('Tadd')
+            self.var.maxtax = loadmap('maxtax')
+            self.var.E0_value = loadmap('E0_value')
+            self.var.E0_app = loadmap('E0_app')
+            self.var.E0_stable = loadmap('E0_stable')
+            self.var.Ts_add = loadmap('Ts_add')
+            self.var.smooth_time_steps = loadmap('smooth_time_steps')
+            self.var.ground_albedo = loadmap('ground_albedo')
+            self.var.snow_emis = loadmap('snow_emis')
+            self.var.snow_dens_default = loadmap('snow_dens_default')
+            self.var.G = loadmap('G')
+
+            # The lines below can be replace by for example
+            # stability = loadmap('stability'). The reason is neing loaded before
+            # then passed is to give clarify using the xml file variables.
+            self.var.snowclimParameters = create_dict_parameters(
+                stability = self.var.stability,
+                windHt = self.var.windHt,
+                tempHt = self.var.tempHt,
+                snowoff_month = self.var.snowoff_month,
+                snowoff_day = self.var.snowoff_day,
+                albedo_option = self.var.albedo_option,
+                max_albedo = self.var.max_albedo,
+                z_0 = self.var.z_0,
+                z_h = self.var.z_h,
+                lw_max = self.var.lw_max,
+                Tstart = self.var.Tstart,
+                Tadd = self.var.Tadd,
+                maxtax = self.var.maxtax,
+                E0_value = self.var.E0_value,
+                E0_app = self.var.E0_app,
+                E0_stable = self.var.E0_stable,
+                Ts_add = self.var.Ts_add,
+                smooth_time_steps = self.var.smooth_time_steps,
+                ground_albedo = self.var.ground_albedo,
+                snow_emis = self.var.snow_emis,
+                snow_dens_default = self.var.snow_dens_default,
+                G = self.var.G
+                )
+
+            self.var.snowpack = Snowpack(globals.inZero.shape[0],
+                                         self.var.snowclimParameters)
+            self.var.snowModelvars = SnowModelVariables(globals.inZero.shape[0])
 
     # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
@@ -249,6 +316,7 @@ class snow_frost(object):
         References:
             Molnau and Bissel (1983, A Continuous Frozen Ground Index for Flood Forecasting. In: Maidment, Handbook of Hydrology, p. 7.28, 7.55)
         """
+
         if checkOption('calcWaterBalance'):
             self.var.prevSnowCover = self.var.SnowCover.copy()
         # sinus shaped function between the
@@ -271,7 +339,7 @@ class snow_frost(object):
 
         else:
             SeasSnowMeltCoef = self.var.SnowSeason * np.sin(math.radians((dateVar['doy'] - 81)
-                                                                         * self.var.SnowDayDegrees)) + self.var.SnowMeltCoef
+                                                                            * self.var.SnowDayDegrees)) + self.var.SnowMeltCoef
             if (dateVar['doy'] > self.var.summerSeasonStart) and (dateVar['doy'] < 260):
                 SummerSeason = np.sin(math.radians((dateVar['doy'] - self.var.summerSeasonStart) * self.var.IceDayDegrees))
             else:
@@ -303,7 +371,6 @@ class snow_frost(object):
         #the capacity depends on the fraction of forest or grassland
         #self.var.SnowCoverSCapacity[i]
 
-
         # if only radiation is given like in the EMO meteo dataset:
         # then rsdl has to be calculted in this way
         if self.var.snowmelt_radiation:
@@ -326,7 +393,6 @@ class snow_frost(object):
         month = dateVar['currDate'].month - 1
         # run through all snow layers
         for i in range(self.var.numberSnowLayers):
-
             if self.var.lapseratevar:
                 # lapse rate from Dutra et al. 2022 is negative
                 TavgS = self.var.Tavg + self.var.lapseR[month] * (self.var.dzRel[self.var.dzSnow[i]] - self.var.dzRel[7])
@@ -343,7 +409,7 @@ class snow_frost(object):
                 RainS = (1 - frac_solid) * self.var.Precipitation
             else:
                 SnowS = np.where(TavgS < self.var.TempSnow, self.var.SnowFactor * self.var.Precipitation,
-                                 globals.inZero)
+                                    globals.inZero)
                 # Precipitation is assumed to be snow if daily average temperature is below TempSnow
                 # Snow is multiplied by correction factor to account for undercatch of
                 # snow precipitation (which is common)
@@ -357,15 +423,15 @@ class snow_frost(object):
                 nosnowtoday = (SnowS<0.01).astype(int)
                 # if snowday -> snowage = 0 otherwise it is added up
                 self.var.SnowAge[i] = self.var.SnowAge[i] * nosnowtoday + nosnowtoday
-                
+
                 # if it melts snow is decaying faster - snow decay from
                 # Livneh et al 2010 https://doi.org/10.1175/2009JHM1174.1
                 SnowAlb = np.where(TavgS >= self.var.TempSnow,
                                     np.maximum((0.85 * 0.82 ** (self.var.SnowAge[i] ** 0.46)),
-                                              0.4),
+                                                0.4),
                                     np.maximum((0.85 * 0.94 ** (self.var.SnowAge[i] ** 0.58)),
-                                              0.4))
-                
+                                                0.4))
+
                 SnowAlb = np.minimum(SnowAlb, 0.85)
                 # For radiation (RNup, Rsdl, Rsds) there is a conversion from W/m2 to MJ/m2/d
                 RNup = 4.903E-9 * (TavgS + 273.16) ** 4
@@ -374,8 +440,8 @@ class snow_frost(object):
                     RLN = RNup * RSNet
                 else:
                     RLN = RNup - self.var.Rsdl
-                    
-                RN = (self.var.Rsds* (1 - SnowAlb) - RLN) / 334.0 
+
+                RN = (self.var.Rsds* (1 - SnowAlb) - RLN) / 334.0
                 # latent heat of fusion = 0.334 mJKg-1 * desity of water = 1000 khm-3
 
                 SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef + self.var.SnowMeltRad * RN
@@ -383,6 +449,92 @@ class snow_frost(object):
             else:
                 # without radiation
                 SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef * (1 + 0.01 * RainS) * self.var.DtDay
+
+            if self.var.usepySnowClim:
+                # TODO remove the hard coded unit transformations
+                # ###############################################
+                #               ATTENTION !!!!!                 #
+                # ###############################################
+                # All the transformations in the forcings data were added to adjust
+                # the forcings to the correct units used by pySnowClim, which are:
+                # lrad - downward longwave radiation (kJ/m2/hr) (time x space)
+                # tavg - average air temperature (C) (time x space)
+                # ppt - precipitation (m) (time x space)
+                # solar - downward shortwave radiation (kJ/m2/hr) (time x space)
+                # tdmean  - dewpoint temperature (C) (time x space)
+                # vs - windspeed (m/s) (time x space)
+                # relhum - relative humidity (%) (time x space)
+                # psfc - air pressure (hPa or mb) (time x space)
+                # huss - specific humidity (kg/kg) (time x space)
+
+                # TODO the specific humidity calculation should probably be inside
+                # readmeto.py
+
+                # kPa to hPA
+                Psurf = self.var.Psurf.copy() * 10
+                pressure_with_units = (Psurf) * units('hPa')
+                dewpoint_with_units = (self.var.Tdew) * units('degC')
+
+                # Calculate specific humidity
+                specific_humidity = mpcalc.specific_humidity_from_dewpoint(
+                    pressure_with_units, dewpoint_with_units)
+
+                forcings = {"tavg": self.var.Tavg,
+                            "psfc": Psurf,
+                            # For wind speed there is an adjustment for measurement height made on readmeteo.
+                            # Correction from wind speed measured at 10 m to 2 m height
+                            "vs": self.var.Wind/0.749, # correction back from the internal correction made by CwatM
+                            "ppt": self.var.Precipitation,
+                            # from W/m2 to kJ/m2/hr *time step
+                            "solar": (self.var.Rsds/self.var.WtoMJ)*3.6*self.var.snowclimParameters['hours_in_ts'],
+                            "lrad": (self.var.Rsdl/self.var.WtoMJ)*3.6*self.var.snowclimParameters['hours_in_ts'],
+                            "huss": specific_humidity.magnitude,
+                            # TODO create a variable for RH.
+                            # Qair is in fact RH when using the option useHuss
+                            "relhum": self.var.Qair,
+                            "tdmean": self.var.Tdew
+                    }
+                # TODO Lat is only used in snowcilm to calculate albedo and define the
+                # sizes of the classes. The variable to get lat should be added here after.
+                # There is only 1 albedo scheme which uses lat. Tavg is passed here
+                # only to have the size of the classes correctly.
+                coords = {"lat": self.var.Tavg}
+                forcings_data = {"forcings": forcings, "coords": coords}
+
+                # Because CWatM handles data differenty and it is daily these
+                # values snow_model_instances and index_snowclim are basically
+                # unused by pySnowClim.
+                snow_model_instances = [None]
+                index_snowclim = 0
+
+                # loading necessary data to run the model
+                input_forcings, snow_vars, previous_energy, precip = _process_forcings_and_energy(
+                    index_snowclim, forcings_data, self.var.snowclimParameters, snow_model_instances)
+                # partition between snow and rain made by snowclim
+                SnowS = precip.sfe.copy()
+                RainS = precip.rain.copy()
+
+                time_value = [dateVar['currDate'].year, dateVar['currDate'].month, dateVar['currDate'].day]
+                # Reset to 0 snow at the specified time of year,
+                if self.var.snowoff_month > 0:
+                    if time_value[1] == self.var.snowoff_month and time_value[2] == self.var.snowoff_day:
+                        self.var.snowpack = Snowpack(globals.inZero.shape[0],
+                                                    self.var.snowclimParameters)
+
+                self.var.snowpack, snow_vars = _run_snowclim_step(
+                    snow_vars,
+                    self.var.snowpack,
+                    precip,
+                    forcings,
+                    self.var.snowclimParameters,
+                    coords,
+                    time_value,
+                    previous_energy)
+                snow_vars.CCsnowfall = precip.snowfallcc.copy()
+                self.var.snowModelvars =  _prepare_outputs(snow_vars, precip)
+
+                SnowMeltS = self.var.snowModelvars.SnowMelt.copy()/const.WATERDENS
+                self.var.SnowCoverS[i] = self.var.snowModelvars.SnowWaterEq.copy()/const.WATERDENS
 
             SnowMeltS = np.maximum(SnowMeltS, globals.inZero)
 
@@ -399,9 +551,9 @@ class snow_frost(object):
             # Check snowcover and snowmelt
             IceMeltS = np.maximum(IceMeltS, globals.inZero)
 
-            SnowIceMeltS = np.maximum(np.minimum(SnowMeltS + IceMeltS + snowIceM_surplus, 
-                                                 self.var.SnowCoverS[i]), 
-                                      globals.inZero)
+            SnowIceMeltS = np.maximum(np.minimum(SnowMeltS + IceMeltS + snowIceM_surplus,
+                                                    self.var.SnowCoverS[i]),
+                                        globals.inZero)
 
             # snowIceM_surplus: each elevation band snow melt potential is collected -> one way to melt additianl snow which might
             # be colleted in the valley because of snow retribution
@@ -433,6 +585,8 @@ class snow_frost(object):
             #    snow_redistributed = globals.inZero.copy()
 
             snow_redistributed = np.maximum(snow_redistributed, globals.inZero)
+            # if self.var.usepySnowClim:
+            #     snow_redistributed = globals.inZero.copy()
             # the current snow cover will be reduced by the amount of snow that is redistributed
             # the redistributed snow from higher elevation zone will be added
             self.var.SnowCoverS[i] = self.var.SnowCoverS[i] - snow_redistributed + self.var.snow_redistributed_previous
@@ -463,7 +617,6 @@ class snow_frost(object):
                 self.var.SnowMelt += SnowMeltS * weight
                 self.var.IceMelt += IceMeltS * weight
                 self.var.SnowCover += self.var.SnowCoverS[i] * weight
-
             else:
                 self.var.Snow += SnowS
                 self.var.Rain += RainS
@@ -478,9 +631,6 @@ class snow_frost(object):
             self.var.SnowMelt /= self.var.numberSnowLayersFloat
             self.var.IceMelt /= self.var.numberSnowLayersFloat
             self.var.SnowCover /= self.var.numberSnowLayersFloat
-
-
-
 
         # DEBUG Snow
         if checkOption('calcWaterBalance'):
@@ -508,7 +658,3 @@ class snow_frost(object):
         # SnowWaterEquivalent taken as 0.45
         # Afrost, (daily decay coefficient) is taken as 0.97 (Handbook of Hydrology, p. 7.28)
         # Kfrost, (snow depth reduction coefficient) is taken as 0.57 [1/cm], (HH, p. 7.28) -> from Molnau taken as 0.5 for t> 0 and 0.08 for T<0
-
-
-
-
