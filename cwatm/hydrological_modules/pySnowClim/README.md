@@ -11,8 +11,6 @@ git clone <repository-url>
 # Navigate to the project directory
 cd <repository-name>
 ```
-For more info about how to clone a repo, please read the file 
-[clonerepo.md](https://gitlab.science.gc.ca/ral003/nurture-projects/-/blob/master/clonerepo.md)
 
 
 ## Usage
@@ -21,7 +19,8 @@ To run CWatM one needs to specify the `.ini` file. For instance:
 ```
 python run_cwatm.py settings_myrun.ini
 ```
-The file [`example_settings_Thompson_5min_ERA5-land.ini`](https://gitlab.science.gc.ca/cdas/canada-focused-projections/cwatm-pysnowclim/-/blob/main/example_settings_Thompson_5min_ERA5-land.ini) has an example of how to use the coupled models. More information anout how to run CWatM can be found inside the [CWatM repo](https://github.com/iiasa/CWatM) and in the original CWatM readme.md which can be found bellow. 
+The file `example_settings_Thompson_5min_ERA5-land.ini`
+has an example of how to use the coupled models. More information anout how to run CWatM can be found inside the [CWatM repo](https://github.com/iiasa/CWatM) and in the original CWatM readme.md which can be found bellow.
 
 pySnowclim forcings are:
 * lrad - downward longwave radiation (kJ/m2/hr *time step) (time x space)
@@ -34,9 +33,9 @@ pySnowclim forcings are:
 * psfc - air pressure (hPa or mb) (time x space)
 * huss - specific humidity (kg/kg) (time x space)
 
-CWatM forcings are similar to the ones used by pySnowClim. 
+CWatM forcings are similar to the ones used by pySnowClim.
 However the units are different and an internal conversion is made before the model is called.
-The only missing forcing is `tdmean` which is used only by pySnowClim and must be added in `TdewMaps` in `K`.  
+The only missing forcing is `tdmean` which is used only by pySnowClim and must be added in `TdewMaps` in `K`.
 
 To run CWatM using pySnowClim snow model one only needs to add the necessary parameters inside the `.ini` file. For example:
 
@@ -65,7 +64,7 @@ E0_value = 1
 E0_app = 1
 E0_stable = 2
 Ts_add = 2
-smooth_time_steps = 1 
+smooth_time_steps = 1
 ground_albedo = 0.25
 snow_emis = 0.98
 snow_dens_default = 250
@@ -95,7 +94,7 @@ about the parameters can be found in [Lute et al. (2022)](https://doi.org/10.519
 
 User manual and model documentation at [https://cwatm.iiasa.ac.at](https://cwatm.iiasa.ac.at).
 
-Questions? Start a discussion on our [GitHub forum](https://github.com/iiasa/CWatM/discussions) and 
+Questions? Start a discussion on our [GitHub forum](https://github.com/iiasa/CWatM/discussions) and
 check out our [CWatM tutorials on YouTube](https://www.youtube.com/playlist?list=PLyT8dd_rWLaymQIewMyzVcjMYvPR8Rqtw).
 
 Our repository [CWatM-Earth-30min](https://github.com/iiasa/CWatM-Earth-30min) contains input data for CWatM at 30 arcminutes and further links to climate and higher resolution input data.
@@ -139,4 +138,3 @@ Figure 2: IIASA model nexus
 ## Short to medium-term vision
 
 Our vision for short to medium-term work is to refine the human influence within the water cycle, integrate biodiversity, introduce water quality (e.g., salinization in deltas and eutrophication associated with megacities), and consider qualitative and quantitative measures of transboundary river and groundwater governance into an integrated modelling framework.
-
