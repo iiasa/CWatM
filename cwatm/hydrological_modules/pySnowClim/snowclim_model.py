@@ -364,11 +364,19 @@ def _run_snowclim_step(snow_vars, snowpack, precip, input_forcings, parameters, 
         # Set snow surface temperature
         snow_vars.SnowTemp[exist_snow] = np.minimum(input_forcings['tdmean'] + parameters['Ts_add'],
                                                     0)[exist_snow]
+
+        # summer boost melt for snow towers
+        if time_value[1] >= parameters['downward_radiation_start_month'] and time_value[1] <= parameters['downward_radiation_end_month']:
+            is_snow_tower = (precip.sfe + snowpack.lastswe) > parameters['max_swe_height']
+            if np.any(is_snow_tower):
+                input_forcings['lrad'][is_snow_tower] = input_forcings['lrad'][is_snow_tower]*parameters['downward_radiation_factor']
+
         lastenergy = _process_snowpack(
             input_forcings, parameters, snow_vars, precip, snowpack, coords,
             time_value, previous_energy)
 
         snow_vars = _snowpack_to_snowmodel(snow_vars, snowpack)
+        snowpack.initialize_snowpack_runoff()
     else:
         snowpack.initialize_snowpack_base()
 

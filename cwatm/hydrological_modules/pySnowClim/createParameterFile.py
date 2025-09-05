@@ -14,7 +14,9 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
                           max_albedo=None, z_0=None, z_h=None, lw_max=None,
                           Tstart=None, Tadd=None, maxtax=None, E0_value=None, E0_app=None,
                           E0_stable=None, Ts_add=None, smooth_time_steps =None, ground_albedo=None,
-                          snow_emis=None, snow_dens_default=None, G=None):
+                          snow_emis=None, snow_dens_default=None, G=None, max_swe_height=None,
+                          downward_radiation_factor=None, downward_radiation_start_month=None,
+                          downward_radiation_end_month=None):
     """
     Writes parameters to a dictionary.
     Default values are those used in application of the snow model to the
@@ -32,7 +34,7 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
     :param max_albedo: Maximum albedo (default: 0.85)
     :param z_0: Roughness length (default: 0.00001)
     :param z_h: Roughness length for heat (default: z_0/10)
-    :param lw_max: Maximum longwave radiation (default: 0.1)
+    :param lw_max: Maximum factor water snowpack (default: 0.1)
     :param Tstart: Starting temperature (default: 0)
     :param Tadd: Temperature adjustment (default: -10000)
     :param maxtax: Maximum tax (default: 0.9)
@@ -45,7 +47,10 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
     :param snow_emis: Snow emissivity (default: 0.98)
     :param snow_dens_default: Default snow density (default: 250)
     :param G: Ground conduction (default: 173/86400 kJ/m2/s)
-    :param parameterfilename: Name of the file to save the parameter dictionary
+    :param max_swe_height: Max height of SWE before downward radiation factor starts to work (default: 100 m)
+    :param downward_radiation_factor: Factor to be multiplied by downward radiation when SWE > max_swe_height (default: 1.3)
+    :param downward_radiation_start_month: Month where downward_radiation_factor start to be applied (default: 6)
+    :param downward_radiation_end_month: Month where downward_radiation_factor ends (default: 10)
     """
     if cal is None :
         # Time period for the model run (2001-10-01 to 2002-09-30)
@@ -78,7 +83,11 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
         'ground_albedo': 0.25 if ground_albedo is None else ground_albedo,
         'snow_emis': 0.98 if snow_emis is None else snow_emis, #% snow emissivity (from Snow and Climate, Armstrong + Brun eds, pg 58)
         'snow_dens_default': 250 if snow_dens_default is None else snow_dens_default, # % default snow density (kg/m3) (from Essery et al., (2013), snow compaction option 2, based on Cox et al., (1999))
-        'G': (173 / 86400) if G is None else G #% ground conduction (kJ/m2/s), from Walter et al., (2005)
-    }
+        'G': (173 / 86400) if G is None else G, #% ground conduction (kJ/m2/s), from Walter et al., (2005)
+        'max_swe_height': 100 if max_swe_height is None else max_swe_height,
+        'downward_radiation_factor': 1.3 if downward_radiation_factor is None else downward_radiation_factor,
+        'downward_radiation_start_month': 6 if downward_radiation_start_month is None else downward_radiation_start_month,
+        'downward_radiation_end_month': 10 if downward_radiation_end_month is None else downward_radiation_end_month,    
+        }
 
     return parameters

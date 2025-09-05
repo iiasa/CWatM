@@ -67,6 +67,11 @@ class Snowpack:
         self.rain_in_snow = np.zeros(self.n_lat, dtype=np.float32) #np.full(self.n_lat, np.nan, dtype=np.float32)
         self.runoff = np.zeros(self.n_lat, dtype=np.float32) #np.full(self.n_lat, np.nan, dtype=np.float32)
 
+    def initialize_snowpack_runoff(self):
+        """Initialize runoff related variables except 'lastpacktemp' and 'snowage'."""
+        self.runoff = np.zeros(self.n_lat, dtype=np.float32) #np.full(self.n_lat, np.nan, dtype=np.float32)
+
+
     def initialize_full_snowpack(self):
         """Initialize all snowpack variables, including 'lastpacktemp' and 'snowage'."""
         # Initialize base variables

@@ -69,6 +69,10 @@ ground_albedo = 0.25
 snow_emis = 0.98
 snow_dens_default = 250
 G = 0.0020023148148148147
+max_swe_height = 10
+downward_radiation_factor =1.3
+downward_radiation_start_month = 1
+downward_radiation_end_month = 12
 ```
 The `usepySnowClim` option is the one which defines if CWatM will run with pySnowClim or not. If `usepySnowClim = False` then the code will **IGNORE** pySnowClim and run the original CWatM snow component with the correction of albedo (originally albedo was missing from the snow component).
 
@@ -76,6 +80,14 @@ The `TdewMaps` variable defines where the dew point temperature dataset is locat
 
 Finally the other parameters `[stability, windHt, ... ,  snow_dens_default, G]` are the parameters needed by the original snowclim model. More information
 about the parameters can be found in [Lute et al. (2022)](https://doi.org/10.5194/gmd-15-5045-2022).
+
+
+Some new parameters defined inside the ini file (`max_swe_height`, `downward_radiation_factor`, `downward_radiation_start_month`, `downward_radiation_end_month`) were implemented to avoid the snow tower problem.
+
+- `max_swe_height`: Max height of SWE before downward radiation factor starts to work (default: 100 m)
+- `downward_radiation_factor`: Factor to be multiplied by downward radiation when SWE > max_swe_height (default: 1.3)
+- `downward_radiation_start_month`: Month where downward_radiation_factor start to be applied (default: 6)
+- `downward_radiation_end_month`: Month where downward_radiation_factor ends (default: 10)
 
 
 ***
