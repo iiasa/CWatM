@@ -4,7 +4,7 @@
 #
 # Author:      PB
 #
-# Created:     13/07/2016 
+# Created:     13/07/2016
 # Copyright:   (c) PB 2016
 # -------------------------------------------------------------------------
 
@@ -21,60 +21,60 @@ class readmeteo(object):
     **Global variables**
 
     =====================================  ======================================================================  =====
-    Variable [self.var]                    Description                                                             Unit 
+    Variable [self.var]                    Description                                                             Unit
     =====================================  ======================================================================  =====
-    DtDay                                  seconds in a timestep (default=86400)                                   s    
-    con_precipitation                      conversion factor for precipitation                                     --   
-    con_e                                  conversion factor for evaporation                                       --   
-    ETRef                                  potential evapotranspiration rate from reference crop                   m    
-    Precipitation                          Precipitation (input for the model)                                     m    
+    DtDay                                  seconds in a timestep (default=86400)                                   s
+    con_precipitation                      conversion factor for precipitation                                     --
+    con_e                                  conversion factor for evaporation                                       --
+    ETRef                                  potential evapotranspiration rate from reference crop                   m
+    Precipitation                          Precipitation (input for the model)                                     m
     only_radiation                                                                                                  --
-    TMin                                   minimum air temperature                                                 K    
-    TMax                                   maximum air temperature                                                 K    
-    Tavg                                   Input, average air Temperature                                          K    
-    Rsds                                   short wave downward surface radiation fluxes                            W/m2 
-    EAct                                                                                                           --   
-    Psurf                                  Instantaneous surface pressure                                          Pa   
+    TMin                                   minimum air temperature                                                 K
+    TMax                                   maximum air temperature                                                 K
+    Tavg                                   Input, average air Temperature                                          K
+    Rsds                                   short wave downward surface radiation fluxes                            W/m2
+    EAct                                                                                                           --
+    Psurf                                  Instantaneous surface pressure                                          Pa
     Qair                                   specific humidity                                                       kg/kg
-    Rsdl                                   long wave downward surface radiation fluxes                             W/m2 
-    Wind                                   wind speed                                                              m/s  
-    EWRef                                  potential evaporation rate from water surface                           m    
-    meteomapsscale                         if meteo maps have the same extend as the other spatial static maps ->  --   
-    meteodown                              if meteo maps should be downscaled                                      --   
-    InterpolationMethod                                                                                            --   
-    buffer                                                                                                         --   
-    preMaps                                choose between steady state precipitation maps for steady state modflo  --   
-    tempMaps                               choose between steady state temperature maps for steady state modflow   --   
-    evaTMaps                               choose between steady state ETP water maps for steady state modflow or  --   
-    eva0Maps                               choose between steady state ETP reference maps for steady state modflo  --   
-    glaciermeltMaps                                                                                                --   
-    glacierrainMaps                                                                                                --   
-    wc2_tavg                               High resolution WorldClim map for average temperature                   K    
-    wc4_tavg                               upscaled to low resolution WorldClim map for average temperature        K    
-    wc2_tmin                               High resolution WorldClim map for min temperature                       K    
-    wc4_tmin                               upscaled to low resolution WorldClim map for min temperature            K    
-    wc2_tmax                               High resolution WorldClim map for max temperature                       K    
-    wc4_tmax                               upscaled to low resolution WorldClim map for max temperature            K    
-    wc2_prec                               High resolution WorldClim map for precipitation                         m    
-    wc4_prec                               upscaled to low resolution WorldClim map for precipitation              m    
-    xcoarse_prec                                                                                                   --   
-    ycoarse_prec                                                                                                   --   
-    xfine_prec                                                                                                     --   
-    yfine_prec                                                                                                     --   
-    meshlist_prec                                                                                                  --   
-    xcoarse_tavg                                                                                                   --   
-    ycoarse_tavg                                                                                                   --   
-    xfine_tavg                                                                                                     --   
-    yfine_tavg                                                                                                     --   
-    meshlist_tavg                                                                                                  --   
-    meteo                                                                                                          --   
-    prec                                   precipitation in m                                                      m    
-    temp                                   average temperature in Celsius deg                                      °C   
-    WtoMJ                                  Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6          --   
-    includeGlaciers                                                                                                --   
-    includeOnlyGlaciersMelt                                                                                        --   
-    GlacierMelt                                                                                                    --   
-    GlacierRain                                                                                                    --   
+    Rsdl                                   long wave downward surface radiation fluxes                             W/m2
+    Wind                                   wind speed                                                              m/s
+    EWRef                                  potential evaporation rate from water surface                           m
+    meteomapsscale                         if meteo maps have the same extend as the other spatial static maps ->  --
+    meteodown                              if meteo maps should be downscaled                                      --
+    InterpolationMethod                                                                                            --
+    buffer                                                                                                         --
+    preMaps                                choose between steady state precipitation maps for steady state modflo  --
+    tempMaps                               choose between steady state temperature maps for steady state modflow   --
+    evaTMaps                               choose between steady state ETP water maps for steady state modflow or  --
+    eva0Maps                               choose between steady state ETP reference maps for steady state modflo  --
+    glaciermeltMaps                                                                                                --
+    glacierrainMaps                                                                                                --
+    wc2_tavg                               High resolution WorldClim map for average temperature                   K
+    wc4_tavg                               upscaled to low resolution WorldClim map for average temperature        K
+    wc2_tmin                               High resolution WorldClim map for min temperature                       K
+    wc4_tmin                               upscaled to low resolution WorldClim map for min temperature            K
+    wc2_tmax                               High resolution WorldClim map for max temperature                       K
+    wc4_tmax                               upscaled to low resolution WorldClim map for max temperature            K
+    wc2_prec                               High resolution WorldClim map for precipitation                         m
+    wc4_prec                               upscaled to low resolution WorldClim map for precipitation              m
+    xcoarse_prec                                                                                                   --
+    ycoarse_prec                                                                                                   --
+    xfine_prec                                                                                                     --
+    yfine_prec                                                                                                     --
+    meshlist_prec                                                                                                  --
+    xcoarse_tavg                                                                                                   --
+    ycoarse_tavg                                                                                                   --
+    xfine_tavg                                                                                                     --
+    yfine_tavg                                                                                                     --
+    meshlist_tavg                                                                                                  --
+    meteo                                                                                                          --
+    prec                                   precipitation in m                                                      m
+    temp                                   average temperature in Celsius deg                                      °C
+    WtoMJ                                  Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6          --
+    includeGlaciers                                                                                                --
+    includeOnlyGlaciersMelt                                                                                        --
+    GlacierMelt                                                                                                    --
+    GlacierRain                                                                                                    --
     =====================================  ======================================================================  =====
 
 
@@ -105,7 +105,7 @@ class readmeteo(object):
 
         nameldd = cbinding('Ldd')
         #nameldd = os.path.splitext(nameldd)[0] + '.nc'
-        #latldd, lonldd, cell, invcellldd, row, cols = readCoordNetCDF(nameldd)
+
         latldd, lonldd, cell, invcellldd, rows, cols = readCoord(nameldd)
         maskmapAttr['reso_mask_meteo'] = round(invcellldd / invcellmeteo)
 
@@ -173,7 +173,7 @@ class readmeteo(object):
         self.var.eva0Maps = 'E0Maps'
         self.var.RSDSMaps = 'RSDSMaps'
         self.var.RSDLMaps = 'RSDLMaps'
-        
+
         if self.var.includeGlaciers:
             self.var.glaciermeltMaps = 'MeltGlacierMaps'
             if not self.var.includeOnlyGlaciersMelt:
@@ -223,6 +223,9 @@ class readmeteo(object):
                 meteomaps.append(self.var.glaciermeltMaps)
                 if not self.var.includeOnlyGlaciersMelt:
                     meteomaps.append(self.var.glacierrainMaps)
+
+        if returnBool('usepySnowClim'):
+            meteomaps.append('TdewMaps')
 
         multinetdf(meteomaps,self.var.buffer)
 
@@ -305,76 +308,6 @@ class readmeteo(object):
                 input = sealevelpressure * factor2
         return input
         """
-
-    # def downscaling2_peter(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, x=None, y=None, xfine=None, yfine=None, meshlist=None, downscale = 0):
-    #     """
-    #     Downscaling with only internal (inside the coarse gridcell) interpolation
-    #
-    #     :param input: low input map
-    #     :param downscaleName: High resolution monthly map from WorldClim
-    #     :param wc2: High resolution WorldClim map
-    #     :param wc4: upscaled to low resolution
-    #     :param downscale: 0 for no change, 1: for temperature , 2 for pprecipitation, 3 for psurf
-    #     :return: input - downscaled input data
-    #     :return: wc2
-    #     :return: wc4
-    #     """
-    #     reso = maskmapAttr['reso_mask_meteo']
-    #     resoint = int(reso)
-    #     if self.var.meteomapsscale:
-    #         if downscale == 0:
-    #             return input
-    #         else:
-    #             return input, wc2, wc4
-    #
-    #     down3 = np.kron(input, np.ones((resoint, resoint)))
-    #     # this is creating an array resoint times bigger than input, by copying each item resoint times in x and y direction
-    #
-    #     if downscale == 0:
-    #         down2 = down3[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
-    #         input = compressArray(down2)
-    #         return input
-    #     else:
-    #         if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
-    #             # wc1 = readnetcdf2(downscaleName, dateVar['currDate'], useDaily='month', compress = False, cut = False)
-    #             # wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]
-    #             #print('\n'.join([' '.join(['{:4}'.format(item) for item in row]) for row in wc2]))
-    #
-    #             if downscale == 2:  # precipitation
-    #                 #wc3 looks a like wc3
-    #                 wc3 = wc2.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
-    #                 #wc3mean looks like w4
-    #                 wc3mean = np.nanmean(wc3, axis=(1, 3))
-    #                 # Average of wordclim on the bigger input raster scale
-    #                 wc3kron = np.kron(wc3mean, np.ones((resoint, resoint)))
-    #                 # the average values are spread out to the fine scale
-    #                 #looks like quot_wc, but wc2 = input, wc3kron = wc4
-    #                 wc4 = divideValues(wc2, wc3kron)
-    #                 # wc4 holds the correction multiplicator on fine scale
-    #
-    #     if downscale == 1: # Temperature
-    #         #diff wc is different because originally it is wc4 - input
-    #         #diff_wc is difference on small scale
-    #         diff_wc = wc2 - down3
-    #         # on fine scale: wordclim fine scale - spreaded input data (same value for each big cell)
-    #         wc3 = diff_wc.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
-    #         wc4 = np.nanmean(wc3, axis=(1, 3))
-    #         wc4kron = np.kron(wc4, np.ones((resoint, resoint)))
-    #         # wordclim is averaged on big cell scale and the average is spread out to fine raster
-    #         down1 = diff_wc - wc4kron + down3
-    #         # result is the fine scale input data + the difference of wordclim - input data - the average difference of wordclim - input
-    #         down1 = np.where(np.isnan(down1),down3,down1)
-    #     if downscale == 2:  # precipitation
-    #         # in the other interpolations this is wc2 * quotSmooth, wc2 being the fine worldclimmap cut to map extent, quotSmooth being the interpolated difference between the input and summed worldclim
-    #         down1 = down3 * wc4
-    #         down1 = np.where(np.isnan(down1),down3,down1)
-    #         down1 = np.where(np.isinf(down1), down3, down1)
-    #
-    #     down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
-    #     input = compressArray(down2)
-    #     return input, wc2, wc4
-
-     # --- end downscaling ----------------------------
 
     def downscaling2(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, x=None, y=None, xfine=None, yfine=None, meshlist=None, MaskMapBoundaries= None, downscale = 0):
         """
@@ -526,7 +459,7 @@ class readmeteo(object):
                 down1 = diff_wc - wc4kron + down3
                 # result is the fine scale input data + the difference of wordclim - input data - the average difference of wordclim - input
                 #down1 = np.where(np.isnan(down1), down3, down1)
-            
+
             down1 = np.where(np.isnan(down1),down3,down1)
 
         if downscale == 2:  # precipitation
@@ -797,6 +730,15 @@ class readmeteo(object):
                 # potential evaporation rate from water surface (conversion to [m] per time step)
                 # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
 
+        if returnBool('usepySnowClim'):
+            self.var.Tdew = readmeteodata('TdewMaps',
+                                          dateVar['currDate'],
+                                          addZeros=True,
+                                          mapsscale = self.var.meteomapsscale,
+                                          buffering= self.var.buffer)
+            if checkOption('TemperatureInKelvin'):
+                self.var.Tdew -= ZeroKelvin
+
         if Flags['calib']:
             # if first clibration run, store all meteo data in a variable
             if dateVar['curr'] == 1:
@@ -829,4 +771,3 @@ class readmeteo(object):
                 if not self.var.includeOnlyGlaciersMelt:
                     self.var.meteo[j+2, no] = self.var.GlacierRain
             ii =1
-

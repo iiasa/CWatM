@@ -4,6 +4,8 @@ netCDF4
 gdal
 flopy 3.3.2
 xmipy
+xarray
+metpy
 
 Python 3.8
 
