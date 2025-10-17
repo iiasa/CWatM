@@ -395,6 +395,24 @@ class snow_frost(object):
             self.var.snowpack = self.var.Snowpack(globals.inZero.shape[0],
                                          self.var.snowclimParameters)
             self.var.snowModelvars = SnowModelVariables(globals.inZero.shape[0])
+
+
+            self.var.pySnowClimInitVars = ['lastpacktemp', 'snowage', 'lastalbedo', 'lastswe', 'lastsnowdepth', 'packsnowdensity', 'lastpackcc', 'lastpackwater', 'rain_in_snow']
+
+            if returnBool('load_initial_pySnowClim'):
+                loadInitFilepySnowClim = cbinding('initLoad_pySnowClim')
+                #with np.load(loadInitFilepySnowClim) as data:
+                #    for k in self.var.pySnowClimInitVars:
+                #        if k in data.files:
+                #            setattr(self.var.snowpack, k, data[k])
+                for v in self.var.pySnowClimInitVars:
+                    var = readnetcdfInitial(loadInitFilepySnowClim, v)
+                    setattr(self.var.snowpack, v, var)
+
+            self.var.saveInitpySnowClim = returnBool('save_initial_pySnowClim')
+            if self.var.saveInitpySnowClim:
+                self.var.saveInitFilepySnowClim = cbinding('initSave_pySnowClim')
+
     # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
@@ -538,6 +556,18 @@ class snow_frost(object):
             self.var.IceMelt = globals.inZero.copy()
             self.var.iceEvap = globals.inZero.copy()
 
+            # if save initial pySnowClim
+            if self.var.saveInitpySnowClim and self.var.saveInit:
+                if  dateVar['curr'] in dateVar['intInit']:
+                    saveFile = self.var.saveInitFilepySnowClim + "_" + "%02d%02d%02d.npz" % (dateVar['currDate'].year, dateVar['currDate'].month, dateVar['currDate'].day)
+                    initVar = []
+                    #var_dict = {k : v for k, v in vars(self.var.snowpack).items() if k in self.var.pySnowClimInitVars}
+                    #np.savez_compressed(saveFile, **var_dict)
+
+                    for v in self.var.pySnowClimInitVars:
+                        variable = "self.var.snowpack."+v
+                        initVar.append(eval(variable))
+                    writeIniNetcdf(saveFile, self.var.pySnowClimInitVars, initVar)
 
         else:
 

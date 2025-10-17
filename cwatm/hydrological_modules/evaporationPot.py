@@ -79,9 +79,9 @@ class evaporationPot(object):
     def vari_pySnowClim(self,Psycon, RNup, RLN, ESat):
         # if pysnowclim vraibles missing are calculated
         if self.var.usepySnowClim:
+            # for pySnowclim
+            eps = 0.621979008
             if self.var.only_radiation:
-                # for pySnowclim
-                eps = 0.621979008
                 # molecular weight of water vapor / The molecular weight of dry air: 18.015 g/mol / 28.964 g/mol
                 self.var.Psurf = Psycon / 0.665E-3
                 self.var.Rsdl = RNup - RLN
