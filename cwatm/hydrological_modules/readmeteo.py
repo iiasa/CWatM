@@ -274,7 +274,6 @@ class readmeteo(object):
             if self.var.usepySnowClim and self.var.useTdew:
                 meteomaps.append('TdewMaps')
 
-
             if self.var.includeGlaciers:
                 meteomaps.append(self.var.glaciermeltMaps)
                 if not self.var.includeOnlyGlaciersMelt:

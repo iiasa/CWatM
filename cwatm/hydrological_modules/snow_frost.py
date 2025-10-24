@@ -260,7 +260,6 @@ class snow_frost(object):
             self.var.dem = loadmap('dem')
             self.var.lat = loadmap('latitude')
 
-
         # Pixel-average initial snow cover: average of values in 3 elevation
         # zones
 
@@ -396,7 +395,20 @@ class snow_frost(object):
                                          self.var.snowclimParameters)
             self.var.snowModelvars = SnowModelVariables(globals.inZero.shape[0])
 
-
+            # tarboton albedo alg requires latitude
+            if self.var.albedo_option == 2:
+                try:
+                    self.var.lat = loadmap('latitude')
+                except (CWATMError, CWATMFileError) as e:
+                    rows = maskmapAttr['row']
+                    cell_size = maskmapAttr['cell']
+                    yu = maskmapAttr['y']
+                    yd = yu - rows*cell_size
+                    latitudes = np.linspace(yu, yd, rows, endpoint=False)
+                    latitudes = latitudes - cell_size/2
+                    latitudes_hstack = np.transpose([latitudes]*maskmapAttr['col'])
+                    self.var.lat = compressArray(latitudes_hstack)
+                               
             self.var.pySnowClimInitVars = ['lastpacktemp', 'snowage', 'lastalbedo', 'lastswe', 'lastsnowdepth', 'packsnowdensity', 'lastpackcc', 'lastpackwater', 'rain_in_snow']
 
             if returnBool('load_initial_pySnowClim'):
@@ -493,11 +505,17 @@ class snow_frost(object):
                         "relhum": self.var.rhs,
                         "tdmean": self.var.Tdew
                 }
+            
             # TODO Lat is only used in snowcilm to calculate albedo and define the
             # sizes of the classes. The variable to get lat should be added here after.
             # There is only 1 albedo scheme which uses lat. Tavg is passed here
             # only to have the size of the classes correctly.
-            coords = {"lat": self.var.Tavg}
+            if self.var.albedo_option == 2:
+                coords = {"lat": self.var.lat}
+            else:
+                # lat only required with tarboton albedo
+                coords = {"lat": self.var.Tavg}
+
             forcings_data = {"forcings": forcings, "coords": coords}
 
             # Because CWatM handles data differenty and it is daily these
@@ -528,6 +546,7 @@ class snow_frost(object):
                 coords,
                 time_value,
                 previous_energy)
+            
             snow_vars.CCsnowfall = precip.snowfallcc.copy()
             self.var.snowModelvars =  self.var._prepare_outputs(snow_vars, precip)
 
