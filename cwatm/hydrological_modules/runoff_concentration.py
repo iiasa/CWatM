@@ -197,6 +197,7 @@ class runoff_concentration(object):
 
     # --------------------------------------------------------------------------
 
+
     def dynamic(self):
         """
         Calculate runoff concentration for current time step.

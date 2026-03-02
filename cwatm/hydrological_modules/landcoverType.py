@@ -227,6 +227,7 @@ class landcoverType(object):
     for pixel-scale water balance calculations.
     """
 
+
     def __init__(self, model):
         """
         Initialize land cover type module.

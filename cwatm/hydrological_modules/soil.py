@@ -247,6 +247,7 @@ class soil(object):
 
         # --------------------------------------------------------------------------
 
+
     def dynamic(self, coverType, No):
         """
         Calculate soil water dynamics for a specific land cover type.

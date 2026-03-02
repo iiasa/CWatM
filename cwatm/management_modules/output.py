@@ -278,7 +278,6 @@ class outputTssMap(object):
                 self.var.catcharea[key] = np.bincount(self.var.evalCatch[key], weights=self.var.cellArea)[key]
 
         # for storing water cycle variable the list of variables if pulled together
-
         self.var.watercycle = [['Precipitation', 'areasum_m3', 'flux'], ['Rain', 'areasum_m3', 'flux'], ['Snow', 'areasum_m3', 'flux'],
                       ['SnowMelt','areasum_m3','flux'],['IceMelt', 'areasum_m3', 'flux'],
                       ['sum_gwRecharge', 'areasum_m3', 'flux'], ['perc3toGW_GW', 'areasum_m3', 'flux'],
