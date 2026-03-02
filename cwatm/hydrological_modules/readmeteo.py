@@ -322,7 +322,6 @@ class readmeteo(object):
             self.var.yfine_tavg = 0
             self.var.meshlist_tavg = 0
 
-
         # read dem for making a anomolydem between high resolution dem and low resoultion dem
 
 # --------------------------------------------------------------------------

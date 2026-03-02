@@ -24,6 +24,7 @@ from cwatm.management_modules.checks import *
 from cwatm.management_modules.data_handling import *
 from cwatm.management_modules.replace_pcr import *
 
+
 class outputTssMap(object):
 
     """
@@ -276,6 +277,7 @@ class outputTssMap(object):
 
                 self.var.evalCatch[key] = catchment1(self.var.dirUp, outp)
                 self.var.catcharea[key] = np.bincount(self.var.evalCatch[key], weights=self.var.cellArea)[key]
+
 
         # for storing water cycle variable the list of variables if pulled together
         self.var.watercycle = [['Precipitation', 'areasum_m3', 'flux'], ['Rain', 'areasum_m3', 'flux'], ['Snow', 'areasum_m3', 'flux'],

@@ -132,4 +132,3 @@ class interception(object):
         self.var.potTranspiration[No] = np.maximum(0, self.var.potTranspiration[No] - self.var.interceptEvap[No])
 
 
-

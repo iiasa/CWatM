@@ -168,6 +168,7 @@ class evaporation(object):
             Potential evaporation from bare soil and potential transpiration values
         """
 
+
         # get crop coefficient
         # to get ETc from ET0 x kc factor  ((see http://www.fao.org/docrep/X0490E/x0490e04.htm#TopOfPage figure 4:)
         # crop coefficient read for forest and grassland from file
@@ -181,7 +182,6 @@ class evaporation(object):
         self.var.cropKC[No] = ((self.var.cropKCmonth[No, dplus, :] - self.var.cropKCmonth[No, dateVar['30day'], :]) / 30. * 
                                dpart + self.var.cropKCmonth[No, dateVar['30day'], :])
         cropKC_landCover = self.var.cropKC[No]
-
 
         if self.var.includeCrops:
             # includeCrops allows for crops and fallow land to makeup the landcovers grasslands and non-paddy, and
