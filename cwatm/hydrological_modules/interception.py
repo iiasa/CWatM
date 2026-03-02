@@ -127,7 +127,6 @@ class interception(object):
             self.var.interceptEvap[No] = np.maximum(np.minimum(self.var.interceptStor[No], self.var.EWRef), 
                                                     globals.inZero)
 
-
         # update interception storage and potTranspiration
         self.var.interceptStor[No] = self.var.interceptStor[No] - self.var.interceptEvap[No]
         self.var.potTranspiration[No] = np.maximum(0, self.var.potTranspiration[No] - self.var.interceptEvap[No])

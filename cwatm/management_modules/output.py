@@ -274,8 +274,6 @@ class outputTssMap(object):
                 outp = globals.inZero.copy()
                 outp[self.var.sampleAdresses[key]] = key
 
-
-
                 self.var.evalCatch[key] = catchment1(self.var.dirUp, outp)
                 self.var.catcharea[key] = np.bincount(self.var.evalCatch[key], weights=self.var.cellArea)[key]
 

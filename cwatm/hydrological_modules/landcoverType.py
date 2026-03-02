@@ -225,8 +225,6 @@ class landcoverType(object):
     The module handles land cover fraction dynamics, calls soil processes
     for each type, and aggregates results weighted by land cover fractions
     for pixel-scale water balance calculations.
-
-
     """
 
     def __init__(self, model):

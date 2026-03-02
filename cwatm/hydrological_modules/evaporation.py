@@ -182,7 +182,6 @@ class evaporation(object):
                                dpart + self.var.cropKCmonth[No, dateVar['30day'], :])
         cropKC_landCover = self.var.cropKC[No]
 
-
         if self.var.includeCrops:
             # includeCrops allows for crops and fallow land to makeup the landcovers grasslands and non-paddy, and
             # maintains including a representative vegetation. It is developed to allow users to decide on the crops

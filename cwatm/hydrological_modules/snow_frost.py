@@ -261,7 +261,6 @@ class snow_frost(object):
             self.var.dem = loadmap('dem')
             self.var.lat = loadmap('latitude')
 
-
         # Pixel-average initial snow cover: average of values in 3 elevation
         # zones
 

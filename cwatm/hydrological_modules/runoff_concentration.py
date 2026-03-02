@@ -195,10 +195,6 @@ class runoff_concentration(object):
         else:
             self.var.gridcell_storage = 0
 
-
-
-
-
     # --------------------------------------------------------------------------
 
     def dynamic(self):

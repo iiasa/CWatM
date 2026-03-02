@@ -246,7 +246,6 @@ class soil(object):
             self.var.gwdepth_adjuster = loadmap('gw_depth_sim_obs')
 
         # --------------------------------------------------------------------------
-        # --------------------------------------------------------------------------
 
     def dynamic(self, coverType, No):
         """
