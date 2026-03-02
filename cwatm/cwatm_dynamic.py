@@ -179,6 +179,9 @@ class CWATModel_dyn(DynamicModel):
         self.inflow_module.dynamic()
         self.lakes_reservoirs_module.dynamic()
 
+        # ***** READ land use fraction maps***************************
+        self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'], dynamic=self.var.dynamicLandcover)
+
         # ***** RAIN AND SNOW *****************************************
         self.snowfrost_module.dynamic()
         timemeasure("Snow")  # 3. timing
@@ -186,9 +189,6 @@ class CWATModel_dyn(DynamicModel):
         # if only snow the skip the rest:
         if not self.var.stopaftersnow:
 
-        # ***** READ land use fraction maps***************************
-            self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'],
-                                                              dynamic=self.var.dynamicLandcover)
             self.capillarRise_module.dynamic()
             timemeasure("Soil 1.Part")  # 4. timing
 

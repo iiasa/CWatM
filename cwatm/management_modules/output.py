@@ -279,6 +279,75 @@ class outputTssMap(object):
                 self.var.evalCatch[key] = catchment1(self.var.dirUp, outp)
                 self.var.catcharea[key] = np.bincount(self.var.evalCatch[key], weights=self.var.cellArea)[key]
 
+        # for storing water cycle variable the list of variables if pulled together
+
+        self.var.watercycle = [['Precipitation', 'areasum_m3', 'flux'], ['Rain', 'areasum_m3', 'flux'], ['Snow', 'areasum_m3', 'flux'],
+                      ['SnowMelt','areasum_m3','flux'],['IceMelt', 'areasum_m3', 'flux'],
+                      ['sum_gwRecharge', 'areasum_m3', 'flux'], ['perc3toGW_GW', 'areasum_m3', 'flux'],
+                      ['runoff', 'areasum_m3','flux'], ['sum_runoff','areasum_m3', 'flux'], ['baseflow', 'areasum_m3', 'flux'],
+                      ['totalET', 'areasum_m3', 'evap'], ['sum_actTransTotal', 'areasum_m3', 'evap'],
+                      ['sum_actBareSoilEvap','areasum_m3', 'evap'], ['sum_interceptEvap', 'areasum_m3', 'evap'], ['sum_openWaterEvap', 'areasum_m3', 'evap'],
+                      ['snowEvap', 'areasum_m3', 'evap'], ['EvapoChannel', 'sum_m3', 'evap'],
+                      ['actTransTotal_forest', 'areasum_m3', 'evap'], ['actTransTotal_grasslands', 'areasum_m3', 'evap'],['actTransTotal_paddy', 'areasum_m3', 'evap'], ['actTransTotal_nonpaddy', 'areasum_m3', 'evap'],
+
+                      ['tws', 'areasum_m3', 'storage'],['totalSto','areasum_m3','storage'],
+                      ['SnowCover', 'areasum_m3', 'storage'],['sum_interceptStor', 'areasum_m3', 'storage'],['sum_soil', 'areasum_m3', 'storage'],
+                      ['storGroundwater','areasum_m3', 'storage'], ['channelStorage', 'sum_m3', 'storage'],
+
+                      ['discharge', 'm3s-1', 'discharge'], ['dis_outlet', 'm3s-1', 'discharge'], ['cellArea', 'sum_m3', 'area']]
+
+        if checkOption('CapillarRise'):
+            temp = [['sum_capRiseFromGW','areasum_m3','flux'],['capillar','areasum_m3','flux']]
+            self.var.watercycle.extend(temp)
+        if checkOption('preferentialFlow'):
+            temp = [['prefFlow_GW','areasum_m3','flux']]
+            self.var.watercycle.extend(temp)
+        if checkOption('includeGlaciers'):
+            temp = [['GlacierMelt','areasum_m3','glacier'],['GlacierRain','areasum_m3','glacier']]
+            self.var.watercycle.extend(temp)
+        if checkOption('includeRunoffConcentration'):
+            temp = [['gridcell_storage','areasum_m3','storage']]
+            self.var .watercycle.extend(temp)
+
+        # waterbodies
+        if checkOption('includeWaterBodies'):
+            temp = [['lakeResStorage','sum_m3','lake'],['EvapWaterBodyM','areasum_m3','lake'],
+                    ['lakeResInflowM','areasum_m3','lake'],['lakeResOutflowM','areasum_m3','lake'],
+                    ['act_bigLakeResAbst','areasum_m3','lake']]
+            self.var.watercycle.extend(temp)
+        if checkOption('includeWaterBodies') and returnBool('useSmallLakes'):
+            temp = [['smalllakeStorage','sum_m3','smalllake'],['smallevapWaterBody','areasum_m3','smallake']]
+            self.var.watercycle.extend(temp)
+
+        # Waterdemand
+        if checkOption('includeWaterDemand'):
+            temp = [['addtoevapotrans','areasum_m3','demand'],['unmet_lost','areasum_m3','demand'],['unmetDemand','areasum_m3','demand'],
+                    ['act_nonIrrConsumption','areasum_m3','demand'],['act_totalIrrConsumption','areasum_m3','demand'],
+                    ['act_nonpaddyConsumption','areasum_m3','demand'],['act_paddyConsumption','areasum_m3','demand'],['act_livConsumption','areasum_m3','demand'],
+                    ['act_indConsumption','areasum_m3','demand'],['act_domConsumption','areasum_m3','demand'],['act_livConsumption','areasum_m3','demand'],
+                    ['act_irrWithdrawal','areasum_m3','demand'],['act_nonIrrWithdrawal','areasum_m3','demand'],['act_domWithdrawal','areasum_m3','demand'],
+                    ['act_indWithdrawal','areasum_m3','demand'],['act_livWithdrawal','areasum_m3','demand'],['act_SurfaceWaterAbstract','areasum_m3','demand'],
+                    ['act_irrNonpaddyWithdrawal','areasum_m3','demand'],['pot_GroundwaterAbstract','areasum_m3','demand'],['nonFossilGroundwaterAbs','areasum_m3','demand'],
+                    ['returnFlow','areasum_m3','demand'],
+                    ['returnflowIrr','areasum_m3','demand'],['returnflowNonIrr','areasum_m3','demand'],['returnflowIrr','areasum_m3','demand'],
+                    ['returnflowNonIrr','areasum_m3','demand']]
+            self.var.watercycle.extend(temp)
+        if checkOption('sectorSourceAbstractionFractions'):
+            temp = [['Lake_Irrigation','areasum_m3','sector'],['Lake_Industry','areasum_m3','sector'],['Lake_Livestock','areasum_m3','sector'],
+                    ['Lake_Domestic','areasum_m3','sector'],['Channel_Irrigation','areasum_m3','sector'],['Channel_Domestic','areasum_m3','sector'],
+                    ['Channel_Livestock','areasum_m3','sector'],['Channel_Industry','areasum_m3','sector'],['GW_Irrigation','areasum_m3','sector'],
+                    ['GW_Industry','areasum_m3','sector'],['GW_Livestock','areasum_m3','sector'],['GW_Domestic','areasum_m3','sector'],
+                    ['Res_Irrigation','areasum_m3','sector'],['Res_Industry','areasum_m3','sector'],['Res_Livestock','areasum_m3','sector'],
+                    ['Res_Domestic','areasum_m3','sector']]
+            self.var.watercycle.extend(temp)
+
+        # Modflow
+        if checkOption('modflow_coupling'):
+            temp = [['leakageIntoGw','areasum_m3','Modflow'],['leakageIntoRunoff','areasum_m3','Modflow'],['riverbedExchangeM','areasum_m3','Modflow'],
+                    ['lakebedExchangeM','areasum_m3','Modflow'],['leakage','areasum_m3','Modflow'],['Pumping_daily','areasum_m3','Modflow'],
+                    ['modfPumpingM_actual','areasum_m3','Modflow'],['groundwater_storage_available','areasum_m3','Modflow']]
+            self.var.watercycle.extend(temp)
+
         # ------------------------------------------------------------------------------
         # report TSS
         # loop through all the section with output variables
@@ -393,6 +462,9 @@ class outputTssMap(object):
             using difflib fuzzy string matching when requested variable is not found.
             Handles array-indexed variables by checking base variable name.
             """
+            # adding expression WaterCycle to space to avoid error if watercycle should be stored
+            space.append("WaterCycle")
+
             if not (vari in space):
                 closest = difflib.get_close_matches(vari, space)
                 if not closest: closest = ["- no match -"]
@@ -465,6 +537,73 @@ class outputTssMap(object):
                     writeTssFile(expression, daymonthyear)
 
             return expression
+
+        def sample_watercycle(expression, daymonthyear):
+            """
+            Sample values at gauge points and accumulate for time series output.
+
+            Parameters
+            ----------
+            expression : list
+                Output configuration containing [filename, variable, format_flag, data_list, type]
+            daymonthyear : int
+                Temporal aggregation level: 0=daily, 1=monthly, 2=annual
+
+            Returns
+            -------
+            list
+                Updated expression with accumulated time series data
+
+            Notes
+            -----
+            Handles three types of spatial aggregation:
+            - Point values: Direct sampling at gauge coordinates
+            - Area averages: Catchment-weighted mean values
+            - Area sums: Catchment-weighted total values
+
+            Accumulates values during simulation and writes complete time series
+            to file at the end of the simulation period. Supports both CSV and
+            traditional TSS formats.
+            """
+
+            # if dateVar['checked'][dateVar['currwrite'] - 1] >= daymonthyear:
+            # using a list with is 1 for monthend and 2 for year end to check for execution
+            value = []
+
+            for key in sorted(self.var.sampleAdresses):
+
+                j = 0
+                vv = []
+                #for var in variables:
+                for var in self.var.watercycle:
+                    map = eval("self.var." + var[0])
+                    # if inputmap is not an array give out error message
+                    if not (hasattr(map, '__len__')):
+                        msg = "No values in: " + var + "\nCould not write: " + expression[0]
+                        print(CWATMWarning(msg))
+                        return expression
+
+                    if var[1] in ['areasum_m3']:  # value from catchment
+                       v = np.bincount(self.var.evalCatch[key], weights=map * self.var.cellArea)[key]
+                    elif var[1] in ['sum_m3']:  # value summed up but without  cellarea
+                        v = np.bincount(self.var.evalCatch[key], weights=map)[key]
+                    else:  # from single cell for discharge only
+                        v = map[self.var.sampleAdresses[key]]
+                    value.append(v)
+                    j += 1
+                # end loop variables
+                #value.append(vv)
+            # end loop point
+
+            expression[3].append(value)
+
+            if dateVar['laststep']:
+               writeTssFileNew(expression, daymonthyear,True)
+
+
+            return expression
+
+
 
 
         def sample4(expression, what, daymonthyear):
@@ -561,7 +700,7 @@ class outputTssMap(object):
 
             outputFile.close()
 
-        def writeTssFileNew(expression, daymonthyear):
+        def writeTssFileNew(expression, daymonthyear, flagCycle = False):
             """
             Write modern CSV format time series file with date headers.
 
@@ -588,7 +727,10 @@ class outputTssMap(object):
             outputFilename = expression[0]
 
             if expression[2]:
-                writeFileHeaderNew(outputFilename,expression)
+                if flagCycle:
+                    writeFileHeaderWaterCycle(outputFilename, expression)
+                else:
+                    writeFileHeaderNew(outputFilename,expression)
                 outputFile = open(outputFilename, "a")
             else:
                 outputFile = open(outputFilename, "w")
@@ -611,7 +753,7 @@ class outputTssMap(object):
                             if isinstance(value, Decimal):
                                 row += ",1e31"
                             else:
-                                row += ",%10g" % value
+                                row += ",%13.10g" % value
                         row += "\n"
                         outputFile.write(row)
 
@@ -670,6 +812,65 @@ class outputTssMap(object):
             outputFile.write(head)
 
             outputFile.close()
+
+        def writeFileHeaderWaterCycle(outputFilename, expression):
+            """
+            Write CSV-style header with metadata and gauge coordinates.
+
+            Parameters
+            ----------
+            outputFilename : str
+                Full path to output CSV file
+            expression : list
+                Output configuration containing gauge information and metadata
+
+            Notes
+            -----
+            Creates comprehensive CSV header with:
+            - Model run metadata (settings file, execution time, version info)
+            - Git branch and hash information for reproducibility
+            - Longitude coordinates row for all gauges
+            - Latitude coordinates row for all gauges
+            - Column headers with gauge identifiers (G1, G2, etc.)
+
+            Header provides all information needed to interpret time series data
+            and reproduce the model run that generated the output.
+            """
+
+            outputFile = open(outputFilename, "w")
+            # header
+            # outputFile.write("timeseries " + self._spatialDatatype.lower() + "\n")
+            header = "Timeseries," + "settingsfile: " + os.path.realpath(settingsfile[0]) + ",Runnning date: " + xtime.ctime(
+                xtime.time())
+            header += ",CWATM: " + versioning['exe'] + " Git-Branch:" + versioning['git']["git_branch"] + " Hash:" + versioning['git']["git_hash"]
+            header += "\n"
+
+            outputFile.write(header)
+
+            loc = self.var.outpoints
+            xrow = "xloc"
+            yrow = "yloc"
+            head = "Date"
+            for x in loc[::2]:
+                for i in self.var.watercycle:
+                    xrow = xrow + "," + "%#.4f" % round(x, 4)
+            xrow = xrow + "\n"
+            for y in loc[1::2]:
+                for i in self.var.watercycle:
+                    yrow = yrow + "," + "%#.4f" % round(y, 4)
+            yrow = yrow + "\n"
+
+            for i in range(len(loc[::2])):
+                for var in self.var.watercycle:
+                    head = head + "," + var[0] + "_" + var[1]
+            head = head + "\n"
+
+            outputFile.write(xrow)
+            outputFile.write(yrow)
+            outputFile.write(head)
+
+            outputFile.close()
+
 
 
 
@@ -784,7 +985,7 @@ class outputTssMap(object):
                         varname = outMap[map][i][1]
                         type = outMap[map][i][4]
 
-                        # to use also variables with index from soil e.g. actualET[2]
+                        # to use also variables with index from soil e.g.prefFlow[2]
                         if '[' in varname:
                             checkname = varname[0:varname.index("[")]
                             varname2 = varname.replace("[", "_").replace("]", "_")
@@ -921,7 +1122,7 @@ class outputTssMap(object):
                     varname = outTss[tss][i][1]
                     what = 'self.var.' + outTss[tss][i][1]
 
-                    # to use also variables with index from soil e.g. actualET[2]
+                    # to use also variables with index from soil e.g. prefFlow[2]
                     if '[' in varname:
                         checkname = varname[0:varname.index("[")]
                         varname2 = varname.replace("[", "_").replace("]", "_")
@@ -946,6 +1147,8 @@ class outputTssMap(object):
                         if checkOption('reportsnowstations',True):
                             if not (Flags['calib']):
                                 outTss[tss][i] = sample4(outTss[tss][i],what,0)
+                        elif varname == "WaterCycle":
+                            outTss[tss][i] = sample_watercycle(outTss[tss][i], 0)
                         else:
                             outTss[tss][i] = sample3(outTss[tss][i], eval(what), 0)
 

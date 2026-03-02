@@ -181,7 +181,7 @@ class waterdemand_irrigation:
         # The crop group number of olive groves is 4 and of rice fields is 1
         # for irrigation it is expected that the crop has a low adaptation to dry climate
         # cropGroupNumber = 1.0
-        etpotMax = np.minimum(0.1 * (self.var.totalPotET[No] * 1000.), 1.0)
+        etpotMax = np.minimum(100. * self.var.totalPotET[No], 1.0)
         # print('-----------------------------etpotMax---------: ', np.sum(etpotMax * self.var.cellArea))
         # to avoid a strange behaviour of the p-formula's, ETRef is set to a maximum of 10 mm/day.
 

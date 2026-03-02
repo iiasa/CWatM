@@ -25,9 +25,7 @@ class interception(object):
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
-    snowEvap                             Array         total evaporation from snow for a snow layers                           m    
-    iceEvap                              Array         Evaporation from ice (sublimation)                                      m    
-    interceptCap                         Array         interception capacity of vegetation                                     m    
+    interceptCap                         Array         interception capacity of vegetation                                     m
     potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m    
     interceptEvap                        Array         simulated evaporation from water intercepted by vegetation              m    
     minInterceptCap                      Array         Maximum interception read from file for forest and grassland land cove  m    
@@ -38,7 +36,6 @@ class interception(object):
     SnowMelt                             Array         total snow melt from all layers                                         m    
     IceMelt                              Array         Ice melt (not really ice but an additional snow melt in summer)         m    
     Rain                                 Array         Precipitation less snow                                                 m    
-    actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m    
     ===================================  ==========    ======================================================================  =====
 
     Attributes
@@ -98,18 +95,23 @@ class interception(object):
         """
 
         # Rain instead Pr, because snow is substracted later
+        # if glaicer then invfracGlacier < 1 for some cells ->
+        # soil is calculated for 100% input and later weighted by the land cover fraction
+        # glacier has an own part in that fraction
+        rain = self.var.Rain / self.var.invfracGlacier
+
         # assuming that all interception storage is used the other time step
         if coverType in ['forest', 'grassland']:
-            throughfall = np.maximum(0.0, self.var.Rain + self.var.interceptStor[No] - 
+            throughfall = np.maximum(0.0, rain + self.var.interceptStor[No] -
                                      self.var.interceptCap[No, dateVar['30day'], :])
         else:
-            throughfall = np.maximum(0.0, self.var.Rain + self.var.interceptStor[No] - 
+            throughfall = np.maximum(0.0, rain + self.var.interceptStor[No] -
                                      self.var.minInterceptCap[No])
         # update interception storage after throughfall
-        self.var.interceptStor[No] = self.var.interceptStor[No] + self.var.Rain - throughfall
+        self.var.interceptStor[No] = self.var.interceptStor[No] + rain - throughfall
 
         # availWaterInfiltration Available water for infiltration: throughfall + snow melt
-        self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + self.var.SnowMelt + self.var.IceMelt)
+        self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + (self.var.SnowMelt + self.var.IceMelt)/self.var.invfracGlacier)
 
         if coverType in ['forest', 'grassland']:
             mult = (divideValues(self.var.interceptStor[No], self.var.interceptCap[No, dateVar['30day'], :]) ** 
@@ -130,9 +132,6 @@ class interception(object):
         self.var.interceptStor[No] = self.var.interceptStor[No] - self.var.interceptEvap[No]
         self.var.potTranspiration[No] = np.maximum(0, self.var.potTranspiration[No] - self.var.interceptEvap[No])
 
-        # update actual evaporation (after interceptEvap)
-        # interceptEvap is the first flux in ET, soil evapo and transpiration are added later
-        self.var.actualET[No] = self.var.interceptEvap[No] + self.var.snowEvap + self.var.iceEvap
 
 
 

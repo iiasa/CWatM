@@ -83,8 +83,7 @@ class soil(object):
     weighted_KC_Irr_woFallow_fullKc      Array                                                                                 --   
     totalPotET                           Array         Potential evaporation per land use class                                m    
     PotET_crop                           Array                                                                                 --   
-    actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m    
-    soilLayers                           Array         Number of soil layers                                                   --   
+    soilLayers                           Array         Number of soil layers                                                   --
     soildepth                            Array         Thickness of the first soil layer                                       m    
     wfc1                                 Array         Soil moisture at field capacity in layer 1                              m    
     wfc2                                 Array         Soil moisture at field capacity in layer 2                              m    
@@ -286,20 +285,6 @@ class soil(object):
 
         # ---------------------------------------------------------
 
-        # -----------------------------------------------------------
-        # from evaporation
-        # calculate potential bare soil evaporation and transpiration
-        # self.var.potBareSoilEvap = self.var.cropCorrect * self.var.minCropKC[No] * self.var.ETRef
-        # potTranspiration: Transpiration for each land cover class
-        # self.var.potTranspiration[No] = self.var.cropCorrect * self.var.cropKC * self.var.ETRef - self.var.potBareSoilEvap
-
-        # from interception module
-        # self.var.potTranspiration[No] = np.maximum(0, self.var.potTranspiration[No] - self.var.interceptEvap[No])
-        # # interceptEvap is the first flux in ET, soil evapo and transpiration are added later
-        # self.var.actualET[No] = self.var.interceptEvap[No].copy()
-
-        # if (dateVar['curr'] > 6520):
-
         availWaterInfiltration = self.var.availWaterInfiltration[No].copy()
         availWaterInfiltration = availWaterInfiltration + self.var.act_irrConsumption[No]
         # availWaterInfiltration = water net from precipitation (- soil - interception - snow + snow melt) + 
@@ -403,8 +388,9 @@ class soil(object):
         # calculate transpiration
         # ***** SOIL WATER STRESS ************************************
 
-        etpotMax = np.minimum(0.1 * (self.var.totalPotET[No] * 1000.), 1.0)
+        etpotMax = np.minimum(100 * self.var.totalPotET[No] , 1.0)
         # to avoid a strange behaviour of the p-formula's, ETRef is set to a maximum of 10 mm/day.
+        # etpotMax in cm/d for the formular from Van Diepen
 
         if coverType == 'irrPaddy' or coverType == 'irrNonPaddy':
 
@@ -865,13 +851,6 @@ class soil(object):
                         self.var.irr_Paddy_month * self.var.cellArea,
                         self.var.adminSegments)
 
-
-        # total actual evaporation + transpiration
-        self.var.actualET[No] = (self.var.actualET[No] + self.var.actBareSoilEvap[No] + 
-                                 self.var.openWaterEvap[No] + self.var.actTransTotal[No])
-        # actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water 
-        # evaporation, therefore self.var.totalPotET[No] is adjusted
-        self.var.totalPotET[No] = np.maximum(self.var.totalPotET[No], self.var.actualET[No])
         # groundwater recharge
         toGWorInterflow = self.var.perc3toGW[No] + self.var.prefFlow[No]
         self.var.interflow[No] = self.var.percolationImp * toGWorInterflow

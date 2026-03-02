@@ -310,9 +310,9 @@ class runoff_concentration(object):
                 self.var.GlacierMelt = self.var.GlacierMelt / self.var.cellArea
                 self.var.runoff += self.var.GlacierMelt
             else:
-                self.var.directRunoffGlacier = np.divide(self.var.GlacierMelt + self.var.GlacierRain, 
-                                                         (self.var.cellArea * self.var.fracGlacierCover), 
-                                                         out=np.zeros_like(self.var.GlacierMelt), 
+                self.var.directRunoffGlacier = np.divide(self.var.GlacierMelt + self.var.GlacierRain,
+                                                         (self.var.cellArea * self.var.fracGlacierCover),
+                                                         out=np.zeros_like(self.var.GlacierMelt),
                                                          where=(self.var.cellArea * self.var.fracGlacierCover) != 0)
                 self.var.GlacierMelt = self.var.GlacierMelt / self.var.cellArea
                 self.var.GlacierRain = self.var.GlacierRain / self.var.cellArea
@@ -336,8 +336,8 @@ class runoff_concentration(object):
 
             # glacier melt time of concentration
             if self.var.includeGlaciers:
-                lib2.runoffConc(self.var.runoff_conc, self.var.tpeak_glaciers, self.var.fracGlacierCover, 
-                                self.var.directRunoffGlacier.astype('float64'), self.var.maxtime_runoff_conc, 
+                lib2.runoffConc(self.var.runoff_conc, self.var.tpeak_glaciers, self.var.fracGlacierCover,
+                                self.var.directRunoffGlacier.astype('float64'), self.var.maxtime_runoff_conc,
                                 maskinfo['mapC'][0])
             # interflow time of concentration
             # self.var.runoff_conc = runoff_concentration(self.var.maxtime_runoff_conc, self.var.tpeak_interflow, 
@@ -357,5 +357,5 @@ class runoff_concentration(object):
 
             # storage in each grid cell. Total runoff - runoff for the timestep
             self.var.gridcell_storage = self.var.gridcell_storage - self.var.runoff_conc[0] + self.var.runoff
-            sumnewrunoff = self.var.runoff.copy()
+            #sumnewrunoff = self.var.runoff.copy()
             self.var.runoff = self.var.runoff_conc[0].copy()

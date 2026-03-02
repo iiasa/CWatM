@@ -776,8 +776,14 @@ class water_demand:
                 nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
                 cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
 
-            arr = np.kron(np.arange(rows // inner * cols // inner).reshape((rows // inner, cols // inner)),
-                          np.ones((inner, inner)))
+            # make allocation as big that it can be divided through  inner
+            # after that allocation zone is fitted again to mapsize
+            cols1 = (cols//inner + 1) * inner
+            rows1 = (rows//inner + 1) * inner
+
+
+            #arr = np.kron(np.arange(rows // inner * cols // inner).reshape((rows // inner, cols // inner)), np.ones((inner, inner)))
+            arr = np.kron(np.arange(rows1 // inner * cols1 // inner).reshape((rows1 // inner, cols1 // inner)), np.ones((inner, inner)))
             arr = arr[cut2:cut3, cut0:cut1].astype(int)
             self.var.allocation_zone = compressArray(arr)
 

@@ -433,6 +433,10 @@ class snow_frost(object):
         Frey and Holzmann (2015) doi:10.5194/hess-19-4517-2015
         """
 
+        # calculate bare soil evap for snowevaporation
+        self.var.potBareSoilEvap = self.var.cropCorrect * self.var.minCropKC * self.var.ETRef
+
+
         if self.var.usepySnowClim:
             # TODO remove the hard coded unit transformations
             # ###############################################
@@ -537,7 +541,11 @@ class snow_frost(object):
             self.var.SnowFraction = globals.inZero.copy()
             # icemelt =0 -> snowtowers are handled in pySnowClim
             self.var.IceMelt = globals.inZero.copy()
-            self.var.iceEvap = globals.inZero.copy()
+
+            # snowevaporation (from evaporatin.py)
+            # if snow on ground no bare soil evap
+            self.var.potBareSoilEvap = np.where(self.var.ExistSnow == 1, 0, self.var.potBareSoilEvap)
+            # snowEvap calcualted already in snow-frost
 
 
         else:
@@ -576,6 +584,7 @@ class snow_frost(object):
             self.var.SnowMelt = globals.inZero.copy()
             self.var.IceMelt = globals.inZero.copy()
             self.var.SnowCover = globals.inZero.copy()
+            self.var.snowEvap = globals.inZero.copy()
             self.var.snow_redistributed_previous = globals.inZero.copy()
 
             # snow melt potential is collected from up the mountain towards valley
@@ -587,11 +596,11 @@ class snow_frost(object):
             #assume forest is most present at lowest location
             nr_frac_forest = self.var.numberSnowLayers - np.round(self.var.fracVegCover[0] / (1 / self.var.numberSnowLayers)) - 1
 
-            if self.var.includeGlaciers:
-                if self.var.excludeGlacierArea:
-                    current_fracGlacierCover = self.var.fracGlacierCover.copy() #percentage area of each layer
-                # elev_red = 5
-                # current_fracGlacierCover = self.var.fracGlacierCover / elev_red
+            #if self.var.includeGlaciers:
+            #    if self.var.excludeGlacierArea:
+            #        current_fracGlacierCover = self.var.fracGlacierCover.copy() #percentage area of each layer
+            #    # elev_red = 5
+            #    # current_fracGlacierCover = self.var.fracGlacierCover / elev_red
             #substract glacier area from highest areas
             #loops through snow layers from highest to lowest
             #the capacity depends on the fraction of forest or grassland
@@ -618,8 +627,8 @@ class snow_frost(object):
                     # Eact in hPa but needed in kPa : kpa = 0.1 * hPa - conversion done in readmeteo
 
             month = dateVar['currDate'].month - 1
-            # run through all snow layers
 
+            # run through all snow layers
             for i in range(self.var.numberSnowLayers):
 
                 if self.var.lapseratevar:
@@ -644,8 +653,8 @@ class snow_frost(object):
                     # snow precipitation (which is common)
                     RainS = np.where(TavgS >= self.var.TempSnow, self.var.Precipitation, globals.inZero)
 
-                # Snow melt with with radiation
-                # radiation part from evaporationPot -> snowmelt has now a temperature part and a radiation part
+                # Snow melt with radiation
+                # Radiation part from evaporationPot -> snowmelt has now a temperature part and a radiation part
                 # from Erlandsen et al. Hydrology Research 52.2 2021
                 if self.var.snowmelt_radiation:
                     RNup = 4.903E-9 * (TavgS + 273.16) ** 4
@@ -676,17 +685,20 @@ class snow_frost(object):
 
                 # Check snowcover and snowmelt
                 IceMeltS = np.maximum(IceMeltS, globals.inZero)
-
+                # Check if snow+ice not bigger than snowcover
                 SnowIceMeltS = np.maximum(np.minimum(SnowMeltS + IceMeltS + snowIceM_surplus, self.var.SnowCoverS[i]), globals.inZero)
 
                 # snowIceM_surplus: each elevation band snow melt potential is collected -> one way to melt additianl snow which might
                 # be colleted in the valley because of snow retribution
                 snowIceM_surplus = np.abs(np.minimum(self.var.SnowCoverS[i] - (SnowMeltS + IceMeltS + snowIceM_surplus),0))
-
                 IceMeltS = np.maximum(SnowIceMeltS - SnowMeltS, globals.inZero)
                 SnowMeltS = np.maximum(SnowIceMeltS - IceMeltS, globals.inZero)
-                # check if snow+ice not bigger than snowcover
+
                 self.var.SnowCoverS[i] = self.var.SnowCoverS[i] + SnowS - SnowIceMeltS
+
+                # Snow evaporation
+                snowEvap = np.minimum(self.var.SnowCoverS[i], self.var.potBareSoilEvap)
+                self.var.SnowCoverS[i] = self.var.SnowCoverS[i] - snowEvap
 
                 # snow redistribution inspired by Frey and Holzmann (2015) doi:10.5194/hess-19-4517-2015
                 # if snow cover higher than snow holding capacity redistribution
@@ -728,11 +740,12 @@ class snow_frost(object):
                 if self.var.excludeGlacierArea:
                     # the weight is the fraction of current elevation zone that is not covered by glacier
                     # the glacier is subtracted from the highest elevation zone first
-                    weight = 1 / self.var.numberSnowLayers - current_fracGlacierCover
+                    ##weight = 1 / self.var.numberSnowLayers - current_fracGlacierCover
                     # the fraction of glacier cover is decreased by fraction that is covered by glacier in current elevation zone
-                    current_fracGlacierCover = np.where(weight > 0, 0, abs(weight))
+                    ##current_fracGlacierCover = np.where(weight > 0, 0, abs(weight))
                     #weight below zero is set to zero
-                    weight[weight < 0] = 0
+                    #weight[weight < 0] = 0
+                    weight = self.var.invfracGlacier  / self.var.numberSnowLayersFloat
                     self.var.Snow1 += SnowS / self.var.numberSnowLayersFloat
                     self.var.Rain1 += RainS / self.var.numberSnowLayersFloat
                     # depends on the area of non glacier area in a gridcell
@@ -741,6 +754,7 @@ class snow_frost(object):
                     self.var.SnowMelt += SnowMeltS * weight
                     self.var.IceMelt += IceMeltS * weight
                     self.var.SnowCover += self.var.SnowCoverS[i] * weight
+                    self.var.snowEvap += snowEvap * weight
 
                 else:
                     self.var.Snow += SnowS
@@ -748,18 +762,20 @@ class snow_frost(object):
                     self.var.SnowMelt += SnowMeltS
                     self.var.IceMelt += IceMeltS
                     self.var.SnowCover += self.var.SnowCoverS[i]
+                    self.var.snowEvap += snowEvap
 
 
-            
+
             if not self.var.excludeGlacierArea:
                 self.var.Snow /= self.var.numberSnowLayersFloat
                 self.var.Rain /= self.var.numberSnowLayersFloat
                 self.var.SnowMelt /= self.var.numberSnowLayersFloat
                 self.var.IceMelt /= self.var.numberSnowLayersFloat
                 self.var.SnowCover /= self.var.numberSnowLayersFloat
+                self.var.snowEvap /= self.var.numberSnowLayersFloat
                 self.var.precipitation_sn = self.var.Snow + self.var.Rain
             else:
-                # if glaicer than calculate also rain+snow on glacier
+                # if glacier than calculate also rain+snow on glacier
                 self.var.precipitation_sn = self.var.Snow1 + self.var.Rain1
 
 

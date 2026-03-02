@@ -55,8 +55,7 @@ class landcoverType(object):
     ===================================  ==========    ======================================================================  =====
     modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
     snowEvap                             Array         total evaporation from snow for a snow layers                           m    
-    iceEvap                              Array         Evaporation from ice (sublimation)                                      m    
-    load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
+    load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool
     compress_LR                          Array         boolean map as mask map for compressing lake/reservoir                  --   
     decompress_LR                        Array         boolean map as mask map for decompressing lake/reservoir                --   
     MtoM3C                               Array         conversion factor from m to m3 (compressed map)                         --   
@@ -320,7 +319,7 @@ class landcoverType(object):
                          'effSatAt50', 'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin', 'rootZoneWaterStorageRange',
                          'totalPotET', 'potTranspiration', 'soilWaterStorage',
                          'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTransTotal',
-                         'gwRecharge', 'interflow', 'actualET', 'pot_irrConsumption', 'act_irrConsumption', 'irrDemand',
+                         'gwRecharge', 'interflow', 'pot_irrConsumption', 'act_irrConsumption', 'irrDemand',
                          'topWaterLayer',
                          'perc3toGW', 'capRiseFromGW', 'netPercUpper', 'netPerc', 'prefFlow']
      
@@ -344,8 +343,7 @@ class landcoverType(object):
         self.var.landcoverSum = ['interceptStor', 'interflow',
                                  'directRunoff', 'totalPotET', 'potTranspiration', 'availWaterInfiltration',
                                  'interceptEvap', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTransTotal', 
-                                 'gwRecharge', 'openWaterEvap', 'capRiseFromGW', 'perc3toGW', 'prefFlow', 'actualET', 
-                                 'act_irrConsumption']
+                                 'gwRecharge', 'openWaterEvap', 'capRiseFromGW', 'perc3toGW', 'prefFlow','act_irrConsumption']
         for variable in self.var.landcoverSum:
             vars(self.var)["sum_" + variable] = globals.inZero.copy()
 
@@ -633,11 +631,6 @@ class landcoverType(object):
         if "irrPaddy_maxtopwater" in binding:
             self.var.maxtopwater = loadmap('irrPaddy_maxtopwater')
 
-
-        #self.var.landcoverSumSum = ['directRunoff', 'totalPotET', 'potTranspiration', "Precipitation", 'ETRef','gwRecharge','Runoff']
-        #for variable in self.var.landcoverSumSum:
-        #    vars(self.var)["sumsum_" + variable] = globals.inZero.copy()
-
         # for irrigation of non paddy -> No =3
         totalWaterPlant1 = np.maximum(0., self.var.wfc1[3] - self.var.wwp1[3])  # * self.var.rootDepth[0][3]
         totalWaterPlant2 = np.maximum(0., self.var.wfc2[3] - self.var.wwp2[3])  # * self.var.rootDepth[1][3]
@@ -722,13 +715,6 @@ class landcoverType(object):
                 self.var.fracVegCover[2] = loadmap('paddyfraction')
                 self.var.fracVegCover[3] = loadmap('nonpaddyfraction')
 
-
-            #if "Burgenland" in option:
-            #    if checkOption('Burgenland'):
-            #        print('FOR BURGENLAND WE SPECIFIED MANUALLY IRRIGATED AREA')
-            #        self.var.fracVegCover[3] = 0.8*self.var.fracVegCover[1]
-            #        self.var.fracVegCover[1] = 0.2 * self.var.fracVegCover[1]
-
             # correction of grassland if sum is not 1.0
             sum = np.sum(self.var.fracVegCover, axis=0)
             self.var.fracVegCover[1] = np.maximum(0., self.var.fracVegCover[1] + 1.0 - sum)
@@ -736,7 +722,9 @@ class landcoverType(object):
             self.var.fracVegCover[0] = np.maximum(0., self.var.fracVegCover[0] + 1.0 - sum)
             sum = np.sum(self.var.fracVegCover, axis=0)
 
+            self.var.invfracGlacier = globals.inZero.copy() + 1
             if self.var.includeGlaciers:
+                self.var.fracGlacierCover = globals.inZero.copy()
                 if returnBool('excludeGlacierArea'):
                 
                     # reading land cover year in case static land is used for other land classes
@@ -750,6 +738,7 @@ class landcoverType(object):
                     self.var.fracGlacierCover = readnetcdf2('fractionGlaciercover', landcoverYear, 
                                                             useDaily="yearly", value='on_area', cut=False)
                     self.var.fracGlacierCover = np.minimum(np.maximum(self.var.fracGlacierCover, 0.0), 1.0)
+                    self.var.invfracGlacier = 1 - self.var.fracGlacierCover
                     self.var.fracVegCover[4] = self.var.fracVegCover[4] - self.var.fracGlacierCover
                     # if there are some pixels where sealed area is not large enough to substract glacier area, 
                     # the other lancovertypes have to be used
@@ -804,6 +793,7 @@ class landcoverType(object):
             self.var.fracVegCover[4] = 0.1
             self.var.fracVegCover[5] = 0.1
             """
+            self.var.fracAllCover = np.sum(self.var.fracVegCover, axis=0)
 
 
 # --------------------------------------------------------------------------
@@ -1010,10 +1000,8 @@ class landcoverType(object):
                 for No in range(4):
                     vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
-
-
         self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
-        self.var.totalET = self.var.sum_actTransTotal + self.var.sum_actBareSoilEvap + self.var.sum_openWaterEvap + self.var.sum_interceptEvap + self.var.snowEvap + self.var.iceEvap + self.var.addtoevapotrans
+        self.var.totalET = self.var.sum_actTransTotal + self.var.sum_actBareSoilEvap + self.var.sum_openWaterEvap + self.var.sum_interceptEvap + self.var.snowEvap + self.var.addtoevapotrans
         # addtoevapotrans: part of water demand which is lost due to evaporation
         self.var.sum_soil = self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
         self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_soil

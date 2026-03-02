@@ -731,7 +731,6 @@ class readmeteo(object):
             if not self.var.includeOnlyGlaciersMelt:
                 self.var.GlacierRain = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = True)
 
-
         if Flags['check']:
             checkmap(self.var.tempMaps, meteofiles[self.var.tempMaps][flagmeteo[self.var.tempMaps]][0], self.var.Tavg)
 

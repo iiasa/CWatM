@@ -27,8 +27,7 @@ class evaporation(object):
     ===================================  ==========    ======================================================================  =====
     cropKCmonth                          Array         Crop KC factor for different crops and different seasons                --   
     snowEvap                             Array         total evaporation from snow for a snow layers                           m    
-    iceEvap                              Array         Evaporation from ice (sublimation)                                      m    
-    Crops_names                          Array         Internal: List of specific crops                                        --   
+    Crops_names                          Array         Internal: List of specific crops                                        --
     activatedCrops                       Array         Fraction of area a specific crop is planted                             --   
     load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
     monthCounter                         Array         Month counter for each crop after crop has planted                      --   
@@ -174,29 +173,6 @@ class evaporation(object):
         # crop coefficient read for forest and grassland from file
 
 
-
-        # calculate potential bare soil evaporation - only once
-        if No == 0:
-            self.var.potBareSoilEvap = self.var.cropCorrect * self.var.minCropKC * self.var.ETRef
-            if self.var.usepySnowClim:
-                # if snow on ground no bare soil evap
-                self.var.potBareSoilEvap = np.where(self.var.ExistSnow == 1,0,self.var.potBareSoilEvap)
-                # snowEvap calcualted already in snow-frost
-            else:
-                # calculate snow and ice evaporation
-                self.var.snowEvap = np.minimum(self.var.SnowMelt, self.var.potBareSoilEvap)
-                self.var.potBareSoilEvap -= self.var.snowEvap
-                self.var.iceEvap = np.minimum(self.var.IceMelt, self.var.potBareSoilEvap)
-                self.var.potBareSoilEvap -= self.var.iceEvap
-
-                self.var.SnowMelt -= self.var.snowEvap
-                self.var.IceMelt -= self.var.iceEvap
-
-        #if dateVar['newStart'] or (dateVar['currDate'].day in [1,11,21]):
-        #    self.var.cropKC[No] = readnetcdf2(coverType + '_cropCoefficientNC', dateVar['10day'], "10day")
-        #    self.var.cropKC[No] = np.maximum(self.var.cropKC[No], self.var.minCropKC)
-        #    self.var.cropKC_landCover[No] = self.var.cropKC[No].copy()
-
         # interpolation for each day from monthly values
         dplus = dateVar['30day'] + 1
         dpart = dateVar['doy'] % 30
@@ -302,7 +278,7 @@ class evaporation(object):
                             self.var.fracVegCover[3] = self.var.irrigatedArea_original.copy()
 
                             remainderLand = np.maximum(
-                                globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
+                                self.var.fracAllCover - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
                                 self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
                                 globals.inZero.copy())
 
@@ -531,7 +507,7 @@ class evaporation(object):
 
                             self.var.fracVegCover[3] = self.var.frac_totalIrr + self.var.GeneralCrop_Irr
                             remainderLand = np.maximum(
-                                globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
+                                self.var.fracAllCover - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
                                 self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
                                 globals.inZero.copy())
 

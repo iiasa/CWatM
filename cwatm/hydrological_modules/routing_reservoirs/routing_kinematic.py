@@ -417,7 +417,7 @@ class routing_kinematic(object):
             # exclude evaporation where lakes are, because they are filled in again with evapWaterBodyC
             self.var.EvapoChannel = np.where(
                 self.var.waterBodyID > 0,
-                (1 - self.var.fracVegCover[5]) * self.var.EvapoChannel,
+                (self.var.fracAllCover - self.var.fracVegCover[5]) * self.var.EvapoChannel,
                 self.var.EvapoChannel)
             #self.var.riverbedExchange = np.where(self.var.waterBodyID > 0, 0., self.var.riverbedExchange)
 
@@ -571,11 +571,6 @@ class routing_kinematic(object):
                 self.var.gwdepth_adjusted_segments = npareaaverage(self.var.gwdepth_adjusted, self.var.adminSegments)
                 self.var.gwdepth_segments = npareaaverage(self.var.gwdepth, self.var.adminSegments)
 
-            # self.var.precipEffectiveAverage_segments = npareaaverage(
-            #     self.var.Rain - self.var.interceptEvap[1] - self.var.actBareSoilEvap[1],
-            #     self.var.adminSegments)
-            # self.var.head_development_segments = npareaaverage(self.var.head_development,
-            #                                                   self.var.adminSegments)
             self.var.adminSegments_area = npareaaverage(
                 (self.var.fracVegCover[1] + self.var.fracVegCover[2] + self.var.fracVegCover[3]) * self.var.cellArea,
                 self.var.adminSegments)
