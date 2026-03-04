@@ -396,6 +396,36 @@ class snow_frost(object):
             self.var.snowpack = self.var.Snowpack(globals.inZero.shape[0],
                                          self.var.snowclimParameters)
             self.var.snowModelvars = SnowModelVariables(globals.inZero.shape[0])
+
+            # tarboton albedo alg requires latitude
+            if self.var.albedo_option == 2:
+                try:
+                    self.var.lat = loadmap('latitude')
+                except (CWATMError, CWATMFileError) as e:
+                    rows = maskmapAttr['row']
+                    cell_size = maskmapAttr['cell']
+                    yu = maskmapAttr['y']
+                    yd = yu - rows*cell_size
+                    latitudes = np.linspace(yu, yd, rows, endpoint=False)
+                    latitudes = latitudes - cell_size/2
+                    latitudes_hstack = np.transpose([latitudes]*maskmapAttr['col'])
+                    self.var.lat = compressArray(latitudes_hstack)
+
+            self.var.pySnowClimInitVars = ['lastpacktemp', 'snowage', 'lastalbedo', 'lastswe', 'lastsnowdepth', 'packsnowdensity', 'lastpackcc',
+                                           'lastpackwater', 'rain_in_snow']
+
+            if returnBool('load_initial_pySnowClim'):
+                loadInitFilepySnowClim = cbinding('initLoad_pySnowClim')
+                for v in self.var.pySnowClimInitVars:
+                    var = readnetcdfInitial(loadInitFilepySnowClim, v)
+                    setattr(self.var.snowpack, v, var)
+
+            self.var.saveInitpySnowClim = returnBool('save_initial_pySnowClim')
+            if self.var.saveInitpySnowClim:
+                self.var.saveInitFilepySnowClim = cbinding('initSave_pySnowClim')
+
+
+
     # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
@@ -488,7 +518,11 @@ class snow_frost(object):
             # sizes of the classes. The variable to get lat should be added here after.
             # There is only 1 albedo scheme which uses lat. Tavg is passed here
             # only to have the size of the classes correctly.
-            coords = {"lat": self.var.Tavg}
+            if self.var.albedo_option == 2:
+                coords = {"lat": self.var.lat}
+            else:
+                # lat only required with tarboton albedo
+                coords = {"lat": self.var.Tavg}
             forcings_data = {"forcings": forcings, "coords": coords}
 
             # Because CWatM handles data differenty and it is daily these
@@ -519,6 +553,7 @@ class snow_frost(object):
                 coords,
                 time_value,
                 previous_energy)
+
             snow_vars.CCsnowfall = precip.snowfallcc.copy()
             self.var.snowModelvars =  self.var._prepare_outputs(snow_vars, precip)
 
@@ -542,7 +577,20 @@ class snow_frost(object):
             # icemelt =0 -> snowtowers are handled in pySnowClim
             self.var.IceMelt = globals.inZero.copy()
 
-            # snowevaporation (from evaporatin.py)
+            # if save initial pySnowClim
+            if self.var.saveInitpySnowClim and self.var.saveInit:
+                if  dateVar['curr'] in dateVar['intInit']:
+                    saveFile = (self.var.saveInitFilepySnowClim + "_" + "%02d%02d%02d.nc" %
+                                (dateVar['currDate'].year, dateVar['currDate'].month,dateVar['currDate'].day))
+                    initVar = []
+                    #var_dict = {k : v for k, v in vars(self.var.snowpack).items() if k in self.var.pySnowClimInitVars}
+                    #np.savez_compressed(saveFile, **var_dict)
+
+                    for v in self.var.pySnowClimInitVars:
+                        variable = "self.var.snowpack."+v
+                        initVar.append(eval(variable))
+                    writeIniNetcdf(saveFile, self.var.pySnowClimInitVars, initVar)
+
             # if snow on ground no bare soil evap
             self.var.potBareSoilEvap = np.where(self.var.ExistSnow == 1, 0, self.var.potBareSoilEvap)
             # snowEvap calcualted already in snow-frost
@@ -667,10 +715,11 @@ class snow_frost(object):
                     # latent heat of fusion = 0.334 mJKg-1 * desity of water = 1000 khm-3
 
                     SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef + self.var.SnowMeltRad * RN
-                    SnowMeltS = SnowMeltS * (1 + 0.01 * RainS) * self.var.DtDay
+                    # it is 1% per 1mm rain -> according to Conboy Carter RainS has to be from [m] -> [mm]
+                    SnowMeltS = SnowMeltS * (1 + 0.01 * 1000 * RainS) * self.var.DtDay
                 else:
                     # without radiation
-                    SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef * (1 + 0.01 * RainS) * self.var.DtDay
+                    SnowMeltS = (TavgS - self.var.TempMelt) * SeasSnowMeltCoef * (1 + 0.01 * 1000 * RainS) * self.var.DtDay
                 SnowMeltS = np.maximum(SnowMeltS, globals.inZero)
 
                 # for which layer the ice melt is calculated with the middle temp.

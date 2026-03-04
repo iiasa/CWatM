@@ -1932,8 +1932,10 @@ def readnetcdfInitial(name, value,default = 0.0):
                 msg = "Error 112: Latitude is in wrong order\n"
                 raise CWATMFileError(filename, msg)
 
-            #mapnp = (nf1.variables[value][:].astype(np.float64))
-            mapnp = nf1.variables[value][cut2:cut3, cut0:cut1].astype(np.float64)
+            #mapnp = nf1.variables[value][cut2:cut3, cut0:cut1].astype(np.float64)
+            var = nf1.variables[value]
+            var.set_auto_maskandscale(False)  # preserve stored dtype
+            mapnp = nf1.variables[value][cut2:cut3, cut0:cut1]
 
             # read creating date
             try:
@@ -2437,17 +2439,20 @@ def writeIniNetcdf(netfile,varlist, inputlist):
 
     i = 0
     for varname in varlist:
+        dtype_str = np.asarray(inputlist[i][0]).dtype.name
+        type_args = {'float64':'f8', 'float32':'f4'}
         latlon = True
         if 'x' in list(metadataNCDF.keys()):
             latlon = False
-            value = nf1.createVariable(varname, 'f8', ('y', 'x'), zlib=True,fill_value=1e20)
+            #value = nf1.createVariable(varname, 'f8', ('y', 'x'), zlib=True,fill_value=1e20)
+            value = nf1.createVariable(varname, type_args[dtype_str], ('y', 'x'), zlib=True,fill_value=1e20)
         if 'X' in list(metadataNCDF.keys()):
             latlon = False
-            value = nf1.createVariable(varname, 'f8', ('y', 'x'), zlib=True,fill_value=1e20)
+            value = nf1.createVariable(varname, type_args[dtype_str], ('y', 'x'), zlib=True, fill_value=1e20)
         if latlon:
             if 'lon' in list(metadataNCDF.keys()):
                 # for world lat/lon coordinates
-                value = nf1.createVariable(varname, 'f8', ('lat', 'lon'), zlib=True, fill_value=1e20)
+                value = nf1.createVariable(varname, type_args[dtype_str], ('lat', 'lon'), zlib=True, fill_value=1e20)
 
         value.standard_name= getmeta("standard_name",varname,varname)
         value.long_name= getmeta("long_name",varname,varname)

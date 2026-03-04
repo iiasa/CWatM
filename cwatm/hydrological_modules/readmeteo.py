@@ -242,6 +242,7 @@ class readmeteo(object):
         # Check if option pySnowClim exists
         self.var.usepySnowClim = checkOption('usepySnowClim', True)
         if self.var.usepySnowClim:
+            self.var.useTdew = returnBool('useTdew')
             # if pySnowClim is used then all meteo var has to be read anyway
             # and missing meteo variables have to be calculated in evapoPot.py
             self.var.calc_evapo = True
@@ -272,7 +273,8 @@ class readmeteo(object):
             if self.var.pet_modus == 5:
                 # for modified Thornthwaite: uses only tmin, tmax, tavg
                 meteomaps = [self.var.preMaps, self.var.tempMaps, 'TminMaps', 'TmaxMaps']
-
+            if self.var.usepySnowClim and self.var.useTdew:
+                meteomaps.append('TdewMaps')
 
             if self.var.includeGlaciers:
                 meteomaps.append(self.var.glaciermeltMaps)
@@ -873,7 +875,6 @@ class readmeteo(object):
                 # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
 
         if self.var.usepySnowClim:
-            self.var.useTdew = returnBool('useTdew')
             if self.var.useTdew:
                 # if tDew maps are available, otherwise use Eact (vapor pressure and calculate Tdew
                 self.var.Tdew = readmeteodata('TdewMaps',
