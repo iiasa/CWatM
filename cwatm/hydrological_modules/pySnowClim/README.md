@@ -41,9 +41,18 @@ To run CWatM using pySnowClim snow model one only needs to add the necessary par
 
 ```
 #-------------------------------------------------------
-[__pySNOWCLIM]
+[OPTIONS]
 #-------------------------------------------------------
 usepySnowClim = True
+
+
+[pySnowclim]
+
+load_initial_pySnowClim = False
+save_initial_pySnowClim = True
+initSave_pySnowClim = $(FILE_PATHS:PathInit)/init_pySnowClim 
+
+useTdew = False
 
 TdewMaps = $(FILE_PATHS:PathMeteo)/tdps_day_1950-2021_remapped_K*
 
