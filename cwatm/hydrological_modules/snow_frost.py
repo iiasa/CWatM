@@ -212,6 +212,7 @@ class snow_frost(object):
         slope_degrees = np.degrees(np.arctan(loadmap('tanslope')))
         self.var.frac_snow_redistribution = np.maximum(0.35 * slope_degrees / 90, globals.inZero)
 
+        self.var.snowEvapFactor = 0.3
 
         self.var.SnowDayDegrees = 0.9856
         #to get the seasonal cycle in snow melt coefficient, value is 81 (263) for northern (southern) hemisphere
@@ -391,7 +392,7 @@ class snow_frost(object):
                 downward_radiation_factor = self.var.downward_radiation_factor,
                 downward_radiation_start_month = self.var.downward_radiation_start_month,
                 downward_radiation_end_month = self.var.downward_radiation_end_month,
-                )
+                snowfactor = self.var.SnowFactor,)
 
             self.var.snowpack = self.var.Snowpack(globals.inZero.shape[0],
                                          self.var.snowclimParameters)
@@ -555,12 +556,14 @@ class snow_frost(object):
                 previous_energy)
 
             snow_vars.CCsnowfall = precip.snowfallcc.copy()
+
             self.var.snowModelvars =  self.var._prepare_outputs(snow_vars, precip)
 
             self.var.ExistSnow = self.var.snowModelvars.ExistSnow.copy()
             self.var.SnowMelt = self.var.snowModelvars.Runoff / self.var.constSnowClim.WATERDENS
             self.var.Rain_on_snow = np.where(self.var.ExistSnow, precip.rain, 0)
             self.var.Rain = np.where(self.var.ExistSnow, 0, precip.rain)
+            #self.var.Rain = precip.rain.copy()
             self.var.Snow = precip.sfe.copy()
 
 
@@ -569,9 +572,13 @@ class snow_frost(object):
 
             # lost due to sublimation and condensation
             # noy calculated in evaporation again!
-            self.var.snowEvap = (self.var.snowModelvars.Sublimation +  self.var.snowModelvars.Condensation) / self.var.constSnowClim.WATERDENS
+            self.var.sublimation = self.var.snowModelvars.Sublimation / self.var.constSnowClim.WATERDENS
+            self.var.condensation = self.var.snowModelvars.Condensation / self.var.constSnowClim.WATERDENS
+            self.var.snowEvap = self.var.sublimation + self.var.condensation
+            #self.var.snowEvap = (self.var.snowModelvars.Sublimation +  self.var.snowModelvars.Condensation) / self.var.constSnowClim.WATERDENS
 
-
+            if np.isnan(np.sum(self.var.snowEvap)):
+                iii =1
             # snowfraction set to 0 -> ExistSnow for true or false
             self.var.SnowFraction = globals.inZero.copy()
             # icemelt =0 -> snowtowers are handled in pySnowClim
@@ -746,7 +753,7 @@ class snow_frost(object):
                 self.var.SnowCoverS[i] = self.var.SnowCoverS[i] + SnowS - SnowIceMeltS
 
                 # Snow evaporation
-                snowEvap = np.minimum(self.var.SnowCoverS[i], self.var.potBareSoilEvap)
+                snowEvap = np.minimum(self.var.SnowCoverS[i], self.var.snowEvapFactor * self.var.potBareSoilEvap)
                 self.var.SnowCoverS[i] = self.var.SnowCoverS[i] - snowEvap
 
                 # snow redistribution inspired by Frey and Holzmann (2015) doi:10.5194/hess-19-4517-2015

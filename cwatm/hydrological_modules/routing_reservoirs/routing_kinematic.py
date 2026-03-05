@@ -475,6 +475,8 @@ class routing_kinematic(object):
 
         self.var.avgdischarge = globals.inZero.copy()
         self.var.maxdischarge = globals.inZero.copy()
+        avglakeoutflow = 0
+        maxlakeoutflow = 0
 
         for subrouting in range(self.var.noRoutingSteps):
 
@@ -519,6 +521,8 @@ class routing_kinematic(object):
             # calculating average discharge during day and max discharge
             self.var.avgdischarge = self.var.avgdischarge + self.var.discharge / self.var.noRoutingSteps
             self.var.maxdischarge = np.where(self.var.discharge > self.var.maxdischarge, self.var.discharge , self.var.maxdischarge)
+            avglakeoutflow = avglakeoutflow + lakeOutflowDis / self.var.noRoutingSteps
+            maxlakeoutflow = np.where(lakeOutflowDis > maxlakeoutflow, lakeOutflowDis , maxlakeoutflow)
 
         # -- end substeping ---------------------
 
@@ -527,6 +531,8 @@ class routing_kinematic(object):
             # therefore this is filled up with the discharge which goes outof the lake
             # these outflow is used for the whole lake
             self.var.discharge = np.where(self.var.waterBodyID > 0, lakeOutflowDis, self.var.discharge)
+            self.var.avgdischarge = np.where(self.var.waterBodyID > 0, avglakeoutflow, self.var.avgdischarge)
+            self.var.maxdischarge = np.where(self.var.waterBodyID > 0, maxlakeoutflow, self.var.maxdischarge)
         # discharge at the end of a time step
 
         preStor = self.var.channelStorage.copy()
@@ -534,8 +540,8 @@ class routing_kinematic(object):
 
         # discharge only at the outlets to sea or endorheic lakes, otherwise value is 0.
         # as average discharge over timestep e.g. 1 day
-        self.var.dis_outlet = np.where(self.var.lddCompress == 5, self.var.avgdischarge, 0.)
-
+        self.var.dis_outlet = np.where(self.var.lddCompress == 5, self.var.avgdischarge, 0.)        
+        
         if checkOption('inflow'):
             self.var.QInM3Old = self.var.inflowM3.copy()
 

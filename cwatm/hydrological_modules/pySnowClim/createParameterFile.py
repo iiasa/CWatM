@@ -16,7 +16,7 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
                           E0_stable=None, Ts_add=None, smooth_time_steps =None, ground_albedo=None,
                           snow_emis=None, snow_dens_default=None, G=None, max_swe_height=None,
                           downward_radiation_factor=None, downward_radiation_start_month=None,
-                          downward_radiation_end_month=None):
+                          downward_radiation_end_month=None,snowfactor=None):
     """
     Writes parameters to a dictionary.
     Default values are those used in application of the snow model to the
@@ -87,7 +87,8 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
         'max_swe_height': 100 if max_swe_height is None else max_swe_height,
         'downward_radiation_factor': 1.3 if downward_radiation_factor is None else downward_radiation_factor,
         'downward_radiation_start_month': 6 if downward_radiation_start_month is None else downward_radiation_start_month,
-        'downward_radiation_end_month': 10 if downward_radiation_end_month is None else downward_radiation_end_month,    
+        'downward_radiation_end_month': 10 if downward_radiation_end_month is None else downward_radiation_end_month,
+        'snowfactor': 1.0 if snowfactor is None else snowfactor,
         }
 
     return parameters

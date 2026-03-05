@@ -73,7 +73,7 @@ def _perform_precipitation_operations(forcings_data, parameters):
 
     # Separate rain and snow components of precipitation
     rainfall = forcings_data['ppt'] * (1 - passnow)
-    SnowfallWaterEq = forcings_data['ppt'] * passnow
+    SnowfallWaterEq = forcings_data['ppt'] * passnow * parameters['snowfactor']
 
     # Threshold for snowfall equivalent and adjust rain accordingly
     threshold = 0.0001 * parameters['hours_in_ts']

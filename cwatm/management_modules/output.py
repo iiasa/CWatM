@@ -293,8 +293,13 @@ class outputTssMap(object):
                       ['SnowCover', 'areasum_m3', 'storage'],['sum_interceptStor', 'areasum_m3', 'storage'],['sum_soil', 'areasum_m3', 'storage'],
                       ['storGroundwater','areasum_m3', 'storage'], ['channelStorage', 'sum_m3', 'storage'],
 
-                      ['discharge', 'm3s-1', 'discharge'], ['dis_outlet', 'm3s-1', 'discharge'], ['cellArea', 'sum_m3', 'area']]
+                      ['discharge', 'm3s-1', 'discharge'], ['avgdischarge', 'm3s-1', 'discharge'], ['cellArea', 'sum_m3', 'area']]
 
+
+        if self.var.usepySnowClim:
+            temp = [['Rain_on_snow', 'areasum_m3', 'flux'],['sublimation', 'areasum_m3', 'flux'],
+                    ['condensation', 'areasum_m3', 'flux']]
+            self.var.watercycle.extend(temp)
         if checkOption('CapillarRise'):
             temp = [['sum_capRiseFromGW','areasum_m3','flux'],['capillar','areasum_m3','flux']]
             self.var.watercycle.extend(temp)
@@ -307,6 +312,7 @@ class outputTssMap(object):
         if checkOption('includeRunoffConcentration'):
             temp = [['gridcell_storage','areasum_m3','storage']]
             self.var .watercycle.extend(temp)
+
 
         # waterbodies
         if checkOption('includeWaterBodies'):
