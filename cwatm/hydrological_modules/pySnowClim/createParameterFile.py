@@ -51,6 +51,7 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
     :param downward_radiation_factor: Factor to be multiplied by downward radiation when SWE > max_swe_height (default: 1.3)
     :param downward_radiation_start_month: Month where downward_radiation_factor start to be applied (default: 6)
     :param downward_radiation_end_month: Month where downward_radiation_factor ends (default: 10)
+    :param snowfactor  (testing) parameter from CWatM to increase snow because of possible undercatch in measurements
     """
     if cal is None :
         # Time period for the model run (2001-10-01 to 2002-09-30)

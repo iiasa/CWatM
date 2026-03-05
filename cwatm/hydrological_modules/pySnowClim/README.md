@@ -48,12 +48,14 @@ usepySnowClim = True
 
 [pySnowclim]
 
-load_initial_pySnowClim = False
+
+load_initial_pySnowClim = True
+initLoad_pySnowClim =  $(FILE_PATHS:PathInit)/init_pySnowClim_20190930.nc 
+
 save_initial_pySnowClim = True
 initSave_pySnowClim = $(FILE_PATHS:PathInit)/init_pySnowClim 
 
 useTdew = False
-
 TdewMaps = $(FILE_PATHS:PathMeteo)/tdps_day_1950-2021_remapped_K*
 
 stability = 1

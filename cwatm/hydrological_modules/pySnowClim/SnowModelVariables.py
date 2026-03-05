@@ -72,3 +72,4 @@ class SnowModelVariables:
         self.PackCC = np.full(outdim, np.nan, dtype=np.float32)
         self.CCenergy = np.full(outdim, np.nan, dtype=np.float32)
         self.CCsnowfall = np.full(outdim, np.nan, dtype=np.float32)
+

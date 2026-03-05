@@ -566,7 +566,6 @@ class snow_frost(object):
             #self.var.Rain = precip.rain.copy()
             self.var.Snow = precip.sfe.copy()
 
-
             self.var.SnowCover = self.var.snowModelvars.SnowWaterEq / self.var.constSnowClim.WATERDENS
             self.var.snow_redistributed_previous = globals.inZero.copy()
 
