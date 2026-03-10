@@ -1197,7 +1197,7 @@ class lakes_reservoirs(object):
         dis_LR = np.where(self.var.waterBodyID > 0, dis_LR, 0.) * self.var.DtSec
 
         # sum up runoff and discharge on the lake
-        inflow = npareatotal(dis_LR + self.var.runoff * self.var.cellArea, self.var.waterBodyID)
+        inflow = npareatotal(dis_LR + self.var.runoff_m3, self.var.waterBodyID)
 
         # only once at the outlet
         inflow = np.where(self.var.waterBodyOut > 0, inflow, 0.) / self.var.noRoutingSteps + self.var.outLake

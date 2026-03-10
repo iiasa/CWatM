@@ -292,8 +292,6 @@ class lakes_res_small(object):
         # Small lake and reservoirs
 
         if checkOption('includeWaterBodies') and returnBool('useSmallLakes'):
-            if checkOption('calcWaterBalance'):
-                runoffold = self.var.runoff.copy()
 
             # check years
             if dateVar['newStart'] or dateVar['newYear']:
@@ -321,12 +319,10 @@ class lakes_res_small(object):
             # ----------
 
             # runoff to the lake as a part of the cell basin
-            inflow = self.var.smallpart * self.var.runoff * self.var.cellArea  # inflow in m3
-            self.var.smallLakeout = dynamic_smalllakes(inflow) / self.var.cellArea  # back to [m]
+            inflow = self.var.smallpart * self.var.runoff_m3  # inflow in m3
+            self.var.smallLakeout = dynamic_smalllakes(inflow) # as [m3]
             # back to [m]  # with and without in m3
-            self.var.runoff = self.var.smallLakeout + (1 - self.var.smallpart) * self.var.runoff
-
-
+            self.var.runoff_m3 = self.var.smallLakeout + (1 - self.var.smallpart) * self.var.runoff_m3
 
             return
 

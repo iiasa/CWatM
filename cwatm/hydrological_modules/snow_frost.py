@@ -150,7 +150,8 @@ class snow_frost(object):
 
         if self.var.usepySnowClim:
             self.var.numberSnowLayers = 1
-            self.var.includeGlaciers= False        # Difference between (average) air temperature at average elevation of
+            #self.var.includeGlaciers= False
+        # Difference between (average) air temperature at average elevation of
         # pixel and centers of upper- and lower elevation zones [deg C]
         # ElevationStD:   Standard Deviation of the DEM
         # 0.9674:    Quantile of the normal distribution: u(0,833)=0.9674 to split the pixel in 3 equal parts.
@@ -212,7 +213,7 @@ class snow_frost(object):
         slope_degrees = np.degrees(np.arctan(loadmap('tanslope')))
         self.var.frac_snow_redistribution = np.maximum(0.35 * slope_degrees / 90, globals.inZero)
 
-        self.var.snowEvapFactor = 0.3
+        self.var.snowEvapFactor = 0.4
 
         self.var.SnowDayDegrees = 0.9856
         #to get the seasonal cycle in snow melt coefficient, value is 81 (263) for northern (southern) hemisphere
@@ -425,6 +426,12 @@ class snow_frost(object):
             if self.var.saveInitpySnowClim:
                 self.var.saveInitFilepySnowClim = cbinding('initSave_pySnowClim')
 
+            # snowfraction set to 0 -> ExistSnow for true or false
+            self.var.SnowFraction = globals.inZero.copy()
+            # icemelt =0 -> snowtowers are handled in pySnowClim
+            self.var.IceMelt = globals.inZero.copy()
+            self.var.snow_redistributed_previous = globals.inZero.copy()
+
 
 
     # --------------------------------------------------------------------------
@@ -485,19 +492,10 @@ class snow_frost(object):
             # psfc - air pressure (hPa or mb) (time x space)
             # huss - specific humidity (kg/kg) (time x space)
 
-            # TODO the specific humidity calculation should probably be inside
-            # readmeto.py
-
             # kPa to hPA
             Psurf = self.var.Psurf.copy() * 10
             #pressure_with_units = (Psurf) * units('hPa')
             #dewpoint_with_units = (self.var.Tdew) * units('degC')
-
-            # Calculate specific humidity
-            #specific_humidity = mpcalc.specific_humidity_from_dewpoint(
-            #    pressure_with_units, dewpoint_with_units)
-            #specific_humidity.magnitude = self.var.huss
-
 
             forcings = {"tavg": self.var.Tavg,
                         "psfc": Psurf,
@@ -515,8 +513,7 @@ class snow_frost(object):
                         "relhum": self.var.rhs,
                         "tdmean": self.var.Tdew
                 }
-            # TODO Lat is only used in snowcilm to calculate albedo and define the
-            # sizes of the classes. The variable to get lat should be added here after.
+
             # There is only 1 albedo scheme which uses lat. Tavg is passed here
             # only to have the size of the classes correctly.
             if self.var.albedo_option == 2:
@@ -536,8 +533,8 @@ class snow_frost(object):
             input_forcings, snow_vars, previous_energy, precip = self.var._process_forcings_and_energy(
                 index_snowclim, forcings_data, self.var.snowclimParameters, snow_model_instances)
             # partition between snow and rain made by snowclim
-            SnowS = precip.sfe.copy()
-            RainS = precip.rain.copy()
+            #Snow = precip.sfe.copy()
+            #Rain = precip.rain.copy()
 
             time_value = [dateVar['currDate'].year, dateVar['currDate'].month, dateVar['currDate'].day]
             # Reset to 0 snow at the specified time of year,
@@ -555,35 +552,38 @@ class snow_frost(object):
                 time_value,
                 previous_energy)
 
-            snow_vars.CCsnowfall = precip.snowfallcc.copy()
-
+            ## pzSnowclim variables -> CWatM
             self.var.snowModelvars =  self.var._prepare_outputs(snow_vars, precip)
 
             self.var.ExistSnow = self.var.snowModelvars.ExistSnow.copy()
             self.var.SnowMelt = self.var.snowModelvars.Runoff / self.var.constSnowClim.WATERDENS
+            # spilt between rain on snow and rain
             self.var.Rain_on_snow = np.where(self.var.ExistSnow, precip.rain, 0)
             self.var.Rain = np.where(self.var.ExistSnow, 0, precip.rain)
-            #self.var.Rain = precip.rain.copy()
             self.var.Snow = precip.sfe.copy()
-
             self.var.SnowCover = self.var.snowModelvars.SnowWaterEq / self.var.constSnowClim.WATERDENS
-            self.var.snow_redistributed_previous = globals.inZero.copy()
 
             # lost due to sublimation and condensation
-            # noy calculated in evaporation again!
-            self.var.sublimation = self.var.snowModelvars.Sublimation / self.var.constSnowClim.WATERDENS
-            self.var.condensation = self.var.snowModelvars.Condensation / self.var.constSnowClim.WATERDENS
-            self.var.snowEvap = self.var.sublimation + self.var.condensation
-            #self.var.snowEvap = (self.var.snowModelvars.Sublimation +  self.var.snowModelvars.Condensation) / self.var.constSnowClim.WATERDENS
+            self.var.snowEvap = (self.var.snowModelvars.Sublimation + self.var.snowModelvars.Condensation) / self.var.constSnowClim.WATERDENS
 
-            if np.isnan(np.sum(self.var.snowEvap)):
-                iii =1
-            # snowfraction set to 0 -> ExistSnow for true or false
-            self.var.SnowFraction = globals.inZero.copy()
-            # icemelt =0 -> snowtowers are handled in pySnowClim
-            self.var.IceMelt = globals.inZero.copy()
+            # additional variables to close the waterbalance
+            # SnowWaterEq += snow - Sublimation - Condensation   + RefrozenWater - SnowMelt
+            # PackWater   += rain_on_snow - Runoff - Evaporation - RefrozenWater + SnowMelt
+            # SnowWaterEQ + PackWater = Snow + rain_on_snow - Runoff - Sublimation - Condensation - Evaporation
 
-            # if save initial pySnowClim
+            #self.var.refrozen = self.var.snowModelvars.RefrozenWater / self.var.constSnowClim.WATERDENS
+            self.var.packwater = self.var.snowModelvars.PackWater / self.var.constSnowClim.WATERDENS
+            #self.var.snowmelt1 = self.var.snowModelvars.SnowMelt / self.var.constSnowClim.WATERDENS
+            #self.var.raininsnow = self.var.snowModelvars.RaininSnow / self.var.constSnowClim.WATERDENS
+            self.var.snowwaterevaporation = self.var.snowModelvars.Evaporation / self.var.constSnowClim.WATERDENS
+
+            # if snow on ground no bare soil evap
+            self.var.potBareSoilEvap = np.where(self.var.ExistSnow == 1, 0, self.var.potBareSoilEvap)
+            # substract snow evapo from BaresoilEVap for the fraction of cell which is not covered by snow
+            #self.var.potBareSoilEvap = np.maximum(0., self.var.potBareSoilEvap - self.var.snowEvap)
+
+            #---------------------------------------
+            # Saving initial pySnowClim at saving timesteps
             if self.var.saveInitpySnowClim and self.var.saveInit:
                 if  dateVar['curr'] in dateVar['intInit']:
                     saveFile = (self.var.saveInitFilepySnowClim + "_" + "%02d%02d%02d.nc" %
@@ -597,11 +597,8 @@ class snow_frost(object):
                         initVar.append(eval(variable))
                     writeIniNetcdf(saveFile, self.var.pySnowClimInitVars, initVar)
 
-            # if snow on ground no bare soil evap
-            self.var.potBareSoilEvap = np.where(self.var.ExistSnow == 1, 0, self.var.potBareSoilEvap)
-            # snowEvap calcualted already in snow-frost
-
-
+        #----------------------------
+        # Part without pySnowClim
         else:
 
             # sinus shaped function between the
@@ -633,8 +630,8 @@ class snow_frost(object):
             self.var.Snow = globals.inZero.copy()
             self.var.Rain = globals.inZero.copy()
             # for glacier: snow and rain is reduced by glacier size, but to calc the total amount all snow and rain is needed
-            self.var.Snow1 = globals.inZero.copy()
-            self.var.Rain1 = globals.inZero.copy()
+            #self.var.Snow1 = globals.inZero.copy()
+            #self.var.Rain1 = globals.inZero.copy()
             self.var.SnowMelt = globals.inZero.copy()
             self.var.IceMelt = globals.inZero.copy()
             self.var.SnowCover = globals.inZero.copy()
@@ -753,6 +750,7 @@ class snow_frost(object):
 
                 # Snow evaporation
                 snowEvap = np.minimum(self.var.SnowCoverS[i], self.var.snowEvapFactor * self.var.potBareSoilEvap)
+                self.var.potBareSoilEvap = np.maximum(0., self.var.potBareSoilEvap - self.var.snowEvap)
                 self.var.SnowCoverS[i] = self.var.SnowCoverS[i] - snowEvap
 
                 # snow redistribution inspired by Frey and Holzmann (2015) doi:10.5194/hess-19-4517-2015
@@ -791,47 +789,20 @@ class snow_frost(object):
                 self.var.SnowFraction += sfrac / self.var.numberSnowLayers
 
                 # here outputs are just summed up because equal distribution across elevation zones
-                # when glaciers are included the higher elevations should play less of a role
-                if self.var.excludeGlacierArea:
-                    # the weight is the fraction of current elevation zone that is not covered by glacier
-                    # the glacier is subtracted from the highest elevation zone first
-                    ##weight = 1 / self.var.numberSnowLayers - current_fracGlacierCover
-                    # the fraction of glacier cover is decreased by fraction that is covered by glacier in current elevation zone
-                    ##current_fracGlacierCover = np.where(weight > 0, 0, abs(weight))
-                    #weight below zero is set to zero
-                    #weight[weight < 0] = 0
-                    weight = self.var.invfracGlacier  / self.var.numberSnowLayersFloat
-                    self.var.Snow1 += SnowS / self.var.numberSnowLayersFloat
-                    self.var.Rain1 += RainS / self.var.numberSnowLayersFloat
-                    # depends on the area of non glacier area in a gridcell
-                    self.var.Snow += SnowS * weight
-                    self.var.Rain += RainS * weight
-                    self.var.SnowMelt += SnowMeltS * weight
-                    self.var.IceMelt += IceMeltS * weight
-                    self.var.SnowCover += self.var.SnowCoverS[i] * weight
-                    self.var.snowEvap += snowEvap * weight
+                self.var.Snow += SnowS
+                self.var.Rain += RainS
+                self.var.SnowMelt += SnowMeltS
+                self.var.IceMelt += IceMeltS
+                self.var.SnowCover += self.var.SnowCoverS[i]
+                self.var.snowEvap += snowEvap
 
-                else:
-                    self.var.Snow += SnowS
-                    self.var.Rain += RainS
-                    self.var.SnowMelt += SnowMeltS
-                    self.var.IceMelt += IceMeltS
-                    self.var.SnowCover += self.var.SnowCoverS[i]
-                    self.var.snowEvap += snowEvap
-
-
-
-            if not self.var.excludeGlacierArea:
-                self.var.Snow /= self.var.numberSnowLayersFloat
-                self.var.Rain /= self.var.numberSnowLayersFloat
-                self.var.SnowMelt /= self.var.numberSnowLayersFloat
-                self.var.IceMelt /= self.var.numberSnowLayersFloat
-                self.var.SnowCover /= self.var.numberSnowLayersFloat
-                self.var.snowEvap /= self.var.numberSnowLayersFloat
-                self.var.precipitation_sn = self.var.Snow + self.var.Rain
-            else:
-                # if glacier than calculate also rain+snow on glacier
-                self.var.precipitation_sn = self.var.Snow1 + self.var.Rain1
+            self.var.Snow /= self.var.numberSnowLayersFloat
+            self.var.Rain /= self.var.numberSnowLayersFloat
+            self.var.SnowMelt /= self.var.numberSnowLayersFloat
+            self.var.IceMelt /= self.var.numberSnowLayersFloat
+            self.var.SnowCover /= self.var.numberSnowLayersFloat
+            self.var.snowEvap /= self.var.numberSnowLayersFloat
+            self.var.precipitation_sn = self.var.Snow + self.var.Rain
 
 
 

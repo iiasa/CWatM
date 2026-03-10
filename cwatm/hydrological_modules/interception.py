@@ -95,23 +95,18 @@ class interception(object):
         """
 
         # Rain instead Pr, because snow is substracted later
-        # if glaicer then invfracGlacier < 1 for some cells ->
-        # soil is calculated for 100% input and later weighted by the land cover fraction
-        # glacier has an own part in that fraction
-        rain = self.var.Rain / self.var.invfracGlacier
-
         # assuming that all interception storage is used the other time step
         if coverType in ['forest', 'grassland']:
-            throughfall = np.maximum(0.0, rain + self.var.interceptStor[No] -
+            throughfall = np.maximum(0.0, self.var.Rain + self.var.interceptStor[No] -
                                      self.var.interceptCap[No, dateVar['30day'], :])
         else:
-            throughfall = np.maximum(0.0, rain + self.var.interceptStor[No] -
+            throughfall = np.maximum(0.0, self.var.Rain + self.var.interceptStor[No] -
                                      self.var.minInterceptCap[No])
         # update interception storage after throughfall
-        self.var.interceptStor[No] = self.var.interceptStor[No] + rain - throughfall
+        self.var.interceptStor[No] = self.var.interceptStor[No] + self.var.Rain - throughfall
 
         # availWaterInfiltration Available water for infiltration: throughfall + snow melt
-        self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + (self.var.SnowMelt + self.var.IceMelt)/self.var.invfracGlacier)
+        self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + self.var.SnowMelt + self.var.IceMelt)
 
         if coverType in ['forest', 'grassland']:
             mult = (divideValues(self.var.interceptStor[No], self.var.interceptCap[No, dateVar['30day'], :]) ** 

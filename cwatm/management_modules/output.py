@@ -297,8 +297,8 @@ class outputTssMap(object):
 
 
         if self.var.usepySnowClim:
-            temp = [['Rain_on_snow', 'areasum_m3', 'flux'],['sublimation', 'areasum_m3', 'flux'],
-                    ['condensation', 'areasum_m3', 'flux']]
+            temp = [['Rain_on_snow', 'areasum_m3', 'flux'],['packwater', 'areasum_m3', 'flux'],
+                    ['snowwaterevaporation', 'areasum_m3', 'flux']]
             self.var.watercycle.extend(temp)
         if checkOption('CapillarRise'):
             temp = [['sum_capRiseFromGW','areasum_m3','flux'],['capillar','areasum_m3','flux']]
@@ -307,7 +307,7 @@ class outputTssMap(object):
             temp = [['prefFlow_GW','areasum_m3','flux']]
             self.var.watercycle.extend(temp)
         if checkOption('includeGlaciers'):
-            temp = [['GlacierMelt','areasum_m3','glacier'],['GlacierRain','areasum_m3','glacier']]
+            temp = [['GlacierMelt','sum_m3','glacier'],['GlacierRain','sum_m3','glacier']]
             self.var.watercycle.extend(temp)
         if checkOption('includeRunoffConcentration'):
             temp = [['gridcell_storage','areasum_m3','storage']]
@@ -589,7 +589,7 @@ class outputTssMap(object):
                         return expression
 
                     if var[1] in ['areasum_m3']:  # value from catchment
-                       v = np.bincount(self.var.evalCatch[key], weights=map * self.var.cellArea)[key]
+                       v = np.bincount(self.var.evalCatch[key], weights=map * self.var.cellArea *(1-self.var.fracGlacierCover))[key]
                     elif var[1] in ['sum_m3']:  # value summed up but without  cellarea
                         v = np.bincount(self.var.evalCatch[key], weights=map)[key]
                     else:  # from single cell for discharge only

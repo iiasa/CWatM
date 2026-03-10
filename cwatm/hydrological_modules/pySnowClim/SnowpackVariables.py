@@ -181,9 +181,7 @@ class Snowpack:
             previouspackwater (numpy.ndarray): Previous snowpack water.
         """
         self.rain_in_snow = np.where(has_snow,
-                                     np.maximum(self.lastpackwater -
-                                                previouspackwater, 0),
-                                     np.nan)
+                                     np.maximum(self.lastpackwater - previouspackwater, 0),0)
 
     def _calculate_albedo(self, parameters, precip,
                           snow_vars, lat, month, day):

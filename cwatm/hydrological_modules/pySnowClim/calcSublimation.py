@@ -25,9 +25,8 @@ def calc_sublimation(E, snowpack, snow_vars, SnowDensDefault):
     Sublimation = np.where(np.logical_and(snow_vars.SnowTemp < 0, has_snow),
                            -E/const.WATERDENS, 0) # Sublimation when snow temp < 0°C
     Evaporation = np.where(np.logical_and(np.isclose(snow_vars.SnowTemp, 0, atol=1e-8), 
-                                          has_snow),
-                            -E/ const.WATERDENS, 0)  # Evaporation at 0°C
-    
+                                          has_snow), -E/ const.WATERDENS, 0)  # Evaporation at 0°C
+
     has_sublimation = np.logical_and(snowpack.lastswe  > Sublimation, has_snow)  # Sublimation occurs, update SWE, snow depth, cc
     no_snow_left = np.logical_and(snowpack.lastswe <= Sublimation, has_snow)  # Complete sublimation, no snow left
 
@@ -42,4 +41,5 @@ def calc_sublimation(E, snowpack, snow_vars, SnowDensDefault):
     sublimation = np.where(sub_cond, Sublimation, 0)
     condensation = np.where(~sub_cond, Sublimation, 0)
 
-    return sublimation, condensation
+
+    return sublimation, condensation, Evaporation

@@ -463,7 +463,7 @@ class routing_kinematic(object):
         # ------------------------------------------------------
         # ***** SIDEFLOW **************************************
 
-        runoffM3 = self.var.runoff * self.var.cellArea / self.var.noRoutingSteps
+        runoffM3 = self.var.runoff_m3 / self.var.noRoutingSteps
 
         # ************************************************************
         # ***** KINEMATIC WAVE                        ****************
@@ -509,6 +509,8 @@ class routing_kinematic(object):
                 lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown_LR, self.var.dirupLen_LR,
                                self.var.dirupID_LR, Qnew, self.var.channelAlpha, self.var.beta,
                                self.var.dtRouting, self.var.chanLength, self.var.lendirDown_LR)
+                avglakeoutflow = avglakeoutflow + lakeOutflowDis / self.var.noRoutingSteps
+                maxlakeoutflow = np.where(lakeOutflowDis > maxlakeoutflow, lakeOutflowDis , maxlakeoutflow)
 
             else:
                 lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown, self.var.dirupLen,
@@ -520,8 +522,6 @@ class routing_kinematic(object):
             # calculating average discharge during day and max discharge
             self.var.avgdischarge = self.var.avgdischarge + self.var.discharge / self.var.noRoutingSteps
             self.var.maxdischarge = np.where(self.var.discharge > self.var.maxdischarge, self.var.discharge , self.var.maxdischarge)
-            avglakeoutflow = avglakeoutflow + lakeOutflowDis / self.var.noRoutingSteps
-            maxlakeoutflow = np.where(lakeOutflowDis > maxlakeoutflow, lakeOutflowDis , maxlakeoutflow)
 
         # -- end substeping ---------------------
 
