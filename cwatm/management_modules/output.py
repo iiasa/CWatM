@@ -282,7 +282,7 @@ class outputTssMap(object):
         # for storing water cycle variable the list of variables if pulled together
         self.var.watercycle = [['Precipitation', 'areasum_m3', 'flux'], ['Rain', 'areasum_m3', 'flux'], ['Snow', 'areasum_m3', 'flux'],
                       ['SnowMelt','areasum_m3','flux'],['IceMelt', 'areasum_m3', 'flux'],
-                      ['sum_gwRecharge', 'areasum_m3', 'flux'], ['perc3toGW_GW', 'areasum_m3', 'flux'],
+                      ['sum_gwRecharge', 'areasum_m3', 'flux'], ['sum_perc3toGW', 'areasum_m3', 'flux'],
                       ['runoff', 'areasum_m3','flux'], ['sum_runoff','areasum_m3', 'flux'], ['baseflow', 'areasum_m3', 'flux'],
                       ['totalET', 'areasum_m3', 'evap'], ['sum_actTransTotal', 'areasum_m3', 'evap'],
                       ['sum_actBareSoilEvap','areasum_m3', 'evap'], ['sum_interceptEvap', 'areasum_m3', 'evap'], ['sum_openWaterEvap', 'areasum_m3', 'evap'],
