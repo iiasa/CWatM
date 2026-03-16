@@ -14,6 +14,8 @@ SnowDepth (array-like): Snow depth (m).
 SnowDensity (array-like): Snowpack density (kg/m³).
 Sublimation (array-like): Snow sublimation (m).
 Condensation (array-like): Snow condensation (m).
+Evaporation (array-like): Snow evaporation at T=0 °C (m).
+Deposition (array-like): Snow depostiion (m).
 SnowTemp (array-like): Snow surface temperature (°C).
 MeltEnergy (array-like): Energy used for melting snow (kJ/m²/timestep).
 Energy (array-like): Net energy to the snowpack (kJ/m²/timestep).
@@ -45,15 +47,14 @@ class SnowModelVariables:
 
     def __init__(self, outdim):
         self.SnowMelt = np.zeros(outdim, dtype=np.float32)
-        self.SnowWaterEq = np.zeros(outdim, dtype=np.float32) #np.full(outdim, np.nan, dtype=np.float32)
+        self.SnowWaterEq = np.zeros(outdim, dtype=np.float32)
         self.SnowfallWaterEq = np.full(outdim, np.nan, dtype=np.float32)
         self.SnowDepth = np.zeros(outdim, dtype=np.float32)
         self.SnowDensity = np.full(outdim, np.nan, dtype=np.float32)
-        #self.Sublimation = np.full(outdim, np.nan, dtype=np.float32)
-        #self.Condensation = np.full(outdim, np.nan, dtype=np.float32)
         self.Sublimation = np.zeros(outdim, dtype=np.float32)
         self.Condensation = np.zeros(outdim, dtype=np.float32)
         self.Evaporation = np.zeros(outdim, dtype=np.float32)
+        self.Deposition = np.zeros(outdim, dtype=np.float32)
         self.SnowTemp = np.full(outdim, np.nan, dtype=np.float32)
         self.MeltEnergy = np.full(outdim, np.nan, dtype=np.float32)
         self.Energy = np.full(outdim, np.nan, dtype=np.float32)
@@ -61,7 +62,6 @@ class SnowModelVariables:
         self.ExistSnow = np.zeros(outdim, dtype=np.float32)
         self.RaininSnow = np.zeros(outdim, dtype=np.float32)
         self.Runoff = np.zeros(outdim, dtype=np.float32)
-        #self.RefrozenWater = np.full(outdim, np.nan, dtype=np.float32)
         self.RefrozenWater = np.zeros(outdim, dtype=np.float32)
         self.PackWater = np.zeros(outdim, dtype=np.float32)
         self.LW_down = np.full(outdim, np.nan, dtype=np.float32)

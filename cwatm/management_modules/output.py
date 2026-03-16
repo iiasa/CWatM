@@ -297,8 +297,11 @@ class outputTssMap(object):
 
 
         if self.var.usepySnowClim:
-            temp = [['Rain_on_snow', 'areasum_m3', 'flux'],['packwater', 'areasum_m3', 'flux'],
-                    ['snowwaterevaporation', 'areasum_m3', 'flux']]
+            temp = [['Rain_on_snow', 'areasum_m3', 'flux'],['packwater', 'areasum_m3', 'storage'],
+                    ['snowwaterevaporation', 'areasum_m3', 'flux'],['sublimation', 'areasum_m3', 'flux'],
+                    ['condensation', 'areasum_m3', 'flux'],['depostition', 'areasum_m3', 'flux'],
+                    ['refrozen', 'areasum_m3', 'flux'],['snowmelt1', 'areasum_m3', 'flux']
+                    ]
             self.var.watercycle.extend(temp)
         if checkOption('CapillarRise'):
             temp = [['sum_capRiseFromGW','areasum_m3','flux'],['capillar','areasum_m3','flux']]

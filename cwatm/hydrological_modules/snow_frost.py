@@ -140,25 +140,8 @@ class snow_frost(object):
         - Frost index parameters for soil freezing calculations
         """
 
-        self.var.numberSnowLayersFloat = loadmap('NumberSnowLayers')
-        # now using dz_relative -> fix to 1 or several
-        #if self.var.numberSnowLayersFloat > 1.0:
-        #    self.var.numberSnowLayersFloat = 5.0
-        self.var.numberSnowLayers = int(self.var.numberSnowLayersFloat)
-        # default 1 -> highest zone is transported to middle zone
-        self.var.glaciertransportZone = int(loadmap('GlacierTransportZone'))
-
-        if self.var.usepySnowClim:
-            self.var.numberSnowLayers = 1
-            #self.var.includeGlaciers= False
-        # Difference between (average) air temperature at average elevation of
-        # pixel and centers of upper- and lower elevation zones [deg C]
-        # ElevationStD:   Standard Deviation of the DEM
-        # 0.9674:    Quantile of the normal distribution: u(0,833)=0.9674 to split the pixel in 3 equal parts.
-
         # --- Topography -----------------------------------------------------
-        # maps of relative elevation above flood plains
-
+        # maps of relative elevation above flood plains -> also used in capilar rise
         dzRel = ['dzRel0001', 'dzRel0005', 'dzRel0010', 'dzRel0020', 'dzRel0030', 'dzRel0040', 'dzRel0050',
                  'dzRel0060', 'dzRel0070', 'dzRel0080', 'dzRel0090', 'dzRel0100']
 
@@ -166,156 +149,12 @@ class snow_frost(object):
         for i, item in enumerate(dzRel):
             self.var.dzRel.append(readnetcdfWithoutTime(cbinding('relativeElevation'), item, i))
 
-        # from relative elevation take 5 levels: 80-100% -> 90% -> id11, 60-80% -> 70% -> id9  ...
-        dzSnow = \
-            [[7],
-            [9, 5],
-            [9, 7, 5],
-            [11, 8, 5, 3],
-            [11, 9, 7, 5, 3],
-            [11, 9, 7, 5, 3, 1],
-            [11, 9, 8, 7, 5, 3, 1],
-            [11, 9, 8, 7, 6, 5, 3, 1],
-            [11, 10, 9, 8, 7, 6, 5, 3, 1],
-            [11, 10, 9, 8, 7, 6, 5, 4, 3, 1]]
-
-        self.var.dzSnow = dzSnow[self.var.numberSnowLayers - 1]
-
-        self.var.lapseratevar = False
-        if 'LapseRateVariable' in binding:
-            self.var.lapseratevar = returnBool('LapseRateVariable')
-
-        if self.var.lapseratevar:
-            self.var.lapseR = []
-            for i in range(12):
-                self.var.lapseR.append(readnetcdf12month(cbinding('LapseRate'), i))
-                # read lapse rate from Dutra et al. 2022 global 0.25 deg
-                # values are negative
-                # https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2019ea000984
-
-        else:
-            self.var.lapseRate = loadmap('TemperatureLapseRate')
-
-        #divNo = 1./float(self.var.numberSnowLayers)
-        #deltaNorm = np.linspace(divNo/2, 1-divNo/2, self.var.numberSnowLayers)
-        #self.var.deltaInvNorm = norm.ppf(deltaNorm)
-        #self.var.deltaInvNorm = dn[self.var.numberSnowLayers]
-        #self.var.ElevationMin = loadmap('Elevation')
-        #self.var.ElevationMean = loadmap('Elevation_avg')
-
-        # max_frac_snow_redistriution = 0.5
-        # max_ELevationStD = 1500
-        #min_ElevationStD_snow_redistr = 100
-        # 0.46 is the maximum fraction that can be redistributed if snow density is assumed to be 350kg/m3 according to eq. 13 in Frey & Holzmann (2015)
-        # this fraction has to be multiplied with the slope, highest slope is 90 degrees
-        # the mean slope of each grid cell is the mean of all slopes of the 3'' SRTM DEM
-        # the maximum fraction that can be redistributed if snow density is assumed to be 200kg/m3 according to eq. 13 in Frey & Holzmann (2015) is 0.35
-        slope_degrees = np.degrees(np.arctan(loadmap('tanslope')))
-        self.var.frac_snow_redistribution = np.maximum(0.35 * slope_degrees / 90, globals.inZero)
-
-        self.var.snowEvapFactor = 0.4
-
-        self.var.SnowDayDegrees = 0.9856
-        #to get the seasonal cycle in snow melt coefficient, value is 81 (263) for northern (southern) hemisphere
-        if 'SeasonalSnowMeltSin' in binding:
-            self.var.SeasonalSnowMeltSin = loadmap('SeasonalSnowMeltSin')
-
-        self.var.excludeGlacierArea = False
-        if self.var.includeGlaciers:
-            self.var.excludeGlacierArea = returnBool('excludeGlacierArea')
-
-        # day of the year to degrees: 360/365.25 = 0.9856
-        self.var.summerSeasonStart = 165
-        #self.var.IceDayDegrees = 1.915
-        self.var.IceDayDegrees = 180./(259- self.var.summerSeasonStart)
-        # days of summer (15th June-15th Sept.) to degree: 180/(259-165)
-        self.var.SnowSeason = loadmap('SnowSeasonAdj') * 0.5
-        # default value of range  of seasonal melt factor is set to 0.001 m C-1 day-1
-        # 0.5 x range of sinus function [-1,1]
-        if 'TempSnowLow' in binding:
-            self.var.TempSnowLow = loadmap('TempSnowLow')
-            self.var.TempSnowHigh = loadmap('TempSnowHigh')
-        else:
-            self.var.TempSnow = loadmap('TempSnow')
+        # loading snowfactor, a factor to account for snow udercatching when measuring snow
         self.var.SnowFactor = loadmap('SnowFactor')
-        self.var.SnowMeltCoef = loadmap('SnowMeltCoef')
-        self.var.IceMeltCoef = loadmap('IceMeltCoef')
-
-        self.var.TempMelt = loadmap('TempMelt')
-
-        # New snowmelt includes radiation and a calibration factor for radiation
-        if 'SnowMeltRad' in binding:
-            self.var.SnowMeltRad = loadmap('SnowMeltRad')        # initialize as many snow covers as snow layers -> read them as SnowCover1 , SnowCover2 ...
-        else:
-            self.var.SnowMeltRad = 1 + globals.inZero
-            
-        # SnowCover1 is the highest zone
-        self.var.SnowCoverS = []
-        for i in range(self.var.numberSnowLayers):
-            self.var.SnowCoverS.append(self.var.load_initial("SnowCover",number = i+1))
-
-        # initial snow depth in elevation zones A, B, and C, respectively  [mm]
-        self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / self.var.numberSnowLayersFloat + globals.inZero
-
-        # if the EMO dataset for meteo data is used, only rd is given, so we need additional data like elevation and latitude
-        # it is loaded in evapopot, but not always evapopot is calculated
-        if self.var.only_radiation:
-            self.var.dem = loadmap('dem')
-            self.var.lat = loadmap('latitude')
-
-        # Pixel-average initial snow cover: average of values in 3 elevation
-        # zones
-
-
-        # ---------------------------------------------------------------------------------
-        # Initial part of frost index
-
-        self.var.adv_frost = False
-        if 'Advanced_FrostIndex' in binding:
-            self.var.adv_frost  = returnBool('Advanced_FrostIndex')
-            self.var.maxFrostIndex = loadmap('maxFrostIndex')
-
-
-        self.var.Kfrost = loadmap('Kfrost')
-        self.var.Afrost = loadmap('Afrost')
-        self.var.FrostIndexThreshold = loadmap('FrostIndexThreshold')
-        self.var.SnowWaterEquivalent = loadmap('SnowWaterEquivalent')
-
-        self.var.FrostIndex = self.var.load_initial('FrostIndex')
-
-        if checkOption('reportsnowstations',True):
-
-            # PB 31/8 Snow calibration
-            where = "GaugesElev"
-            outelev = cbinding(where).split()
-            self.var.outelevation = list(map(int, outelev))
-            elevation = loadmap('Elevation_min')
-
-            self.var.elepoint = []
-            i = 0
-            for key in sorted(self.var.sampleAdresses):
-                hoehe = self.var.outelevation[i]
-
-                if self.var.sampleAdresses[key] < 0:
-                    self.var.elepoint.append(0)
-                else:
-                    # zero level of a cell can be higher than min elevation
-                    e1 = elevation[self.var.sampleAdresses[key]] - self.var.dzRel[0][self.var.sampleAdresses[key]]
-                    erange = []
-                    for dz in self.var.dzSnow:
-                        rel_elev = self.var.dzRel[dz][self.var.sampleAdresses[key]]
-                        erange.append(e1 + rel_elev)
-                    erange.append(-9999.)
-
-                    for e2 in range(len(self.var.dzSnow)):
-                        testE = erange[e2] - (erange[e2] - erange[e2 + 1]) / 2
-                        if hoehe > testE:
-                            break
-                    self.var.elepoint.append(e2)
-                i += 1
-
 
         if self.var.usepySnowClim:
+            self.var.numberSnowLayers = 1
+
             # load libraries, but only if pySnowClim is used
             self.var._process_forcings_and_energy = getattr(importlib.import_module('cwatm.hydrological_modules.pySnowClim.snowclim_model'),
                                              '_process_forcings_and_energy')
@@ -339,7 +178,7 @@ class snow_frost(object):
             self.var.tempHt = loadmap('tempHt')  # Temperature height (default: 2 meters)
             self.var.snowoff_month = loadmap('snowoff_month')  # Month of snow-off (default: 9)
             self.var.snowoff_day = loadmap('snowoff_day')  # Day of snow-off (default: 1)
-            self.var.albedo_option = loadmap('albedo_option')  # Albedo option(default: 2) (calib: 1 or 2)
+            self.var.albedo_option = int(loadmap('albedo_option'))  # Albedo option(default: 2) (calib: 1 or 2))
             self.var.max_albedo = loadmap('max_albedo')  # Maximum albedo (default: 0.85) (calib: 0.85-0.90)
             self.var.z_0 = loadmap('z_0')  # Roughness length (default: 0.00001 m) (10-5 - 10-3)
             self.var.z_h = loadmap('z_h')  # Roughness length for heat (default: z_0/10)
@@ -416,22 +255,156 @@ class snow_frost(object):
             self.var.pySnowClimInitVars = ['lastpacktemp', 'snowage', 'lastalbedo', 'lastswe', 'lastsnowdepth', 'packsnowdensity', 'lastpackcc',
                                            'lastpackwater', 'rain_in_snow']
 
+            self.var.SnowCover = globals.inZero.copy()
             if returnBool('load_initial_pySnowClim'):
                 loadInitFilepySnowClim = cbinding('initLoad_pySnowClim')
                 for v in self.var.pySnowClimInitVars:
                     var = readnetcdfInitial(loadInitFilepySnowClim, v)
                     setattr(self.var.snowpack, v, var)
+                self.var.SnowCover = self.var.snowModelvars.SnowWaterEq / self.var.constSnowClim.WATERDENS
+
+                    
 
             self.var.saveInitpySnowClim = returnBool('save_initial_pySnowClim')
             if self.var.saveInitpySnowClim:
                 self.var.saveInitFilepySnowClim = cbinding('initSave_pySnowClim')
 
+ 
             # snowfraction set to 0 -> ExistSnow for true or false
             self.var.SnowFraction = globals.inZero.copy()
             # icemelt =0 -> snowtowers are handled in pySnowClim
             self.var.IceMelt = globals.inZero.copy()
             self.var.snow_redistributed_previous = globals.inZero.copy()
 
+        
+        # No pySnowClim
+        else:
+
+            self.var.numberSnowLayersFloat = loadmap('NumberSnowLayers')
+            # now using dz_relative -> fix to 1 or several
+            #if self.var.numberSnowLayersFloat > 1.0:
+            #    self.var.numberSnowLayersFloat = 5.0
+            self.var.numberSnowLayers = int(self.var.numberSnowLayersFloat)
+            # default 1 -> highest zone is transported to middle zone
+            self.var.glaciertransportZone = int(loadmap('GlacierTransportZone'))
+
+            # Difference between (average) air temperature at average elevation of
+            # pixel and centers of upper- and lower elevation zones [deg C]
+            # ElevationStD:   Standard Deviation of the DEM
+            # 0.9674:    Quantile of the normal distribution: u(0,833)=0.9674 to split the pixel in 3 equal parts.
+
+            # from relative elevation take 5 levels: 80-100% -> 90% -> id11, 60-80% -> 70% -> id9  ...
+            dzSnow = \
+                [[7],
+                [9, 5],
+                [9, 7, 5],
+                [11, 8, 5, 3],
+                [11, 9, 7, 5, 3],
+                [11, 9, 7, 5, 3, 1],
+                [11, 9, 8, 7, 5, 3, 1],
+                [11, 9, 8, 7, 6, 5, 3, 1],
+                [11, 10, 9, 8, 7, 6, 5, 3, 1],
+                [11, 10, 9, 8, 7, 6, 5, 4, 3, 1]]
+
+            self.var.dzSnow = dzSnow[self.var.numberSnowLayers - 1]
+
+            self.var.lapseratevar = False
+            if 'LapseRateVariable' in binding:
+                self.var.lapseratevar = returnBool('LapseRateVariable')
+
+            if self.var.lapseratevar:
+                self.var.lapseR = []
+                for i in range(12):
+                    self.var.lapseR.append(readnetcdf12month(cbinding('LapseRate'), i))
+                    # read lapse rate from Dutra et al. 2022 global 0.25 deg
+                    # values are negative
+                    # https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2019ea000984
+
+            else:
+                self.var.lapseRate = loadmap('TemperatureLapseRate')
+
+            #min_ElevationStD_snow_redistr = 100
+            # 0.46 is the maximum fraction that can be redistributed if snow density is assumed to be 350kg/m3 according to eq. 13 in Frey & Holzmann (2015)
+            # this fraction has to be multiplied with the slope, highest slope is 90 degrees
+            # the mean slope of each grid cell is the mean of all slopes of the 3'' SRTM DEM
+            # the maximum fraction that can be redistributed if snow density is assumed to be 200kg/m3 according to eq. 13 in Frey & Holzmann (2015) is 0.35
+            slope_degrees = np.degrees(np.arctan(loadmap('tanslope')))
+            self.var.frac_snow_redistribution = np.maximum(0.35 * slope_degrees / 90, globals.inZero)
+
+
+            # a factor to evaporation assuming higher albedo for snow
+            self.var.snowEvapFactor = 0.4
+            if 'snowEvapFactor' in binding:
+                self.var.snowEvapFactor = loadmap('snowEvapFactor')
+
+            # for snow deposition
+            self.var.swe_forest = 0.625
+            self.var.swe_other = 0.2
+            if 'swe_forest' in binding:
+                self.var.swe_forest = loadmap('swe_forest') 
+            if 'swe_other' in binding:
+                self.var.swe_other = loadmap('swe_other') 
+
+            self.var.SnowDayDegrees = 0.9856
+            #to get the seasonal cycle in snow melt coefficient, value is 81 (263) for northern (southern) hemisphere
+            if 'SeasonalSnowMeltSin' in binding:
+                self.var.SeasonalSnowMeltSin = loadmap('SeasonalSnowMeltSin')
+
+
+            # day of the year to degrees: 360/365.25 = 0.9856
+            self.var.summerSeasonStart = 165
+            #self.var.IceDayDegrees = 1.915
+            self.var.IceDayDegrees = 180./(259- self.var.summerSeasonStart)
+            # days of summer (15th June-15th Sept.) to degree: 180/(259-165)
+            self.var.SnowSeason = loadmap('SnowSeasonAdj') * 0.5
+            # default value of range  of seasonal melt factor is set to 0.001 m C-1 day-1
+            # 0.5 x range of sinus function [-1,1]
+            self.var.TempSnow = loadmap('TempSnow')
+
+            self.var.SnowMeltCoef = loadmap('SnowMeltCoef')
+            self.var.IceMeltCoef = loadmap('IceMeltCoef')
+
+            self.var.TempMelt = loadmap('TempMelt')
+
+            # New snowmelt includes radiation and a calibration factor for radiation
+            if 'SnowMeltRad' in binding:
+                self.var.SnowMeltRad = loadmap('SnowMeltRad')        # initialize as many snow covers as snow layers -> read them as SnowCover1 , SnowCover2 ...
+            else:
+                self.var.SnowMeltRad = 1 + globals.inZero
+                
+            # SnowCover1 is the highest zone
+            self.var.SnowCoverS = []
+            for i in range(self.var.numberSnowLayers):
+                self.var.SnowCoverS.append(self.var.load_initial("SnowCover",number = i+1))
+
+            # initial snow depth in elevation zones A, B, and C, respectively  [mm]
+            self.var.SnowCover = np.sum(self.var.SnowCoverS,axis=0) / self.var.numberSnowLayersFloat + globals.inZero
+
+            # if the EMO dataset for meteo data is used, only rd is given, so we need additional data like elevation and latitude
+            # it is loaded in evapopot, but not always evapopot is calculated
+            if self.var.only_radiation:
+                self.var.dem = loadmap('dem')
+                self.var.lat = loadmap('latitude')
+
+
+
+
+
+        # ---------------------------------------------------------------------------------
+        # Initial part of frost index
+
+        self.var.adv_frost = False
+        if 'Advanced_FrostIndex' in binding:
+            self.var.adv_frost  = returnBool('Advanced_FrostIndex')
+            self.var.maxFrostIndex = loadmap('maxFrostIndex')
+
+
+        self.var.Kfrost = loadmap('Kfrost')
+        self.var.Afrost = loadmap('Afrost')
+        self.var.FrostIndexThreshold = loadmap('FrostIndexThreshold')
+        self.var.SnowWaterEquivalent = loadmap('SnowWaterEquivalent')
+
+        self.var.FrostIndex = self.var.load_initial('FrostIndex')
 
 
     # --------------------------------------------------------------------------
@@ -542,6 +515,8 @@ class snow_frost(object):
                 if time_value[1] == self.var.snowoff_month and time_value[2] == self.var.snowoff_day:
                     self.var.snowpack = self.var.Snowpack(globals.inZero.shape[0], self.var.snowclimParameters)
 
+            self.var.snowpack.cellarea = self.var.cellArea
+
             self.var.snowpack, snow_vars = self.var._run_snowclim_step(
                 snow_vars,
                 self.var.snowpack,
@@ -561,21 +536,26 @@ class snow_frost(object):
             self.var.Rain_on_snow = np.where(self.var.ExistSnow, precip.rain, 0)
             self.var.Rain = np.where(self.var.ExistSnow, 0, precip.rain)
             self.var.Snow = precip.sfe.copy()
-            self.var.SnowCover = self.var.snowModelvars.SnowWaterEq / self.var.constSnowClim.WATERDENS
+            #self.var.SnowCover = self.var.snowModelvars.SnowWaterEq / self.var.constSnowClim.WATERDENS
+            self.var.SnowCover = (self.var.snowModelvars.SnowWaterEq + self.var.snowModelvars.PackWater) / self.var.constSnowClim.WATERDENS
 
-            # lost due to sublimation and condensation
+            # lost due to sublimation and win through condensation (condesation is negative here)
             self.var.snowEvap = (self.var.snowModelvars.Sublimation + self.var.snowModelvars.Condensation) / self.var.constSnowClim.WATERDENS
-
+            self.var.snowEvap += (self.var.snowModelvars.Deposition + self.var.snowModelvars.Evaporation) / self.var.constSnowClim.WATERDENS
             # additional variables to close the waterbalance
             # SnowWaterEq += snow - Sublimation - Condensation   + RefrozenWater - SnowMelt
             # PackWater   += rain_on_snow - Runoff - Evaporation - RefrozenWater + SnowMelt
             # SnowWaterEQ + PackWater = Snow + rain_on_snow - Runoff - Sublimation - Condensation - Evaporation
 
-            #self.var.refrozen = self.var.snowModelvars.RefrozenWater / self.var.constSnowClim.WATERDENS
+
             self.var.packwater = self.var.snowModelvars.PackWater / self.var.constSnowClim.WATERDENS
-            #self.var.snowmelt1 = self.var.snowModelvars.SnowMelt / self.var.constSnowClim.WATERDENS
-            #self.var.raininsnow = self.var.snowModelvars.RaininSnow / self.var.constSnowClim.WATERDENS
             self.var.snowwaterevaporation = self.var.snowModelvars.Evaporation / self.var.constSnowClim.WATERDENS
+            self.var.depostition = self.var.snowModelvars.Deposition / self.var.constSnowClim.WATERDENS
+            self.var.sublimation = self.var.snowModelvars.Sublimation / self.var.constSnowClim.WATERDENS
+            self.var.condensation = self.var.snowModelvars.Condensation / self.var.constSnowClim.WATERDENS
+
+            self.var.refrozen = self.var.snowModelvars.RefrozenWater / self.var.constSnowClim.WATERDENS
+            self.var.snowmelt1 = self.var.snowModelvars.SnowMelt / self.var.constSnowClim.WATERDENS
 
             # if snow on ground no bare soil evap
             self.var.potBareSoilEvap = np.where(self.var.ExistSnow == 1, 0, self.var.potBareSoilEvap)
@@ -620,8 +600,7 @@ class snow_frost(object):
                 SummerSeason = np.where(SummerSeason < 0 or SnowMeltCycle < 0, globals.inZero, SummerSeason)
 
             else:
-                SeasSnowMeltCoef = self.var.SnowSeason * np.sin(math.radians((dateVar['doy'] - 81)
-                                                                             * self.var.SnowDayDegrees)) + self.var.SnowMeltCoef
+                SeasSnowMeltCoef = self.var.SnowSeason * np.sin(math.radians((dateVar['doy'] - 81) * self.var.SnowDayDegrees)) + self.var.SnowMeltCoef
                 if (dateVar['doy'] > self.var.summerSeasonStart) and (dateVar['doy'] < 260):
                     SummerSeason = np.sin(math.radians((dateVar['doy'] - self.var.summerSeasonStart) * self.var.IceDayDegrees))
                 else:
@@ -629,9 +608,6 @@ class snow_frost(object):
 
             self.var.Snow = globals.inZero.copy()
             self.var.Rain = globals.inZero.copy()
-            # for glacier: snow and rain is reduced by glacier size, but to calc the total amount all snow and rain is needed
-            #self.var.Snow1 = globals.inZero.copy()
-            #self.var.Rain1 = globals.inZero.copy()
             self.var.SnowMelt = globals.inZero.copy()
             self.var.IceMelt = globals.inZero.copy()
             self.var.SnowCover = globals.inZero.copy()
@@ -646,17 +622,6 @@ class snow_frost(object):
             #get number of elevation zones with forest
             #assume forest is most present at lowest location
             nr_frac_forest = self.var.numberSnowLayers - np.round(self.var.fracVegCover[0] / (1 / self.var.numberSnowLayers)) - 1
-
-            #if self.var.includeGlaciers:
-            #    if self.var.excludeGlacierArea:
-            #        current_fracGlacierCover = self.var.fracGlacierCover.copy() #percentage area of each layer
-            #    # elev_red = 5
-            #    # current_fracGlacierCover = self.var.fracGlacierCover / elev_red
-            #substract glacier area from highest areas
-            #loops through snow layers from highest to lowest
-            #the capacity depends on the fraction of forest or grassland
-            #self.var.SnowCoverSCapacity[i]
-
 
             # if only radiation is given like in the EMO meteo dataset:
             # then rsdl has to be calculted in this way
@@ -691,18 +656,12 @@ class snow_frost(object):
                 # Temperature at center of each zone (temperature at zone B equals Tavg)
                 # i=0 -> highest zone
                 # i=2 -> lower zone
-                if 'TempSnowLow' in binding:
-                    #fraction of solid precipitation maximum 1, minimum 0
-                    frac_solid = np.clip(1 - (TavgS - self.var.TempSnowLow) / (self.var.TempSnowHigh - self.var.TempSnowLow), 0, 1)
-                    SnowS = frac_solid * self.var.SnowFactor * self.var.Precipitation
-                    RainS = (1 - frac_solid) * self.var.Precipitation
-                else:
-                    SnowS = np.where(TavgS < self.var.TempSnow, self.var.SnowFactor * self.var.Precipitation,
+                SnowS = np.where(TavgS < self.var.TempSnow, self.var.SnowFactor * self.var.Precipitation,
                                      globals.inZero)
-                    # Precipitation is assumed to be snow if daily average temperature is below TempSnow
-                    # Snow is multiplied by correction factor to account for undercatch of
-                    # snow precipitation (which is common)
-                    RainS = np.where(TavgS >= self.var.TempSnow, self.var.Precipitation, globals.inZero)
+                # Precipitation is assumed to be snow if daily average temperature is below TempSnow
+                # Snow is multiplied by correction factor to account for undercatch of
+                # snow precipitation (which is common)
+                RainS = np.where(TavgS >= self.var.TempSnow, self.var.Precipitation, globals.inZero)
 
                 # Snow melt with radiation
                 # Radiation part from evaporationPot -> snowmelt has now a temperature part and a radiation part
@@ -759,10 +718,8 @@ class snow_frost(object):
                 # capacity of forest 2.5m snow cover, assumed snow density 250kg/m3: 0.25 * 1000 * 2.5 / 1000
                 # capacity of other land cover 0.25m snow cover, assumed snow density 250kg/m3: 0.25 * 1000 * 0.25 / 1000
                 # but only for cells with std above 100m
-                swe_forest = 0.625
-                swe_other = 0.2
-                # snow capacity depends on whether there is frost cover in the elevation zone
-                snowcapacity = np.where(i <= nr_frac_forest, swe_other, swe_forest)
+                # snow capacity depends on whether there is forest cover in the elevation zone
+                snowcapacity = np.where(i <= nr_frac_forest, self.var.swe_other, self.var.swe_forest)
                 # where snow cover is higher than capacity, a fraction of snow will be redistributed
 
                 # reduction factor at lowest level no snow_retri, increasing to factor 0.9 at highest level
