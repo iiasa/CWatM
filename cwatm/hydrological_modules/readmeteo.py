@@ -296,6 +296,22 @@ class readmeteo(object):
                 if not self.var.includeOnlyGlaciersMelt:
                     meteomaps.append(self.var.glacierrainMaps)
 
+        # snow calibration
+        if self.var.stopaftersnow:
+            if self.var.snowmelt_radiation:
+                if self.var.only_radiation:
+                    meteomaps = [self.var.preMaps, self.var.tempMaps,'RGDMaps','EActMaps']
+                else:
+                    meteomaps = [self.var.preMaps, self.var.tempMaps, self.var.RSDSMaps,self.var.RSDLMaps]
+            else:
+                meteomaps = [self.var.preMaps, self.var.tempMaps]
+
+            if self.var.usepySnowClim:
+                meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps']
+                if self.var.useTdew:
+                    meteomaps.append('TdewMaps')
+
+
         multinetdf(meteomaps,self.var.buffer)
 
         # Conversion factor from [W] to [MJ]
@@ -641,31 +657,50 @@ class readmeteo(object):
         - Radiation mode: solar and longwave radiation data
         - Glacier mode: glacier-specific precipitation and melt data
         """
+
+
+        # For calibration - loading meteo data only once
         if Flags['warm']:
             # if warmstart use stored meteo variables
             no = dateVar['curr']-1
             self.var.Precipitation = self.var.meteo[0,no]
-            self.var.Tavg = self.var.meteo[1,no]
-            self.var.ETRef = self.var.meteo[2,no]
-            self.var.EWRef = self.var.meteo[3,no]
-            j = 3
-            if self.var.snowmelt_radiation:
-                # for EMO meteo datasets
-                if self.var.only_radiation:
-                    self.var.Rsds = self.var.meteo[4,no]
-                    self.var.EAct = self.var.meteo[5, no]
-                else:
-                    self.var.Rsds = self.var.meteo[4,no]
-                    self.var.Rsdl = self.var.meteo[5,no]
-                j = 5
+            self.var.Tavg = self.var.meteo[1, no]
+            j = 1
+            if not (self.var.stopaftersnow):
+                self.var.ETRef = self.var.meteo[2,no]
+                self.var.EWRef = self.var.meteo[3,no]
+                j = 3
+
+            if self.var.usepySnowClim:
+                self.var.TMin = self.var.meteo[j + 1, no]
+                self.var.TMax = self.var.meteo[j + 2, no]
+                self.var.Wind = self.var.meteo[j + 3, no]
+                self.var.Rsds = self.var.meteo[j + 4, no]
+                self.var.EAct = self.var.meteo[j + 5, no]
+                j = j + 5
+                if self.var.useTdew:
+                    self.var.Tdew = self.var.meteo[j + 6, no]
+                    j = j + 1
+            else:
+                if self.var.snowmelt_radiation:
+                    # for EMO meteo datasets
+                    if self.var.only_radiation:
+                        self.var.Rsds = self.var.meteo[j+1,no]
+                        self.var.EAct = self.var.meteo[j+2, no]
+                    else:
+                        self.var.Rsds = self.var.meteo[j+1,no] # j =4
+                        self.var.Rsdl = self.var.meteo[j+2,no] # j =5
+                    j = j+2
             if self.var.includeGlaciers:
                 self.var.GlacierMelt = self.var.meteo[j+1, no]
                 if not self.var.includeOnlyGlaciersMelt:
                     self.var.GlacierRain = self.var.meteo[j+2, no]
             return
+        # End calibration warm run
 
         # -------------------------------------------------------------
         # read netcdf data
+
         self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
         self.var.Precipitation = self.var.Precipitation * self.var.DtDay * self.var.con_precipitation
 
@@ -724,13 +759,13 @@ class readmeteo(object):
 
 
         if self.var.includeGlaciers:
-            self.var.GlacierMelt = readmeteodata(self.var.glaciermeltMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = True)
+            self.var.GlacierMelt = readmeteodata(self.var.glaciermeltMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = 1)
             # Glaciermelt and Glacierrain is preprocessed after OGGM to have a factor of 1.0
             # -> here glacier melt is again multiplied by the CwatM snow factor to have the same values
             self.var.GlacierMelt = self.var.GlacierMelt * self.var.SnowFactor
             # extendback -> if simulation starts earlier than first glacier map -> day of the year of first year is used
             if not self.var.includeOnlyGlaciersMelt:
-                self.var.GlacierRain = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = True)
+                self.var.GlacierRain = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = 1)
 
         if Flags['check']:
             checkmap(self.var.tempMaps, meteofiles[self.var.tempMaps][flagmeteo[self.var.tempMaps]][0], self.var.Tavg)
@@ -850,29 +885,30 @@ class readmeteo(object):
         # if pot evaporation is already precalulated
         else:
 
+            if not(self.var.stopaftersnow):
             # in case ET_ref is the same resolution as the other meteo input map, there is an optional flag in settings which checks this
-            ETsamePr = False
-            if "ETsamePr" in binding:
-                if returnBool('ETsamePr'):
-                    ETsamePr = True
+                ETsamePr = False
+                if "ETsamePr" in binding:
+                    if returnBool('ETsamePr'):
+                        ETsamePr = True
 
-            if ETsamePr:
-                self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale)
-                self.var.EWRef = self.var.EWRef * self.var.DtDay * self.var.con_e
-                self.var.EWRef = self.downscaling2(self.var.EWRef, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
+                if ETsamePr:
+                    self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale)
+                    self.var.EWRef = self.var.EWRef * self.var.DtDay * self.var.con_e
+                    self.var.EWRef = self.downscaling2(self.var.EWRef, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
 
-                self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale)
-                self.var.ETRef = self.var.ETRef *self.var.DtDay * self.var.con_e
-                self.var.ETRef = self.downscaling2(self.var.ETRef, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
+                    self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale)
+                    self.var.ETRef = self.var.ETRef *self.var.DtDay * self.var.con_e
+                    self.var.ETRef = self.downscaling2(self.var.ETRef, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
 
-            else:
-                self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True, mapsscale = True)
-                self.var.EWRef = self.var.EWRef * self.var.DtDay * self.var.con_e
-                self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True, mapsscale = True)
-                self.var.ETRef = self.var.ETRef *self.var.DtDay * self.var.con_e
+                else:
+                    self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True, mapsscale = True)
+                    self.var.EWRef = self.var.EWRef * self.var.DtDay * self.var.con_e
+                    self.var.ETRef = readmeteodata(self.var.evaTMaps, dateVar['currDate'], addZeros=True, mapsscale = True)
+                    self.var.ETRef = self.var.ETRef *self.var.DtDay * self.var.con_e
 
-                # potential evaporation rate from water surface (conversion to [m] per time step)
-                # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
+                    # potential evaporation rate from water surface (conversion to [m] per time step)
+                    # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
 
         if self.var.usepySnowClim:
             if self.var.useTdew:
@@ -885,12 +921,22 @@ class readmeteo(object):
                 if checkOption('TemperatureInKelvin'):
                     self.var.Tdew -= ZeroKelvin
 
+        # Calibration
         if Flags['calib']:
             # if first clibration run, store all meteo data in a variable
             if dateVar['curr'] == 1:
-                number = 4
-                if self.var.snowmelt_radiation:
-                    number = number + 2
+                if not (self.var.stopaftersnow):
+                    number = 4
+                else:
+                    number = 2
+
+                if  self.var.usepySnowClim:
+                    number = number + 5
+                    if self.var.useTdew:
+                        number = number + 1
+                else:
+                    if self.var.snowmelt_radiation:
+                        number = number + 2
                 if self.var.includeGlaciers:
                     number = number + 1
                     if not self.var.includeOnlyGlaciersMelt:
@@ -901,20 +947,36 @@ class readmeteo(object):
             no = dateVar['curr'] -1
             self.var.meteo[0,no] = self.var.Precipitation
             self.var.meteo[1,no] = self.var.Tavg
-            self.var.meteo[2,no] = self.var.ETRef
-            self.var.meteo[3,no] = self.var.EWRef
-            j =3
-            if self.var.snowmelt_radiation:
-                if self.var.only_radiation:
-                    self.var.meteo[4,no] = self.var.Rsds
-                    self.var.meteo[5, no] = self.var.EAct
-                else:
-                    self.var.meteo[4,no] = self.var.Rsds
-                    self.var.meteo[5,no] = self.var.Rsdl
-                j = 5
+            j = 1
+            if not(self.var.stopaftersnow):
+                self.var.meteo[2,no] = self.var.ETRef
+                self.var.meteo[3,no] = self.var.EWRef
+                j =3
+
+            if self.var.usepySnowClim:
+                self.var.meteo[j + 1, no] = self.var.TMin
+                self.var.meteo[j + 2, no] = self.var.TMax
+                self.var.meteo[j + 3, no] = self.var.Wind
+                self.var.meteo[j + 4, no] = self.var.Rsds
+                self.var.meteo[j + 5, no] = self.var.EAct
+                j = j + 5
+                if self.var.useTdew:
+                    self.var.meteo[j + 6, no] = self.var.Tdew
+                    j = j + 1
+
+            else:
+                if self.var.snowmelt_radiation:
+                    if self.var.only_radiation:
+                        self.var.meteo[j+1,no] = self.var.Rsds
+                        self.var.meteo[j+2, no] = self.var.EAct
+                    else:
+                        self.var.meteo[j+1,no] = self.var.Rsds
+                        self.var.meteo[J+5,no] = self.var.Rsdl
+                    j = j +2
             if self.var.includeGlaciers:
                 self.var.meteo[j+1, no] = self.var.GlacierMelt
                 if not self.var.includeOnlyGlaciersMelt:
                     self.var.meteo[j+2, no] = self.var.GlacierRain
+
             ii =1
 

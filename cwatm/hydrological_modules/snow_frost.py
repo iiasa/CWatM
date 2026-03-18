@@ -152,6 +152,7 @@ class snow_frost(object):
         # loading snowfactor, a factor to account for snow udercatching when measuring snow
         self.var.SnowFactor = loadmap('SnowFactor')
 
+        self.var.usepySnowClim = checkOption('usepySnowClim', True)
         if self.var.usepySnowClim:
             self.var.numberSnowLayers = 1
 
@@ -350,7 +351,10 @@ class snow_frost(object):
             if 'SeasonalSnowMeltSin' in binding:
                 self.var.SeasonalSnowMeltSin = loadmap('SeasonalSnowMeltSin')
 
-
+            self.var.redistr_factor = 1.0
+            if 'redistribution_factor' in binding:
+                self.var.redistr_factor = loadmap('redistribution_factor')
+            
             # day of the year to degrees: 360/365.25 = 0.9856
             self.var.summerSeasonStart = 165
             #self.var.IceDayDegrees = 1.915
@@ -445,7 +449,11 @@ class snow_frost(object):
         """
 
         # calculate bare soil evap for snowevaporation
-        self.var.potBareSoilEvap = self.var.cropCorrect * self.var.minCropKC * self.var.ETRef
+        if self.var.stopaftersnow:
+            # if it is snow only that we dont care
+            self.var.potBareSoilEvap = 0
+        else:
+            self.var.potBareSoilEvap = self.var.cropCorrect * self.var.minCropKC * self.var.ETRef
 
 
         if self.var.usepySnowClim:
@@ -723,7 +731,7 @@ class snow_frost(object):
                 # where snow cover is higher than capacity, a fraction of snow will be redistributed
 
                 # reduction factor at lowest level no snow_retri, increasing to factor 0.9 at highest level
-                reduction_factor = 1.0 * (1 - (i + 1) / self.var.numberSnowLayers)
+                reduction_factor = self.var.redistr_factor * (1 - (i + 1) / self.var.numberSnowLayers)
                 snow_redistributed = np.where(self.var.SnowCoverS[i] > snowcapacity,
                         self.var.frac_snow_redistribution * self.var.SnowCoverS[i] * reduction_factor, 0)
                 # the lowest elevation zone cannot redistribute snow -> this is replaced by reduction_factor = 0 in the lowest elevation band

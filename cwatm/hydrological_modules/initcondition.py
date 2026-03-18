@@ -302,7 +302,7 @@ class initcondition(object):
 
         # list all initiatial variables
         # Snow & Frost
-        if not checkOption('usepySnowClim'):
+        if not checkOption('usepySnowClim', True):
             number = int(loadmap('NumberSnowLayers'))
             for i in range(number):
                 initCondVar.append("SnowCover"+str(i+1))
