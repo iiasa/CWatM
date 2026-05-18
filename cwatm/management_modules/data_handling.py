@@ -2494,35 +2494,31 @@ def report(valueIn,name,compr=True):
 
     checkint = value.dtype.char in np.typecodes['AllInteger']
     ny, nx = value.shape
-    transform = from_origin(maskmapAttr['x'], maskmapAttr['y'], maskmapAttr['cell'], maskmapAttr['cell'])
+    geo = (maskmapAttr['x'], maskmapAttr['cell'], 0.0, maskmapAttr['y'], 0.0, -maskmapAttr['cell'])
 
     if pcmap: # if it is a map
-        # PCRaster .map format replacement with Tiff or similar, 
-        # but here we use rasterio to write a Tiff as a fallback or if compatible
-        # Note: rasterio doesn't natively write .map (PCRaster), so we use GTiff
-        if not name.endswith('.tif'):
-            name_out = name + '.tif'
+        import gdal  # import gdal here if it is needed for PCRaster maps
+        raster = gdal.GetDriverByName('PCRaster')
+        if checkint:
+            ds = raster.Create(name, nx, ny, 1, gdal.GDT_Int32, ["PCRASTER_VALUESCALE=VS_NOMINAL"])
         else:
-            name_out = name
+            ds = raster.Create(name, nx, ny, 1, gdal.GDT_Float32, ["PCRASTER_VALUESCALE=VS_SCALAR"])
 
-        dtype = 'int32' if checkint else 'float32'
-        with rasterio.open(
-            name_out,
-            'w',
-            driver='GTiff',
-            height=ny,
-            width=nx,
-            count=1,
-            dtype=dtype,
-            crs='EPSG:4326',
-            transform=transform,
-            nodata=-9999,
-            compress='lzw'
-        ) as ds:
-            ds.write(value.astype(dtype), 1)
+        #ds.SetGeoTransform(geotrans[0])  # specify coords
+        ds.SetGeoTransform(geo)  # specify coords
+        outband = ds.GetRasterBand(1)
+        # set NoData value
+        # outband.SetNoDataValue(np.nan)
+        outband.SetNoDataValue(-9999)
+        value[np.isnan(value)] = -9999
 
+        outband.WriteArray(value)
+        ds.FlushCache()
+        ds = None
+        outband = None
 
     else: # if is not a .map
+        transform = from_origin(maskmapAttr['x'], maskmapAttr['y'], maskmapAttr['cell'], maskmapAttr['cell'])
         dtype = 'int32' if checkint else 'float32'
         with rasterio.open(
             name,
