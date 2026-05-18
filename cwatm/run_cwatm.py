@@ -51,8 +51,6 @@ import numpy
 import pandas
 import scipy
 import netCDF4
-from osgeo import gdal
-from osgeo import osr
 
 from cwatm.management_modules.configuration import globalFlags, settingsfile, versioning, platform1, parse_configuration, read_metanetcdf, dateVar, CWATMRunInfo, outputDir, timeMesSum, timeMesString, globalclear, calibclear
 from cwatm.management_modules.data_handling import Flags, cbinding
@@ -67,10 +65,6 @@ if "modflow_coupling" in option:
     if checkOption('modflow_coupling'):
         import flopy
         import xmipy
-
-#import xlrd
-#import openpyxl
-gdal.UseExceptions()
 
 # ---------------------------
 

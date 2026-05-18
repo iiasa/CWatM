@@ -36,7 +36,8 @@ class soil(object):
     storGroundwater                      Array         Groundwater storage (non-fossil). This is primarily used when not usin  m    
     includeCrops                         Flag          1 when includeCrops=True in Settings, 0 otherwise                       bool 
     Crops                                Array         Internal: List of specific crops and Kc/Ky parameters                   --   
-    potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m    
+    potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m 
+    actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m       
     cropKC                               Array         crop coefficient for each of the 4 different land cover types (forest,  --   
     minCropKC                            Array         minimum crop factor (default 0.2)                                       --   
     rootDepth                            Array         rootdepth of different layers                                           m    
@@ -850,6 +851,12 @@ class soil(object):
                     self.var.irrM3_Paddy_month_segment = npareatotal(
                         self.var.irr_Paddy_month * self.var.cellArea,
                         self.var.adminSegments)
+
+        self.var.actualET[No] = (self.var.actualET[No] + self.var.actBareSoilEvap[No] + 
+                                 self.var.openWaterEvap[No] + self.var.actTransTotal[No])
+        # actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water 
+        # evaporation, therefore self.var.totalPotET[No] is adjusted
+        self.var.totalPotET[No] = np.maximum(self.var.totalPotET[No], self.var.actualET[No])
 
         # groundwater recharge
         toGWorInterflow = self.var.perc3toGW[No] + self.var.prefFlow[No]

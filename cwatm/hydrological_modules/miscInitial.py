@@ -112,6 +112,10 @@ class miscInitial(object):
 
             # Area of pixel [m2]
             self.var.cellArea = loadmap('CellArea')
+            projection['crs'] = loadcrs('CellArea')
+
+            #for key in projection['crs'].ncattrs():
+            #    print ( key, getattr(projection['crs'],key))
 
 
         else:

@@ -155,7 +155,8 @@ class landcoverType(object):
     sum_actBareSoilEvap                  Array         actual bare soil evaporation (sum over all land cover types)            m    
     sum_interceptEvap                    Array                                                                                 --   
     sum_runoff                           Array         Runoff above the soil, more interflow, including all landcover types    m    
-    sum_directRunoff                     Array         direct runoff from surface  (sum over all land cover types)             m    
+    sum_directRunoff                     Array         direct runoff from surface  (sum over all land cover types)             m  
+    actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m       
     GWVolumeVariation                    Number                                                                                --   
     MtoM3                                Array         Coefficient to change units                                             --   
     InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1/m2 
@@ -317,7 +318,7 @@ class landcoverType(object):
                          'effSatAt50', 'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin', 'rootZoneWaterStorageRange',
                          'totalPotET', 'potTranspiration', 'soilWaterStorage',
                          'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTransTotal',
-                         'gwRecharge', 'interflow', 'pot_irrConsumption', 'act_irrConsumption', 'irrDemand',
+                         'gwRecharge', 'interflow','actualET', 'pot_irrConsumption', 'act_irrConsumption', 'irrDemand',
                          'topWaterLayer',
                          'perc3toGW', 'capRiseFromGW', 'netPercUpper', 'netPerc', 'prefFlow']
      

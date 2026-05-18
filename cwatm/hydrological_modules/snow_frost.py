@@ -673,7 +673,7 @@ class snow_frost(object):
 
                 # Snow melt with radiation
                 # Radiation part from evaporationPot -> snowmelt has now a temperature part and a radiation part
-                # from Erlandsen et al. Hydrology Research 52.2 2021
+                # from Erlandsen et al. 2021Hydrology Research 1 April 2021; 52 (2): 356–372 https://doi.org/10.2166/nh.2021.132
                 if self.var.snowmelt_radiation:
                     RNup = 4.903E-9 * (TavgS + 273.16) ** 4
                     # if only radiation is given like in the EMO meteo dataset:

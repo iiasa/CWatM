@@ -25,7 +25,8 @@ class sealed_water(object):
     ===================================  ==========    ======================================================================  =====
     modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
     EWRef                                Array         potential evaporation rate from water surface                           m    
-    availWaterInfiltration               Array         quantity of water reaching the soil after interception, more snowmelt   m    
+    availWaterInfiltration               Array         quantity of water reaching the soil after interception, more snowmelt   m
+    actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m        
     directRunoff                         Array         Simulated surface runoff                                                m
     openWaterEvap                        Array         Simulated evaporation from open areas                                   m    
     capillar                             Array         Flow from groundwater to the third CWATM soil layer. Used with MODFLOW  m    
@@ -113,5 +114,6 @@ class sealed_water(object):
                 self.var.directRunoff[No] = (self.var.availWaterInfiltration[No] - 
                                               self.var.openWaterEvap[No])
 
-
+            # Open water evaporation will be accounted for in river/lake water balance calculations
+            self.var.actualET[No] = self.var.actualET[No] + self.var.openWaterEvap[No]
 

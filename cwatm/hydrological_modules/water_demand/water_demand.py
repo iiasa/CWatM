@@ -773,7 +773,8 @@ class water_demand:
                 if not(os.path.isfile(filename)):
                     filename = os.path.splitext(cbinding('Ldd'))[0] + '.map'
                     
-                nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
+                #nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
+                nf2 =  rasterio.open(filename)
                 cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
 
             # make allocation as big that it can be divided through  inner

@@ -21,6 +21,7 @@
 
 We started CWatM in April 2016. Next year we have our 10 Year Anniversary.
 We are planning a conference at IIASA, Laxenburg, Austria in June 2026.
+We will postpone this to next year.
 
 Stay tuned for the next announcements!
 
@@ -72,6 +73,7 @@ June 2024
 Publication using CWatM
 =======================
 
+#. Kaikui Cai, Jincheng Li, Qingsong Jiang, Lian Hu, Jiaxing Fu, Man Zhang, Yifan Li, Yue Qin, Yong Liu, Enhancing hydrological modeling in large basin with intensive human water use through hierarchical parameterization and bias-integrated calibration, Water Cycle,Volume 7,2026,Pages 219-233,ISSN 2666-4453,https://doi.org/10.1016/j.watcyc.2025.10.003. (https://www.sciencedirect.com/science/article/pii/S2666445325000534)
 #. Hanus, S., Burek, P., Smilovic, M., Seibert, J., Wada, Y., & Viviroli, D. (2025). Dependence of lowland water use on mountain runoff globally: Interannual variability and future changes at seasonal scale. Earth's Future, 13, e2025EF006407. https://doi.org/10.1029/2025EF006407
 #. Fridman, D. , Smilovic, M. , Burek, P. , Tramberend, S. , & Kahil, T. (2025). Wastewater matters: incorporating wastewater treatment and reuse into a process-based hydrological model (CWatM v1.08). Geoscientific Model Development 18 (12) 3735-3754. 10.5194/gmd-18-3735-2025.
 #. Hinton, R., Fridman, D. , Smilovic, M. , Willaarts, B.A. , Chunga, B., Banda, L., Macleod, K., Troldborg, M., & Kalin, R. (2025). Stakeholder-informed approach improves national modelling of water resources for a Sub-Saharan African basin. Journal of Hydrology: Regional Studies 60 e102574. 10.1016/j.ejrh.2025.102574.

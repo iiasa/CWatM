@@ -35,7 +35,8 @@ class interception(object):
     availWaterInfiltration               Array         quantity of water reaching the soil after interception, more snowmelt   m    
     SnowMelt                             Array         total snow melt from all layers                                         m    
     IceMelt                              Array         Ice melt (not really ice but an additional snow melt in summer)         m    
-    Rain                                 Array         Precipitation less snow                                                 m    
+    Rain                                 Array         Precipitation less snow                                                 m 
+    actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m        
     ===================================  ==========    ======================================================================  =====
 
     Attributes
@@ -125,5 +126,9 @@ class interception(object):
         # update interception storage and potTranspiration
         self.var.interceptStor[No] = self.var.interceptStor[No] - self.var.interceptEvap[No]
         self.var.potTranspiration[No] = np.maximum(0, self.var.potTranspiration[No] - self.var.interceptEvap[No])
+        
+        # update actual evaporation (after interceptEvap)
+        # interceptEvap is the first flux in ET, soil evapo and transpiration are added later
+        self.var.actualET[No] = self.var.interceptEvap[No] + self.var.snowEvap
 
 
