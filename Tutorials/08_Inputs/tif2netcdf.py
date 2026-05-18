@@ -15,7 +15,6 @@ import time as timex
 import datetime as date
 
 from osgeo import gdal
-from osgeo import osr
 import os, sys
 
 

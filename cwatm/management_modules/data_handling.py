@@ -16,9 +16,8 @@ import re
 import warnings
 
 from netCDF4 import Dataset, num2date, date2num, date2index
-from osgeo import gdal
-from osgeo import gdalconst
-from osgeo import osr
+import rasterio
+from rasterio.transform import from_origin
 
 from . import globals
 from cwatm.management_modules.checks import *
@@ -281,14 +280,10 @@ def loadsetclone(self, name):
             try:
 
                 filename = cbinding(name)
-                nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
-                geotransform = nf2.GetGeoTransform()
-                geotrans.append(geotransform)
-                setmaskmapAttr( geotransform[0], geotransform[3], nf2.RasterXSize, nf2.RasterYSize, geotransform[1])
+                with rasterio.open(filename) as nf2:
+                    setmaskmapAttr(nf2.bounds.left, nf2.bounds.top, nf2.width, nf2.height, nf2.res[0])
+                    mapnp = nf2.read(1)
 
-                band = nf2.GetRasterBand(1)
-                #bandtype = gdal.GetDataTypeName(band.DataType)
-                mapnp = band.ReadAsArray(0, 0, nf2.RasterXSize, nf2.RasterYSize)
                 # 10 because that includes all valid LDD values [1-9]
                 mapnp[mapnp > 10] = 0
                 mapnp[mapnp < -10] = 0
@@ -601,14 +596,13 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
 
             filename = cbinding(name)
             try:
-                nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
-                band = nf2.GetRasterBand(1)
-                mapnp = band.ReadAsArray(0, 0, nf2.RasterXSize, nf2.RasterYSize).astype(np.float64)
-                # if local no cut
-                if not local:
-                    if cut:
-                        cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
-                        mapnp = mapnp[cut2:cut3, cut0:cut1]
+                with rasterio.open(filename) as nf2:
+                    mapnp = nf2.read(1).astype(np.float64)
+                    # if local no cut
+                    if not local:
+                        if cut:
+                            cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
+                            mapnp = mapnp[cut2:cut3, cut0:cut1]
                 addtoversiondate(filename)
             except:
                 msg = "Error 203: File does not exists"
@@ -841,7 +835,7 @@ def readCoord(name):
     
     Notes
     -----
-    - Supports GeoTIFF, NetCDF, and other GDAL-supported formats
+    - Supports GeoTIFF, NetCDF, and other rasterio-supported formats
     - Extracts geotransform and projection information
     - Used for spatial consistency checking and data alignment
     - Provides foundation for coordinate transformations
@@ -857,21 +851,19 @@ def readCoord(name):
     if nc:
         lat, lon, cell, invcell, rows, cols = readCoordNetCDF(namenc)
     else:
-        raster = gdal.Open(name)
-        rows = raster.RasterYSize
-        cols = raster.RasterXSize
-        gt = raster.GetGeoTransform()
+        with rasterio.open(name) as raster:
+            rows = raster.height
+            cols = raster.width
+            gt = raster.transform
 
-        cell = gt[1]
-        invcell = round(1.0 / cell, 0)
-        if invcell == 0: invcell = 1. / cell
+            cell = gt[0]
+            invcell = round(1.0 / cell, 0)
+            if invcell == 0: invcell = 1. / cell
 
-        # getgeotransform only delivers single precision!
-        cell = 1 / invcell
-        lon = gt[0]
-        lat = gt[3]
-        #lon = 1 / round(1 / (x1 - int(x1)), 4) + int(x1)
-        #lat = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
+            # getgeotransform only delivers single precision!
+            cell = 1 / invcell
+            lon = gt[2]
+            lat = gt[5]
 
 
     return lat, lon, cell, invcell, rows, cols
@@ -1203,16 +1195,16 @@ def mapattrNetCDFMeteo(name, check = True):
 
 def mapattrTiff(nf2):
     """
-    Extract spatial attributes from GeoTIFF files using GDAL.
+    Extract spatial attributes from GeoTIFF files using rasterio.
     
     Reads complete spatial reference information from GeoTIFF files
-    including geotransform, projection, dimensions, and extent.
+    including bounds, transform, dimensions, and extent.
     Provides unified spatial metadata extraction for raster data.
     
     Parameters
     ----------
-    nf2 : gdal.Dataset
-        Opened GDAL dataset object for the GeoTIFF file.
+    nf2 : rasterio.DatasetReader
+        Opened rasterio dataset object for the GeoTIFF file.
     
     Returns
     -------
@@ -1228,13 +1220,12 @@ def mapattrTiff(nf2):
     - Provides foundation for raster data integration
     """
 
-    geotransform = nf2.GetGeoTransform()
-    x1 = geotransform[0]
-    y1 = geotransform[3]
+    x1 = nf2.bounds.left
+    y1 = nf2.bounds.top
 
-    #maskmapAttr['col'] = nf2.RasterXSize
-    #maskmapAttr['row'] = nf2.RasterYSize
-    cellSize = geotransform[1]
+    #maskmapAttr['col'] = nf2.width
+    #maskmapAttr['row'] = nf2.height
+    cellSize = nf2.res[0]
 
     #invcell = round(1/cellSize,0)
     if cellSize > 1:
@@ -2506,13 +2497,12 @@ def report(valueIn,name,compr=True):
     geo = (maskmapAttr['x'], maskmapAttr['cell'], 0.0, maskmapAttr['y'], 0.0, -maskmapAttr['cell'])
 
     if pcmap: # if it is a map
+        import gdal  # import gdal here if it is needed for PCRaster maps
         raster = gdal.GetDriverByName('PCRaster')
-        # ds = raster.Create(name, nx, ny, 1, gdal.GDT_Float32)
         if checkint:
             ds = raster.Create(name, nx, ny, 1, gdal.GDT_Int32, ["PCRASTER_VALUESCALE=VS_NOMINAL"])
         else:
             ds = raster.Create(name, nx, ny, 1, gdal.GDT_Float32, ["PCRASTER_VALUESCALE=VS_SCALAR"])
-
 
         #ds.SetGeoTransform(geotrans[0])  # specify coords
         ds.SetGeoTransform(geo)  # specify coords
@@ -2522,27 +2512,28 @@ def report(valueIn,name,compr=True):
         outband.SetNoDataValue(-9999)
         value[np.isnan(value)] = -9999
 
+        outband.WriteArray(value)
+        ds.FlushCache()
+        ds = None
+        outband = None
 
     else: # if is not a .map
-        if checkint:
-            ds = gdal.GetDriverByName('GTiff').Create(name, nx, ny, 1, gdal.GDT_Int32, ['COMPRESS=LZW'])
-        else:
-            ds = gdal.GetDriverByName('GTiff').Create(name, nx, ny, 1, gdal.GDT_Float32, ['COMPRESS=LZW'])
-
-        ds.SetGeoTransform(geo)  # specify coords
-        srs = osr.SpatialReference()  # establish encoding
-        srs.ImportFromEPSG(4326)  # WGS84 lat/long
-        ds.SetProjection(srs.ExportToWkt())  # export coords to file
-        outband = ds.GetRasterBand(1)
-        # set NoData value
-        outband.SetNoDataValue(-9999)
-        outband.SetStatistics(np.nanmin(value).astype(float), np.nanmax(value).astype(float),
-                              np.nanmean(value).astype(float), np.nanstd(value).astype(float))
-
-    outband.WriteArray(value)
-    ds.FlushCache()
-    ds = None
-    outband = None
+        transform = from_origin(maskmapAttr['x'], maskmapAttr['y'], maskmapAttr['cell'], maskmapAttr['cell'])
+        dtype = 'int32' if checkint else 'float32'
+        with rasterio.open(
+            name,
+            'w',
+            driver='GTiff',
+            height=ny,
+            width=nx,
+            count=1,
+            dtype=dtype,
+            crs='EPSG:4326',
+            transform=transform,
+            nodata=-9999,
+            compress='lzw'
+        ) as ds:
+            ds.write(value.astype(dtype), 1)
 
 
 

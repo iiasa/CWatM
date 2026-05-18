@@ -772,8 +772,8 @@ class water_demand:
                 if not(os.path.isfile(filename)):
                     filename = os.path.splitext(cbinding('Ldd'))[0] + '.map'
                     
-                nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
-                cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
+                with rasterio.open(filename) as nf2:
+                    cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
 
             arr = np.kron(np.arange(rows // inner * cols // inner).reshape((rows // inner, cols // inner)),
                           np.ones((inner, inner)))
