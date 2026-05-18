@@ -912,8 +912,8 @@ def readCoord(name):
 
         raster = rasterio.open(name)
         gt = raster.transform
-        rows = nf2.shape[1]
-        cols = nf2.shape[0]
+        rows = raster.shape[0]
+        cols = raster.shape[1]
 
         #gdal -> rasterio  0->2 3->5, 1->0
         #setmaskmapAttr(geotransform[2], geotransform[5], nf2.shape[1], nf2.shape[0], geotransform[0])
@@ -1286,8 +1286,8 @@ def mapattrTiff(nf2):
     """
 
     geotransform = nf2.transform
-    x1 = geotransform[0]
-    y1 = geotransform[3]
+    x1 = geotransform[2]
+    y1 = geotransform[5]
     cellSize = geotransform[0]
 
     #invcell = round(1/cellSize,0)

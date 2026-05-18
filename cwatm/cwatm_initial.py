@@ -276,8 +276,6 @@ class CWATModel_ini(DynamicModel):
         self.routing_kinematic_module = routing_kinematic(self)
         self.lakes_reservoirs_module = lakes_reservoirs(self)
         self.waterquality1 = waterquality1(self)
-
-
         # ----------------------------------------
 
         # reading of the metainformation of variables to put into output netcdfs
@@ -300,6 +298,7 @@ class CWATModel_ini(DynamicModel):
 
         # run intial misc to get all global variables
         self.misc_module.initial()
+
         self.init_module.initial()
 
         self.readmeteo_module.initial()
@@ -329,11 +328,9 @@ class CWATModel_ini(DynamicModel):
             self.lakes_reservoirs_module.initWaterbodies()
             self.lakes_reservoirs_module.initial_lakes()
             self.lakes_reservoirs_module.initial_reservoirs()
-
         self.waterdemand_module.initial()
-
-
         self.environflow_module.initial()
         self.waterquality1.initial()
+
 
 
