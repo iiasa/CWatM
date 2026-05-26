@@ -759,13 +759,13 @@ class readmeteo(object):
 
 
         if self.var.includeGlaciers:
-            self.var.GlacierMelt = readmeteodata(self.var.glaciermeltMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = 1)
+            self.var.GlacierMelt = readmeteodata(self.var.glaciermeltMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = 1,glacier=True)
             # Glaciermelt and Glacierrain is preprocessed after OGGM to have a factor of 1.0
             # -> here glacier melt is again multiplied by the CwatM snow factor to have the same values
             self.var.GlacierMelt = self.var.GlacierMelt * self.var.SnowFactor
             # extendback -> if simulation starts earlier than first glacier map -> day of the year of first year is used
             if not self.var.includeOnlyGlaciersMelt:
-                self.var.GlacierRain = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = 1)
+                self.var.GlacierRain = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = 1, glacier=True)
 
         if Flags['check']:
             checkmap(self.var.tempMaps, meteofiles[self.var.tempMaps][flagmeteo[self.var.tempMaps]][0], self.var.Tavg)

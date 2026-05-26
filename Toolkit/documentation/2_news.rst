@@ -21,7 +21,9 @@
 
 We started CWatM in April 2016. Next year we have our 10 Year Anniversary.
 We are planning a conference at IIASA, Laxenburg, Austria in June 2026.
-We will postpone this to next year.
+
+
+**We postponed this to next year!**
 
 Stay tuned for the next announcements!
 
@@ -31,6 +33,11 @@ Stay tuned for the next announcements!
 
 Major Updates
 =============
+
+May 2026
+------------
+- We replaced gdal library with rasterio library (in develop branch)
+- update to netCDF4 cf1.13 (from 1.6) with a crs variable to store projection
 
 October 2025
 ------------
@@ -73,34 +80,61 @@ June 2024
 Publication using CWatM
 =======================
 
-#. Kaikui Cai, Jincheng Li, Qingsong Jiang, Lian Hu, Jiaxing Fu, Man Zhang, Yifan Li, Yue Qin, Yong Liu, Enhancing hydrological modeling in large basin with intensive human water use through hierarchical parameterization and bias-integrated calibration, Water Cycle,Volume 7,2026,Pages 219-233,ISSN 2666-4453,https://doi.org/10.1016/j.watcyc.2025.10.003. (https://www.sciencedirect.com/science/article/pii/S2666445325000534)
+    **2026**
+
+#. Huo, F., Li, Y., and Li, Z. (2026) Emerging global freshwater challenges unveiled through observation-constrained projections, Earth Syst. Dynam., 17, 291–302, https://doi.org/10.5194/esd-17-291-2026, 2026. 
+#. Shrestha, R.R., Cannon, A.J. (2026).Storylines of summer streamflow droughts in western Canadian watersheds: historical attribution and future projections. npj Nat. Hazards 3, 41 (2026). https://doi.org/10.1038/s44304-026-00204-9
+#. Sun, M., Tangdamrongsub, N., Sun, Y., Dong, J., Sutanudjaja, E., & Smilovic, M. (2026). Assessing and optimizing high-resolution global river streamflow estimates with triple collocation analysis. Journal of Hydrology 669 e135122. 10.1016/j.jhydrol.2026.135122.
+#. Cai, K., Li, J., Jiang, Q., Hu, L., Fu, J., Zhang, M., Li, Y., Qin, Y., & Liu, Y. (2026). Enhancing hydrological modeling in large basin with intensive human water use through hierarchical parameterization and bias-integrated calibration. Water Cycle 7 219-233. 10.1016/j.watcyc.2025.10.003.
+
+    **2025**
+
+#. Hinton, R., Fridman, D. , Smilovic, M. , Willaarts, B.A. , Chunga, B., Banda, L., Macleod, K., Troldborg, M., & Kalin, R. (2025). Stakeholder-informed approach improves national modelling of water resources for a Sub-Saharan African basin. Journal of Hydrology: Regional Studies 60 e102574. 10.1016/j.ejrh.2025.102574.
+#. Kahil, T., Baccour, S., Joseph, J., Sahu, R., Burek, P., Ng, J. Y., Asad, S., Fridman, D., Albiac, J., Ward, F. A., and Wada, Y. (2025) Development of the global hydro-economic model (ECHO-Global version 1.0) for assessing the performance of water management options, Geosci. Model Dev., 18, 7987–8015, https://doi.org/10.5194/gmd-18-7987-2025, 2025
 #. Hanus, S., Burek, P., Smilovic, M., Seibert, J., Wada, Y., & Viviroli, D. (2025). Dependence of lowland water use on mountain runoff globally: Interannual variability and future changes at seasonal scale. Earth's Future, 13, e2025EF006407. https://doi.org/10.1029/2025EF006407
 #. Fridman, D. , Smilovic, M. , Burek, P. , Tramberend, S. , & Kahil, T. (2025). Wastewater matters: incorporating wastewater treatment and reuse into a process-based hydrological model (CWatM v1.08). Geoscientific Model Development 18 (12) 3735-3754. 10.5194/gmd-18-3735-2025.
+#. Song, Hao & Li, Bo & Li, Zhijun & Zhang, Guangxin & Lu, Xixi & Qi, Peng, (2025). Modelling water and land resources synergy and trade-off in a major grain-producing area, China, Agricultural Water Management, Elsevier, vol. 320(C). 
+#. Kim, J., & Ahn, K.-H. (2025). Understanding the influence of hydrologic parameter uncertainty on Community Water Model predictions: a diagnostic assessment through extensive ensemble simulations. Environmental Research Letters, 20(6), 064001. doi:10.1088/1748-9326/add27e
 #. Hinton, R., Fridman, D. , Smilovic, M. , Willaarts, B.A. , Chunga, B., Banda, L., Macleod, K., Troldborg, M., & Kalin, R. (2025). Stakeholder-informed approach improves national modelling of water resources for a Sub-Saharan African basin. Journal of Hydrology: Regional Studies 60 e102574. 10.1016/j.ejrh.2025.102574.
 #. Müller Schmied, H., Gosling, S.N., Garnsworthy, M., Müller, L., Telteu, C.-E., Ahmed, A.K., Andersen, L.S., Boulange, J., Burek, P. , Chang, J., Chen, H., Gudmundsson, L., Grillakis, M., Guillaumot, L., Hanasaki, N., Koutroulis, A., Kumar, R., Leng, G., Liu, J., Liu, X., et al. (2025). Graphical representation of global water models. Geoscientific Model Development 18 (8) 2409-2425. 10.5194/gmd-18-2409-2025.
 #. Zhao, F., Nie, N., Liu, Y., Yi, C., Guillaumot, L. , Wada, Y., Burek, P. , Smilovic, M. , Frieler, K., Buechner, M., Schewe, J., & Gosling, S.N. (2025). Benefits of Calibrating a Global Hydrological Model for Regional Analyses of Flood and Drought Projections: A Case Study of the Yangtze River Basin. Water Resources Research 61 (3) e2024WR037153. 10.1029/2024WR037153.
 #. Kalthof, M.W.M.L., de Bruijn, J. , de Moel, H., Kreibich, H., & Aerts, J.C.J.H. (2025). Adaptive behavior of farmers under consecutive droughts results in more vulnerable farmers: a large-scale agent-based modeling analysis in the Bhima basin, India. Natural Hazards and Earth System Sciences 25 (3) 1013-1035. 10.5194/nhess-25-1013-2025.
+
+    **2024**
+
 #. Hanus, S. , Burek, P. , Smilovic, M. , Seibert, J., & Viviroli, D. (2024). Seasonal variability in the global relevance of mountains to satisfy lowland water demand. Environmental Research Letters 19 (11) e114078. 10.1088/1748-9326/ad8507
 #. Palazzo, A. , Kahil, T. , Willaarts, B. , Burek, P. , van Dijk, M. , Tang, T. , Magnuszewski, P., Havlík, P. , Langan, S. , & Wada, Y. (2024). Assessing sustainable development pathways for water, food, and energy security in a transboundary river basin. Environmental Development 51 e101030
+#. Dione, P.M., Faye, C., Mohamed, A., Alarifi, S., Mohammed, M.A.A. (2024). Assessment of the impact of climate change on current and future flows of the ungauged Aga-Foua-Djilas watershed: a comparative study of hydrological models CWatM under ISIMIP and HMF-WA. Appl Water Sci 14, 163 (2024). https://doi.org/10.1007/s13201-024-02219-x
 #. Heinicke, S., Volkholz, J., Schewe, J., Gosling, S.N, Müller Schmied, H., Zimmermann, S., Mengel, M., Sauer, I.J, Burek, P. , Chang, J., Kou-Giesbrecht, S., Grillakis, M., Guillaumot, L., Hanasaki, N., Koutroulis, A., Otta, K., Qi, W., Satoh, Y., Stacke, T., Yokohata, T., et al. (2024). Global hydrological models continue to overestimate river discharge. Environmental Research Letters 19 (7) e074005. 10.1088/1748-9326/ad52b0
 #. Becher, O., Smilovic, M. , Verschuur, J., Pant, R., Tramberend, S. , & Hall, J. (2024). The challenge of closing the climate adaptation gap for water supply utilities. Communications Earth & Environment 5 (1) e356. 10.1038/s43247-024-01272-3
 #. Awais, M. , Vinca, A. , Byers, E. , Frank, S. , Fricko, O. , Boere, E., Burek, P. , Poblete Cazenave, M., Kishimoto, P.N. , Mastrucci, A. , Satoh, Y., Palazzo, A. , McPherson, M., Riahi, K. , & Krey, V. (2024). MESSAGEix-GLOBIOM nexus module: integrating water sector and climate impacts. Geoscientific Model Development 17 (6) 2447-2469. 10.5194/gmd-17-2447-2024
 #. Fridman, D., Smilovic, M., Burek, P., Tramberend, S., and Kahil, T.: Wastewater matters: Incorporating wastewater reclamation into a process-based hydrological model (CWatM v1.08), Geosci. Model Dev. Discuss. [preprint], https://doi.org/10.5194/gmd-2024-143  in review
-#. Wolkeba, F.T., Mekonnen, M.M., Brauman, K.A. et al. Indicator metrics and temporal aggregations introduce ambiguities in water scarcity estimates. Sci Rep 14, 15182 (2024). https://doi.org/10.1038/s41598-024-65155-5
-#.  Smilovic, M. , Burek, P. , Fridman, D. , Guillaumot, L., de Bruijn, J. , Greve, P., Wada, Y. , Tang, T. , Kronfuss, M., Hanus, S., Tramberend, S. , & Kahil, T. (2024). Water circles—a tool to assess and communicate the water cycle. Environmental Research Letters 19 (2) e021003. 10.1088/1748-9326/ad18de
+#. Wolkeba, F.T., Mekonnen, M.M., Brauman, K.A. et al. (2024). Indicator metrics and temporal aggregations introduce ambiguities in water scarcity estimates. Sci Rep 14, 15182 (2024). https://doi.org/10.1038/s41598-024-65155-5
+#. Smilovic, M. , Burek, P. , Fridman, D. , Guillaumot, L., de Bruijn, J. , Greve, P., Wada, Y. , Tang, T. , Kronfuss, M., Hanus, S., Tramberend, S. , & Kahil, T. (2024). Water circles—a tool to assess and communicate the water cycle. Environmental Research Letters 19 (2) e021003. 10.1088/1748-9326/ad18de
+#. Cheng, W., Feng, Q., Xi, H., Yin, X., Cheng, L., Sindikubwabo, C., . . . Zhao, X. (2024). Modeling and assessing the impacts of climate change on groundwater recharge in endorheic basins of Northwest China. Science of the Total Environment, 918, 170829. doi:https://doi.org/10.1016/j.scitotenv.2024.170829
+#. Wolkeba, F. T., & Mekonnen, M. M. (2024). Evaluation of gridded precipitation data in water availability modeling in CONUS. Journal of Hydrology, 628, 130575. doi:https://doi.org/10.1016/j.jhydrol.2023.130575
 #. Palazzo, A. , Kahil, T. , Willaarts, B. , Burek, P. , van Dijk, M. , Tang, T. , Magnuszewski, P., Havlík, P. , Langan, S. , & Wada, Y. (2024). Assessing sustainable development pathways for water, food, and energy security in a transboundary river basin. Environmental Development e101030. 10.1016/j.envdev.2024.101030
 #. Becher, O., Smilovic, M. , Verschuur, J., Pant, R., Tramberend, S. , & Hall, J. (2024). The challenge of closing the climate adaptation gap for water supply utilities. Communications Earth & Environment 5 (1) e356. 10.1038/s43247-024-01272-3
 #. Heinicke, S., Volkholz, J., Schewe, J., Gosling, S.N, Müller Schmied, H., Zimmermann, S., Mengel, M., Sauer, I.J, Burek, P. , Chang, J., Kou-Giesbrecht, S., Grillakis, M., Guillaumot, L., Hanasaki, N., Koutroulis, A., Otta, K., Qi, W., Satoh, Y., Stacke, T., Yokohata, T., et al. (2024). Global hydrological models continue to overestimate river discharge. Environmental Research Letters 19 (7) e074005. 10.1088/1748-9326/ad52b0
 #. Matevž Vremec, Peter Burek, Luca Guillaumot, Jesse Radolinski, Veronika Forstner, Markus Herndl, Christine Stumpp, Michael Bahn, Steffen Birk, Sensitivity of montane grassland water fluxes to warming and elevated CO2 from local to catchment scale: A case study from the Austrian Alps, Journal of Hydrology: Regional Studies,Volume 56,2024,101970,ISSN 2214-5818,https://doi.org/10.1016/j.ejrh.2024.101970.(https://www.sciencedirect.com/science/article/pii/S2214581824003197)
-#. Hanus, S., Schuster, L., Burek, P., Maussion, F., Wada, Y., and Viviroli, D.: Coupling a large-scale glacier and hydrological model (OGGM v1.5.3 and CWatM V1.08) – towards an improved representation of mountain water resources in global assessments, Geosci. Model Dev., 17, 5123–5144, https://doi.org/10.5194/gmd-17-5123-2024
-#. Dione, P.M., Faye, C., Mohamed, A. et al. Assessment of the impact of climate change on current and future flows of the ungauged Aga-Foua-Djilas watershed: a comparative study of hydrological models CWatM under ISIMIP and HMF-WA. Appl Water Sci 14, 163 (2024). https://doi.org/10.1007/s13201-024-02219-
+#. Hanus, S., Schuster, L., Burek, P., Maussion, F., Wada, Y., and Viviroli, D. (2024). Coupling a large-scale glacier and hydrological model (OGGM v1.5.3 and CWatM V1.08) – towards an improved representation of mountain water resources in global assessments, Geosci. Model Dev., 17, 5123–5144, https://doi.org/10.5194/gmd-17-5123-2024
+#. Dione, P.M., Faye, C., Mohamed, A. et al. (2024). Assessment of the impact of climate change on current and future flows of the ungauged Aga-Foua-Djilas watershed: a comparative study of hydrological models CWatM under ISIMIP and HMF-WA. Appl Water Sci 14, 163 (2024). https://doi.org/10.1007/s13201-024-02219-
+
+    **2023**
+
 #. Gnann, S., Reinecke, R., Stein, L., Wada, Y. , Thiery, W., Müller Schmied, H., Satoh, Y., Pokhrel, Y., Ostberg, S., Koutroulis, A., Hanasaki, N., Grillakis, M., Gosling, S. N., Burek, P. , Bierkens, M.F.P., & Wagener, T. (2023). Functional relationships reveal differences in the water cycle representation of global water models. Nature Water 1 1079-1090. 10.1038/s44221-023-00160-y
 #. Greve, P., Burek, P. , Guillaumot, L. , van Meijgaard, E., Aalbers, E., Smilovic, M. , Sperna-Weiland, F., Kahil, T. , & Wada, Y. (2023). Low flow sensitivity to water withdrawals in Central and Southwestern Europe under 2 K global warming. Environmental Research Letters 18 (9) e094020. 10.1088/1748-9326/acec60
 #. de Bruijn, J. , Smilovic, M. , Burek, P. , Guillaumot, L. , Wada, Y. , & Aerts, J.C.J.H. (2023). GEB v0.1: a large-scale agent-based socio-hydrological model – simulating 10 million individual farming households in a fully distributed hydrological model. Geoscientific Model Development 16 (9) 2437-2454. 10.5194/gmd-16-2437-2023.
 #. Valencia, R., Guillaumot, L. , Sahu, R.K. , Nam, C., Lierhammer, L., & Máñez Costa, M. (2023). An assessment of water management measures for climate change adaptation of agriculture in Seewinkel. Science of the Total Environment 885 e163906. 10.1016/j.scitotenv.2023.163906.
+
+    **2022**
+
 #. Kallio, M., Guillaume, J.H.A., Burek, P. , Tramberend, S. , Smilovic, M. , Horton, A.J., & Virrantaus, K. (2022). Unpacking dasymetric modelling to correct spatial bias in environmental model outputs. Environmental Modelling & Software 157 e105511. 10.1016/j.envsoft.2022.105511.
 #. Guillaumot, L. , Smilovic, M. , Burek, P. , de Bruijn, J. , Greve, P., Kahil, T. , & Wada, Y. (2022). Coupling a large-scale hydrological model (CWatM v1.1) with a high-resolution groundwater flow model (MODFLOW 6) to assess the impact of irrigation at regional scale. Geoscientific Model Development 15 (18) 7099-7120. 10.5194/gmd-15-7099-2022.
 #. Satoh, Y., Yoshimura, K., Pokhrel, Y., Kim, H., Shiogama, H., Yokohata, T., Hanasaki, N., Wada, Y. , Burek, P. , Byers, E. , Müller Schmied, H., Gerten, D., Ostberg, S., Gosling, S.N., Boulange, J.E.S., & Oki, T. (2022). The timing of unprecedented hydrological drought under climate change. Nature Communications 13 (1) e3287. 10.1038/s41467-022-30729-2.
+
+    **<=2021**
+
 #. Okaali, D.A., Kroeze, C., Medema, G., Burek, P. , Murphy, H., Tumwebaze, I.K., Rose, J.B., Verbyla, M.E., Sewagudde, S., & Hofstra, N. (2021). Modelling rotavirus concentrations in rivers: Assessing Uganda's present and future microbial water quality. Water Research 204 e117615. 10.1016/j.watres.2021.117615.
 #. Telteu, C.-E., Müller Schmied, H., Thiery, W., Leng, G., Burek, P. , Liu, D., Boulange, J., Andersen, L., Grillakis, M., Gosling, S., Satoh, Y., Rakovec, O., Stacke, T., Chang, J., Wanders, N., Shah, H., Trautmann, T., Mao, G., Hanasaki, N., Koutroulis, A., Pokhrel, Y., Samaniego, L., Wada, Y. , Mishra, V., Liu, J., Döll, P., Zhao, F., Gädeke, A., Rabin, S., & Herz, F. (2021). Understanding each other's models: an introduction and a standard representation of 16 global water models to support intercomparison, improvement, and communication. Geoscientific Model Development 14 (6) 3843-3878. 10.5194/gmd-14-3843-2021.
 #. Vinca, A. , Parkinson, S. , Byers, E. , Burek, P. , Khan, Z., Krey, V. , Diuana, F., Wang, Y., Ilyas, A., Köberle, A.C., Staffel, I., Pfenninger, S., Muhammad, A., Rowe, A., Schaeffer, R., Rao, N. , Wada, Y. , Dhilali, N., & Riahi, K. (2019). The Nexus Solutions Tool (NEST): An open platform for optimizing multi-scale energy-water-land system transformations. Geoscientific Model Development Discussions 13 (3) 1095-1121. 10.5194/gmd-2019-134
@@ -139,8 +173,8 @@ Github Version History
 
 
 .. note::
-    | Update history can be taken from github log
-    | git log ---pretty=format:"%ad - %an : %s" ---date=short ---graph > github.log 
+    | Update history can be taken from github log (2 minus in front of pretty,date, graph)
+    | git log - -pretty=format:"%ad - %an : %s" - -date=short - -graph > github.log 
 
 
 

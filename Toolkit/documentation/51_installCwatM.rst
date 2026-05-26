@@ -102,7 +102,7 @@ virtual environment, simply put in Command Prompt the deactivate command.
 External libraries
 ------------------
 
-These six Python packages are needed:
+These seven Python packages are needed:
 
 1. `NumPy <http://www.numpy.org>`_
 2. `SciPy <https://www.scipy.org>`_
@@ -110,10 +110,11 @@ These six Python packages are needed:
 4. `pandas <https://pypi.org/project/pandas>`_
 5. `xmipy <https://pypi.org/project/xmipy>`_
 6. `openpyxl <https://pypi.org/project/openpyxl>`_
+7. `rasterio <https://pypi.org/project/rasterio>`_
 
-These six libraries can be installed with pip, conda
+These seven libraries can be installed with pip, conda
 
-7. `GDAL <http://www.gdal.org>`_
+8. `GDAL <http://www.gdal.org>`_
 
 .. note::
    | **Troublemaker GDAL**

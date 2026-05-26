@@ -1178,6 +1178,11 @@ def mapattrNetCDF(name, check=True):
 
     cut1 = cut0 + maskmapAttr['col']
     cut3 = cut2 + maskmapAttr['row']
+
+    # for glacier use the standard cut, if the meteo maps have a different scaling
+    if not('cut' in maskmapAttr.keys()):
+        maskmapAttr['cut'] = [cut2,cut3,cut0,cut1]
+
     return cut0, cut1, cut2, cut3
 
 def mapattrNetCDFMeteo(name, check = True):
@@ -1424,8 +1429,9 @@ def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
             # check if it is x or X
             yy = maskmapAttr['coordy']
             if yy == "y":
-                if "Y" in nf1.variables.keys():
-                    yy = "Y"
+                if "Y" in nf1.variables.keys(): yy = "Y"
+            else:
+                if "y" in nf1.variables.keys(): yy = "y"
 
             # checkif latitude is reversed
             turn_latitude = False
@@ -1518,7 +1524,7 @@ def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
 
 
 def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale=True, 
-                  buffering=False, extendback=False):
+                  buffering=False, extendback=False, glacier=False):
     """
     Read meteorological forcing data for specific time steps.
     
@@ -1595,6 +1601,9 @@ def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale
             loc = loc + buffer
     else:
         loc = [0,meteofiles[name][flagmeteo[name]][10], 0, meteofiles[name][flagmeteo[name]][11]]
+
+    if glacier:
+        loc = maskmapAttr['cut']
 
 
     # +++++++++++++++ Netcdf ++++++++++++++++++++++
