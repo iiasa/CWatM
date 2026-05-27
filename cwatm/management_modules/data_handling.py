@@ -1229,20 +1229,20 @@ def mapattrNetCDFMeteo(name, check = True):
     # geo_idx = (np.abs(dd_array - dd)).argmin()
     # geo_idx(dd, dd_array):
 
-    cut0 = int(0.0001 + np.abs(lon0 - lon) * invcell)
-    cut2 = int(0.0001 + np.abs(lat0 - lat) * invcell)
+    cut0 = int(0.01 + np.abs(lon0 - lon) * invcell)
+    cut2 = int(0.01 + np.abs(lat0 - lat) * invcell)
 
     # lon and lat of coarse meteo dataset
     lonCoarse = (cut0 * cell) + lon
     latCoarse = lat - (cut2 * cell)
-    cut4 = int(0.0001 + np.abs(lon0 - lonCoarse) * maskmapAttr['invcell'])
+    cut4 = int(0.01 + np.abs(lon0 - lonCoarse) * maskmapAttr['invcell'])
     cut5 = cut4 + maskmapAttr['col']
-    cut6 = int(0.0001 + np.abs(lat0 - latCoarse) * maskmapAttr['invcell'])
+    cut6 = int(0.01 + np.abs(lat0 - latCoarse) * maskmapAttr['invcell'])
     cut7 = cut6 + maskmapAttr['row']
 
     # now coarser cut of the coarse meteo dataset
-    cut1 = int(0.0001 + np.abs(lonend - lon) * invcell)
-    cut3 = int(0.0001 + np.abs(latend - lat) * invcell)
+    cut1 = int(0.01 + np.abs(lonend - lon) * invcell)
+    cut3 = int(0.01 + np.abs(latend - lat) * invcell)
 
     # test if fine cut is inside coarse cut
     cellx = (cut1 - cut0) * maskmapAttr['reso_mask_meteo']
