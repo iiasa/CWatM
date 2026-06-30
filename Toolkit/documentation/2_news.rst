@@ -82,6 +82,7 @@ Publication using CWatM
 
     **2026**
 
+#. Mohammadnezhad, M., Rezaee, A., & Smilovic, M. (2026). Multi-timescale streamflow projections in human-regulated basins of southwest Iran using CWatM and explainable machine learning. Journal of Hydrology: Regional Studies, 66, 103534. doi:https://doi.org/10.1016/j.ejrh.2026.103534
 #. Huo, F., Li, Y., and Li, Z. (2026) Emerging global freshwater challenges unveiled through observation-constrained projections, Earth Syst. Dynam., 17, 291–302, https://doi.org/10.5194/esd-17-291-2026, 2026. 
 #. Shrestha, R.R., Cannon, A.J. (2026).Storylines of summer streamflow droughts in western Canadian watersheds: historical attribution and future projections. npj Nat. Hazards 3, 41 (2026). https://doi.org/10.1038/s44304-026-00204-9
 #. Sun, M., Tangdamrongsub, N., Sun, Y., Dong, J., Sutanudjaja, E., & Smilovic, M. (2026). Assessing and optimizing high-resolution global river streamflow estimates with triple collocation analysis. Journal of Hydrology 669 e135122. 10.1016/j.jhydrol.2026.135122.

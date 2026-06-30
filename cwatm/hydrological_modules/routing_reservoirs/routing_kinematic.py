@@ -81,7 +81,7 @@ class routing_kinematic(object):
     invchannelAlpha                      Array                                                                                 --   
     riverbedExchange                     Array                                                                                 --   
     Xcel                                 List                                                                                  --   
-    EvapoChannel                         Array         Channel evaporation                                                     m3   
+    EvapoChannel                         Array         Channel evaporation                                                     m
     QDelta                               Array                                                                                 --   
     sumsideflow                          Number                                                                                --   
     prechannelStorage                    Array                                                                                 --   

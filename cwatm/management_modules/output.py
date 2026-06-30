@@ -280,13 +280,12 @@ class outputTssMap(object):
 
 
         # for storing water cycle variable the list of variables if pulled together
-        self.var.watercycle = [['Precipitation', 'areasum_m3', 'flux'], ['Rain', 'areasum_m3', 'flux'], ['Snow', 'areasum_m3', 'flux'],
+        self.var.watercycle = [['precipitation_sn', 'areasum_m3', 'flux'], ['Rain', 'areasum_m3', 'flux'], ['Snow', 'areasum_m3', 'flux'],
                       ['SnowMelt','areasum_m3','flux'],['IceMelt', 'areasum_m3', 'flux'],
-                      ['sum_gwRecharge', 'areasum_m3', 'flux'], ['sum_perc3toGW', 'areasum_m3', 'flux'],
-                      ['runoff', 'areasum_m3','flux'], ['sum_runoff','areasum_m3', 'flux'], ['baseflow', 'areasum_m3', 'flux'],
+                      ['runoff', 'areasum_m3','flux'], ['runoff_m3','sum_m3', 'flux'], ['baseflow', 'areasum_m3', 'flux'],
                       ['totalET', 'areasum_m3', 'evap'], ['sum_actTransTotal', 'areasum_m3', 'evap'],
                       ['sum_actBareSoilEvap','areasum_m3', 'evap'], ['sum_interceptEvap', 'areasum_m3', 'evap'], ['sum_openWaterEvap', 'areasum_m3', 'evap'],
-                      ['snowEvap', 'areasum_m3', 'evap'], ['EvapoChannel', 'sum_m3', 'evap'],
+                      ['snowEvap', 'areasum_m3', 'evap'], ['EvapoChannel', 'areasum_m3', 'evap'],
                       ['actTransTotal_forest', 'areasum_m3', 'evap'], ['actTransTotal_grasslands', 'areasum_m3', 'evap'],['actTransTotal_paddy', 'areasum_m3', 'evap'], ['actTransTotal_nonpaddy', 'areasum_m3', 'evap'],
 
                       ['tws', 'areasum_m3', 'storage'],['totalSto','areasum_m3','storage'],
@@ -304,13 +303,17 @@ class outputTssMap(object):
                     ]
             self.var.watercycle.extend(temp)
         if checkOption('CapillarRise'):
-            temp = [['sum_capRiseFromGW','areasum_m3','flux'],['capillar','areasum_m3','flux']]
+            temp = [['sum_capRiseFromGW','areasum_m3','flux']]
             self.var.watercycle.extend(temp)
+
+        # Always percolation
+        temp = [['sum_gwRecharge', 'areasum_m3', 'flux'], ['sum_gwRecharge2', 'areasum_m3', 'flux'],['perc3toGW_GW','areasum_m3','flux']]
+        self.var.watercycle.extend(temp)
         if checkOption('preferentialFlow'):
             temp = [['prefFlow_GW','areasum_m3','flux']]
             self.var.watercycle.extend(temp)
         if checkOption('includeGlaciers'):
-            temp = [['GlacierMelt','sum_m3','glacier'],['GlacierRain','sum_m3','glacier']]
+            temp = [['GlacierMelt','sum_m3','glacier'],['GlacierRain','sum_m3','glacier'],['areaGlacier','sum_m3','glacier']]
             self.var.watercycle.extend(temp)
         if checkOption('includeRunoffConcentration'):
             temp = [['gridcell_storage','areasum_m3','storage']]
@@ -337,8 +340,7 @@ class outputTssMap(object):
                     ['act_indWithdrawal','areasum_m3','demand'],['act_livWithdrawal','areasum_m3','demand'],['act_SurfaceWaterAbstract','areasum_m3','demand'],
                     ['act_irrNonpaddyWithdrawal','areasum_m3','demand'],['pot_GroundwaterAbstract','areasum_m3','demand'],['nonFossilGroundwaterAbs','areasum_m3','demand'],
                     ['returnFlow','areasum_m3','demand'],
-                    ['returnflowIrr','areasum_m3','demand'],['returnflowNonIrr','areasum_m3','demand'],['returnflowIrr','areasum_m3','demand'],
-                    ['returnflowNonIrr','areasum_m3','demand']]
+                    ['returnflowIrr','areasum_m3','demand'],['returnflowNonIrr','areasum_m3','demand']]
             self.var.watercycle.extend(temp)
         if checkOption('sectorSourceAbstractionFractions'):
             temp = [['Lake_Irrigation','areasum_m3','sector'],['Lake_Industry','areasum_m3','sector'],['Lake_Livestock','areasum_m3','sector'],
@@ -592,7 +594,10 @@ class outputTssMap(object):
                         return expression
 
                     if var[1] in ['areasum_m3']:  # value from catchment
-                       v = np.bincount(self.var.evalCatch[key], weights=map * self.var.cellArea *(1-self.var.fracGlacierCover))[key]
+                        if var[2] in ['demand','sector']:
+                            v = np.bincount(self.var.evalCatch[key], weights=map * self.var.cellArea)[key]
+                        else:
+                            v = np.bincount(self.var.evalCatch[key], weights=map * self.var.cellArea *(1-self.var.fracGlacierCover))[key]
                     elif var[1] in ['sum_m3']:  # value summed up but without  cellarea
                         v = np.bincount(self.var.evalCatch[key], weights=map)[key]
                     else:  # from single cell for discharge only

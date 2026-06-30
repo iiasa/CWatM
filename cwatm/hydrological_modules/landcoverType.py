@@ -47,7 +47,8 @@ class landcoverType(object):
     Orchestrates hydrological processes across different land cover types by
     managing land cover fractions, calling appropriate soil routines for each
     type, and integrating results for comprehensive water balance calculations.
-    
+
+      
     **Global variables**
     
     ===================================  ==========    ======================================================================  =====
@@ -318,7 +319,7 @@ class landcoverType(object):
                          'effSatAt50', 'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin', 'rootZoneWaterStorageRange',
                          'totalPotET', 'potTranspiration', 'soilWaterStorage',
                          'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTransTotal',
-                         'gwRecharge', 'interflow','actualET', 'pot_irrConsumption', 'act_irrConsumption', 'irrDemand',
+                         'gwRecharge','gwRecharge2', 'interflow','actualET', 'pot_irrConsumption', 'act_irrConsumption', 'irrDemand',
                          'topWaterLayer',
                          'perc3toGW', 'capRiseFromGW', 'netPercUpper', 'netPerc', 'prefFlow']
      
@@ -342,7 +343,7 @@ class landcoverType(object):
         self.var.landcoverSum = ['interceptStor', 'interflow',
                                  'directRunoff', 'totalPotET', 'potTranspiration', 'availWaterInfiltration',
                                  'interceptEvap', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTransTotal', 
-                                 'gwRecharge', 'openWaterEvap', 'capRiseFromGW', 'perc3toGW', 'prefFlow','act_irrConsumption']
+                                 'gwRecharge','gwRecharge2', 'openWaterEvap', 'capRiseFromGW', 'perc3toGW', 'prefFlow','act_irrConsumption']
         for variable in self.var.landcoverSum:
             vars(self.var)["sum_" + variable] = globals.inZero.copy()
 
@@ -372,8 +373,6 @@ class landcoverType(object):
             # summarize the following initial storages:
             self.var.sum_interceptStor += self.var.fracVegCover[i] * self.var.interceptStor[i]
             i += 1
-
-
 
         self.var.minCropKC = loadmap('minCropKC')
         self.var.minTopWaterLayer = loadmap("minTopWaterLayer")
@@ -721,6 +720,9 @@ class landcoverType(object):
             self.var.fracVegCover[0] = np.maximum(0., self.var.fracVegCover[0] + 1.0 - sum)
             sum = np.sum(self.var.fracVegCover, axis=0)
 
+
+            # Adjust because of Glaciers. If glaicers than glacier area should be taken from grassland
+            # if there is not enough grassland than glacier are is taken from
             self.var.fracGlacierCover = 0
             if self.var.includeGlaciers:
                 self.var.fracGlacierCover = globals.inZero.copy()
@@ -736,13 +738,17 @@ class landcoverType(object):
                     # substract glacier area from grassland fraction later on
                     self.var.fracGlacierCover = readnetcdf2('fractionGlaciercover', landcoverYear, 
                                                             useDaily="yearly", value='on_area', cut=False)
+                    invfracGlacierCover  = 1 - self.var.fracGlacierCover
+
                     self.var.fracGlacierCover = np.minimum(np.maximum(self.var.fracGlacierCover, 0.0), 1.0)
+                    self.var.areaGlacier = self.var.cellArea * self.var.fracGlacierCover
+
                     self.var.fracVegCover[4] = self.var.fracVegCover[4] - self.var.fracGlacierCover
                     # if there are some pixels where sealed area is not large enough to substract glacier area, 
                     # the other lancovertypes have to be used
                     # sealed, grassland, forest, water, irrNonPaddy,
                     # ind_landcovertype_glaciers = [1,0,3,2,4,5]
-                    ind_landcovertype_glaciers = [4, 1, 0, 5, 2, 3]
+                    ind_landcovertype_glaciers = [1, 4, 0, 5, 2, 3]
                     for i, ind in enumerate(ind_landcovertype_glaciers[:-1]):
                         if any(self.var.fracVegCover[ind] < 0):
                             # substract glacier area from landcovertype
@@ -750,21 +756,24 @@ class landcoverType(object):
                                 np.where(self.var.fracVegCover[ind] < 0)] -= np.abs(
                                 self.var.fracVegCover[ind][np.where(self.var.fracVegCover[ind] < 0)])
                             self.var.fracVegCover[ind][np.where(self.var.fracVegCover[ind] < 0)] = 0
-                    # assert that all land cover classes larger than zero
-                    # assert (self.var.fracVegCover >= 0).all()
-                    # assert np.mean(sum) == np.mean(np.sum(self.var.fracVegCover,axis=0)) + 
-                    # np.mean(self.var.fracGlacierCover)
 
-            """temp = loadmap('reservoir_command_areas').astype(np.int)
-            self.var.fracVegCover[3] += np.where(temp > 0, self.var.fracVegCover[1] * 0.25,
-                                                 0)
-            self.var.fracVegCover[1] -= np.where(temp > 0, self.var.fracVegCover[1] * 0.25,
-                                                 0)
+                    # Fraction landcover sum has to be back to 100%
+                    i = 0
+                    for coverType in self.var.coverTypes:
+                        value= 0
+                        if i ==  1: # grassland
+                            value = 1
+                        self.var.fracVegCover[i] = np.where(invfracGlacierCover<0.0001, value,
+                            self.var.fracVegCover[i] / invfracGlacierCover)
+                        i += 1
 
-            self.var.fracVegCover[3] += np.where(temp == 46, self.var.fracVegCover[1] * 0.25,
-                                                 0)
-            self.var.fracVegCover[1] -= np.where(temp == 46, self.var.fracVegCover[1] * 0.25,
-                                                 0)"""
+                """
+            temp = loadmap('reservoir_command_areas').astype(np.int)
+            self.var.fracVegCover[3] += np.where(temp > 0, self.var.fracVegCover[1] * 0.25, 0)
+            self.var.fracVegCover[1] -= np.where(temp > 0, self.var.fracVegCover[1] * 0.25, 0)
+            self.var.fracVegCover[3] += np.where(temp == 46, self.var.fracVegCover[1] * 0.25, 0)
+            self.var.fracVegCover[1] -= np.where(temp == 46, self.var.fracVegCover[1] * 0.25, 0)
+            """
 
 
             self.var.irrigatedArea_original = self.var.fracVegCover[3].copy()
@@ -888,12 +897,9 @@ class landcoverType(object):
             for No in range(6):
                 vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
-        #print "--", self.var.sum_directRunoff
-
+        # for watercycle output of preflow and perc3toGW
         self.var.prefFlow_GW = divideValues(self.var.sum_prefFlow, self.var.sum_prefFlow + self.var.sum_perc3toGW) * self.var.sum_gwRecharge
-        self.var.perc3toGW_GW = divideValues(self.var.sum_perc3toGW,
-                                                self.var.sum_prefFlow + self.var.sum_perc3toGW) * self.var.sum_gwRecharge
-        #print('landcoverType, first use of permeability')
+        self.var.perc3toGW_GW = divideValues(self.var.sum_perc3toGW, self.var.sum_prefFlow + self.var.sum_perc3toGW) * self.var.sum_gwRecharge
 
         if self.var.modflow:
             # computing leakage from rivers (if modflow coupling is used)
@@ -1006,7 +1012,6 @@ class landcoverType(object):
 
         # leakageIntoRunoff is also added in runoff_concentration
         self.var.sum_runoff = self.var.sum_directRunoff + self.var.sum_interflow + self.var.leakageIntoRunoff
-
         self.var.Rain_times_fracPaddy = self.var.fracVegCover[2] * self.var.Rain
         self.var.Rain_times_fracNonPaddy = self.var.fracVegCover[3] * self.var.Rain
 
@@ -1015,6 +1020,7 @@ class landcoverType(object):
         if checkOption('calcWaterBalance'):
             if self.var.modflow:
                 if dateVar['curr'] > self.var.modflow_timestep:  # from the second step
+
                     storcwat = np.sum((self.var.totalSto - self.var.pretotalSto) * self.var.cellArea)  # Daily CWAT storage variations
                     #cwatbudg = np.sum((self.var.Precipitation - self.var.sum_runoff - self.var.totalET + self.var.presumed_sum_gwRecharge / self.var.modflow_timestep - self.var.sum_gwRecharge - self.var.baseflow) * self.var.cellArea)  # Inputs-Outputs (baseflow comes from the previous ModFlow model)
                     cwatbudg = np.sum((self.var.Precipitation - self.var.sum_runoff - self.var.totalET + self.var.sum_gwRecharge - self.var.sum_gwRecharge - self.var.baseflow) * self.var.cellArea)  # Inputs-Outputs (baseflow comes from the previous ModFlow model)

@@ -294,6 +294,13 @@ class runoff_concentration(object):
             self.var.sum_directRunoff += self.var.fracVegCover[No] * self.var.directRunoff[No]
             self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflow[No]
             self.var.sum_landSurfaceRunoff += self.var.fracVegCover[No] * self.var.landSurfaceRunoff[No]
+
+        #PB 06/26: correction if glaciers - runoff should be not reduced in unit m , but later for m3
+        # runoff [m] is calculated for the total area
+        #self.var.sum_directRunoff = self.var.sum_directRunoff + (self.var.directRunoff[0] * self.var.fracGlacierCover)
+        #self.var.sum_landSurfaceRunoff = (self.var.sum_landSurfaceRunoff +
+        #                ((self.var.directRunoff[0] + self.var.interflow[0]) * self.var.fracGlacierCover))
+
         self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow + self.var.leakageIntoRunoff
 
         # print(self.var.runoff)
@@ -333,9 +340,10 @@ class runoff_concentration(object):
             #sumnewrunoff = self.var.runoff.copy()
             self.var.runoff = self.var.runoff_conc[0].copy()
         
-        # multiplz by cellarea -> from m to m3
+        # multiply by cellarea -> from m to m3
         self.var.runoff_m3 = self.var.runoff * self.var.cellArea
         
         # glacier melt and rain as m3
         if self.var.includeGlaciers:
             self.var.runoff_m3 = self.var.runoff_m3 * (1-self.var.fracGlacierCover) + self.var.GlacierMelt + self.var.GlacierRain
+        ii=1

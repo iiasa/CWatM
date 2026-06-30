@@ -768,6 +768,8 @@ class readmeteo(object):
                 self.var.GlacierRain = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = 1, glacier=True)
 
         if Flags['check']:
+
+
             checkmap(self.var.tempMaps, meteofiles[self.var.tempMaps][flagmeteo[self.var.tempMaps]][0], self.var.Tavg)
 
         if self.var.calc_evapo or self.var.snowmelt_radiation:

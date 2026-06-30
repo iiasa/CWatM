@@ -236,7 +236,10 @@ class CWATModel_dyn(DynamicModel):
                         # Sum of lake and reservoirs - here without small lakes
                         self.var.lakeReservoirStorage = self.var.lakeResStorage.copy()
 
-                    self.var.tws = (groundwater_storage + self.var.totalSto +
+                    self.var.tws = (self.var.storGroundwater + self.var.totalSto +
+                                    self.var.lakeReservoirStorage * self.var.InvCellArea +
+                                    self.var.channelStorage * self.var.InvCellArea)
+                    self.var.tws_unmet =  (groundwater_storage + self.var.totalSto +
                                     self.var.lakeReservoirStorage * self.var.InvCellArea +
                                     self.var.channelStorage * self.var.InvCellArea)
 
@@ -251,6 +254,7 @@ class CWATModel_dyn(DynamicModel):
 
             if checkOption('includeRunoffConcentration'):
                 self.var.tws = self.var.tws + self.var.gridcell_storage
+                self.var.tws_unmet = self.var.tws + self.var.gridcell_storage
 
 
             # ------------------------------------------------------

@@ -268,17 +268,17 @@ def loadsetclone(self, name):
             nf1 = Dataset(filename, 'r')
             value = getvariablename(nf1)
 
-            x1 = list(nf1.variables.values())[0][0]
-            x2 = list(nf1.variables.values())[0][1]
-            xlast = list(nf1.variables.values())[0][-1]
+            x1 = list(nf1.variables.values())[1][0]
+            x2 = list(nf1.variables.values())[1][1]
+            xlast = list(nf1.variables.values())[1][-1]
             #x1 = nf1.variables['lon'][0]
             #x2 = nf1.variables['lon'][1]
             #xlast = nf1.variables['lon'][-1]
 
             #y1 = nf1.variables['lat'][0]
             #ylast = nf1.variables['lat'][-1]
-            y1 = list(nf1.variables.values())[1][0]
-            ylast = list(nf1.variables.values())[1][-1]
+            y1 = list(nf1.variables.values())[0][0]
+            ylast = list(nf1.variables.values())[0][-1]
 
             # swap to make y1 the biggest number
             if y1 < ylast:  y1, ylast = ylast, y1
@@ -2102,6 +2102,8 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
     # save only index values:
     if netcdfindex:
         netfile = netfile.split(".")[0] + "_index.nc"
+    #remove ' in the name. Can happen under Linux
+    #netfile = netfile.replace("'","")
 
     if not flag:
         nf1 = Dataset(netfile, 'w', format='NETCDF4')

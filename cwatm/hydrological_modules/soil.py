@@ -865,12 +865,16 @@ class soil(object):
         if self.var.modflow:
             self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow
         else:
-            self.var.gwRecharge[No] = ((1 - self.var.percolationImp) * toGWorInterflow - 
-                                       self.var.capRiseFromGW[No])
+            self.var.gwRecharge[No] = ((1 - self.var.percolationImp) * toGWorInterflow - self.var.capRiseFromGW[No])
+            self.var.gwRecharge2[No] =  ((1 - self.var.percolationImp) *self.var.perc3toGW[No] - self.var.capRiseFromGW[No])
             # Check if gwRecharge < 0
             testgw = np.minimum(self.var.gwRecharge[No], 0)
             self.var.gwRecharge[No] = self.var.gwRecharge[No] - testgw
             self.var.capRiseFromGW[No] = self.var.capRiseFromGW[No] + testgw
+
+            testgw = np.minimum(self.var.gwRecharge2[No], 0)
+            self.var.gwRecharge2[No] = self.var.gwRecharge2[No] - testgw
+
 
 
 
