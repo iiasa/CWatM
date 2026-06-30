@@ -1602,8 +1602,8 @@ def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale
     else:
         loc = [0,meteofiles[name][flagmeteo[name]][10], 0, meteofiles[name][flagmeteo[name]][11]]
 
-    if glacier:
-        loc = maskmapAttr['cut']
+        if glacier:
+            loc = maskmapAttr['cut']
 
 
     # +++++++++++++++ Netcdf ++++++++++++++++++++++
