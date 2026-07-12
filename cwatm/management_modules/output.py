@@ -15,6 +15,7 @@ import sys
 from decimal import Decimal
 
 import numpy as np
+import pandas as pd
 from netCDF4 import Dataset, num2date, date2num, date2index
 
 from . import globals
@@ -579,10 +580,7 @@ class outputTssMap(object):
             # if dateVar['checked'][dateVar['currwrite'] - 1] >= daymonthyear:
             # using a list with is 1 for monthend and 2 for year end to check for execution
             value = []
-
             for key in sorted(self.var.sampleAdresses):
-
-                j = 0
                 vv = []
                 #for var in variables:
                 for var in self.var.watercycle:
@@ -602,10 +600,10 @@ class outputTssMap(object):
                         v = np.bincount(self.var.evalCatch[key], weights=map)[key]
                     else:  # from single cell for discharge only
                         v = map[self.var.sampleAdresses[key]]
-                    value.append(v)
-                    j += 1
+                    #value.append(v)
+                    vv.append(v)
                 # end loop variables
-                #value.append(vv)
+                value.append(vv)
             # end loop point
 
             expression[3].append(value)
@@ -613,10 +611,7 @@ class outputTssMap(object):
             if dateVar['laststep']:
                writeTssFileNew(expression, daymonthyear,True)
 
-
             return expression
-
-
 
 
         def sample4(expression, what, daymonthyear):
@@ -742,6 +737,23 @@ class outputTssMap(object):
             if expression[2]:
                 if flagCycle:
                     writeFileHeaderWaterCycle(outputFilename, expression)
+                    if daymonthyear > 0:
+                        dates = pd.date_range(start=dateVar['dateStart1'], end=dateVar['dateEnd1'], freq="D")
+                        # reformat expression: not the best solution
+                        # expression: 1: timesteps 2: stations 3: 79 vars eg expression[3][211][0][78]
+                        expression[3] = np.array(expression[3]).transpose(1, 0, 2)
+                        totals = []
+                        storage = []
+
+                        for k in range(len(self.var.sampleAdresses)):
+                            df = pd.DataFrame(expression[3][k], index=dates)
+                            if daymonthyear == 1:
+                                totals.append(df.resample("ME").sum())
+                                storage.append(df.resample("ME").last())
+                            else:
+                                totals.append(df.resample("YE").sum())
+                                storage.append(df.resample("YE").last())
+
                 else:
                     writeFileHeaderNew(outputFilename,expression)
                 outputFile = open(outputFilename, "a")
@@ -752,23 +764,42 @@ class outputTssMap(object):
             if len(expression[3]):
                 numbervalues = len(expression[3][0])
 
-                for timestep in range(dateVar['intSpin'], dateVar['intEnd'] + 1):
-                    if dateVar['checked'][timestep - dateVar['intSpin']] >= daymonthyear:
-                        date1 = dateVar['dateBegin'] + datetime.timedelta(days=timestep - 1)
-                        if "month" in os.path.split(outputFilename)[1]:
-                            date1 = date1.replace(day=1)
-                        if "annual" in os.path.split(outputFilename)[1]:
-                            date1 = date1.replace(day=1,month=1)
-
-                        row = date1.strftime('%d/%m/%Y')
-                        for i in range(numbervalues):
-                            value = expression[3][timestep-1][i]
-                            if isinstance(value, Decimal):
-                                row += ",1e31"
-                            else:
-                                row += ",%13.10g" % value
+                if flagCycle and daymonthyear > 0:
+                    numbervalues = len(expression[3][0][0])
+                    # run for watercycle and monthly or yearly
+                    for i, timestamp in enumerate(totals[0].index):
+                        row = timestamp.strftime('%d/%m/%Y')
+                        for k in range(len(self.var.sampleAdresses)):
+                            for j in range(numbervalues):
+                                if self.var.watercycle[j][2] == "storage":
+                                    value = storage[k].iloc[i, j]
+                                else:
+                                    value = totals[k].iloc[i,j]
+                                if isinstance(value, Decimal):
+                                    row += ",1e31"
+                                else:
+                                    row += ",%13.10g" % value
                         row += "\n"
                         outputFile.write(row)
+
+                else:
+                    for timestep in range(dateVar['intSpin'], dateVar['intEnd'] + 1):
+                        if dateVar['checked'][timestep - dateVar['intSpin']] >= daymonthyear:
+                            date1 = dateVar['dateBegin'] + datetime.timedelta(days=timestep - 1)
+                            if "month" in os.path.split(outputFilename)[1]:
+                                date1 = date1.replace(day=1)
+                            if "annual" in os.path.split(outputFilename)[1]:
+                                date1 = date1.replace(day=1,month=1)
+
+                            row = date1.strftime('%d/%m/%Y')
+                            for i in range(numbervalues):
+                                value = expression[3][timestep-1][i]
+                                if isinstance(value, Decimal):
+                                    row += ",1e31"
+                                else:
+                                    row += ",%13.10g" % value
+                            row += "\n"
+                            outputFile.write(row)
 
             outputFile.close()
 
@@ -1170,14 +1201,18 @@ class outputTssMap(object):
                         outTss[tss][i] = sample3(outTss[tss][i], eval(what), 1)
 
                     if tss[-8:] == "monthtot":
-                        # if  monthtot is not calculated it is done here
-                        if (varname2 + "_monthtotTss") in vars(self.var):
-                            #vars(self.var)[varname2 + "_monthtotTss"] = vars(self.var)[varname2 + "_monthtotTss"] + vars(self.var)[varname]
-                            vars(self.var)[varname2 + "_monthtotTss"] = vars(self.var)[varname2 + "_monthtotTss"] + eval(what)
+                        # Calculate monthly watercycle variables
+                        if varname == "WaterCycle":
+                            outTss[tss][i] = sample_watercycle(outTss[tss][i], 1)
                         else:
-                            #vars(self.var)[varname2 + "_monthtotTss"] = vars(self.var)[varname]
-                            vars(self.var)[varname2 + "_monthtotTss"] = eval(what)
-                        outTss[tss][i] = sample3(outTss[tss][i], eval(what2 + "_monthtotTss"), 1)
+                            # if  monthtot is not calculated it is done here
+                            if (varname2 + "_monthtotTss") in vars(self.var):
+                                #vars(self.var)[varname2 + "_monthtotTss"] = vars(self.var)[varname2 + "_monthtotTss"] + vars(self.var)[varname]
+                                vars(self.var)[varname2 + "_monthtotTss"] = vars(self.var)[varname2 + "_monthtotTss"] + eval(what)
+                            else:
+                                #vars(self.var)[varname2 + "_monthtotTss"] = vars(self.var)[varname]
+                                vars(self.var)[varname2 + "_monthtotTss"] = eval(what)
+                            outTss[tss][i] = sample3(outTss[tss][i], eval(what2 + "_monthtotTss"), 1)
 
                     if tss[-8:] == "monthavg":
                         if (varname + "_monthavgTss") in vars(self.var):
@@ -1193,6 +1228,7 @@ class outputTssMap(object):
                         outTss[tss][i] = sample3(outTss[tss][i], eval(what), 2)
 
                     if tss[-9:] == "annualtot":
+
                         if (varname2 + "_annualtotTss") in vars(self.var):
                             vars(self.var)[varname2 + "_annualtotTss"] = vars(self.var)[varname2 + "_annualtotTss"] + eval(what)
                         else:
