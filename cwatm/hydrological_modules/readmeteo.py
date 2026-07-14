@@ -226,6 +226,10 @@ class readmeteo(object):
         if 'only_radiation' in binding:
             self.var.only_radiation = returnBool('only_radiation')
 
+        self.var.only_radiation_Wm2 = False
+        if 'only_radiation_Wm2' in binding:
+            self.var.only_radiation_Wm2 = returnBool('only_radiation_Wm2')
+
         # for high resolution runs eg 1 arcmin the rlds maps are too coarse
         self.var.without_rlds = False
         if 'without_rlds' in binding:
@@ -778,11 +782,14 @@ class readmeteo(object):
                 # If evaporation is not modified Thornthwaite
                 # because with Priestley-Taylor or Thornthwaite there are no radiation maps
                 if self.var.only_radiation:
-                    # read daily calculated radiation [in KJ/m2/day]
+                    # read daily calculated radiation [in W/m2 or KJ/m2/day to MJ/m2/day]
                     # named here Rsds instead of rds, because use in evaproationPot in the same way as rsds
                     self.var.Rsds = readmeteodata('RGDMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
-                    self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.000001  # convert from KJ to MJ/m2/day
-                    # but for EMO it is 1e6 instead 1000 it seems it is J instead of KJ
+                    if self.var.only_radiation_Wm2:
+                        self.var.Rsds = self.downscaling2(self.var.Rsds) * self.var.WtoMJ  # convert from W/m2 to MJ/m2/day
+                    else:
+                        self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.000001  # convert from KJ to MJ/m2/day
+
                     # read daily vapor pressure [in hPa]
                     self.var.EAct = readmeteodata('EActMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
                     self.var.EAct = self.downscaling2(self.var.EAct) * 0.1  # convert from hP to kP
