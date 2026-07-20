@@ -268,6 +268,7 @@ def loadsetclone(self, name):
             nf1 = Dataset(filename, 'r')
 
             value = getvariablename(nf1)
+            
             # sometimes lat and lon gets mixed and lon is variable[0]
             lon_idx = next(i for i, v in enumerate(nf1.variables) if v in ("lon","x", "X"))
             lat_idx = next(i for i, v in enumerate(nf1.variables) if v in ("lat", "y", "Y"))
