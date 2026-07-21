@@ -236,12 +236,17 @@ class CWATModel_dyn(DynamicModel):
                         # Sum of lake and reservoirs - here without small lakes
                         self.var.lakeReservoirStorage = self.var.lakeResStorage.copy()
 
-                    self.var.tws = (self.var.storGroundwater + self.var.totalSto +
-                                    self.var.lakeReservoirStorage * self.var.InvCellArea +
-                                    self.var.channelStorage * self.var.InvCellArea)
                     self.var.tws_unmet =  (groundwater_storage + self.var.totalSto +
                                     self.var.lakeReservoirStorage * self.var.InvCellArea +
                                     self.var.channelStorage * self.var.InvCellArea)
+                    
+                    if not self.var.modflow:
+                        self.var.tws = (self.var.storGroundwater + self.var.totalSto +
+                                        self.var.lakeReservoirStorage * self.var.InvCellArea +
+                                        self.var.channelStorage * self.var.InvCellArea)
+                    else:
+                        self.var.tws = self.var.tws_unmet.copy()
+                    
 
                     self.var.totalET_WB = (self.var.totalET_WB + self.var.totalET + self.var.EvapWaterBodyM)
                     if returnBool('useSmallLakes'):
