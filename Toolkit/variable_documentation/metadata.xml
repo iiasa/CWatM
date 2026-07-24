@@ -17,6 +17,7 @@
 <metanetcdf varname="_totaltot"  time=": sum the whole time period"/>
 <metanetcdf varname="_totalend"  time=": last value of the whole time period"/>
 
+
 <metanetcdf varname="tws_unmet" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="" description="[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="stopaftersnow" unit=""  standard_name="" long_name="" type="Flag" dim="" option="" description="stop run after snow calcualtion -> for snow calibration (AI)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="pot_domesticConsumption" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="" description="[1D(N)]"  title="CWATM" author="IIASA WAT" />
@@ -268,7 +269,7 @@
 <metanetcdf varname="pitLatrinToGW" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="includeWaterDemand" description="[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="returnFlow" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="" description="[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="waterdemandFixed" unit=""  standard_name="" long_name="" type="Array" dim="" option="" description=""  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="modfPumpingM" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="" description="modfPumpingM is initialized every modflow_timestep in groundwater_modflow/transient.py (AI)[1D(N)]"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="modfPumpingM" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="" description="modfPumpingM is initialized every "modflow_timestep" in "groundwater_modflow/transient.py" (AI)[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="demand_unit" unit=""  standard_name="" long_name="" type="Flag" dim="" option="" description="non-irrigation input maps have for each month or year the unit m/day (True) or million m3/month (False) (AI)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="sectorSourceAbstractionFractions" unit=""  standard_name="" long_name="" type="Array" dim="" option="includeWaterDemand" description="Sector-,source-abstraction fractions facilitate designating the specific source for the specific sector Sources: River, Lake, Reservoir, Groundwater Sectors: Domestic, Industry, Livestock, Irrigation Otherwise, one can distinguish only between surface and groundwater, irrigation and non-irrigation (AI)"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="dom_efficiency" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="" description="[1D(N)]"  title="CWATM" author="IIASA WAT" />
@@ -298,7 +299,7 @@
 <metanetcdf varname="load_command_areas" unit=""  standard_name="" long_name="" type="Flag" dim="" option="includeWaterDemand" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="load_command_areas_wwt" unit=""  standard_name="" long_name="" type="Flag" dim="" option="includeWaterDemand" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="reservoir_command_areas" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="includeWaterBodies;includeWaterDemand" description="Lakes/restricted reservoirs within command areas are removed from the command area (AI)[1D(N)]"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="reservoir_command_areas_wwt" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="includeWaterBodies;includeWaterDemand" description="Lakes and all non-restricted reservoirs within command areas are removed from the command area (AI)[1D(N)]"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="reservoir_command_areas_wwt" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="includeWaterBodies;includeWaterDemand" description="Lakes & all non-restricted res. within command areas are removed from the command area (AI)[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Water_conveyance_efficiency" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="includeWaterBodies;includeWaterDemand" description="[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="segmentArea" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="includeWaterBodies;includeWaterDemand" description="[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="segmentArea_wwt" unit=""  standard_name="" long_name="" type="Array" dim="" option="includeWaterBodies;includeWaterDemand" description=""  title="CWATM" author="IIASA WAT" />
