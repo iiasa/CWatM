@@ -20,31 +20,38 @@ class interception(object):
     evaporation of intercepted water for different land cover types. Calculates
     throughfall, interception storage, and evaporation from intercepted water.
     
-    **Global variables**
-
-    ===================================  ==========    ======================================================================  =====
-    Variable [self.var]                  Type          Description                                                             Unit 
-    ===================================  ==========    ======================================================================  =====
-    interceptCap                         Array         interception capacity of vegetation                                     m
-    potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m    
-    interceptEvap                        Array         simulated evaporation from water intercepted by vegetation              m    
-    minInterceptCap                      Array         Maximum interception read from file for forest and grassland land cove  m    
-    interceptStor                        Array         simulated vegetation interception storage                               m    
-    twothird                             Number        2/3                                                     --
-    EWRef                                Array         potential evaporation rate from water surface                           m    
-    availWaterInfiltration               Array         quantity of water reaching the soil after interception, more snowmelt   m    
-    SnowMelt                             Array         total snow melt from all layers                                         m    
-    IceMelt                              Array         Ice melt (not really ice but an additional snow melt in summer)         m    
-    Rain                                 Array         Precipitation less snow                                                 m 
-    actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m        
-    ===================================  ==========    ======================================================================  =====
-
     Attributes
     ----------
     var : object
         Reference to model variables object containing state variables
     model : object
         Reference to the main CWatM model instance
+
+
+
+
+
+
+
+
+    **Global variables**
+    ===================================  ==========    ======================================================================  =====
+    Variable [self.var]                  Type          Description                                                             Unit 
+    ===================================  ==========    ======================================================================  =====
+    interceptCap                         Array         interception capacity of vegetation                                     m    
+    potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m    
+    interceptEvap                        Array         simulated evaporation from water intercepted by vegetation              m    
+    minInterceptCap                      Array         Maximum interception read from file for forest and grassland land cove  m    
+    interceptStor                        Array         simulated vegetation interception storage                               m    
+    twothird                             Number        2025-03-02 00:00:00                                                     --   
+    EWRef                                Array         potential evaporation rate from water surface                           m    
+    availWaterInfiltration               Array         quantity of water reaching the soil after interception, more snowmelt   m    
+    Rain                                 Array         Precipitation less snow                                                 m    
+    SnowMelt                             Array         total snow melt from all layers                                         m    
+    IceMelt                              Array         Ice melt (not really ice but an additional snow melt in summer)         m    
+    snowEvap                             Array         total evaporation from snow for a snow layers                           m    
+    actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m    
+    ===================================  ==========    ======================================================================  =====
 
     """
 

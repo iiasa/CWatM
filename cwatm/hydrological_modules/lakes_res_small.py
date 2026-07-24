@@ -21,41 +21,10 @@ class lakes_res_small(object):
     Small lakes and reservoirs module for water bodies with limited catchment area.
     
     Handles water retention and outflow calculations for small water bodies
-    (catchment area < 5000 kmÂ² or lake area < 100 kmÂ²) using the modified Puls
+    (catchment area < 5000 kmÃ‚Â² or lake area < 100 kmÃ‚Â²) using the modified Puls
     approach. Processes distributed small water bodies within grid cells rather
     than individual large water bodies.
     
-    **Global variables**
-
-    ===================================  ==========    ======================================================================  =====
-    Variable [self.var]                  Type          Description                                                             Unit 
-    ===================================  ==========    ======================================================================  =====
-    load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
-    smallpart                            Array         fraction of the cellarea which is a small lake                          --   
-    smalllakeArea                        Array         Lake area of small lakes (not part of the main river network)           m2   
-    smalllakeDis0                        Array         Starting discharge of small lakes                                       m3/s 
-    smalllakeA                           Array         Lake A facor of small lakes                                             --   
-    smalllakeFactor                      Array         Internal calculation value for modified Puls approach for small lakes   --   
-    smalllakeFactorSqr                   Array         Internal calculation value for modified Puls approach for small lakes   --   
-    smalllakeInflowOld                   Array         Inflow of the previous day                                              m3/s 
-    smalllakeOutflow                     Array         Outflow from small alkes                                                m3/s 
-    smalllakeLevel                       Array         Lake level for small lakes                                              m    
-    minsmalllakeVolumeM3                 Array         Storage volume of small lakes                                           m3   
-    smallLakedaycorrect                  Array         a water balance correction term for a day because Modified Puld approa  m    
-    smallLakeIn                          Array         Inflow into small lakes = lakeIn * time / area                          m    
-    smallevapWaterBody                   Array         Evaporation from small lakes                                            m    
-    smallLakeout                         Array         small lake outflow but in [m]                                           m    
-    smallrunoffDiff                      Number        Not used                                                                --   
-    DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
-    InvDtSec                             Array         inversere of seconds per timestep (default 1/86400)                     1/s  
-    EWRef                                Array         potential evaporation rate from water surface                           m    
-    lakeEvaFactor                        Array         a factor which increases evaporation from lake because of wind          --   
-    runoff                               Array         Total runoff from surface, interflow and groundwater                    m    
-    cellArea                             Array         Area of cell                                                            m2   
-    smalllakeVolumeM3                    Array                                                                                 --   
-    smalllakeStorage                     Array                                                                                 --   
-    ===================================  ==========    ======================================================================  =====
-
     Attributes
     ----------
     var : object
@@ -70,6 +39,43 @@ class lakes_res_small(object):
     uses the same modified Puls method as large water bodies but applies it
     to aggregated small water body characteristics.
     
+
+
+
+
+
+
+
+    **Global variables**
+    ===================================  ==========    ======================================================================  =====
+    Variable [self.var]                  Type          Description                                                             Unit 
+    ===================================  ==========    ======================================================================  =====
+    load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
+    smallpart                            Array         fraction of the cellarea which is a small lake                          --   
+    smalllakeArea                        Array         Lake area of small lakes (not part of the main river network)           m2   
+    smalllakeDis0                        Array         Starting discharge of small lakes                                       m3 s-
+    smalllakeA                           Array         Lake A facor of small lakes                                             --   
+    smalllakeFactor                      Array         Internal calculation value for modified Puls approach for small lakes   --   
+    smalllakeFactorSqr                   Array         Internal calculation value for modified Puls approach for small lakes   --   
+    smalllakeInflowOld                   Array         Inflow of the previous day                                              m3 s-
+    smalllakeOutflow                     Array         Outflow from small alkes                                                m3 s-
+    smalllakeLevel                       Array         Lake level for small lakes                                              m    
+    minsmalllakeVolumeM3                 Array         Storage volume of small lakes                                           m3   
+    smallLakedaycorrect                  Array         a water balance correction term for a day because Modified Puld approa  m    
+    smallLakeIn                          Array         Inflow into small lakes = lakeIn * time / area                          m    
+    smallevapWaterBody                   Array         Evaporation from small lakes                                            m    
+    smallLakeout                         Array         small lake outflow but in [m]                                           m    
+    smallrunoffDiff                      Number        Not used                                                                --   
+    DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
+    InvDtSec                             Array         inversere of seconds per timestep (default 1/86400)                     1 s-1
+    EWRef                                Array         potential evaporation rate from water surface                           m    
+    lakeEvaFactor                        Array         a factor which increases evaporation from lake because of wind          --   
+    runoff_m3                            Array         back to [m]  # with and without in m3 (AI)                              --   
+    cellArea                             Array         Area of cell                                                            m2   
+    smalllakeVolumeM3                    Array         act_smallLakesres is substracted from small lakes storage (AI)          --   
+    smalllakeStorage                     Array                                                                                 --   
+    ===================================  ==========    ======================================================================  =====
+
     """
 
     def __init__(self, model):
@@ -208,12 +214,12 @@ class lakes_res_small(object):
             Parameters
             ----------
             inflow : numpy.ndarray
-                Inflow to small lakes [mÂ³] per time step
+                Inflow to small lakes [mÃ‚Â³] per time step
                 
             Returns
             -------
             numpy.ndarray
-                Lake outflow [mÂ³] per time step
+                Lake outflow [mÃ‚Â³] per time step
                 
             Notes
             -----

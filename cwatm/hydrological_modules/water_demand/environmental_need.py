@@ -22,8 +22,21 @@ class waterdemand_environmental_need:
     flow rates to water depths for hydrological calculations.
 
 
-    **Global variables**
+    Attributes
+    ----------
+    var : object
+        Model variables container from parent model
+    model : object
+        Parent CWatM model instance
 
+
+
+
+
+
+
+
+    **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
@@ -35,14 +48,6 @@ class waterdemand_environmental_need:
     channelAlpha                         Array                                                                                 --   
     envFlow                              Array                                                                                 --   
     ===================================  ==========    ======================================================================  =====
-
-    
-    Attributes
-    ----------
-    var : object
-        Model variables container from parent model
-    model : object
-        Parent CWatM model instance
 
     """
 
@@ -80,7 +85,7 @@ class waterdemand_environmental_need:
         Calculate dynamic environmental flow requirements for the current time step.
         
         Reads monthly environmental flow data from NetCDF files and transforms flow rates
-        from mÂ³/s to water depths in meters. Uses channel geometry parameters to convert
+        from mÃ‚Â³/s to water depths in meters. Uses channel geometry parameters to convert
         volumetric flow to equivalent water depth for hydrological calculations.
         Sets minimum environmental flow when environmental flows are disabled.
         """

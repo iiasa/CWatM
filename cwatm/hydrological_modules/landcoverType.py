@@ -49,14 +49,41 @@ class landcoverType(object):
     type, and integrating results for comprehensive water balance calculations.
 
       
-    **Global variables**
+    Attributes
+    ----------
     
+    var : object
+        Reference to model variables object containing state variables
+    model : object
+        Reference to the main CWatM model instance
+        
+    Notes
+    -----
+    
+    Manages six primary land cover types:
+    0. Forest
+    1. Grassland
+    2. Irrigated paddy
+    3. Irrigated non-paddy
+    4. Sealed surfaces
+    5. Water bodies
+    
+    The module handles land cover fraction dynamics, calls soil processes
+    for each type, and aggregates results weighted by land cover fractions
+    for pixel-scale water balance calculations.
+
+
+
+
+
+
+
+    **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
     modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
-    snowEvap                             Array         total evaporation from snow for a snow layers                           m    
-    load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool
+    load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
     compress_LR                          Array         boolean map as mask map for compressing lake/reservoir                  --   
     decompress_LR                        Array         boolean map as mask map for decompressing lake/reservoir                --   
     MtoM3C                               Array         conversion factor from m to m3 (compressed map)                         --   
@@ -65,6 +92,7 @@ class landcoverType(object):
     minCropKC                            Array         minimum crop factor (default 0.2)                                       --   
     minInterceptCap                      Array         Maximum interception read from file for forest and grassland land cove  m    
     irrigatedArea_original               Array                                                                                 --   
+    fracAllCover                         Array                                                                                 --   
     frac_totalnonIrr                     Array         Fraction sown with specific non-irrigated crops                         %    
     frac_totalIrr_max                    Array         Fraction sown with specific irrigated crops, maximum throughout simula  %    
     frac_totalnonIrr_max                 Array         Fraction sown with specific non-irrigated crops, maximum throughout si  %    
@@ -90,9 +118,9 @@ class landcoverType(object):
     minTopWaterLayer                     Array         minimum water level above the top soil zone (for paddy rice)            m    
     maxRootDepth                         Array         maximum root depth                                                      m    
     rootDepth                            Array         rootdepth of different layers                                           m    
-    KSat1                                Array         Saturated conductivity layer 1                                          cm/da
-    KSat2                                Array         Saturated conductivity layer 2                                          cm/da
-    KSat3                                Array         Saturated conductivity layer 3                                          cm/da
+    KSat1                                Array         Saturated conductivity layer 1                                          cm da
+    KSat2                                Array         Saturated conductivity layer 2                                          cm da
+    KSat3                                Array         Saturated conductivity layer 3                                          cm da
     alpha1                               Array         Van Genuchten parameter alpha layer1                                    --   
     alpha2                               Array         Van Genuchten parameter alpha layer2                                    --   
     alpha3                               Array         Van Genuchten parameter alpha layer3                                    --   
@@ -123,9 +151,9 @@ class landcoverType(object):
     wwp1                                 Array         Soil moisture at wilting point in layer 1                               m    
     wwp2                                 Array         Soil moisture at wilting point in layer 2                               m    
     wwp3                                 Array         Soil moisture at wilting point in layer 3                               m    
-    kUnSat3FC                            Array         calculation from van Genuchten, Mualem equation                         m/day
-    kunSatFC12                           Array         calculation from van Genuchten, Mualem equation                         m/day
-    kunSatFC23                           Array         calculation from van Genuchten, Mualem equation                         m/day
+    kUnSat3FC                            Array         calculation from van Genuchten, Mualem equation                         m day
+    kunSatFC12                           Array         calculation from van Genuchten, Mualem equation                         m day
+    kunSatFC23                           Array         calculation from van Genuchten, Mualem equation                         m day
     rootFraction1                        Array                                                                                 --   
     cropCoefficientNC_filename           List                                                                                  --   
     interceptCapNC_filename              List                                                                                  --   
@@ -145,33 +173,34 @@ class landcoverType(object):
     Rain_times_fracPaddy                 Array                                                                                 --   
     Rain_times_fracNonPaddy              Array                                                                                 --   
     fracGlacierCover                     Array         Fraction of glacier cover in a grid cell                                %    
+    areaGlacier                                 nan                                                                            --   
     pretotalSto                          Array         Previous totalSto                                                       m    
     prefFlow_GW                          Array         Preferential flow to groundwater. sum_prefFlow goes either to groundwa  m    
     sum_prefFlow                         Array         Preferential flow from soil to groundwater (summed up for all land cov  m    
     sum_perc3toGW                        Array         Percolation from 3rd soil layer to groundwater (summed up for all land  m    
     perc3toGW_GW                         Array         Percolation from 3rd soil layer to groundwater. sum_perc3toGW goes eit  m    
-    riverbedExchangeM3                   Array                                                                                 --   
+    riverbedExchangeM3                   Array         converting leakage in m3 (AI)                                           --   
     lakebedExchangeM                     Array         Flow of water from lakes and reservoirs into groundwater                m    
     sum_actTransTotal                    Array         actual total transpiration  (sum over all land cover types)             m    
     sum_actBareSoilEvap                  Array         actual bare soil evaporation (sum over all land cover types)            m    
     sum_interceptEvap                    Array                                                                                 --   
     sum_runoff                           Array         Runoff above the soil, more interflow, including all landcover types    m    
-    sum_directRunoff                     Array         direct runoff from surface  (sum over all land cover types)             m  
-    actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m       
     GWVolumeVariation                    Number                                                                                --   
     MtoM3                                Array         Coefficient to change units                                             --   
-    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1/m2 
+    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
     Precipitation                        Array         Precipitation (input for the model)                                     m    
     includeGlaciers                      Flag          Include glaciers                                                        bool 
     waterBodyID                          Array         lakes/reservoirs map with a single ID for each lake/reservoir           --   
     sum_openWaterEvap                    Array         sum of open water evaporation from all different land cover types       m    
     coverTypes                           Array         land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
+    sum_directRunoff                     Array         direct runoff from surface  (sum over all land cover types)             m    
     sum_interflow                        Array         sum of iterflow from all land cover types                               m    
     availWaterInfiltration               Array         quantity of water reaching the soil after interception, more snowmelt   m    
     Rain                                 Array         Precipitation less snow                                                 m    
+    snowEvap                             Array         total evaporation from snow for a snow layers                           m    
     SnowCover                            Array         snow cover (sum over all layers)                                        m    
     frac_totalIrr                        Array         Fraction sown with specific irrigated crops                             %    
-    soilLayers                           Array         Number of soil layers                                                   --   
+    soilLayers                                  nan    Number of soil layers                                                   --   
     soildepth                            Array         Thickness of the first soil layer                                       m    
     wfc1                                 Array         Soil moisture at field capacity in layer 1                              m    
     wfc2                                 Array         Soil moisture at field capacity in layer 2                              m    
@@ -181,52 +210,30 @@ class landcoverType(object):
     w3                                   Array         Simulated water storage in the layer 3                                  m    
     topwater                             Array         quantity of water above the soil (flooding)                             m    
     baseflow                             Array         simulated baseflow (= groundwater discharge to river)                   m    
-    capriseindex                         Array                                                                                 --   
+    capriseindex                         Array         computing saturated fraction of each CWatM cells (where water table >=  --   
     soildepth12                          Array         Total thickness of layer 2 and 3                                        m    
     leakageriver_factor                  Array                                                                                 --   
     leakagelake_factor                   Array                                                                                 --   
     modflow_timestep                     Array         Chosen ModFlow model timestep (1day, 7days, 30days, etc.)               day  
     wwtUrbanLeakage                      Array                                                                                 --   
-    wwtColArea                           Array                                                                                 --   
-    urbanleak                            Array                                                                                 --   
+    wwtColArea                           Array         Setup wastewater treatment facilities load collection area (AI)         --   
+    urbanleak                            Array         share to collect urban leakage (AI)                                     --   
     fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     cellArea                             Array         Area of cell                                                            m2   
     includeWastewater                    Flag                                                                                  --   
     lakeVolumeM3C                        Array         compressed map of lake volume                                           m3   
     lakeStorageC                         Array                                                                                 --   
-    reservoirStorageM3C                  Array                                                                                 --   
-    lakeResStorageC                      Array                                                                                 --   
+    reservoirStorageM3C                  Array         Initial reservoir fill (fraction of total storage, [-]) (AI)            --   
+    lakeResStorageC                      Array         and from the combined onenpfor waterbalance issues (AI)                 --   
     lakeResStorage                       Array                                                                                 --   
     act_SurfaceWaterAbstract             Array         Surface water abstractions                                              m    
-    readAvlChannelStorageM               Array                                                                                 --   
-    leakageCanals_M                      Array                                                                                 --   
+    readAvlChannelStorageM               Array         coversersion m3 -> m # minus environmental flow (AI)                    --   
+    leakageCanals_M                      Array         Without this, npareamaximum uses the historical maximum (AI)            --   
     includeWastewaterPits                Flag                                                                                  --   
     pitLatrinToGW                        Array                                                                                 --   
     addtoevapotrans                      Array         Irrigation application loss to evaporation                              m    
     ===================================  ==========    ======================================================================  =====
 
-    Attributes
-    ----------
-    
-    var : object
-        Reference to model variables object containing state variables
-    model : object
-        Reference to the main CWatM model instance
-        
-    Notes
-    -----
-    
-    Manages six primary land cover types:
-    0. Forest
-    1. Grassland
-    2. Irrigated paddy
-    3. Irrigated non-paddy
-    4. Sealed surfaces
-    5. Water bodies
-    
-    The module handles land cover fraction dynamics, calls soil processes
-    for each type, and aggregates results weighted by land cover fractions
-    for pixel-scale water balance calculations.
     """
 
     def __init__(self, model):

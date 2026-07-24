@@ -195,11 +195,19 @@ class CWATModel_ini(DynamicModel):
     before meteorological reading to check for steady-state conditions.
     MODFLOW coupling is activated when 'modflow_coupling' is True in settings.
 
+
+
+
+
+
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
     modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
+    stopaftersnow                        Flag          stop run after snow calcualtion -> for snow calibration (AI)            --   
     ===================================  ==========    ======================================================================  =====
 
     """

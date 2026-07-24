@@ -20,8 +20,22 @@ class capillarRise(object):
     groundwater depth and relative elevation within each grid cell. It determines
     areas where groundwater can reach the surface through capillary action.
 
-    **Global variables**
+    Attributes
+    ----------
+    var : object
+        Model variables container
+    model : object
+        CWatM model instance
 
+
+
+
+
+
+
+
+
+    **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
@@ -32,14 +46,6 @@ class capillarRise(object):
     maxGWCapRise                         Array         influence of capillary rise above groundwater level                     m    
     dzRel                                Array         relative elevation in a gridcell by fraction of area                    m    
     ===================================  ==========    ======================================================================  =====
-
-    Attributes
-    ----------
-    var : object
-        Model variables container
-    model : object
-        CWatM model instance
-
 
     """
 

@@ -37,74 +37,141 @@ class snow_frost(object):
     redistribution across elevation zones, and computes frost index for soil freezing.
     Supports multi-layer snow zones for topographic variability representation.
     
-    **Global variables**
-    
-    ===================================  ==========    ======================================================================  =====
-    Variable [self.var]                  Type          Description                                                             Unit 
-    ===================================  ==========    ======================================================================  =====
-    load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
-    fracGlacierCover                     Array         Fraction of glacier cover in a grid cell                                %    
-    DtDay                                Array         seconds in a timestep (default=86400)                                   s    
-    Precipitation                        Array         Precipitation (input for the model)                                     m    
-    only_radiation                       Flag          Boolean if only radiation is use for calculation e.g JRC EMO dataset    bool 
-    Tavg                                 Array         Input, average air Temperature                                          K    
-    Rsds                                 Array         short wave downward surface radiation fluxes                            W/m2 
-    EAct                                 Array         Daily vapor pressure                                                    hPa  
-    Rsdl                                 Array         long wave downward surface radiation fluxes                             W/m2 
-    includeGlaciers                      Flag          Include glaciers                                                        bool 
-    snowmelt_radiation                   Array                                                                                 --   
-    dzRel                                Array         relative elevation in a gridcell by fraction of area                    m    
-    SnowMelt                             Array         total snow melt from all layers                                         m    
-    IceMelt                              Array         Ice melt (not really ice but an additional snow melt in summer)         m    
-    dem                                  Array         Digital elevation model                                                 m    
-    lat                                  Array         Latitude                                                                deg  
-    Rain                                 Array         Precipitation less snow                                                 m    
-    SnowCover                            Array         snow cover (sum over all layers)                                        m    
-    SnowFactor                           Array         Multiplier applied to precipitation that falls as snow                  --   
-    numberSnowLayersFloat                Array         Number of snow layers (up to 10)                                        --   
-    numberSnowLayers                     Array         Number of snow layers (up to 10)                                        --   
-    glaciertransportZone                 Number        Number of layers which can be mimiced as glacier transport zone         --   
-    dzSnow                               Array         which dzRel is taken for snow calculation                               --   
-    lapseratevar                         Flag          True or False if a variable lapse rate is used                          --   
-    lapseR                               Array         Lapserate per month                                                     deg C
-    lapseRate                            Array         Lapserate per month                                                     deg C
-    frac_snow_redistribution             Array          Maximum fraction of snow that can be redistributed in elevation zones  --   
-    SnowDayDegrees                       Array         day of the year to degrees: 360/365.25 = 0.9856                         --   
-    SeasonalSnowMeltSin                  Array                                                                                 --   
-    excludeGlacierArea                   Flag          True or False to exclude glacier areas from calculation because they a  --   
-    summerSeasonStart                    Array         day when summer season starts = 165                                     --   
-    IceDayDegrees                        Array         days of summer (15th June-15th Sept.) to degree: 180/(259-165)          --   
-    SnowSeason                           Array         seasonal melt factor                                                    m (Ce
-    TempSnowLow                          Array         Temperature below which all precipitation is snow                       °C   
-    TempSnowHigh                         Array         Temperature above which all precipitation is rain                       °C   
-    TempSnow                             Array         Average temperature at which snow melts                                 °C   
-    SnowMeltCoef                         Array         Snow melt coefficient - default: 0.004                                  --   
-    IceMeltCoef                          Array         Ice melt coefficnet - default  0.007                                    --   
-    TempMelt                             Array         Average temperature at which snow melts                                 °C   
-    SnowMeltRad                          Array         calibration value a factor to radiation coefficient                     --   
-    SnowCoverS                           Array         snow cover for each layer                                               m    
-    adv_frost                                                                                                                  --   
-    maxFrostIndex                                                                                                              --   
-    Kfrost                               Array         Snow depth reduction coefficient, (HH, p. 7.28)                         m-1  
-    Afrost                               Array         Daily decay coefficient, (Handbook of Hydrology, p. 7.28)               --   
-    FrostIndexThreshold                  Array         Degree Days Frost Threshold (stops infiltration, percolation and capil  --   
-    SnowWaterEquivalent                  Array         Snow water equivalent, (based on snow density of 450 kg/m3) (e.g. Tarb  --   
-    FrostIndex                           Array         FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Inde  --   
-    Snow                                 Array         Snow (equal to a part of Precipitation)                                 m    
-    Snow1                                Array                                                                                 --   
-    Rain1                                Array                                                                                 --   
-    snow_redistributed_previous          Array                                                                                 --   
-    SnowFraction                         Array         Fraction of snow in a gridcell                                          --   
-    precipitation_sn                     Array                                                                                 --   
-    fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
-    ===================================  ==========    ======================================================================  =====
-
     Attributes
     ----------
     var : object
         Reference to model variables object containing state variables
     model : object
         Reference to the main CWatM model instance
+
+
+
+
+
+
+
+
+    **Global variables**
+    ===================================  ==========    ======================================================================  =====
+    Variable [self.var]                  Type          Description                                                             Unit 
+    ===================================  ==========    ======================================================================  =====
+    stopaftersnow                        Flag          stop run after snow calcualtion -> for snow calibration (AI)            --   
+    load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
+    cropCorrect                          Array         calibration factor of crop KC factor                                    --   
+    saveInit                             Flag          If true initial conditions are saved                                    bool 
+    minCropKC                            Array         minimum crop factor (default 0.2)                                       --   
+    DtDay                                Array         seconds in a timestep (default=86400)                                   s    
+    ETRef                                Array         potential evapotranspiration rate from reference crop                   m    
+    Precipitation                        Array         Precipitation (input for the model)                                     m    
+    only_radiation                       Flag          Boolean if only radiation is use for calculation e.g JRC EMO dataset    bool 
+    Psurf                                Array         Instantaneous surface pressure                                          Pa   
+    Rsdl                                 Array         long wave downward surface radiation fluxes                             W m-2
+    huss                                 Array         2 m istantaneous specific humidity[kg / kg] (AI)                        --   
+    EAct                                 Array         Daily vapor pressure                                                    hPa  
+    rhs                                  Array                                                                                 --   
+    Tdew                                        nan    calculate Tdew (Magnus Formula) based on FAO56 https://www.fao.org/4/X  --   
+    Tavg                                 Array         Input, average air Temperature                                          K    
+    Rsds                                 Array         short wave downward surface radiation fluxes                            W m-2
+    Wind                                 Array         wind speed                                                              m s-1
+    snowmelt_radiation                   Array         use radiation term in snow melt (AI)                                    --   
+    WtoMJ                                Array         Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6          --   
+    dzRel                                Array         relative elevation in a gridcell by fraction of area                    m    
+    usepySnowClim                        Flag          Flag to use pySnowClim                                                  --   
+    dem                                  Array         Digital elevation model                                                 m    
+    lat                                  Array         Latitude                                                                deg  
+    Rain                                 Array         Precipitation less snow                                                 m    
+    SnowMelt                             Array         total snow melt from all layers                                         m    
+    IceMelt                              Array         Ice melt (not really ice but an additional snow melt in summer)         m    
+    snowEvap                             Array         total evaporation from snow for a snow layers                           m    
+    SnowCover                            Array         snow cover (sum over all layers)                                        m    
+    SnowFactor                           Array         Multiplier applied to precipitation that falls as snow                  --   
+    numberSnowLayers                     Array         Number of snow layers (up to 10)                                        --   
+    _process_forcings_and_energy                nan    load libraries, but only if pySnowClim is used (AI)                     --   
+    _run_snowclim_step                          nan                                                                            --   
+    _prepare_outputs                            nan                                                                            --   
+    Snowpack                                    nan                                                                            --   
+    constSnowClim                               nan                                                                            --   
+    stability                            Array         Parameter foor pySnowClim , also calibration parameters see Table2 in   --   
+    windHt                               Array         Wind height (default: 10 meters) (AI)                                   --   
+    tempHt                               Array         Temperature height (default: 2 meters) (AI)                             --   
+    snowoff_month                        Array         Month of snow-off (default: 9) (AI)                                     --   
+    snowoff_day                          Array         Day of snow-off (default: 1) (AI)                                       --   
+    albedo_option                               nan                                                                            --   
+    max_albedo                           Array         Maximum albedo (default: 0.85) (calib: 0.85-0.90) (AI)                  --   
+    z_0                                  Array         Roughness length (default: 0.00001 m) (10-5 - 10-3) (AI)                --   
+    z_h                                  Array         Roughness length for heat (default: z_0/10) (AI)                        --   
+    lw_max                               Array                                                                                 --   
+    Tstart                               Array         Starting temperature (default: 0Â°C) (AI)                               --   
+    Tadd                                 Array         Temperature adjustment (default: -10000Â°C) (AI)                        --   
+    maxtax                               Array         Maximum tax (default: 0.9) (calib: 0.3-0.9) (AI)                        --   
+    E0_value                             Array         Windless exchange coefficient (default: 1) (calib  0-2) (AI)            --   
+    E0_app                               Array         Windless exchange application option (default: 1) (AI)                  --   
+    E0_stable                            Array         Windless exchange stability option (default: 2) (AI)                    --   
+    Ts_add                               Array         Temperature add factor (default: 2Â°C) (calib 0-2) (AI)                 --   
+    smooth_time_steps                    Array         Smoothing time steps (default: 12) (calib: 8-24) (AI)                   --   
+    ground_albedo                        Array         Ground albedo (default: 0.25) (AI)                                      --   
+    snow_emis                            Array         Snow emissivity (default: 0.98) (AI)                                    --   
+    snow_dens_default                    Array         Default snow density (default: 250 kg/mÂ³) (AI)                         --   
+    G                                    Array         Ground conduction (default: 173/86400 kJ/mÂ²/s) (AI)                    --   
+    max_swe_height                       Array         Max height of SWE before solar radiation factor starts to work (defaul  --   
+    downward_radiation_factor            Array                                                                                 --   
+    downward_radiation_start_month       Array                                                                                 --   
+    downward_radiation_end_month         Array         Month where solar_radiation_factor ends (default: 10) (AI)              --   
+    snowclimParameters                          nan    then passed is to give clarify using the xml file variables. (AI)       --   
+    snowpack                             Array                                                                                 --   
+    snowModelvars                        Array         pzSnowclim variables -> CWatM (AI)                                      --   
+    pySnowClimInitVars                          nan                                                                            --   
+    saveInitpySnowClim                          nan                                                                            --   
+    saveInitFilepySnowClim                      nan                                                                            --   
+    SnowFraction                         Array         Fraction of snow in a gridcell                                          --   
+    snow_redistributed_previous          Array         redistributed snow will be added to next elevation zone in next loop (  --   
+    numberSnowLayersFloat                Array         Number of snow layers (up to 10)                                        --   
+    glaciertransportZone                 Number        Number of layers which can be mimiced as glacier transport zone         --   
+    dzSnow                               Array         which dzRel is taken for snow calculation                               --   
+    lapseratevar                         Flag          True or False if a variable lapse rate is used                          --   
+    lapseR                               Array         Lapserate per month                                                     deg C
+    lapseRate                            Array         Lapserate per month                                                     deg C
+    frac_snow_redistribution             Array          Maximum fraction of snow that can be redistributed in elevation zones  --   
+    snowEvapFactor                       Array         a factor to evaporation assuming higher albedo for snow (AI)            --   
+    swe_forest                           Array                                                                                 --   
+    swe_other                            Array                                                                                 --   
+    SnowDayDegrees                       Array         day of the year to degrees: 360/365.25 = 0.9856                         --   
+    SeasonalSnowMeltSin                  Array                                                                                 --   
+    redistr_factor                       Array                                                                                 --   
+    summerSeasonStart                    Array         day when summer season starts = 165                                     --   
+    IceDayDegrees                        Array         days of summer (15th June-15th Sept.) to degree: 180/(259-165)          --   
+    SnowSeason                           Array         seasonal melt factor                                                    m deg
+    TempSnow                             Array         Average temperature at which snow melts                                 °C   
+    SnowMeltCoef                         Array         Snow melt coefficient - default: 0.004                                  --   
+    IceMeltCoef                          Array         Ice melt coefficnet - default  0.007                                    --   
+    TempMelt                             Array         Average temperature at which snow melts                                 °C   
+    SnowMeltRad                          Array         calibration value a factor to radiation coefficient                     --   
+    SnowCoverS                           Array         snow cover for each layer                                               m    
+    adv_frost                            Flag          if this use, Kfrost and maxFrost is used                                --   
+    maxFrostIndex                        Number        maximum frostindex, frostindex over max causes unusuaL floods in sprin  --   
+    Kfrost                               Array         Snow depth reduction coefficient, (HH, p. 7.28)                         m-1  
+    Afrost                               Array         Daily decay coefficient, (Handbook of Hydrology, p. 7.28)               --   
+    FrostIndexThreshold                  Array         Degree Days Frost Threshold (stops infiltration, percolation and capil  --   
+    SnowWaterEquivalent                  Array         Snow water equivalent, (based on snow density of 450 kg/m3) (e.g. Tarb  --   
+    FrostIndex                           Array         FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Inde  --   
+    lat}                                                                                                                       --   
+    Tavg}                                                                                                                      --   
+    ExistSnow                                   nan                                                                            --   
+    Rain_on_snow                                nan    spilt between rain on snow and rain (AI)                                --   
+    Snow                                 Array         Snow (equal to a part of Precipitation)                                 m    
+    packwater                                   nan                                                                            --   
+    snowwaterevaporation                        nan                                                                            --   
+    depostition                                 nan                                                                            --   
+    sublimation                                 nan                                                                            --   
+    condensation                                nan                                                                            --   
+    refrozen                                    nan                                                                            --   
+    snowmelt1                                   nan                                                                            --   
+    precipitation_sn                     Array         CWatM uses a snow undercatch correction if calibrated. This precipitat  m    
+    FrostDay                             Array         frost index in soil [degree days] based on Molnau and Bissel (1983, A   --   
+    potBareSoilEvap                      Array         potential bare soil evaporation (calculated with minus snow evaporatio  m    
+    fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
+    cellArea                             Array         Area of cell                                                            m2   
+    ===================================  ==========    ======================================================================  =====
 
     """
 
@@ -184,18 +251,18 @@ class snow_frost(object):
             self.var.z_0 = loadmap('z_0')  # Roughness length (default: 0.00001 m) (10-5 - 10-3)
             self.var.z_h = loadmap('z_h')  # Roughness length for heat (default: z_0/10)
             self.var.lw_max = loadmap('lw_max')  # Maximum longwave radiation(default: 0.1)
-            self.var.Tstart = loadmap('Tstart')  # Starting temperature (default: 0°C)
-            self.var.Tadd = loadmap('Tadd')  # Temperature adjustment (default: -10000°C)
+            self.var.Tstart = loadmap('Tstart')  # Starting temperature (default: 0Â°C)
+            self.var.Tadd = loadmap('Tadd')  # Temperature adjustment (default: -10000Â°C)
             self.var.maxtax = loadmap('maxtax')  # Maximum tax (default: 0.9) (calib: 0.3-0.9)
             self.var.E0_value = loadmap('E0_value')  # Windless exchange coefficient (default: 1) (calib  0-2)
             self.var.E0_app = loadmap('E0_app')  # Windless exchange application option (default: 1)
             self.var.E0_stable = loadmap('E0_stable')  # Windless exchange stability option (default: 2)
-            self.var.Ts_add = loadmap('Ts_add')  # Temperature add factor (default: 2°C) (calib 0-2)
+            self.var.Ts_add = loadmap('Ts_add')  # Temperature add factor (default: 2Â°C) (calib 0-2)
             self.var.smooth_time_steps = loadmap('smooth_time_steps')  # Smoothing time steps (default: 12) (calib: 8-24)
             self.var.ground_albedo = loadmap('ground_albedo')  # Ground albedo (default: 0.25)
             self.var.snow_emis = loadmap('snow_emis')  # Snow emissivity (default: 0.98)
-            self.var.snow_dens_default = loadmap('snow_dens_default')  # Default snow density (default: 250 kg/m³)
-            self.var.G = loadmap('G')  # Ground conduction (default: 173/86400 kJ/m²/s)
+            self.var.snow_dens_default = loadmap('snow_dens_default')  # Default snow density (default: 250 kg/mÂ³)
+            self.var.G = loadmap('G')  # Ground conduction (default: 173/86400 kJ/mÂ²/s)
             self.var.max_swe_height = loadmap('max_swe_height')  # Max height of SWE before solar radiation factor starts to work (default: 100 m)
             self.var.downward_radiation_factor = loadmap(
                 'downward_radiation_factor')  # Factor to be multiplied by solar radiation when SWE > max_swe_height (default: 1.3)
@@ -673,7 +740,7 @@ class snow_frost(object):
 
                 # Snow melt with radiation
                 # Radiation part from evaporationPot -> snowmelt has now a temperature part and a radiation part
-                # from Erlandsen et al. 2021Hydrology Research 1 April 2021; 52 (2): 356–372 https://doi.org/10.2166/nh.2021.132
+                # from Erlandsen et al. 2021Hydrology Research 1 April 2021; 52 (2): 356â€“372 https://doi.org/10.2166/nh.2021.132
                 if self.var.snowmelt_radiation:
                     RNup = 4.903E-9 * (TavgS + 273.16) ** 4
                     # if only radiation is given like in the EMO meteo dataset:

@@ -21,25 +21,31 @@ class environflow(object):
     which are the minimum water requirements needed to maintain ecosystem health
     in rivers and streams.
 
-    **Global variables**
-
-    ===================================  ==========    ======================================================================  =====
-    Variable [self.var]                  Type          Description                                                             Unit 
-    ===================================  ==========    ======================================================================  =====
-    MAF                                  Array         Mean of discharge for all days                                          m3/s 
-    Q90                                  Array         10% of the lowest discharge for all days                                m3/s 
-    MMF                                  Array         Mean of discharge for each month separately                             m3/s 
-    MQ90                                 Array         10% of lowest discharge for each month separately                       m3/s 
-    EF_VMF                               Array         EF requirement with Variable Monthly Flow: Pastor et al.(2014): Accoun  m3/s 
-    cut_ef_map                           Flag          if TRUE calculated maps of environmental flow are clipped to the area   bool 
-    ===================================  ==========    ======================================================================  =====
-
     Attributes
     ----------
     var : object
         Model variables container
     model : object
         CWatM model instance
+
+
+
+
+
+
+
+
+    **Global variables**
+    ===================================  ==========    ======================================================================  =====
+    Variable [self.var]                  Type          Description                                                             Unit 
+    ===================================  ==========    ======================================================================  =====
+    MAF                                  Array         Mean of discharge for all days                                          m3 s-
+    Q90                                  Array         10% of the lowest discharge for all days                                m3 s-
+    MMF                                  Array         Mean of discharge for each month separately                             m3 s-
+    MQ90                                 Array         10% of lowest discharge for each month separately                       m3 s-
+    EF_VMF                               Array         EF requirement with Variable Monthly Flow: Pastor et al.(2014): Accoun  m3 s-
+    cut_ef_map                           Flag          if TRUE calculated maps of environmental flow are clipped to the area   bool 
+    ===================================  ==========    ======================================================================  =====
 
     """
 

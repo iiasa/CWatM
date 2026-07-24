@@ -25,8 +25,6 @@ Output Files:
 Created on Tue Apr  7 15:13:10 2020
 @author: Luca G., Peter B.
 """
-from builtins import isinstance
-
 '''
 Requires:
 openpyxl
@@ -35,18 +33,14 @@ loguru
 '''
 
 import argparse
-import json
 import os
 import platform
 import re
 import time
-from pathlib import Path
 # PB added to sort the Dict_AllVariables
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 from operator import getitem
 from xml.dom import minidom
-from dataclasses import dataclass, field
-from typing import List, Dict, Tuple, Optional, Set
 
 import numpy as np
 import pandas as pd
@@ -68,6 +62,8 @@ xcols = [
     'Unit',
     'Description',
     'Type',
+    'Dimension',
+    'Optional',
     'First module',
     'Priority',
     'Module 1', 'Module 2', 'Module 3', 'Module 4',
@@ -95,161 +91,6 @@ netxml_head = (
     '<metanetcdf varname="_totaltot"  time=": sum the whole time period"/>\n' +
     '<metanetcdf varname="_totalend"  time=": last value of the whole time period"/>\n\n\n'
 )
-
-
-@dataclass
-class Config:
-    """Enhanced configuration for the variable documentation generator."""
-    # Core functionality (original)
-    excel_file: Optional[str] = None
-    xml_file: Optional[str] = None
-    folders: Optional[List[str]] = None
-    auto_open_excel: bool = True
-    inject_docs: bool = True
-    
-    # Optional enhancements
-    config_file: Optional[str] = None
-    batch_mode: bool = False
-    export_formats: List[str] = field(default_factory=list)  # csv, markdown, html
-    filter_patterns: List[str] = field(default_factory=list)
-    exclude_patterns: List[str] = field(default_factory=list)
-    validate_consistency: bool = False
-    use_cache: bool = False
-    cache_file: str = '.variable_cache.json'
-    log_level: str = 'INFO'
-    template_dir: Optional[str] = None
-    output_dir: str = '.'
-    project_name: Optional[str] = None
-    
-    def get_excel_file(self) -> str:
-        """Get Excel filename with default fallback."""
-        base_name = self.excel_file or 'selfvar'
-        if self.project_name:
-            base_name = f"{self.project_name}_{base_name}"
-        return f"{base_name}.xlsx"
-    
-    def get_xml_file(self) -> str:
-        """Get XML filename with default fallback."""
-        base_name = self.xml_file or 'metaNetcdf'
-        if self.project_name:
-            base_name = f"{self.project_name}_{base_name}"
-        return f"{base_name}.xml"
-    
-    def get_folders(self) -> List[str]:
-        """Get folder list with default fallback."""
-        return self.folders or ['../' + f for f in base_folders]
-    
-    @classmethod
-    def from_file(cls, config_path: str) -> 'Config':
-        """Load configuration from JSON file."""
-        with open(config_path, 'r') as f:
-            data = json.load(f)
-        return cls(**data)
-    
-    def save_to_file(self, config_path: str) -> None:
-        """Save configuration to JSON file."""
-        with open(config_path, 'w') as f:
-            json.dump(self.__dict__, f, indent=2)
-
-
-class VariableFilter:
-    """Optional variable filtering and validation."""
-    
-    def __init__(self, config: Config):
-        self.include_patterns = [re.compile(p) for p in config.filter_patterns]
-        self.exclude_patterns = [re.compile(p) for p in config.exclude_patterns]
-    
-    def should_include(self, var_name: str) -> bool:
-        """Check if variable should be included based on filters."""
-        # If no include patterns specified, include all
-        if not self.include_patterns:
-            include = True
-        else:
-            include = any(pattern.search(var_name) for pattern in self.include_patterns)
-        
-        # Check exclude patterns
-        exclude = any(pattern.search(var_name) for pattern in self.exclude_patterns)
-        
-        return include and not exclude
-
-
-class CacheManager:
-    """Optional caching for large codebases."""
-    
-    def __init__(self, cache_file: str, use_cache: bool = False):
-        self.cache_file = cache_file
-        self.use_cache = use_cache
-        self._cache = {}
-        self._file_mtimes = {}
-        
-        if use_cache and os.path.exists(cache_file):
-            self._load_cache()
-    
-    def _load_cache(self):
-        """Load cache from file."""
-        try:
-            with open(self.cache_file, 'r') as f:
-                data = json.load(f)
-                self._cache = data.get('variables', {})
-                self._file_mtimes = data.get('mtimes', {})
-        except Exception as e:
-            logger.warning(f"Could not load cache: {e}")
-    
-    def _save_cache(self):
-        """Save cache to file."""
-        if not self.use_cache:
-            return
-        try:
-            with open(self.cache_file, 'w') as f:
-                json.dump({
-                    'variables': self._cache,
-                    'mtimes': self._file_mtimes,
-                    'timestamp': time.time()
-                }, f, indent=2)
-        except Exception as e:
-            logger.warning(f"Could not save cache: {e}")
-    
-    def get_variables(self, file_path: str) -> Optional[Dict]:
-        """Get cached variables if file hasn't changed."""
-        if not self.use_cache:
-            return None
-        
-        try:
-            current_mtime = os.path.getmtime(file_path)
-            cached_mtime = self._file_mtimes.get(file_path)
-            
-            if cached_mtime == current_mtime and file_path in self._cache:
-                return self._cache[file_path]
-        except OSError:
-            pass
-        
-        return None
-    
-    def set_variables(self, file_path: str, variables: Dict):
-        """Cache variables for a file."""
-        if not self.use_cache:
-            return
-        
-        try:
-            self._cache[file_path] = variables
-            self._file_mtimes[file_path] = os.path.getmtime(file_path)
-            self._save_cache()
-        except OSError as e:
-            logger.warning(f"Could not cache variables for {file_path}: {e}")
-
-
-def setup_logging(level: str = 'INFO'):
-    """Configure logging with specified level."""
-    logger.remove()  # Remove default logger
-    log_format = ("<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | " +
-                  "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>")
-    
-    logger.add(
-        lambda msg: print(msg, end=''),
-        format=log_format,
-        level=level,
-        colorize=True
-    )
 
 
 def open_workbook(wbook_file):
@@ -296,6 +137,76 @@ def open_workbook(wbook_file):
     return ret
 
 
+def collect_option_names(folders):
+    """
+    Collect the names of all settings-file [OPTIONS] used anywhere in the code.
+
+    An option name is recognized when it appears as checkOption('name'), as
+    'name' in option, or as returnBool('name'). The latter covers boolean
+    settings flags that are not listed in the [OPTIONS] section (e.g. useHuss,
+    albedo, snowmelt_radiation, includeOnlyGlaciersMelt). The resulting set is
+    used to also recognize option flags that are stored in self.var
+    (e.g. self.var.includeGlaciers, self.var.snowmelt_radiation).
+
+    Parameters
+    ----------
+    folders : list of str
+        List of folder paths to scan for Python modules.
+
+    Returns
+    -------
+    set of str
+        All option names found in the code.
+    """
+    pat_checkoption = re.compile(r'checkOption\(\s*[\'"](\w+)[\'"]')
+    pat_in_option = re.compile(r'[\'"](\w+)[\'"]\s+in\s+option\b')
+    pat_returnbool = re.compile(r'returnBool\(\s*[\'"](\w+)[\'"]')
+    names = set()
+    for path in folders:
+        for fn in os.listdir(str(path)):
+            if fn.endswith('py'):
+                with open(os.path.join(str(path), fn), 'r', encoding='utf-8',
+                          errors='surrogateescape') as f:
+                    txt = f.read()
+                names.update(pat_checkoption.findall(txt))
+                names.update(pat_in_option.findall(txt))
+                names.update(pat_returnbool.findall(txt))
+    return names
+
+
+def options_in_condition(condition, known_options):
+    """
+    Extract the option names an if/elif condition depends on.
+
+    Recognizes checkOption('name'), returnBool('name') and self.var.name (if name
+    is a known option). Negated checks ('not checkOption(...)', 'not self.var.x')
+    are ignored, because the guarded block runs when the option is switched OFF.
+
+    Parameters
+    ----------
+    condition : str
+        The stripped source line of the if/elif statement.
+    known_options : set of str
+        All known option names (from collect_option_names).
+
+    Returns
+    -------
+    set of str
+        The option names the condition requires to be True.
+    """
+    opts = set()
+    for m in re.finditer(r'checkOption\(\s*[\'"](\w+)[\'"]', condition):
+        if condition[max(0, m.start() - 4):m.start()] != 'not ':
+            opts.add(m.group(1))
+    for m in re.finditer(r'returnBool\(\s*[\'"](\w+)[\'"]', condition):
+        if condition[max(0, m.start() - 4):m.start()] != 'not ':
+            opts.add(m.group(1))
+    for m in re.finditer(r'self\.var\.(\w+)', condition):
+        if m.group(1) in known_options and condition[max(0, m.start() - 4):m.start()] != 'not ':
+            opts.add(m.group(1))
+    return opts
+
+
 def scan_variables(folders):
     """
     Scan Python modules in specified folders to extract self.var variables.
@@ -327,20 +238,31 @@ def scan_variables(folders):
 
     Dict_AllVariables = {}
     var_def = {}
+    # options needed by a variable: intersection over its definition sites -- a variable
+    # that is also defined somewhere unconditionally does not need any option
+    def_options = {}
+    use_options = {}
+    known_options = collect_option_names(folders)
+    logger.info(f'Found {len(known_options)} settings options used in the code.')
     for folders_paths in folders:
         path = str(folders_paths)
         python_modules = os.listdir(path)
         for ll in range(len(python_modules)):
             # if the file is a Python module
             if python_modules[ll][-2:] == 'py' and python_modules[ll][-2:] != 'List_all_variables':
-                [variable_names_list, associated_line, first_definition] = extract_selfvar(
-                    path + '/' + python_modules[ll])
+                [variable_names_list, associated_line, first_definition, associated_options] = extract_selfvar(
+                    path + '/' + python_modules[ll], known_options)
                 for ii in range(len(variable_names_list)):  # For each variable
+                    vname = variable_names_list[ii]
                     if first_definition[ii] == 1:
                         txt_line = 'defined line ' + str(associated_line[ii])
-                        var_def[variable_names_list[ii]] = python_modules[ll][:-3]
+                        var_def[vname] = python_modules[ll][:-3]
+                        def_options[vname] = (associated_options[ii] if vname not in def_options
+                                              else def_options[vname] & associated_options[ii])
                     else:
                         txt_line = 'used line ' + str(associated_line[ii])
+                        use_options[vname] = (associated_options[ii] if vname not in use_options
+                                              else use_options[vname] & associated_options[ii])
     
                     name_module_python = python_modules[ll][:-3]  # to go to the line when saving
                     # if the self.var is not already defined
@@ -368,29 +290,36 @@ def scan_variables(folders):
     
     # PB sorting by where the variable is defined
     Dict_AllVariables = OrderedDict(sorted(Dict_AllVariables.items(), key=lambda x: getitem(x[1], 'defined')))
-    
-    return Dict_AllVariables
 
-         
+    # options per variable: from the definition sites; if a variable is only used
+    # (never defined at a line start), fall back to the options of its use sites
+    var_options = {}
+    for vname in Dict_AllVariables:
+        var_options[vname] = def_options.get(vname, use_options.get(vname, frozenset()))
 
-### DEFINING TWO USEFULL FUNCTIONS ###
+    return Dict_AllVariables, var_options
 
-def extract_selfvar(module_name):
+
+def extract_selfvar(module_name, known_options=None):
     """
     Extract all 'self.var.varname' variables defined in a Python module.
-    
+
     Parses a Python module file to find all instances of self.var variables,
     tracking their line numbers and whether they represent definitions or usage.
     Handles comment blocks and special cases for the evaporation module.
-    
+
     Parameters
     ----------
     module_name : str
         Full path to the Python module file to analyze.
-        
+    known_options : set of str, optional
+        All known settings [OPTIONS] names. If given, the function also tracks
+        which options guard each occurrence (via enclosing if checkOption('x') or
+        if self.var.x blocks, detected by indentation).
+
     Returns
     -------
-    tuple of (list, list, list)
+    tuple of (list, list, list, list)
         A tuple containing:
         - variable_names_list : list of str
             Names of all self.var variables found (e.g., 'self.var.temperature')
@@ -398,7 +327,9 @@ def extract_selfvar(module_name):
             Line numbers where each variable appears (1-indexed)
         - first_definition : list of int
             1 if variable is defined/updated on this line, 0 if only used
-            
+        - associated_options : list of frozenset
+            The settings options that guard each occurrence (empty if unguarded)
+
     Notes
     -----
     The function performs several parsing steps:
@@ -406,7 +337,7 @@ def extract_selfvar(module_name):
     - Special handling for evaporation.py module
     - Identifies variable boundaries using delimiters
     - Distinguishes between variable definitions (line start) and usage
-    
+
     Variable names are extracted by finding 'self.var' patterns and determining
     their boundaries using common Python delimiters like operators, parentheses,
     and method calls.
@@ -414,16 +345,19 @@ def extract_selfvar(module_name):
 
     # Openning and closing the Python module
     logger.info("----> " + module_name)
-    fichier = open(module_name, "r")
+    fichier = open(module_name, "r", encoding='utf-8', errors='surrogateescape')
     aa = fichier.readlines()
     fichier.close()
     logger.info('Exploring : ' + module_name)
     variable_names_list = []
     associated_line = []  # Line where the module appears
     first_definition = []  # 1 if defined or updated, zero if only used
+    associated_options = []  # settings options guarding each occurrence
+    option_stack = []  # stack of (indent, set of options) of enclosing if-blocks
     test_comment = 0
     for ii in range(len(aa)):  # for each line in the Python code
         bb = aa[ii]
+        indent = len(bb) - len(bb.lstrip())  # indentation of the original line
         bb = bb.lstrip()  # Removing space at the beginning
 
         # test if we are in """ out commented lines:
@@ -445,10 +379,22 @@ def extract_selfvar(module_name):
         # This needs to be repaired -- evaporation was not being searched properly
         # With this fix, captures evaporation variables
 
-        if module_name == '../hydrological_modules/evaporation.py':
+        if os.path.basename(module_name) == 'evaporation.py':
             test_comment = 0
         # deleted the lines to detect #
         if test_comment == 0:
+            # track which settings options guard the current line: an if/elif block with
+            # checkOption('x') or self.var.x (x being a known option) puts x on the stack;
+            # leaving the block (indentation) removes it again
+            code_line = bb.strip()
+            if code_line and known_options is not None:
+                while option_stack and indent <= option_stack[-1][0]:
+                    option_stack.pop()
+                if code_line.startswith('if ') or code_line.startswith('elif '):
+                    opts = options_in_condition(code_line, known_options)
+                    if opts:
+                        option_stack.append((indent, opts))
+
             indexselfvar = 0
             idselfvar = 0
             while indexselfvar != -1:
@@ -474,58 +420,386 @@ def extract_selfvar(module_name):
                         if bb_temp[indexselfvar:ww] != 'self.var.':
                             variable_names_list.append(bb_temp[indexselfvar:ww])  # Append this variable to the list
                             associated_line.append(ii + 1)  # Append the associated line to the list
+                            # options of all enclosing if-blocks guard this occurrence
+                            active = frozenset().union(*(s for _i, s in option_stack)) \
+                                if option_stack else frozenset()
+                            associated_options.append(active)
                             if indexselfvar == 0:  # if 'self.var' is at the beginning of the line
                                 first_definition.append(1)
                             else:
                                 first_definition.append(0)
                     idselfvar = idselfvar + indexselfvar + 1
 
-    return variable_names_list, associated_line, first_definition
+    return variable_names_list, associated_line, first_definition, associated_options
 
-def extract_localvar(module_name, str_name):
+
+# tokens in a size expression that stand for the number of active grid cells
+_CELL_REFS = ('inzero', 'mapc', 'maskinfo', 'ncells', 'decompress', 'maskall')
+
+
+def _balanced(s, open_pos):
+    """Return the index of the bracket matching the opening bracket at s[open_pos], or -1."""
+    depth = 0
+    for i in range(open_pos, len(s)):
+        if s[i] in '([{':
+            depth += 1
+        elif s[i] in ')]}':
+            depth -= 1
+            if depth == 0:
+                return i
+    return -1
+
+
+def _split_top(s):
+    """Split a string on top-level commas (ignoring commas inside brackets)."""
+    parts, depth, cur = [], 0, ''
+    for ch in s:
+        if ch in '([{':
+            depth += 1
+            cur += ch
+        elif ch in ')]}':
+            depth -= 1
+            cur += ch
+        elif ch == ',' and depth == 0:
+            parts.append(cur)
+            cur = ''
+        else:
+            cur += ch
+    if cur.strip():
+        parts.append(cur)
+    return [p.strip() for p in parts if p.strip()]
+
+
+def _size_token(tok):
     """
-    Extract all local variable names from functions defined in a module.
-    
-    Uses Python's introspection capabilities to examine function objects and
-    extract their local variable names from the code object's co_varnames attribute.
-    
+    Map one element of a shape/reps tuple to a compact size string.
+
+    A reference to the compressed grid (globals.inZero, maskinfo['mapC'], ...)
+    becomes 'N'; an integer literal is kept; a plain symbol (e.g. a counter such
+    as 'max') is kept; anything more complex becomes '?'.
+    """
+    tok = tok.strip()
+    low = tok.lower()
+    if any(r in low for r in _CELL_REFS):
+        return 'N'
+    if re.fullmatch(r'\d+', tok):
+        return tok
+    sym = tok.replace('self.var.', '').strip()
+    if re.fullmatch(r'\w+', sym):
+        return sym
+    return '?'
+
+
+def infer_dim_from_rhs(rhs):
+    """
+    Infer an array dimension string from the right-hand side of an assignment.
+
+    Recognizes the common CWatM array-creation idioms so that a variable's
+    dimension can be derived statically from the code, without running the model.
+    Returns None when the RHS does not match a known array-creation pattern
+    (e.g. a scalar or an arithmetic combination of other variables).
+
+    Examples
+    --------
+    ``np.zeros((4, 13, len(globals.inZero)))`` -> ``'3D (4, 13, N)'``
+    ``np.zeros((2, len(globals.inZero)))``     -> ``'2D (2, N)'``
+    ``np.tile(1 + globals.inZero, (4, 1))``    -> ``'2D (4, N)'``
+    ``globals.inZero.copy()`` / ``loadmap(...)`` / ``readnetcdf2(...)`` -> ``'1D (N)'``
+    """
+    rhs = rhs.strip()
+
+    # numpy array constructors with an explicit shape as the first argument
+    m = re.match(r'(?:np|numpy)\.(?:zeros|ones|empty|full)\s*\(', rhs)
+    if m:
+        close = _balanced(rhs, m.end() - 1)
+        if close == -1:  # unbalanced (e.g. assignment continues on the next line): skip
+            return None
+        args = _split_top(rhs[m.end():close])
+        if not args:
+            return None
+        shape = args[0]
+        toks = _split_top(shape[1:-1]) if shape.startswith('(') else [shape]
+        if not toks:
+            return None
+        mapped = [_size_token(t) for t in toks]
+        return f"{len(mapped)}D ({', '.join(mapped)})"
+
+    # np.tile(base, (reps..., 1)): the base is a 1D cell array, the last rep tiles it
+    m = re.match(r'(?:np|numpy)\.tile\s*\(', rhs)
+    if m:
+        close = _balanced(rhs, m.end() - 1)
+        if close == -1:
+            return None
+        args = _split_top(rhs[m.end():close])
+        if len(args) >= 2 and args[1].startswith('('):
+            reps = _split_top(args[1][1:-1])
+            if reps:
+                mapped = [_size_token(t) for t in reps]
+                mapped[-1] = 'N'  # base's cell axis
+                return f"{len(mapped)}D ({', '.join(mapped)})"
+        return None
+
+    # 1D-over-cells idioms: anything built from globals.inZero, a map read from disk,
+    # or a restored initial state is a 1D array over the active grid cells
+    if 'globals.inZero' in rhs:
+        return '1D (N)'
+    if re.match(r'(loadmap|readnetcdf\w*|self\.var\.load)\s*\(', rhs):
+        return '1D (N)'
+    return None
+
+
+def infer_dimensions_from_code(folders):
+    """
+    Derive array dimensions statically from the source code.
+
+    Scans every ``self.var.x = <expr>`` definition in the given folders and infers
+    the dimension of ``x`` from the creation idiom on the right-hand side (see
+    infer_dim_from_rhs). This is the fallback for variables that cannot be measured
+    at runtime because their module is switched off in the settings file.
+
     Parameters
     ----------
-    module_name : module
-        Python module object to analyze.
-    str_name : str
-        String representation of the module name for building attribute paths.
-        
+    folders : list of str
+        Folder paths to scan for Python modules.
+
     Returns
     -------
-    list of tuple
-        List of tuples containing the local variable names for each function
-        in the module. Each tuple corresponds to one function's local variables.
-        
+    dict
+        Mapping variable name -> dimension string (e.g. '1D (N)', '2D (4, N)').
+        A variable defined several times keeps the richest inference (the one with
+        the most dimensions; ties are broken by the most frequent).
+    """
+    pat = re.compile(r'^\s*self\.var\.(\w+)\s*=\s*(.+?)\s*$')
+    candidates = {}
+    for path in folders:
+        for fn in os.listdir(str(path)):
+            if not fn.endswith('py'):
+                continue
+            with open(os.path.join(str(path), fn), 'r', encoding='utf-8',
+                      errors='surrogateescape') as f:
+                for line in f:
+                    code = line.split('#', 1)[0]  # drop line comments (line-based, like the rest)
+                    m = pat.match(code)
+                    if not m:
+                        continue
+                    dim = infer_dim_from_rhs(m.group(2))
+                    if dim:
+                        candidates.setdefault(m.group(1), []).append(dim)
+
+    def _ndim(d):
+        mm = re.match(r'(\d+)D', d)
+        return int(mm.group(1)) if mm else 1
+
+    result = {}
+    for name, dims in candidates.items():
+        best = max(_ndim(d) for d in dims)
+        rich = [d for d in dims if _ndim(d) == best]
+        result[name] = Counter(rich).most_common(1)[0][0]
+    logger.info(f'Inferred dimensions of {len(result)} variables statically from the code.')
+    return result
+
+
+def _xml_safe(text):
+    """
+    Remove characters that are invalid in an XML attribute value / unwanted in a
+    description: '&' becomes 'and', and the quote and angle-bracket characters
+    (" ' < >) are dropped. Whitespace runs left by the removals are collapsed.
+    """
+    if text is None or (isinstance(text, float) and pd.isna(text)):
+        return ''
+    s = str(text).replace('&', 'and')
+    for ch in '"\'<>':
+        s = s.replace(ch, '')
+    return re.sub(r'\s{2,}', ' ', s).strip()
+
+
+def _clean_comment(text):
+    """
+    Turn a raw source comment into a usable variable description, or None.
+
+    Strips the leading '#', drops comments that are not descriptions -- separator
+    banners, author/TODO tags, commented-out code (anything with a function call or
+    a self. reference or a leading keyword), and bare unit notes such as 'in m/day'.
+    Returns None when nothing description-like remains.
+    """
+    text = text.strip().lstrip('#').strip()
+    if not text:
+        return None
+    # separator banners: ----, ====, ****, ####, ////
+    if re.fullmatch(r'[-=*_#~/ ]+', text):
+        return None
+    # header / author / change tags
+    if re.match(r'(TODO|FIXME|XXX|HACK|PB|NOTE|Author|Purpose|Name|Created|Modified|Copyright)\b',
+                text, re.I):
+        return None
+    # commented-out code: a self. reference, a function call, or a leading keyword
+    if 'self.' in text or re.search(r'\b\w+\(', text):
+        return None
+    if re.match(r'(def|class|import|from|for|while|if|elif|else|try|except|return|print|with|lambda)\b',
+                text):
+        return None
+    # a bare unit note like 'in m/day' or 'in m2'
+    if re.match(r'in\s+\[?[\w/.²°^*\-+ ]+\]?$', text) and len(text.split()) <= 4:
+        return None
+    # require a couple of words and letters to count as a description
+    if len(re.findall(r'[A-Za-z]', text)) < 4 or len(text.split()) < 2:
+        return None
+    return text[:150].rsplit(' ', 1)[0] if len(text) > 150 else text
+
+
+def _comment_block(lines, start, step):
+    """Collect the contiguous run of descriptive comment lines from start, moving by step."""
+    parts = []
+    j = start
+    while 0 <= j < len(lines) and lines[j].lstrip().startswith('#'):
+        c = _clean_comment(lines[j])
+        if c is None:  # stop at the first non-descriptive comment: keep the block tight
+            break
+        parts.append(c)
+        j += step
+    if step < 0:
+        parts.reverse()
+    return ' '.join(parts) if parts else None
+
+
+def infer_descriptions_from_code(folders):
+    """
+    Extract a best-effort description for each variable from nearby source comments.
+
+    For every ``self.var.x = ...`` definition the function looks at the comment block
+    directly above, the inline comment on the same line, and the comment block directly
+    below, and keeps the best candidate (block above preferred, then inline, then below).
+    Commented-out code, separators, author/TODO tags and bare units are ignored.
+
+    Parameters
+    ----------
+    folders : list of str
+        Folder paths to scan for Python modules.
+
+    Returns
+    -------
+    dict
+        Mapping variable name -> extracted description text (without any marker).
+        The caller appends a ' (AI)' marker when it uses one of these to fill an
+        otherwise empty description.
+    """
+    def_pat = re.compile(r'^\s*self\.var\.(\w+)\s*(?:=|\+=|-=|\*=|/=)[^=]')
+    candidates = {}  # name -> list of (priority, text); lower priority = better
+    for path in folders:
+        for fn in os.listdir(str(path)):
+            if not fn.endswith('py'):
+                continue
+            with open(os.path.join(str(path), fn), 'r', encoding='utf-8',
+                      errors='surrogateescape') as f:
+                lines = f.readlines()
+            for i, line in enumerate(lines):
+                m = def_pat.match(line)
+                if not m:
+                    continue
+                name = m.group(1)
+                above = _comment_block(lines, i - 1, -1)
+                below = _comment_block(lines, i + 1, 1)
+                hash_pos = line.find('#')
+                inline = _clean_comment(line[hash_pos:]) if hash_pos != -1 else None
+                for pr, txt in ((0, above), (1, inline), (2, below)):
+                    if txt:
+                        candidates.setdefault(name, []).append((pr, txt))
+
+    result = {}
+    for name, cands in candidates.items():
+        cands.sort(key=lambda pt: (pt[0], -len(pt[1])))  # best priority, then longest
+        result[name] = cands[0][1]
+    logger.info(f'Extracted candidate descriptions for {len(result)} variables from code comments.')
+    return result
+
+
+def measure_dimensions(settings_file, root_dir):
+    """
+    Run CWatM for a single time step and measure the dimension of every self.var variable.
+
+    Imports the CWatM model from root_dir, initializes it with the given settings file,
+    runs exactly one time step and then inspects every attribute of the variable
+    container to determine its dimensionality and shape.
+
+    Parameters
+    ----------
+    settings_file : str
+        Path to a working CWatM settings (.ini) file. The paths inside it must be
+        valid on this machine; the model is initialized with it.
+    root_dir : str
+        Root directory of the CWatM code (folder containing hydrological_modules);
+        its parent is put on sys.path so the cwatm package can be imported.
+
+    Returns
+    -------
+    dict
+        Mapping variable name -> dimension string, e.g.
+        '1D (N)' for a 1d array over the active grid cells,
+        '2D (6, N)' for a 2d array (e.g. per land cover fraction),
+        'list (12)' for a list/tuple with 12 entries,
+        'scalar' for 0d numpy values.
+
     Notes
     -----
-    This function uses `eval()` to dynamically access function attributes, which
-    can be a security concern if used with untrusted input. It examines the
-    `__code__.co_varnames` attribute of each function to get variable names.
-    
-    Only functions that don't start with '__' (dunder methods) are analyzed.
+    The number of active grid cells depends on the basin of the settings file, but it
+    is replaced by the placeholder 'N' in the output, so the resulting dimension
+    strings are settings-independent: any working settings file gives the same result.
+    Only variables of modules that are switched off in the settings (e.g. modflow)
+    cannot be measured and keep their previous Dimension value.
     """
+    import sys
+    pkg_parent = os.path.dirname(os.path.abspath(root_dir))
+    if pkg_parent not in sys.path:
+        sys.path.insert(0, pkg_parent)
 
-    # Find all functions in the Python module
-    sub_fun = [v for v in dir(module_name) if not v.startswith('__')]
+    from cwatm.management_modules.configuration import (parse_configuration, read_metanetcdf,
+                                                        dateVar, settingsfile)
+    from cwatm.management_modules.data_handling import Flags, cbinding
+    from cwatm.management_modules.globals import outTss, outMap
+    from cwatm.management_modules.timestep import checkifDate
+    from cwatm.management_modules.dynamicModel import ModelFrame
+    from cwatm.run_cwatm import headerinfo
+    from cwatm.cwatm_model import CWATModel
 
-    variable_names_list = []
-    for ii in range(len(sub_fun)):
-        name = str_name + '.' + str(sub_fun[ii]) + '.__code__.co_varnames'
-        temp_list = eval(name)
-        variable_names_list.append(temp_list)
+    logger.info(f'Running CWatM for one time step with {settings_file} to measure variable dimensions ...')
+    Flags['veryquiet'] = True
+    settingsfile.append(settings_file)  # global used e.g. in output file headers and error messages
+    headerinfo()  # initializes the versioning info used when loading input files
+    parse_configuration(settings_file)
+    # switch off all time series and map output: not needed for measuring dimensions,
+    # avoids writing output files as a side effect and skips output-related errors
+    outTss.clear()
+    outMap.clear()
+    read_metanetcdf('metaNetcdf.xml')
+    checkifDate('StepStart', 'StepEnd', 'SpinUp', cbinding('PrecipitationMaps'))
+    dateVar['intEnd'] = dateVar['intStart']  # one time step is enough
 
-    return variable_names_list
+    model = CWATModel()
+    ModelFrame(model, firstTimestep=dateVar['intStart'], lastTimeStep=dateVar['intEnd']).run()
 
-### EXTRACT LOCAL AND SELF.VAR VARIABLES FROM EACH MODULE
+    # determine the number of active grid cells (the size of the compressed 1D maps):
+    # it is the by far most common array size. Writing the placeholder 'N' instead of
+    # the number makes the dimension info settings-independent -- the structure of a
+    # variable is the same in every basin, only the cell count changes.
+    sizes = [v.shape[-1] for v in vars(model.var).values()
+             if isinstance(v, np.ndarray) and v.ndim >= 1]
+    ncells = Counter(sizes).most_common(1)[0][0] if sizes else -1
+
+    dims = {}
+    for name, val in vars(model.var).items():
+        if isinstance(val, np.ndarray):
+            if val.ndim == 0:
+                dims[name] = 'scalar'
+            else:
+                shape = ['N' if s == ncells else str(s) for s in val.shape]
+                dims[name] = f"{val.ndim}D ({', '.join(shape)})"
+        elif isinstance(val, (list, tuple)):
+            dims[name] = f'list ({len(val)})'
+    logger.info(f'Measured dimensions of {len(dims)} variables (N = {ncells} cells).')
+    return dims
 
 
-def make_all_variables_df(Dict_AllVariables, df_cur):
+def make_all_variables_df(Dict_AllVariables, df_cur, var_options=None):
     """
     Create a comprehensive DataFrame of all variables by merging discovered and existing data.
     
@@ -572,22 +846,27 @@ def make_all_variables_df(Dict_AllVariables, df_cur):
             var_name = k.replace('self.var.', '')
             df_all_vars['Variable name'].append(var_name)
             df_all_vars['Unit'].append('')
-            df_all_vars['Description'].append(np.NaN)
-            df_all_vars['Type'].append(np.NaN)
-            df_all_vars['Priority'].append(np.NaN)
-            df_all_vars['Long name'].append(np.NaN)
+            df_all_vars['Description'].append(np.nan)
+            df_all_vars['Type'].append(np.nan)
+            df_all_vars['Dimension'].append(np.nan)
+            # Optional is always refreshed from the code scan, never taken from the excel
+            opts = var_options.get(k, frozenset()) if var_options else frozenset()
+            df_all_vars['Optional'].append(';'.join(sorted(opts)))
+            df_all_vars['Priority'].append(np.nan)
+            df_all_vars['Long name'].append(np.nan)
             cnt = 1
             for kv, vv in v.items():
                 if kv == 'defined':
                     df_all_vars['First module'].append(vv)
-                else:
+                elif cnt <= 16:
                     col = f'Module {cnt}'
                     df_all_vars[col].append(f'{kv}: {vv}')
                     cnt += 1
-            if cnt < 16:  # fill up Module n columns
-                for i in range(cnt, 17):
-                    col = f'Module {i}'
-                    df_all_vars[col].append('')
+                else:
+                    logger.warning(f'{var_name}: used in more than 16 modules, '
+                                   f'"{kv}" does not fit in the Module columns')
+            for i in range(cnt, 17):  # fill up remaining Module n columns
+                df_all_vars[f'Module {i}'].append('')
 
     df_all_vars = pd.DataFrame(df_all_vars)
 
@@ -606,21 +885,35 @@ def make_all_variables_df(Dict_AllVariables, df_cur):
     else:
         drop_cols.remove('Type_r')
 
+    if 'Dimension' in list(df_cur.columns):
+        df['Dimension'] = df['Dimension_r']
+    else:
+        drop_cols.remove('Dimension_r')
+
     if 'Long name' in list(df_cur.columns):
         df['Long name'] = df['Long name_r']
     else:
         drop_cols.remove('Long name_r') 
 
-    df_new = df[df['Description_r'].isnull()].copy(deep=True)
-    df_old = df[~df['Description_r'].isnull()].copy(deep=True)
-    df_old['Description'] = df_old['Description_r']
-    df_old['Unit'] = df_old['Unit_r']
+    # a variable is "newly found" when it is discovered in the code but was not present
+    # in the previous excel file at all (membership test, not "has no description" -- so a
+    # variable that exists in the excel but was left blank keeps its place and its unit)
+    existing_names = set(df_cur['Variable name']) if 'Variable name' in df_cur.columns else set()
+    mask_new = ~df['Variable name'].isin(existing_names)
 
-    df_new_old = pd.concat([df_new, df_old], ignore_index=True)
-    # print(df_new_old.columns)
+    # take over existing description and unit for variables already in the excel
+    df['Description'] = np.where(mask_new, df['Description'], df['Description_r'])
+    df['Unit'] = np.where(mask_new, df['Unit'], df['Unit_r'])
+
+    # order: the newly found variables always on top, then the ones already documented --
+    # done with a stable sort instead of pd.concat, whose handling of empty or all-NA
+    # frames is deprecated (FutureWarning)
+    order = np.argsort(~mask_new.to_numpy(), kind='stable')
+    df_new_old = df.iloc[order].reset_index(drop=True)
 
     # print(drop_cols)
-    df_new_old.drop(columns=drop_cols, index=1, inplace=True)
+    # errors='ignore': suffixed columns are missing when the excel lacks the original column
+    df_new_old.drop(columns=drop_cols, inplace=True, errors='ignore')
     mask = df_new_old['Priority'].isnull()
     df_new_old['Priority'] = np.where(mask, 'low', df_new_old['Priority'])
 
@@ -629,6 +922,11 @@ def make_all_variables_df(Dict_AllVariables, df_cur):
 
     mask = df_new_old['Type'].isnull()
     df_new_old['Type'] = np.where(mask, '', df_new_old['Type'])
+
+    mask = df_new_old['Dimension'].isnull()
+    df_new_old['Dimension'] = np.where(mask, '', df_new_old['Dimension'])
+    # use the short placeholder N for the number of active grid cells
+    df_new_old['Dimension'] = df_new_old['Dimension'].astype(str).str.replace('ncells', 'N', regex=False)
 
     return df_new_old
 
@@ -649,9 +947,10 @@ def write_new_excel(wbook_file, df_new_old):
         
     Returns
     -------
-    int
-        Always returns 0 indicating successful completion.
-        
+    pandas.DataFrame
+        The re-read DataFrame including the user's edits, so that the XML
+        generation and docstring injection use the edited values.
+
     Notes
     -----
     The function performs several steps:
@@ -685,7 +984,8 @@ def write_new_excel(wbook_file, df_new_old):
             df_l = df[df['Priority'] == l]
             df_l.to_excel(writer, sheet_name=l, index=False)
 
-    return 0
+    # return the edited data so XML generation and docstring injection use the user's edits
+    return df
 
 def write_to_metaNetCdf(df_new_old, netxml_file):
     """
@@ -750,23 +1050,32 @@ def write_to_metaNetCdf(df_new_old, netxml_file):
 
         for _index, row in df_new_old.iterrows():
             var_name = row['Variable name']
-            long_name = row['Long name']
-            unt = row['Unit']
+            # strip characters that are invalid in XML attribute values (& " ' < >)
+            long_name = _xml_safe(row['Long name'])
+            unt = _xml_safe(row['Unit'])
             if unt == '°C':
                 unt = 'C'
-            des = row['Description']
-            type = str(row['Type'])
-            des = des + "[" + type + "]"
+            des = _xml_safe(row['Description'])
+            vtype = '' if pd.isna(row['Type']) else str(row['Type'])
+            vdim = ''
+            if 'Dimension' in row.index and not pd.isna(row['Dimension']):
+                vdim = str(row['Dimension']).replace(' ', '')  # compact, e.g. 2D(16,N)
+            vopt = ''
+            if 'Optional' in row.index and not pd.isna(row['Optional']):
+                vopt = str(row['Optional'])
 
-            if isinstance(des, pd._libs.missing.NAType):
-                des = ''
+            # brackets in the description: the dimension if there is one, e.g. [2D(16,N)];
+            # nothing when there is no dimension entry (the type is no longer appended)
+            if vdim:
+                des = des + "[" + vdim + "]"
+
             standard_name = ''
-
             if var_name in metaNetcdfVar.keys():
-                standar_name = metaNetcdfVar[var_name]['standard_name']
+                standard_name = _xml_safe(metaNetcdfVar[var_name].get('standard_name', ''))
 
             line = (f'<metanetcdf varname="{var_name}" unit="{unt}"  standard_name="{standard_name}" '
-                    f'long_name="{long_name}" description="{des}"  title="CWATM" author="IIASA WAT" />\n')
+                    f'long_name="{long_name}" type="{vtype}" dim="{vdim}" option="{vopt}" '
+                    f'description="{des}"  title="CWATM" author="IIASA WAT" />\n')
             f.write(line)
 
         f.write('</CWATM>')
@@ -827,18 +1136,45 @@ def get_vars_modules_descriptor(df_new_old):
     return new_old, dict_new_old
 
 if __name__ == '__main__':
-    folders = ['../' + f for f in base_folders]
+    parser = argparse.ArgumentParser(description='CWatM variable documentation generator')
+    parser.add_argument('--dir', default='..', dest='root_dir', metavar='ROOT_DIR',
+                        help='Root directory of the CWatM code, i.e. the folder containing '
+                             'hydrological_modules (default: ..)')
+    parser.add_argument('--excel', default=None, metavar='EXCEL_FILE',
+                        help='Excel file where the variable names and attributes are stored '
+                             '(skips the interactive prompt; default: selfvar.xlsx)')
+    parser.add_argument('--xml', default=None, metavar='XML_FILE',
+                        help='XML file where the variables NetCDF4 metadata will be stored '
+                             '(skips the interactive prompt; default: metaNetcdf.xml)')
+    parser.add_argument('--settings', default=None, metavar='SETTINGS_INI',
+                        help='CWatM settings file; if given, CWatM is run for one time step to '
+                             'measure the dimension of each array variable (fills the "Dimension" '
+                             'column, e.g. "1D (N)" or "2D (6, N)" with N = number of grid cells -- '
+                             'the result is settings-independent, any working settings file can be used)')
+    args = parser.parse_args()
+
+    root_dir = args.root_dir
+    if not os.path.isdir(os.path.join(root_dir, 'hydrological_modules')):
+        logger.error(f'"{root_dir}" does not contain a hydrological_modules folder. '
+                     'Use --dir to point to the CWatM root directory.')
+        exit(1)
+
+    folders = [os.path.join(root_dir, f) for f in base_folders]
+
     # Keys are variable name : then 1rst module and associated line
-    Dict_AllVariables = scan_variables(folders)
+    Dict_AllVariables, var_options = scan_variables(folders)
     kn = len(Dict_AllVariables.keys())
     logger.info(f'Found {kn} variables.')
 
     # get variables in previous xcel
-    wbook_file = input(
-        "Enter the excel file name where the variables names and attributes are stored or press any key to "
-        "accept the default name (selfvar.xlsx).\nIf the file does not exist, it will be created else "
-        "overwritten.\n"
-    )
+    if args.excel:
+        wbook_file = args.excel
+    else:
+        wbook_file = input(
+            "Enter the excel file name where the variables names and attributes are stored or press any key to "
+            "accept the default name (selfvar.xlsx).\nIf the file does not exist, it will be created else "
+            "overwritten.\n"
+        )
 
     if len(wbook_file) < 2:
         wbook_file = 'selfvar.xlsx'  # set default if any key pressed
@@ -862,18 +1198,65 @@ if __name__ == '__main__':
     n_nw = len(df_new.index)
     logger.info(f'Found {n_nw} new variables.')
 
+    # variables in the excel that are no longer found in the code get outsorted (dropped
+    # from excel, xml and docstrings); append their old rows to a separate file so their
+    # documentation is not lost without a trace
+    df_removed = df_cur[~df_cur['Variable name'].isin(all_vars_names)]
+    if len(df_removed.index) > 0:
+        removed_file = 'removed_variables.csv'
+        df_removed = df_removed.copy()
+        df_removed.insert(0, 'Removed on', time.strftime('%Y-%m-%d %H:%M:%S'))
+        df_removed.to_csv(removed_file, mode='a', header=not os.path.isfile(removed_file), index=False)
+        logger.warning(f'{len(df_removed.index)} variables no longer found in the code will be removed '
+                       f'from the excel; their rows were appended to {removed_file}: '
+                       + ', '.join(df_removed['Variable name'].astype(str)))
+
     # print(df_new.head(100))
     # create a dataframe with all variables and save it to excel
-    df_new_old = make_all_variables_df(Dict_AllVariables, df_cur)
+    df_new_old = make_all_variables_df(Dict_AllVariables, df_cur, var_options)
 
-    # write new excel with al variables and a worksheet for each priority level
-    write_new_excel(wbook_file, df_new_old)
+    # fill in array dimensions derived statically from the code. This always runs and
+    # only fills blanks, so it covers variables of modules that are switched off in the
+    # settings file (which the runtime measurement below cannot reach).
+    code_dims = infer_dimensions_from_code(folders)
+    df_new_old['Dimension'] = [
+        dim if (isinstance(dim, str) and dim.strip()) else code_dims.get(name, dim)
+        for name, dim in zip(df_new_old['Variable name'], df_new_old['Dimension'])]
 
-    netxml_file = input(
-        "Enter the xml file name where the variables NetCDF4 metadata will be stored or press any key to "
-        "accept the default name (metaNetcdf.xml).\nIf the file does not exist, it will be created else "
-        "overwritten.\n"
-    )
+    # measure array dimensions by running CWatM for one time step (optional); the
+    # measured (exact) dimensions take precedence over the statically inferred ones
+    if args.settings:
+        dims = measure_dimensions(args.settings, root_dir)
+        df_new_old['Dimension'] = [dims.get(name, dim) for name, dim in
+                                   zip(df_new_old['Variable name'], df_new_old['Dimension'])]
+
+    # for variables that still have no description, try to extract one from the
+    # surrounding source comments and mark it with '(AI)' so the user can review/refine
+    # it when the excel is opened for editing below
+    code_descr = infer_descriptions_from_code(folders)
+    filled_descr = 0
+    new_descr = []
+    for name, desc in zip(df_new_old['Variable name'], df_new_old['Description']):
+        if (pd.isna(desc) or str(desc).strip() == '') and code_descr.get(name):
+            new_descr.append(_xml_safe(code_descr[name]) + ' (AI)')
+            filled_descr += 1
+        else:
+            new_descr.append(desc)
+    df_new_old['Description'] = new_descr
+    logger.info(f'Filled {filled_descr} empty descriptions from code comments (marked "(AI)").')
+
+    # write new excel with all variables and a worksheet for each priority level;
+    # returns the re-read file including the user's edits
+    df_new_old = write_new_excel(wbook_file, df_new_old)
+
+    if args.xml:
+        netxml_file = args.xml
+    else:
+        netxml_file = input(
+            "Enter the xml file name where the variables NetCDF4 metadata will be stored or press any key to "
+            "accept the default name (metaNetcdf.xml).\nIf the file does not exist, it will be created else "
+            "overwritten.\n"
+        )
 
     if len(netxml_file) < 2:
         netxml_file = 'metaNetcdf.xml'  # set default if any key pressed
@@ -906,7 +1289,7 @@ if __name__ == '__main__':
 
                     ## Now, we modify the Python module to add self.var description
                     logger.info("=== " + filename_to_modify)
-                    file = open(filename_to_modify, 'r')
+                    file = open(filename_to_modify, 'r', encoding='utf-8', errors='surrogateescape')
                     lines = file.readlines()
                     file.close()
 
@@ -942,6 +1325,11 @@ if __name__ == '__main__':
                     for vv in var_name_in_module:
                         list_modules = ""
                         v_name = vv.replace('self.var.', '')
+                        # defaults, so a variable missing from the excel does not inherit
+                        # the values of the previous loop iteration
+                        type = ''
+                        descr = ''
+                        uim = '--'
                         if v_name in dict_new_old.keys():
                             ds_um = dict_new_old[v_name]
                             type = ds_um['Type']
@@ -968,16 +1356,35 @@ if __name__ == '__main__':
                                          '{:{x}.{x}}'.format('=' * col3, x=col3) + "\n\n")
                     ###added_description = added_description + "    **Functions**\n"
 
-                    # PB delete old list in module (if there is any)
+                    # delete old table in module (if there is any).
+                    # The table consists of a '**Global variables**' header and three '====' separator
+                    # lines (top, below header row, bottom). Deletion MUST stop at the bottom separator --
+                    # deleting to end of file would destroy the whole module (this happened once!).
                     linesnew = []
-                    add = True
+                    in_table = False
+                    after_table = False
+                    sep_count = 0
                     for line in lines:
                         if line.find('**Global variables**') > -1:
-                            add = False
-                        if add:
-                            linesnew.append(line)
-                        ##if line.find('**Functions**') > -1:
-                        ##    add = True
+                            in_table = True
+                            sep_count = 0
+                            continue
+                        if in_table:
+                            if line.lstrip().startswith('='):
+                                sep_count += 1
+                                if sep_count == 3:  # bottom separator -> table ends here
+                                    in_table = False
+                                    after_table = True
+                            continue
+                        if after_table:
+                            if line.strip() == '':  # swallow blank lines left behind by the old table
+                                continue
+                            after_table = False
+                        linesnew.append(line)
+                    if in_table:  # never saw the bottom separator: table was cut off, do not risk this file
+                        logger.error(f'{filename_to_modify}: found "**Global variables**" but no complete '
+                                     'table; file left unchanged.')
+                        continue
                     lines = linesnew
 
                     # Find where to add this description
@@ -998,8 +1405,18 @@ if __name__ == '__main__':
                         # PB removed the /n in between
                         lines[end_outcommented_lines - 1] = lines[end_outcommented_lines - 1] + added_description
 
+                    # safety net: never write back a module that would no longer compile
+                    new_content = ''.join(lines)
+                    try:
+                        compile(new_content, filename_to_modify, 'exec')
+                    except SyntaxError as e:
+                        logger.error(f'{filename_to_modify}: injecting the table would break the file '
+                                     f'(SyntaxError line {e.lineno}); file left unchanged.')
+                        continue
+
                     # PB to make it unix compatible (windows does not care but linux)
-                    file = open(filename_to_modify, mode='w', newline='\n', encoding='utf8')
+                    file = open(filename_to_modify, mode='w', newline='\n', encoding='utf8',
+                                errors='surrogateescape')
                     file.writelines(lines)
                     file.close()
                     

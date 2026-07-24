@@ -34,6 +34,13 @@ Stay tuned for the next announcements!
 Major Updates
 =============
 
+
+June 2026
+---------
+
+- Working on a CWatM GUI
+
+
 May 2026
 ------------
 - We replaced gdal library with rasterio library (in develop branch)

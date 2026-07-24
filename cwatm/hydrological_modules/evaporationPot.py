@@ -20,37 +20,6 @@ class evaporationPot(object):
     primarily based on FAO 56 guidelines and LISVAP. The calculations are based on
     the Penman-Monteith equation for reference evapotranspiration.
 
-    **Global variables**
-    
-    ===================================  ==========    ======================================================================  =====
-    Variable [self.var]                  Type          Description                                                             Unit 
-    ===================================  ==========    ======================================================================  =====
-    cropCorrect                          Array         calibration factor of crop KC factor                                    --   
-    crop_correct_landCover               Array                                                                                 --   
-    AlbedoCanopy                         Array         Albedo of vegetation canopy (FAO,1998) default =0.23                    --   
-    AlbedoSoil                           Array         Albedo of bare soil surface (Supit et. al. 1994) default = 0.15         --   
-    AlbedoWater                          Array         Albedo of water surface (Supit et. al. 1994) default = 0.05             --   
-    co2                                  Array         Co2 leads to an increased transpiration. CO2 concentration for Yang et  ppm  
-    albedoLand                           Array         albedo from land surface (from GlobAlbedo database)                     --   
-    albedoOpenWater                      Array         albedo from open water surface (from GlobAlbedo database)               --   
-    thermalI                             Array         ThermalIndex. Use to calculate pot. Evaporation with Thornthwaite       deg C
-    ETRef                                Array         potential evapotranspiration rate from reference crop                   m    
-    pet_modus                            Number        Index which ETP approach is used e.g. 1 for Penman-Monteith             bool 
-    only_radiation                       Flag          Boolean if only radiation is use for calculation e.g JRC EMO dataset    bool 
-    TMin                                 Array         minimum air temperature                                                 K    
-    TMax                                 Array         maximum air temperature                                                 K    
-    Tavg                                 Array         Input, average air Temperature                                          K    
-    Rsds                                 Array         short wave downward surface radiation fluxes                            W/m2 
-    EAct                                 Array         Daily vapor pressure                                                    hPa  
-    Psurf                                Array         Instantaneous surface pressure                                          Pa   
-    Qair                                 Array         specific humidity                                                       kg/kg
-    Rsdl                                 Array         long wave downward surface radiation fluxes                             W/m2 
-    Wind                                 Array         wind speed                                                              m/s  
-    EWRef                                Array         potential evaporation rate from water surface                           m    
-    dem                                  Array         Digital elevation model                                                 m    
-    lat                                  Array         Latitude                                                                deg  
-    ===================================  ==========    ======================================================================  =====
-
     Attributes
     ----------
     
@@ -64,6 +33,50 @@ class evaporationPot(object):
     
     FAO 56 Guidelines: http://www.fao.org/docrep/X0490E/x0490e08.htm#penman%20monteith%20equation
     LISVAP Documentation: https://ec.europa.eu/jrc/en/publication/eur-scientific-and-technical-research-reports/lisvap-evaporation-pre-processor-lisflood-water-balance-and-flood-simulation-model
+
+
+
+
+
+
+
+
+    **Global variables**
+    ===================================  ==========    ======================================================================  =====
+    Variable [self.var]                  Type          Description                                                             Unit 
+    ===================================  ==========    ======================================================================  =====
+    cropCorrect                          Array         calibration factor of crop KC factor                                    --   
+    crop_correct_landCover               Array                                                                                 --   
+    AlbedoCanopy                         Array         Albedo of vegetation canopy (FAO,1998) default =0.23                    --   
+    AlbedoSoil                           Array         Albedo of bare soil surface (Supit et. al. 1994) default = 0.15         --   
+    AlbedoWater                          Array         Albedo of water surface (Supit et. al. 1994) default = 0.05             --   
+    co2                                  Array         Co2 leads to an increased transpiration. CO2 concentration for Yang et  ppm  
+    albedoLand                           Array         albedo from land surface (from GlobAlbedo database)                     --   
+    albedoOpenWater                      Array         albedo from open water surface (from GlobAlbedo database)               --   
+    _pySnowClim                                 nan                                                                            --   
+    ETRef                                Array         potential evapotranspiration rate from reference crop                   m    
+    only_radiation                       Flag          Boolean if only radiation is use for calculation e.g JRC EMO dataset    bool 
+    Psurf                                Array         Instantaneous surface pressure                                          Pa   
+    Rsdl                                 Array         long wave downward surface radiation fluxes                             W m-2
+    huss                                 Array         2 m istantaneous specific humidity[kg / kg] (AI)                        --   
+    EAct                                 Array         Daily vapor pressure                                                    hPa  
+    rhs                                  Array                                                                                 --   
+    useTdew                              Flag                                                                                  --   
+    Tdew                                        nan    calculate Tdew (Magnus Formula) based on FAO56 https://www.fao.org/4/X  --   
+    calc_evapo                                  nan    and missing meteo variables have to be calculated in evapoPot.py (AI)   --   
+    pet_modus                            Number        Index which ETP approach is used e.g. 1 for Penman-Monteith             bool 
+    without_rlds                         Flag                                                                                  --   
+    TMin                                 Array         minimum air temperature                                                 K    
+    TMax                                 Array         maximum air temperature                                                 K    
+    Tavg                                 Array         Input, average air Temperature                                          K    
+    Rsds                                 Array         short wave downward surface radiation fluxes                            W m-2
+    Wind                                 Array         wind speed                                                              m s-1
+    EWRef                                Array         potential evaporation rate from water surface                           m    
+    thermalI                             Array         ThermalIndex. Use to calculate pot. Evaporation with Thornthwaite       deg C
+    usepySnowClim                        Flag          Flag to use pySnowClim                                                  --   
+    dem                                  Array         Digital elevation model                                                 m    
+    lat                                  Array         Latitude                                                                deg  
+    ===================================  ==========    ======================================================================  =====
 
     """
 
@@ -543,7 +556,7 @@ class evaporationPot(object):
         #    self.var.thermalI = readnetcdf2('thermalIndexFile', globals.dateVar['currDate'], "yearly", value="thermalindex")
 
         # I will be calculated in a prerun, year starts on 1st Jan.
-        # I=âˆ‘(0.2*T_(eff,mean) )^1.514  from n=1 to 12
+        # I=Ã¢Ë†â€˜(0.2*T_(eff,mean) )^1.514  from n=1 to 12
         # n: index of month
         # T_(eff,mean): the monthly mean of daily T_eff values in the given month [C]
         

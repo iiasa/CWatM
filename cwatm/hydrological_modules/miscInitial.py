@@ -19,26 +19,6 @@ class miscInitial(object):
     temporal parameters, unit conversion factors, and commonly used mathematical
     expressions that are repeatedly accessed throughout model execution.
     
-    **Global variables**
-
-    ===================================  ==========    ======================================================================  =====
-    Variable [self.var]                  Type          Description                                                             Unit 
-    ===================================  ==========    ======================================================================  =====
-    M3toM                                Array         Coefficient to change units                                             --   
-    DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
-    twothird                             Number        2025-03-02 00:00:00                                                     --   
-    MtoM3                                Array         Coefficient to change units                                             --   
-    InvDtSec                             Array         inversere of seconds per timestep (default 1/86400)                     1/s  
-    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1/m2 
-    DtDay                                Array         seconds in a timestep (default=86400)                                   s    
-    InvDtDay                             Array         inverse seconds in a timestep (default=86400)                           1/s  
-    MMtoM                                Number        Coefficient to change units                                             --   
-    MtoMM                                Number        Coefficient to change units                                             --   
-    con_precipitation                    Array         conversion factor for precipitation                                     --   
-    con_e                                Array         conversion factor for evaporation                                       --   
-    cellArea                             Array         Area of cell                                                            m2   
-    ===================================  ==========    ======================================================================  =====
-
     Attributes
     ----------
     var : object
@@ -51,11 +31,37 @@ class miscInitial(object):
     This module handles essential initialization tasks:
     - Grid cell area determination (user-defined or derived from projection)
     - Time step definitions and conversion factors
-    - Unit conversion factors (mm to m, mÂ³ to m, etc.)
+    - Unit conversion factors (mm to m, mÃ‚Â³ to m, etc.)
     - Precipitation and evaporation conversion parameters
     - Mathematical constants and frequently used expressions
     
     Only used during model initialization phase.
+
+
+
+
+
+
+
+
+    **Global variables**
+    ===================================  ==========    ======================================================================  =====
+    Variable [self.var]                  Type          Description                                                             Unit 
+    ===================================  ==========    ======================================================================  =====
+    M3toM                                Array         Coefficient to change units                                             --   
+    DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
+    twothird                             Number        2025-03-02 00:00:00                                                     --   
+    MtoM3                                Array         Coefficient to change units                                             --   
+    InvDtSec                             Array         inversere of seconds per timestep (default 1/86400)                     1 s-1
+    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
+    DtDay                                Array         seconds in a timestep (default=86400)                                   s    
+    InvDtDay                             Array         inverse seconds in a timestep (default=86400)                           1 s-1
+    MMtoM                                Number        Coefficient to change units                                             --   
+    MtoMM                                Number        Coefficient to change units                                             --   
+    con_precipitation                    Array         conversion factor for precipitation                                     --   
+    con_e                                Array         conversion factor for evaporation                                       --   
+    cellArea                             Array         Area of cell                                                            m2   
+    ===================================  ==========    ======================================================================  =====
 
     """
 
@@ -85,7 +91,7 @@ class miscInitial(object):
         Initialization includes:
         - Grid cell area calculation (user-defined maps or equal-area projection)
         - Time step parameters (daily time step in seconds and fractions)
-        - Unit conversion factors (mm/m, m/mÂ³, inverse relationships)
+        - Unit conversion factors (mm/m, m/mÃ‚Â³, inverse relationships)
         - Precipitation and evaporation conversion coefficients
         - Mathematical constants (e.g., 2/3 power for interception calculations)
         

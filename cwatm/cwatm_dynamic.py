@@ -30,32 +30,6 @@ class CWATModel_dyn(DynamicModel):
     The dynamic execution follows a specific sequence to maintain physical 
     consistency and proper water balance accounting throughout the hydrological system.
     
-    **Global variables**
-
-    ===================================  ==========    ======================================================================  =====
-    Variable [self.var]                  Type          Description                                                             Unit 
-    ===================================  ==========    ======================================================================  =====
-    channelStorage                       Array         Channel water storage                                                   m3   
-    unmetDemand_runningSum               Array         Unmet water demand (too less water availability)                        m    
-    totalET_WB                           Array         Total evapotranspiration including waterbodies                          m    
-    lakeReservoirStorage                 Array         Storage of lakes and reservoirs                                         m3   
-    tws                                  Array         Total water storage                                                     m    
-    modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
-    storGroundwater                      Array         Groundwater storage (non-fossil). This is primarily used when not usin  m    
-    smallevapWaterBody                   Array         Evaporation from small lakes                                            m    
-    EvapWaterBodyM                       Array         Evaporation from lakes and reservoirs                                   m    
-    dynamicLandcover                     Flag          If landcover changes per year or is constant                            bool 
-    totalET                              Array         Total evapotranspiration for each cell including all landcover types    m    
-    totalSto                             Array         Total soil,snow and vegetation storage for each cell including all lan  m    
-    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1/m2 
-    EvapoChannel                         Array         Channel evaporation                                                     m3   
-    gridcell_storage                     Array         storage of water due to runoff concentration                            m    
-    groundwater_storage_available        Array         Groundwater storage. Used with MODFLOW.                                 m    
-    lakeResStorage                       Array                                                                                 --   
-    smalllakeStorage                     Array                                                                                 --   
-    unmetDemand                          Array         Unmet groundwater demand to determine potential fossil groundwaterwate  m    
-    ===================================  ==========    ======================================================================  =====
-
     Attributes
     ----------
     
@@ -77,6 +51,40 @@ class CWATModel_dyn(DynamicModel):
     
     Performance timing is tracked for each major process group to
     identify computational bottlenecks and optimize model efficiency.
+
+
+
+
+
+
+
+
+    **Global variables**
+    ===================================  ==========    ======================================================================  =====
+    Variable [self.var]                  Type          Description                                                             Unit 
+    ===================================  ==========    ======================================================================  =====
+    channelStorage                       Array         Channel water storage                                                   m3   
+    unmetDemand_runningSum               Array         Unmet water demand (too less water availability)                        m    
+    totalET_WB                           Array         Total evapotranspiration including waterbodies                          m    
+    lakeReservoirStorage                 Array         Storage of lakes and reservoirs                                         m3   
+    tws_unmet                            Array                                                                                 --   
+    tws                                  Array         Total water storage                                                     m    
+    modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
+    stopaftersnow                        Flag          stop run after snow calcualtion -> for snow calibration (AI)            --   
+    storGroundwater                      Array         Groundwater storage (non-fossil). This is primarily used when not usin  m    
+    smallevapWaterBody                   Array         Evaporation from small lakes                                            m    
+    EvapWaterBodyM                       Array         Evaporation from lakes and reservoirs                                   m    
+    dynamicLandcover                     Flag          If landcover changes per year or is constant                            bool 
+    totalET                              Array         Total evapotranspiration for each cell including all landcover types    m    
+    totalSto                             Array         Total soil,snow and vegetation storage for each cell including all lan  m    
+    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
+    EvapoChannel                         Array         Channel evaporation                                                     m3   
+    gridcell_storage                     Array         storage of water due to runoff concentration                            m    
+    groundwater_storage_available        Array         Groundwater storage. Used with MODFLOW.                                 m    
+    lakeResStorage                       Array                                                                                 --   
+    smalllakeStorage                     Array                                                                                 --   
+    unmetDemand                          Array         Unmet groundwater demand to determine potential fossil groundwaterwate  m    
+    ===================================  ==========    ======================================================================  =====
 
     """
 

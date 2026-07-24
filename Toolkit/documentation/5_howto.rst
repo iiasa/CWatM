@@ -15,6 +15,9 @@
 **5. HOW-TO-GUIDE** Problem oriented
 #####################################
 
+.. contents:: 
+    :depth: 3
+
 
 | The next chapters follows this structure:
 | inspired by:

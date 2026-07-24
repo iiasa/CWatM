@@ -23,8 +23,34 @@ class soil(object):
     percolation, capillary rise, preferential flow, and transpiration processes
     across different land cover types.
     
-    **Global variables**
+    Attributes
+    ----------
+    var : object
+        Reference to model variables object containing state variables
+    model : object
+        Reference to the main CWatM model instance
+        
+    Notes
+    -----
+    The module implements:
+    - Multi-layer soil water balance (typically 3 layers)
+    - Arno scheme for heterogeneous runoff generation
+    - Root zone dynamics for transpiration
+    - Preferential flow and interflow processes
+    - Soil hydraulic property management
+    - Capillary rise from groundwater
+    
+    Based on concepts from PCRGLOBE, LISFLOOD, and HBV models.
+    References the Arno scheme for spatially variable soil moisture.
 
+
+
+
+
+
+
+
+    **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
@@ -36,14 +62,13 @@ class soil(object):
     storGroundwater                      Array         Groundwater storage (non-fossil). This is primarily used when not usin  m    
     includeCrops                         Flag          1 when includeCrops=True in Settings, 0 otherwise                       bool 
     Crops                                Array         Internal: List of specific crops and Kc/Ky parameters                   --   
-    potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m 
-    actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m       
+    potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m    
     cropKC                               Array         crop coefficient for each of the 4 different land cover types (forest,  --   
     minCropKC                            Array         minimum crop factor (default 0.2)                                       --   
     rootDepth                            Array         rootdepth of different layers                                           m    
-    KSat1                                Array         Saturated conductivity layer 1                                          cm/da
-    KSat2                                Array         Saturated conductivity layer 2                                          cm/da
-    KSat3                                Array         Saturated conductivity layer 3                                          cm/da
+    KSat1                                Array         Saturated conductivity layer 1                                          cm da
+    KSat2                                Array         Saturated conductivity layer 2                                          cm da
+    KSat3                                Array         Saturated conductivity layer 3                                          cm da
     genuM1                               Array         soil: lambda / (1+ lambda)  layer1                                      --   
     genuM2                               Array         soil: lambda / (1+ lambda)  layer2                                      --   
     genuM3                               Array         soil: lambda / (1+ lambda)  layer3                                      --   
@@ -62,16 +87,14 @@ class soil(object):
     wwp1                                 Array         Soil moisture at wilting point in layer 1                               m    
     wwp2                                 Array         Soil moisture at wilting point in layer 2                               m    
     wwp3                                 Array         Soil moisture at wilting point in layer 3                               m    
-    kunSatFC12                           Array         calculation from van Genuchten, Mualem equation                         m/day
-    kunSatFC23                           Array         calculation from van Genuchten, Mualem equation                         m/day
+    kunSatFC12                           Array         calculation from van Genuchten, Mualem equation                         m day
+    kunSatFC23                           Array         calculation from van Genuchten, Mualem equation                         m day
     arnoBeta                             Array         arnoBeta defines the shape of soil water capacity distribution curve a  --   
     adjRoot                              Array                                                                                 --   
     maxtopwater                          Array         maximum heigth of topwater                                              m    
     EWRef                                Array         potential evaporation rate from water surface                           m    
     availWaterInfiltration               Array         quantity of water reaching the soil after interception, more snowmelt   m    
-    FrostIndexThreshold                  Array         Degree Days Frost Threshold (stops infiltration, percolation and capil  --   
-    FrostIndex                           Array         FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Inde  --   
-    potBareSoilEvap                      Array         potential bare soil evaporation (calculated with minus snow evaporatio  m    
+    FrostDay                             Array         frost index in soil [degree days] based on Molnau and Bissel (1983, A   --   
     irr_Paddy_month                      Array                                                                                 --   
     ET_crop_Irr_paddy                    Array                                                                                 --   
     ET_crop_Irr_paddy_fraccrop           Array                                                                                 --   
@@ -83,8 +106,10 @@ class soil(object):
     frac_totalIrr                        Array         Fraction sown with specific irrigated crops                             %    
     weighted_KC_Irr_woFallow_fullKc      Array                                                                                 --   
     totalPotET                           Array         Potential evaporation per land use class                                m    
+    potBareSoilEvap                      Array         potential bare soil evaporation (calculated with minus snow evaporatio  m    
     PotET_crop                           Array                                                                                 --   
-    soilLayers                           Array         Number of soil layers                                                   --
+    actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m    
+    soilLayers                                  nan    Number of soil layers                                                   --   
     soildepth                            Array         Thickness of the first soil layer                                       m    
     wfc1                                 Array         Soil moisture at field capacity in layer 1                              m    
     wfc2                                 Array         Soil moisture at field capacity in layer 2                              m    
@@ -99,7 +124,7 @@ class soil(object):
     percolationImp                       Array         Fraction of area covered by the corresponding landcover type            m    
     cropGroupNumber                      Array         soil water depletion fraction, Van Diepen et al., 1988: WOFOST 6.0, p.  --   
     cPrefFlow                            Array         Factor influencing preferential flow (flow from surface to GW)          --   
-    pumping_actual                       Array                                                                                 --   
+    pumping_actual                       Array         This is here, as groundwater.py is not called if MODFLOW is used (AI)   --   
     gwdepth_observations                 Array         Input, gw_depth_observations, groundwater depth observations            m    
     gwdepth_adjuster                     Array         Groundwater depth adjuster                                              m    
     rws                                  Array         Transpiration reduction factor (in case of water stress)                --   
@@ -129,9 +154,10 @@ class soil(object):
     irrM3_crop_month_segment             Array                                                                                 --   
     irrM3_Paddy_month_segment            Array                                                                                 --   
     gwRecharge                           Array         groundwater recharge                                                    m    
+    gwRecharge2                          Array                                                                                 --   
     baseflow                             Array         simulated baseflow (= groundwater discharge to river)                   m    
     capillar                             Array         Flow from groundwater to the third CWATM soil layer. Used with MODFLOW  m    
-    capriseindex                         Array                                                                                 --   
+    capriseindex                         Array         computing saturated fraction of each CWatM cells (where water table >=  --   
     soildepth12                          Array         Total thickness of layer 2 and 3                                        m    
     fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     adminSegments                        Array         Domestic agents                                                         Int  
@@ -140,26 +166,6 @@ class soil(object):
     act_irrNonpaddyWithdrawal            Array         non-paddy irrigation withdrawal                                         m    
     act_irrPaddyWithdrawal               Array         paddy irrigation withdrawal                                             m    
     ===================================  ==========    ======================================================================  =====
-
-    Attributes
-    ----------
-    var : object
-        Reference to model variables object containing state variables
-    model : object
-        Reference to the main CWatM model instance
-        
-    Notes
-    -----
-    The module implements:
-    - Multi-layer soil water balance (typically 3 layers)
-    - Arno scheme for heterogeneous runoff generation
-    - Root zone dynamics for transpiration
-    - Preferential flow and interflow processes
-    - Soil hydraulic property management
-    - Capillary rise from groundwater
-    
-    Based on concepts from PCRGLOBE, LISFLOOD, and HBV models.
-    References the Arno scheme for spatially variable soil moisture.
 
     """
 

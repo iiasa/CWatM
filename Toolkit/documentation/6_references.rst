@@ -11,6 +11,8 @@
 **6. REFERENCES** – Information
 ###############################
 
+.. contents:: 
+    :depth: 3
 
 | This chapter gives some referens on error, variables,...
 

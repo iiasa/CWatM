@@ -23,38 +23,6 @@ class runoff_concentration(object):
     using lag-time and diffusion processes based on topographic and land cover
     characteristics.
     
-    **Global variables**
-    
-    ===================================  ==========    ======================================================================  =====
-    Variable [self.var]                  Type          Description                                                             Unit 
-    ===================================  ==========    ======================================================================  =====
-    load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
-    leakageIntoRunoff                    Array         Canal leakage leading to runoff                                         m    
-    fracGlacierCover                     Array         Fraction of glacier cover in a grid cell                                %    
-    includeGlaciers                      Flag          Include glaciers                                                        bool 
-    includeOnlyGlaciersMelt              Flag          Include only glacier melt but not rain on glacier                       bool 
-    coverTypes                           Array         land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
-    runoff                               Array         Total runoff from surface, interflow and groundwater                    m    
-    sum_interflow                        Array         sum of iterflow from all land cover types                               m    
-    GlacierMelt                          Array         melt from glacier                                                       m    
-    GlacierRain                          Array         rain on glacier                                                         m    
-    runoff_peak                          Array         peak time of runoff in seconds for each land use class                  s    
-    tpeak_interflow                      Array         peak time of interflow                                                  s    
-    tpeak_baseflow                       Array         peak time of baseflow                                                   s    
-    tpeak_glaciers                       Array         peak time of glacier                                                    s    
-    maxtime_runoff_conc                  Array         maximum time till all flow is at the outlet                             s    
-    runoff_conc                          Array         runoff after concentration - triangular-weighting method                m    
-    gridcell_storage                     Array         storage of water due to runoff concentration                            m    
-    sum_landSurfaceRunoff                Array         Runoff concentration above the soil more interflow including all landc  m    
-    landSurfaceRunoff                    Array         Runoff concentration above the soil more interflow                      m    
-    directRunoffGlacier                  Array         direct runoff from glacier                                              m    
-    directRunoff                         Array         Simulated surface runoff                                                m    
-    interflow                            Array         Simulated flow reaching runoff instead of groundwater                   m    
-    baseflow                             Array         simulated baseflow (= groundwater discharge to river)                   m    
-    fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
-    cellArea                             Array         Area of cell                                                            m2   
-    ===================================  ==========    ======================================================================  =====
-
     Attributes
     ----------
     var : object
@@ -81,6 +49,44 @@ class runoff_concentration(object):
     Based on triangular weighting function concepts for temporal concentration
 
 
+
+
+
+
+
+
+
+
+    **Global variables**
+    ===================================  ==========    ======================================================================  =====
+    Variable [self.var]                  Type          Description                                                             Unit 
+    ===================================  ==========    ======================================================================  =====
+    load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
+    leakageIntoRunoff                    Array         Canal leakage leading to runoff                                         m    
+    fracGlacierCover                     Array         Fraction of glacier cover in a grid cell                                %    
+    includeGlaciers                      Flag          Include glaciers                                                        bool 
+    GlacierMelt                          Array         melt from glacier                                                       m    
+    GlacierRain                          Array         rain on glacier                                                         m    
+    coverTypes                           Array         land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
+    runoff_m3                            Array         back to [m]  # with and without in m3 (AI)                              --   
+    sum_directRunoff                     Array         direct runoff from surface  (sum over all land cover types)             m    
+    sum_interflow                        Array         sum of iterflow from all land cover types                               m    
+    runoff_peak                          Array         peak time of runoff in seconds for each land use class                  s    
+    tpeak_interflow                      Array         peak time of interflow                                                  s    
+    tpeak_baseflow                       Array         peak time of baseflow                                                   s    
+    tpeak_glaciers                       Array         peak time of glacier                                                    s    
+    maxtime_runoff_conc                  Array         maximum time till all flow is at the outlet                             s    
+    runoff_conc                          Array         runoff after concentration - triangular-weighting method                m    
+    gridcell_storage                     Array         storage of water due to runoff concentration                            m    
+    sum_landSurfaceRunoff                Array         Runoff concentration above the soil more interflow including all landc  m    
+    landSurfaceRunoff                    Array         Runoff concentration above the soil more interflow                      m    
+    runoff                               Array         Total runoff from surface, interflow and groundwater                    m    
+    directRunoff                         Array         Simulated surface runoff                                                m    
+    interflow                            Array         Simulated flow reaching runoff instead of groundwater                   m    
+    baseflow                             Array         simulated baseflow (= groundwater discharge to river)                   m    
+    fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
+    cellArea                             Array         Area of cell                                                            m2   
+    ===================================  ==========    ======================================================================  =====
 
     """
 

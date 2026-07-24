@@ -23,26 +23,32 @@ class inflow(object):
     optional and only activates when the 'inflow' option is enabled.
     
 
-    **Global variables**
-
-    ===================================  ==========    ======================================================================  =====
-    Variable [self.var]                  Type          Description                                                             Unit 
-    ===================================  ==========    ======================================================================  =====
-    sampleInflow                         Number        location of inflow point                                                lat/l
-    noinflowpoints                       Array         number of inflow points                                                 --   
-    inflowTs                             Array         inflow time series data                                                 m3/s 
-    totalQInM3                           Array         total inflow over time (for mass balance calculation)                   m3   
-    inflowM3                             Array         inflow to basin                                                         m3   
-    DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
-    QInM3Old                             Array         Inflow from previous day                                                m3   
-    ===================================  ==========    ======================================================================  =====
-
     Attributes
     ----------
     var : object
         Reference to model variables object containing state variables
     model : object
         Reference to the main CWatM model instance
+
+
+
+
+
+
+
+
+    **Global variables**
+    ===================================  ==========    ======================================================================  =====
+    Variable [self.var]                  Type          Description                                                             Unit 
+    ===================================  ==========    ======================================================================  =====
+    sampleInflow                         Number        location of inflow point                                                lat/l
+    noinflowpoints                       Array         number of inflow points                                                 --   
+    inflowTs                             Array         inflow time series data                                                 m3 s-
+    totalQInM3                           Array         total inflow over time (for mass balance calculation)                   m3   
+    inflowM3                             Array         inflow to basin                                                         m3   
+    DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
+    QInM3Old                             Array         Inflow from previous day                                                m3   
+    ===================================  ==========    ======================================================================  =====
 
     """
 
@@ -214,7 +220,7 @@ class inflow(object):
         -----
         Inflow values are:
         - Read from pre-loaded time series data
-        - Converted from mÂ³/s to mÂ³ per time step
+        - Converted from mÃ‚Â³/s to mÃ‚Â³ per time step
         - Applied at specified inflow point locations
         - Accumulated for mass balance tracking
         """

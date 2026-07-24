@@ -24,8 +24,21 @@ class waterdemand_irrigation:
     consumption based on soil water availability, crop coefficients, and infiltration
     capacity, considering irrigation efficiency and return flow fractions.
     
-    **Global variables**
+    Attributes
+    ----------
+    var : object
+        Model variables container from parent model
+    model : object
+        Parent CWatM model instance
 
+
+
+
+
+
+
+
+    **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
@@ -36,8 +49,8 @@ class waterdemand_irrigation:
     efficiencyNonpaddy                   Array         Input, irrNonPaddy_efficiency, non-paddy irrigation efficiency, the am  frac 
     returnfractionIrr                    Array         Input, irrigation_returnfraction, the fraction of non-efficient water   frac 
     alphaDepletion                       Array         Input, alphaDepletion, irrigation aims to alphaDepletion of field capa  frac 
-    minimum_irrigation                   Array         Cover-specific irrigation in metres is 0 if less than this, currently   1/m2 
-    pot_irrConsumption                   Array         Cover-specific potential irrigation consumption                         m/m  
+    minimum_irrigation                   Array         Cover-specific irrigation in metres is 0 if less than this, currently   1 m-2
+    pot_irrConsumption                   Array         Cover-specific potential irrigation consumption                         m m-1
     fraction_IncreaseIrrigation_Nonpadd  Array         Input, fraction_IncreaseIrrigation_Nonpaddy, scales pot_irrConsumption  frac 
     irrPaddyDemand                       Array         Paddy irrigation demand                                                 m    
     ws1                                  Array         Maximum storage capacity in layer 1                                     m    
@@ -47,7 +60,7 @@ class waterdemand_irrigation:
     arnoBeta                             Array         arnoBeta defines the shape of soil water capacity distribution curve a  --   
     maxtopwater                          Array         maximum heigth of topwater                                              m    
     totAvlWater                          Array         Field capacity minus wilting point in soil layers 1 and 2               m    
-    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1/m2 
+    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
     availWaterInfiltration               Array         quantity of water reaching the soil after interception, more snowmelt   m    
     totalPotET                           Array         Potential evaporation per land use class                                m    
     wfc1                                 Array         Soil moisture at field capacity in layer 1                              m    
@@ -60,16 +73,9 @@ class waterdemand_irrigation:
     unmetDemandNonpaddy                  Array         Unmet nonpaddy demand                                                   m    
     unmetDemand                          Array         Unmet groundwater demand to determine potential fossil groundwaterwate  m    
     irrDemand                            Array         Cover-specific Irrigation demand                                        m    
-    irrNonpaddyDemand                    Array                                                                                 --   
+    irrNonpaddyDemand                    Array         Sum up irrigation water demand with area fraction (AI)                  --   
     totalIrrDemand                       Array         Irrigation demand                                                       m    
     ===================================  ==========    ======================================================================  =====
-
-    Attributes
-    ----------
-    var : object
-        Model variables container from parent model
-    model : object
-        Parent CWatM model instance
 
     """
 

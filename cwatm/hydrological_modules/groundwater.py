@@ -20,8 +20,21 @@ class groundwater(object):
     This class manages groundwater processes including groundwater flow,
     storage changes, and interactions with surface water systems.
 
-    **Global variables**
+    Attributes
+    ----------
+    var : object
+        Model variables container
+    model : object
+        CWatM model instance
+        
 
+
+
+
+
+
+
+    **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
@@ -38,13 +51,6 @@ class groundwater(object):
     nonFossilGroundwaterAbs              Array         Non-fossil groundwater abstraction. Used primarily without MODFLOW.     m    
     ===================================  ==========    ======================================================================  =====
 
-    Attributes
-    ----------
-    var : object
-        Model variables container
-    model : object
-        CWatM model instance
-        
     """
 
     def __init__(self, model):

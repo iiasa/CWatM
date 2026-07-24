@@ -20,19 +20,31 @@ class evaporation(object):
     for different land cover types. It processes crop coefficients, calculates bare soil
     evaporation, and manages crop-specific evapotranspiration calculations.
 
-    **Global variables**
+    Attributes
+    ----------
+    var : object
+        Model variables container
+    model : object
+        CWatM model instance
 
+
+
+
+
+
+
+
+    **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
     cropKCmonth                          Array         Crop KC factor for different crops and different seasons                --   
-    snowEvap                             Array         total evaporation from snow for a snow layers                           m    
-    Crops_names                          Array         Internal: List of specific crops                                        --
+    Crops_names                          Array         Internal: List of specific crops                                        --   
     activatedCrops                       Array         Fraction of area a specific crop is planted                             --   
     load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
     monthCounter                         Array         Month counter for each crop after crop has planted                      --   
-    fracCrops_IrrLandDemand              Array         Month counter for each crop after crop has planted                      --   
-    fracCrops_nonIrrLandDemand                                                                                                 --   
+    fracCrops_IrrLandDemand              Array                                                                                 --   
+    fracCrops_nonIrrLandDemand           Array                                                                                 --   
     ratio_a_p_nonIrr                     Array         Ratio actual to potential evapotranspiration, monthly, non-irrigated [  %    
     totalPotET_month                     Array         Total potential evapotranspiration in a month                           m    
     ratio_a_p_Irr                        Array         Ratio actual to potential evapotranspiration, monthly [crop specific]   %    
@@ -40,12 +52,12 @@ class evaporation(object):
     currentKY                            Array         Yield sensitivity coefficient [crop specific]                           --   
     Yield_Irr                            Array         Relative monthly irrigated yield [crop specific]                        %    
     currentKC                            Array         Current crop coefficient for specific crops                             --   
-    generalIrrCrop_max                   Array                                                                                 --   
+    generalIrrCrop_max                   Array         Automatic fallowing for irrigated land (AI)                             --   
     generalnonIrrCrop_max                Array                                                                                 --   
     weighted_KC_nonIrr                   Array                                                                                 --   
     weighted_KC_nonIrr_woFallow          Array                                                                                 --   
     weighted_KC_Irr                      Array                                                                                 --   
-    _weighted_KC_Irr                     Array                                                                                 --   
+    _weighted_KC_Irr                                                                                                           --   
     weighted_KC_Irr_woFallow             Array                                                                                 --   
     totalPotET_month_segment             Array                                                                                 --   
     PotETaverage_crop_segments           Array                                                                                 --   
@@ -58,13 +70,14 @@ class evaporation(object):
     crop_correct_landCover               Array                                                                                 --   
     includeCrops                         Flag          1 when includeCrops=True in Settings, 0 otherwise                       bool 
     Crops                                Array         Internal: List of specific crops and Kc/Ky parameters                   --   
-    daily_crop_KC                        Array                                                                                 --   
+    daily_crop_KC                        Array         If the crop inputs are given in days if the total growing season is le  --   
     interceptCap                         Array         interception capacity of vegetation                                     m    
     potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m    
     cropKC                               Array         crop coefficient for each of the 4 different land cover types (forest,  --   
     minCropKC                            Array         minimum crop factor (default 0.2)                                       --   
     minInterceptCap                      Array         Maximum interception read from file for forest and grassland land cove  m    
     irrigatedArea_original               Array                                                                                 --   
+    fracAllCover                         Array                                                                                 --   
     frac_totalnonIrr                     Array         Fraction sown with specific non-irrigated crops                         %    
     frac_totalIrr_max                    Array         Fraction sown with specific irrigated crops, maximum throughout simula  %    
     frac_totalnonIrr_max                 Array         Fraction sown with specific non-irrigated crops, maximum throughout si  %    
@@ -78,9 +91,6 @@ class evaporation(object):
     ETRef                                Array         potential evapotranspiration rate from reference crop                   m    
     Precipitation                        Array         Precipitation (input for the model)                                     m    
     coverTypes                           Array         land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
-    SnowMelt                             Array         total snow melt from all layers                                         m    
-    IceMelt                              Array         Ice melt (not really ice but an additional snow melt in summer)         m    
-    potBareSoilEvap                      Array         potential bare soil evaporation (calculated with minus snow evaporatio  m    
     irr_Paddy_month                      Array                                                                                 --   
     ET_crop_Irr_paddy                    Array                                                                                 --   
     ET_crop_Irr_paddy_fraccrop           Array                                                                                 --   
@@ -92,18 +102,12 @@ class evaporation(object):
     frac_totalIrr                        Array         Fraction sown with specific irrigated crops                             %    
     weighted_KC_Irr_woFallow_fullKc      Array                                                                                 --   
     totalPotET                           Array         Potential evaporation per land use class                                m    
+    potBareSoilEvap                      Array         potential bare soil evaporation (calculated with minus snow evaporatio  m    
     PotET_crop                           Array                                                                                 --   
     fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     adminSegments                        Array         Domestic agents                                                         Int  
     cellArea                             Array         Area of cell                                                            m2   
     ===================================  ==========    ======================================================================  =====
-
-    Attributes
-    ----------
-    var : object
-        Model variables container
-    model : object
-        CWatM model instance
 
     """
 
