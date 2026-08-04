@@ -36,6 +36,8 @@ class waterdemand_livestock:
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 

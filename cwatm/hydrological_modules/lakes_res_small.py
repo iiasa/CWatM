@@ -46,6 +46,8 @@ class lakes_res_small(object):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 

@@ -39,6 +39,8 @@ class waterdemand_domestic:
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 

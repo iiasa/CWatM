@@ -62,6 +62,8 @@ class waterdemand_wastewater(object):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 

@@ -64,6 +64,8 @@ class outputTssMap(object):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -78,7 +80,7 @@ class outputTssMap(object):
     catcharea                            Array         catchment area of the subbaSIN                                          m2   
     watercycle                           List                                                                                  --   
     netcdfasindex                        Flag          save netcdf file in a compressed way - for splitting runs in several b  bool 
-    elepoint                                    nan                                                                            --   
+    elepoint                             Array                                                                                 --   
     firstout                             Number        discharge of the first gauge                                            m3 s-
     discharge                            Array         Channel discharge                                                       m3 s-
     usepySnowClim                        Flag          Flag to use pySnowClim                                                  --   

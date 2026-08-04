@@ -78,6 +78,8 @@ class landcoverType(object):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -173,7 +175,7 @@ class landcoverType(object):
     Rain_times_fracPaddy                 Array                                                                                 --   
     Rain_times_fracNonPaddy              Array                                                                                 --   
     fracGlacierCover                     Array         Fraction of glacier cover in a grid cell                                %    
-    areaGlacier                                 nan                                                                            --   
+    areaGlacier                          Area          Area of glacier in a gridcell                                           --   
     pretotalSto                          Array         Previous totalSto                                                       m    
     prefFlow_GW                          Array         Preferential flow to groundwater. sum_prefFlow goes either to groundwa  m    
     sum_prefFlow                         Array         Preferential flow from soil to groundwater (summed up for all land cov  m    
@@ -200,7 +202,7 @@ class landcoverType(object):
     snowEvap                             Array         total evaporation from snow for a snow layers                           m    
     SnowCover                            Array         snow cover (sum over all layers)                                        m    
     frac_totalIrr                        Array         Fraction sown with specific irrigated crops                             %    
-    soilLayers                                  nan    Number of soil layers                                                   --   
+    soilLayers                           List          Number of soil layers                                                   --   
     soildepth                            Array         Thickness of the first soil layer                                       m    
     wfc1                                 Array         Soil moisture at field capacity in layer 1                              m    
     wfc2                                 Array         Soil moisture at field capacity in layer 2                              m    

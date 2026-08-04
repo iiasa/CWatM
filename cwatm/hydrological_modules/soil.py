@@ -50,6 +50,8 @@ class soil(object):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -102,14 +104,14 @@ class soil(object):
     fracCrops_nonIrr                     Array         Fraction of cell currently planted with specific non-irr crops          %    
     actTransTotal_month_nonIrr           Array         Internal variable: Running total of  transpiration for specific non-ir  m    
     actTransTotal_month_Irr              Array         Internal variable: Running total of  transpiration for specific irriga  m    
-    irr_crop_month                       Number                                                                                --   
+    irr_crop_month                       Array                                                                                 --   
     frac_totalIrr                        Array         Fraction sown with specific irrigated crops                             %    
     weighted_KC_Irr_woFallow_fullKc      Array                                                                                 --   
     totalPotET                           Array         Potential evaporation per land use class                                m    
     potBareSoilEvap                      Array         potential bare soil evaporation (calculated with minus snow evaporatio  m    
     PotET_crop                           Array                                                                                 --   
     actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m    
-    soilLayers                                  nan    Number of soil layers                                                   --   
+    soilLayers                           List          Number of soil layers                                                   --   
     soildepth                            Array         Thickness of the first soil layer                                       m    
     wfc1                                 Array         Soil moisture at field capacity in layer 1                              m    
     wfc2                                 Array         Soil moisture at field capacity in layer 2                              m    

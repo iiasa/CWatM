@@ -38,6 +38,8 @@ class routing_kinematic(object):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -98,7 +100,7 @@ class routing_kinematic(object):
     riverbedExchange                     Array         to avoid flip flop (AI)                                                 --   
     EvapoChannel                         Array         Channel evaporation                                                     m3   
     QDelta                               Array         difference between old and new inlet flow  per sub step in order to ca  --   
-    sumsideflow                          Number        calculating average discharge during day and max discharge (AI)         --   
+    sumsideflow                          Array         calculating average discharge during day and max discharge (AI)         --   
     prechannelStorage                    Array                                                                                 --   
     avgdischarge                         Array         calculating average discharge during day and max discharge (AI)         --   
     maxdischarge                         Array         discharge at the end of a time step (AI)                                --   

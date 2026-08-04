@@ -45,6 +45,8 @@ class initcondition(object):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -62,7 +64,7 @@ class initcondition(object):
     wastewater_to_reservoirs             Array                                                                                 --   
     initLoadFile                         Number        load file name of the initial condition data                            Strin
     saveInit                             Flag          If true initial conditions are saved                                    bool 
-    initmap                                     nan                                                                            --   
+    initmap                              Flag                                                                                  --   
     saveInitFile                         Flag          save file name of the initial condition data                            bool 
     reservoir_info                       List          Number of lakes and reservoirs in Excel                                 --   
     reservoir_transfers                  Array         [['Giving reservoir'][i], ['Receiving reservoir'][i], ['Fraction of li  array

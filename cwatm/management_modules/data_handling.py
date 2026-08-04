@@ -2472,14 +2472,16 @@ def writeIniNetcdf(netfile,varlist, inputlist):
     if latlon:
         if 'lon' in list(metadataNCDF.keys()):
             lon = nf1.createDimension('lon', col)
-            longitude = nf1.createVariable('lon', 'f8', ('lon',))
+            longitude = nf1.createVariable('lon', 'f8', ('lon',), fill_value=1e20)
             for i in metadataNCDF['lon']:
-                exec('%s="%s"' % ("longitude." + i, metadataNCDF['lon'][i]))
+                if i != "_FillValue":
+                   exec('%s="%s"' % ("longitude." + i, metadataNCDF['lon'][i]))
         if 'lat' in list(metadataNCDF.keys()):
             lat = nf1.createDimension('lat', row)  # x 950
-            latitude = nf1.createVariable('lat', 'f8', 'lat')
+            latitude = nf1.createVariable('lat', 'f8', 'lat', fill_value=1e20)
             for i in metadataNCDF['lat']:
-                exec('%s="%s"' % ("latitude." + i, metadataNCDF['lat'][i]))
+                if i != "_FillValue":
+                    exec('%s="%s"' % ("latitude." + i, metadataNCDF['lat'][i]))
 
     # projection
     if 'laea' in list(metadataNCDF.keys()):

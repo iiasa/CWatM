@@ -202,6 +202,8 @@ class CWATModel_ini(DynamicModel):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 

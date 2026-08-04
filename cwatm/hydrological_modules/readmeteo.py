@@ -37,6 +37,8 @@ class readmeteo(object):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -55,8 +57,8 @@ class readmeteo(object):
     EAct                                 Array         Daily vapor pressure                                                    hPa  
     rhs                                  Array                                                                                 --   
     useTdew                              Flag                                                                                  --   
-    Tdew                                        nan    calculate Tdew (Magnus Formula) based on FAO56 https://www.fao.org/4/X  --   
-    calc_evapo                                  nan    and missing meteo variables have to be calculated in evapoPot.py (AI)   --   
+    Tdew                                 Array         calculate Tdew (Magnus Formula) based on FAO56 https://www.fao.org/4/X  --   
+    calc_evapo                           Flag          and missing meteo variables have to be calculated in evapoPot.py (AI)   --   
     pet_modus                            Number        Index which ETP approach is used e.g. 1 for Penman-Monteith             bool 
     without_rlds                         Flag                                                                                  --   
     TMin                                 Array         minimum air temperature                                                 K    

@@ -59,6 +59,8 @@ class CWATModel_dyn(DynamicModel):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 

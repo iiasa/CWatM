@@ -35,6 +35,8 @@ class capillarRise(object):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -42,7 +44,7 @@ class capillarRise(object):
     capRiseFrac                          Array         fraction of a grid cell where capillar rise may happen                  m    
     modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
     storGroundwater                      Array         Groundwater storage (non-fossil). This is primarily used when not usin  m    
-    specificYield                        Array         groundwater reservoir parameters (if ModFlow is not used) used to comp  m    
+    specificYield                        Array         Groundwater reservoir parameters (if ModFlow is not used) used to comp  m    
     maxGWCapRise                         Array         influence of capillary rise above groundwater level                     m    
     dzRel                                Array         relative elevation in a gridcell by fraction of area                    m    
     ===================================  ==========    ======================================================================  =====

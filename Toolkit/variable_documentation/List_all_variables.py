@@ -1021,8 +1021,9 @@ def write_to_metaNetCdf(df_new_old, netxml_file):
     create a new file ('c') or abort execution ('a').
     
     The output XML follows the CWATM metadata format with entries like:
-    <metanetcdf varname="temperature" unit="C" standard_name="air_temperature" 
-                long_name="Air temperature" description="..." title="CWATM" author="IIASA WAT" />
+    <metanetcdf varname="temperature" unit="C" standard_name="air_temperature"
+                long_name="Air temperature" priority="high" description="..."
+                title="CWATM" author="IIASA WAT" />
     """
     metaNetcdfVar = {}
     user_opt = 'c'
@@ -1064,6 +1065,9 @@ def write_to_metaNetCdf(df_new_old, netxml_file):
             vopt = ''
             if 'Optional' in row.index and not pd.isna(row['Optional']):
                 vopt = str(row['Optional'])
+            vprio = ''
+            if 'Priority' in row.index and not pd.isna(row['Priority']):
+                vprio = str(row['Priority'])
 
             # brackets in the description: the dimension if there is one, e.g. [2D(16,N)];
             # nothing when there is no dimension entry (the type is no longer appended)
@@ -1076,6 +1080,7 @@ def write_to_metaNetCdf(df_new_old, netxml_file):
 
             line = (f'<metanetcdf varname="{var_name}" unit="{unt}"  standard_name="{standard_name}" '
                     f'long_name="{long_name}" type="{vtype}" dim="{vdim}" option="{vopt}" '
+                    f'priority="{vprio}" '
                     f'description="{des}"  title="CWATM" author="IIASA WAT" />\n')
             f.write(line)
 

@@ -41,6 +41,8 @@ class evaporationPot(object):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -53,7 +55,7 @@ class evaporationPot(object):
     co2                                  Array         Co2 leads to an increased transpiration. CO2 concentration for Yang et  ppm  
     albedoLand                           Array         albedo from land surface (from GlobAlbedo database)                     --   
     albedoOpenWater                      Array         albedo from open water surface (from GlobAlbedo database)               --   
-    _pySnowClim                                 nan                                                                            --   
+    _pySnowClim                          List                                                                                  --   
     ETRef                                Array         potential evapotranspiration rate from reference crop                   m    
     only_radiation                       Flag          Boolean if only radiation is use for calculation e.g JRC EMO dataset    bool 
     Psurf                                Array         Instantaneous surface pressure                                          Pa   
@@ -62,8 +64,8 @@ class evaporationPot(object):
     EAct                                 Array         Daily vapor pressure                                                    hPa  
     rhs                                  Array                                                                                 --   
     useTdew                              Flag                                                                                  --   
-    Tdew                                        nan    calculate Tdew (Magnus Formula) based on FAO56 https://www.fao.org/4/X  --   
-    calc_evapo                                  nan    and missing meteo variables have to be calculated in evapoPot.py (AI)   --   
+    Tdew                                 Array         calculate Tdew (Magnus Formula) based on FAO56 https://www.fao.org/4/X  --   
+    calc_evapo                           Flag          and missing meteo variables have to be calculated in evapoPot.py (AI)   --   
     pet_modus                            Number        Index which ETP approach is used e.g. 1 for Penman-Monteith             bool 
     without_rlds                         Flag                                                                                  --   
     TMin                                 Array         minimum air temperature                                                 K    

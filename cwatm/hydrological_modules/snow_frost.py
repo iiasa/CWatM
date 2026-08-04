@@ -51,6 +51,8 @@ class snow_frost(object):
 
 
 
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -69,7 +71,7 @@ class snow_frost(object):
     huss                                 Array         2 m istantaneous specific humidity[kg / kg] (AI)                        --   
     EAct                                 Array         Daily vapor pressure                                                    hPa  
     rhs                                  Array                                                                                 --   
-    Tdew                                        nan    calculate Tdew (Magnus Formula) based on FAO56 https://www.fao.org/4/X  --   
+    Tdew                                 Array         calculate Tdew (Magnus Formula) based on FAO56 https://www.fao.org/4/X  --   
     Tavg                                 Array         Input, average air Temperature                                          K    
     Rsds                                 Array         short wave downward surface radiation fluxes                            W m-2
     Wind                                 Array         wind speed                                                              m s-1
@@ -86,17 +88,17 @@ class snow_frost(object):
     SnowCover                            Array         snow cover (sum over all layers)                                        m    
     SnowFactor                           Array         Multiplier applied to precipitation that falls as snow                  --   
     numberSnowLayers                     Array         Number of snow layers (up to 10)                                        --   
-    _process_forcings_and_energy                nan    load libraries, but only if pySnowClim is used (AI)                     --   
-    _run_snowclim_step                          nan                                                                            --   
-    _prepare_outputs                            nan                                                                            --   
-    Snowpack                                    nan                                                                            --   
-    constSnowClim                               nan                                                                            --   
+    _process_forcings_and_energy         Flag          load libraries, but only if pySnowClim is used (AI)                     --   
+    _run_snowclim_step                   Flag                                                                                  --   
+    _prepare_outputs                     Flag                                                                                  --   
+    Snowpack                             List                                                                                  --   
+    constSnowClim                        Array                                                                                 --   
     stability                            Array         Parameter foor pySnowClim , also calibration parameters see Table2 in   --   
     windHt                               Array         Wind height (default: 10 meters) (AI)                                   --   
     tempHt                               Array         Temperature height (default: 2 meters) (AI)                             --   
     snowoff_month                        Array         Month of snow-off (default: 9) (AI)                                     --   
     snowoff_day                          Array         Day of snow-off (default: 1) (AI)                                       --   
-    albedo_option                               nan                                                                            --   
+    albedo_option                        Flag                                                                                  --   
     max_albedo                           Array         Maximum albedo (default: 0.85) (calib: 0.85-0.90) (AI)                  --   
     z_0                                  Array         Roughness length (default: 0.00001 m) (10-5 - 10-3) (AI)                --   
     z_h                                  Array         Roughness length for heat (default: z_0/10) (AI)                        --   
@@ -117,12 +119,12 @@ class snow_frost(object):
     downward_radiation_factor            Array                                                                                 --   
     downward_radiation_start_month       Array                                                                                 --   
     downward_radiation_end_month         Array         Month where solar_radiation_factor ends (default: 10) (AI)              --   
-    snowclimParameters                          nan    then passed is to give clarify using the xml file variables. (AI)       --   
+    snowclimParameters                   List          then passed is to give clarify using the xml file variables. (AI)       --   
     snowpack                             Array                                                                                 --   
     snowModelvars                        Array         pzSnowclim variables -> CWatM (AI)                                      --   
-    pySnowClimInitVars                          nan                                                                            --   
-    saveInitpySnowClim                          nan                                                                            --   
-    saveInitFilepySnowClim                      nan                                                                            --   
+    pySnowClimInitVars                   List                                                                                  --   
+    saveInitpySnowClim                   Flag                                                                                  --   
+    saveInitFilepySnowClim               Flag                                                                                  --   
     SnowFraction                         Array         Fraction of snow in a gridcell                                          --   
     snow_redistributed_previous          Array         redistributed snow will be added to next elevation zone in next loop (  --   
     numberSnowLayersFloat                Array         Number of snow layers (up to 10)                                        --   
@@ -148,7 +150,7 @@ class snow_frost(object):
     SnowMeltRad                          Array         calibration value a factor to radiation coefficient                     --   
     SnowCoverS                           Array         snow cover for each layer                                               m    
     adv_frost                            Flag          if this use, Kfrost and maxFrost is used                                --   
-    maxFrostIndex                        Number        maximum frostindex, frostindex over max causes unusuaL floods in sprin  --   
+    maxFrostIndex                        Array         maximum frostindex, frostindex over max causes unusuaL floods in sprin  --   
     Kfrost                               Array         Snow depth reduction coefficient, (HH, p. 7.28)                         m-1  
     Afrost                               Array         Daily decay coefficient, (Handbook of Hydrology, p. 7.28)               --   
     FrostIndexThreshold                  Array         Degree Days Frost Threshold (stops infiltration, percolation and capil  --   
@@ -156,16 +158,16 @@ class snow_frost(object):
     FrostIndex                           Array         FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Inde  --   
     lat}                                                                                                                       --   
     Tavg}                                                                                                                      --   
-    ExistSnow                                   nan                                                                            --   
-    Rain_on_snow                                nan    spilt between rain on snow and rain (AI)                                --   
+    ExistSnow                            Array                                                                                 --   
+    Rain_on_snow                         Array         spilt between rain on snow and rain (AI)                                --   
     Snow                                 Array         Snow (equal to a part of Precipitation)                                 m    
-    packwater                                   nan                                                                            --   
-    snowwaterevaporation                        nan                                                                            --   
-    depostition                                 nan                                                                            --   
-    sublimation                                 nan                                                                            --   
-    condensation                                nan                                                                            --   
-    refrozen                                    nan                                                                            --   
-    snowmelt1                                   nan                                                                            --   
+    packwater                            List                                                                                  --   
+    snowwaterevaporation                 Array                                                                                 --   
+    depostition                          Array                                                                                 --   
+    sublimation                          Array                                                                                 --   
+    condensation                         Array                                                                                 --   
+    refrozen                             Array                                                                                 --   
+    snowmelt1                            Array                                                                                 --   
     precipitation_sn                     Array         CWatM uses a snow undercatch correction if calibrated. This precipitat  m    
     FrostDay                             Array         frost index in soil [degree days] based on Molnau and Bissel (1983, A   --   
     potBareSoilEvap                      Array         potential bare soil evaporation (calculated with minus snow evaporatio  m    
