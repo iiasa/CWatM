@@ -863,7 +863,8 @@ def metaNetCDF():
         name1 = glob.glob(os.path.normpath(name))[0]
         nf1 = Dataset(name1, 'r')
         for var in nf1.variables:
-           metadataNCDF[var] = nf1.variables[var].__dict__
+           metadataNCDF[var] =  {k: v for k, v in nf1.variables[var].__dict__.items() if k != '_FillValue'}
+
         nf1.close()
     except:
         msg = "Error 204: Trying to get metadata from netcdf\n"
@@ -2474,14 +2475,12 @@ def writeIniNetcdf(netfile,varlist, inputlist):
             lon = nf1.createDimension('lon', col)
             longitude = nf1.createVariable('lon', 'f8', ('lon',), fill_value=1e20)
             for i in metadataNCDF['lon']:
-                if i != "_FillValue":
-                   exec('%s="%s"' % ("longitude." + i, metadataNCDF['lon'][i]))
+                exec('%s="%s"' % ("longitude." + i, metadataNCDF['lon'][i]))
         if 'lat' in list(metadataNCDF.keys()):
             lat = nf1.createDimension('lat', row)  # x 950
             latitude = nf1.createVariable('lat', 'f8', 'lat', fill_value=1e20)
             for i in metadataNCDF['lat']:
-                if i != "_FillValue":
-                    exec('%s="%s"' % ("latitude." + i, metadataNCDF['lat'][i]))
+                exec('%s="%s"' % ("latitude." + i, metadataNCDF['lat'][i]))
 
     # projection
     if 'laea' in list(metadataNCDF.keys()):
