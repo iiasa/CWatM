@@ -17,6 +17,8 @@
 <metanetcdf varname="_totaltot"  time=": sum the whole time period"/>
 <metanetcdf varname="_totalend"  time=": last value of the whole time period"/>
 
+
+
 <metanetcdf varname="capRiseFrac" unit="m"  standard_name="" long_name="" type="Array" dim="1D(N)" option="" description="fraction of a grid cell where capillar rise may happen[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="channelStorage" unit="m3"  standard_name="" long_name="Channel storage" type="Array" dim="1D(N)" option="" description="Channel water storage[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="unmetDemand_runningSum" unit="m"  standard_name="" long_name="" type="Array" dim="1D(N)" option="" description="Unmet water demand (too less water availability)[1D(N)]"  title="CWATM" author="IIASA WAT" />
