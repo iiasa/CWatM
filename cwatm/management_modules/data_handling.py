@@ -864,7 +864,6 @@ def metaNetCDF():
         nf1 = Dataset(name1, 'r')
         for var in nf1.variables:
            metadataNCDF[var] =  {k: v for k, v in nf1.variables[var].__dict__.items() if k != '_FillValue'}
-
         nf1.close()
     except:
         msg = "Error 204: Trying to get metadata from netcdf\n"
