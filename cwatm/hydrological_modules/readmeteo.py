@@ -247,6 +247,11 @@ class readmeteo(object):
         if 'only_radiation_Wm2' in binding:
             self.var.only_radiation_Wm2 = returnBool('only_radiation_Wm2')
 
+        self.var.era5 = False
+        if 'era5' in binding:
+            self.var.era5 = returnBool('era5')
+
+
         # for high resolution runs eg 1 arcmin the rlds maps are too coarse
         self.var.without_rlds = False
         if 'without_rlds' in binding:
@@ -296,6 +301,12 @@ class readmeteo(object):
                 meteomaps = [self.var.preMaps, self.var.tempMaps, 'TminMaps', 'TmaxMaps']
             if self.var.usepySnowClim and self.var.useTdew:
                 meteomaps.append('TdewMaps')
+
+            if self.var.era5:
+                meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','PSurfMaps',
+                             'WindMaps','RSDSMaps','RSDLMaps','TdewMaps']
+                self.var.useTdew = True
+
 
             if self.var.includeGlaciers:
                 meteomaps.append(self.var.glaciermeltMaps)
@@ -896,17 +907,21 @@ class readmeteo(object):
                     # Instantaneous surface pressure[Pa]
                     # conversion [Pa] to [KPa]
                     self.var.Psurf = self.var.Psurf * 0.001
-                    if returnBool('useHuss'):
-                        self.var.huss = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
-                        self.var.huss = self.downscaling2(self.var.huss)
-                        # 2 m istantaneous specific humidity[kg / kg]
+
+                    if self.var.era5:
+                        self.var.Tdew = readmeteodata('TdewMaps', dateVar['currDate'], addZeros=True,
+                                                       mapsscale=self.var.meteomapsscale)
+                        self.var.Tdew = self.downscaling2(self.var.Tdew)
+                        if checkOption('TemperatureInKelvin'):
+                            self.var.Tdew -= ZeroKelvin
                     else:
-                        self.var.rhs = readmeteodata('RhsMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
-                        self.var.rhs = self.downscaling2(self.var.rhs)
-
-                    
-
-
+                        if returnBool('useHuss'):
+                            self.var.huss = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
+                            self.var.huss = self.downscaling2(self.var.huss)
+                            # 2 m istantaneous specific humidity[kg / kg]
+                        else:
+                            self.var.rhs = readmeteodata('RhsMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
+                            self.var.rhs = self.downscaling2(self.var.rhs)
 
         # if pot evaporation is already precalulated
         else:

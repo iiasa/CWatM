@@ -510,8 +510,7 @@ class water_demand:
         self.var.unmetDemandNonpaddy = self.var.load_initial('unmetDemandNonpaddy', default=globals.inZero.copy())
         # in case fossil water abstraction is allowed this will be filled
         self.var.unmetDemand = globals.inZero.copy()
-        self.var.unmetDemand_runningSum = self.var.load_initial('unmetDemand_runningSum',
-                                                                  default=globals.inZero.copy())
+        self.var.unmetDemand_runningSum = self.var.load_initial('unmetDemand_runningSum', default=globals.inZero.copy())
 
         # =======================================================
 

@@ -304,19 +304,24 @@ class evaporationPot(object):
             # calculate vapor pressure
             # Fao 56 Page 36
             # calculate actual vapour pressure
-            if returnBool('useHuss'):
-                # if specific humidity calculate actual vapour pressure this way
-                self.var.EAct = (self.var.Psurf * self.var.huss) / (((1-0.621979008) * self.var.huss) + 0.621979008)
-                # http://www.eol.ucar.edu/projects/ceop/dm/documents/refdata_report/eqns.html
+            if self.var.era5:
+                # calculate Eact (Magnus Formula)
+                # based on FAO56 https://www.fao.org/4/X0490E/x0490e07.htm
+                # equation Compute Dew Point Temperature  No 14: Eact in hPa
+                self.var.EAct = 0.61078 * np.exp(17.27 * self.var.Tdew / (self.var.Tdew + 237.3))
 
             else:
-                # if relative humidity
-                self.var.EAct = ESat * self.var.rhs / 100.0
-                # longwave radiation balance
+                if returnBool('useHuss'):
+                    # if specific humidity calculate actual vapour pressure this way
+                    self.var.EAct = (self.var.Psurf * self.var.huss) / (((1-0.621979008) * self.var.huss) + 0.621979008)
+                    # http://www.eol.ucar.edu/projects/ceop/dm/documents/refdata_report/eqns.html
+                else:
+                    # if relative humidity
+                    self.var.EAct = ESat * self.var.rhs / 100.0
+
+            # longwave radiation balance
             RLN = RNup - self.var.Rsdl
             # RDL is stored on disk as W/m2 but converted in MJ/m2/s in readmeteo.py
-
-
 
         # ************************************************************
         # ***** NET ABSORBED RADIATION *******************************
