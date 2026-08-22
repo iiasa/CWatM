@@ -750,22 +750,24 @@ class outputTssMap(object):
             if expression[2]:
                 if flagCycle:
                     writeFileHeaderWaterCycle(outputFilename, expression)
-                    if daymonthyear > 0:
-                        dates = pd.date_range(start=dateVar['dateStart1'], end=dateVar['dateEnd1'], freq="D")
-                        # reformat expression: not the best solution
-                        # expression: 1: timesteps 2: stations 3: 79 vars eg expression[3][211][0][78]
-                        expression[3] = np.array(expression[3]).transpose(1, 0, 2)
-                        totals = []
-                        storage = []
+                    dates = pd.date_range(start=dateVar['dateStart1'], end=dateVar['dateEnd1'], freq="D")
+                    # reformat expression: not the best solution
+                    # expression: 1: timesteps 2: stations 3: 79 vars eg expression[3][211][0][78]
+                    expression[3] = np.array(expression[3]).transpose(1, 0, 2)
+                    totals = []
+                    storage = []
 
-                        for k in range(len(self.var.sampleAdresses)):
-                            df = pd.DataFrame(expression[3][k], index=dates)
-                            if daymonthyear == 1:
-                                totals.append(df.resample("ME").sum())
-                                storage.append(df.resample("ME").last())
-                            else:
-                                totals.append(df.resample("YE").sum())
-                                storage.append(df.resample("YE").last())
+                    for k in range(len(self.var.sampleAdresses)):
+                        df = pd.DataFrame(expression[3][k], index=dates)
+                        if daymonthyear == 1:
+                            totals.append(df.resample("ME").sum())
+                            storage.append(df.resample("ME").last())
+                        elif daymonthyear == 2:
+                            totals.append(df.resample("YE").sum())
+                            storage.append(df.resample("YE").last())
+                        else:
+                            totals.append(df.resample("D").sum())
+                            storage.append(df.resample("D").last())
 
                 else:
                     writeFileHeaderNew(outputFilename,expression)
@@ -777,7 +779,7 @@ class outputTssMap(object):
             if len(expression[3]):
                 numbervalues = len(expression[3][0])
 
-                if flagCycle and daymonthyear > 0:
+                if flagCycle:
                     numbervalues = len(expression[3][0][0])
                     # run for watercycle and monthly or yearly
                     for i, timestamp in enumerate(totals[0].index):

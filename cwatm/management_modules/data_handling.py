@@ -306,7 +306,8 @@ def loadsetclone(self, name):
                 #nf3 = gdal.Open(filename, gdalconst.GA_ReadOnly)
                 #geotransform1 = nf3.GetGeoTransform()
                 nf2 =  rasterio.open(filename)
-                geotransform = nf2.transform
+                t = nf2.transform
+                geotransform = (t.a, t.b, t.c, t.d, t.e, t.f)
 
                 geotrans.append(geotransform)
                 setmaskmapAttr(geotransform[2], geotransform[5], nf2.shape[1], nf2.shape[0], geotransform[0])
@@ -1291,7 +1292,9 @@ def mapattrTiff(nf2):
     - Provides foundation for raster data integration
     """
 
-    geotransform = nf2.transform
+    t = nf2.transform
+    geotransform = (t.a, t.b, t.c, t.d, t.e, t.f)
+
     x1 = geotransform[2]
     y1 = geotransform[5]
     cellSize = geotransform[0]
