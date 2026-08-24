@@ -209,7 +209,7 @@ def upstreamArea(dirDown, dirshort, area):
         Cumulative upstream area for each cell
     """
 
-    ups = area.copy()
+    ups = area.copy().astype(np.float64)
     lib2.ups(dirDown, dirshort, ups, len(dirDown))
     return ups
 

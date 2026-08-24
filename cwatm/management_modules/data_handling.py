@@ -525,8 +525,10 @@ def loadcrs (name):
         crs = nf1.variables["crs"]
         #nf1.close()
     except:
-        msg = "\nWarning: Projection not defined as crs variable in: " + filename + "\n"
-        print(msg)
+        # no warning - is a bit annoying
+        #msg = "\nWarning: Projection not defined as crs variable in: " + filename + "\n"
+        #print(msg)
+        ii = 1
     return crs
 
 

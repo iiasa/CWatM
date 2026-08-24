@@ -511,6 +511,8 @@ class water_demand:
         # in case fossil water abstraction is allowed this will be filled
         self.var.unmetDemand = globals.inZero.copy()
         self.var.unmetDemand_runningSum = self.var.load_initial('unmetDemand_runningSum', default=globals.inZero.copy())
+        self.var.sectorSourceAbstractionFractions = False
+
 
         # =======================================================
 
@@ -536,7 +538,6 @@ class water_demand:
                     self.var.waterdemandFixed = True
                     self.var.waterdemandFixedYear = loadmap('waterdemandFixedYear')
 
-            self.var.sectorSourceAbstractionFractions = False
             # Sector-,source-abstraction fractions facilitate designating the specific source for the specific sector
             # Sources: River, Lake, Reservoir, Groundwater
             # Sectors: Domestic, Industry, Livestock, Irrigation

@@ -326,7 +326,7 @@ class outputTssMap(object):
         if checkOption('preferentialFlow'):
             temp = [['prefFlow_GW','areasum_m3','flux']]
             self.var.watercycle.extend(temp)
-        if checkOption('includeGlaciers'):
+        if self.var.includeGlaciers:
             temp = [['GlacierMelt','sum_m3','glacier'],['GlacierRain','sum_m3','glacier'],['areaGlacier','sum_m3','glacier']]
             self.var.watercycle.extend(temp)
         if checkOption('includeRunoffConcentration'):
@@ -356,17 +356,19 @@ class outputTssMap(object):
                     ['returnFlow','areasum_m3','demand'],
                     ['returnflowIrr','areasum_m3','demand'],['returnflowNonIrr','areasum_m3','demand']]
             self.var.watercycle.extend(temp)
-        if checkOption('sectorSourceAbstractionFractions'):
-            temp = [['Lake_Irrigation','areasum_m3','sector'],['Lake_Industry','areasum_m3','sector'],['Lake_Livestock','areasum_m3','sector'],
-                    ['Lake_Domestic','areasum_m3','sector'],['Channel_Irrigation','areasum_m3','sector'],['Channel_Domestic','areasum_m3','sector'],
-                    ['Channel_Livestock','areasum_m3','sector'],['Channel_Industry','areasum_m3','sector'],['GW_Irrigation','areasum_m3','sector'],
-                    ['GW_Industry','areasum_m3','sector'],['GW_Livestock','areasum_m3','sector'],['GW_Domestic','areasum_m3','sector'],
-                    ['Res_Irrigation','areasum_m3','sector'],['Res_Industry','areasum_m3','sector'],['Res_Livestock','areasum_m3','sector'],
-                    ['Res_Domestic','areasum_m3','sector']]
-            self.var.watercycle.extend(temp)
+
+        if 'sectorSourceAbstractionFractions' in option:
+            if checkOption('sectorSourceAbstractionFractions'):
+                temp = [['Lake_Irrigation','areasum_m3','sector'],['Lake_Industry','areasum_m3','sector'],['Lake_Livestock','areasum_m3','sector'],
+                        ['Lake_Domestic','areasum_m3','sector'],['Channel_Irrigation','areasum_m3','sector'],['Channel_Domestic','areasum_m3','sector'],
+                        ['Channel_Livestock','areasum_m3','sector'],['Channel_Industry','areasum_m3','sector'],['GW_Irrigation','areasum_m3','sector'],
+                        ['GW_Industry','areasum_m3','sector'],['GW_Livestock','areasum_m3','sector'],['GW_Domestic','areasum_m3','sector'],
+                        ['Res_Irrigation','areasum_m3','sector'],['Res_Industry','areasum_m3','sector'],['Res_Livestock','areasum_m3','sector'],
+                        ['Res_Domestic','areasum_m3','sector']]
+                self.var.watercycle.extend(temp)
 
         # Modflow
-        if checkOption('modflow_coupling'):
+        if self.var.modflow:
             temp = [['leakageIntoGw','areasum_m3','Modflow'],['leakageIntoRunoff','areasum_m3','Modflow'],['riverbedExchangeM','areasum_m3','Modflow'],
                     ['lakebedExchangeM','areasum_m3','Modflow'],['leakage','areasum_m3','Modflow'],['Pumping_daily','areasum_m3','Modflow'],
                     ['modfPumpingM_actual','areasum_m3','Modflow'],['groundwater_storage_available','areasum_m3','Modflow']]

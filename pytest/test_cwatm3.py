@@ -24,7 +24,6 @@ import os
 import argparse
 import importlib
 
-
 # ------------------------------------------------------
 
 # load settingsfile from command line

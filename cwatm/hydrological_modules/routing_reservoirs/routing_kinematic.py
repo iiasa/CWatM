@@ -255,12 +255,12 @@ class routing_kinematic(object):
         # Channel gradient (fraction, dy/dx)
         self.var.chanGrad = np.maximum(loadmap('chanGrad'), loadmap('chanGradMin'))
         # Channel length [meters]
-        self.var.chanLength = loadmap('chanLength')
+        self.var.chanLength = loadmap('chanLength').astype(np.float64)
         # Channel bottom width [meters]
-        self.var.chanWidth = loadmap('chanWidth')
+        self.var.chanWidth = loadmap('chanWidth').astype(np.float64)
 
         # Bankfull channel depth [meters]
-        self.var.chanDepth = loadmap('chanDepth')
+        self.var.chanDepth = loadmap('chanDepth').astype(np.float64)
 
 
 
@@ -307,6 +307,7 @@ class routing_kinematic(object):
         The factor chanman is also 4.6050393 (chanman = 1 is in real: 4.605)
         """
         self.var.channelAlpha = alpTermChan * (self.var.chanWettedPerimeterAlpha ** self.var.alpPower) * 2.5
+        self.var.channelAlpha = self.var.channelAlpha.astype(np.float64)
         ca = 2.5 * self.var.chanMan * ((1 / np.sqrt(self.var.chanGrad)) ** self.var.beta) * \
              (self.var.chanWettedPerimeterAlpha ** self.var.alpPower)
 
