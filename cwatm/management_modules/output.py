@@ -336,12 +336,12 @@ class outputTssMap(object):
 
         # waterbodies
         if checkOption('includeWaterBodies'):
-            temp = [['lakeResStorage','sum_m3','lake'],['EvapWaterBodyM','areasum_m3','lake'],
+            temp = [['lakeResStorage','sum_m3','storage'],['EvapWaterBodyM','areasum_m3','lake'],
                     ['lakeResInflowM','areasum_m3','lake'],['lakeResOutflowM','areasum_m3','lake'],
                     ['act_bigLakeResAbst','areasum_m3','lake']]
             self.var.watercycle.extend(temp)
         if checkOption('includeWaterBodies') and returnBool('useSmallLakes'):
-            temp = [['smalllakeStorage','sum_m3','smalllake'],['smallevapWaterBody','areasum_m3','smallake']]
+            temp = [['smalllakeStorage','sum_m3','storage'],['smallevapWaterBody','areasum_m3','smallake']]
             self.var.watercycle.extend(temp)
 
         # Waterdemand
