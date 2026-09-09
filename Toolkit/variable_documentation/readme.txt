@@ -1,4 +1,5 @@
 Update Aug 2026 PB
+
 Prerequisites: the script must be run using the same virtual environment used to run CWatM. The files the script requires to operate must be stored in the same directory as the script; otherwise, new files will be created. The necessary files are an XML file structured as a netCDF4 metadata and an Excel file with the following columns:
 Variable name, Long name, Unit, Description, First module, Priority, Module 1, Module 2, Module 3, Module 4, Module 5, Module 6, Module 7, Module 8, Module 9, Module 10, Module 11, Module 12, Module 13, Module 14, Module 15, Module 16
 
