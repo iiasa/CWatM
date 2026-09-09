@@ -31,6 +31,16 @@ class waterdemand_domestic:
     model : object
         Parent CWatM model instance
 
+
+
+
+
+
+
+
+
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -42,12 +52,12 @@ class waterdemand_domestic:
     pot_domesticConsumption              Array                                                                                 --   
     M3toM                                Array         Coefficient to change units                                             --   
     domesticTime                         List          Monthly' when domesticTimeMonthly = True, and 'Yearly' otherwise.       str  
-    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1/m2 
+    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
     activate_domestic_agents             Flag          Input, True if activate_domestic_agents = True                          bool 
     domesticDemand                       Array         Domestic demand                                                         m    
     swAbstractionFraction_domestic       Array         With domestic agents, derived from surface water over total water requ  %    
-    demand_unit                          Flag                                                                                  --   
-    sectorSourceAbstractionFractions     Array                                                                                 --   
+    demand_unit                          Flag          non-irrigation input maps have for each month or year the unit m/day (  --   
+    sectorSourceAbstractionFractions     Array         Sector-,source-abstraction fractions facilitate designating the specif  --   
     swAbstractionFraction_Channel_Domes  Array         Input, Fraction of Domestic demands to be satisfied with Channel        %    
     swAbstractionFraction_Lift_Domestic  Array         Input, Fraction of Domestic demands to be satisfied with Lift           %    
     swAbstractionFraction_Res_Domestic   Array         Input, Fraction of Domestic demands to be satisfied with Reservoirs     %    

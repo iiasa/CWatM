@@ -1,0 +1,7 @@
+Outputs list for land toolbox:
+
+OUT_MAP_Daily: actTransTotal_forest, actTransTotal_grasslands, actTransTotal_paddy, actTransTotal_nonpaddy, act_irrWithdrawal, act_nonIrrWithdrawal, act_domWithdrawal, act_indWithdrawal, Rain, Snow, Res_Domestic, GW_Domestic, nonIrrDemand, totalIrrDemand, domesticDemand, industryDemand, livestockDemand, act_irrPaddyDemand, act_irrNonpaddyDemand, unmetDemand, ETRef, totalET
+ 
+OUT_MAP_TotalEnd = cellArea
+
+OUT_MAP_MonthEnd: fracVegCover[0], fracVegCover[1], fracVegCover[2], fracVegCover[3], fracVegCover[4], fracVegCover[5], frac_totalIrr, frac_totalnonIrr, availableArableLand, fallowIrr, fallownonIrr, GeneralCrop_Irr, GeneralCrop_nonIrr, fracCrops_Irr[n], fracCrops_nonIrr[n], fracCrops_IrrLandDemand[n], fracCrops_nonIrrLandDemand[n]

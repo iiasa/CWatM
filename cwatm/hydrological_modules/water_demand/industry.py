@@ -30,6 +30,15 @@ class waterdemand_industry:
     model : object
         Parent CWatM model instance
 
+
+
+
+
+
+
+
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -39,8 +48,8 @@ class waterdemand_industry:
     indConsumptionVar                    List          Settings industryConsuptionvarname, variable name in domesticWaterDema  --   
     pot_industryConsumption              Array                                                                                 --   
     M3toM                                Array         Coefficient to change units                                             --   
-    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1/m2 
-    demand_unit                          Flag                                                                                  --   
+    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
+    demand_unit                          Flag          non-irrigation input maps have for each month or year the unit m/day (  --   
     industryDemand                       Array                                                                                 --   
     ind_efficiency                       Array                                                                                 --   
     ===================================  ==========    ======================================================================  =====

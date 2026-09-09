@@ -42,11 +42,22 @@ class runoff_concentration(object):
     Q(t) = sum_{i=0}^{max} c(i) * Q_source(t - i + 1)
     
     where c(i) represents the triangular weighting coefficients:
-    c(i) = integral from (i-1) to i of [2/max - |u - max/2| * 4/maxÂ²] du
+    c(i) = integral from (i-1) to i of [2/max - (u - max/2) * 4/max^2] du
     
     References
     ----------
     Based on triangular weighting function concepts for temporal concentration
+
+
+
+
+
+
+
+
+
+
+
 
     **Global variables**
     ===================================  ==========    ======================================================================  =====
@@ -56,12 +67,12 @@ class runoff_concentration(object):
     leakageIntoRunoff                    Array         Canal leakage leading to runoff                                         m    
     fracGlacierCover                     Array         Fraction of glacier cover in a grid cell                                %    
     includeGlaciers                      Flag          Include glaciers                                                        bool 
-    includeOnlyGlaciersMelt              Flag          Include only glacier melt but not rain on glacier                       bool 
-    coverTypes                           Array         land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
-    runoff                               Array         Total runoff from surface, interflow and groundwater                    m    
-    sum_interflow                        Array         sum of iterflow from all land cover types                               m    
     GlacierMelt                          Array         melt from glacier                                                       m    
     GlacierRain                          Array         rain on glacier                                                         m    
+    coverTypes                           Array         land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
+    runoff_m3                            Array         back to [m]  # with and without in m3 (AI)                              --   
+    sum_directRunoff                     Array         direct runoff from surface  (sum over all land cover types)             m    
+    sum_interflow                        Array         sum of iterflow from all land cover types                               m    
     runoff_peak                          Array         peak time of runoff in seconds for each land use class                  s    
     tpeak_interflow                      Array         peak time of interflow                                                  s    
     tpeak_baseflow                       Array         peak time of baseflow                                                   s    
@@ -71,7 +82,7 @@ class runoff_concentration(object):
     gridcell_storage                     Array         storage of water due to runoff concentration                            m    
     sum_landSurfaceRunoff                Array         Runoff concentration above the soil more interflow including all landc  m    
     landSurfaceRunoff                    Array         Runoff concentration above the soil more interflow                      m    
-    directRunoffGlacier                  Array         direct runoff from glacier                                              m    
+    runoff                               Array         Total runoff from surface, interflow and groundwater                    m    
     directRunoff                         Array         Simulated surface runoff                                                m    
     interflow                            Array         Simulated flow reaching runoff instead of groundwater                   m    
     baseflow                             Array         simulated baseflow (= groundwater discharge to river)                   m    
@@ -193,9 +204,6 @@ class runoff_concentration(object):
             self.var.gridcell_storage = 0
 
 
-
-
-
     # --------------------------------------------------------------------------
 
     def dynamic(self):
@@ -288,31 +296,20 @@ class runoff_concentration(object):
         """
 
         self.var.sum_landSurfaceRunoff = globals.inZero.copy()
+        self.var.sum_directRunoff = globals.inZero.copy()
 
         for No in range(6):
-            # self.var.sum_directRunoff += self.var.fracVegCover[No] * self.var.directRunoff[No]
+            self.var.sum_directRunoff += self.var.fracVegCover[No] * self.var.directRunoff[No]
             self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflow[No]
             self.var.sum_landSurfaceRunoff += self.var.fracVegCover[No] * self.var.landSurfaceRunoff[No]
+
+        #PB 06/26: correction if glaciers - runoff should be not reduced in unit m , but later for m3
+        # runoff [m] is calculated for the total area
+        #self.var.sum_directRunoff = self.var.sum_directRunoff + (self.var.directRunoff[0] * self.var.fracGlacierCover)
+        #self.var.sum_landSurfaceRunoff = (self.var.sum_landSurfaceRunoff +
+        #                ((self.var.directRunoff[0] + self.var.interflow[0]) * self.var.fracGlacierCover))
+
         self.var.runoff = self.var.sum_landSurfaceRunoff + self.var.baseflow + self.var.leakageIntoRunoff
-
-
-        if self.var.includeGlaciers:
-            # from m3/d to m/d by dividing by the cell area
-            if self.var.includeOnlyGlaciersMelt:
-                self.var.directRunoffGlacier = np.divide(self.var.GlacierMelt,
-                                                         (self.var.cellArea * self.var.fracGlacierCover),
-                                                         out=np.zeros_like(self.var.GlacierMelt),
-                                                         where=(self.var.cellArea * self.var.fracGlacierCover) != 0)
-                self.var.GlacierMelt = self.var.GlacierMelt / self.var.cellArea
-                self.var.runoff += self.var.GlacierMelt
-            else:
-                self.var.directRunoffGlacier = np.divide(self.var.GlacierMelt + self.var.GlacierRain, 
-                                                         (self.var.cellArea * self.var.fracGlacierCover), 
-                                                         out=np.zeros_like(self.var.GlacierMelt), 
-                                                         where=(self.var.cellArea * self.var.fracGlacierCover) != 0)
-                self.var.GlacierMelt = self.var.GlacierMelt / self.var.cellArea
-                self.var.GlacierRain = self.var.GlacierRain / self.var.cellArea
-                self.var.runoff += self.var.GlacierMelt + self.var.GlacierRain
 
         # print(self.var.runoff)
         if checkOption('includeRunoffConcentration'):
@@ -330,11 +327,6 @@ class runoff_concentration(object):
                 lib2.runoffConc(self.var.runoff_conc, self.var.runoff_peak[No], self.var.fracVegCover[No],
                                 self.var.directRunoff[No], self.var.maxtime_runoff_conc, maskinfo['mapC'][0])
 
-            # glacier melt time of concentration
-            if self.var.includeGlaciers:
-                lib2.runoffConc(self.var.runoff_conc, self.var.tpeak_glaciers, self.var.fracGlacierCover, 
-                                self.var.directRunoffGlacier.astype('float64'), self.var.maxtime_runoff_conc, 
-                                maskinfo['mapC'][0])
             # interflow time of concentration
             # self.var.runoff_conc = runoff_concentration(self.var.maxtime_runoff_conc, self.var.tpeak_interflow, 
             #                                           1.0, self.var.sum_interflow, self.var.runoff_conc)
@@ -353,5 +345,13 @@ class runoff_concentration(object):
 
             # storage in each grid cell. Total runoff - runoff for the timestep
             self.var.gridcell_storage = self.var.gridcell_storage - self.var.runoff_conc[0] + self.var.runoff
-            sumnewrunoff = self.var.runoff.copy()
+            #sumnewrunoff = self.var.runoff.copy()
             self.var.runoff = self.var.runoff_conc[0].copy()
+        
+        # multiply by cellarea -> from m to m3
+        self.var.runoff_m3 = self.var.runoff * self.var.cellArea
+        
+        # glacier melt and rain as m3
+        if self.var.includeGlaciers:
+            self.var.runoff_m3 = self.var.runoff_m3 * (1-self.var.fracGlacierCover) + self.var.GlacierMelt + self.var.GlacierRain
+        ii=1

@@ -80,6 +80,15 @@ class groundwater_modflow:
     indices : dict
         Index arrays for CWatM-MODFLOW conversion
 
+
+
+
+
+
+
+
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -90,7 +99,7 @@ class groundwater_modflow:
     gwdepth_adjuster                     Array         Groundwater depth adjuster                                              m    
     baseflow                             Array         simulated baseflow (= groundwater discharge to river)                   m    
     capillar                             Array         Flow from groundwater to the third CWATM soil layer. Used with MODFLOW  m    
-    capriseindex                         Array                                                                                 --   
+    capriseindex                         Array         computing saturated fraction of each CWatM cells (where water table >=  --   
     soildepth12                          Array         Total thickness of layer 2 and 3                                        m    
     leakageriver_factor                  Array                                                                                 --   
     leakagelake_factor                   Array                                                                                 --   
@@ -103,28 +112,28 @@ class groundwater_modflow:
     Ndays_steady                         Flag          Number of steady state run before the transient simulation              bool 
     channel_ratio                        Array                                                                                 --   
     modflowtotalSoilThickness            Array         Array (nrows, ncol) used to compute water table depth in post-processi  m    
-    load_init_water_table                Flag                                                                                  --   
+    load_init_water_table                Flag          defining the initial water table map (it can be a hydraulic head map p  --   
     GW_pumping                           Flag          Input, True if Groundwater_pumping=True                                 bool 
     use_complex_solver_for_modflow       Flag                                                                                  --   
     use_super_complex_solver_for_modflo  Flag                                                                                  --   
     availableGWStorageFraction           Array                                                                                 --   
     wells_index                          Array                                                                                 --   
     depth                                Array                                                                                 --   
-    sumed_sum_gwRecharge                 Array                                                                                 --   
+    sumed_sum_gwRecharge                 Array         setting sumed up recharge again to 7 (or 14 or 30...), will be sumed u  --   
     modflow_compteur                     Number        Counts each day relatively to the chosen ModFlow timestep, allow to ru  day  
-    modflow_watertable                   Array                                                                                 --   
+    modflow_watertable                   Array         water table will be also saved at modflow resolution (AI)               --   
     writeerror                           Flag                                                                                  --   
-    modflowdiscrepancy                   Array                                                                                 --   
-    groundwater_storage_top_layer        Array                                                                                 --   
+    modflowdiscrepancy                   Array         saving modflow discrepancy, it will be written a text file at the end   --   
+    groundwater_storage_top_layer        Array         then, we got the initial groundwater storage map at ModFlow resolution  --   
     groundwater_storage_available        Array         Groundwater storage. Used with MODFLOW.                                 m    
     gwstorage_full                       Number        Groundwater storage at full capacity                                    m    
-    permeability                         Array                                                                                 --   
+    permeability                         Array         permeability need to be translated into CWatM map to compute leakage f  --   
     modfPumpingM_actual                  Array         Actual groundwater pumping. Used with MODFLOW.                          m    
     gwdepth_difference_sim_obs           Array         Difference between simulated and observed groundwater table             m    
     modflow_head_adjusted                Array                                                                                 --   
     cellArea                             Array         Area of cell                                                            m2   
     waterdemandFixed                     Array                                                                                 --   
-    modfPumpingM                         Array                                                                                 --   
+    modfPumpingM                         Array         modfPumpingM is initialized every modflow_timestep in groundwater_modf  --   
     ===================================  ==========    ======================================================================  =====
 
     """

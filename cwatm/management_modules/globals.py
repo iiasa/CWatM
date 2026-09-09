@@ -98,6 +98,7 @@ def globalclear():
     modelSteps.clear()
     xmlstring.clear()
     geotrans.clear()
+    projection.clear()
     versioning.clear()
     timestepInit.clear()
     binding.clear()
@@ -160,16 +161,6 @@ def calibclear():
         Flags[i] = False
     settingsfile.clear()
 
-    # maskinfo.clear()
-    # modelSteps.clear()
-    # xmlstring.clear()
-    # geotrans.clear()
-    # versioning.clear()
-    # timestepInit.clear()
-    # binding.clear()
-    # option.clear()
-    # metaNetcdfVar.clear()
-
     inputcounter.clear()
     flagmeteo.clear()
     meteofiles.clear()
@@ -215,12 +206,13 @@ def calibclear():
 global settingsfile
 settingsfile = []
 
-global maskinfo, zeromap, modelSteps, xmlstring, geotrans
+global maskinfo, zeromap, modelSteps, xmlstring, geotrans,projection
 # noinspection PyRedeclaration
 maskinfo = {}
 modelSteps = []
 xmlstring = []
 geotrans = []
+projection = {}
 
 global binding, option, FlagName, Flags, ReportSteps, FilterSteps, EnsMembers, outputDir
 global MMaskMap, maskmapAttr, bigmapAttr, cutmap, cutmapGlobal, cutmapFine, cutmapVfine, metadataNCDF

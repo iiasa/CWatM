@@ -1,0 +1,6 @@
+Timeseries,settingsfile: \\pdrive\share\link\burek.pdrv\watmodel\CWATM\Regions\Danube_1min_SP\Tutorial\Exercise10_output\settings_morava_1min_exercise101.ini,Runnning date: Fri Dec  6 11:24:29 2024,CWATM: P:\watmodel\CWATM\Regions\Danube_1min_SP\CWatM_model_developversion\cwatm\run_cwatm.py last change:2024/11/27 15:22
+xloc,17.2920,17.5000
+yloc,48.9250,49.3000
+Date,G1,G2
+01/01/2010,2.40602e+08,   41860.3
+01/02/2010,3.31335e+08,    242920

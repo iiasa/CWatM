@@ -21,7 +21,7 @@ class lakes_res_small(object):
     Small lakes and reservoirs module for water bodies with limited catchment area.
     
     Handles water retention and outflow calculations for small water bodies
-    (catchment area < 5000 kmÂ² or lake area < 100 kmÂ²) using the modified Puls
+    (catchment area < 5000 kmÃ‚Â² or lake area < 100 kmÃ‚Â²) using the modified Puls
     approach. Processes distributed small water bodies within grid cells rather
     than individual large water bodies.
     
@@ -39,9 +39,14 @@ class lakes_res_small(object):
     uses the same modified Puls method as large water bodies but applies it
     to aggregated small water body characteristics.
     
-    References
-    ----------
-    LISFLOOD manual Annex 3 (Burek et al. 2013)
+
+
+
+
+
+
+
+
 
     **Global variables**
     ===================================  ==========    ======================================================================  =====
@@ -50,12 +55,12 @@ class lakes_res_small(object):
     load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
     smallpart                            Array         fraction of the cellarea which is a small lake                          --   
     smalllakeArea                        Array         Lake area of small lakes (not part of the main river network)           m2   
-    smalllakeDis0                        Array         Starting discharge of small lakes                                       m3/s 
+    smalllakeDis0                        Array         Starting discharge of small lakes                                       m3 s-
     smalllakeA                           Array         Lake A facor of small lakes                                             --   
     smalllakeFactor                      Array         Internal calculation value for modified Puls approach for small lakes   --   
     smalllakeFactorSqr                   Array         Internal calculation value for modified Puls approach for small lakes   --   
-    smalllakeInflowOld                   Array         Inflow of the previous day                                              m3/s 
-    smalllakeOutflow                     Array         Outflow from small alkes                                                m3/s 
+    smalllakeInflowOld                   Array         Inflow of the previous day                                              m3 s-
+    smalllakeOutflow                     Array         Outflow from small alkes                                                m3 s-
     smalllakeLevel                       Array         Lake level for small lakes                                              m    
     minsmalllakeVolumeM3                 Array         Storage volume of small lakes                                           m3   
     smallLakedaycorrect                  Array         a water balance correction term for a day because Modified Puld approa  m    
@@ -64,12 +69,12 @@ class lakes_res_small(object):
     smallLakeout                         Array         small lake outflow but in [m]                                           m    
     smallrunoffDiff                      Number        Not used                                                                --   
     DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
-    InvDtSec                             Array         inversere of seconds per timestep (default 1/86400)                     1/s  
+    InvDtSec                             Array         inversere of seconds per timestep (default 1/86400)                     1 s-1
     EWRef                                Array         potential evaporation rate from water surface                           m    
     lakeEvaFactor                        Array         a factor which increases evaporation from lake because of wind          --   
-    runoff                               Array         Total runoff from surface, interflow and groundwater                    m    
+    runoff_m3                            Array         back to [m]  # with and without in m3 (AI)                              --   
     cellArea                             Array         Area of cell                                                            m2   
-    smalllakeVolumeM3                    Array                                                                                 --   
+    smalllakeVolumeM3                    Array         act_smallLakesres is substracted from small lakes storage (AI)          --   
     smalllakeStorage                     Array                                                                                 --   
     ===================================  ==========    ======================================================================  =====
 
@@ -211,12 +216,12 @@ class lakes_res_small(object):
             Parameters
             ----------
             inflow : numpy.ndarray
-                Inflow to small lakes [mÂ³] per time step
+                Inflow to small lakes [mÃ‚Â³] per time step
                 
             Returns
             -------
             numpy.ndarray
-                Lake outflow [mÂ³] per time step
+                Lake outflow [mÃ‚Â³] per time step
                 
             Notes
             -----
@@ -295,8 +300,6 @@ class lakes_res_small(object):
         # Small lake and reservoirs
 
         if checkOption('includeWaterBodies') and returnBool('useSmallLakes'):
-            if checkOption('calcWaterBalance'):
-                runoffold = self.var.runoff.copy()
 
             # check years
             if dateVar['newStart'] or dateVar['newYear']:
@@ -324,12 +327,10 @@ class lakes_res_small(object):
             # ----------
 
             # runoff to the lake as a part of the cell basin
-            inflow = self.var.smallpart * self.var.runoff * self.var.cellArea  # inflow in m3
-            self.var.smallLakeout = dynamic_smalllakes(inflow) / self.var.cellArea  # back to [m]
+            inflow = self.var.smallpart * self.var.runoff_m3  # inflow in m3
+            self.var.smallLakeout = dynamic_smalllakes(inflow) # as [m3]
             # back to [m]  # with and without in m3
-            self.var.runoff = self.var.smallLakeout + (1 - self.var.smallpart) * self.var.runoff
-
-
+            self.var.runoff_m3 = self.var.smallLakeout + (1 - self.var.smallpart) * self.var.runoff_m3
 
             return
 

@@ -32,18 +32,22 @@ class ExtParser(configparser.ConfigParser):
     
     Attributes
     ----------
+    
     cur_depth : int
-        Current recursion depth for nested placeholder replacements.
-        Used to prevent infinite recursion during variable substitution.
+    Current recursion depth for nested placeholder replacements.
+    Used to prevent infinite recursion during variable substitution.
     
     Notes
     -----
+    
     Placeholder syntax:
+    
     - Cross-section: $(SECTION:OPTION) - references option in different section
     - Same-section: $(OPTION) - references option in current section
     
     The parser respects MAX_INTERPOLATION_DEPTH from configparser to prevent
     infinite recursion in circular references.
+    
     """
 
     # implementing extended interpolation

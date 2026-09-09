@@ -55,6 +55,15 @@ class waterdemand_wastewater(object):
     Treatment levels: 1=primary, 2=secondary, 3=tertiary
     Management options: -1=discharge only, 0=send to reservoir, 0-1=export fraction
 
+
+
+
+
+
+
+
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -69,18 +78,18 @@ class waterdemand_wastewater(object):
     resVolume                            Array         Reservoir volume                                                        m3   
     EWRef                                Array         potential evaporation rate from water surface                           m    
     wwtUrbanLeakage                      Array                                                                                 --   
-    wwtColArea                           Array                                                                                 --   
-    urbanleak                            Array                                                                                 --   
-    wwtID                                Array                                                                                 --   
+    wwtColArea                           Array         Setup wastewater treatment facilities load collection area (AI)         --   
+    urbanleak                            Array         share to collect urban leakage (AI)                                     --   
+    wwtID                                Array         Setup wastewater treatment facilities load inputs (AI)                  --   
     compress_WWT                         Array                                                                                 --   
     decompress_WWT                       Array                                                                                 --   
     wwtC                                 Array                                                                                 --   
     act_bigLakeResAbst_UNRestricted      Array                                                                                 --   
     act_bigLakeResAbst_Restricted        Array                                                                                 --   
-    wwtOverflow                          Array                                                                                 --   
-    wwtStorage                           Array                                                                                 --   
-    wwtColShare                          Array                                                                                 --   
-    wwtSewerCollectedC                   Array                                                                                 --   
+    wwtOverflow                          Array         create outlet for overflow (AI)                                         --   
+    wwtStorage                           Array         create storage variable (AI)                                            --   
+    wwtColShare                          Array         load collection share - default to 100% collected water (AI)            --   
+    wwtSewerCollectedC                   Array         Create variables: wwtSewerCollection = wwtSewerCollectedC + wwtSewerOv  --   
     wwtSewerTreatedC                     Array                                                                                 --   
     wwtExportedTreatedC                  Array                                                                                 --   
     wwtSewerToTreatmentC                 Array                                                                                 --   
@@ -88,11 +97,11 @@ class waterdemand_wastewater(object):
     wwtSewerResOverflowC                 Array                                                                                 --   
     wwtTreatedOverflowC                  Array                                                                                 --   
     wwtSentToResC                        Array                                                                                 --   
-    wwtSewerCollection                   Array                                                                                 --   
-    wwtOverflowOut                       Array                                                                                 --   
+    wwtSewerCollection                   Array         Calculate total sewer collection (AI)                                   --   
+    wwtOverflowOut                       Array         Total overflow output map [m3 to M] (AI)                                --   
     wwtEvapC                             Array                                                                                 --   
-    wwtSewerCollected                    Array                                                                                 --   
-    wwtExportedCollected                 Array                                                                                 --   
+    wwtSewerCollected                    Array         Initiates bigmaps (AI)                                                  --   
+    wwtExportedCollected                 Array         document collection for export (AI)                                     --   
     wwtSewerTreated                      Array                                                                                 --   
     wwtExportedTreated                   Array                                                                                 --   
     wwtSewerToTreatment                  Array                                                                                 --   
@@ -102,32 +111,32 @@ class waterdemand_wastewater(object):
     wwtSewerResOverflow                  Array                                                                                 --   
     wwtTreatedOverflow                   Array                                                                                 --   
     wwtEvap                              Array                                                                                 --   
-    wwtInTreatment                       Array                                                                                 --   
+    wwtInTreatment                       Array         get relevant reservoirs ids and their fill status. create an output st  --   
     wwtIdsOrdered                        List                                                                                  --   
     wwtVolC                              Array                                                                                 --   
     wwtTimeC                             Array                                                                                 --   
     toResManageC                         Array                                                                                 --   
     minHRTC                              Array                                                                                 --   
-    maskDomesticCollection               Array                                                                                 --   
+    maskDomesticCollection               Array         initiate sector collection masks (AI)                                   --   
     maskIndustryCollection               Array                                                                                 --   
-    extensive                            Flag                                                                                  --   
-    noPools_extensive                    Array                                                                                 --   
-    poolVolume_extensive                 Array                                                                                 --   
-    wwtSurfaceAreaC                      Array                                                                                 --   
+    extensive                            Flag          Extensive WWTP #### Identify extensive systems - if timeLag >= 2 (AI)   --   
+    noPools_extensive                    Array         number of days to fill a treatement pool in extensive systems - defaul  --   
+    poolVolume_extensive                 Array         Volume for an extnesive treatement pool in extensive systems (AI)       --   
+    wwtSurfaceAreaC                      Array         Calculate surface area of treatment pools for evaporation (AI)          --   
     extensive_counter                    Array                                                                                 --   
     wwtResIDTemp_compress                Array                                                                                 --   
-    wwtResIDC                            Array                                                                                 --   
+    wwtResIDC                            Array         do not alow reservoir use if their type ids is zero (e.g., wetland) or  --   
     wwtResTypC                           Array                                                                                 --   
     wwtResYearC                          Array                                                                                 --   
     wwtSentToResC_LR                     Array                                                                                 --   
-    wwtOverflowOutM                      Array                                                                                 --   
+    wwtOverflowOutM                      Array         convert OverflowOut from m3 to m (AI)                                   --   
     cellArea                             Array         Area of cell                                                            m2   
     includeWastewater                    Flag                                                                                  --   
     waterBodyTyp_unchanged               Array                                                                                 --   
     lakeVolumeM3C                        Array         compressed map of lake volume                                           m3   
     lakeStorageC                         Array                                                                                 --   
-    reservoirStorageM3C                  Array                                                                                 --   
-    lakeResStorageC                      Array                                                                                 --   
+    reservoirStorageM3C                  Array         Initial reservoir fill (fraction of total storage, [-]) (AI)            --   
+    lakeResStorageC                      Array         and from the combined onenpfor waterbalance issues (AI)                 --   
     lakeResStorage                       Array                                                                                 --   
     wwtEffluentsGenerated                Array                                                                                 --   
     wwtSewerCollection_domestic          Array                                                                                 --   
@@ -243,7 +252,7 @@ class waterdemand_wastewater(object):
         Notes
         -----
         Treatment plant definitions loaded from Excel include:
-        - Daily treatment capacity (Volume in mÂ³/day)
+        - Daily treatment capacity (Volume in mÃ‚Â³/day)
         - Treatment duration (Days, typically 1-3)
         - Treatment level (1=primary, 2=secondary, 3=tertiary)
         - Export share (fraction of outflows exported from basin)
@@ -258,11 +267,11 @@ class waterdemand_wastewater(object):
         (default: 3 pools) to simulate realistic treatment processes and timing.
         
         Sets up the following annual arrays:
-        - wwtVolC : Daily treatment volumes [mÂ³/day]
+        - wwtVolC : Daily treatment volumes [mÃ‚Â³/day]
         - wwtTimeC : Treatment duration [days]
         - toResManageC : Reservoir management strategy [-1 to 1]
         - minHRTC : Minimum hydraulic retention times [days]
-        - wwtSurfaceAreaC : Treatment facility surface areas [mÂ²]
+        - wwtSurfaceAreaC : Treatment facility surface areas [mÃ‚Â²]
         
         Collection masks are updated for domestic and industrial wastewater
         sources based on facility-specific configuration flags.

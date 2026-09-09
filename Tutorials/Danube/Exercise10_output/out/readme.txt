@@ -1,0 +1,1 @@
+This is the folder where output from exercise 10 will be stored.

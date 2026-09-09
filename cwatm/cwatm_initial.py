@@ -195,11 +195,21 @@ class CWATModel_ini(DynamicModel):
     before meteorological reading to check for steady-state conditions.
     MODFLOW coupling is activated when 'modflow_coupling' is True in settings.
 
+
+
+
+
+
+
+
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
     modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
+    stopaftersnow                        Flag          stop run after snow calcualtion -> for snow calibration (AI)            --   
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -276,17 +286,16 @@ class CWATModel_ini(DynamicModel):
         self.routing_kinematic_module = routing_kinematic(self)
         self.lakes_reservoirs_module = lakes_reservoirs(self)
         self.waterquality1 = waterquality1(self)
-
-
         # ----------------------------------------
 
         # reading of the metainformation of variables to put into output netcdfs
         metaNetCDF()
 
         # test if ModFlow coupling is used as defined in settings file
-        self.var.modflow = False
-        if "modflow_coupling" in option:
-            self.var.modflow = checkOption('modflow_coupling')
+        self.var.modflow = checkOption('modflow_coupling',True)
+
+        # stop run after snow calcualtion -> for snow calibration
+        self.var.stopaftersnow = checkOption('stopaftersnow',True)
 
         # if GUI calls to check the maskmap - using datevar for transporting
         if Flags['maskmap']:
@@ -299,14 +308,13 @@ class CWATModel_ini(DynamicModel):
 
         # run intial misc to get all global variables
         self.misc_module.initial()
+
         self.init_module.initial()
 
         self.readmeteo_module.initial()
         self.inflow_module.initial()
 
         self.evaporationPot_module.initial()
-
-        self.snowfrost_module.initial()
         self.soil_module.initial()
 
         # groundwater before meteo, bc it checks steady state
@@ -315,22 +323,24 @@ class CWATModel_ini(DynamicModel):
         else:
             self.groundwater_module.initial()
 
+        # routing must be before output and snow behind
+        self.routing_kinematic_module.initial()
+        self.output_module.initial()
+        self.snowfrost_module.initial()
+
         self.landcoverType_module.initial()
         self.evaporation_module.initial()
 
         self.runoff_concentration_module.initial()
         self.lakes_res_small_module.initial()
 
-        self.routing_kinematic_module.initial()
         if checkOption('includeWaterBodies'):
             self.lakes_reservoirs_module.initWaterbodies()
             self.lakes_reservoirs_module.initial_lakes()
             self.lakes_reservoirs_module.initial_reservoirs()
-
         self.waterdemand_module.initial()
-
-        self.output_module.initial()
         self.environflow_module.initial()
         self.waterquality1.initial()
+
 
 

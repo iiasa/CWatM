@@ -21,6 +21,7 @@ class CWATModel(CWATModel_ini, CWATModel_dyn):
     components to provide a complete hydrological modeling framework.
 
     The model handles:
+    
     - Initial setup and parameter configuration
     - Temporal simulation loops
     - Integration of all hydrological processes
@@ -28,14 +29,15 @@ class CWATModel(CWATModel_ini, CWATModel_dyn):
 
     Attributes
     ----------
+    
     Inherits all attributes from CWATModel_ini and CWATModel_dyn including:
-    - var : object
-        Model variables container
-    - model : object
-        Model configuration and state
+    
+    - var : object: Model variables container
+    - model : object: Model configuration and state
 
     Notes
     -----
+    
     The initial part handles all non-temporal initialization procedures including
     reading input data, setting up model parameters, and initializing state variables.
     The dynamic part manages the temporal simulation loop, executing hydrological

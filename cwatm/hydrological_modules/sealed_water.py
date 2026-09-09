@@ -38,7 +38,16 @@ class sealed_water(object):
     
     Evaporation rates differ by surface type:
     - Water surfaces: Full reference evapotranspiration rate
-    - Sealed surfaces: Reduced rate (0.2 Ã— reference) for ponded water
+    - Sealed surfaces: Reduced rate (0.2 Ãƒâ€” reference) for ponded water
+
+
+
+
+
+
+
+
+
 
     **Global variables**
     ===================================  ==========    ======================================================================  =====
@@ -85,8 +94,8 @@ class sealed_water(object):
         Notes
         -----
         Processing logic:
-        - Sealed surfaces (No=4): Limited evaporation (0.2 Ã— EWRef), remainder to runoff
-        - Open water (No=5): Full evaporation rate (1.0 Ã— EWRef), remainder to runoff
+        - Sealed surfaces (No=4): Limited evaporation (0.2 Ãƒâ€” EWRef), remainder to runoff
+        - Open water (No=5): Full evaporation rate (1.0 Ãƒâ€” EWRef), remainder to runoff
         - ModFlow integration: Includes capillary rise contributions to runoff
         - Updates actual evapotranspiration and direct runoff arrays
         
@@ -115,6 +124,4 @@ class sealed_water(object):
 
             # Open water evaporation will be accounted for in river/lake water balance calculations
             self.var.actualET[No] = self.var.actualET[No] + self.var.openWaterEvap[No]
-
-
 

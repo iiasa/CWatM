@@ -79,6 +79,15 @@ class water_demand:
     - Desalination operations for augmenting water supply
     - Complex water allocation algorithms with priority-based distribution
 
+
+
+
+
+
+
+
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -108,15 +117,15 @@ class water_demand:
     lakeResStorage_release_ratioC        Array         daily release ration for reservoirs - compressed                        --   
     M3toM                                Array         Coefficient to change units                                             --   
     MtoM3                                Array         Coefficient to change units                                             --   
-    InvDtSec                             Array         inversere of seconds per timestep (default 1/86400)                     1/s  
-    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1/m2 
+    InvDtSec                             Array         inversere of seconds per timestep (default 1/86400)                     1 s-1
+    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
     GW_pumping                           Flag          Input, True if Groundwater_pumping=True                                 bool 
     availableGWStorageFraction           Array                                                                                 --   
     groundwater_storage_available        Array         Groundwater storage. Used with MODFLOW.                                 m    
     gwstorage_full                       Number        Groundwater storage at full capacity                                    m    
-    wwtColArea                           Array                                                                                 --   
-    wwtSewerCollection                   Array                                                                                 --   
-    wwtOverflowOutM                      Array                                                                                 --   
+    wwtColArea                           Array         Setup wastewater treatment facilities load collection area (AI)         --   
+    wwtSewerCollection                   Array         Calculate total sewer collection (AI)                                   --   
+    wwtOverflowOutM                      Array         convert OverflowOut from m3 to m (AI)                                   --   
     fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     adminSegments                        Array         Domestic agents                                                         Int  
     cellArea                             Array         Area of cell                                                            m2   
@@ -125,16 +134,16 @@ class water_demand:
     waterBodyTyp_unchanged               Array                                                                                 --   
     lakeVolumeM3C                        Array         compressed map of lake volume                                           m3   
     lakeStorageC                         Array                                                                                 --   
-    reservoirStorageM3C                  Array                                                                                 --   
-    lakeResStorageC                      Array                                                                                 --   
+    reservoirStorageM3C                  Array         Initial reservoir fill (fraction of total storage, [-]) (AI)            --   
+    lakeResStorageC                      Array         and from the combined onenpfor waterbalance issues (AI)                 --   
     lakeResStorage                       Array                                                                                 --   
     reservoir_supply                     Array                                                                                 --   
     waterBodyTypCTemp                    Array         waterbody temp e.g. lake, reservoir, wetlands -> compressed             --   
-    smalllakeVolumeM3                    Array                                                                                 --   
+    smalllakeVolumeM3                    Array         act_smallLakesres is substracted from small lakes storage (AI)          --   
     smalllakeStorage                     Array                                                                                 --   
     act_SurfaceWaterAbstract             Array         Surface water abstractions                                              m    
-    readAvlChannelStorageM               Array                                                                                 --   
-    leakageCanals_M                      Array                                                                                 --   
+    readAvlChannelStorageM               Array         coversersion m3 -> m # minus environmental flow (AI)                    --   
+    leakageCanals_M                      Array         Without this, npareamaximum uses the historical maximum (AI)            --   
     includeWastewaterPits                Flag                                                                                  --   
     pitLatrinToGW                        Array                                                                                 --   
     addtoevapotrans                      Array         Irrigation application loss to evaporation                              m    
@@ -148,12 +157,12 @@ class water_demand:
     act_nonIrrWithdrawal                 Array         Non-irrigation withdrawals                                              m    
     act_irrWithdrawal                    Array         Irrigation withdrawals                                                  m    
     waterdemandFixed                     Array                                                                                 --   
-    modfPumpingM                         Array                                                                                 --   
+    modfPumpingM                         Array         modfPumpingM is initialized every modflow_timestep in groundwater_modf  --   
     activate_domestic_agents             Flag          Input, True if activate_domestic_agents = True                          bool 
     domesticDemand                       Array         Domestic demand                                                         m    
     swAbstractionFraction_domestic       Array         With domestic agents, derived from surface water over total water requ  %    
-    demand_unit                          Flag                                                                                  --   
-    sectorSourceAbstractionFractions     Array                                                                                 --   
+    demand_unit                          Flag          non-irrigation input maps have for each month or year the unit m/day (  --   
+    sectorSourceAbstractionFractions     Array         Sector-,source-abstraction fractions facilitate designating the specif  --   
     swAbstractionFraction_Channel_Domes  Array         Input, Fraction of Domestic demands to be satisfied with Channel        %    
     swAbstractionFraction_Lift_Domestic  Array         Input, Fraction of Domestic demands to be satisfied with Lift           %    
     swAbstractionFraction_Res_Domestic   Array         Input, Fraction of Domestic demands to be satisfied with Reservoirs     %    
@@ -167,9 +176,9 @@ class water_demand:
     unmetDemandNonpaddy                  Array         Unmet nonpaddy demand                                                   m    
     unmetDemand                          Array         Unmet groundwater demand to determine potential fossil groundwaterwate  m    
     irrDemand                            Array         Cover-specific Irrigation demand                                        m    
-    irrNonpaddyDemand                    Array                                                                                 --   
+    irrNonpaddyDemand                    Array         Sum up irrigation water demand with area fraction (AI)                  --   
     totalIrrDemand                       Array         Irrigation demand                                                       m    
-    livestockDemand                      Array                                                                                 --   
+    livestockDemand                      Array         avoid small values (less than 1 m3): (AI)                               --   
     pot_livestockConsumption             Array         Potential livestock consumption                                         m    
     liv_efficiency                       Number        Livestock water use efficiency                                          --   
     wwtEffluentsGenerated                Array                                                                                 --   
@@ -207,13 +216,13 @@ class water_demand:
     using_reservoir_command_areas        Flag          True if using_reservoir_command_areas = True, False otherwise           bool 
     load_command_areas                   Flag                                                                                  --   
     load_command_areas_wwt               Flag                                                                                  --   
-    reservoir_command_areas              Array                                                                                 --   
-    reservoir_command_areas_wwt          Array                                                                                 --   
+    reservoir_command_areas              Array         Lakes/restricted reservoirs within command areas are removed from the   --   
+    reservoir_command_areas_wwt          Array         Lakes and all non-restricted reservoirs within command areas are remov  --   
     Water_conveyance_efficiency          Array                                                                                 --   
     segmentArea                          Array                                                                                 --   
     segmentArea_wwt                      Array                                                                                 --   
-    canals                               Array                                                                                 --   
-    canals_wwt                           Array                                                                                 --   
+    canals                               Array         When there are no set canals, the entire command area experiences leak  --   
+    canals_wwt                           Array         canals for wwt reclaimed water (AI)                                     --   
     canalsArea                           Array                                                                                 --   
     canalsAreaC                          Array                                                                                 --   
     canalsArea_wwt                       Array                                                                                 --   
@@ -267,7 +276,7 @@ class water_demand:
     GW_Irrigation                        Array         Groundwater withdrawals for Irrigation                                  m    
     abstractedLakeReservoirM3            Array         Abstractions from lakes and reservoirs at the location of the waterbod  m3   
     leakage_wwtC_daily                   Array                                                                                 --   
-    act_bigLakeResAbst_wwt               Array                                                                                 --   
+    act_bigLakeResAbst_wwt               Array         abstraction from big lakes is partioned to the users around the lake (  --   
     act_DesalWaterAbstractM              Array                                                                                 --   
     act_totalIrrConsumption              Array         Total irrigation consumption                                            m    
     act_totalWaterConsumption            Array         Total water consumption                                                 m    
@@ -276,12 +285,12 @@ class water_demand:
     act_livConsumption                   Array         Livestock consumptions                                                  m    
     returnflowIrr                        Array                                                                                 --   
     returnflowNonIrr                     Array                                                                                 --   
-    nonIrrReturnFlowFraction             Array                                                                                 --   
+    nonIrrReturnFlowFraction             Array         fraction of return flow from domestic and industrial water demand (AI)  --   
     nonIrruse                            Array                                                                                 --   
     act_indDemand                        Array         Industrial demand                                                       m    
     act_domDemand                        Array         Domestic demand                                                         m    
     act_livDemand                        Array         Livestock demands                                                       m    
-    nonIrrDemand                         Array                                                                                 --   
+    nonIrrDemand                         Array         total (potential) non irrigation water demand (AI)                      --   
     totalWaterDemand                     Array         Irrigation and non-irrigation demand                                    m    
     act_totalWaterWithdrawal             Array         Total water withdrawals                                                 m    
     act_indWithdrawal                    Array         Industrial withdrawal                                                   m    
@@ -295,7 +304,7 @@ class water_demand:
     act_irrPaddyDemand                   Array         paddy irrigation demand                                                 m    
     act_irrNonpaddyDemand                Array         non-paddy irrigation demand                                             m    
     pot_nonIrrConsumption                Array                                                                                 --   
-    act_DesalWaterAbstractM3             Array                                                                                 --   
+    act_DesalWaterAbstractM3             Array         Desalination is not allowed without sectorSourceAbstractionFractions (  --   
     AvlDesalM3                           Array                                                                                 --   
     act_channelAbst                      Array         Abstractions to satisfy demands from channels                           m    
     act_channelAbstract_Lift             Array         Abstractions from the channel in lift areas at the location of the cha  m    
@@ -321,7 +330,7 @@ class water_demand:
     PumpingM3_daily                      Array                                                                                 --   
     unmet_lostirr                        Array         Fossil water for irrigation that disappears instead of becoming return  m    
     unmet_lostNonirr                     Array         Fossil water for non-irrigation that disappears instead of becoming re  m    
-    wwtEffluentsGenerated_domestic       Array                                                                                 --   
+    wwtEffluentsGenerated_domestic       Array         create domestic, industry returnFlows Simple implementation - not prec  --   
     wwtEffluentsGenerated_industry       Array                                                                                 --   
     wwtSewerCollectedBySoruce            Array                                                                                 --   
     waterabstraction                     Array                                                                                 --   
@@ -501,8 +510,9 @@ class water_demand:
         self.var.unmetDemandNonpaddy = self.var.load_initial('unmetDemandNonpaddy', default=globals.inZero.copy())
         # in case fossil water abstraction is allowed this will be filled
         self.var.unmetDemand = globals.inZero.copy()
-        self.var.unmetDemand_runningSum = self.var.load_initial('unmetDemand_runningSum',
-                                                                  default=globals.inZero.copy())
+        self.var.unmetDemand_runningSum = self.var.load_initial('unmetDemand_runningSum', default=globals.inZero.copy())
+        self.var.sectorSourceAbstractionFractions = False
+
 
         # =======================================================
 
@@ -528,7 +538,6 @@ class water_demand:
                     self.var.waterdemandFixed = True
                     self.var.waterdemandFixedYear = loadmap('waterdemandFixedYear')
 
-            self.var.sectorSourceAbstractionFractions = False
             # Sector-,source-abstraction fractions facilitate designating the specific source for the specific sector
             # Sources: River, Lake, Reservoir, Groundwater
             # Sectors: Domestic, Industry, Livestock, Irrigation
@@ -772,13 +781,20 @@ class water_demand:
                 if not(os.path.isfile(filename)):
                     filename = os.path.splitext(cbinding('Ldd'))[0] + '.map'
                     
-                nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
+                #nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
+                nf2 =  rasterio.open(filename)
                 cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
 
-            arr = np.kron(np.arange(rows // inner * cols // inner).reshape((rows // inner, cols // inner)),
-                          np.ones((inner, inner)))
+            # make allocation as big that it can be divided through  inner
+            # after that allocation zone is fitted again to mapsize
+            cols1 = (cols//inner + 1) * inner
+            rows1 = (rows//inner + 1) * inner
+
+            #arr = np.kron(np.arange(rows // inner * cols // inner).reshape((rows // inner, cols // inner)), np.ones((inner, inner)))
+            arr = np.kron(np.arange(rows1 // inner * cols1 // inner).reshape((rows1 // inner, cols1 // inner)), np.ones((inner, inner)))
+
             arr = arr[cut2:cut3, cut0:cut1].astype(int)
-            self.var.allocation_zone = compressArray(arr)
+            self.var.allocation_zone = compressArray(arr, name="array")
 
             self.var.modflowPumping = globals.inZero.copy()
             self.var.leakage = globals.inZero.copy()
@@ -965,6 +981,8 @@ class water_demand:
 
             self.var.act_nonIrrConsumption = globals.inZero.copy()
 
+
+
     def commandAreaOperation(self, remainNeed, command_areas, maxFracForIrrigation,
                              water_conveyance_efficiency, wwt_only=False):
         """
@@ -1013,13 +1031,13 @@ class water_demand:
                 Compressed abstraction factors for reservoir cells [dimensionless].
                 Fraction of available reservoir storage to be abstracted.
             act_bigLakeResAbst_alloc : ndarray
-                Actual water abstraction allocated per command area [mÂ³].
+                Actual water abstraction allocated per command area [mÃ‚Â³].
                 Total volume to be abstracted considering all constraints.
             demand_Segment : ndarray
-                Total water demand per command area [mÂ³].
+                Total water demand per command area [mÃ‚Â³].
                 Aggregated demand across all cells within each command area.
             resStorageTotal_allocC : ndarray
-                Compressed total reservoir storage per command area [mÂ³].
+                Compressed total reservoir storage per command area [mÃ‚Â³].
                 Storage of the dominant reservoir serving each command area.
                 
         Notes

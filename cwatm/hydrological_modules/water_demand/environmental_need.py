@@ -20,13 +20,23 @@ class waterdemand_environmental_need:
     It supports environmental flow standards and habitat preservation water needs based on
     precalculated maps. The module handles monthly environmental flow data and converts
     flow rates to water depths for hydrological calculations.
-    
+
+
     Attributes
     ----------
     var : object
         Model variables container from parent model
     model : object
         Parent CWatM model instance
+
+
+
+
+
+
+
+
+
 
     **Global variables**
     ===================================  ==========    ======================================================================  =====
@@ -77,7 +87,7 @@ class waterdemand_environmental_need:
         Calculate dynamic environmental flow requirements for the current time step.
         
         Reads monthly environmental flow data from NetCDF files and transforms flow rates
-        from mÂ³/s to water depths in meters. Uses channel geometry parameters to convert
+        from mÃ‚Â³/s to water depths in meters. Uses channel geometry parameters to convert
         volumetric flow to equivalent water depth for hydrological calculations.
         Sets minimum environmental flow when environmental flows are disabled.
         """

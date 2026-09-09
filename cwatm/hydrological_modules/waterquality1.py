@@ -39,15 +39,25 @@ class waterquality1(object):
     Water temperature estimation follows the logistic relationship from
     Morrill et al. (2005) and Mohseni et al. (1998).
 
+
+
+
+
+
+
+
+
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
     DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
     Tavg                                 Array         Input, average air Temperature                                          K    
-    discharge                            Array         Channel discharge                                                       m3/s 
+    discharge                            Array         Channel discharge                                                       m3 s-
     chanLength                           Array         Input, Channel length                                                   m    
-    totalCrossSectionArea                Array                                                                                 --   
+    totalCrossSectionArea                Array         Total cross-sectional area [m2]: if initial value in binding equals -9  --   
     cellArea                             Array         Area of cell                                                            m2   
     waterquality                         Flag          Flag to use waterquality                                                bool 
     celllength                           Array         Cell length, defined as the square root of cell area                    m    
@@ -55,7 +65,7 @@ class waterquality1(object):
     travelDistance                       Array         travel distance of water: flow velocity per day                         m    
     travelTime                           List          time to travel a gridcell: chanLength / flowVelocity                    day  
     waterLevel                           Array         Water level                                                             m    
-    waterTemperature                     Array         Temperature of water                                                    deg C
+    waterTemperature                     Array         Temperature of water                                                    degC 
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -87,7 +97,7 @@ class waterquality1(object):
         - Downstream distance adjustment for diagonal flow directions
         - Geometric corrections for 8-direction flow (LDD values 1,3,7,9)
         
-        Diagonal flow distances are multiplied by âˆš2 (â‰ˆ1.414214) to account
+        Diagonal flow distances are multiplied by Ã¢Ë†Å¡2 (Ã¢â€°Ë†1.414214) to account
         for longer flow paths in diagonal directions.
         """
 
@@ -147,7 +157,7 @@ class waterquality1(object):
           crossArea = 0.4148 * dis ** 0.898
           # van Vliet et al. 2012
           #van Vliet, M.T.H., Yearsley, J.R., Franssen, W.H.P., Ludwig, F., Haddeland, I., Lettenmaier, D.P., and Kabat, P.: Coupled daily streamflow and water
-          #temperature modelling in large river  basins, Hydrol.Earth Syst.Sci., 16, 4303ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“4321, https: // doi.org / 10.5194 / hess - 16 - 4303 - 2012, 2012.
+          #temperature modelling in large river  basins, Hydrol.Earth Syst.Sci., 16, 4303ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ4321, https: // doi.org / 10.5194 / hess - 16 - 4303 - 2012, 2012.
 
           #flowVelocity = np.minimum(self.var.discharge /self.var.totalCrossSectionArea, 0.36*self.var.discharge**0.24)
           flowVelocity = np.minimum(self.var.discharge / crossArea, 0.36 * dis ** 0.24)

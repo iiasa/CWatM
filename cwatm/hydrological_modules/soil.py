@@ -43,6 +43,15 @@ class soil(object):
     Based on concepts from PCRGLOBE, LISFLOOD, and HBV models.
     References the Arno scheme for spatially variable soil moisture.
 
+
+
+
+
+
+
+
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -59,9 +68,9 @@ class soil(object):
     cropKC                               Array         crop coefficient for each of the 4 different land cover types (forest,  --   
     minCropKC                            Array         minimum crop factor (default 0.2)                                       --   
     rootDepth                            Array         rootdepth of different layers                                           m    
-    KSat1                                Array         Saturated conductivity layer 1                                          cm/da
-    KSat2                                Array         Saturated conductivity layer 2                                          cm/da
-    KSat3                                Array         Saturated conductivity layer 3                                          cm/da
+    KSat1                                Array         Saturated conductivity layer 1                                          cm da
+    KSat2                                Array         Saturated conductivity layer 2                                          cm da
+    KSat3                                Array         Saturated conductivity layer 3                                          cm da
     genuM1                               Array         soil: lambda / (1+ lambda)  layer1                                      --   
     genuM2                               Array         soil: lambda / (1+ lambda)  layer2                                      --   
     genuM3                               Array         soil: lambda / (1+ lambda)  layer3                                      --   
@@ -80,16 +89,14 @@ class soil(object):
     wwp1                                 Array         Soil moisture at wilting point in layer 1                               m    
     wwp2                                 Array         Soil moisture at wilting point in layer 2                               m    
     wwp3                                 Array         Soil moisture at wilting point in layer 3                               m    
-    kunSatFC12                           Array         calculation from van Genuchten, Mualem equation                         m/day
-    kunSatFC23                           Array         calculation from van Genuchten, Mualem equation                         m/day
+    kunSatFC12                           Array         calculation from van Genuchten, Mualem equation                         m day
+    kunSatFC23                           Array         calculation from van Genuchten, Mualem equation                         m day
     arnoBeta                             Array         arnoBeta defines the shape of soil water capacity distribution curve a  --   
     adjRoot                              Array                                                                                 --   
     maxtopwater                          Array         maximum heigth of topwater                                              m    
     EWRef                                Array         potential evaporation rate from water surface                           m    
     availWaterInfiltration               Array         quantity of water reaching the soil after interception, more snowmelt   m    
-    FrostIndexThreshold                  Array         Degree Days Frost Threshold (stops infiltration, percolation and capil  --   
-    FrostIndex                           Array         FrostIndex - Molnau and Bissel (1983), A Continuous Frozen Ground Inde  --   
-    potBareSoilEvap                      Array         potential bare soil evaporation (calculated with minus snow evaporatio  m    
+    FrostDay                             Array         frost index in soil [degree days] based on Molnau and Bissel (1983, A   --   
     irr_Paddy_month                      Array                                                                                 --   
     ET_crop_Irr_paddy                    Array                                                                                 --   
     ET_crop_Irr_paddy_fraccrop           Array                                                                                 --   
@@ -97,13 +104,14 @@ class soil(object):
     fracCrops_nonIrr                     Array         Fraction of cell currently planted with specific non-irr crops          %    
     actTransTotal_month_nonIrr           Array         Internal variable: Running total of  transpiration for specific non-ir  m    
     actTransTotal_month_Irr              Array         Internal variable: Running total of  transpiration for specific irriga  m    
-    irr_crop_month                       Number                                                                                --   
+    irr_crop_month                       Array                                                                                 --   
     frac_totalIrr                        Array         Fraction sown with specific irrigated crops                             %    
     weighted_KC_Irr_woFallow_fullKc      Array                                                                                 --   
     totalPotET                           Array         Potential evaporation per land use class                                m    
+    potBareSoilEvap                      Array         potential bare soil evaporation (calculated with minus snow evaporatio  m    
     PotET_crop                           Array                                                                                 --   
     actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m    
-    soilLayers                           Array         Number of soil layers                                                   --   
+    soilLayers                           List          Number of soil layers                                                   --   
     soildepth                            Array         Thickness of the first soil layer                                       m    
     wfc1                                 Array         Soil moisture at field capacity in layer 1                              m    
     wfc2                                 Array         Soil moisture at field capacity in layer 2                              m    
@@ -118,7 +126,7 @@ class soil(object):
     percolationImp                       Array         Fraction of area covered by the corresponding landcover type            m    
     cropGroupNumber                      Array         soil water depletion fraction, Van Diepen et al., 1988: WOFOST 6.0, p.  --   
     cPrefFlow                            Array         Factor influencing preferential flow (flow from surface to GW)          --   
-    pumping_actual                       Array                                                                                 --   
+    pumping_actual                       Array         This is here, as groundwater.py is not called if MODFLOW is used (AI)   --   
     gwdepth_observations                 Array         Input, gw_depth_observations, groundwater depth observations            m    
     gwdepth_adjuster                     Array         Groundwater depth adjuster                                              m    
     rws                                  Array         Transpiration reduction factor (in case of water stress)                --   
@@ -148,9 +156,10 @@ class soil(object):
     irrM3_crop_month_segment             Array                                                                                 --   
     irrM3_Paddy_month_segment            Array                                                                                 --   
     gwRecharge                           Array         groundwater recharge                                                    m    
+    gwRecharge2                          Array                                                                                 --   
     baseflow                             Array         simulated baseflow (= groundwater discharge to river)                   m    
     capillar                             Array         Flow from groundwater to the third CWATM soil layer. Used with MODFLOW  m    
-    capriseindex                         Array                                                                                 --   
+    capriseindex                         Array         computing saturated fraction of each CWatM cells (where water table >=  --   
     soildepth12                          Array         Total thickness of layer 2 and 3                                        m    
     fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     adminSegments                        Array         Domestic agents                                                         Int  
@@ -246,7 +255,7 @@ class soil(object):
             self.var.gwdepth_adjuster = loadmap('gw_depth_sim_obs')
 
         # --------------------------------------------------------------------------
-        # --------------------------------------------------------------------------
+
 
     def dynamic(self, coverType, No):
         """
@@ -284,20 +293,6 @@ class soil(object):
         """
 
         # ---------------------------------------------------------
-
-        # -----------------------------------------------------------
-        # from evaporation
-        # calculate potential bare soil evaporation and transpiration
-        # self.var.potBareSoilEvap = self.var.cropCorrect * self.var.minCropKC[No] * self.var.ETRef
-        # potTranspiration: Transpiration for each land cover class
-        # self.var.potTranspiration[No] = self.var.cropCorrect * self.var.cropKC * self.var.ETRef - self.var.potBareSoilEvap
-
-        # from interception module
-        # self.var.potTranspiration[No] = np.maximum(0, self.var.potTranspiration[No] - self.var.interceptEvap[No])
-        # # interceptEvap is the first flux in ET, soil evapo and transpiration are added later
-        # self.var.actualET[No] = self.var.interceptEvap[No].copy()
-
-        # if (dateVar['curr'] > 6520):
 
         availWaterInfiltration = self.var.availWaterInfiltration[No].copy()
         availWaterInfiltration = availWaterInfiltration + self.var.act_irrConsumption[No]
@@ -402,8 +397,9 @@ class soil(object):
         # calculate transpiration
         # ***** SOIL WATER STRESS ************************************
 
-        etpotMax = np.minimum(0.1 * (self.var.totalPotET[No] * 1000.), 1.0)
+        etpotMax = np.minimum(100 * self.var.totalPotET[No] , 1.0)
         # to avoid a strange behaviour of the p-formula's, ETRef is set to a maximum of 10 mm/day.
+        # etpotMax in cm/d for the formular from Van Diepen
 
         if coverType == 'irrPaddy' or coverType == 'irrNonPaddy':
 
@@ -456,7 +452,7 @@ class soil(object):
 
         TaMax = self.var.potTranspiration[No] * self.var.rws
         # transpiration is 0 when soil is frozen
-        TaMax = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0., TaMax)
+        TaMax = np.where(self.var.FrostDay, 0., TaMax)
 
         ta1 = np.maximum(np.minimum(TaMax * self.var.adjRoot[0][No], self.var.w1[No] - self.var.wwp1[No]), 0.0)
         ta2 = np.maximum(np.minimum(TaMax * self.var.adjRoot[1][No], self.var.w2[No] - self.var.wwp2[No]), 0.0)
@@ -475,8 +471,7 @@ class soil(object):
         # Actual potential bare soil evaporation - upper layer
         self.var.actBareSoilEvap[No] = np.minimum(self.var.potBareSoilEvap, 
                                                   np.maximum(0., self.var.w1[No] - self.var.wres1[No]))
-        self.var.actBareSoilEvap[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0., 
-                                                self.var.actBareSoilEvap[No])
+        self.var.actBareSoilEvap[No] = np.where(self.var.FrostDay, 0., self.var.actBareSoilEvap[No])
 
         # no bare soil evaporation in the inundated paddy field
         if coverType == 'irrPaddy':
@@ -521,7 +516,7 @@ class soil(object):
             self.var.prefFlow[No] = 0.
         else:
             self.var.prefFlow[No] = availWaterInfiltration * relSat ** self.var.cPrefFlow
-            self.var.prefFlow[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0.0, self.var.prefFlow[No])
+            self.var.prefFlow[No] = np.where(self.var.FrostDay, 0.0, self.var.prefFlow[No])
 
         if self.var.modflow:
             # multiplied by the fraction of ModFlow unsaturated cells
@@ -531,8 +526,7 @@ class soil(object):
         # calculate infiltration
         # infiltration, limited with KSat1 and available water in topWaterLayer
         self.var.infiltration[No] = np.minimum(potInf, availWaterInfiltration - self.var.prefFlow[No])
-        self.var.infiltration[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0.0, 
-                                             self.var.infiltration[No])
+        self.var.infiltration[No] = np.where(self.var.FrostDay, 0.0, self.var.infiltration[No])
         self.var.directRunoff[No] = np.maximum(0., availWaterInfiltration - self.var.infiltration[No] - 
                                                self.var.prefFlow[No])
 
@@ -713,8 +707,8 @@ class soil(object):
             subperc2to3 = np.minimum(availWater2, np.minimum(kUnSat2 * DtSub, capLayer3))
 
             # Frozen soils do not facilitate percolation
-            subperc1to2 = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0, subperc1to2)
-            subperc2to3 = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0, subperc2to3)
+            subperc1to2 = np.where(self.var.FrostDay, 0, subperc1to2)
+            subperc2to3 = np.where(self.var.FrostDay, 0, subperc2to3)
 
             if self.var.modflow:
                 # multiplied by the fraction of ModFlow unsaturated cells
@@ -742,10 +736,8 @@ class soil(object):
             self.var.perc3toGW[No] += subperc3toGW
 
         # When the soil is frozen (frostindex larger than threshold), no perc1 and 2
-        self.var.perc1to2[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0, 
-                                         self.var.perc1to2[No])
-        self.var.perc2to3[No] = np.where(self.var.FrostIndex > self.var.FrostIndexThreshold, 0, 
-                                         self.var.perc2to3[No])
+        self.var.perc1to2[No] = np.where(self.var.FrostDay, 0, self.var.perc1to2[No])
+        self.var.perc2to3[No] = np.where(self.var.FrostDay, 0, self.var.perc2to3[No])
 
         # Update soil moisture
         self.var.w1[No] = self.var.w1[No] - self.var.perc1to2[No]
@@ -868,13 +860,12 @@ class soil(object):
                         self.var.irr_Paddy_month * self.var.cellArea,
                         self.var.adminSegments)
 
-
-        # total actual evaporation + transpiration
         self.var.actualET[No] = (self.var.actualET[No] + self.var.actBareSoilEvap[No] + 
                                  self.var.openWaterEvap[No] + self.var.actTransTotal[No])
         # actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water 
         # evaporation, therefore self.var.totalPotET[No] is adjusted
         self.var.totalPotET[No] = np.maximum(self.var.totalPotET[No], self.var.actualET[No])
+
         # groundwater recharge
         toGWorInterflow = self.var.perc3toGW[No] + self.var.prefFlow[No]
         self.var.interflow[No] = self.var.percolationImp * toGWorInterflow
@@ -882,12 +873,16 @@ class soil(object):
         if self.var.modflow:
             self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow
         else:
-            self.var.gwRecharge[No] = ((1 - self.var.percolationImp) * toGWorInterflow - 
-                                       self.var.capRiseFromGW[No])
+            self.var.gwRecharge[No] = ((1 - self.var.percolationImp) * toGWorInterflow - self.var.capRiseFromGW[No])
+            self.var.gwRecharge2[No] =  ((1 - self.var.percolationImp) *self.var.perc3toGW[No] - self.var.capRiseFromGW[No])
             # Check if gwRecharge < 0
             testgw = np.minimum(self.var.gwRecharge[No], 0)
             self.var.gwRecharge[No] = self.var.gwRecharge[No] - testgw
             self.var.capRiseFromGW[No] = self.var.capRiseFromGW[No] + testgw
+
+            testgw = np.minimum(self.var.gwRecharge2[No], 0)
+            self.var.gwRecharge2[No] = self.var.gwRecharge2[No] - testgw
+
 
 
 

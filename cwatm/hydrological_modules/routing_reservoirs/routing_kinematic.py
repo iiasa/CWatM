@@ -31,6 +31,15 @@ class routing_kinematic(object):
     lakes_reservoirs_module : object
         Lakes and reservoirs module instance
 
+
+
+
+
+
+
+
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -48,7 +57,8 @@ class routing_kinematic(object):
     lendirDown_LR                        Array         number of river network connections lake/reservoir                      --   
     lakeArea                             Array         area of each lake/reservoir                                             m2   
     lakeEvaFactorC                       Array         compressed map of a factor which increases evaporation from lake becau  --   
-    riverbedExchangeM3                   Array                                                                                 --   
+    fracAllCover                         Array                                                                                 --   
+    riverbedExchangeM3                   Array         converting leakage in m3 (AI)                                           --   
     DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
     ETRef                                Array         potential evapotranspiration rate from reference crop                   m    
     EWRef                                Array         potential evaporation rate from water surface                           m    
@@ -61,39 +71,40 @@ class routing_kinematic(object):
     evapWaterBodyC                       Array         Compressed version of EvapWaterBodyM                                    m    
     sumLakeEvapWaterBodyC                Array                                                                                 --   
     noRoutingSteps                       Number        Number of routing step - how often the subroutine is run during a day   --   
-    sumResEvapWaterBodyC                 Array                                                                                 --   
-    discharge                            Array         Channel discharge                                                       m3/s 
-    inflowDt                             Number                                                                                --   
+    sumResEvapWaterBodyC                 Array         sum of all routingsteps of evaporation from lakes and reservoirs   - s  --   
+    discharge                            Array         Channel discharge                                                       m3 s-
+    inflowDt                             Number        flow from inlets per sub step (AI)                                      --   
     downstruct                           Array         structure of the river network in downstream direction                  --   
     sum_openWaterEvap                    Array         sum of open water evaporation from all different land cover types       m    
     chanLength                           Array         Input, Channel length                                                   m    
-    totalCrossSectionArea                Array                                                                                 --   
+    totalCrossSectionArea                Array         Total cross-sectional area [m2]: if initial value in binding equals -9  --   
     dirupLen                             Array                                                                                 --   
     dirupID                              Array                                                                                 --   
     catchment                            Array                                                                                 --   
     dirDown                              Array                                                                                 --   
     lendirDown                           Number                                                                                --   
     UpArea                               Array         upstream area of a grid cell                                            m2   
-    beta                                 Array                                                                                 --   
-    chanMan                              Array         Input, Channel Manning's roughness coefficient                          s/m^(
-    chanGrad                             Array                                                                                 --   
+    beta                                 Array         kinematic wave parameter: 0.6 is for broad sheet flow (AI)              --   
+    chanMan                              Array         Input, Channel Manning's roughness coefficient                          s m(-
+    chanGrad                             Array         Channel gradient (fraction, dy/dx) (AI)                                 --   
     chanWidth                            Array         Input, Channel width                                                    m    
     chanDepth                            Array         Input, Channel depth                                                    m    
-    invbeta                              Array                                                                                 --   
-    invchanLength                        Array                                                                                 --   
+    invbeta                              Array         Inverse of beta for kinematic wave (AI)                                 --   
+    invchanLength                        Array         Inverse of channel length [1/m] (AI)                                    --   
     invdtRouting                         Array                                                                                 --   
-    totalCrossSectionAreaBankFull        Array                                                                                 --   
-    chanWettedPerimeterAlpha             Array                                                                                 --   
+    totalCrossSectionAreaBankFull        Array         Area (sq m) of bank full discharge cross section [m2] (AI)              --   
+    chanWettedPerimeterAlpha             Array         Channel wetted perimeter [m] (AI)                                       --   
     alpPower                             Array                                                                                 --   
     channelAlpha                         Array                                                                                 --   
     invchannelAlpha                      Array                                                                                 --   
-    riverbedExchange                     Array                                                                                 --   
-    Xcel                                 List                                                                                  --   
+    riverbedExchange                     Array         to avoid flip flop (AI)                                                 --   
     EvapoChannel                         Array         Channel evaporation                                                     m3   
-    QDelta                               Array                                                                                 --   
-    sumsideflow                          Number                                                                                --   
+    QDelta                               Array         difference between old and new inlet flow  per sub step in order to ca  --   
+    sumsideflow                          Array         calculating average discharge during day and max discharge (AI)         --   
     prechannelStorage                    Array                                                                                 --   
-    dis_outlet                           Array                                                                                 --   
+    avgdischarge                         Array         calculating average discharge during day and max discharge (AI)         --   
+    maxdischarge                         Array         discharge at the end of a time step (AI)                                --   
+    dis_outlet                           Array         discharge only at the outlets to sea or endorheic lakes, otherwise val  --   
     humanConsumption                     Array                                                                                 --   
     humanUse                             Array                                                                                 --   
     natureUse                            Array                                                                                 --   
@@ -103,7 +114,7 @@ class routing_kinematic(object):
     gwdepth_adjusted_segments            Array         Adjusted depth to groundwater table, averaged over adminSegments        m    
     gwdepth_segments                     Array         Groundwater depth, averaged over adminSegments                          m    
     adminSegments_area                   Array         Spatial area of domestic agents                                         m2   
-    runoff                               Array         Total runoff from surface, interflow and groundwater                    m    
+    runoff_m3                            Array         back to [m]  # with and without in m3 (AI)                              --   
     openWaterEvap                        Array         Simulated evaporation from open areas                                   m    
     infiltration                         Array         Water actually infiltrating the soil                                    m    
     actTransTotal_paddy                  Array         Transpiration from paddy land cover                                     m    
@@ -194,7 +205,6 @@ class routing_kinematic(object):
 
         return c4, d3, d1
 
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
 
@@ -245,12 +255,12 @@ class routing_kinematic(object):
         # Channel gradient (fraction, dy/dx)
         self.var.chanGrad = np.maximum(loadmap('chanGrad'), loadmap('chanGradMin'))
         # Channel length [meters]
-        self.var.chanLength = loadmap('chanLength')
+        self.var.chanLength = loadmap('chanLength').astype(np.float64)
         # Channel bottom width [meters]
-        self.var.chanWidth = loadmap('chanWidth')
+        self.var.chanWidth = loadmap('chanWidth').astype(np.float64)
 
         # Bankfull channel depth [meters]
-        self.var.chanDepth = loadmap('chanDepth')
+        self.var.chanDepth = loadmap('chanDepth').astype(np.float64)
 
 
 
@@ -297,6 +307,7 @@ class routing_kinematic(object):
         The factor chanman is also 4.6050393 (chanman = 1 is in real: 4.605)
         """
         self.var.channelAlpha = alpTermChan * (self.var.chanWettedPerimeterAlpha ** self.var.alpPower) * 2.5
+        self.var.channelAlpha = self.var.channelAlpha.astype(np.float64)
         ca = 2.5 * self.var.chanMan * ((1 / np.sqrt(self.var.chanGrad)) ** self.var.beta) * \
              (self.var.chanWettedPerimeterAlpha ** self.var.alpPower)
 
@@ -336,9 +347,6 @@ class routing_kinematic(object):
 
         #self.var.channelAlphaPcr = decompress(self.var.channelAlpha)
         #self.var.chanLengthPcr = decompress(self.var.chanLength)
-
-
-        self.var.Xcel = []
 
 
     # --------------------------------------------------------------------------
@@ -416,7 +424,7 @@ class routing_kinematic(object):
             # exclude evaporation where lakes are, because they are filled in again with evapWaterBodyC
             self.var.EvapoChannel = np.where(
                 self.var.waterBodyID > 0,
-                (1 - self.var.fracVegCover[5]) * self.var.EvapoChannel,
+                (self.var.fracAllCover - self.var.fracVegCover[5]) * self.var.EvapoChannel,
                 self.var.EvapoChannel)
             #self.var.riverbedExchange = np.where(self.var.waterBodyID > 0, 0., self.var.riverbedExchange)
 
@@ -463,7 +471,7 @@ class routing_kinematic(object):
         # ------------------------------------------------------
         # ***** SIDEFLOW **************************************
 
-        runoffM3 = self.var.runoff * self.var.cellArea / self.var.noRoutingSteps
+        runoffM3 = self.var.runoff_m3 / self.var.noRoutingSteps
 
         # ************************************************************
         # ***** KINEMATIC WAVE                        ****************
@@ -471,7 +479,11 @@ class routing_kinematic(object):
 
         self.var.sumsideflow = 0
         self.var.prechannelStorage = self.var.channelAlpha * self.var.chanLength * self.var.discharge ** self.var.beta
-        avgDis = 0
+
+        self.var.avgdischarge = globals.inZero.copy()
+        self.var.maxdischarge = globals.inZero.copy()
+        avglakeoutflow = 0
+        maxlakeoutflow = 0
 
         for subrouting in range(self.var.noRoutingSteps):
 
@@ -505,6 +517,8 @@ class routing_kinematic(object):
                 lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown_LR, self.var.dirupLen_LR,
                                self.var.dirupID_LR, Qnew, self.var.channelAlpha, self.var.beta,
                                self.var.dtRouting, self.var.chanLength, self.var.lendirDown_LR)
+                avglakeoutflow = avglakeoutflow + lakeOutflowDis / self.var.noRoutingSteps
+                maxlakeoutflow = np.where(lakeOutflowDis > maxlakeoutflow, lakeOutflowDis , maxlakeoutflow)
 
             else:
                 lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown, self.var.dirupLen,
@@ -513,7 +527,9 @@ class routing_kinematic(object):
             self.var.discharge = Qnew.copy()
 
             self.var.sumsideflow = self.var.sumsideflow + sideflowChanM3
-            avgDis = avgDis + self.var.discharge / self.var.noRoutingSteps
+            # calculating average discharge during day and max discharge
+            self.var.avgdischarge = self.var.avgdischarge + self.var.discharge / self.var.noRoutingSteps
+            self.var.maxdischarge = np.where(self.var.discharge > self.var.maxdischarge, self.var.discharge , self.var.maxdischarge)
 
         # -- end substeping ---------------------
 
@@ -522,6 +538,8 @@ class routing_kinematic(object):
             # therefore this is filled up with the discharge which goes outof the lake
             # these outflow is used for the whole lake
             self.var.discharge = np.where(self.var.waterBodyID > 0, lakeOutflowDis, self.var.discharge)
+            self.var.avgdischarge = np.where(self.var.waterBodyID > 0, avglakeoutflow, self.var.avgdischarge)
+            self.var.maxdischarge = np.where(self.var.waterBodyID > 0, maxlakeoutflow, self.var.maxdischarge)
         # discharge at the end of a time step
 
         preStor = self.var.channelStorage.copy()
@@ -529,8 +547,8 @@ class routing_kinematic(object):
 
         # discharge only at the outlets to sea or endorheic lakes, otherwise value is 0.
         # as average discharge over timestep e.g. 1 day
-        self.var.dis_outlet = np.where(self.var.lddCompress == 5, avgDis, 0.)
-
+        self.var.dis_outlet = np.where(self.var.lddCompress == 5, self.var.avgdischarge, 0.)        
+        
         if checkOption('inflow'):
             self.var.QInM3Old = self.var.inflowM3.copy()
 
@@ -566,11 +584,6 @@ class routing_kinematic(object):
                 self.var.gwdepth_adjusted_segments = npareaaverage(self.var.gwdepth_adjusted, self.var.adminSegments)
                 self.var.gwdepth_segments = npareaaverage(self.var.gwdepth, self.var.adminSegments)
 
-            # self.var.precipEffectiveAverage_segments = npareaaverage(
-            #     self.var.Rain - self.var.interceptEvap[1] - self.var.actBareSoilEvap[1],
-            #     self.var.adminSegments)
-            # self.var.head_development_segments = npareaaverage(self.var.head_development,
-            #                                                   self.var.adminSegments)
             self.var.adminSegments_area = npareaaverage(
                 (self.var.fracVegCover[1] + self.var.fracVegCover[2] + self.var.fracVegCover[3]) * self.var.cellArea,
                 self.var.adminSegments)

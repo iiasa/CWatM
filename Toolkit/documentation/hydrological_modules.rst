@@ -224,6 +224,18 @@ water_demand.environmental_need
     :undoc-members:
     :show-inheritance:
 
+water_demand.wastewater
+-------------------------------
+
+**Calculate waste water**
+
+.. automodule:: cwatm.hydrological_modules.water_demand.wastewater
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+
 Hydrology IV - Lakes, reservoirs and river
 ==========================================
 	
@@ -270,21 +282,4 @@ routing_reservoirs.routing_sub module
     :inherited-members:
     :show-inheritance:
 
-Hydrology V - Water balance
-===========================
 
-waterbalance module
--------------------
-
-.. automodule:: cwatm.hydrological_modules.waterbalance
-    :members:
-    :undoc-members:
-    :show-inheritance:	
-
-
-
-.. automodule:: cwatm.hydrological_modules
-    :members:
-    :undoc-members:
-    :show-inheritance:
-    :inherited-members:

@@ -83,7 +83,7 @@ pdf_style_path = ['.', '_styles']
 
 
 # How many levels deep should the table of contents be?
-pdf_toc_depth = 9999
+pdf_toc_depth = 2
 # Add section number to section references
 pdf_use_numbered_links = False
 # Background images fitting mode
@@ -114,7 +114,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Community Water Model'
-copyright = u'2021, IIASA Water Security'
+copyright = u'2025, IIASA Water Security'
 author = u'Water Security Research Group'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -122,7 +122,7 @@ author = u'Water Security Research Group'
 # built documents.
 #
 # The short X.Y version.
-version = u'1.0.6'
+version = u'1.1.0'
 # The full version, including alpha/beta/rc tags.
 release = u'1'
 

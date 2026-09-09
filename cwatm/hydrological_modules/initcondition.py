@@ -38,6 +38,15 @@ class initcondition(object):
     All initial conditions can be stored at the end of a model run
     to be used as a warm start for subsequent model executions.
 
+
+
+
+
+
+
+
+
+
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -46,7 +55,7 @@ class initcondition(object):
     Crops_names                          Array         Internal: List of specific crops                                        --   
     includeCrops                         Flag          1 when includeCrops=True in Settings, 0 otherwise                       bool 
     Crops                                Array         Internal: List of specific crops and Kc/Ky parameters                   --   
-    daily_crop_KC                        Array                                                                                 --   
+    daily_crop_KC                        Array         If the crop inputs are given in days if the total growing season is le  --   
     loadInit                             Flag          If true initial conditions are loaded                                   bool 
     includeDesal                         Flag                                                                                  --   
     unlimitedDesal                       Flag                                                                                  --   
@@ -55,6 +64,7 @@ class initcondition(object):
     wastewater_to_reservoirs             Array                                                                                 --   
     initLoadFile                         Number        load file name of the initial condition data                            Strin
     saveInit                             Flag          If true initial conditions are saved                                    bool 
+    initmap                              Flag                                                                                  --   
     saveInitFile                         Flag          save file name of the initial condition data                            bool 
     reservoir_info                       List          Number of lakes and reservoirs in Excel                                 --   
     reservoir_transfers                  Array         [['Giving reservoir'][i], ['Receiving reservoir'][i], ['Fraction of li  array
@@ -301,10 +311,11 @@ class initcondition(object):
 
         # list all initiatial variables
         # Snow & Frost
-        number = int(loadmap('NumberSnowLayers'))
-        for i in range(number):
-            initCondVar.append("SnowCover"+str(i+1))
-            initCondVarValue.append("SnowCoverS["+str(i)+"]")
+        if not checkOption('usepySnowClim', True):
+            number = int(loadmap('NumberSnowLayers'))
+            for i in range(number):
+                initCondVar.append("SnowCover"+str(i+1))
+                initCondVarValue.append("SnowCoverS["+str(i)+"]")
         initCondVar.append("FrostIndex")
         initCondVarValue.append("FrostIndex")
 
@@ -459,6 +470,7 @@ class initcondition(object):
         # or in certain interval e.g. 2y = every 2 years, 3m = every 3 month, 15d = every 15 days
 
         self.var.saveInit = returnBool('save_initial')
+        self.var.initmap = {}
         if self.var.saveInit:
             self.var.saveInitFile = cbinding('initSave')
             initdates = cbinding('StepInit').split()

@@ -26,6 +26,15 @@ class groundwater(object):
         Model variables container
     model : object
         CWatM model instance
+        
+
+
+
+
+
+
+
+
 
     **Global variables**
     ===================================  ==========    ======================================================================  =====
@@ -34,7 +43,7 @@ class groundwater(object):
     modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
     load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
     storGroundwater                      Array         Groundwater storage (non-fossil). This is primarily used when not usin  m    
-    specificYield                        Array         groundwater reservoir parameters (if ModFlow is not used) used to comp  m    
+    specificYield                        Array         Groundwater reservoir parameters (if ModFlow is not used) used to comp  m    
     recessionCoeff                       Array         groundwater storage times this coefficient gives baseflow               frac 
     readAvlStorGroundwater               Array         same as storGroundwater but equal to 0 when inferior to a treshold      m    
     loadInit                             Flag          If true initial conditions are loaded                                   bool 
