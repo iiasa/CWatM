@@ -78,6 +78,7 @@ jobs:
       uses: peter-evans/create-pull-request@v5
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
+        base: "main"
         commit-message: "Auto-update version.py with git hash ${{ github.sha }}"
         title: "Auto-update: Generate version file"
         body: |
