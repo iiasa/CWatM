@@ -7,7 +7,7 @@
 [![codecov](https://codecov.io/gh/iiasa/CWatM/graph/badge.svg?token=W3CAO5X4QK)](https://codecov.io/gh/iiasa/CWatM)
 [![Repo size](https://img.shields.io/github/repo-size/iiasa/CWatM)]
 [![ReadTheDocs](https://readthedocs.org/projects/pyam-iamc/badge/?version=latest)](https://cwatm.iiasa.ac.at/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3528097.svg)](https://doi.org/10.5281/zenodo.3528097)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22686662.svg)](https://doi.org/10.5281/zenodo.22686662)
 
 
 
