@@ -2,9 +2,9 @@
 
 [![GitHub last commit](https://img.shields.io/github/last-commit/iiasa/CWatM)]
 [![license](https://img.shields.io/github/license/iiasa/CWatM?color=1)](https://github.com/iiasa/CWatM/blob/version1.05/LICENSE)
-[![python](https://img.shields.io/badge/python-3.7_|_3.8_|_3.9_|_3.10|_3.11-blue?logo=python&logoColor=white)](https://github.com/iiasa/CWatM/))
+[![python](https://img.shields.io/badge/python-3.7_|_3.8_|_3.9_|_3.10|_3.11|_3.12|_3.13-blue?logo=python&logoColor=white)](https://github.com/iiasa/CWatM/))
 [![pytest](https://github.com/IAMconsortium/pyam/actions/workflows/pytest.yml/badge.svg)](https://github.com/iiasa/CWatM/))
-[![codecov](https://codecov.io/gh/iiasa/CWatM/graph/badge.svg?token=W3CAO5X4QK)](https://codecov.io/gh/iiasa/CWatM/)
+[![codecov](https://codecov.io/gh/iiasa/CWatM/graph/badge.svg?token=W3CAO5X4QK)](https://codecov.io/gh/iiasa/CWatM)
 [![Repo size](https://img.shields.io/github/repo-size/iiasa/CWatM)]
 [![ReadTheDocs](https://readthedocs.org/projects/pyam-iamc/badge/?version=latest)](https://cwatm.iiasa.ac.at/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3528097.svg)](https://doi.org/10.5281/zenodo.3528097)
@@ -17,6 +17,32 @@ Questions? Start a discussion on our [GitHub forum](https://github.com/iiasa/CWa
 check out our [CWatM tutorials on YouTube](https://www.youtube.com/playlist?list=PLyT8dd_rWLaymQIewMyzVcjMYvPR8Rqtw).
 
 Our repository [CWatM-Earth-30min](https://github.com/iiasa/CWatM-Earth-30min) contains input data for CWatM at 30 arcminutes and further links to climate and higher resolution input data.
+
+# NEW 11/09/26 - Major update of Main from the last year of development of branch: develop
+          
+## pySnowClim model included
+
+Abby C. Lute, Aranildo Lima, Raj Shrestha and their team coupled CWatM with a sophisticated energy-balanced snow model:
+
+Lute, A. C., Abatzoglou, J., and Link, T.: SnowClim v1.0: high-resolution snow model and data for the western United States, Geosci. Model Dev., 15, 5045–5071, https://doi.org/10.5194/gmd-15-5045-202
+
+## Water transfer is now possible
+
+We include water transfer via the Excel file 
+You define a two pseudo reservoirs, one as output, one as input and you define the rules of transfer
+
+## A Windows executable is in the release
+
+The Windows executable cwatm.exe is a way to overcome Python installation for Windows
+
+## A draft version of a GUI is in the release
+
+A draft version of a CWatM GUI (as bonus) for Windows to overcome the black DOS-box
+
+## This is the version for the Danube Water Balance Project
+
+This version is the final version for the Interreg Danube project: Danube Water Balance
+
 
 # NEW 11/09/25 - Major update of Main from the last year of development of branch: develop
 
