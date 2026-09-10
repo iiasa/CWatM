@@ -74,27 +74,21 @@ jobs:
             print(f"  Last Committer: {info['committer_name']} <{info['committer_email']}>")
         EOF
     
-    - name: Commit version file back to repo
-      run: |
-        # Configure git
-        git config --local user.name "github-actions[bot]"
-        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        
-        # Add the version file
-        git add cwatm/version.py
-        
-        # Check if there are changes to commit
-        if git diff --staged --quiet; then
-          echo "No changes to version file - already up to date"
-        else
-          echo "Committing updated version file with git hash ${GITHUB_SHA:0:7}"
-          git commit -m "Auto-update version.py with git hash ${GITHUB_SHA:0:7} [skip ci]"
-          git push
-          echo "Version file updated successfully!"
-        fi
-        
-        # Show the updated content
-        echo "Updated version file content:"
-        head -15 cwatm/version.py
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "Auto-update version.py with git hash ${{ github.sha }}"
+        title: "Auto-update: Generate version file"
+        body: |
+          This is an automated pull request that updates the version file with the latest git hash and metadata.
+          
+          **Changes:**
+          - Updated `cwatm/version.py` with current git information
+          - Git Hash: `${{ github.sha }}`
+          - Branch: `${{ github.ref_name }}`
+          - Timestamp: Auto-generated
+          
+          This PR should be auto-merged if all checks pass.
+        branch: "auto/update-version-${{ github.ref_name }}"
+        delete-branch: true
