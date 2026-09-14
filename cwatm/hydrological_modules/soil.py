@@ -299,6 +299,8 @@ class soil(object):
         # availWaterInfiltration = water net from precipitation (- soil - interception - snow + snow melt) + 
         # water for irrigation
 
+        potBareSoilEvap = self.var.potBareSoilEvap
+        # a local soil evap to be changed only by irrpaddy or irrigation
         if coverType == 'irrPaddy':
             # depending on the crop calender -> here if cropKC > 0.75 paddies are flooded to 50mm (as set in settings file)
 
@@ -321,7 +323,7 @@ class soil(object):
             # open water can evaporate more than maximum bare soil + transpiration because it is calculated from 
             # open water pot evaporation
             # h = self.var.potBareSoilEvap - self.var.openWaterEvap[No]
-            self.var.potBareSoilEvap = np.maximum(0., self.var.potBareSoilEvap - self.var.openWaterEvap[No])
+            potBareSoilEvap = np.maximum(0., self.var.potBareSoilEvap - self.var.openWaterEvap[No])
             # if open water revaporation is bigger than bare soil, transpiration rate is reduced
             # self.var.potTranspiration[No] = np.where( h > 0, self.var.potTranspiration[No], 
             #                                           np.maximum(0.,self.var.potTranspiration[No] + h))
@@ -469,8 +471,7 @@ class soil(object):
 
         # -------------------------------------------------------------
         # Actual potential bare soil evaporation - upper layer
-        self.var.actBareSoilEvap[No] = np.minimum(self.var.potBareSoilEvap, 
-                                                  np.maximum(0., self.var.w1[No] - self.var.wres1[No]))
+        self.var.actBareSoilEvap[No] = np.minimum(potBareSoilEvap, np.maximum(0., self.var.w1[No] - self.var.wres1[No]))
         self.var.actBareSoilEvap[No] = np.where(self.var.FrostDay, 0., self.var.actBareSoilEvap[No])
 
         # no bare soil evaporation in the inundated paddy field
@@ -770,7 +771,7 @@ class soil(object):
         self.var.actTransTotal_nonpaddy = self.var.actTransTotal[3] * self.var.fracVegCover[3]
 
         self.var.ET_crop_Irr_paddy = (self.var.actTransTotal_paddy + 
-                                      (self.var.actBareSoilEvap[3] + self.var.openWaterEvap[2]) * 
+                                      (self.var.actBareSoilEvap[2] + self.var.openWaterEvap[2]) *
                                       self.var.fracVegCover[2])
         self.var.ET_crop_Irr_paddy_fraccrop = np.where(self.var.fracVegCover[2] > 0, 
                                                        self.var.ET_crop_Irr_paddy / self.var.fracVegCover[2], 0)
@@ -811,9 +812,8 @@ class soil(object):
                         self.var.fracCrops_Irr[c] > 0,
                         self.var.ET_crop_Irr[c] / self.var.fracCrops_Irr[c], 0)
 
-                    self.var.actTransTotal_month_Irr[c] += self.var.ET_crop_nonIrr[c]
+                    self.var.actTransTotal_month_Irr[c] += self.var.ET_crop_Irr[c]
 
-                    
                     self.var.ET_crop_nonIrr[c] = (self.var.actTransTotal_crops_nonIrr[c] +
                                                   self.var.actBareSoilEvap[1] * self.var.fracCrops_nonIrr[c])
                     vars(self.var)['ET_crop_nonIrr_' + str(c)] = self.var.ET_crop_nonIrr[c].copy()

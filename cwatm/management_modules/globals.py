@@ -57,8 +57,7 @@ domain, indexes : dict
 Platform Detection
 -------------------
 The module automatically detects the operating system and loads appropriate
-shared libraries for computational routines, supporting Windows, Linux, macOS,
-and Cygwin environments.
+shared libraries for computational routines, supporting Windows, Linux and macOS.
 """
 
 import getopt
@@ -108,6 +107,7 @@ def globalclear():
     inputcounter.clear()
     flagmeteo.clear()
     meteofiles.clear()
+    meteohandles.clear()
 
     initCondVarValue.clear()
     initCondVar.clear()
@@ -164,6 +164,7 @@ def calibclear():
     inputcounter.clear()
     flagmeteo.clear()
     meteofiles.clear()
+    meteohandles.clear()
 
     initCondVarValue.clear()
     initCondVar.clear()
@@ -220,7 +221,7 @@ global timestepInit
 global metaNetcdfVar
 global inputcounter
 global versioning
-global meteofiles, flagmeteo
+global meteofiles,meteohandles, flagmeteo
 
 versioning = {}
 timestepInit = []
@@ -231,6 +232,7 @@ metaNetcdfVar = {}
 inputcounter = {}
 flagmeteo = {}
 meteofiles = {}
+meteohandles = {} # open netCDF Dataset per meteo map: name -> [Dataset, file number]
 
 # Initial conditions
 global initCondVar, initCondVarValue
@@ -333,20 +335,20 @@ path_global = os.path.dirname(__file__)
 
 if platform1 == "Windows":
     dll_routing = os.path.join(os.path.split(path_global)[0], "hydrological_modules", "routing_reservoirs",
-                               "t5.dll")
-elif platform1 == "CYGWIN_NT-6.1":
-    # CYGWIN_NT-6.1 - compiled with cygwin
-    dll_routing = os.path.join(os.path.split(path_global)[0], "hydrological_modules", "routing_reservoirs",
-                               "t5cyg.so")
+                               "t6.dll")
 elif platform1 == "Darwin":
-    # Apple
+    # Apple: t6_mac_arm64.so (Apple silicon) or t6_mac_x86_64.so (Intel)
+    if platform.machine() in ("arm64", "aarch64"):
+        mac_routing = "t6_mac_arm64.so"
+    else:
+        mac_routing = "t6_mac_x86_64.so"
     dll_routing = os.path.join(os.path.split(path_global)[0], "hydrological_modules", "routing_reservoirs",
-                               "t5_mac.so")
+                               mac_routing)
 
 else:
     print("Linux\n")
     dll_routing = os.path.join(os.path.split(path_global)[0], "hydrological_modules", "routing_reservoirs",
-                               "t5_linux.so")
+                               "t6_linux.so")
 
 # dll_routing = "C:/work2/test1/t4.dll"
 lib2 = ctypes.cdll.LoadLibrary(dll_routing)
@@ -380,6 +382,21 @@ lib2.kinematic.restype = None
 lib2.kinematic.argtypes = [array_1d_double, array_1d_double, array_1d_int, array_1d_int, array_1d_int,
                            array_1d_double, array_1d_double, ctypes.c_double, ctypes.c_double,
                            array_1d_double, ctypes.c_int]
+
+# parallel kinematic wave (t6 library from 2026 on): levels of the river network + parallel routing
+if not hasattr(lib2, "kinematicPar"):
+    msg = "Error 305: The routing library " + dll_routing + " is an old version without parallel routing\n"
+    msg += "Please use the new t6 library (t6.dll, t6_linux.so, t6_mac_arm64.so or t6_mac_x86_64.so)"
+    raise CWATMError(msg)
+lib2.kinematicLevels.restype = ctypes.c_int
+#                               dirDown       dirupLen      dirupID       size          ncells        levelOrder    levelStart
+lib2.kinematicLevels.argtypes = [array_1d_int, array_1d_int, array_1d_int, ctypes.c_int, ctypes.c_int, array_1d_int, array_1d_int]
+lib2.kinematicPar.restype = None
+#                             Qold             q                levelOrder    levelStart    nlevels       dirupLen      dirupID
+lib2.kinematicPar.argtypes = [array_1d_double, array_1d_double, array_1d_int, array_1d_int, ctypes.c_int, array_1d_int, array_1d_int,
+                              array_1d_double, array_1d_double, ctypes.c_double, ctypes.c_double, array_1d_double, ctypes.c_int]
+#                             Qnew             alpha            beta             deltaT           deltaX           nthreads
+lib2.kinematicParMaxThreads.restype = ctypes.c_int
 
 
 lib2.runoffConc.restype = None

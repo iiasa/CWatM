@@ -28,7 +28,8 @@ GNU General Public License for more details
 
 # --------------------------------------------------
 """
-
+import os
+os.environ.setdefault("HDF5_USE_FILE_LOCKING", "FALSE")   # must precede any netCDF4/HDF5 import
 import sys
 
 from cwatm import __author__, __version__, __date__, __copyright__, __maintainer__, __status__

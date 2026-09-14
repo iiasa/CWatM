@@ -38,6 +38,7 @@ from cwatm.hydrological_modules.lakes_reservoirs import lakes_reservoirs
 from cwatm.hydrological_modules.waterquality1 import waterquality1
 from cwatm.management_modules.output import *
 from cwatm.management_modules.data_handling import *
+from cwatm.management_modules.caching import excelclose_all
 
 
 class Variables:
@@ -341,6 +342,8 @@ class CWATModel_ini(DynamicModel):
         self.waterdemand_module.initial()
         self.environflow_module.initial()
         self.waterquality1.initial()
+        # all Excel settings are read during initialisation -> release the workbook(s)
+        excelclose_all()
 
 
 

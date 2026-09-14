@@ -29,14 +29,14 @@ GNU General Public License for more details
 
 # --------------------------------------------------
 """
-
+import os
+os.environ.setdefault("HDF5_USE_FILE_LOCKING", "FALSE")   # must precede any netCDF4/HDF5 import
 from cwatm import __author__, __version__, __date__, __copyright__, __maintainer__, __status__
 
 # to work with some versions of Linux  - a workaround with pyexpat is needed
 from pyexpat import *
 import traceback
 
-import os
 import numpy as np
 # to work with some versions of Linux  - a workaround with pyexpat is needed
 import glob
@@ -53,7 +53,8 @@ import scipy
 import netCDF4
 
 from cwatm.management_modules.configuration import globalFlags, settingsfile, versioning, platform1, parse_configuration, read_metanetcdf, dateVar, CWATMRunInfo, outputDir, timeMesSum, timeMesString, globalclear, calibclear
-from cwatm.management_modules.data_handling import Flags, cbinding
+from cwatm.management_modules.data_handling import Flags, cbinding, closemeteofiles
+from cwatm.management_modules.caching import ncclose_all, excelclose_all
 from cwatm.management_modules.timestep import checkifDate
 from cwatm.management_modules.dynamicModel import ModelFrame
 from cwatm.management_modules.checks import save_check
@@ -113,6 +114,8 @@ def CWATMexe(settings):
 
 
     """
+    ncclose_all()   # remove handles left over from a previous (crashed) run in the same process
+    excelclose_all()
     parse_configuration(settings)
     # print option
     # print binding
@@ -147,6 +150,8 @@ def CWATMexe(settings):
         print("%-6s %10s %11s\n" % ("Step", "Date", "Discharge"), end=' ')
 
     stCWATM.run()
+    closemeteofiles()
+    ncclose_all()
 
     # cProfile.run('stLisflood.run()')
     # python -m cProfile -o  l1.pstats cwatm.py settings1.ini
@@ -186,6 +191,8 @@ def CWATMexe2(settings,meteo):
 
 
     """
+    ncclose_all()   # remove handles left over from a previous (crashed) run in the same process
+    excelclose_all()
     parse_configuration(settings)
     read_metanetcdf('metaNetcdf.xml')
 
@@ -209,6 +216,8 @@ def CWATMexe2(settings,meteo):
         print("%-6s %10s %11s\n" % ("Step", "Date", "Discharge"), end=' ')
 
     stCWATM.run()
+    closemeteofiles()
+    ncclose_all()
 
     if Flags['printtime']:
         print("\n\nTime profiling")

@@ -224,6 +224,31 @@ class routing_kinematic(object):
         (self.var.lddCompress, dirshort, self.var.dirUp, self.var.dirupLen, self.var.dirupID,
          self.var.downstruct, self.var.catchment, self.var.dirDown, self.var.lendirDown) = defLdd2(ldd)
 
+        # ---------------------------------------------------------------
+        # parallel kinematic wave: number of threads (nodes)
+        # maxnodes in [ROUTING]: all CPUs this run may use, up to maxnodes
+        # without maxnodes: 2/3 of the CPUs, at most 16; calibration runs use 1 node
+        if hasattr(os, "sched_getaffinity"):
+            cores = len(os.sched_getaffinity(0))   # Linux: only the CPUs this run may use (e.g. SLURM job)
+        else:
+            cores = os.cpu_count() or 1            # Windows / Mac: all logical CPUs
+        if 'SLURM_CPUS_PER_TASK' in os.environ:    # SLURM: not more than the CPUs reserved for the job
+            cores = min(cores, int(os.environ['SLURM_CPUS_PER_TASK']))
+        if 'maxnodes' in binding:
+            nodes = min(int(loadmap('maxnodes')), cores)
+        else:
+            nodes = min(16, (2 * cores) // 3)
+        self.var.nodesrouting = max(1, min(nodes, lib2.kinematicParMaxThreads()))
+
+
+        if Flags['calib'] or Flags['warm']:
+            self.var.nodesrouting = 1
+        if Flags['loud']:
+            print("Routing: kinematic wave on", self.var.nodesrouting, "node(s)")
+        # levels of the river network, computed once
+        self.var.levelOrder, self.var.levelStart, self.var.nlevels = kinematicLevels(
+            self.var.dirDown, self.var.dirupLen, self.var.dirupID)
+
         # self.var.ups = upstreamArea(dirDown, dirshort, self.var.cellArea)
         self.var.UpArea1 = upstreamArea(self.var.dirDown, dirshort, globals.inZero + 1.0)
         self.var.UpArea = upstreamArea(self.var.dirDown, dirshort, self.var.cellArea)
@@ -514,16 +539,18 @@ class routing_kinematic(object):
             sideflowChan = sideflowChanM3 * self.var.invchanLength * 1 / self.var.dtRouting
 
             if checkOption('includeWaterBodies'):
-                lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown_LR, self.var.dirupLen_LR,
-                               self.var.dirupID_LR, Qnew, self.var.channelAlpha, self.var.beta,
-                               self.var.dtRouting, self.var.chanLength, self.var.lendirDown_LR)
+                lib2.kinematicPar(self.var.discharge, sideflowChan, self.var.levelOrder_LR, self.var.levelStart_LR,
+                                  self.var.nlevels_LR, self.var.dirupLen_LR, self.var.dirupID_LR, Qnew,
+                                  self.var.channelAlpha, self.var.beta, self.var.dtRouting, self.var.chanLength,
+                                  self.var.nodesrouting)
                 avglakeoutflow = avglakeoutflow + lakeOutflowDis / self.var.noRoutingSteps
                 maxlakeoutflow = np.where(lakeOutflowDis > maxlakeoutflow, lakeOutflowDis , maxlakeoutflow)
 
             else:
-                lib2.kinematic(self.var.discharge, sideflowChan, self.var.dirDown, self.var.dirupLen,
-                               self.var.dirupID, Qnew, self.var.channelAlpha, self.var.beta,
-                               self.var.dtRouting, self.var.chanLength, self.var.lendirDown)
+                lib2.kinematicPar(self.var.discharge, sideflowChan, self.var.levelOrder, self.var.levelStart,
+                                  self.var.nlevels, self.var.dirupLen, self.var.dirupID, Qnew,
+                                  self.var.channelAlpha, self.var.beta, self.var.dtRouting, self.var.chanLength,
+                                  self.var.nodesrouting)
             self.var.discharge = Qnew.copy()
 
             self.var.sumsideflow = self.var.sumsideflow + sideflowChanM3

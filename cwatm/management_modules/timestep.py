@@ -21,6 +21,7 @@ from netCDF4 import Dataset, num2date, date2num, date2index
 from cwatm.management_modules.data_handling import *
 from cwatm.management_modules.globals import *
 from cwatm.management_modules.messages import *
+from cwatm.management_modules.caching import ncopen
 
 def datenum(date):
     """
@@ -585,14 +586,13 @@ def checkifDate(start, end, spinup, name):
         msg = "Error 215: Cannot find precipitation maps\n"
         raise CWATMFileError(name,msg, sname='PrecipitationMaps')
 
-    nf1 = Dataset(name, 'r')
+    nf1 = ncopen(name)   # cached: the same precipitation file is used later by multinetdf/readmeteodata
     try:
         dateVar['calendar'] = nf1.variables['time'].calendar
         dateVar['unit'] = nf1.variables['time'].units
     except:
         dateVar['calendar'] = 'standard'
         dateVar['unit'] = "days since 1901-01-01T00:00:00Z"
-    nf1.close()
 
     unitconv1 = ["DAYS","HOUR","MINU","SECO"]
     unitconv2 = [1,24,1440,86400]

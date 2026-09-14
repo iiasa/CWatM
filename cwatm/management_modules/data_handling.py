@@ -27,6 +27,7 @@ from cwatm.management_modules.dynamicModel import *
 from cwatm.management_modules.messages import *
 from cwatm.management_modules.replace_pcr import *
 from cwatm.management_modules.timestep import *
+from cwatm.management_modules.caching import ncopen, ncclose, ncclose_all, ncstackcache
 
 # -------------------------------------
 def valuecell(coordx, coordstr, returnmap=True):
@@ -265,7 +266,7 @@ def loadsetclone(self, name):
 
         filename = os.path.splitext(cbinding(name))[0] + '.nc'
         try:
-            nf1 = Dataset(filename, 'r')
+            nf1 = ncopen(filename)
 
             value = getvariablename(nf1)
             
@@ -294,7 +295,6 @@ def loadsetclone(self, name):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 mapnp = np.array(nf1.variables[value][0:nrRows, 0:nrCols])
-            nf1.close()
             setmaskmapAttr( x, y, nrCols, nrRows, cellSize)
             flagmap = True
 
@@ -521,7 +521,7 @@ def loadcrs (name):
     filename = os.path.splitext(value)[0] + '.nc'
     crs = None
     try:
-        nf1 = Dataset(filename, 'r')
+        nf1 = ncopen(filename)
         crs = nf1.variables["crs"]
         #nf1.close()
     except:
@@ -598,7 +598,7 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
         #cut0, cut1, cut2, cut3 = mapattrNetCDF(filename)
 
         try:
-            nf1 = Dataset(filename, 'r')
+            nf1 = ncopen(filename)   # cached: same handle as used by mapattrNetCDF/readCoord
             cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check = False)
 
             # load netcdf map but only the rectangle needed
@@ -644,7 +644,6 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
             except:
                 history = ""
             addtoversiondate(filename,history)
-            nf1.close()
 
         except:
 
@@ -864,10 +863,9 @@ def metaNetCDF():
     try:
         name = cbinding('PrecipitationMaps')
         name1 = glob.glob(os.path.normpath(name))[0]
-        nf1 = Dataset(name1, 'r')
+        nf1 = ncopen(name1)
         for var in nf1.variables:
            metadataNCDF[var] =  {k: v for k, v in nf1.variables[var].__dict__.items() if k != '_FillValue'}
-        nf1.close()
     except:
         msg = "Error 204: Trying to get metadata from netcdf\n"
         raise CWATMFileError(cbinding('PrecipitationMaps'),msg)
@@ -902,7 +900,7 @@ def readCoord(name):
     namenc = os.path.splitext(name)[0] + '.nc'
 
     try:
-        nf1 = Dataset(namenc, 'r')
+        nf1 = ncopen(namenc)   # cached: later calls for the same file cost nothing
         nc = True
     except:
         nc = False
@@ -969,13 +967,13 @@ def readCoordNetCDF(name,check = True):
 
     if check:
         try:
-            nf1 = Dataset(name, 'r')
+            nf1 = ncopen(name)
         except:
             msg = "Error 205: Checking netcdf map \n"
             raise CWATMFileError(name,msg)
     else:
         # if subroutine is called already from inside a try command
-        nf1 = Dataset(name, 'r')
+        nf1 = ncopen(name)
 
     if not('coordx' in maskmapAttr.keys()):
         if 'lon' in nf1.variables.keys():
@@ -996,10 +994,14 @@ def readCoordNetCDF(name,check = True):
     cols = nf1.variables[maskmapAttr['coordx']].shape[0]
 
     lon0 = nf1.variables[maskmapAttr['coordx']][0]
-    lon1 = nf1.variables[maskmapAttr['coordx']][1]
+    try:
+        lon1 = nf1.variables[maskmapAttr['coordx']][1]
+    except:
+        # precipitation map has only 1 cell, because there is no information available -> assuming 6 times
+        lon0 = lon0.data
+        lon1 = lon0 + 6 * maskmapAttr['cell']
     lat0 = nf1.variables[maskmapAttr['coordy']][0]
     latlast = nf1.variables[maskmapAttr['coordy']][-1]
-    nf1.close()
     # swap to make lat0 the biggest number
     if lat0 < latlast:
         lat0, latlast = latlast, lat0
@@ -1038,9 +1040,8 @@ def readCalendar(name):
     - Critical for accurate temporal data processing
     - Used by date conversion and time indexing functions
     """
-    nf1 = Dataset(name, 'r')
+    nf1 = ncopen(name)
     dateVar['calendar'] = nf1.variables['time'].calendar
-    nf1.close()
 
 def checkMeteo_Wordclim(meteodata, wordclimdata):
     """
@@ -1072,7 +1073,7 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
     """
 
     try:
-        nf1 = Dataset(meteodata, 'r')
+        nf1 = ncopen(meteodata)
     except:
         msg = "Error 206: Checking netcdf map \n"
         raise CWATMFileError(meteodata, msg)
@@ -1083,7 +1084,11 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
         xy = ["x", "y"]
 
     lonM0 = nf1.variables[xy[0]][0]
-    lon1 = nf1.variables[xy[0]][1]
+    if nf1.variables[xy[0]].shape[0] == 1:
+        # if shape is only1 then there is no information about the cell -> we assume 6 times bigger
+        lon1 = lonM0 + maskmapAttr['cell'] * 6.
+    else:
+        lon1 = nf1.variables[xy[0]][1]
 
     cellM = round(np.abs(lon1 - lonM0) / 2.,8)
     lonM0 = round(lonM0 - cellM,8)
@@ -1091,7 +1096,6 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
     lonM1 = round(nf1.variables[xy[0]][-1] + cellM,8)
     latM0 = nf1.variables[xy[1]][0]
     latM1 = nf1.variables[xy[1]][-1]
-    nf1.close()
 
     # swap to make lat0 the biggest number
     if latM0 < latM1:
@@ -1101,7 +1105,7 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
 
     # load Wordclima data
     try:
-        nf1 = Dataset(wordclimdata, 'r')
+        nf1 = ncopen(wordclimdata)
     except:
         msg = "Error 207: Checking netcdf map \n"
         raise CWATMFileError(wordclimdata, msg)
@@ -1115,7 +1119,6 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
 
     latW0 = nf1.variables[xy[1]][0]
     latW1 = nf1.variables[xy[1]][-1]
-    nf1.close()
     # swap to make lat0 the biggest number
     if latW0 < latW1:
         latW0, latW1 = latW1, latW0
@@ -1380,7 +1383,7 @@ def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
 
             # --- Netcdf -------------
             try:
-                nf1 = Dataset(filename, 'r')
+                nf1 = ncopen(filename)   # cached: reused by readmeteodata, checkifDate, metaNetCDF
             except:
                 msg = "Error 209: Netcdf map stacks: " + filename +"\n"
                 raise CWATMFileError(filename, msg, sname=maps)
@@ -1519,16 +1522,59 @@ def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
                     start = num2date(startint * datediv, units=nctime.units, calendar=nctime.calendar)
                     no += 1
 
-            nf1.close()
             # --- End Netcdf -------------
         meteofiles[maps] =  meteolist
         flagmeteo[maps] = 0
 
     return
 
+def setmeteochunkcache(ncvar, loc, maxcache=1024 * 1024 * 1024):
+    """
+    Size the HDF5 chunk cache of a meteo variable so that every chunk touched by the
+    cut window stays decompressed in memory across timesteps.
+    Only matters for files with a time chunk > 1 (e.g. (30, y, x)); for (1, y, x) it is a no-op.
 
+    ncvar    : netCDF4 variable
+    loc      : [y0, y1, x0, x1] cut window (as used in readmeteodata)
+    maxcache : upper limit in bytes (default 1 GB)
+    """
+    chunks = ncvar.chunking()
+    if (chunks is None) or (chunks == 'contiguous') or (len(chunks) != 3):
+        return
+    ct, cy, cx = chunks
+    if ct <= 1:
+        return
 
-def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale=True, 
+    # number of chunks the window touches in y and x
+    ny = (loc[1] - 1) // cy - loc[0] // cy + 1
+    nx = (loc[3] - 1) // cx - loc[2] // cx + 1
+    nchunks = ny * nx
+
+    chunkbytes = ct * cy * cx * ncvar.dtype.itemsize
+    size = min(2 * nchunks * chunkbytes, maxcache)   # factor 2 = headroom
+    nelems = max(1009, 4 * nchunks + 1)                # hash-table slots, ideally >> number of chunks
+    try:
+        ncvar.set_var_chunk_cache(size=int(size), nelems=int(nelems), preemption=0.75)
+    except:
+        pass   # older netCDF-C / non-HDF5 file: keep library default
+
+def closemeteofile(name):
+    """
+    Close the open netCDF handle of one meteo map stack (if any).
+    Called when the run moves on to the next file of the stack, and at the end of a run.
+    """
+    handle = meteohandles.pop(name, None)
+    if handle is not None:
+        ncclose(handle[2])   # handle = [Dataset, file number, filename] - shared with caching.ncopen
+
+def closemeteofiles():
+    """
+    Close all open meteo netCDF handles. Call once after the dynamic loop has finished.
+    """
+    for name in list(meteohandles.keys()):
+        closemeteofile(name)
+
+def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale=True,
                   buffering=False, extendback=False, glacier=False):
     """
     Read meteorological forcing data for specific time steps.
@@ -1610,23 +1656,25 @@ def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale
         if glacier:
             loc = maskmapAttr['cut']
 
-
     # +++++++++++++++ Netcdf ++++++++++++++++++++++
-
-    try:
-       nf1 = Dataset(filename, 'r')
-    except:
-        msg = "Error 211: Netcdf map stacks: \n"
-        raise CWATMFileError(filename,msg, sname = name)
+    # the file handle is kept open across timesteps (opened on first use, closed when the
+    # run moves to the next file of the stack or by closemeteofiles() at the end of the run)
+    fileno = flagmeteo[name]
+    handle = meteohandles.get(name)
+    if (handle is None) or (handle[1] != fileno) or (not handle[0].isopen()):
+        if handle is not None:
+            closemeteofile(name)
+        try:
+            nf1 = ncopen(filename)   # shared handle: file was already opened by multinetdf
+        except:
+            msg = "Error 211: Netcdf map stacks: \n"
+            raise CWATMFileError(filename, msg, sname=name)
+        setmeteochunkcache(nf1.variables[value], loc)
+        meteohandles[name] = [nf1, fileno, filename]
+    else:
+        nf1 = handle[0]
 
     mapnp = nf1.variables[value][idx, loc[0]:loc[1],loc[2]:loc[3]]
-
-    nf1.close()
-    """
-    reader = meteofiles[name][flagmeteo[name]][13]
-    mapnp = reader.read_timestep(idx,loc)
-    
-    """
     # +++++++++++++++ Netcdf End++++++++++++++++++++++
 
     mapnp = mapnp.astype(np.float64)
@@ -1668,6 +1716,7 @@ def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale
     if inputcounter[name] > meteoInfo[2]:
         inputcounter[name] = 0
         flagmeteo[name] += 1
+        closemeteofile(name)   # next timestep opens the next file of the stack
 
     return mapC
 
@@ -1730,13 +1779,17 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros=Fals
 
 
     try:
-       nf1 = Dataset(filename, 'r')
+       nf1 = ncopen(filename)   # cached: 10-day, monthly, yearly stacks are opened only once
     except:
         msg = "Error 212: Netcdf map stacks: \n"
         raise CWATMFileError(filename,msg, sname = namebinding)
 
     if value == "None":
         value = getvariablename(nf1)
+    # stacks read every time step (day-of-year, daily): keep decompressed time chunks in memory
+    # if several time steps share one chunk (monthly/yearly reads are too rare to be worth the memory)
+    if nf1.variables[value].ndim == 3 and useDaily in ("DOY", "daily"):
+        ncstackcache(filename, nf1.variables[value])
 
     # date if used daily, monthly or yearly or day of year
     idx = None  # will produce an error and indicates something is wrong with date
@@ -1814,7 +1867,6 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros=Fals
         mapnp = mapnp.data
     except:
         ii =1
-    nf1.close()
 
     # add zero values to maps in order to supress missing values
     if addZeros: mapnp[np.isnan(mapnp)] = zeros
@@ -1864,7 +1916,7 @@ def readnetcdfWithoutTime(name, value="None", counter=0):
     filename =  os.path.normpath(name)
 
     try:
-       nf1 = Dataset(filename, 'r')
+       nf1 = ncopen(filename)   # cached: e.g. dzRel - 12 layers from one file
     except:
         msg = "Error 213: Netcdf map stacks: \n"
         raise CWATMFileError(filename,msg)
@@ -1886,7 +1938,6 @@ def readnetcdfWithoutTime(name, value="None", counter=0):
             history = ""
         addtoversiondate(filename, history)
 
-    nf1.close()
 
     mapC = compressArray(mapnp, name=filename)
     if Flags['check']:
@@ -1927,7 +1978,7 @@ def readnetcdf12month(name, month,value="None"):
     filename =  os.path.normpath(name)
 
     try:
-       nf1 = Dataset(filename, 'r')
+       nf1 = ncopen(filename)   # cached: 12 monthly maps from one file (lapse rate)
     except:
         msg = "Error 213: Netcdf map stacks: \n"
         raise CWATMFileError(filename,msg)
@@ -1935,7 +1986,6 @@ def readnetcdf12month(name, month,value="None"):
         value = getvariablename(nf1) # get the last variable name
 
     mapnp = nf1.variables[value][month,cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
-    nf1.close()
 
     mapC = compressArray(mapnp, name=filename)
     if Flags['check']:
@@ -1977,7 +2027,7 @@ def readnetcdfInitial(name, value,default = 0.0):
         ii = 1
     filename =  os.path.normpath(name)
     try:
-       nf1 = Dataset(filename, 'r')
+       nf1 = ncopen(filename)   # init file is opened only once for all initial variables
     except:
         msg = "Error 214: Netcdf Initial file: \n"
         raise CWATMFileError(filename,msg)
@@ -2008,7 +2058,6 @@ def readnetcdfInitial(name, value,default = 0.0):
                 history = ""
             addtoversiondate(filename,history)
             
-            nf1.close()
             mapC = compressArray(mapnp, name=filename)
             if Flags['check']:
                 checkmap(value, filename, mapnp)
@@ -2025,7 +2074,6 @@ def readnetcdfInitial(name, value,default = 0.0):
             raise CWATMError(msg)
 
     else:
-        nf1.close()
         msg = "Warning: Initial value: " + value + " is not included in: " + name + " - using default: " + str(default)
         print(CWATMWarning(msg))
         return default
@@ -2111,6 +2159,7 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
     #netfile = netfile.replace("'","")
 
     if not flag:
+        ncclose(netfile)   # in case the file was read before as input (cached handle)
         nf1 = Dataset(netfile, 'w', format='NETCDF4')
 
         # general Attributes
@@ -2337,6 +2386,7 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
         #        value.esri_pe_string = metadataNCDF[var]['esri_pe_string']
 
     else:
+        ncclose(netfile)   # in case the file was read before as input (cached handle)
         nf1 = Dataset(netfile, 'a')
 
     if flagTime:
@@ -2429,6 +2479,7 @@ def writeIniNetcdf(netfile,varlist, inputlist):
     row = np.abs(cutmap[3] - cutmap[2])
     col = np.abs(cutmap[1] - cutmap[0])
 
+    ncclose(netfile)   # e.g. initSave == initLoad: close cached read handle first
     nf1 = Dataset(netfile, 'w', format='NETCDF4')
 
     # general Attributes

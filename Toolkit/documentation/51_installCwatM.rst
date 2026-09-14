@@ -102,7 +102,7 @@ virtual environment, simply put in Command Prompt the deactivate command.
 External libraries
 ------------------
 
-These seven Python packages are needed:
+These eight Python packages are needed:
 
 1. `NumPy <http://www.numpy.org>`_
 2. `SciPy <https://www.scipy.org>`_
@@ -111,6 +111,7 @@ These seven Python packages are needed:
 5. `xmipy <https://pypi.org/project/xmipy>`_
 6. `openpyxl <https://pypi.org/project/openpyxl>`_
 7. `rasterio <https://pypi.org/project/rasterio>`_
+8. `python-calamine <https://pypi.org/project/python-calamine/>`_
 
 These seven libraries can be installed with pip, conda
 
@@ -244,6 +245,7 @@ Install the required libraries::
     conda install gdal==3.9.2 
     conda install openpyxl 
     conda install xmimpy
+    conda install python-calamine
 
 
 | Go to the folder of the model, open it in the terminal, then type: conda activate cwatm 

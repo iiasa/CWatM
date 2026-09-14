@@ -10,6 +10,7 @@
 from cwatm.management_modules.data_handling import *
 import importlib
 # importlib to import pandas as pd in has crop sentitive version is used
+from cwatm.management_modules.caching import readexcel
 
 class initcondition(object):
     """
@@ -109,8 +110,7 @@ class initcondition(object):
         Supports both monthly and daily time step configurations
         with automatic detection based on growth stage lengths.
         """
-        pd = importlib.import_module("pandas", package=None)
-        df = pd.read_excel(xl_settings_file_path, sheet_name='Crops')
+        df = readexcel(xl_settings_file_path, 'Crops')
 
         # Crops = [ [planting date, [length of growth stage i from planting, kc_i, ky_i]_i]_crop]
         Crops = []
@@ -167,8 +167,7 @@ class initcondition(object):
         xl_settings_file_path : str
             Path to Excel file containing reservoir configuration data
         """
-        pd = importlib.import_module("pandas", package=None)
-        df = pd.read_excel(xl_settings_file_path, header=None, sheet_name='Reservoirs')
+        df = readexcel(xl_settings_file_path, 'Reservoirs', header=None)
 
         # reservoir_transfers = [ [Giving reservoir, Receiving reservoir, [366-day array of releases]] ]
         reservoir_info = []
@@ -200,8 +199,7 @@ class initcondition(object):
         xl_settings_file_path : str
             Path to Excel file containing reservoir transfer configurations
         """
-        pd = importlib.import_module("pandas", package=None)
-        df = pd.read_excel(xl_settings_file_path, header=None, sheet_name='Reservoir_transfers')
+        df = readexcel(xl_settings_file_path, 'Reservoir_transfers', header=None)
 
         # reservoir_transfers = [ [Giving reservoir, Receiving reservoir, [366-day array of releases]] ]
         reservoir_transfers = []
@@ -235,8 +233,7 @@ class initcondition(object):
         """
         # fix - build an object with wwtp_id as key and res as values.
         # get unique wwtp_id and iterate
-        pd = importlib.import_module("pandas", package=None)
-        df = pd.read_excel(xl_settings_file_path, sheet_name='Wastewater_to_reservoirs')
+        df = readexcel(xl_settings_file_path, 'Wastewater_to_reservoirs')
         
        
         wwtp_to_reservoir = {}
@@ -261,8 +258,7 @@ class initcondition(object):
         xl_settings_file_path : str
             Path to Excel file containing wastewater treatment definitions
         """
-        pd = importlib.import_module("pandas", package=None)
-        df = pd.read_excel(xl_settings_file_path, sheet_name='Wastewater_def')
+        df = readexcel(xl_settings_file_path, 'Wastewater_def')
         
         cols = ['From year', 'To year', 'Volume (cubic m per day)', 'Treatment days', 'Treatment level', 'Export share', 'Domestic', 'Industrial', 'min_HRT']
         wwtp_definitions = {}
@@ -283,8 +279,7 @@ class initcondition(object):
         xl_settings_file_path : str
             Path to Excel file containing desalination capacity configurations
         """
-        pd = importlib.import_module("pandas", package=None)
-        df = pd.read_excel(xl_settings_file_path, sheet_name='Desalination')
+        df = readexcel(xl_settings_file_path, 'Desalination')
         
         s_year = globals.dateVar['dateBegin'].year
         e_year = globals.dateVar['dateEnd'].year

@@ -14,6 +14,7 @@ from cwatm.hydrological_modules.routing_reservoirs.routing_sub import *
 
 from cwatm.management_modules.globals import *
 import importlib
+from cwatm.management_modules.caching import readexcel, excelsheetnames
 
 class lakes_reservoirs(object):
     """
@@ -204,8 +205,7 @@ class lakes_reservoirs(object):
         self.model = model
 
     def reservoir_releases(self, xl_settings_file_path):
-        pd = importlib.import_module("pandas", package=None)
-        df = pd.read_excel(xl_settings_file_path, sheet_name='Reservoirs_downstream')
+        df = readexcel(xl_settings_file_path, 'Reservoirs_downstream')
         waterBodyID_C_tolist = self.var.waterBodyID_C.tolist()
 
         reservoir_release = [[-1 for i in self.var.waterBodyID_C] for i in range(366)]
@@ -218,8 +218,9 @@ class lakes_reservoirs(object):
 
         reservoir_supply = [[-1 for i in self.var.waterBodyID_C] for i in range(366)]
         # reservoir_release.copy()
-        if 'Reservoirs_supply' in pd.read_excel(xl_settings_file_path, None).keys():
-            df2 = pd.read_excel(xl_settings_file_path, sheet_name='Reservoirs_supply')
+        # only the sheet names are checked - before all sheets were parsed for this test
+        if 'Reservoirs_supply' in excelsheetnames(xl_settings_file_path):
+            df2 = readexcel(xl_settings_file_path, 'Reservoirs_supply')
             for res in list(df2)[2:]:
                 if res in waterBodyID_C_tolist:
                     res_index = waterBodyID_C_tolist.index(int(float(res)))
@@ -233,8 +234,7 @@ class lakes_reservoirs(object):
 
 
     def wetland_readarea(self, xl_settings_file_path):
-        pd = importlib.import_module("pandas", package=None)
-        df = pd.read_excel(xl_settings_file_path, sheet_name='Wetlands')
+        df = readexcel(xl_settings_file_path, 'Wetlands')
         waterBodyID_C_tolist = self.var.waterBodyID_C.tolist()
 
         # initialize wetlands for all lakes & reservoirs
@@ -385,6 +385,10 @@ class lakes_reservoirs(object):
             self.var.lddCompress_LR, dirshort_LR, self.var.dirUp_LR, self.var.dirupLen_LR, self.var.dirupID_LR, \
             self.var.downstruct_LR, self.var.catchment_LR, self.var.dirDown_LR, self.var.lendirDown_LR = defLdd2(
                 self.var.ldd_LR)
+
+            # levels of the network with lakes/reservoirs as pits, for the parallel kinematic wave
+            self.var.levelOrder_LR, self.var.levelStart_LR, self.var.nlevels_LR = kinematicLevels(
+                self.var.dirDown_LR, self.var.dirupLen_LR, self.var.dirupID_LR)
 
             # boolean map as mask map for compressing and decompressing
             self.var.compress_LR = self.var.waterBodyOut > 0
@@ -1275,6 +1279,11 @@ class lakes_reservoirs(object):
             np.put(self.var.lakeStorage, self.var.decompress_LR, lakeStorageC)
             np.put(self.var.resStorage, self.var.decompress_LR, resStorageC)
 
+            # Puts the value of lakeResStorage into all cells covered by the waterbody
+            # (only needed once per day: lakeResStorage changes only in this last routing substep)
+            self.var.lakeResStorage_filled = npareamaximum(self.var.lakeResStorage, self.var.waterBodyID)
+            self.var.lakeResStorage_buffer = npareamaximum(self.var.lakeResStorage, self.var.waterBodyBuffer)
+
             #water transfer
             if checkOption('reservoir_transfers', True):
                 np.put(self.var.reservoir_transfers_net_M3, self.var.decompress_LR, self.var.reservoir_transfers_net_M3C)
@@ -1301,10 +1310,6 @@ class lakes_reservoirs(object):
         outLakein = npareatotal(outLake1, self.var.waterBodyID)
         # use only the value of the outflow point
         self.var.outLake = np.where(self.var.waterBodyOut > 0, outLakein, 0.)
-
-        # Puts the value of lakeResStorage into all cells covered by the waterbody
-        self.var.lakeResStorage_filled = npareamaximum(self.var.lakeResStorage, self.var.waterBodyID)
-        self.var.lakeResStorage_buffer = npareamaximum(self.var.lakeResStorage, self.var.waterBodyBuffer)
 
         return outLdd, lakeResOutflowDis
 

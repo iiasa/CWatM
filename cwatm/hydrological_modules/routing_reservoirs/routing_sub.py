@@ -213,6 +213,25 @@ def upstreamArea(dirDown, dirshort, area):
     lib2.ups(dirDown, dirshort, ups, len(dirDown))
     return ups
 
+
+def kinematicLevels(dirDown, dirupLen, dirupID):
+    """
+    Sorts the cells of a river network into levels for the parallel kinematic wave.
+    Level 0 = source cells, level n = cells whose upstream cells all have a level < n.
+    Cells of one level do not depend on each other -> computed in parallel (lib2.kinematicPar)
+
+    :param dirDown: cells in routing order
+    :param dirupLen: start index of the upstream cells of each cell
+    :param dirupID: upstream cells
+    :return: levelOrder (cells sorted by level), levelStart (start index of each level), number of levels
+    """
+    size = len(dirDown)
+    levelOrder = np.zeros(size, dtype=np.int64)
+    levelStart = np.zeros(size + 2, dtype=np.int64)
+    nlevels = lib2.kinematicLevels(dirDown, dirupLen, dirupID, size, maskinfo['mapC'][0], levelOrder, levelStart)
+    return levelOrder, np.ascontiguousarray(levelStart[:nlevels + 1]), nlevels
+
+
 def upstream1(downstruct, weight):
     """
     Calculates 1 cell upstream

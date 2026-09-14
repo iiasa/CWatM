@@ -1,0 +1,86 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata from this file, and/or the paper describing CWatM listed under 'preferred-citation'."
+type: software
+title: "CWatM - Community Water Model"
+abstract: >-
+  CWatM (Community Water Model) is a hydrological model that simulates the
+  water cycle at daily time steps and at global and local scales, historically
+  and into the future. It assesses water supply, water demand and
+  environmental needs, including water management and human influence within
+  the water cycle. CWatM is developed and maintained by IIASA's Water Security
+  group.
+version: "1.11"
+date-released: "2026-09-10"
+doi: 10.5281/zenodo.22686662
+url: "https://cwatm.iiasa.ac.at"
+repository-code: "https://github.com/iiasa/CWatM"
+license: GPL-3.0-only
+keywords:
+  - hydrology
+  - water balance
+  - water resources
+  - hydrological model
+  - CWatM
+authors:
+  - given-names: Peter
+    family-names: Burek
+    affiliation: "International Institute for Applied Systems Analysis (IIASA)"
+  - given-names: Mikhail
+    family-names: Smilovic
+    affiliation: "International Institute for Applied Systems Analysis (IIASA)"
+  - given-names: Jens
+    family-names: "de Bruijn"
+	affiliation: "VRIJE Universiteit Amsterdam"
+  - given-names: Dor
+    family-names: Fridman
+    affiliation: "International Institute for Applied Systems Analysis (IIASA)"
+  - given-names: Peter
+    family-names: Greve
+    affiliation: "Helmholtz-Zentrum Hereon, Germany"
+  - given-names: Sarah
+    family-names: Hanus
+    affiliation: "University of Zurich, Switzerland"
+  - given-names: Luca
+    family-names: Guillaumot
+    affiliation: "Bureau de Recherches Géologiques et Minières: Orléans, France"
+  - given-names: Silvia
+    family-names: Artuso
+    affiliation: "International Institute for Applied Systems Analysis (IIASA)"	
+  - given-names: Carla
+    family-names: Catania
+    affiliation: "International Institute for Applied Systems Analysis (IIASA)"	
+  - given-names: Taher
+    family-names: Kahil
+    affiliation: "International Institute for Applied Systems Analysis (IIASA)"	
+
+preferred-citation:
+  type: article
+  title: >-
+    Development of the Community Water Model (CWatM v1.04) - a high-resolution
+    hydrological model for global and regional assessment of integrated water
+    resources management
+  authors:
+    - given-names: Peter
+      family-names: Burek
+    - given-names: Yusuke
+      family-names: Satoh
+    - given-names: Taher
+      family-names: Kahil
+    - given-names: Ting
+      family-names: Tang
+    - given-names: Peter
+      family-names: Greve
+    - given-names: Mikhail
+      family-names: Smilovic
+    - given-names: Luca
+      family-names: Guillaumot
+    - given-names: Fang
+      family-names: Zhao
+    - given-names: Yoshihide
+      family-names: Wada
+  journal: "Geoscientific Model Development"
+  volume: 13
+  start: "3267"
+  end: "3298"
+  year: 2020
+  doi: "10.5194/gmd-13-3267-2020"

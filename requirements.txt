@@ -2,6 +2,9 @@ numpy
 scipy
 netCDF4
 gdal
+pandas
+openpyxl
+python-calamine   # optional: 10-25x faster reading of the Excel settings file (needs pandas >= 2.2), without it openpyxl is used
 flopy 3.3.2
 xmipy
 
