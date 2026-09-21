@@ -959,6 +959,7 @@ class readmeteo(object):
                                               addZeros=True,
                                               mapsscale = self.var.meteomapsscale,
                                               buffering= self.var.buffer)
+                self.var.Tdew = self.downscaling2(self.var.Tdew)
                 if checkOption('TemperatureInKelvin'):
                     self.var.Tdew -= ZeroKelvin
 
