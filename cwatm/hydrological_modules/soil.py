@@ -171,6 +171,14 @@ class soil(object):
 
     """
 
+    # variables written by dynamic(): per land cover (row No) and per cell
+    # used by landcoverType.SubVar.scatter if soil is calculated only on cells with this land cover
+    # -> a new self.var.xxx[No] = ... in dynamic() has to be added here too
+    WRITE_LC = ['w1', 'w2', 'w3', 'openWaterEvap', 'actBareSoilEvap', 'prefFlow', 'infiltration',
+                'directRunoff', 'capRiseFromGW', 'perc1to2', 'perc2to3', 'perc3toGW', 'theta1', 'theta2',
+                'theta3', 'actTransTotal', 'actualET', 'totalPotET', 'interflow', 'gwRecharge', 'gwRecharge2']
+    WRITE_CELL = ['topwater']
+
     def __init__(self, model):
         """
         Initialize soil module.
@@ -498,14 +506,17 @@ class soil(object):
         #     ii = 1
         #     print(No, self.var.w1[No][0:3])
 
-        satAreaFrac = 1 - (1 - relSat) ** self.var.arnoBeta[No]
-        # Fraction of pixel that is at saturation as a function of the ratio Theta1/ThetaS1. 
+        # (1 - relSat) ** arnoBeta is used for satAreaFrac and potInf
+        relSatBeta = (1 - relSat) ** self.var.arnoBeta[No]
+        satAreaFrac = 1 - relSatBeta
+        # Fraction of pixel that is at saturation as a function of the ratio Theta1/ThetaS1.
         # Distribution function taken from Zhao,1977, as cited in Todini, 1996 (JoH 175, 339-382)
         satAreaFrac = np.maximum(np.minimum(satAreaFrac, 1.0), 0.0)
 
         store = soilWaterStorageCap / (self.var.arnoBeta[No] + 1)
-        potBeta = (self.var.arnoBeta[No] + 1) / self.var.arnoBeta[No]
-        potInf = store - store * (1 - (1 - satAreaFrac) ** potBeta)
+        # (1 - satAreaFrac) ** ((arnoBeta + 1) / arnoBeta) = (1 - relSat) ** (arnoBeta + 1) = relSatBeta * (1 - relSat)
+        # (arnoBeta >= 0.01); limited to 1 like the clamp of satAreaFrac if relSat < 0
+        potInf = store - store * (1 - np.minimum(relSatBeta * (1 - relSat), 1.0))
 
 
 
@@ -765,101 +776,6 @@ class soil(object):
         # total actual transpiration
         self.var.actTransTotal[No] = ta1 + ta2 + ta3
 
-        self.var.actTransTotal_forest = self.var.actTransTotal[0] * self.var.fracVegCover[0]
-        self.var.actTransTotal_grasslands = self.var.actTransTotal[1] * self.var.fracVegCover[1]
-        self.var.actTransTotal_paddy = self.var.actTransTotal[2] * self.var.fracVegCover[2]
-        self.var.actTransTotal_nonpaddy = self.var.actTransTotal[3] * self.var.fracVegCover[3]
-
-        self.var.ET_crop_Irr_paddy = (self.var.actTransTotal_paddy + 
-                                      (self.var.actBareSoilEvap[2] + self.var.openWaterEvap[2]) *
-                                      self.var.fracVegCover[2])
-        self.var.ET_crop_Irr_paddy_fraccrop = np.where(self.var.fracVegCover[2] > 0, 
-                                                       self.var.ET_crop_Irr_paddy / self.var.fracVegCover[2], 0)
-
-        if self.var.includeCrops:  # checkOption('includeCrops') and checkOption('includeCropSpecificWaterUse'):
-            if No == 3:
-
-                # Method 1: Area proportional
-
-                # for c in range(len(self.var.Crops)):
-                #     self.var.actTransTotal_crops_Irr[c] = np.where(self.var.fracVegCover[3] > 0, self.var.fracCrops_Irr[c] / (self.var.fracVegCover[3]), 0) * self.var.actTransTotal_nonpaddy
-                #     self.var.actTransTotal_crops_nonIrr[c] = np.where(self.var.fracVegCover[1] > 0, self.var.fracCrops_nonIrr[c] / (self.var.fracVegCover[1]), 0) * self.var.actTransTotal_paddy
-
-                # Crop-specific transpiration (m) scales the land-class specific transpiration according to its
-                # specific potential evapotranspiration and the land-class specific potential evapotranspiration
-
-                for c in range(len(self.var.Crops)):
-
-                    # Area and transpiration-Kc proportional
-                    self.var.actTransTotal_crops_Irr[c] = np.where(
-                        self.var.fracVegCover[3] * (self.var.cropKC[3] - self.var.minCropKC) > 0,
-                        (self.var.fracCrops_Irr[c] * (self.var.currentKC[c] - self.var.minCropKC)) /
-                        (self.var.fracVegCover[3] * (self.var.cropKC[3] - self.var.minCropKC)),
-                        0) * self.var.actTransTotal_nonpaddy
-                    
-                    self.var.actTransTotal_crops_nonIrr[c] = np.where(
-                        self.var.fracVegCover[1] * (self.var.cropKC[1] - self.var.minCropKC) > 0,
-                        (self.var.fracCrops_nonIrr[c] * (self.var.currentKC[c] - self.var.minCropKC)) /
-                        (self.var.fracVegCover[1] * (self.var.cropKC[1] - self.var.minCropKC)),
-                        0) * self.var.actTransTotal_grasslands
-
-
-
-                    self.var.ET_crop_Irr[c] = (self.var.actTransTotal_crops_Irr[c] +
-                                               self.var.actBareSoilEvap[3] * self.var.fracCrops_Irr[c])
-                    vars(self.var)['ET_crop_Irr_' + str(c)] = self.var.ET_crop_Irr[c].copy()
-                    vars(self.var)['ET_crop_Irr_fraccrop_' + str(c)] = np.where(
-                        self.var.fracCrops_Irr[c] > 0,
-                        self.var.ET_crop_Irr[c] / self.var.fracCrops_Irr[c], 0)
-
-                    self.var.actTransTotal_month_Irr[c] += self.var.ET_crop_Irr[c]
-
-                    self.var.ET_crop_nonIrr[c] = (self.var.actTransTotal_crops_nonIrr[c] +
-                                                  self.var.actBareSoilEvap[1] * self.var.fracCrops_nonIrr[c])
-                    vars(self.var)['ET_crop_nonIrr_' + str(c)] = self.var.ET_crop_nonIrr[c].copy()
-                    vars(self.var)['ET_crop_nonIrr_fraccrop_' + str(c)] = np.where(
-                        self.var.fracCrops_nonIrr[c] > 0,
-                        self.var.ET_crop_nonIrr[c] / self.var.fracCrops_nonIrr[c], 0)
-
-                    self.var.actTransTotal_month_nonIrr[c] += self.var.ET_crop_nonIrr[c]
-
-
-                    self.var.irr_crop[c] = np.where(
-                        self.var.frac_totalIrr * self.var.weighted_KC_Irr_woFallow > 0, 
-                        (self.var.fracCrops_Irr[c] * self.var.currentKC[c]) / 
-                        self.var.weighted_KC_Irr_woFallow_fullKc,
-                        0) * self.var.act_irrNonpaddyWithdrawal
-                    vars(self.var)['irr_crop_' + str(c)] = self.var.irr_crop[c].copy()
-
-
-                    # daily ratio of actual transpiration to potential ET
-                    self.var.ratio_a_p_nonIrr_daily[c] = np.where(
-                        self.var.PotET_crop[c] * self.var.activatedCrops[c] > 0,
-                        (self.var.actTransTotal_crops_nonIrr[c] + 
-                         self.var.actBareSoilEvap[1] * self.var.fracCrops_nonIrr[c]) /
-                        ((self.var.PotET_crop[c]) * self.var.fracCrops_nonIrr[c]),
-                        0)  # This should always be <= 1.
-
-                    self.var.ratio_a_p_Irr_daily[c] = np.where(
-                        self.var.PotET_crop[c] * self.var.activatedCrops[c] > 0,
-                        (self.var.actTransTotal_crops_Irr[c] + 
-                         self.var.actBareSoilEvap[3] * self.var.fracCrops_Irr[c]) /
-                        ((self.var.PotET_crop[c]) * self.var.fracCrops_Irr[c]),
-                        0)  # This should always be <= 1.
-
-
-                    self.var.irr_crop_month[c] += self.var.irr_crop[c]
-                    if 'adminSegments' in binding:
-                        self.var.irrM3_crop_month_segment[c] = npareatotal(
-                            self.var.irr_crop_month[c] * self.var.cellArea,
-                            self.var.adminSegments)
-
-                self.var.irr_Paddy_month += self.var.act_irrPaddyWithdrawal
-                if 'adminSegments' in binding:
-                    self.var.irrM3_Paddy_month_segment = npareatotal(
-                        self.var.irr_Paddy_month * self.var.cellArea,
-                        self.var.adminSegments)
-
         self.var.actualET[No] = (self.var.actualET[No] + self.var.actBareSoilEvap[No] + 
                                  self.var.openWaterEvap[No] + self.var.actTransTotal[No])
         # actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water 
@@ -884,5 +800,112 @@ class soil(object):
             self.var.gwRecharge2[No] = self.var.gwRecharge2[No] - testgw
 
 
+    def dynamic_crops(self):
+        """
+        Totals over land cover types and crop-specific evapotranspiration.
+
+        Called once per time step from landcoverType.dynamic after the soil of all land cover
+        types is calculated (before it was part of dynamic and calculated for each land cover type).
+        """
+
+        self.var.actTransTotal_forest = self.var.actTransTotal[0] * self.var.fracVegCover[0]
+        self.var.actTransTotal_grasslands = self.var.actTransTotal[1] * self.var.fracVegCover[1]
+        self.var.actTransTotal_paddy = self.var.actTransTotal[2] * self.var.fracVegCover[2]
+        self.var.actTransTotal_nonpaddy = self.var.actTransTotal[3] * self.var.fracVegCover[3]
+
+        self.var.ET_crop_Irr_paddy = (self.var.actTransTotal_paddy + 
+                                      (self.var.actBareSoilEvap[2] + self.var.openWaterEvap[2]) *
+                                      self.var.fracVegCover[2])
+        self.var.ET_crop_Irr_paddy_fraccrop = np.where(self.var.fracVegCover[2] > 0, 
+                                                       self.var.ET_crop_Irr_paddy / self.var.fracVegCover[2], 0)
+
+        if self.var.includeCrops and checkOption('includeIrrigation'):
+            # checkOption('includeCrops') and checkOption('includeCropSpecificWaterUse')
+            # before: inside dynamic with No == 3, which is only calculated with irrigation
+
+            # Method 1: Area proportional
+
+            # for c in range(len(self.var.Crops)):
+            #     self.var.actTransTotal_crops_Irr[c] = np.where(self.var.fracVegCover[3] > 0, self.var.fracCrops_Irr[c] / (self.var.fracVegCover[3]), 0) * self.var.actTransTotal_nonpaddy
+            #     self.var.actTransTotal_crops_nonIrr[c] = np.where(self.var.fracVegCover[1] > 0, self.var.fracCrops_nonIrr[c] / (self.var.fracVegCover[1]), 0) * self.var.actTransTotal_paddy
+
+            # Crop-specific transpiration (m) scales the land-class specific transpiration according to its
+            # specific potential evapotranspiration and the land-class specific potential evapotranspiration
+
+            # the same for all crops
+            denIrr = self.var.fracVegCover[3] * (self.var.cropKC[3] - self.var.minCropKC)
+            condIrr = denIrr > 0
+            denNonIrr = self.var.fracVegCover[1] * (self.var.cropKC[1] - self.var.minCropKC)
+            condNonIrr = denNonIrr > 0
+            condIrrCrop = self.var.frac_totalIrr * self.var.weighted_KC_Irr_woFallow > 0
+            # crops not activated and not planted anywhere give 0 everywhere -> skipped
+            present = (np.any(self.var.activatedCrops > 0, axis=1) | np.any(self.var.fracCrops_Irr > 0, axis=1) |
+                       np.any(self.var.fracCrops_nonIrr > 0, axis=1))
+
+            for c in range(len(self.var.Crops)):
+                if not present[c]:
+                    continue
+
+                # Area and transpiration-Kc proportional
+                self.var.actTransTotal_crops_Irr[c] = np.where(
+                    condIrr,
+                    (self.var.fracCrops_Irr[c] * (self.var.currentKC[c] - self.var.minCropKC)) / denIrr,
+                    0) * self.var.actTransTotal_nonpaddy
+                
+                self.var.actTransTotal_crops_nonIrr[c] = np.where(
+                    condNonIrr,
+                    (self.var.fracCrops_nonIrr[c] * (self.var.currentKC[c] - self.var.minCropKC)) / denNonIrr,
+                    0) * self.var.actTransTotal_grasslands
 
 
+
+                self.var.ET_crop_Irr[c] = (self.var.actTransTotal_crops_Irr[c] +
+                                           self.var.actBareSoilEvap[3] * self.var.fracCrops_Irr[c])
+                vars(self.var)['ET_crop_Irr_' + str(c)] = self.var.ET_crop_Irr[c].copy()
+                vars(self.var)['ET_crop_Irr_fraccrop_' + str(c)] = np.where(
+                    self.var.fracCrops_Irr[c] > 0,
+                    self.var.ET_crop_Irr[c] / self.var.fracCrops_Irr[c], 0)
+
+                self.var.actTransTotal_month_Irr[c] += self.var.ET_crop_Irr[c]
+
+                self.var.ET_crop_nonIrr[c] = (self.var.actTransTotal_crops_nonIrr[c] +
+                                              self.var.actBareSoilEvap[1] * self.var.fracCrops_nonIrr[c])
+                vars(self.var)['ET_crop_nonIrr_' + str(c)] = self.var.ET_crop_nonIrr[c].copy()
+                vars(self.var)['ET_crop_nonIrr_fraccrop_' + str(c)] = np.where(
+                    self.var.fracCrops_nonIrr[c] > 0,
+                    self.var.ET_crop_nonIrr[c] / self.var.fracCrops_nonIrr[c], 0)
+
+                self.var.actTransTotal_month_nonIrr[c] += self.var.ET_crop_nonIrr[c]
+
+
+                self.var.irr_crop[c] = np.where(
+                    condIrrCrop, 
+                    (self.var.fracCrops_Irr[c] * self.var.currentKC[c]) / 
+                    self.var.weighted_KC_Irr_woFallow_fullKc,
+                    0) * self.var.act_irrNonpaddyWithdrawal
+                vars(self.var)['irr_crop_' + str(c)] = self.var.irr_crop[c].copy()
+
+
+                # daily ratio of actual transpiration to potential ET
+                # numerator = ET_crop_nonIrr[c] / ET_crop_Irr[c] (same expression as before)
+                condPot = self.var.PotET_crop[c] * self.var.activatedCrops[c] > 0
+                self.var.ratio_a_p_nonIrr_daily[c] = np.where(
+                    condPot,
+                    self.var.ET_crop_nonIrr[c] / (self.var.PotET_crop[c] * self.var.fracCrops_nonIrr[c]),
+                    0)  # This should always be <= 1.
+
+                self.var.ratio_a_p_Irr_daily[c] = np.where(
+                    condPot,
+                    self.var.ET_crop_Irr[c] / (self.var.PotET_crop[c] * self.var.fracCrops_Irr[c]),
+                    0)  # This should always be <= 1.
+
+
+                self.var.irr_crop_month[c] += self.var.irr_crop[c]
+                if 'adminSegments' in binding:
+                    self.var.irrM3_crop_month_segment[c] = self.var.adminSegmentsIndex.total(
+                        self.var.irr_crop_month[c] * self.var.cellArea)
+
+            self.var.irr_Paddy_month += self.var.act_irrPaddyWithdrawal
+            if 'adminSegments' in binding:
+                self.var.irrM3_Paddy_month_segment = self.var.adminSegmentsIndex.total(
+                    self.var.irr_Paddy_month * self.var.cellArea)

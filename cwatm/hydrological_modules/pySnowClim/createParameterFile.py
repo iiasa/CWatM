@@ -24,7 +24,8 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
     at SNOTEL stations (Lute et al., 2022).
 
     :param cal: Time period for the model run (default: (2001-10-01 to 2002-09-30))
-    :param hours_in_ts: Hours in time step (default: 4)
+                only used by the standalone run (runsnowclim_model.py), not by CWatM
+    :param hours_in_ts: Hours in time step (default: 24 = daily, as used by CWatM)
     :param stability: Stability setting (default: 1)
     :param windHt: Wind height (default: 10)
     :param tempHt: Temperature height (default: 2)
@@ -42,7 +43,8 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
     :param E0_app: Windless exchange application option (default: 1)
     :param E0_stable: Windless exchange stability option (default: 2)
     :param Ts_add: Temperature add factor (default: 2)
-    :param smooth_time_steps: Smoothing time steps (default: 12)
+    :param smooth_time_steps: Smoothing time steps (default: 24 // hours_in_ts = 1 for daily steps;
+                              without effect in CWatM, which calls the model one time step at a time)
     :param ground_albedo: Ground albedo (default: 0.25)
     :param snow_emis: Snow emissivity (default: 0.98)
     :param snow_dens_default: Default snow density (default: 250)

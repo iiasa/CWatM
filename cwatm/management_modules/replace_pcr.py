@@ -98,8 +98,14 @@ def npareaaverage(values, areaclass):
     then divides to get averages. Error state management prevents warnings
     from division by zero or invalid operations in empty classes.
     """
+    total = np.bincount(areaclass, weights=values)
+    count = np.bincount(areaclass)
     with np.errstate(invalid='ignore', divide='ignore'):
-        return np.take(np.bincount(areaclass, weights=values) / np.bincount(areaclass), areaclass)
+        if total.size > areaclass.size:
+            # large, sparse class ids (more classes than cells): take to the cells first, then divide per cell
+            # avoids dividing (0/0) over all empty classes; same result
+            return np.take(total, areaclass) / np.take(count, areaclass)
+        return np.take(total / count, areaclass)
 
 
 def npareamaximum(values, areaclass):
@@ -131,6 +137,61 @@ def npareamaximum(values, areaclass):
     valueMax = np.zeros(areaclass.max() + 1)
     np.maximum.at(valueMax, areaclass, values)
     return np.take(valueMax, areaclass)
+
+
+class AreaIndex:
+    """
+    Index for a static area class map (e.g. waterBodyID, adminSegments).
+
+    Built once: the class ids renumbered 0..n-1, so the area functions work with small bincount
+    arrays. With onlypositive=True only cells with class > 0 are used and cells with class 0 get 0
+    (e.g. lakes); with onlypositive=False class 0 is a normal class and all cells are used.
+    For the used cells the results are the same as npareatotal, npareaaverage and npareamaximum
+    (bit-identical). The class map must not change after the index is built.
+
+    Parameters
+    ----------
+    areaclass : numpy.ndarray
+        Array of area class identifiers (integer)
+    onlypositive : bool
+        True: only cells with class > 0; False: all cells, class 0 is a class
+    """
+
+    def __init__(self, areaclass, onlypositive=True):
+        self.size = areaclass.size
+        if onlypositive:
+            self.cells = np.nonzero(areaclass > 0)[0]
+            cls = areaclass[self.cells]
+        else:
+            self.cells = None
+            cls = areaclass
+        self.dense = np.unique(cls, return_inverse=True)[1].reshape(-1).astype(np.int64)
+        self.count = np.bincount(self.dense)
+
+    def _values(self, values):
+        return values if self.cells is None else values[self.cells]
+
+    def _out(self, result):
+        if self.cells is None:
+            return result
+        out = np.zeros(self.size)
+        out[self.cells] = result
+        return out
+
+    def total(self, values):
+        """Total of values for each class, as npareatotal"""
+        return self._out(np.take(np.bincount(self.dense, weights=self._values(values)), self.dense))
+
+    def average(self, values):
+        """Average of values for each class, as npareaaverage"""
+        with np.errstate(invalid='ignore', divide='ignore'):
+            return self._out(np.take(np.bincount(self.dense, weights=self._values(values)) / self.count, self.dense))
+
+    def maximum(self, values):
+        """Maximum of values for each class, as npareamaximum"""
+        valueMax = np.zeros(self.count.size)
+        np.maximum.at(valueMax, self.dense, self._values(values))
+        return self._out(np.take(valueMax, self.dense))
 
 
 def npareamajority(values, areaclass):

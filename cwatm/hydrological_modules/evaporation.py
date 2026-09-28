@@ -303,13 +303,13 @@ class evaporation(object):
                         # Calculate relative yield for the last month
 
                         self.var.ratio_a_p_nonIrr[c] = np.where(
-                            self.var.totalPotET_month[c] * self.var.activatedCrops[c] > 0,
+                            self.var.totalPotET_month[c] * self.var.activatedCrops[c] * self.var.fracCrops_nonIrr[c] > 0,
                             self.var.actTransTotal_month_nonIrr[c] / (
                                 self.var.totalPotET_month[c] * self.var.fracCrops_nonIrr[c]),
                             0)  # This should always be <= 1.
 
                         self.var.ratio_a_p_Irr[c] = np.where(
-                            self.var.totalPotET_month[c] * self.var.activatedCrops[c] > 0,
+                            self.var.totalPotET_month[c] * self.var.activatedCrops[c] * self.var.fracCrops_Irr[c] > 0,
                             self.var.actTransTotal_month_Irr[c] / (
                                 self.var.totalPotET_month[c] * self.var.fracCrops_Irr[c]),
                             0)  # This should always be <= 1.
@@ -541,7 +541,8 @@ class evaporation(object):
             if No == 1:
 
                 self.var.weighted_KC_nonIrr = self.var.GeneralCrop_nonIrr * cropKC_landCover
-                for c in range(len(self.var.Crops)):
+                # crops without area in any cell add only 0 and are skipped
+                for c in np.flatnonzero(np.any(self.var.fracCrops_nonIrr != 0, axis=1)):
                     self.var.weighted_KC_nonIrr += self.var.fracCrops_nonIrr[c] * self.var.currentKC[c]
                 self.var.weighted_KC_nonIrr_woFallow = self.var.weighted_KC_nonIrr.copy()
 
@@ -552,8 +553,11 @@ class evaporation(object):
 
             if No == 3:
 
+                # crops without irrigated area in any cell add only 0 and are skipped
+                presentIrr = np.flatnonzero(np.any(self.var.fracCrops_Irr != 0, axis=1))
+
                 self.var.weighted_KC_Irr = self.var.GeneralCrop_Irr * cropKC_landCover
-                for c in range(len(self.var.Crops)):
+                for c in presentIrr:
                     self.var.weighted_KC_Irr += self.var.fracCrops_Irr[c] * self.var.currentKC[c]
                 self.var.weighted_KC_Irr_woFallow_fullKc = self.var.weighted_KC_Irr.copy()
 
@@ -563,7 +567,7 @@ class evaporation(object):
                 self.var.cropKC[3] = self.var.weighted_KC_Irr.copy()
 
                 self.var._weighted_KC_Irr = self.var.GeneralCrop_Irr * (cropKC_landCover - self.var.minCropKC)
-                for c in range(len(self.var.Crops)):
+                for c in presentIrr:
                     self.var._weighted_KC_Irr += self.var.fracCrops_Irr[c] * (self.var.currentKC[c]-self.var.minCropKC)
                 self.var.weighted_KC_Irr_woFallow = self.var._weighted_KC_Irr.copy()
                 
@@ -577,7 +581,8 @@ class evaporation(object):
 
 
         # potTranspiration: Transpiration for each land cover class
-        self.var.potTranspiration[No] = np.maximum(0., self.var.totalPotET[No] - self.var.potBareSoilEvap)
+        # uses bare soil evaporation before the reduction by snow: snow must not increase potential transpiration
+        self.var.potTranspiration[No] = np.maximum(0., self.var.totalPotET[No] - self.var.potBareSoilEvapNoSnow)
 
         # checkOption('includeCrops') and checkOption('includeCropSpecificWaterUse')
         if self.var.includeCrops:
@@ -591,31 +596,36 @@ class evaporation(object):
                                               self.var.currentKC[c] * self.var.ETRef)
                     self.var.totalPotET_month[c] += self.var.PotET_crop[c]
 
-                    # For creating named crop maps
-                    vars(self.var)[self.var.Crops_names[c] + '_Irr'] = self.var.fracCrops_Irr[c].copy()
-                    vars(self.var)[self.var.Crops_names[c] + '_nonIrr'] = self.var.fracCrops_nonIrr[c].copy()
+                    # For creating named crop maps: only needed if they are in the output settings
+                    if not hasattr(self, 'outputNames'):
+                        from cwatm.management_modules.globals import outMap, outTss
+                        # entries are variable names, or after output.initial lists [file, variable name, ...]
+                        self.outputNames = {str(e[1] if isinstance(e, list) else e).split('[')[0].strip()
+                                            for names in list(outMap.values()) + list(outTss.values()) for e in names}
+                    cropName = self.var.Crops_names[c]
+                    if cropName + '_Irr' in self.outputNames:
+                        vars(self.var)[cropName + '_Irr'] = self.var.fracCrops_Irr[c].copy()
+                    if cropName + '_nonIrr' in self.outputNames:
+                        vars(self.var)[cropName + '_nonIrr'] = self.var.fracCrops_nonIrr[c].copy()
 
                     
 
                     if 'adminSegments' in binding:
-                        self.var.totalPotET_month_segment[c] = npareaaverage(self.var.totalPotET_month[c], self.var.adminSegments)
-                        self.var.PotETaverage_crop_segments[c] = npareaaverage(self.var.PotET_crop[c], self.var.adminSegments)
+                        segIndex = self.var.adminSegmentsIndex
+                        self.var.totalPotET_month_segment[c] = segIndex.average(self.var.totalPotET_month[c])
+                        self.var.PotETaverage_crop_segments[c] = segIndex.average(self.var.PotET_crop[c])
 
-                        self.var.areaCrops_Irr_segment[c] = npareatotal(self.var.fracCrops_Irr[c] * self.var.cellArea,
-                                                                        self.var.adminSegments)
+                        self.var.areaCrops_Irr_segment[c] = segIndex.total(self.var.fracCrops_Irr[c] * self.var.cellArea)
 
-                        self.var.areaCrops_nonIrr_segment[c] = npareatotal(
-                            self.var.fracCrops_nonIrr[c] * self.var.cellArea,
-                            self.var.adminSegments)
+                        self.var.areaCrops_nonIrr_segment[c] = segIndex.total(
+                            self.var.fracCrops_nonIrr[c] * self.var.cellArea)
 
 
                 if 'adminSegments' in binding:
-                    self.var.areaPaddy_Irr_segment = npareatotal(self.var.fracVegCover[2] * self.var.cellArea,
-                                                             self.var.adminSegments)
+                    segIndex = self.var.adminSegmentsIndex
+                    self.var.areaPaddy_Irr_segment = segIndex.total(self.var.fracVegCover[2] * self.var.cellArea)
 
-                    self.var.Precipitation_segment = npareatotal(self.var.Precipitation * self.var.cellArea,
-                                                                 self.var.adminSegments)
+                    self.var.Precipitation_segment = segIndex.total(self.var.Precipitation * self.var.cellArea)
 
-                    self.var.availableArableLand_segment = npareatotal(self.var.availableArableLand * self.var.cellArea,
-                                                                        self.var.adminSegments)
+                    self.var.availableArableLand_segment = segIndex.total(self.var.availableArableLand * self.var.cellArea)
 

@@ -19,7 +19,9 @@ from cwatm.hydrological_modules.initcondition import initcondition
 from cwatm.hydrological_modules.readmeteo import readmeteo
 from cwatm.hydrological_modules.evaporationPot import evaporationPot
 from cwatm.hydrological_modules.inflow import inflow
-from cwatm.hydrological_modules.snow_frost import snow_frost
+from cwatm.hydrological_modules.snow import snow
+from cwatm.hydrological_modules.snow_pysnowclim import snow_pysnowclim
+from cwatm.hydrological_modules.frost import frost
 from cwatm.hydrological_modules.soil import soil
 from cwatm.hydrological_modules.landcoverType import landcoverType
 from cwatm.hydrological_modules.sealed_water import sealed_water
@@ -156,8 +158,12 @@ class CWATModel_ini(DynamicModel):
         Module for potential evapotranspiration
     inflow_module : inflow
         Module for external inflow handling
-    snowfrost_module : snow_frost
-        Module for snow and frost processes
+    snow_module : snow
+        Module for snow processes
+    snow_pysnowclim_module : snow_pysnowclim
+        Module for snow with pysnowclim processes
+    frost_module : frost
+        Module for frost processes
     soil_module : soil
         Module for soil water processes
     landcoverType_module : landcoverType
@@ -271,7 +277,9 @@ class CWATModel_ini(DynamicModel):
         self.environflow_module = environflow(self)
         self.evaporationPot_module = evaporationPot(self)
         self.inflow_module = inflow(self)
-        self.snowfrost_module = snow_frost(self)
+        self.snow_module = snow(self)
+        self.snow_pysnowclim_module = snow_pysnowclim(self)
+        self.frost_module = frost(self)        
         self.soil_module = soil(self)
         self.landcoverType_module = landcoverType(self)
         self.evaporation_module = evaporation(self)
@@ -327,7 +335,14 @@ class CWATModel_ini(DynamicModel):
         # routing must be before output and snow behind
         self.routing_kinematic_module.initial()
         self.output_module.initial()
-        self.snowfrost_module.initial()
+
+        self.var.usepySnowClim = checkOption('usepySnowClim', True)
+        if self.var.usepySnowClim:
+            self.snow_pysnowclim_module.initial()
+        else:
+            self.snow_module.initial()
+
+        self.frost_module.initial()
 
         self.landcoverType_module.initial()
         self.evaporation_module.initial()

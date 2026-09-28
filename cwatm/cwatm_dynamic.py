@@ -193,9 +193,12 @@ class CWATModel_dyn(DynamicModel):
         self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'], dynamic=self.var.dynamicLandcover)
 
         # ***** RAIN AND SNOW *****************************************
-        self.snowfrost_module.dynamic()
+        if self.var.usepySnowClim:
+            self.snow_pysnowclim_module.dynamic()
+        else:
+            self.snow_module.dynamic()
+        self.frost_module.dynamic()
         timemeasure("Snow")  # 3. timing
-
         # if only snow the skip the rest:
         if not self.var.stopaftersnow:
 

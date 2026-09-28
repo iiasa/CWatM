@@ -277,10 +277,11 @@ class evaporationPot(object):
             distanceSun = 1 + 0.033 * np.cos(2 * np.pi * dateVar['doy'] / 365)
             # Chapter 3: equation 24
             declin = 0.409 * np.sin(2 * np.pi * dateVar['doy'] / 365 - 1.39)
-            ws = np.arccos(-np.tan(radian * np.tan(declin)))
+            ws = np.arccos(np.clip(-np.tan(radian) * np.tan(declin), -1.0, 1.0))
             Ra = 24 * 60 / np.pi * 0.082 * distanceSun * (ws * np.sin(radian) * np.sin(declin) + np.cos(radian) * np.cos(declin) * np.sin(ws))
             # Equation 21 Chapter 3
             Rso = Ra * (0.75 + (2 * 10 ** -5 * self.var.dem))  # in MJ/m2/day
+            Rso = np.maximum(Rso, 1e-6)  # avoid division by zero in polar night (Ra = 0)
             # Equation 37 Chapter 3
             RsRso = 1.35 * self.var.Rsds / Rso - 0.35
             RsRso = np.minimum(np.maximum(RsRso, 0.05), 1)
@@ -406,22 +407,23 @@ class evaporationPot(object):
 
         if self.var.without_rlds:
             if not self.var.only_radiation:
+                ESatmin = 0.6108 * np.exp((17.27 * self.var.TMin) / (self.var.TMin + 237.3))
+                ESatmax = 0.6108 * np.exp((17.27 * self.var.TMax) / (self.var.TMax + 237.3))
+                ESat = (ESatmin + ESatmax) / 2.0   # [KPa]
                 if returnBool('useHuss'):
                     self.var.EAct = (self.var.Psurf * self.var.huss) / ((0.378020992 * self.var.huss) + 0.621979008)
                 else:
                     self.var.EAct = ESat * self.var.rhs / 100.0
             # FAO 56 - https://www.fao.org/3/x0490E/x0490e07.htm#solar%20radiation  equation 39
-            a = dateVar['doy']
-            # radian = np.pi / 180 * self.var.lat
-            radian = np.pi / 180 * -20
-            # distanceSun = 1 + 0.033 * np.cos(2 * np.pi * dateVar['doy'] / 365)
-            distanceSun = 1 + 0.033 * np.cos(2 * np.pi * 246 / 365)
-            # declin = 0.409 * np.sin(2 * np.pi * dateVar['doy'] / 365 - 1.39)
-            declin = 0.409 * np.sin(2 * np.pi * 246 / 365 - 1.39)
+            radian = np.pi / 180 * self.var.lat
+            distanceSun = 1 + 0.033 * np.cos(2 * np.pi * dateVar['doy'] / 365)
+            # Chapter 3: equation 24
+            declin = 0.409 * np.sin(2 * np.pi * dateVar['doy'] / 365 - 1.39)
 
-            ws = np.arccos(-np.tan(radian * np.tan(declin)))
+            ws = np.arccos(np.clip(-np.tan(radian) * np.tan(declin), -1.0, 1.0))
             Ra = 24 * 60 / np.pi * 0.082 * distanceSun * (ws * np.sin(radian) * np.sin(declin) + np.cos(radian) * np.cos(declin) * np.sin(ws))
             Rso = Ra * (0.75 + (2 * 10 ** -5 * self.var.dem))  # in MJ/m2/day
+            Rso = np.maximum(Rso, 1e-6)  # avoid division by zero in polar night (Ra = 0)
 
             RsRso = 1.35 * self.var.Rsds / Rso - 0.35
             RsRso = np.minimum(np.maximum(RsRso, 0.05), 1)
@@ -490,9 +492,10 @@ class evaporationPot(object):
             distanceSun = 1 + 0.033 * np.cos(2 * np.pi * dateVar['doy'] / 365)
             declin = 0.409 * np.sin(2 * np.pi * dateVar['doy'] / 365 - 1.39)
 
-            ws = np.arccos(-np.tan(radian * np.tan(declin)))
+            ws = np.arccos(np.clip(-np.tan(radian) * np.tan(declin), -1.0, 1.0))
             Ra = 24 * 60 / np.pi * 0.082 * distanceSun * (ws * np.sin(radian) * np.sin(declin) + np.cos(radian) * np.cos(declin) * np.sin(ws))
             Rso = Ra * (0.75 + (2 * 10 ** -5 * self.var.dem))  # in MJ/m2/day
+            Rso = np.maximum(Rso, 1e-6)  # avoid division by zero in polar night (Ra = 0)
 
             RsRso = 1.35 * self.var.Rsds / Rso - 0.35
             RsRso = np.minimum(np.maximum(RsRso, 0.05), 1)
@@ -551,7 +554,7 @@ class evaporationPot(object):
         # solar declination [rad] with day of year
         declin = 0.409 * np.sin(2 * np.pi * dateVar['doy'] / 365 - 1.39)
         # 	ws: the hourly angle between sunrise and sunset [rad]
-        ws = np.arccos(-np.tan(radian * np.tan(declin)))
+        ws = np.arccos(np.clip(-np.tan(radian) * np.tan(declin), -1.0, 1.0))
         # Photoperiod (daylength)
         N = ws * 24 / np.pi
         

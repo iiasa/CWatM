@@ -119,7 +119,6 @@ class Snowpack:
         has_new_snow = precip.sfe > 0
         # Update last pack temperature where there is snowfall
         if np.any(has_new_snow):
-            iii = 1
             self.lastpacktemp[has_new_snow] = self.lastpackcc[has_new_snow] / \
                 (const.WATERDENS * const.CI *
                  (self.lastswe[has_new_snow] + precip.sfe[has_new_snow]))
@@ -276,8 +275,7 @@ class Snowpack:
         # For non-complete sublimation
         self.lastswe[has_sublimation] -= Sublimation[has_sublimation]
 
-        # Check if SWE - Deposition < 0.
-        Deposition = np.where(self.lastswe - Deposition < 0, 0, Deposition)
+        # deposition is negative (mass gain from the air) -> lastswe only increases, no check needed
         self.lastswe -= Deposition
 
         self.lastsnowdepth[has_sublimation] = self.lastswe[has_sublimation] / \

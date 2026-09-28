@@ -35,7 +35,9 @@ pySnowclim forcings are:
 
 CWatM forcings are similar to the ones used by pySnowClim.
 However the units are different and an internal conversion is made before the model is called.
-The only missing forcing is `tdmean` which is used only by pySnowClim and must be added in `TdewMaps` in `K`.
+The only missing forcing is `tdmean`, which is used only by pySnowClim and must be added as `TdewMaps` in the same
+unit as the temperature maps: in `K` with `TemperatureInKelvin = True` (as in the example), otherwise in `°C`.
+The unit is checked on the first time step, so a wrong unit stops the run with an error message.
 
 To run CWatM using pySnowClim snow model one only needs to add the necessary parameters inside the `.ini` file. For example:
 

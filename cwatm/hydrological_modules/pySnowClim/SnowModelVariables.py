@@ -4,27 +4,31 @@ SnowModelVariables Class
 This script defines the SnowModelVariables class, which initializes and holds the state variables
 for a snow-climate model. These variables represent different physical quantities such as
 snow depth, snow water equivalent, snow melt, sublimation, condensation, runoff, and energy
-fluxes. Each variable is initialized as an array of NaN values with a given shape (outdim)
+fluxes. Each variable is initialized as an array of zeros or NaN values with a given shape (outdim)
 to be used in the simulation of snow and energy balance processes.
 
-SnowMelt (array-like): Snow melt (m).
-SnowWaterEq (array-like): Snow water equivalent (m).
-SnowfallWaterEq (array-like): Snowfall water equivalent (m).
-SnowDepth (array-like): Snow depth (m).
+Units: the units below are the output units, i.e. after _prepare_outputs (snow depth in mm, water
+fluxes and storages in mm water equivalent). During the time step the same variables are in m
+(water equivalent); _prepare_outputs multiplies them by 1000 (const.WATERDENS).
+
+SnowMelt (array-like): Snow melt (mm).
+SnowWaterEq (array-like): Snow water equivalent (mm).
+SnowfallWaterEq (array-like): Snowfall water equivalent (mm).
+SnowDepth (array-like): Snow depth (mm).
 SnowDensity (array-like): Snowpack density (kg/m³).
-Sublimation (array-like): Snow sublimation (m).
-Condensation (array-like): Snow condensation (m).
-Evaporation (array-like): Snow evaporation at T=0 °C (m).
-Deposition (array-like): Snow depostiion (m).
+Sublimation (array-like): Snow sublimation (mm).
+Condensation (array-like): Snow condensation (mm).
+Evaporation (array-like): Snow evaporation at T=0 °C (mm).
+Deposition (array-like): Snow depostiion (mm).
 SnowTemp (array-like): Snow surface temperature (°C).
 MeltEnergy (array-like): Energy used for melting snow (kJ/m²/timestep).
 Energy (array-like): Net energy to the snowpack (kJ/m²/timestep).
 Albedo (array-like): Snow surface albedo.
 ExistSnow (array-like): Snow cover binary (1 for snow, 0 for no snow).
-RaininSnow (array-like): Rain added to the snowpack (m).
-Runoff (array-like): Runoff from the snowpack (m).
-RefrozenWater (array-like): Liquid water refrozen in the snowpack (m).
-PackWater (array-like): Liquid water present in the snowpack (m).
+RaininSnow (array-like): Rain added to the snowpack (mm).
+Runoff (array-like): Runoff from the snowpack (mm).
+RefrozenWater (array-like): Liquid water refrozen in the snowpack (mm).
+PackWater (array-like): Liquid water present in the snowpack (mm).
 LW_down (array-like): Downward longwave radiation to the snow surface (kJ/m²/timestep).
 LW_up (array-like): Upward longwave radiation from the snow surface (kJ/m²/timestep).
 SW_down (array-like): Downward shortwave radiation to the snow surface (kJ/m²/timestep).

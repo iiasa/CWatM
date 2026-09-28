@@ -15,8 +15,8 @@ from cwatm.hydrological_modules.pySnowClim.SnowModelVariables import SnowModelVa
 from cwatm.hydrological_modules.pySnowClim.PrecipitationProperties import PrecipitationProperties
 from cwatm.hydrological_modules.pySnowClim.SnowpackVariables import Snowpack
 
-from tqdm import tqdm
-import time
+#from tqdm import tqdm
+#import time
 
 def _prepare_outputs(model_vars, precip):
     """

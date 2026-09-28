@@ -287,7 +287,7 @@ class initcondition(object):
         desalCap = {}
         lastDesal = 0
         for year in range(s_year, e_year + 1):
-            if np.in1d(year, df['Year']):
+            if np.isin(year, df['Year']):
                 lastDesal = df[df['Year'] == year]['Capacity'].to_list()[0]
             desalCap[year] = lastDesal
         return desalCap
@@ -407,8 +407,9 @@ class initcondition(object):
 
         # lakes & reservoirs
         if checkOption('includeWaterBodies'):
-            Var1 = ["lakeInflow", "lakeStorage","reservoirStorage","outLake","lakeOutflow"]
-            Var2 = ["lakeInflow","lakeVolume","reservoirStorage","outLake","lakeOutflow"]
+            Var1 = ["lakeInflow", "lakeStorage","reservoirStorage","outLake","lakeOutflow","lakeStorageBalance"]
+            Var2 = ["lakeInflow","lakeVolume","reservoirStorage","outLake","lakeOutflow","lakeStorageBalance"]
+
             initCondVar.extend(Var1)
             initCondVarValue.extend(Var2)
 

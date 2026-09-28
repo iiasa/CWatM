@@ -496,6 +496,11 @@ def addtoversiondate(filename,history=""):
     This ensures complete provenance tracking for all model outputs.
     """
 
+    # each file only once: no second date lookup on disk (slow on network drives) and no double entry
+    inputdates = versioning.setdefault('inputdates', {})
+    if filename in inputdates:
+        return
+
     if history !="":
         try:
             timestamp = re.search(r'\w{3} \w{3} \d{1,2} \d{2}:\d{2}:\d{2} \d{4}', history)
@@ -506,6 +511,7 @@ def addtoversiondate(filename,history=""):
         date1 = datetime.datetime.fromtimestamp(os.path.getctime(filename))
     add = os.path.basename(filename) +" "+ date1.strftime('%d/%m/%Y %H:%M')+';'
     versioning['input'] += add
+    inputdates[filename] = add
     ii =1
 
 

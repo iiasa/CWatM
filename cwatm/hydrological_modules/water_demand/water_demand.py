@@ -472,6 +472,8 @@ class water_demand:
 
             self.var.adminSegments = loadmap('adminSegments').astype(int)
             self.var.adminSegments = np.where(self.var.adminSegments > 0, self.var.adminSegments, 0)
+            # index for the area totals and averages per segment (adminSegments is not changed after this)
+            self.var.adminSegmentsIndex = AreaIndex(self.var.adminSegments, onlypositive=False)
 
             if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
                 self.var.irrWithdrawalSW_max = npareaaverage(
@@ -2563,8 +2565,8 @@ class water_demand:
 
             if 'adminSegments' in binding and checkOption('limitAbstraction'):
 
-                self.var.act_irrWithdrawalSW_month += npareatotal(act_irrWithdrawalSW * self.var.cellArea,
-                                                                  self.var.adminSegments)
+                self.var.act_irrWithdrawalSW_month += self.var.adminSegmentsIndex.total(
+                    act_irrWithdrawalSW * self.var.cellArea)
 
                 if 'irrigation_agent_SW_request_month_m3' in binding and self.var.activate_irrigation_agents:
                     self.var.swAbstractionFraction_Channel_Irrigation = np.where(
@@ -2587,8 +2589,8 @@ class water_demand:
                         = self.var.act_irrWithdrawalSW_month / self.var.irrWithdrawalSW_max
 
             if 'adminSegments' in binding and checkOption('limitAbstraction'):
-                self.var.act_irrWithdrawalGW_month += npareatotal(act_irrWithdrawalGW * self.var.cellArea,
-                                                                  self.var.adminSegments)
+                self.var.act_irrWithdrawalGW_month += self.var.adminSegmentsIndex.total(
+                    act_irrWithdrawalGW * self.var.cellArea)
                 if 'irrigation_agent_GW_request_month_m3' in binding and self.var.activate_irrigation_agents:
                     self.var.gwAbstractionFraction_Irrigation = np.where(
                         self.var.act_irrWithdrawalGW_month > self.var.irrWithdrawalGW_max, 0,

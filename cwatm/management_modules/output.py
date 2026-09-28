@@ -310,7 +310,7 @@ class outputTssMap(object):
 
 
         if self.var.usepySnowClim:
-            temp = [['Rain_on_snow', 'areasum_m3', 'flux'],['packwater', 'areasum_m3', 'storage'],
+            temp =  [['Rain_on_snow', 'areasum_m3', 'flux'],['packwater', 'areasum_m3', 'storage'],['snowReset', 'areasum_m3', 'flux'],
                     ['snowwaterevaporation', 'areasum_m3', 'flux'],['sublimation', 'areasum_m3', 'flux'],
                     ['condensation', 'areasum_m3', 'flux'],['depostition', 'areasum_m3', 'flux'],
                     ['refrozen', 'areasum_m3', 'flux'],['snowmelt1', 'areasum_m3', 'flux']

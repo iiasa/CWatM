@@ -283,7 +283,7 @@ class waterdemand_wastewater(object):
         # get ordered wwt IDS for iteration
         wwtIds = self.var.wwtC.copy()
         resKeys = [k  for  k in self.var.wastewater_to_reservoirs.keys()]
-        self.var.wwtIdsOrdered = resKeys + (wwtIds[np.in1d(wwtIds, resKeys, invert = True)].tolist())
+        self.var.wwtIdsOrdered = resKeys + (wwtIds[np.isin(wwtIds, resKeys, invert = True)].tolist())
         annual_mask = []
         annual_wwtpIdx = []
         for wwtid in self.var.wwtIdsOrdered:
@@ -317,7 +317,7 @@ class waterdemand_wastewater(object):
         
         for wwtid in self.var.wwtIdsOrdered:
 
-            i = np.in1d(self.var.wwtIdsOrdered, wwtid)
+            i = np.isin(self.var.wwtIdsOrdered, wwtid)
             self.var.wwtVolC.append(self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][2])
             self.var.wwtTimeC.append(self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][3]) 
             self.var.minHRTC.append(np.maximum(self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][8], 0.001))
@@ -374,7 +374,7 @@ class waterdemand_wastewater(object):
             wwtid = self.var.wwtIdsOrdered[i]
             self.var.wwtStorage[wwtid] = [0] * int(timeForStorage[i])
             if priorStorage:
-                if np.in1d(wwtid, wwtStroage_last.keys()):
+                if np.isin(wwtid, wwtStroage_last.keys()):
                     l_new = len(self.var.wwtStorage[wwtid])
                     l_old = len(wwtStroage_last[wwtid])
                     if l_new == l_old:
@@ -441,12 +441,12 @@ class waterdemand_wastewater(object):
         
         # identify a list of collection areas with wastewater treatment facilities outside of the mask
         # use wwtC instead of wwtIdsOrdered - so WWTP that are not present due to time constraints would not cause export.
-        collectWtr2Export = np.unique(self.var.wwtColArea)[np.invert(np.in1d(np.unique(self.var.wwtColArea), self.var.wwtC))]
+        collectWtr2Export = np.unique(self.var.wwtColArea)[np.invert(np.isin(np.unique(self.var.wwtColArea), self.var.wwtC))]
        
         collectWtr2Export = np.delete(collectWtr2Export, np.where(collectWtr2Export == 0))
         
         # mask for water2export collection
-        collection2ExportAreaMask = np.in1d(self.var.wwtColArea, collectWtr2Export) * 1
+        collection2ExportAreaMask = np.isin(self.var.wwtColArea, collectWtr2Export) * 1
         
         # document collection for export
         self.var.wwtExportedCollected = collection2ExportAreaMask * self.var.wwtSewerCollection * self.var.cellArea
@@ -618,8 +618,8 @@ class waterdemand_wastewater(object):
                 self.var.wwtSewerTreatedC[idIndex] -= self.var.wwtExportedTreatedC[idIndex]
                     
                     
-                srch =  np.in1d(self.var.wastewater_to_reservoirs[wwt_id], self.var.waterBodyOut)
-                self.var.wwtResIDTemp_compress = np.in1d(self.var.waterBodyOut, np.compress(srch, self.var.wastewater_to_reservoirs[wwt_id]))
+                srch =  np.isin(self.var.wastewater_to_reservoirs[wwt_id], self.var.waterBodyOut)
+                self.var.wwtResIDTemp_compress = np.isin(self.var.waterBodyOut, np.compress(srch, self.var.wastewater_to_reservoirs[wwt_id]))
                     
                 self.var.wwtResIDC = np.compress(self.var.wwtResIDTemp_compress, self.var.waterBodyOut)
                 self.var.wwtResTypC = np.compress(self.var.wwtResIDTemp_compress, self.var.waterBodyTyp_unchanged)
@@ -635,7 +635,7 @@ class waterdemand_wastewater(object):
                 
                 treatedSewer = self.var.wwtSewerTreatedC[idIndex]
                 #### Iterate to allocate as much water as possible to res ####
-                wwtResindex = np.in1d(self.var.waterBodyOutC, self.var.wastewater_to_reservoirs[wwt_id])
+                wwtResindex = np.isin(self.var.waterBodyOutC, self.var.wastewater_to_reservoirs[wwt_id])
                 maxIter = 50
                 iterCounter = 0
                 sendToRes = 0
@@ -665,7 +665,7 @@ class waterdemand_wastewater(object):
                     
                 overflow_temp += overflowMask * np.nansum(self.var.wwtSewerResOverflowC[idIndex])
       
-                wwtSentToRes = np.where(np.in1d(np.compress(self.var.compress_LR, self.var.waterBodyOut), self.var.wwtResIDC), self.var.wwtSentToResC, 0.)
+                wwtSentToRes = np.where(np.isin(np.compress(self.var.compress_LR, self.var.waterBodyOut), self.var.wwtResIDC), self.var.wwtSentToResC, 0.)
                 addToSend = globals.inZero.copy()
                 np.put(addToSend, self.var.decompress_LR, wwtSentToRes)
 

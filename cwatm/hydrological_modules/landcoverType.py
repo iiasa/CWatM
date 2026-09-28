@@ -40,6 +40,49 @@ def decompress(map, nanvalue=None):
     return dmap.data
 
 
+class SubVar(object):
+    """
+    Compressed view of model.var for the cells idx.
+
+    Used to calculate soil only where a land cover type exists. Arrays with the cell dimension last
+    (and lists of them) are gathered on first access, scalars and flags are passed through.
+    Assignments stay in the view; scatter() writes back row No of the soil results (names_lc)
+    and the cell variables (names_cell).
+    """
+
+    def __init__(self, var, idx):
+        object.__setattr__(self, '_var', var)
+        object.__setattr__(self, '_idx', idx)
+        object.__setattr__(self, '_n', globals.inZero.shape[0])
+        object.__setattr__(self, '_c', {})
+
+    def _sub(self, a):
+        if isinstance(a, np.ndarray) and a.ndim > 0 and a.shape[-1] == self._n:
+            return a[..., self._idx]
+        if isinstance(a, list):
+            return [self._sub(x) for x in a]
+        return a
+
+    def __getattr__(self, name):
+        if name not in self._c:
+            self._c[name] = self._sub(getattr(self._var, name))
+        return self._c[name]
+
+    def __setattr__(self, name, value):
+        self._c[name] = value
+
+    def scatter(self, names_lc, names_cell, No):
+        for name in names_lc:
+            if name in self._c:
+                getattr(self._var, name)[No, self._idx] = self._c[name][No]
+        for name in names_cell:
+            if name in self._c:
+                # copy: never write into an array which may be shared (e.g. globals.inZero)
+                full = getattr(self._var, name).copy()
+                full[self._idx] = self._c[name]
+                setattr(self._var, name, full)
+
+
 class landcoverType(object):
     """
     Land cover type management module for multi-class hydrological modeling.
@@ -893,11 +936,29 @@ class landcoverType(object):
                 usecovertype = 2   # exclude irrgation
 
             if coverNo < usecovertype:
-                self.model.soil_module.dynamic(coverType, coverNo)
+                # calculate soil only where the land cover type exists (fraction > 0)
+                # cells without it keep their soil states (weighted with fraction 0 everywhere)
+                idx = np.flatnonzero(self.var.fracVegCover[coverNo] > 0)
+                if idx.size > 0.2 * globals.inZero.size:
+                    # in more than 20% of the cells: full arrays are faster than gather/scatter
+                    # (Bhima: forest in 37% of the cells gained nothing, the gather cost more than it saved)
+                    self.model.soil_module.dynamic(coverType, coverNo)
+                elif idx.size > 0:
+                    soilmod = self.model.soil_module
+                    sub = SubVar(self.var, idx)
+                    soilmod.var = sub
+                    try:
+                        soilmod.dynamic(coverType, coverNo)
+                    finally:
+                        soilmod.var = self.var
+                    sub.scatter(soilmod.WRITE_LC, soilmod.WRITE_CELL, coverNo)
             if coverNo > 3:
                 # calculate for openwater and sealed area
                 self.model.sealed_water_module.dynamic(coverType, coverNo)
             coverNo += 1
+
+        # totals over land cover types and crop-specific ET (needs the soil of all land cover types)
+        self.model.soil_module.dynamic_crops()
 
 
         # aggregated variables by fraction of land cover

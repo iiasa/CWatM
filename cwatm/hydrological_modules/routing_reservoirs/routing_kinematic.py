@@ -226,8 +226,11 @@ class routing_kinematic(object):
 
         # ---------------------------------------------------------------
         # parallel kinematic wave: number of threads (nodes)
-        # maxnodes in [ROUTING]: all CPUs this run may use, up to maxnodes
-        # without maxnodes: 2/3 of the CPUs, at most 16; calibration runs use 1 node
+        # by basin size: 1 node per 15000 cells, at least 2 (small basins gain nothing from more threads:
+        # Morava 11850 cells -> 2, Bhima 56347 cells -> 4)
+        # upper limit: maxnodes in [ROUTING] if given (maxnodes = 1: serial),
+        # otherwise 2/3 of the CPUs (at least 2, at most 16)
+        # never more than the CPUs this run may use; calibration runs use 1 node
         if hasattr(os, "sched_getaffinity"):
             cores = len(os.sched_getaffinity(0))   # Linux: only the CPUs this run may use (e.g. SLURM job)
         else:
@@ -235,9 +238,11 @@ class routing_kinematic(object):
         if 'SLURM_CPUS_PER_TASK' in os.environ:    # SLURM: not more than the CPUs reserved for the job
             cores = min(cores, int(os.environ['SLURM_CPUS_PER_TASK']))
         if 'maxnodes' in binding:
-            nodes = min(int(loadmap('maxnodes')), cores)
+            upper = int(loadmap('maxnodes'))
         else:
-            nodes = min(16, (2 * cores) // 3)
+            upper = min(16, max(2, (2 * cores) // 3))
+        nodes = max(2, -(-globals.inZero.size // 15000))
+        nodes = min(nodes, upper, cores)
         self.var.nodesrouting = max(1, min(nodes, lib2.kinematicParMaxThreads()))
 
 
@@ -441,7 +446,7 @@ class routing_kinematic(object):
             # calculate outflow from lakes and reservoirs
 
             # average evaporation overeach lake
-            EWRefavg = npareaaverage(EWRefact, self.var.waterBodyID)
+            EWRefavg = self.var.waterBodyIndex.average(EWRefact)
             # evaporation for the whole lake for each routing step
             eWaterBody = np.maximum(0.0, EWRefavg * self.var.lakeArea) / self.var.noRoutingSteps
             # compressed to the number lakes
@@ -510,18 +515,21 @@ class routing_kinematic(object):
         avglakeoutflow = 0
         maxlakeoutflow = 0
 
+        # sideflow part which is the same in each substep, calculated once (same operations as before)
+        sideflowBaseM3 = runoffM3.copy()
+        # minus evaporation from channels
+        sideflowBaseM3 -= EvapoChannelM3Dt
+        if self.var.modflow:
+            # minus riverbed exchange
+            sideflowBaseM3 -= riverbedExchangeDt
+
+        if checkOption('includeWaterDemand'):
+            sideflowBaseM3 -= WDAddM3Dt
+            # minus waterdemand + returnflow
+
         for subrouting in range(self.var.noRoutingSteps):
 
-            sideflowChanM3 = runoffM3.copy()
-            # minus evaporation from channels
-            sideflowChanM3 -= EvapoChannelM3Dt
-            if self.var.modflow:
-                # minus riverbed exchange
-                sideflowChanM3 -= riverbedExchangeDt
-
-            if checkOption('includeWaterDemand'):
-                sideflowChanM3 -= WDAddM3Dt
-                # minus waterdemand + returnflow
+            sideflowChanM3 = sideflowBaseM3.copy()
 
             if checkOption('inflow'):
                 self.var.inflowDt = (self.var.QInM3Old + (subrouting + 1) * self.var.QDelta) / self.var.noRoutingSteps
@@ -536,7 +544,7 @@ class routing_kinematic(object):
                 lakesResOut = 0
 
             # sideflowChan = sideflowChanM3 * self.var.invchanLength * self.var.InvDtSec
-            sideflowChan = sideflowChanM3 * self.var.invchanLength * 1 / self.var.dtRouting
+            sideflowChan = sideflowChanM3 * self.var.invchanLength / self.var.dtRouting
 
             if checkOption('includeWaterBodies'):
                 lib2.kinematicPar(self.var.discharge, sideflowChan, self.var.levelOrder_LR, self.var.levelStart_LR,
@@ -603,17 +611,16 @@ class routing_kinematic(object):
         # + self.var.sum_openWaterEvap # + self.var.leakage # + reservoir evaporation
 
         if 'adminSegments' in binding:
-            self.var.ETRefAverage_segments = npareaaverage(self.var.ETRef, self.var.adminSegments)
-            self.var.precipEffectiveAverage_segments = npareaaverage(self.var.infiltration[1],
-                                                                     self.var.adminSegments)
+            segIndex = self.var.adminSegmentsIndex
+            self.var.ETRefAverage_segments = segIndex.average(self.var.ETRef)
+            self.var.precipEffectiveAverage_segments = segIndex.average(self.var.infiltration[1])
             if self.var.modflow:
-                self.var.head_segments = npareaaverage(self.var.head, self.var.adminSegments)
-                self.var.gwdepth_adjusted_segments = npareaaverage(self.var.gwdepth_adjusted, self.var.adminSegments)
-                self.var.gwdepth_segments = npareaaverage(self.var.gwdepth, self.var.adminSegments)
+                self.var.head_segments = segIndex.average(self.var.head)
+                self.var.gwdepth_adjusted_segments = segIndex.average(self.var.gwdepth_adjusted)
+                self.var.gwdepth_segments = segIndex.average(self.var.gwdepth)
 
-            self.var.adminSegments_area = npareaaverage(
-                (self.var.fracVegCover[1] + self.var.fracVegCover[2] + self.var.fracVegCover[3]) * self.var.cellArea,
-                self.var.adminSegments)
+            self.var.adminSegments_area = segIndex.average(
+                (self.var.fracVegCover[1] + self.var.fracVegCover[2] + self.var.fracVegCover[3]) * self.var.cellArea)
 
 # ---------------------------------------------------------------------------------------
 

@@ -113,9 +113,9 @@ These eight Python packages are needed:
 7. `rasterio <https://pypi.org/project/rasterio>`_
 8. `python-calamine <https://pypi.org/project/python-calamine/>`_
 
-These seven libraries can be installed with pip, conda
+These eight libraries can be installed with pip, conda
 
-8. `GDAL <http://www.gdal.org>`_
+9. `GDAL <http://www.gdal.org>`_
 
 .. note::
    | **Troublemaker GDAL**
