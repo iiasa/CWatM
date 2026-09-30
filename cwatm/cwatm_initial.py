@@ -336,6 +336,8 @@ class CWATModel_ini(DynamicModel):
         self.routing_kinematic_module.initial()
         self.output_module.initial()
 
+        # before snow: loads dzRel
+        self.capillarRise_module.initial()
         self.var.usepySnowClim = checkOption('usepySnowClim', True)
         if self.var.usepySnowClim:
             self.snow_pysnowclim_module.initial()

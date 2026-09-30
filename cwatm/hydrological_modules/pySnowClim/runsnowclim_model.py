@@ -7,7 +7,7 @@ This script runs the SnowClim Model. It:
 The script can be adapted for different parameters, time periods, or datasets.
 """
 import os
-import scipy.io
+#import scipy.io
 import numpy as np
 import xarray as xr
 import json
@@ -132,6 +132,7 @@ def _load_ncdf_file(file_path, parameters):#,
 
 
 def _load_mat_data(data_dir):
+    
     """
     Load meteorological forcing data and geospatial information from the specified directory.
 
@@ -142,12 +143,76 @@ def _load_mat_data(data_dir):
         dict: Dictionary containing the loaded variables (lat, lon, lrad, solar, tavg, ppt, vs, psfc, huss, relhum, tdmean).
     """
 
+    import zlib
+    from concurrent.futures import ThreadPoolExecutor
+
+    import numpy as np
+
+    _MI = {1: "i1", 2: "u1", 3: "i2", 4: "u2", 5: "i4", 6: "u4", 7: "f4", 9: "f8", 12: "i8", 13: "u8", 16: "u1", 17: "u2", 18: "u4"}
+    _MX = {6: "f8", 7: "f4", 8: "i1", 9: "u1", 10: "i2", 11: "u2", 12: "i4", 13: "u4", 14: "i8", 15: "u8"}
+
+
+    def _elements(buf, bo):
+        pos = 0
+        while pos + 8 <= len(buf):
+            typ, n = map(int, np.frombuffer(buf, bo + "u4", 2, pos))
+            if typ >> 16:
+                yield typ & 0xFFFF, buf[pos + 4:pos + 4 + (typ >> 16)]
+                pos += 8
+            else:
+                yield typ, buf[pos + 8:pos + 8 + n]
+                pos += 8 + n + (typ != 15) * (-n % 8)
+
+
+    def _matrix(buf, bo):
+        (_, flags), (_, dims), (_, name), *parts = _elements(buf, bo)
+        cls = int(np.frombuffer(flags, bo + "u4")[0]) & 0xFF
+        dims = tuple(np.frombuffer(dims, bo + "i4"))
+        re, *im = (np.frombuffer(d, bo + _MI[t]) for t, d in parts)
+        if cls == 4:
+            return bytes(name).decode(), np.array(["".join(map(chr, r)) for r in re.reshape(dims, order="F")])
+        if cls not in _MX:
+            raise NotImplementedError(f"{bytes(name).decode()}: MATLAB class {cls} not supported")
+        arr = re.astype(_MX[cls], copy=False)
+        if im:
+            arr = arr + 1j * im[0].astype(_MX[cls])
+        return bytes(name).decode(), arr.reshape(dims, order="F")
+
+
+    def _inflate(data, chunk=1 << 16):
+        d = zlib.decompressobj()
+        out = bytearray()
+        for i in range(0, len(data), chunk):
+            out += d.decompress(data[i:i + chunk])
+        return np.frombuffer(out, np.uint8)
+
+
+    def _variable(typ, data, bo):
+        if typ == 15:
+            typ, data = next(_elements(_inflate(data), bo))
+        return _matrix(data, bo) if typ == 14 else None
+
+
+    def loadmat(path, mmap=False):
+        raw = np.memmap(path, mode="c") if mmap else np.fromfile(path, np.uint8)
+        if bytes(raw[:10]) == b"MATLAB 7.3":
+            raise ValueError("v7.3 MAT-file is HDF5; use h5py")
+        bo = "<" if bytes(raw[126:128]) == b"IM" else ">"
+        with ThreadPoolExecutor() as ex:
+            return dict(filter(None, ex.map(lambda e: _variable(*e, bo), _elements(raw[128:], bo))))    
+    
+    
+    
+    
+
     # Load latitude, longitude, and elevation data
-    latlonelev = scipy.io.loadmat(f'{data_dir}lat_lon_elev.mat')
+    #latlonelev = scipy.io.loadmat(f'{data_dir}lat_lon_elev.mat')
+    latlonelev = loadmat(f'{data_dir}lat_lon_elev.mat')
     lat = latlonelev['lat']
     lon = latlonelev['lon']
 
     # Load meteorological data (forcing inputs)
+    """
     lrad = scipy.io.loadmat(f'{data_dir}lrad.mat')['lrad']
     solar = scipy.io.loadmat(f'{data_dir}solar.mat')['solar']
     tavg = scipy.io.loadmat(f'{data_dir}tavg.mat')['tavg']
@@ -157,6 +222,16 @@ def _load_mat_data(data_dir):
     huss = scipy.io.loadmat(f'{data_dir}huss.mat')['huss']
     relhum = scipy.io.loadmat(f'{data_dir}relhum.mat')['relhum']
     tdmean = scipy.io.loadmat(f'{data_dir}tdmean.mat')['tdmean']
+    """
+    lrad = loadmat(f'{data_dir}lrad.mat')['lrad']
+    solar = loadmat(f'{data_dir}solar.mat')['solar']
+    tavg = loadmat(f'{data_dir}tavg.mat')['tavg']
+    ppt = loadmat(f'{data_dir}ppt.mat')['ppt']
+    vs = loadmat(f'{data_dir}vs.mat')['vs']
+    psfc = loadmat(f'{data_dir}psfc.mat')['psfc']
+    huss = loadmat(f'{data_dir}huss.mat')['huss']
+    relhum = loadmat(f'{data_dir}relhum.mat')['relhum']
+    tdmean = loadmat(f'{data_dir}tdmean.mat')['tdmean']
 
     # Return the data as a dictionary
     return {'coords':

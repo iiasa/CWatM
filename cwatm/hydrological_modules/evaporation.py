@@ -77,7 +77,7 @@ class evaporation(object):
     potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m    
     cropKC                               Array         crop coefficient for each of the 4 different land cover types (forest,  --   
     minCropKC                            Array         minimum crop factor (default 0.2)                                       --   
-    minInterceptCap                      Array         Maximum interception read from file for forest and grassland land cove  m    
+    minInterceptCap                      Array         minimum interception capacity per land cover type (from settings)       m    
     irrigatedArea_original               Array                                                                                 --   
     fracAllCover                         Array                                                                                 --   
     frac_totalnonIrr                     Array         Fraction sown with specific non-irrigated crops                         %    
@@ -182,7 +182,8 @@ class evaporation(object):
 
         # interpolation for each day from monthly values
         dplus = dateVar['30day'] + 1
-        dpart = dateVar['doy'] % 30
+        # day within the 30-day period: 0 ... 29 (same base as dateVar['30day'] = (doy - 1) // 30)
+        dpart = (dateVar['doy'] - 1) % 30
         if dplus > 12:
             dplus = 0
         self.var.cropKC[No] = ((self.var.cropKCmonth[No, dplus, :] - self.var.cropKCmonth[No, dateVar['30day'], :]) / 30. * 
@@ -582,7 +583,10 @@ class evaporation(object):
 
         # potTranspiration: Transpiration for each land cover class
         # uses bare soil evaporation before the reduction by snow: snow must not increase potential transpiration
-        self.var.potTranspiration[No] = np.maximum(0., self.var.totalPotET[No] - self.var.potBareSoilEvapNoSnow)
+        # snow evaporation + (snow reduced) bare soil evaporation can be bigger than the bare soil part
+        # -> the overflow is taken from transpiration, so actual ET cannot be bigger than potential ET
+        budgetBareSoilSnow = np.maximum(self.var.potBareSoilEvapNoSnow, self.var.potBareSoilEvap + self.var.snowEvap)
+        self.var.potTranspiration[No] = np.maximum(0., self.var.totalPotET[No] - budgetBareSoilSnow)
 
         # checkOption('includeCrops') and checkOption('includeCropSpecificWaterUse')
         if self.var.includeCrops:

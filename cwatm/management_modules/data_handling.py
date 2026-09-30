@@ -2866,7 +2866,8 @@ def divideValues(x,y, default = 0.):
     - Used throughout CWatM for ratio and rate calculations
     - Maintains numerical stability in model computations
     """
-    y1 = y.copy()
+    # np.array(copy=True): y can also be a scalar (e.g. a parameter given as a number in the settings)
+    y1 = np.array(y, copy=True)
     y1[y1 == 0.] = 1.0
     z = x / y1
     z[y == 0.] = default

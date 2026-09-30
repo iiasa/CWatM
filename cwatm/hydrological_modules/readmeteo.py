@@ -10,9 +10,11 @@
 # -------------------------------------------------------------------------
 
 from cwatm.management_modules.data_handling import *
-import scipy.ndimage
-from scipy.interpolate import RegularGridInterpolator
+from functools import lru_cache
 
+
+# --------------------------------------------------------------------------
+# helping subroutines for downscaling (module level: the lru_cache of _weights is kept between time steps)
 
 def kron_ones(a, n):
     """
@@ -26,6 +28,61 @@ def kron_ones(a, n):
     a = np.asarray(a, dtype=np.result_type(a, np.float64))
     rows, cols = a.shape
     return np.broadcast_to(a[:, None, :, None], (rows, n, cols, n)).reshape(rows * n, cols * n)
+
+
+@lru_cache(maxsize=32)
+def _weights(n_in, n_out):
+    """
+    Index of the lower coarse cell and linear weight for each fine cell (as scipy.ndimage.zoom, order=1).
+    Cached: the same (n_in, n_out) is used every time step.
+    """
+    x = np.arange(n_out) * (n_in - 1) / (n_out - 1)
+    i0 = np.minimum(x.astype(np.intp), n_in - 2)
+    return i0, (x - i0).astype(np.float32)
+
+
+def _zoom_cols(a, nx):
+    """Linear interpolation of a 2D float32 array along the columns to nx columns."""
+    if a.shape[1] == 1:
+        # only one coarse column: nothing to interpolate (as scipy.ndimage.zoom)
+        return np.repeat(a, nx, axis=1)
+    i0, w = _weights(a.shape[1], nx)
+    lo = np.take(a, i0, axis=1)
+    hi = np.take(a, i0 + 1, axis=1)
+    hi -= lo
+    hi *= w
+    lo += hi
+    return lo
+
+
+def _zoom_rows(a, ny):
+    """Linear interpolation of a 2D float32 array along the rows to ny rows."""
+    if a.shape[0] == 1:
+        # only one coarse row: nothing to interpolate (as scipy.ndimage.zoom)
+        return np.repeat(a, ny, axis=0)
+    i0, w = _weights(a.shape[0], ny)
+    d = a[1:] - a[:-1]
+    # row by row: faster than all rows at once (d[i0], a[i0] would be two full size copies)
+    out = np.empty((ny, a.shape[1]), np.float32)
+    for j, i in enumerate(i0):
+        np.multiply(d[i], w[j], out=out[j])
+        out[j] += a[i]
+    return out
+
+
+def zoom(a, factor):
+    """Same as scipy.ndimage.zoom(a, factor, order=1) for 2D arrays, in float32."""
+    a = np.asarray(a, dtype=np.float32)
+    fy, fx = np.broadcast_to(factor, (a.ndim,))[:2]
+    ny, nx = int(round(a.shape[0] * fy)), int(round(a.shape[1] * fx))
+    b = a.reshape(a.shape[:2])
+    if nx != b.shape[1]:
+        b = _zoom_cols(b, nx)
+    if ny != b.shape[0]:
+        b = _zoom_rows(b, ny)
+    return b.reshape((ny, nx) + a.shape[2:])
+
+# --------------------------------------------------------------------------
 
 
 class readmeteo(object):
@@ -46,20 +103,12 @@ class readmeteo(object):
 
    
 
-
-
-
-
-
-
-
-
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
     stopaftersnow                        Flag          stop run after snow calcualtion -> for snow calibration (AI)            --   
-    DtDay                                Array         seconds in a timestep (default=86400)                                   s    
+    DtDay                                Array         length of a timestep as fraction of a day (default=1)                   --
     con_precipitation                    Array         conversion factor for precipitation                                     --   
     con_e                                Array         conversion factor for evaporation                                       --   
     meteo                                Array         store all meteo data in memeory for warm start (eg calibration)         compl
@@ -69,7 +118,7 @@ class readmeteo(object):
     Psurf                                Array         Instantaneous surface pressure                                          Pa   
     Rsdl                                 Array         long wave downward surface radiation fluxes                             W m-2
     huss                                 Array         2 m istantaneous specific humidity[kg / kg] (AI)                        --   
-    EAct                                 Array         Daily vapor pressure                                                    hPa  
+    EAct                                 Array         Daily vapor pressure                                                    kPa
     rhs                                  Array                                                                                 --   
     useTdew                              Flag                                                                                  --   
     Tdew                                 Array         calculate Tdew (Magnus Formula) based on FAO56 https://www.fao.org/4/X  --   
@@ -120,8 +169,8 @@ class readmeteo(object):
     meshlist_tavg                        List                                                                                  --   
     GlacierMelt                          Array         melt from glacier                                                       m    
     GlacierRain                          Array         rain on glacier                                                         m    
-    prec                                 Array         precipitation in kg m-2s-1 = mm/s (output variable)                     kg m-
-    temp                                 Array         average temperature in Celsius deg                                      degC 
+    prec                                 Array         precipitation in the unit of the input maps (output variable)           input
+    temp                                 Array         average temperature in the unit of the input maps: K or degC (output)   input
     usepySnowClim                        Flag          Flag to use pySnowClim                                                  --   
     SnowFactor                           Array         Multiplier applied to precipitation that falls as snow                  --   
     ===================================  ==========    ======================================================================  =====
@@ -139,6 +188,46 @@ class readmeteo(object):
         """
         self.model = model
         self.var = model.var
+        # index meteo cell -> model cell for each shape of the meteo input (see fine_index)
+        self.fineindex = {}
+
+    def fine_index(self, shape, resoint):
+        """
+        Index of the meteo cell for each model cell (compressed order), for meteo maps coarser than the base maps.
+
+        The meteo map (shape: rows, cols of the cut meteo window) is spread to the fine grid (resoint x resoint model
+        cells per meteo cell), cut to cutmapVfine and compressed with the mask -> meteo.ravel()[index] gives the same
+        as kron_ones + cut + compressArray. Calculated once for each shape and stored.
+
+        Returns False if the fine window does not fit into the spread meteo map (then the old way is used,
+        which also gives the error message).
+        """
+        key = (tuple(shape), resoint)
+        if key not in self.fineindex:
+            idx = False
+            if len(shape) == 2 and min(cutmapVfine[0], cutmapVfine[2]) >= 0:
+                rows = np.arange(cutmapVfine[2], cutmapVfine[3]) // resoint
+                cols = np.arange(cutmapVfine[0], cutmapVfine[1]) // resoint
+                if (len(rows), len(cols)) == maskinfo['mask'].shape and rows[-1] < shape[0] and cols[-1] < shape[1]:
+                    index2d = rows[:, None] * shape[1] + cols[None, :]
+                    # same selection and order as compressArray
+                    idx = np.ma.compressed(np.ma.masked_array(index2d, maskinfo['mask']))
+            self.fineindex[key] = idx
+        return self.fineindex[key]
+
+    def check_celsius(self, values, mapname):
+        """
+        Check on the first day if a temperature map is in deg C after the conversion (TemperatureInKelvin).
+
+        Values below -100 or above 100 deg C point to a wrong temperature flag (Kelvin instead of Celsius or vice versa).
+        """
+        if dateVar['curr'] == 1:
+            testtemp = np.nanmin(values)
+            if (testtemp < -100) or (testtemp > 100):
+                msg = "Error 601: Check temperature flag in [Option]: " + mapname + \
+                      " might be Kelvin instead Celsius or vice versa\n"
+                msg += mapname + ": " + cbinding(mapname) + "\n"
+                raise CWATMError(msg)
 
     def initial(self):
         """
@@ -168,13 +257,15 @@ class readmeteo(object):
             msg = "Error 215: In readmeteo, cannot find precipitation maps "
             raise CWATMFileError(name, msg, sname='PrecipitationMaps')
         namemeteo = nameall[0]
-        latmeteo, lonmeteo, cell, invcellmeteo, rows, cols = readCoordNetCDF(namemeteo)
+        latmeteo, lonmeteo, _, invcellmeteo, _, _ = readCoordNetCDF(namemeteo)
 
         nameldd = cbinding('Ldd')
-        # nameldd = os.path.splitext(nameldd)[0] + '.nc'
-        # latldd, lonldd, cell, invcellldd, row, cols = readCoordNetCDF(nameldd)
-        latldd, lonldd, cell, invcellldd, rows, cols = readCoord(nameldd)
+        latldd, lonldd, _, invcellldd, _, _ = readCoord(nameldd)
         maskmapAttr['reso_mask_meteo'] = round(invcellldd / invcellmeteo)
+        if maskmapAttr['reso_mask_meteo'] < 1:
+            msg = "Error: the meteo forcing (" + namemeteo + ") has a finer resolution than the base maps (" + \
+                  nameldd + ")\nMeteo maps have to be at the same or a coarser resolution than the base maps\n"
+            raise CWATMError(msg)
 
         # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
         self.var.meteomapsscale = True
@@ -198,13 +289,11 @@ class readmeteo(object):
         if "usemeteodownscaling" in binding:
             self.var.meteodown = returnBool('usemeteodownscaling')
             if 'InterpolationMethod' in binding:
-                # interpolation option can be spline or bilinear
+                # interpolation option can be spline or kron
                 self.var.InterpolationMethod = cbinding('InterpolationMethod')
-                if self.var.InterpolationMethod != 'bilinear' and self.var.InterpolationMethod != 'spline' and self.var.InterpolationMethod != 'kron':
-                    msg = 'Error: InterpolationMethod in settings file must be one of the following: "spline" or  "bilinear", but it is {}'.format(self.var.InterpolationMethod)
+                if self.var.InterpolationMethod != 'spline' and self.var.InterpolationMethod != 'kron':
+                    msg = 'Error: InterpolationMethod in settings file must be one of the following: "spline", "kron", but it is {}'.format(self.var.InterpolationMethod)
                     raise CWATMError(msg)
-                if self.var.InterpolationMethod == 'bilinear':
-                    self.var.buffer = True
 
         check_clim = False
         if self.var.meteodown:
@@ -274,12 +363,14 @@ class readmeteo(object):
         if self.var.only_radiation:
             self.var.without_rlds = True
 
-        # read PET modus if snowmelt radiation is used
-        if self.var.snowmelt_radiation:
-            self.var.pet_modus = checkOption('PET_modus')
+        # PET modus 0: potential evaporation is not calculated but read from ET maps (calc_evaporation = False)
+        # the PET_modus from the settings file is only used if calc_evaporation = True (see below)
+        self.var.pet_modus = 0
 
         self.var.calc_evapo = checkOption('calc_evaporation')
 
+        # dew point temperature maps are read (pySnowClim with useTdew or era5)
+        self.var.useTdew = False
         # Check if option pySnowClim exists
         self.var.usepySnowClim = checkOption('usepySnowClim', True)
         if self.var.usepySnowClim:
@@ -287,6 +378,25 @@ class readmeteo(object):
             # if pySnowClim is used then all meteo var has to be read anyway
             # and missing meteo variables have to be calculated in evapoPot.py
             self.var.calc_evapo = True
+
+        # flags used every time step: read once here
+        # if temperature is in Kelvin -> conversion to deg C
+        self.var.TemperatureInKelvin = checkOption('TemperatureInKelvin')
+        self.var.ZeroKelvin = 273.15 if self.var.TemperatureInKelvin else 0.0
+        # specific humidity (QAirMaps) instead of relative humidity (RhsMaps), only used if evaporation is calculated
+        # (era5: humidity is calculated from the dew point temperature)
+        self.var.useHuss = False
+        if self.var.calc_evapo and not self.var.only_radiation and not self.var.era5:
+            self.var.useHuss = returnBool('useHuss')
+        if self.var.era5 and self.var.only_radiation:
+            msg = "Error: era5 = True and only_radiation = True cannot be used together\n" \
+                  "era5 uses surface pressure, short and long wave radiation and dew point temperature, " \
+                  "only_radiation (e.g. EMO) uses daily radiation and vapour pressure\n"
+            raise CWATMError(msg)
+        # potential evaporation maps have the same resolution as the other meteo maps
+        self.var.ETsamePr = False
+        if "ETsamePr" in binding:
+            self.var.ETsamePr = returnBool('ETsamePr')
 
         if self.var.calc_evapo:
             # if PET_modus is missing use Penman Monteith
@@ -311,7 +421,7 @@ class readmeteo(object):
                 meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps']
             else:
                 meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','PSurfMaps','WindMaps','RSDSMaps','RSDLMaps']
-                if returnBool('useHuss'):
+                if self.var.useHuss:
                     meteomaps.append('QAirMaps')
                 else:
                     meteomaps.append('RhsMaps')
@@ -338,7 +448,10 @@ class readmeteo(object):
 
         # no evaporation -> less maps
         else:
-            meteomaps = [self.var.preMaps, self.var.tempMaps, self.var.evaTMaps, self.var.eva0Maps]
+            meteomaps = [self.var.preMaps, self.var.tempMaps]
+            # snow calibration (stopaftersnow): no potential evaporation maps needed
+            if not self.var.stopaftersnow:
+                meteomaps += [self.var.evaTMaps, self.var.eva0Maps]
             if self.var.snowmelt_radiation:
                 if self.var.only_radiation:
                     meteomaps.append('RGDMaps')
@@ -351,23 +464,28 @@ class readmeteo(object):
                 if not self.var.includeOnlyGlaciersMelt:
                     meteomaps.append(self.var.glacierrainMaps)
 
-        # snow calibration
-        if self.var.stopaftersnow:
-            if self.var.snowmelt_radiation:
-                if self.var.only_radiation:
-                    meteomaps = [self.var.preMaps, self.var.tempMaps,'RGDMaps','EActMaps']
-                else:
-                    meteomaps = [self.var.preMaps, self.var.tempMaps, self.var.RSDSMaps,self.var.RSDLMaps]
-            else:
-                meteomaps = [self.var.preMaps, self.var.tempMaps]
-
-            if self.var.usepySnowClim:
-                meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps']
-                if self.var.useTdew:
-                    meteomaps.append('TdewMaps')
-
-
         multinetdf(meteomaps,self.var.buffer)
+
+        # calibration: names of the variables stored in memory in the first run and restored in the warm runs
+        # the list depends only on the settings -> same order in the calibration run and in the warm runs
+        # stored after evaporationPot -> derived variables (ETRef, EAct, huss ...) are available, warm runs skip evaporationPot
+        self.var.meteo_names = ['Precipitation', 'Tavg']
+        if not self.var.stopaftersnow:
+            self.var.meteo_names += ['ETRef', 'EWRef']
+        if self.var.usepySnowClim:
+            # forcing of pySnowClim (snow_pysnowclim.py)
+            self.var.meteo_names += ['Wind', 'Rsds', 'Rsdl', 'Psurf', 'huss', 'rhs', 'Tdew']
+        elif self.var.snowmelt_radiation:
+            # radiation snow melt (snow.py): incoming long wave estimated with FAO-56 (needs EAct) or measured (Rsdl)
+            # same condition as snowFAOlongwave in snow.py
+            if self.var.without_rlds and (self.var.only_radiation or self.var.calc_evapo):
+                self.var.meteo_names += ['Rsds', 'EAct']
+            else:
+                self.var.meteo_names += ['Rsds', 'Rsdl']
+        if self.var.includeGlaciers:
+            self.var.meteo_names.append('GlacierMelt')
+            if not self.var.includeOnlyGlaciersMelt:
+                self.var.meteo_names.append('GlacierRain')
 
         # Conversion factor from [W] to [MJ]
         self.var.WtoMJ = 86400 * 1E-6
@@ -382,94 +500,8 @@ class readmeteo(object):
         self.var.wc2_prec = 0
         self.var.wc4_prec = 0
 
-        if self.var.InterpolationMethod == 'bilinear':
-            #these variables are generated to avoid calculating them at each timestep
-            self.var.xcoarse_prec = 0
-            self.var.ycoarse_prec = 0
-            self.var.xfine_prec = 0
-            self.var.yfine_prec = 0
-            self.var.meshlist_prec = 0
-            self.var.xcoarse_tavg = 0
-            self.var.ycoarse_tavg = 0
-            self.var.xfine_tavg = 0
-            self.var.yfine_tavg = 0
-            self.var.meshlist_tavg = 0
-
-        # read dem for making a anomolydem between high resolution dem and low resoultion dem
-
 # --------------------------------------------------------------------------
 # --------------------------------------------------------------------------
-
-
-    # def downscaling2_peter(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, x=None, y=None, xfine=None, yfine=None, meshlist=None, downscale = 0):
-    #     """
-    #     Downscaling with only internal (inside the coarse gridcell) interpolation
-    #
-    #     :param input: low input map
-    #     :param downscaleName: High resolution monthly map from WorldClim
-    #     :param wc2: High resolution WorldClim map
-    #     :param wc4: upscaled to low resolution
-    #     :param downscale: 0 for no change, 1: for temperature , 2 for pprecipitation, 3 for psurf
-    #     :return: input - downscaled input data
-    #     :return: wc2
-    #     :return: wc4
-    #     """
-    #     reso = maskmapAttr['reso_mask_meteo']
-    #     resoint = int(reso)
-    #     if self.var.meteomapsscale:
-    #         if downscale == 0:
-    #             return input
-    #         else:
-    #             return input, wc2, wc4
-    #
-    #     down3 = np.kron(input, np.ones((resoint, resoint)))
-    #     # this is creating an array resoint times bigger than input, by copying each item resoint times in x and y direction
-    #
-    #     if downscale == 0:
-    #         down2 = down3[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
-    #         input = compressArray(down2)
-    #         return input
-    #     else:
-    #         if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
-    #             # wc1 = readnetcdf2(downscaleName, dateVar['currDate'], useDaily='month', compress = False, cut = False)
-    #             # wc2 = wc1[cutmapGlobal[2]*resoint:cutmapGlobal[3]*resoint, cutmapGlobal[0]*resoint:cutmapGlobal[1]*resoint]
-    #             #print('\n'.join([' '.join(['{:4}'.format(item) for item in row]) for row in wc2]))
-    #
-    #             if downscale == 2:  # precipitation
-    #                 #wc3 looks a like wc3
-    #                 wc3 = wc2.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
-    #                 #wc3mean looks like w4
-    #                 wc3mean = np.nanmean(wc3, axis=(1, 3))
-    #                 # Average of wordclim on the bigger input raster scale
-    #                 wc3kron = np.kron(wc3mean, np.ones((resoint, resoint)))
-    #                 # the average values are spread out to the fine scale
-    #                 #looks like quot_wc, but wc2 = input, wc3kron = wc4
-    #                 wc4 = divideValues(wc2, wc3kron)
-    #                 # wc4 holds the correction multiplicator on fine scale
-    #
-    #     if downscale == 1: # Temperature
-    #         #diff wc is different because originally it is wc4 - input
-    #         #diff_wc is difference on small scale
-    #         diff_wc = wc2 - down3
-    #         # on fine scale: wordclim fine scale - spreaded input data (same value for each big cell)
-    #         wc3 = diff_wc.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
-    #         wc4 = np.nanmean(wc3, axis=(1, 3))
-    #         wc4kron = np.kron(wc4, np.ones((resoint, resoint)))
-    #         # wordclim is averaged on big cell scale and the average is spread out to fine raster
-    #         down1 = diff_wc - wc4kron + down3
-    #         # result is the fine scale input data + the difference of wordclim - input data - the average difference of wordclim - input
-    #         down1 = np.where(np.isnan(down1),down3,down1)
-    #     if downscale == 2:  # precipitation
-    #         # in the other interpolations this is wc2 * quotSmooth, wc2 being the fine worldclimmap cut to map extent, quotSmooth being the interpolated difference between the input and summed worldclim
-    #         down1 = down3 * wc4
-    #         down1 = np.where(np.isnan(down1),down3,down1)
-    #         down1 = np.where(np.isinf(down1), down3, down1)
-    #
-    #     down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
-    #     input = compressArray(down2)
-    #     return input, wc2, wc4
-
-     # --- end downscaling ----------------------------
 
     def downscaling2(self,input, downscaleName = "", wc2 = 0 , wc4 = 0, x=None, y=None, xfine=None, yfine=None, meshlist=None, MaskMapBoundaries= None, downscale = 0):
         """
@@ -478,7 +510,7 @@ class readmeteo(object):
         Performs statistical downscaling of coarse-resolution meteorological data
         to higher spatial resolution using high-resolution climatological data
         from WorldClim. Supports multiple interpolation methods including spline,
-        bilinear, and Kronecker product approaches.
+        and Kronecker product approaches.
         
         Parameters
         ----------
@@ -490,16 +522,6 @@ class readmeteo(object):
             High-resolution WorldClim climatological data
         wc4 : numpy.ndarray, optional
             WorldClim data upscaled to input resolution
-        x : numpy.ndarray, optional
-            Coarse grid x-coordinates for bilinear interpolation
-        y : numpy.ndarray, optional
-            Coarse grid y-coordinates for bilinear interpolation
-        xfine : numpy.ndarray, optional
-            Fine grid x-coordinates for bilinear interpolation
-        yfine : numpy.ndarray, optional
-            Fine grid y-coordinates for bilinear interpolation
-        meshlist : list, optional
-            Mesh coordinates for bilinear interpolation
         MaskMapBoundaries : tuple, optional
             Boundary flags indicating if mask touches input data boundaries
         downscale : int, optional
@@ -524,37 +546,9 @@ class readmeteo(object):
         Mosier et al. (2018): 30-arcsecond monthly climate surfaces 
         with global land coverage. International Journal of Climatology.
         """
+
         reso = maskmapAttr['reso_mask_meteo']
         resoint = int(reso)
-
-        if self.var.InterpolationMethod == 'bilinear' and (downscale == 1 or downscale == 2):
-
-            buffer1, buffer2, buffer3, buffer4 = MaskMapBoundaries
-            buffer = buffer1
-            #if 1: does not touch boundaries of meteo input map, if 0 touches boundary of input map
-            # to perform bilinear interpolation a buffer around the maskmap is needed, if maskmap touches bounary of input map an artifical buffer has to be created by duplicating the last row/column
-            if buffer1 == 0:
-                input_first_row = input[0, :]
-                input = np.vstack((input_first_row[np.newaxis, :], input))
-            if buffer2 == 0:
-                input_last_row = input[-1, :]
-                input = np.vstack((input, input_last_row[np.newaxis, :]))
-            if buffer3 == 0:
-                input_first_column = input[:, 0]
-                input = np.hstack((input_first_column[:, np.newaxis], input))
-            if buffer4 == 0:
-                input_last_column = input[:, -1]
-                input = np.hstack((input, input_last_column[:, np.newaxis]))
-
-            if dateVar['newStart']:
-                x = np.arange(0.5, np.shape(input)[0] + 0.5)
-                y = np.arange(0.5, np.shape(input)[1] + 0.5)
-                xfine = np.arange(0.5 + 1 / (resoint * 2), np.shape(input)[0] - 0.5, 1 / resoint)
-                yfine = np.arange(0.5 + 1 / (resoint * 2), np.shape(input)[1] - 0.5, 1 / resoint)
-                xmesh, ymesh = np.meshgrid(xfine, yfine)
-                meshlist = list(zip(xmesh.flatten(), ymesh.flatten()))
-        else:
-            buffer = 0
 
         if self.var.meteomapsscale:
             if downscale == 0:
@@ -562,12 +556,27 @@ class readmeteo(object):
             else:
                 return input, wc2, wc4
 
-        if buffer == 0:
-          # this is creating an array resoint times bigger than input, by copying each item resoint times in x and y direction
-            down3 = kron_ones(input, resoint)
-        else:
-            down3 = kron_ones(input[buffer2:buffer1, buffer4:buffer3], resoint)
+        # index meteo cell -> model cell: input.ravel()[idx] is the same as kron_ones + cut to cutmapVfine + compressArray
+        # but without the big fine arrays (False if it cannot be used -> old way with kron_ones)
+        idx = False
+        if not np.ma.isMaskedArray(input):
+            idx = self.fine_index(np.shape(input), resoint)
 
+        if downscale == 0:
+            # no downscaling: each model cell gets the value of its meteo cell -> one gather with the index
+            if idx is not False:
+                out = np.asarray(input, dtype=np.float64).ravel()[idx]
+                # as in compressArray
+                out[out > 1.E20] = 0.
+                out[out < -1.E20] = 0.
+                return out
+
+        # this is creating an array resoint times bigger than input, by copying each item resoint times in x and y direction
+        # only needed for kron interpolation (part of the formula) or if the index cannot be used
+        # (with spline interpolation the fine input is only used to fill missing values -> done after compressing)
+        down3 = None
+        if self.var.InterpolationMethod == 'kron' or idx is False:
+            down3 = kron_ones(input, resoint)
 
         if downscale == 0:
             down2 = down3[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
@@ -576,39 +585,11 @@ class readmeteo(object):
         else:
             if dateVar['newStart'] or dateVar['newMonth']:  # loading every month a new map
                 wc1 = readnetcdf2(downscaleName, dateVar['currDate'], useDaily='month', compress = False, cut = False)
-                if self.var.InterpolationMethod == 'bilinear':
-                    # to perform bilinear interpolation a buffer around the maskmap is needed, if maskmap touches bounary of input map an artifical buffer has to be created by duplicating the last row/column
-                    if buffer1 == 0:
-                        wc1_first_row = wc1[:resoint, :]
-                        wc1 = np.vstack((wc1_first_row, wc1))
-                    if buffer2 == 0:
-                        wc1_last_row = wc1[-resoint:, :]
-                        wc1 = np.vstack((wc1, wc1_last_row))
-                    if buffer3 == 0:
-                        wc1_first_column = wc1[:, :resoint]
-                        wc1 = np.hstack((wc1_first_column, wc1))
-                    if buffer4 == 0:
-                        wc1_last_column = wc1[:, -resoint:]
-                        wc1 = np.hstack((wc1, wc1_last_column))
-                    #include buffer
-                    if buffer1 == 0:
-                        #if maskmap reaches upper boundary you cannot do -buffer because than index would be negative
-                        wc2 = wc1[int(np.floor((cutmapGlobal[2]) * reso)):int(np.ceil((cutmapGlobal[3] + buffer* 2) * reso)), :]
-                        if buffer3 == 0:
-                            wc2 = wc2[:, int(np.floor((cutmapGlobal[0]) * reso)): int(
-                                np.ceil((cutmapGlobal[1] + buffer * 2) * reso))]
-                    elif buffer3 == 0:
-                        # if maskmap reaches left boundary you cannot do -buffer because than index would be negative
-                        wc2 = wc1[int(np.floor((cutmapGlobal[2] - buffer) * reso)):int(
-                                    np.ceil((cutmapGlobal[3] + buffer) * reso)),int(np.floor((cutmapGlobal[0]) * reso)) : int(np.ceil((cutmapGlobal[1] + buffer * 2) * reso))]
-                    else:
-                        wc2 = wc1[int(np.floor((cutmapGlobal[2] - buffer2) * reso)):int(
-                                    np.ceil((cutmapGlobal[3] + buffer1) * reso)),
-                                      int(np.floor((cutmapGlobal[0] - buffer4) * reso)):int(
-                                          np.ceil((cutmapGlobal[1] + buffer3) * reso))]
-                else: # non bilinear
-                    wc2 = wc1[(cutmapGlobal[2] - buffer) * resoint: (cutmapGlobal[3] + buffer) * resoint,
-                          (cutmapGlobal[0] - buffer) * resoint: (cutmapGlobal[1] + buffer) * resoint]
+                wc2 = wc1[(cutmapGlobal[2]) * resoint: (cutmapGlobal[3]) * resoint,
+                      (cutmapGlobal[0]) * resoint: (cutmapGlobal[1]) * resoint]
+                # missing values: readnetcdf2 returns the fill value (e.g. 1e20 or -3.4e38) of masked cells, but the
+                # downscaling below expects NaN (nanmean, isnan -> input value is used) -> set fill values to NaN
+                wc2[np.abs(wc2) > 1.E19] = np.nan
                 rows = wc2.shape[0]
                 cols = wc2.shape[1]
                 wc3 =  wc2.reshape(rows//resoint,resoint,cols//resoint,resoint)
@@ -617,12 +598,8 @@ class readmeteo(object):
 
                 if self.var.InterpolationMethod == 'kron':
                     if downscale == 2:  # precipitation
-                        # wc3 looks a like wc3
-                        wc3 = wc2.reshape(wc2.shape[0] // resoint, resoint, wc2.shape[1] // resoint, resoint)
-                        # wc3mean looks like w4
-                        wc3mean = np.nanmean(wc3, axis=(1, 3))
-                        # Average of wordclim on the bigger input raster scale
-                        wc3kron = kron_ones(wc3mean, resoint)
+                        # wc4: average of wordclim on the bigger input raster scale (see above)
+                        wc3kron = kron_ones(wc4, resoint)
                         # the average values are spread out to the fine scale
                         # looks like quot_wc, but wc2 = input, wc3kron = wc4
                         wc4 = divideValues(wc2, wc3kron)
@@ -631,17 +608,9 @@ class readmeteo(object):
             diff_wc = wc4 - input
 
             if self.var.InterpolationMethod == 'spline':
-                diffSmooth = scipy.ndimage.zoom(diff_wc, resoint, order=1)
+                #diffSmooth = scipy.ndimage.zoom(diff_wc, resoint, order=1)
+                diffSmooth = zoom(diff_wc, resoint)
                 down1 = wc2 - diffSmooth
-
-            elif self.var.InterpolationMethod == 'bilinear':
-                bilinear_interpolation = RegularGridInterpolator((x, y), diff_wc)
-                diffSmooth = bilinear_interpolation(meshlist)
-                diffSmooth = diffSmooth.reshape(len(xfine), len(yfine), order='F')
-                #no buffer for real downscaled values
-                crop = int(resoint / 2)
-                diffSmooth = diffSmooth[crop:-crop, crop:-crop]
-                down1 = wc2[buffer * resoint:-buffer * resoint, buffer * resoint:-buffer * resoint] - diffSmooth
 
             elif self.var.InterpolationMethod == 'kron':
                 diff_wc = wc2 - down3
@@ -652,33 +621,35 @@ class readmeteo(object):
                 # wordclim is averaged on big cell scale and the average is spread out to fine raster
                 down1 = diff_wc - wc4kron + down3
                 # result is the fine scale input data + the difference of wordclim - input data - the average difference of wordclim - input
-                #down1 = np.where(np.isnan(down1), down3, down1)
-            
-            down1 = np.where(np.isnan(down1),down3,down1)
 
         if downscale == 2:  # precipitation
             if self.var.InterpolationMethod == 'spline':
                 quot_wc = divideValues(input, wc4)
-                quotSmooth = scipy.ndimage.zoom(quot_wc, resoint, order=1)
+                #quotSmooth = scipy.ndimage.zoom(quot_wc, resoint, order=1)
+                quotSmooth = zoom(quot_wc, resoint)
                 down1 = wc2 * quotSmooth
-            elif self.var.InterpolationMethod == 'bilinear':
-                quot_wc = divideValues(input, wc4)
-                bilinear_interpolation = RegularGridInterpolator((x, y), quot_wc)
-                quotSmooth = bilinear_interpolation(meshlist)
-                quotSmooth = quotSmooth.reshape(len(xfine), len(yfine), order='F')
-                crop = int(resoint/2)
-                quotSmooth = quotSmooth[crop:-crop, crop:-crop]
-                down1 = wc2[buffer2 * resoint:buffer1 * resoint, buffer4 * resoint:buffer3 * resoint] * quotSmooth
             elif self.var.InterpolationMethod == 'kron':
                 down1 = down3 * wc4
 
-            down1 = np.where(np.isnan(down1),down3,down1)
-            down1 = np.where(np.isinf(down1), down3, down1)
+        # missing values (NaN, for precipitation also inf e.g. division by 0) -> value of the meteo cell (down3)
+        down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
+        if down3 is None:
+            # without the fine input: compress first (as compressArray), then fill the missing values with the index
+            if down2.shape != maskinfo['mask'].shape:
+                compressArray(down2)  # gives Error 105
+            out = np.ma.compressed(np.ma.masked_array(down2, maskinfo['mask']))
+            missing = np.isnan(out) if downscale == 1 else ~np.isfinite(out)
+            if missing.any():
+                out[missing] = np.asarray(input, dtype=np.float64).ravel()[idx][missing]
+            # as in compressArray
+            out[out > 1.E20] = 0.
+            out[out < -1.E20] = 0.
+            return out, wc2, wc4
 
+        missing = np.isnan(down1) if downscale == 1 else ~np.isfinite(down1)
+        down1 = np.where(missing, down3, down1)
         down2 = down1[cutmapVfine[2]:cutmapVfine[3], cutmapVfine[0]:cutmapVfine[1]].astype(np.float64)
         input = compressArray(down2)
-        if self.var.InterpolationMethod == 'bilinear' and (downscale == 1 or downscale == 2):
-            return input, wc2, wc4, x, y, xfine, yfine, meshlist
         return input, wc2, wc4
 
      # --- end downscaling ----------------------------
@@ -718,38 +689,11 @@ class readmeteo(object):
         if Flags['warm']:
             # if warmstart use stored meteo variables
             no = dateVar['curr']-1
-            self.var.Precipitation = self.var.meteo[0,no]
-            self.var.Tavg = self.var.meteo[1, no]
-            j = 1
-            if not (self.var.stopaftersnow):
-                self.var.ETRef = self.var.meteo[2,no]
-                self.var.EWRef = self.var.meteo[3,no]
-                j = 3
-
-            if self.var.usepySnowClim:
-                self.var.TMin = self.var.meteo[j + 1, no]
-                self.var.TMax = self.var.meteo[j + 2, no]
-                self.var.Wind = self.var.meteo[j + 3, no]
-                self.var.Rsds = self.var.meteo[j + 4, no]
-                self.var.EAct = self.var.meteo[j + 5, no]
-                j = j + 5
-                if self.var.useTdew:
-                    self.var.Tdew = self.var.meteo[j + 6, no]
-                    j = j + 1
-            else:
-                if self.var.snowmelt_radiation:
-                    # for EMO meteo datasets
-                    if self.var.only_radiation:
-                        self.var.Rsds = self.var.meteo[j+1,no]
-                        self.var.EAct = self.var.meteo[j+2, no]
-                    else:
-                        self.var.Rsds = self.var.meteo[j+1,no] # j =4
-                        self.var.Rsdl = self.var.meteo[j+2,no] # j =5
-                    j = j+2
-            if self.var.includeGlaciers:
-                self.var.GlacierMelt = self.var.meteo[j+1, no]
-                if not self.var.includeOnlyGlaciersMelt:
-                    self.var.GlacierRain = self.var.meteo[j+2, no]
+            for i, name in enumerate(self.var.meteo_names):
+                setattr(self.var, name, self.var.meteo[i, no])
+            # output variables prec and temp in the unit of the input maps (as in a normal run)
+            self.var.prec = self.var.Precipitation / self.var.con_precipitation
+            self.var.temp = self.var.Tavg + self.var.ZeroKelvin if self.var.TemperatureInKelvin else self.var.Tavg.copy()
             return
         # End calibration warm run
 
@@ -761,56 +705,35 @@ class readmeteo(object):
 
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
         if self.var.meteodown:
-            if self.var.InterpolationMethod == 'bilinear':
-                MaskMapBoundary = meteofiles[self.var.preMaps][0][9]
-                self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec, self.var.xcoarse_prec, self.var.ycoarse_prec, self.var.xfine_prec, self.var.yfine_prec, self.var.meshlist_prec = self.downscaling2(
-                    self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec,
-                    self.var.xcoarse_prec, self.var.ycoarse_prec, self.var.xfine_prec, self.var.yfine_prec,
-                    self.var.meshlist_prec, MaskMapBoundary, downscale=2)
-            else:
-                self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
+            self.var.Precipitation, self.var.wc2_prec, self.var.wc4_prec = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=2)
         else:
             self.var.Precipitation = self.downscaling2(self.var.Precipitation, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
 
+        # precipitation in the unit of the input maps (output variable), Precipitation is in [m] per time step
         self.var.prec = self.var.Precipitation / self.var.con_precipitation
-        # precipitation (conversion to [m] per time step)  `
         if Flags['check']:
             checkmap(self.var.preMaps, meteofiles[self.var.preMaps][flagmeteo[self.var.preMaps]][0], self.var.Precipitation)
 
 
-        ZeroKelvin = 0.0
-        if checkOption('TemperatureInKelvin'):
-            # if temperature is in Kelvin -> conversion to deg C
-            # TODO in initial there could be a check if temperature > 200 -> automatic change to Kelvin
-            ZeroKelvin = 273.15
+        # 273.15 if temperature is in Kelvin -> conversion to deg C, otherwise 0 (see initial)
+        ZeroKelvin = self.var.ZeroKelvin
 
         self.var.Tavg = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
 
         if self.var.meteodown:
-            if self.var.InterpolationMethod == 'bilinear':
-                MaskMapBoundary = meteofiles[self.var.tempMaps][0][9]
-                self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg, self.var.xcoarse_tavg, self.var.ycoarse_tavg, self.var.xfine_tavg, self.var.yfine_tavg, self.var.meshlist_tavg = self.downscaling2(
-                    self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, self.var.xcoarse_tavg,
-                    self.var.ycoarse_tavg, self.var.xfine_tavg, self.var.yfine_tavg, self.var.meshlist_tavg, MaskMapBoundary, downscale=1)
-            else:
-                self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
+            self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
         else:
             self.var.Tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=0)
+        # average temperature in the unit of the input maps: K or deg C (output variable)
         self.var.temp = self.var.Tavg.copy()
 
         # average DAILY temperature (even if you are running the model
         # on say an hourly time step) [degrees C]
-        if checkOption('TemperatureInKelvin'):
+        if self.var.TemperatureInKelvin:
             self.var.Tavg -= ZeroKelvin
 
         # check on the first date if Temperature is really kelvin
-        if dateVar['curr'] == 1:
-            testtemp = np.nanmin(self.var.Tavg)
-            if (testtemp < -100) or (testtemp > 100):
-                name = cbinding('TavgMaps')
-                msg = "Error 601: Check temperature flag in [Option]. Temperature might be Kelvin instead Celsius or vice versa\n"
-                msg = msg + "Temperature file in: " + name + "\n"
-                raise CWATMError(msg)
+        self.check_celsius(self.var.Tavg, self.var.tempMaps)
 
 
         if self.var.includeGlaciers:
@@ -830,20 +753,20 @@ class readmeteo(object):
         if self.var.calc_evapo or self.var.snowmelt_radiation:
             # for new snow calculation radiation is needed
             if self.var.pet_modus < 5:
-                # If evaporation is not modified Thornthwaite
-                # because with Priestley-Taylor or Thornthwaite there are no radiation maps
+                # radiation is read for PET_modus 1-4 and for radiation snow melt without calculated evaporation (pet_modus 0)
+                # modified Thornthwaite (PET_modus 5) uses only temperature -> no radiation maps
                 if self.var.only_radiation:
-                    # read daily calculated radiation [in W/m2 or KJ/m2/day to MJ/m2/day]
+                    # read daily radiation [in W/m2 or J/m2/day] and convert to MJ/m2/day
                     # named here Rsds instead of rds, because use in evaproationPot in the same way as rsds
                     self.var.Rsds = readmeteodata('RGDMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
                     if self.var.only_radiation_Wm2:
                         self.var.Rsds = self.downscaling2(self.var.Rsds) * self.var.WtoMJ  # convert from W/m2 to MJ/m2/day
                     else:
-                        self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.000001  # convert from KJ to MJ/m2/day
+                        self.var.Rsds = self.downscaling2(self.var.Rsds) * 0.000001  # convert from J/m2/day to MJ/m2/day
 
                     # read daily vapor pressure [in hPa]
                     self.var.EAct = readmeteodata('EActMaps', dateVar['currDate'], addZeros=True, mapsscale=self.var.meteomapsscale)
-                    self.var.EAct = self.downscaling2(self.var.EAct) * 0.1  # convert from hP to kP
+                    self.var.EAct = self.downscaling2(self.var.EAct) * 0.1  # convert from hPa to kPa
                 else:
                     self.var.Rsds = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
                     self.var.Rsds = self.downscaling2(self.var.Rsds)
@@ -867,13 +790,7 @@ class readmeteo(object):
             #self.var.TMin = readnetcdf2('TminMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
             self.var.TMin = readmeteodata('TminMaps',dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
             if self.var.meteodown:
-                if self.var.InterpolationMethod == 'bilinear':
-                    MaskMapBoundary = meteofiles['TminMaps'][0][9]
-                    self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin, _, _, _, _, _ = self.downscaling2(self.var.TMin,
-                        "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, self.var.xcoarse_tavg, self.var.ycoarse_tavg,
-                        self.var.xfine_tavg, self.var.yfine_tavg, self.var.meshlist_tavg, MaskMapBoundary, downscale=1)
-                else:
-                    self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=1)
+                self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=1)
             else:
                 self.var.TMin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=0)
 
@@ -883,30 +800,31 @@ class readmeteo(object):
             #self.var.TMax = readnetcdf2('TmaxMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
             self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
             if self.var.meteodown:
-                if self.var.InterpolationMethod == 'bilinear':
-                    MaskMapBoundary = meteofiles['TmaxMaps'][0][9]
-                    self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax, _, _, _, _, _ = self.downscaling2(self.var.TMax,
-                         "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, self.var.xcoarse_tavg, self.var.ycoarse_tavg,
-                         self.var.xfine_tavg, self.var.yfine_tavg, self.var.meshlist_tavg, MaskMapBoundary, downscale=1)
-                else:
-                    self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=1)
+                self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmax", self.var.wc2_tmax, self.var.wc4_tmax, downscale=1)
             else:
-                self.var.TMax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmin", self.var.wc2_tmax, self.var.wc4_tmax, downscale=0)
+                self.var.TMax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmax", self.var.wc2_tmax, self.var.wc4_tmax, downscale=0)
 
             if Flags['check']:
                 checkmap('TmaxMaps', meteofiles['TmaxMaps'][flagmeteo['TmaxMaps']][0], self.var.TMax)
 
-            if checkOption('TemperatureInKelvin'):
+            if self.var.TemperatureInKelvin:
                 self.var.TMin -= ZeroKelvin
                 self.var.TMax -= ZeroKelvin
+            # check on the first date if TMin and TMax are really in the same unit as Tavg
+            self.check_celsius(self.var.TMin, 'TminMaps')
+            self.check_celsius(self.var.TMax, 'TmaxMaps')
 
             if self.var.pet_modus == 5:
-                if globals.dateVar['newStart'] or globals.dateVar['newYear']:
-                    if self.var.meteodown:
-                        self.var.thermalI = readnetcdf2('thermalIndexFile', globals.dateVar['currDate'], "yearly", cut=False,value="thermalindex", compress=False)
-                        self.var.thermalI = self.downscaling2(self.var.thermalI)
+                if dateVar['newStart'] or dateVar['newYear']:
+                    if self.var.meteomapsscale:
+                        # thermal index at the resolution of the base maps
+                        self.var.thermalI = readnetcdf2('thermalIndexFile', dateVar['currDate'], "yearly", value="thermalindex", compress=True)
                     else:
-                        self.var.thermalI = readnetcdf2('thermalIndexFile', globals.dateVar['currDate'], "yearly", value="thermalindex", compress=True)
+                        # thermal index on the grid of the meteo maps: cut the same window as the meteo maps
+                        # (see readmeteodata) and spread it to the base maps
+                        thermalI = readnetcdf2('thermalIndexFile', dateVar['currDate'], "yearly", cut=False, value="thermalindex", compress=False)
+                        thermalI = thermalI[cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]]
+                        self.var.thermalI = self.downscaling2(thermalI)
 
             elif self.var.pet_modus == 4:
                 self.var.Wind = 0
@@ -931,14 +849,9 @@ class readmeteo(object):
                     # conversion [Pa] to [KPa]
                     self.var.Psurf = self.var.Psurf * 0.001
 
-                    if self.var.era5:
-                        self.var.Tdew = readmeteodata('TdewMaps', dateVar['currDate'], addZeros=True,
-                                                       mapsscale=self.var.meteomapsscale)
-                        self.var.Tdew = self.downscaling2(self.var.Tdew)
-                        if checkOption('TemperatureInKelvin'):
-                            self.var.Tdew -= ZeroKelvin
-                    else:
-                        if returnBool('useHuss'):
+                    # era5: dew point temperature instead of humidity -> Tdew is read below (useTdew = True)
+                    if not self.var.era5:
+                        if self.var.useHuss:
                             self.var.huss = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
                             self.var.huss = self.downscaling2(self.var.huss)
                             # 2 m istantaneous specific humidity[kg / kg]
@@ -951,12 +864,7 @@ class readmeteo(object):
 
             if not(self.var.stopaftersnow):
             # in case ET_ref is the same resolution as the other meteo input map, there is an optional flag in settings which checks this
-                ETsamePr = False
-                if "ETsamePr" in binding:
-                    if returnBool('ETsamePr'):
-                        ETsamePr = True
-
-                if ETsamePr:
+                if self.var.ETsamePr:
                     self.var.EWRef = readmeteodata(self.var.eva0Maps, dateVar['currDate'], addZeros=True,  mapsscale=self.var.meteomapsscale)
                     self.var.EWRef = self.var.EWRef * self.var.DtDay * self.var.con_e
                     self.var.EWRef = self.downscaling2(self.var.EWRef, "downscale_wordclim_prec", self.var.wc2_prec, self.var.wc4_prec, downscale=0)
@@ -974,81 +882,32 @@ class readmeteo(object):
                     # potential evaporation rate from water surface (conversion to [m] per time step)
                     # potential evaporation rate from a bare soil surface (conversion # to [m] per time step)
 
-        if self.var.usepySnowClim:
-            if self.var.useTdew:
-                # if tDew maps are available, otherwise use Eact (vapor pressure and calculate Tdew
-                self.var.Tdew = readmeteodata('TdewMaps',
-                                              dateVar['currDate'],
-                                              addZeros=True,
-                                              mapsscale = self.var.meteomapsscale,
-                                              buffering= self.var.buffer)
-                self.var.Tdew = self.downscaling2(self.var.Tdew)
-                if checkOption('TemperatureInKelvin'):
-                    self.var.Tdew -= ZeroKelvin
-                # check on the first date if the dewpoint is really in the same unit as the temperature
-                if dateVar['curr'] == 1:
-                    testtemp = np.nanmin(self.var.Tdew)
-                    if (testtemp < -100) or (testtemp > 100):
-                        msg = "Error 601: Check temperature flag in [Option]: TdewMaps might be Kelvin instead Celsius or vice versa\n"
-                        msg += "TdewMaps: " + cbinding('TdewMaps') + "\n"
-                        raise CWATMError(msg)
+        # dew point temperature: pySnowClim with useTdew (otherwise Tdew is calculated from EAct in evaporationPot)
+        # or era5 (instead of humidity)
+        if self.var.useTdew:
+            self.var.Tdew = readmeteodata('TdewMaps',
+                                          dateVar['currDate'],
+                                          addZeros=True, zeros=ZeroKelvin,
+                                          mapsscale = self.var.meteomapsscale,
+                                          buffering= self.var.buffer)
+            self.var.Tdew = self.downscaling2(self.var.Tdew)
+            if self.var.TemperatureInKelvin:
+                self.var.Tdew -= ZeroKelvin
+            # check on the first date if the dewpoint is really in the same unit as the temperature
+            self.check_celsius(self.var.Tdew, 'TdewMaps')
 
-        # Calibration
-        if Flags['calib']:
-            # if first clibration run, store all meteo data in a variable
-            if dateVar['curr'] == 1:
-                if not (self.var.stopaftersnow):
-                    number = 4
-                else:
-                    number = 2
+    def store_calib(self):
+        """
+        Store the meteo variables of the current time step in memory (first calibration run).
 
-                if  self.var.usepySnowClim:
-                    number = number + 5
-                    if self.var.useTdew:
-                        number = number + 1
-                else:
-                    if self.var.snowmelt_radiation:
-                        number = number + 2
-                if self.var.includeGlaciers:
-                    number = number + 1
-                    if not self.var.includeOnlyGlaciersMelt:
-                        number = number + 1
-
-                self.var.meteo = np.zeros([number, 1 + dateVar["intEnd"] - dateVar["intStart"], len(self.var.Precipitation)])
-
-            no = dateVar['curr'] -1
-            self.var.meteo[0,no] = self.var.Precipitation
-            self.var.meteo[1,no] = self.var.Tavg
-            j = 1
-            if not(self.var.stopaftersnow):
-                self.var.meteo[2,no] = self.var.ETRef
-                self.var.meteo[3,no] = self.var.EWRef
-                j =3
-
-            if self.var.usepySnowClim:
-                self.var.meteo[j + 1, no] = self.var.TMin
-                self.var.meteo[j + 2, no] = self.var.TMax
-                self.var.meteo[j + 3, no] = self.var.Wind
-                self.var.meteo[j + 4, no] = self.var.Rsds
-                self.var.meteo[j + 5, no] = self.var.EAct
-                j = j + 5
-                if self.var.useTdew:
-                    self.var.meteo[j + 6, no] = self.var.Tdew
-                    j = j + 1
-
-            else:
-                if self.var.snowmelt_radiation:
-                    if self.var.only_radiation:
-                        self.var.meteo[j+1,no] = self.var.Rsds
-                        self.var.meteo[j+2, no] = self.var.EAct
-                    else:
-                        self.var.meteo[j+1,no] = self.var.Rsds
-                        self.var.meteo[J+5,no] = self.var.Rsdl
-                    j = j +2
-            if self.var.includeGlaciers:
-                self.var.meteo[j+1, no] = self.var.GlacierMelt
-                if not self.var.includeOnlyGlaciersMelt:
-                    self.var.meteo[j+2, no] = self.var.GlacierRain
-
-            ii =1
-
+        Called from cwatm_dynamic after evaporationPot, so derived variables (ETRef, EWRef, EAct, huss ...)
+        are available. The variables are listed in self.var.meteo_names (see initial) and restored in the
+        warm runs at the beginning of dynamic.
+        """
+        no = dateVar['curr'] - 1
+        if no == 0:
+            # first time step: allocate memory for all time steps
+            self.var.meteo = np.zeros([len(self.var.meteo_names), 1 + dateVar["intEnd"] - dateVar["intStart"],
+                                       len(self.var.Precipitation)])
+        for i, name in enumerate(self.var.meteo_names):
+            self.var.meteo[i, no] = getattr(self.var, name)

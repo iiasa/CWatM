@@ -194,14 +194,7 @@ class snow(object):
         """
 
         # --- Topography -----------------------------------------------------
-        # maps of relative elevation above flood plains -> also used in capilar rise
-        #            0             1           2              3           4             5          6           7
-        #             8          9             10           11          12
-        dzRel = ['dzRel0000','dzRel0001', 'dzRel0005', 'dzRel0010', 'dzRel0020', 'dzRel0030', 'dzRel0040', 'dzRel0050',
-                 'dzRel0060', 'dzRel0070', 'dzRel0080', 'dzRel0090', 'dzRel0100']
-        self.var.dzRel = []
-        for i, item in enumerate(dzRel):
-            self.var.dzRel.append(readnetcdfWithoutTime(cbinding('relativeElevation'), item, i))
+        # relative elevation dzRel (13 layers 0% ... 100%) is loaded in capillarRise.initial
 
         self.var.numberSnowLayersFloat = loadmap('NumberSnowLayers')
         self.var.numberSnowLayers = int(self.var.numberSnowLayersFloat)
@@ -209,18 +202,19 @@ class snow(object):
         self.var.glaciertransportZone = int(loadmap('GlacierTransportZone'))
 
         # elevation offset of each snow zone [m], computed once
-        # of all zone centres -> mean temperature of all zones = Tavg; dzSnow table relative to dzRel[6] (50%)
+        # of all zone centres -> mean temperature of all zones = Tavg; dzSnow table relative to dzRel[7] (50%)
         pct = [0.0, 0.01, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00]
         self.var.dzZone = []
         for i in range(self.var.numberSnowLayers):
             # zone 0 is the highest: center at percentile 1 - (i + 0.5) / n
             p = 1.0 - (i + 0.5) / self.var.numberSnowLayers
-            j = int(min(max(np.searchsorted(pct, p+0.000001)-1, 0), 10))
+            # interval j: pct[j] <= p < pct[j+1], j = 0..11
+            j = int(min(max(np.searchsorted(pct, p+0.000001)-1, 0), 11))
             # w: weight for w * (x[j+1] - x[j])
             w = (p - pct[j]) / (pct[j + 1] - pct[j])
             self.var.dzZone.append(self.var.dzRel[j] + w * (self.var.dzRel[j + 1] - self.var.dzRel[j]))
 
-        self.var.dzZone = [dz - self.var.dzRel[6] for dz in self.var.dzZone]
+        self.var.dzZone = [dz - self.var.dzRel[7] for dz in self.var.dzZone]
 
         self.var.lapseratevar = False
         if 'LapseRateVariable' in binding:

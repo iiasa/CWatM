@@ -14,7 +14,17 @@ def pytest_addoption(parser):
 
 # HTML
 def pytest_configure(config):
-    a = config._metadata
+    # pytest-metadata < 3: config._metadata, pytest-metadata >= 3: config.stash[metadata_key]
+    newmetadata = False
+    try:
+        a = config._metadata
+    except AttributeError:
+        try:
+            from pytest_metadata.plugin import metadata_key
+            a = config.stash[metadata_key]
+            newmetadata = True
+        except Exception:
+            return
     try:
         a.__delitem__('Plugins')
         a.__delitem__('Packages')
@@ -40,7 +50,10 @@ def pytest_configure(config):
     a['Settingsfile'] = config.option.settingsfile
     a['PyTest'] = config.option.file_or_dir
     a['Report'] = config.option.htmlpath
-    config._metadata = collections.OrderedDict(a)
+    if newmetadata:
+        config.stash[metadata_key] = collections.OrderedDict(a)
+    else:
+        config._metadata = collections.OrderedDict(a)
     #config._metadata = None
     #config.getoption('cwatm')
     #config.option

@@ -339,6 +339,10 @@ class soil(object):
         else:
             self.var.openWaterEvap[No] = 0.
 
+        # bare soil evaporation not bigger than potential ET minus snow and interception evaporation
+        # (only matters if potential ET < bare soil part, then potTranspiration is already 0)
+        potBareSoilEvap = np.minimum(potBareSoilEvap, np.maximum(0., self.var.totalPotET[No] - self.var.snowEvap -
+                                                                 self.var.interceptEvap[No]))
 
         # if (dateVar['curr'] >= 0) and (No == 3):
         #     ii = 1
@@ -619,8 +623,10 @@ class soil(object):
             self.var.capRiseFromGW[No] = np.maximum(0., (1 - satTermFC3) * 
                                                     np.sqrt(self.var.KSat3[NoSoil] * kUnSat3))
             self.var.capRiseFromGW[No] = 0.5 * self.var.capRiseFrac * self.var.capRiseFromGW[No]
-            self.var.capRiseFromGW[No] = np.minimum(np.maximum(0., self.var.storGroundwater), 
-                                                    self.var.capRiseFromGW[No])
+            # limited by groundwater storage left after today's abstraction (water demand runs before soil)
+            # -> groundwater storage cannot become negative by a negative gwRecharge
+            self.var.capRiseFromGW[No] = np.minimum(np.maximum(0., self.var.storGroundwater -
+                                                    self.var.nonFossilGroundwaterAbs), self.var.capRiseFromGW[No])
 
         self.var.w1[No] = self.var.w1[No] + capRise1
         self.var.w2[No] = self.var.w2[No] - capRise1 + capRise2
@@ -778,8 +784,9 @@ class soil(object):
 
         self.var.actualET[No] = (self.var.actualET[No] + self.var.actBareSoilEvap[No] + 
                                  self.var.openWaterEvap[No] + self.var.actTransTotal[No])
-        # actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water 
-        # evaporation, therefore self.var.totalPotET[No] is adjusted
+        # actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water
+        # evaporation (paddy) or snow evaporation alone is bigger than pot (snowEvapFactor > 1,
+        # crop_correct_<landcover> < snowEvapFactor, pySnowClim sublimation), therefore self.var.totalPotET[No] is adjusted
         self.var.totalPotET[No] = np.maximum(self.var.totalPotET[No], self.var.actualET[No])
 
         # groundwater recharge
@@ -789,12 +796,10 @@ class soil(object):
         if self.var.modflow:
             self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow
         else:
+            # net recharge: can be negative (capillar rise > percolation) -> taken from groundwater storage
+            # (capRiseFromGW is already added to w3 and limited by the available groundwater storage)
             self.var.gwRecharge[No] = ((1 - self.var.percolationImp) * toGWorInterflow - self.var.capRiseFromGW[No])
             self.var.gwRecharge2[No] =  ((1 - self.var.percolationImp) *self.var.perc3toGW[No] - self.var.capRiseFromGW[No])
-            # Check if gwRecharge < 0
-            testgw = np.minimum(self.var.gwRecharge[No], 0)
-            self.var.gwRecharge[No] = self.var.gwRecharge[No] - testgw
-            self.var.capRiseFromGW[No] = self.var.capRiseFromGW[No] + testgw
 
             testgw = np.minimum(self.var.gwRecharge2[No], 0)
             self.var.gwRecharge2[No] = self.var.gwRecharge2[No] - testgw

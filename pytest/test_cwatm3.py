@@ -58,6 +58,8 @@ else:
 # include the cwatm folder as library
 
 run_cwatm = importlib.import_module(cwatm, package=None)
+# global flags of the cwatm package (to reset the warm flag after a calibration test)
+Flags = importlib.import_module("cwatm.management_modules.globals").Flags
 
 """
 set =  "P:/watmodel/cwatmpublic/develop/pytest/settings/1min/UpperDanube/settings_upper_1min_01.ini"
@@ -271,7 +273,8 @@ def cwatm(info, model):
     -----
     The function handles different test types based on keywords in the settings file path:
     - "error": Tests expected failure scenarios with quiet mode
-    - "calibration": Runs calibration workflow with meteorological data loading
+    - "calibration": Runs a normal run, the calibration run (meteo data stored in memory) and a warm run
+      from memory; the discharge of the warm run has to be the same as of the normal run
     - "checkmap": Validates model configuration without full execution  
     - Default: Performs standard model run with full execution
     
@@ -291,10 +294,21 @@ def cwatm(info, model):
         assert (success == 0)
 
     elif model[4].find("calibration") > -1:
-        # test for check
-        meteo, success, last_dis = run_cwatm.main(model[4], ['-lk'])
-        success, last_dis = run_cwatm.mainwarm(model[4], ['-l'], meteo)
+        # test for calibration: normal run, first calibration run (meteo stored in memory), warm run from memory
+        # the warm run has to give the same discharge as the normal run
+        # normal run first: Flags['warm'] stays True after mainwarm (not cleared by globalclear)
+        success, last_dis_normal = run_cwatm.main(model[4], ['-l'])
         assert success
+        meteo, success, last_dis = run_cwatm.main(model[4], ['-lk'])
+        assert success
+        try:
+            success, last_dis_warm = run_cwatm.mainwarm(model[4], ['-l'], meteo)
+        finally:
+            # following tests are normal runs again
+            Flags['warm'] = False
+        assert success
+        print("\n discharge normal run: ", last_dis_normal, " warm run: ", last_dis_warm)
+        assert last_dis_warm == last_dis_normal
 
     elif model[4].find("checkmap") > -1:
         # test for check

@@ -61,7 +61,7 @@ class evaporationPot(object):
     Psurf                                Array         Instantaneous surface pressure                                          Pa   
     Rsdl                                 Array         long wave downward surface radiation fluxes                             W m-2
     huss                                 Array         2 m istantaneous specific humidity[kg / kg] (AI)                        --   
-    EAct                                 Array         Daily vapor pressure                                                    hPa  
+    EAct                                 Array         Daily vapor pressure                                                    kPa
     rhs                                  Array                                                                                 --   
     useTdew                              Flag                                                                                  --   
     Tdew                                 Array         calculate Tdew (Magnus Formula) based on FAO56 https://www.fao.org/4/X  --   
@@ -106,8 +106,12 @@ class evaporationPot(object):
                 self.var.Rsdl = RNup - RLN
                 self.var.huss = eps * self.var.EAct / (self.var.Psurf - self.var.EAct * (1 - eps))
                 self.var.rhs = 100 / ESat * (self.var.Psurf * self.var.huss) / (((1-eps) * self.var.huss) + eps)
+            elif self.var.era5:
+                # era5: no humidity maps, EAct is calculated from the dew point temperature -> specific and relative humidity
+                self.var.huss = eps * self.var.EAct / (self.var.Psurf - self.var.EAct * (1 - eps))
+                self.var.rhs = 100 / ESat * (self.var.Psurf * self.var.huss) / (((1-eps) * self.var.huss) + eps)
             else:
-                if returnBool('useHuss'):
+                if self.var.useHuss:
                     self.var.rhs = 100 / ESat * (self.var.Psurf * self.var.huss) / (((1-eps) * self.var.huss) + eps)
                 else:
                     self.var.huss = eps * self.var.EAct / (self.var.Psurf - self.var.EAct * (1 - eps))
@@ -267,7 +271,10 @@ class evaporationPot(object):
         # if only daily calculate radiation is given instead of longwave down and shortwave down radiation
         if self.var.without_rlds:
             if not self.var.only_radiation:
-                if returnBool('useHuss'):
+                if self.var.era5:
+                    # era5: vapour pressure from the dew point temperature (Magnus formula, FAO56 eq. 14)
+                    self.var.EAct = 0.61078 * np.exp(17.27 * self.var.Tdew / (self.var.Tdew + 237.3))
+                elif self.var.useHuss:
                     self.var.EAct = (self.var.Psurf * self.var.huss) / ((0.378020992 * self.var.huss) + 0.621979008)
                 else:
                     self.var.EAct = ESat * self.var.rhs / 100.0
@@ -312,7 +319,7 @@ class evaporationPot(object):
                 self.var.EAct = 0.61078 * np.exp(17.27 * self.var.Tdew / (self.var.Tdew + 237.3))
 
             else:
-                if returnBool('useHuss'):
+                if self.var.useHuss:
                     # if specific humidity calculate actual vapour pressure this way
                     self.var.EAct = (self.var.Psurf * self.var.huss) / (((1-0.621979008) * self.var.huss) + 0.621979008)
                     # http://www.eol.ucar.edu/projects/ceop/dm/documents/refdata_report/eqns.html
@@ -410,7 +417,10 @@ class evaporationPot(object):
                 ESatmin = 0.6108 * np.exp((17.27 * self.var.TMin) / (self.var.TMin + 237.3))
                 ESatmax = 0.6108 * np.exp((17.27 * self.var.TMax) / (self.var.TMax + 237.3))
                 ESat = (ESatmin + ESatmax) / 2.0   # [KPa]
-                if returnBool('useHuss'):
+                if self.var.era5:
+                    # era5: vapour pressure from the dew point temperature (Magnus formula, FAO56 eq. 14)
+                    self.var.EAct = 0.61078 * np.exp(17.27 * self.var.Tdew / (self.var.Tdew + 237.3))
+                elif self.var.useHuss:
                     self.var.EAct = (self.var.Psurf * self.var.huss) / ((0.378020992 * self.var.huss) + 0.621979008)
                 else:
                     self.var.EAct = ESat * self.var.rhs / 100.0
@@ -483,7 +493,10 @@ class evaporationPot(object):
         # if only daily calculate radiation is given instead of longwave down and shortwave down radiation
         if self.var.without_rlds:
             if not self.var.only_radiation:
-                if returnBool('useHuss'):
+                if self.var.era5:
+                    # era5: vapour pressure from the dew point temperature (Magnus formula, FAO56 eq. 14)
+                    self.var.EAct = 0.61078 * np.exp(17.27 * self.var.Tdew / (self.var.Tdew + 237.3))
+                elif self.var.useHuss:
                     self.var.EAct = (self.var.Psurf * self.var.huss) / ((0.378020992 * self.var.huss) + 0.621979008)
                 else:
                     self.var.EAct = ESat * self.var.rhs / 100.0

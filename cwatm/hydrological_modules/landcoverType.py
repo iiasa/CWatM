@@ -135,7 +135,7 @@ class landcoverType(object):
     waterBodyTypTemp                     Array         waterbody temp e.g. lake, reservoir, wetlands                           --   
     maxGWCapRise                         Array         influence of capillary rise above groundwater level                     m    
     minCropKC                            Array         minimum crop factor (default 0.2)                                       --   
-    minInterceptCap                      Array         Maximum interception read from file for forest and grassland land cove  m    
+    minInterceptCap                      Array         minimum interception capacity per land cover type (from settings)       m    
     irrigatedArea_original               Array                                                                                 --   
     fracAllCover                         Array                                                                                 --   
     frac_totalnonIrr                     Array         Fraction sown with specific non-irrigated crops                         %    
@@ -790,24 +790,18 @@ class landcoverType(object):
                     # substract glacier area from grassland fraction later on
                     self.var.fracGlacierCover = readnetcdf2('fractionGlaciercover', landcoverYear, 
                                                             useDaily="yearly", value='on_area', cut=False)
-                    invfracGlacierCover  = 1 - self.var.fracGlacierCover
-
                     self.var.fracGlacierCover = np.minimum(np.maximum(self.var.fracGlacierCover, 0.0), 1.0)
+                    invfracGlacierCover = 1 - self.var.fracGlacierCover
                     self.var.areaGlacier = self.var.cellArea * self.var.fracGlacierCover
 
-                    self.var.fracVegCover[4] = self.var.fracVegCover[4] - self.var.fracGlacierCover
-                    # if there are some pixels where sealed area is not large enough to substract glacier area, 
-                    # the other lancovertypes have to be used
-                    # sealed, grassland, forest, water, irrNonPaddy,
-                    # ind_landcovertype_glaciers = [1,0,3,2,4,5]
-                    ind_landcovertype_glaciers = [1, 4, 0, 5, 2, 3]
-                    for i, ind in enumerate(ind_landcovertype_glaciers[:-1]):
-                        if any(self.var.fracVegCover[ind] < 0):
-                            # substract glacier area from landcovertype
-                            self.var.fracVegCover[ind_landcovertype_glaciers[i + 1]][
-                                np.where(self.var.fracVegCover[ind] < 0)] -= np.abs(
-                                self.var.fracVegCover[ind][np.where(self.var.fracVegCover[ind] < 0)])
-                            self.var.fracVegCover[ind][np.where(self.var.fracVegCover[ind] < 0)] = 0
+                    # glacier area is taken from the land cover types in this order:
+                    # sealed, grassland, forest, water, irrPaddy, irrNonPaddy
+                    # each land cover gives at most its own fraction, the rest is taken from the next one
+                    remain = self.var.fracGlacierCover.copy()
+                    for ind in [4, 1, 0, 5, 2, 3]:
+                        take = np.minimum(self.var.fracVegCover[ind], remain)
+                        self.var.fracVegCover[ind] = self.var.fracVegCover[ind] - take
+                        remain = remain - take
 
                     # Fraction landcover sum has to be back to 100%
                     i = 0
@@ -912,7 +906,10 @@ class landcoverType(object):
             # calculate evaporation and transpiration for soil land cover types (not for sealed and water covered areas)
             if coverNo < usecovertype:
                 self.model.evaporation_module.dynamic(coverType, coverNo)
-            self.model.interception_module.dynamic(coverType, coverNo)
+            # interception for soil land cover types (without irrigation: not for paddy and non paddy, fraction 0)
+            # and for sealed and water covered areas
+            if coverNo < usecovertype or coverNo > 3:
+                self.model.interception_module.dynamic(coverType, coverNo)
             coverNo += 1
 
         # -----------------------------------------------------------
@@ -959,6 +956,16 @@ class landcoverType(object):
 
         # totals over land cover types and crop-specific ET (needs the soil of all land cover types)
         self.model.soil_module.dynamic_crops()
+
+        # evaporated irrigation losses (addtoevapotrans, a depth over the cell) are part of the potential ET
+        # of paddy and non paddy: split by the irrigation losses of both, as depth over the land cover fraction
+        # (only with irrigation: totalPotET[2,3] is recalculated every time step in evaporation.py)
+        if checkOption('includeWaterDemand') and checkOption('includeIrrigation'):
+            lossPaddy = np.maximum(0., self.var.act_irrPaddyWithdrawal - self.var.act_paddyConsumption)
+            lossNonpaddy = np.maximum(0., self.var.act_irrNonpaddyWithdrawal - self.var.act_nonpaddyConsumption)
+            sharePaddy = divideValues(lossPaddy, lossPaddy + lossNonpaddy)
+            self.var.totalPotET[2] += divideValues(sharePaddy * self.var.addtoevapotrans, self.var.fracVegCover[2])
+            self.var.totalPotET[3] += divideValues((1 - sharePaddy) * self.var.addtoevapotrans, self.var.fracVegCover[3])
 
 
         # aggregated variables by fraction of land cover
@@ -1077,6 +1084,7 @@ class landcoverType(object):
         self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
         self.var.totalET = self.var.sum_actTransTotal + self.var.sum_actBareSoilEvap + self.var.sum_openWaterEvap + self.var.sum_interceptEvap + self.var.snowEvap + self.var.addtoevapotrans
         # addtoevapotrans: part of water demand which is lost due to evaporation
+        # (added to totalPotET of paddy and non paddy above -> included in sum_totalPotET)
         self.var.sum_soil = self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
         self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_soil
 

@@ -43,9 +43,9 @@ class interception(object):
     interceptCap                         Array         interception capacity of vegetation                                     m    
     potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m    
     interceptEvap                        Array         simulated evaporation from water intercepted by vegetation              m    
-    minInterceptCap                      Array         Maximum interception read from file for forest and grassland land cove  m    
+    minInterceptCap                      Array         minimum interception capacity per land cover type (from settings)       m    
     interceptStor                        Array         simulated vegetation interception storage                               m    
-    twothird                             Number        2025-03-02 00:00:00                                                     --   
+    twothird                             Number        2/3 (exponent)                                                          --   
     EWRef                                Array         potential evaporation rate from water surface                           m    
     availWaterInfiltration               Array         quantity of water reaching the soil after interception, more snowmelt   m    
     Rain                                 Array         Precipitation less snow                                                 m    
@@ -89,52 +89,41 @@ class interception(object):
         Notes
         -----
         The method handles different interception processes based on land cover type:
-        - Forest/grassland: Uses seasonal interception capacity with 2/3 power law
-        - Irrigated areas: Uses minimum interception capacity with 2/3 power law
-        - Sealed surfaces: Uses reference evapotranspiration for interception evaporation
+        - Forest/grassland: interception capacity from file (every 30 days, at least minInterceptCap),
+          evaporation from potential transpiration with 2/3 power law
+        - Irrigated areas: interception capacity minInterceptCap, evaporation with 2/3 power law
+        - Sealed surfaces and water: interception capacity minInterceptCap,
+          evaporation with the open water potential evaporation EWRef
         """
-        """
-        if coverType in ['forest','grassland']:
-            ## interceptCap Maximum interception read from file for forest and grassland land cover
-            # for specific days of the year - repeated every year
-            if dateVar['newStart'] or dateVar['new10day']:  # check if first day  of the year
-                self.var.interceptCap[No]  = readnetcdf2(coverType + '_interceptCapNC', dateVar['10day'], "10day")
-                self.var.interceptCap[No] = np.maximum(self.var.interceptCap[No], self.var.minInterceptCap[No])
+
+        # interception capacity
+        if No < 2:
+            # forest, grassland: from file (every 30 days)
+            interceptCap = self.var.interceptCap[No, dateVar['30day'], :]
         else:
-            self.var.interceptCap[No] = self.var.minInterceptCap[No] 
-        """
+            interceptCap = self.var.minInterceptCap[No]
 
         # Rain instead Pr, because snow is substracted later
         # assuming that all interception storage is used the other time step
-        if coverType in ['forest', 'grassland']:
-            throughfall = np.maximum(0.0, self.var.Rain + self.var.interceptStor[No] -
-                                     self.var.interceptCap[No, dateVar['30day'], :])
-        else:
-            throughfall = np.maximum(0.0, self.var.Rain + self.var.interceptStor[No] -
-                                     self.var.minInterceptCap[No])
+        throughfall = np.maximum(0.0, self.var.Rain + self.var.interceptStor[No] - interceptCap)
         # update interception storage after throughfall
         self.var.interceptStor[No] = self.var.interceptStor[No] + self.var.Rain - throughfall
 
         # availWaterInfiltration Available water for infiltration: throughfall + snow melt
-        self.var.availWaterInfiltration[No] = np.maximum(0.0, throughfall + self.var.SnowMelt + self.var.IceMelt)
+        self.var.availWaterInfiltration[No] = throughfall + self.var.SnowMelt + self.var.IceMelt
 
-        if coverType in ['forest', 'grassland']:
-            mult = (divideValues(self.var.interceptStor[No], self.var.interceptCap[No, dateVar['30day'], :]) ** 
-                    self.var.twothird)
+        if No < 4:
+            # forest, grassland, irrPaddy, irrNonPaddy
+            mult = divideValues(self.var.interceptStor[No], interceptCap) ** self.var.twothird
             # interceptEvap evaporation from intercepted water (based on potTranspiration)
             self.var.interceptEvap[No] = np.minimum(self.var.interceptStor[No], self.var.potTranspiration[No] * mult)
-        if coverType in ['irrPaddy', 'irrNonPaddy']:
-            mult = (divideValues(self.var.interceptStor[No], self.var.minInterceptCap[No] + globals.inZero) ** 
-                    self.var.twothird)
-            # interceptEvap evaporation from intercepted water (based on potTranspiration)
-            self.var.interceptEvap[No] = np.minimum(self.var.interceptStor[No], self.var.potTranspiration[No] * mult)
-        if coverType in ['sealed']:
-            self.var.interceptEvap[No] = np.maximum(np.minimum(self.var.interceptStor[No], self.var.EWRef), 
-                                                    globals.inZero)
+            self.var.potTranspiration[No] = np.maximum(0, self.var.potTranspiration[No] - self.var.interceptEvap[No])
+        else:
+            # sealed, water: no transpiration, evaporation with EWRef (can be negative -> at least 0)
+            self.var.interceptEvap[No] = np.maximum(0., np.minimum(self.var.interceptStor[No], self.var.EWRef))
 
-        # update interception storage and potTranspiration
+        # update interception storage
         self.var.interceptStor[No] = self.var.interceptStor[No] - self.var.interceptEvap[No]
-        self.var.potTranspiration[No] = np.maximum(0, self.var.potTranspiration[No] - self.var.interceptEvap[No])
         
         # update actual evaporation (after interceptEvap)
         # interceptEvap is the first flux in ET, soil evapo and transpiration are added later

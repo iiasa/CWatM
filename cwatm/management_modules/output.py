@@ -13,6 +13,7 @@ import os
 import string
 import sys
 from decimal import Decimal
+from packaging import version # DF 29092026
 
 import numpy as np
 import pandas as pd
@@ -755,22 +756,36 @@ class outputTssMap(object):
                     dates = pd.date_range(start=dateVar['dateStart1'], end=dateVar['dateEnd1'], freq="D")
                     # reformat expression: not the best solution
                     # expression: 1: timesteps 2: stations 3: 79 vars eg expression[3][211][0][78]
-                    expression[3] = np.array(expression[3]).transpose(1, 0, 2)
+                    #expression[3] = np.array(expression[3]).transpose(1, 0, 2)
+                    # DF 29092026
+                    expression[3] = np.array(expression[3][(dateVar['intSpin'] - 1):(dateVar['intEnd'])]).transpose(1, 0, 2)
                     totals = []
                     storage = []
-
+                    
+                    # DF 29092026
+                    if version.parse(pd.__version__) >= version.parse("2.2.0"):
+                        FREQ_MONTH = "ME"
+                        FREQ_YEAR = "YE"
+                    else:
+                        FREQ_MONTH = "M"
+                        FREQ_YEAR = "Y"
+                    
                     for k in range(len(self.var.sampleAdresses)):
                         df = pd.DataFrame(expression[3][k], index=dates)
                         if daymonthyear == 1:
-                            totals.append(df.resample("ME").sum())
-                            storage.append(df.resample("ME").last())
+                            #totals.append(df.resample("ME").sum())
+                            totals.append(df.resample(FREQ_MONTH).sum())
+                            #storage.append(df.resample("ME").last())
+                            storage.append(df.resample(FREQ_MONTH).last())
                         elif daymonthyear == 2:
-                            totals.append(df.resample("YE").sum())
-                            storage.append(df.resample("YE").last())
+                            #totals.append(df.resample("YE").sum())
+                            totals.append(df.resample(FREQ_YEAR).sum())
+                            #storage.append(df.resample("YE").last())
+                            storage.append(df.resample(FREQ_YEAR).last())
                         else:
                             totals.append(df.resample("D").sum())
                             storage.append(df.resample("D").last())
-
+                    
                 else:
                     writeFileHeaderNew(outputFilename,expression)
                 outputFile = open(outputFilename, "a")

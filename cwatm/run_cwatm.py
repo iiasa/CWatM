@@ -49,7 +49,6 @@ from pathlib import Path
 
 import numpy
 import pandas
-import scipy
 import netCDF4
 
 from cwatm.management_modules.configuration import globalFlags, settingsfile, versioning, platform1, parse_configuration, read_metanetcdf, dateVar, CWATMRunInfo, outputDir, timeMesSum, timeMesString, globalclear, calibclear

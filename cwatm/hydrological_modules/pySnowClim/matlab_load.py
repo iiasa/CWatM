@@ -11,10 +11,11 @@ Created on Tue Nov 19 22:41:24 2024
 #           with the matlab code                                                        #
 #########################################################################################
 import os
-from scipy.io import loadmat
+#from scipy.io import loadmat
 from SnowModelVariables import SnowModelVariables
 
 def load_mat_files_to_class(folder_path, spatial_dim):
+    
     """
     Load all .mat files in a folder and populate a list of SnowModelVariables objects.
 
@@ -25,6 +26,69 @@ def load_mat_files_to_class(folder_path, spatial_dim):
     Returns:
         list: A list of SnowModelVariables objects, where each object represents one time step.
     """
+    
+    import zlib
+    from concurrent.futures import ThreadPoolExecutor
+
+    import numpy as np
+
+    _MI = {1: "i1", 2: "u1", 3: "i2", 4: "u2", 5: "i4", 6: "u4", 7: "f4", 9: "f8", 12: "i8", 13: "u8", 16: "u1", 17: "u2", 18: "u4"}
+    _MX = {6: "f8", 7: "f4", 8: "i1", 9: "u1", 10: "i2", 11: "u2", 12: "i4", 13: "u4", 14: "i8", 15: "u8"}
+
+
+    def _elements(buf, bo):
+        pos = 0
+        while pos + 8 <= len(buf):
+            typ, n = map(int, np.frombuffer(buf, bo + "u4", 2, pos))
+            if typ >> 16:
+                yield typ & 0xFFFF, buf[pos + 4:pos + 4 + (typ >> 16)]
+                pos += 8
+            else:
+                yield typ, buf[pos + 8:pos + 8 + n]
+                pos += 8 + n + (typ != 15) * (-n % 8)
+
+
+    def _matrix(buf, bo):
+        (_, flags), (_, dims), (_, name), *parts = _elements(buf, bo)
+        cls = int(np.frombuffer(flags, bo + "u4")[0]) & 0xFF
+        dims = tuple(np.frombuffer(dims, bo + "i4"))
+        re, *im = (np.frombuffer(d, bo + _MI[t]) for t, d in parts)
+        if cls == 4:
+            return bytes(name).decode(), np.array(["".join(map(chr, r)) for r in re.reshape(dims, order="F")])
+        if cls not in _MX:
+            raise NotImplementedError(f"{bytes(name).decode()}: MATLAB class {cls} not supported")
+        arr = re.astype(_MX[cls], copy=False)
+        if im:
+            arr = arr + 1j * im[0].astype(_MX[cls])
+        return bytes(name).decode(), arr.reshape(dims, order="F")
+
+
+    def _inflate(data, chunk=1 << 16):
+        d = zlib.decompressobj()
+        out = bytearray()
+        for i in range(0, len(data), chunk):
+            out += d.decompress(data[i:i + chunk])
+        return np.frombuffer(out, np.uint8)
+
+
+    def _variable(typ, data, bo):
+        if typ == 15:
+            typ, data = next(_elements(_inflate(data), bo))
+        return _matrix(data, bo) if typ == 14 else None
+
+
+    def loadmat(path, mmap=False):
+        raw = np.memmap(path, mode="c") if mmap else np.fromfile(path, np.uint8)
+        if bytes(raw[:10]) == b"MATLAB 7.3":
+            raise ValueError("v7.3 MAT-file is HDF5; use h5py")
+        bo = "<" if bytes(raw[126:128]) == b"IM" else ">"
+        with ThreadPoolExecutor() as ex:
+            return dict(filter(None, ex.map(lambda e: _variable(*e, bo), _elements(raw[128:], bo))))    
+    
+    
+    
+    
+    
     # Get all .mat files in the folder
     mat_files = [f for f in os.listdir(folder_path) if f.endswith('.mat')]
 
