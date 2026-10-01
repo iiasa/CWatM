@@ -1,8 +1,9 @@
 numpy
-scipy
 netCDF4
 gdal
+rasterio
 pandas
+packaging
 openpyxl
 python-calamine   # optional: 10-25x faster reading of the Excel settings file (needs pandas >= 2.2), without it openpyxl is used
 flopy 3.3.2

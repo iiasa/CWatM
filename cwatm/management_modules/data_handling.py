@@ -29,6 +29,62 @@ from cwatm.management_modules.replace_pcr import *
 from cwatm.management_modules.timestep import *
 from cwatm.management_modules.caching import ncopen, ncclose, ncclose_all, ncstackcache
 
+
+# output variable names from the settings file: a name, optionally with integer indices e.g. discharge or actualET[1]
+_OUTVARNAME = re.compile(r"([A-Za-z_]\w*)((?:\[-?\d+\])*)")
+
+
+def parseoutvar(name):
+    """
+    Split an output variable name from the settings file into the attribute name and the indices.
+
+    Parameters
+    ----------
+    name : str
+        Output variable name from the settings file e.g. 'discharge' or 'actualET[1]'
+
+    Returns
+    -------
+    tuple
+        (attribute name, tuple of integer indices) e.g. ('actualET', (1,)) or ('discharge', ())
+
+    Notes
+    -----
+    Replaces the former eval of 'self.var.' + name: anything else than a name with integer indices (spaces, calls,
+    attributes, expressions) gives an error, so no code from the settings file is run.
+    """
+    m = _OUTVARNAME.fullmatch(name)
+    if m is None:
+        msg = "Error 135: Output variable \"" + name + "\" is not a valid name\n"
+        msg += "Allowed is a variable name, optionally with integer indices e.g. discharge or actualET[1]"
+        raise CWATMError(msg)
+    return m.group(1), tuple(int(i) for i in re.findall(r"-?\d+", m.group(2)))
+
+
+def getoutvar(var, base, index):
+    """
+    Return var.<base>[i0][i1]... - the same object as the former eval of 'self.var.' + name returned.
+
+    Parameters
+    ----------
+    var : object
+        Model variable container (self.var)
+    base : str
+        Attribute name (from parseoutvar)
+    index : tuple
+        Integer indices (from parseoutvar)
+
+    Returns
+    -------
+    object
+        The model variable or the indexed part of it
+    """
+    value = getattr(var, base)
+    for i in index:
+        value = value[i]
+    return value
+
+
 # -------------------------------------
 def valuecell(coordx, coordstr, returnmap=True):
     """
@@ -2219,11 +2275,11 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
             lon = nf1.createDimension('x', col)  # x 1000
             longitude = nf1.createVariable('x', 'f8', ('x',))
             for i in metadataNCDF['modflow_x']:
-                exec('%s="%s"' % ("longitude." + i, metadataNCDF['modflow_x'][i]))
+                setattr(longitude, i, str(metadataNCDF['modflow_x'][i]))
             lat = nf1.createDimension('y', row)  # x 950
             latitude = nf1.createVariable('y', 'f8', 'y')
             for i in metadataNCDF['modflow_y']:
-                exec('%s="%s"' % ("latitude." + i, metadataNCDF['modflow_y'][i]))
+                setattr(latitude, i, str(metadataNCDF['modflow_y'][i]))
             latitude.axis ="Y"
 
         else:
@@ -2234,13 +2290,13 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
                 longitude = nf1.createVariable('x', 'f8', ('x',))
                 latlon = False
                 for i in metadataNCDF['x']:
-                    exec('%s="%s"' % ("longitude." + i, metadataNCDF['x'][i]))
+                    setattr(longitude, i, str(metadataNCDF['x'][i]))
                 longitude.axis = "X"
             if 'y' in list(metadataNCDF.keys()):
                 lat = nf1.createDimension('y', row)  # x 950
                 latitude = nf1.createVariable('y', 'f8', 'y')
                 for i in metadataNCDF['y']:
-                    exec('%s="%s"' % ("latitude." + i, metadataNCDF['y'][i]))
+                    setattr(latitude, i, str(metadataNCDF['y'][i]))
                 latitude.axis = "Y"
             # SHMI meteorogist have a capital X and Y
             if 'X' in list(metadataNCDF.keys()):
@@ -2248,26 +2304,26 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
                 longitude = nf1.createVariable('x', 'f8', ('x',))
                 latlon = False
                 for i in metadataNCDF['X']:
-                    exec('%s="%s"' % ("longitude." + i, metadataNCDF['X'][i]))
+                    setattr(longitude, i, str(metadataNCDF['X'][i]))
                 longitude.axis = "X"
             if 'Y' in list(metadataNCDF.keys()):
                 lat = nf1.createDimension('y', row)  # x 950
                 latitude = nf1.createVariable('y', 'f8', 'y')
                 for i in metadataNCDF['Y']:
-                    exec('%s="%s"' % ("latitude." + i, metadataNCDF['Y'][i]))
+                    setattr(latitude, i, str(metadataNCDF['Y'][i]))
                 latitude.axis = "Y"
             if latlon:
                 if 'lon' in list(metadataNCDF.keys()):
                     lon = nf1.createDimension('lon', col)
                     longitude = nf1.createVariable('lon', 'f8', ('lon',))
                     for i in metadataNCDF['lon']:
-                        exec('%s="%s"' % ("longitude." + i, metadataNCDF['lon'][i]))
+                        setattr(longitude, i, str(metadataNCDF['lon'][i]))
                     longitude.axis = "X"
                 if 'lat' in list(metadataNCDF.keys()):
                     lat = nf1.createDimension('lat', row)  # x 950
                     latitude = nf1.createVariable('lat', 'f8', 'lat')
                     for i in metadataNCDF['lat']:
-                        exec('%s="%s"' % ("latitude." + i, metadataNCDF['lat'][i]))
+                        setattr(latitude, i, str(metadataNCDF['lat'][i]))
                     latitude.axis = "Y"
 
         # projection -> replace by crs  as in cf1.13
@@ -2514,44 +2570,44 @@ def writeIniNetcdf(netfile,varlist, inputlist):
         lon = nf1.createDimension('x', col)  # x 1000
         longitude = nf1.createVariable('x', 'f8', ('x',))
         for i in metadataNCDF['x']:
-            exec('%s="%s"' % ("longitude." + i, metadataNCDF['x'][i]))
+            setattr(longitude, i, str(metadataNCDF['x'][i]))
     if 'y' in list(metadataNCDF.keys()):
         lat = nf1.createDimension('y', row)  # x 950
         latitude = nf1.createVariable('y', 'f8', 'y')
         for i in metadataNCDF['y']:
-            exec('%s="%s"' % ("latitude." + i, metadataNCDF['y'][i]))
+            setattr(latitude, i, str(metadataNCDF['y'][i]))
     if 'X' in list(metadataNCDF.keys()):
         latlon = False
         lon = nf1.createDimension('x', col)  # x 1000
         longitude = nf1.createVariable('x', 'f8', ('x',))
         for i in metadataNCDF['X']:
-            exec('%s="%s"' % ("longitude." + i, metadataNCDF['X'][i]))
+            setattr(longitude, i, str(metadataNCDF['X'][i]))
     if 'Y' in list(metadataNCDF.keys()):
         lat = nf1.createDimension('y', row)  # x 950
         latitude = nf1.createVariable('y', 'f8', 'y')
         for i in metadataNCDF['Y']:
-            exec('%s="%s"' % ("latitude." + i, metadataNCDF['Y'][i]))
+            setattr(latitude, i, str(metadataNCDF['Y'][i]))
     if latlon:
         if 'lon' in list(metadataNCDF.keys()):
             lon = nf1.createDimension('lon', col)
             longitude = nf1.createVariable('lon', 'f8', ('lon',), fill_value=1e20)
             for i in metadataNCDF['lon']:
-                exec('%s="%s"' % ("longitude." + i, metadataNCDF['lon'][i]))
+                setattr(longitude, i, str(metadataNCDF['lon'][i]))
         if 'lat' in list(metadataNCDF.keys()):
             lat = nf1.createDimension('lat', row)  # x 950
             latitude = nf1.createVariable('lat', 'f8', 'lat', fill_value=1e20)
             for i in metadataNCDF['lat']:
-                exec('%s="%s"' % ("latitude." + i, metadataNCDF['lat'][i]))
+                setattr(latitude, i, str(metadataNCDF['lat'][i]))
 
     # projection
     if 'laea' in list(metadataNCDF.keys()):
         proj = nf1.createVariable('laea', 'i4')
         for i in metadataNCDF['laea']:
-            exec('%s="%s"' % ("proj." + i, metadataNCDF['laea'][i]))
+            setattr(proj, i, str(metadataNCDF['laea'][i]))
     if 'lambert_azimuthal_equal_area' in list(metadataNCDF.keys()):
         proj = nf1.createVariable('lambert_azimuthal_equal_area', 'i4')
         for i in metadataNCDF['lambert_azimuthal_equal_area']:
-            exec('%s="%s"' % ("proj." + i, metadataNCDF['lambert_azimuthal_equal_area'][i]))
+            setattr(proj, i, str(metadataNCDF['lambert_azimuthal_equal_area'][i]))
 
     # Fill variables
     cell = maskmapAttr['cell']

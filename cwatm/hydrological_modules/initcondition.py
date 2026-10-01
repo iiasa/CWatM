@@ -299,7 +299,7 @@ class initcondition(object):
 		Puts all the variables which has to be stored in 2 lists:
 
 		* initCondVar: the name of the variable in the init netcdf file
-		* initCondVarValue: the variable as it can be read with the 'eval' command
+		* initCondVarValue: the variable name, optionally with integer index e.g. w1[2] (read with getoutvar)
 
 		Reads the parameter *save_initial* and *save_initial* to know if to save or load initial values
         """
@@ -491,9 +491,8 @@ class initcondition(object):
                 initVar=[]
                 i = 0
                 for var in initCondVar:
-                    variabel = "self.var."+initCondVarValue[i]
-                    #print variabel
-                    initVar.append(eval(variabel))
+                    base, index = parseoutvar(initCondVarValue[i])
+                    initVar.append(getoutvar(self.var, base, index))
                     i += 1
                 writeIniNetcdf(saveFile, initCondVar,initVar)
 

@@ -334,7 +334,6 @@
 <metanetcdf varname="catcharea" unit="m2"  standard_name="" long_name="" type="Array" dim="" option="" priority="low" description="catchment area of the subbaSIN"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="watercycle" unit=""  standard_name="" long_name="" type="List" dim="list(79)" option="" priority="low" description="[list(79)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="netcdfasindex" unit="bool"  standard_name="" long_name="" type="Flag" dim="" option="" priority="low" description="save netcdf file in a compressed way - for splitting runs in several basins"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="elepoint" unit=""  standard_name="" long_name="" type="Array" dim="" option="" priority="low" description=""  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="firstout" unit="m3 s-1"  standard_name="" long_name="" type="Number" dim="" option="" priority="low" description="discharge of the first gauge"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="ETRef" unit="m"  standard_name="" long_name="Potential reference evapotranspiration rate" type="Array" dim="1D(N)" option="" priority="high" description="potential evapotranspiration rate from reference crop[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="Precipitation" unit="m"  standard_name="" long_name="Precipitation" type="Array" dim="1D(N)" option="" priority="high" description="Precipitation (input for the model)[1D(N)]"  title="CWATM" author="IIASA WAT" />
