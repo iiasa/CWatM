@@ -33,12 +33,12 @@ os.environ.setdefault("HDF5_USE_FILE_LOCKING", "FALSE")   # must precede any net
 import sys
 
 from cwatm import __author__, __version__, __date__, __copyright__, __maintainer__, __status__
-from cwatm.run_cwatm import main, mainwarm, parse_args, usage, GNU
+from cwatm.run_cwatm import main, mainwarm, parse_args, usage, GNU, run_from_command_line
 
 # mainwarm for calibration
+# exit code 0 if the run was successful, 1 if it stopped with an error
 if __name__ == "__main__":
-    settings, args = parse_args()
-    main(settings, args)
+    run_from_command_line()
 
 
 

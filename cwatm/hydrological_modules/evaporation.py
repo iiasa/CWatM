@@ -215,27 +215,43 @@ class evaporation(object):
                               'ratio_a_p_nonIrr_daily', 'ratio_a_p_Irr_daily']:
                         vars(self.var)[z] = np.tile(globals.inZero, (len(self.var.Crops), 1))
 
-                    self.var.irr_Paddy_month = globals.inZero
+                    # copy: never share (and change) globals.inZero - irr_Paddy_month is changed in place
+                    # (soil.py: +=), a run starting not on the 1st of a month changed globals.inZero itself
+                    self.var.irr_Paddy_month = globals.inZero.copy()
                     for z in [crop for crop in self.var.Crops_names]:
-                        vars(self.var)[z + '_Irr'] = globals.inZero
-                        vars(self.var)[z + '_nonIrr'] = globals.inZero
+                        vars(self.var)[z + '_Irr'] = globals.inZero.copy()
+                        vars(self.var)[z + '_nonIrr'] = globals.inZero.copy()
 
-                    self.var.ET_crop_Irr_paddy = globals.inZero
-                    self.var.ET_crop_Irr_paddy_fraccrop = globals.inZero
+                    self.var.ET_crop_Irr_paddy = globals.inZero.copy()
+                    self.var.ET_crop_Irr_paddy_fraccrop = globals.inZero.copy()
 
                     for c in range(len(self.var.Crops)):
 
                         # For creating annual and month total outputs, since such totals don't work with square bracket variables
-                        vars(self.var)['ET_crop_Irr_'+str(c)] = globals.inZero
-                        vars(self.var)['ET_crop_Irr_fraccrop_'+str(c)] = globals.inZero
-                        vars(self.var)['ET_crop_nonIrr_'+str(c)] = globals.inZero
-                        vars(self.var)['ET_crop_nonIrr_fraccrop_'+str(c)] = globals.inZero
-                        vars(self.var)['irr_crop_'+str(c)] = globals.inZero
+                        vars(self.var)['ET_crop_Irr_'+str(c)] = globals.inZero.copy()
+                        vars(self.var)['ET_crop_Irr_fraccrop_'+str(c)] = globals.inZero.copy()
+                        vars(self.var)['ET_crop_nonIrr_'+str(c)] = globals.inZero.copy()
+                        vars(self.var)['ET_crop_nonIrr_fraccrop_'+str(c)] = globals.inZero.copy()
+                        vars(self.var)['irr_crop_'+str(c)] = globals.inZero.copy()
 
                         self.var.activatedCrops[c] = self.var.load_initial("activatedCrops_" + str(c))
                         self.var.fracCrops_Irr[c] = self.var.load_initial('fracCrops_Irr_' + str(c))
                         self.var.fracCrops_nonIrr[c] = self.var.load_initial('fracCrops_nonIrr_' + str(c))
                         self.var.monthCounter[c] = self.var.load_initial("monthCounter_" + str(c))
+                        # crop coefficients: missing in older init files - one warning for all crops below
+                        self.var.currentKC[c] = self.var.load_initial("currentKC_" + str(c), warn=False)
+                        self.var.currentKY[c] = self.var.load_initial("currentKY_" + str(c), warn=False)
+
+                    if self.var.loadInit:
+                        nocrop = len(self.var.Crops)
+                        missing = [c for c in range(nocrop)
+                                   if not initialIncluded(self.var.initLoadFile, "currentKC_" + str(c))]
+                        if missing:
+                            msg = "Warning: Initial values: crop coefficients currentKC_0..%d and currentKY_0..%d" % (
+                                nocrop - 1, nocrop - 1)
+                            msg += " are not included in: " + self.var.initLoadFile + "\n"
+                            msg += "using 0 (as before 2026-10) - they are set on the 1st of the next month"
+                            print(CWATMWarning(msg))
 
                 if dateVar['newStart'] or dateVar['newYear']:
 

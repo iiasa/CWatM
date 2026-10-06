@@ -348,7 +348,7 @@ class initcondition(object):
                 xl_settings_file_path = cbinding('Excel_settings_file')
                 self.var.Crops, self.var.Crops_names = self.crops_initialise(xl_settings_file_path)
             else:
-                msg = "The Excel settings file needs to be included into the settings file:\n" \
+                msg = "Error 137: The Excel settings file needs to be included into the settings file:\n" \
                       "Excel_settings_file ="+r"*PATH*\cwatm_settings.xlsx"+"\n"
                 raise CWATMError(msg)
 
@@ -371,6 +371,13 @@ class initcondition(object):
 
                 initCondVar.append('activatedCrops_'+ str(c))
                 initCondVarValue.append('activatedCrops['+str(c)+']')
+
+                # crop coefficients: set only on the 1st of a month - without them a run starting later in the
+                # month has Kc = 0 until the next month (no crop transpiration, no non-paddy irrigation)
+                initCondVar.append('currentKC_' + str(c))
+                initCondVarValue.append('currentKC[' + str(c) + ']')
+                initCondVar.append('currentKY_' + str(c))
+                initCondVarValue.append('currentKY[' + str(c) + ']')
 
         # water demand
         initCondVar.append("unmetDemandPaddy")
@@ -397,6 +404,13 @@ class initcondition(object):
         if not self.var.modflow:
             initCondVar.append("storGroundwater")
             initCondVarValue.append("storGroundwater")
+        else:
+            # MODFLOW: capillary rise and saturated fraction are used by soil and land cover before MODFLOW runs on
+            # the first day of a restart (the MODFLOW head is saved as <initSave>_<date>_modflowhead.nc)
+            initCondVar.append("capillar")
+            initCondVarValue.append("capillar")
+            initCondVar.append("capriseindex")
+            initCondVarValue.append("capriseindex")
 
         # routing
         Var1 = ["channelStorage", "discharge", "riverbedExchange"]

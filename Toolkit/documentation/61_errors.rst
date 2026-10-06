@@ -185,20 +185,38 @@ This part deals with genuine problems. Please look for your error number
     "`E116`_", "One of the variable names in [Option] is written wrong", "Any variable in [Option]", "A keyword in option is maybe written wrong e.g. CaaapillarRise instead CapillarRise", "datahandling", "checkOption"
     "`E117`_", "One of the variable names is written wrong", "Any variable after [Option]", "A keyword in option is maybe written wrong e.g. MaaaskMap instead MaskMap. Pay attention: in Linux words are case sensitive!", "datahandling", "cbinding"
     "`E118`_", "Timing in the section TIME-RELATED_CONSTANTS is wrong", "StepStart\, SpinUp\, StepEnd", "Please check the variables StepStart\, SpinUp\, StartEnd", "timestep", "ctbinding"
-    "`E119`_", "`Either date in StepStart is not a date or in SpinUp or StepEnd it is neither a number or a date", "StepStart\, SpinUp\, StepEnd", "Please check the variables StepStart\, SpinUp\, StartEnd - A date is missing", "timestep", "Calendar"
+    "`E119`_", "Either date in StepStart is not a date or in SpinUp or StepEnd it is neither a number or a date", "StepStart\, SpinUp\, StepEnd", "Please check the variables StepStart\, SpinUp\, StartEnd - A date is missing", "timestep", "Calendar"
     "`E120`_", "First date in StepInit is neither a number or a date", "StepInit", "Check StepInit in INITITIAL CONDITIONS. It is not a date or a number", "timestep", "Calendar"
     "`E121`_", "Second value in StepInit is not a number or date nor indicating a repetition of year(y)\, month(m) or day(d) e.g. 2y for every 2 years or 6m for every 6 month", "StepInit", "Check StepInit. The second part is neither a date or d\,m\,y", "timestep", "datetosaveInit"
     "`E122`_", "Third value in StepInit is not an integer after 'y' or 'm' or 'd'", "StepInit", "Check StepInit. The third part after d\,m\,y is not an integer", "timestep", "datetosaveInit"
     "`E123`_", "StepStart has to be a valid date", "StepStart", "Check StepStart. It has to be a date e.g.  01/01/2009", "timestep", "checkifDate"
     "`E124`_", "StepEnd is earlier than StepStart", "StepStart\, StepEnd", "Check StepStart and StepEnd. StepEnd has to be later than StepStart", "timestep", "checkifDate"
     "`E125`_", "Spin Date is smaller/bigger than the first/last time step date", "StepStart\, SpinUp\, StepEnd", "Check that SpinDate is in between StepStart and StepEnd", "timestep", "checkifDate"
+    "`E126`_", "Time step not stored in the netCDF map stack", "Any netCDF map stack", "The file has fewer time steps than the run needs - check the file and StepStart / StepEnd", "datahandling", "loadmap"
     "`E127`_", "Coordinates are not pairs", "InflowPoints", "Check that location in InflowPoints comes in pairs", "inflow", "initial"
-    "`E128`_", "OUT_MAP_Daily = discharge may be not defined in [OUTPUT]", "calc_ef_afterRun\, Out_MAP_Daily", "Make sure that you define Out_MAP_Daily = discharge. Is seems daily discharge is not stored", "`Environflow", "initial"
+    "`E128`_", "OUT_MAP_Daily = discharge may be not defined in [OUTPUT]", "calc_ef_afterRun\, Out_MAP_Daily", "Make sure that you define Out_MAP_Daily = discharge. Is seems daily discharge is not stored", "Environflow", "initial"
     "`E129`_", "Output points in Gauges are not pairs e.g. Gauges = 17.5 55.6 18.5", "Gauges", "Check that output-points in Gauges are of coordinate e.g. Gauges = 6.25 51.75", "output", "initial"
     "`E130`_", "Out_TSS or Out_MAP is not one of these: daily\, monthend\, monthtot\, monthavg\, annualend\, annualtot\, annualavg", "Out_TSS\, Out_MAP", "Please check that the wording after Out_TSS or Out_MAP is correct. Only a few keywords are valid e.g. Out_MAP_Daily\, Out_TSS_monthavg", "output", "initial"
     "`E131`_", "Second keyword after TSS or MAP is wrong", "Out_TSS\, Out_MAP", "Use TSS for point value\, AreaSum for sum of area\, AreaAvg for average of area e.g. OUT_TSS_AreaSum_Daily", "output", "initial"
     "`E132`_", "Variable is not defined in list of variables", "Out_TSS\, Out_MAP", "Please correct the writing of the variable name\, check also case sensitive e.g. Precipitation instead precipitation", "output", "dynamic"
-    "`E201`_", "Cannot load the maskmap as a file e.g. MaskMap = notexisting.tif", "MaskMap", "Make sure the file you put in MaskMap is existing and is a map e.g. *.nc\, *.map\, *.tif", "datahandling", "loadsetclone"
+    "`E133`_", "The maps seem to be in lat/lon (cell size and corner in degree) - the cell area cannot be derived from the cell size", "MaskMap\, gridSizeUserDefined\, CellArea", "Set gridSizeUserDefined = True in [OPTIONS] and give a map of the cell area in m2 with CellArea", "miscInitial", "initial"
+    "`E134`_", "Coordinates of a gauge are inside the box of the mask map but on a cell outside the mask", "Gauges\, MaskMap", "Move the gauge to a cell inside the mask (or change MaskMap)", "output", "appendinfo"
+    "`E135`_", "Output variable name is not valid", "output keys e.g. OUT_MAP_Daily\, OUT_TSS_MonthAvg", "Use a variable name\, optionally with integer indices e.g. discharge or actualET[1]", "datahandling", "parseoutvar"
+    "`E136`_", "No key with this name in the settings file (the closest key is shown)", "Any key", "Check the writing of the key (also upper and lower case) or add it to the settings file", "datahandling", "checkOption"
+    "`E137`_", "The Excel settings file is not given in the settings file", "Excel_settings_file", "Add Excel_settings_file = <path>/cwatm_settings.xlsx (needed e.g. for includeCrops)", "initcondition", "initial"
+    "`E138`_", "A date does not exist in the calendar of the precipitation maps (e.g. 29 February in a 365 day calendar)", "StepStart\, StepEnd\, SpinUp\, StepInit", "Use a date that exists in the calendar of the meteo maps", "timestep", "datenum"
+    "`E139`_", "WaterCycle output needs a standard calendar in the precipitation maps", "OUT_TSS_WaterCycle ...", "Use meteo maps with a standard calendar or no WaterCycle output", "output", "writeTssFileNew"
+    "`E140`_", "The class map of an area function (npareatotal\, npareaaverage\, npareamaximum) cannot be used: float values or a negative class id", "Maps used as classes (e.g. waterBodyID\, adminSegments)", "Use a map with integer classes >= 0", "replace_pcr", "_classerror"
+    "`E141`_", "Circular reference in placeholders $(...) or more than 10 nested levels", "Any key with $(...)", "Check the placeholders - a key must not refer to itself", "configuration", "get"
+    "`E142`_", "An option in [OPTIONS] is neither True/False nor an integer", "[OPTIONS]", "Write True or False (or an integer) e.g. includeWaterDemand = True", "configuration", "splitout"
+    "`E143`_", "Placeholder cannot be read - it has to be $(SECTION:KEY) or $(KEY)", "Any key with $(...)", "Check the brackets and the colon of the placeholder", "configuration", "get"
+    "`E144`_", "Section [OPTIONS] is not written in capital letters", "[OPTIONS]", "Write [OPTIONS]", "configuration", "splitout"
+    "`E145`_", "Output key is not possible - it has to be OUT_MAP or OUT_TSS with a valid type (e.g. OUT_MAP_Daily\, OUT_TSS_MonthAvg)", "output keys e.g. OUT_MAP_Daily\, OUT_TSS_MonthAvg", "Check the writing of the output key", "configuration", "splitout"
+    "`E146`_", "nlay is not 1 - the MODFLOW coupling works only with one layer", "nlay", "Set nlay = 1", "groundwater_modflow transient", "initial"
+    "`E147`_", "The CRS of the CWatM grid (MaskMap) is not known - needed for the overlap of CWatM and ModFlow cells", "MaskMap\, cwatm_crs", "Set cwatm_crs = EPSG:... in [GROUNDWATER_MODFLOW] or use a MaskMap with CRS", "groundwater_modflow grid", "cwatm_crs"
+    "`E148`_", "More than half of the active ModFlow cells are not inside the CWatM mask", "modflow_basin\, MaskMap", "Check modflow_basin\, MaskMap and the CRS of both (cwatm_crs)", "groundwater_modflow grid", "ModflowGrid"
+    "`E149`_", "A map at ModFlow resolution (MODFLOW head of a restart or init_water_table) has another size than the ModFlow grid", "init_water_table\, <init file>_modflowhead.nc", "Use a map of the same ModFlow grid (modflow_basin)", "groundwater_modflow grid", "read_map"
+    "`E201`_", "Cannot load the maskmap as a file e.g. MaskMap = notexisting.tif", "MaskMap", "Make sure the file you put in MaskMap is existing and is a map e.g. \*.nc\, \*.map\, \*.tif", "datahandling", "loadsetclone"
     "`E202`_", "Your map is upside down", "Any map", "Make sure your map is in right order e.g. latitude coordinate are turned", "datahandling", "loadmap"
     "`E203`_", "Cannot find the map\, filename does not exists at this location", "Any map", "the datafile cannot be found\, the location is wrong or the file is missing", "datahandling", "loadmap"
     "`E204`_", "Trying to read the precipitation map metadata", "Precipitation map", "Make sure the precipitation netcdf are existing and correct", "datahandling", "metaNetCDF"
@@ -206,24 +224,42 @@ This part deals with genuine problems. Please look for your error number
     "`E206`_", "read error while reading meteo maps", "any meteo maps", "Make sure the meteo input maps are in the right location and chave correct attributes", "datahandling", "checkMeteo_Wordclim"
     "`E207`_", "read error while reading the wordclim map for downscaling meteo maps", "Wordlclim maps", "Make sure the wordclim maps are in the right location and chave correct attributes", "datahandling", "checkMeteo_Wordclim"
     "`E208`_", "Cannot find meteomaps", "any meteomap", "Make sure the meteo input maps are at the right location", "datahandling", "multinetdf"
-    "`E209`_", "`Error loading meteomaps", "any meteomap", "Check if the filenames of the meteomaps are ok. Does the filename exist at this location", "datahandling", "multinetdf"
+    "`E209`_", "Error loading meteomaps", "any meteomap", "Check if the filenames of the meteomaps are ok. Does the filename exist at this location", "datahandling", "multinetdf"
     "`E210`_", "Meteomap does not have this date", "any meteomap", "The netCDF file does not contain this date. Check your start and end date", "datahandling", "readmeteodata"
-    "`E211`_", "`Error loading meteomaps", "any meteomap", "Check if the filenames of the meteomaps are ok. Does the filename exist at this location", "datahandling", "readmeteodata"
-    "`E212`_", "`Error loading any other time depending map but not meteomaps", "any time dependending netCDF map", "Check if the filenames of the map is ok. Does the filename exist at this location", "datahandling", "readnetcdf2"
-    "`E213`_", "`Error loading netCDF maps without time", "any non time depending netCDF map", "Check if the filenames of the map is ok. Does the filename exist at this location", "datahandling", "readnetcdfWithoutTime"
-    "`E214`_", "`Error loading the initial map", "initial netCDF map", "Check if the loaction of the initial  map is o. Please check filename in initLoad", "datahandling", "readnetcdfInitial"
+    "`E211`_", "Error loading meteomaps", "any meteomap", "Check if the filenames of the meteomaps are ok. Does the filename exist at this location", "datahandling", "readmeteodata"
+    "`E212`_", "Error loading any other time depending map but not meteomaps", "any time dependending netCDF map", "Check if the filenames of the map is ok. Does the filename exist at this location", "datahandling", "readnetcdf2"
+    "`E213`_", "Error loading netCDF maps without time", "any non time depending netCDF map", "Check if the filenames of the map is ok. Does the filename exist at this location", "datahandling", "readnetcdfWithoutTime"
+    "`E214`_", "Error loading the initial map", "initial netCDF map", "Check if the loaction of the initial  map is o. Please check filename in initLoad", "datahandling", "readnetcdfInitial"
     "`E215`_", "Trying to read the precipitation map metadata", "Precipitation map", "Make sure the precipitation netcdf are existing and correct", "timestep", "checkifDate"
     "`E216`_", "Outflow/Inflow point file cannot be loaded", "InflowPoints", "Check if filename of InflowPoints exists", "inflow", "initial"
     "`E217`_", "Mistake reading inflow file\, name of inflow points are used twice", "In_Dir ", "Check inflow file header", "inflow", "initial"
     "`E218`_", "Mistake reading inflow file", "In_Dir ", "Check if filename of inflow file exists", "inflow", "initial"
-    "`E219`_", "Mistake in discharge daily netcdf file", "Out_MAP_Daily = discharge", "Something is wrong with the daily discharge file. Check location and content", "`Environment", "initial"
+    "`E219`_", "Mistake in discharge daily netcdf file", "Out_MAP_Daily = discharge", "Something is wrong with the daily discharge file. Check location and content", "Environment", "initial"
     "`E220`_", "Output file path is wrong", "OUT_Dir\, PathOut", "Check OUT_Dir and PathOut. OUT_Dir can be used several times in the settings file.", "output", "appendinfo"
-    "`E221`_", "`Error using file in Gauges", "Gauges", "Please check if file in Gauges exists and is correct", "output", "initial"
+    "`E221`_", "Error using file in Gauges", "Gauges", "Please check if file in Gauges exists and is correct", "output", "initial"
+    "`E222`_", "Path to the MODFLOW 6 library does not exist", "path_mf6dll", "Check path_mf6dll (folder with libmf6.dll / libmf6.so)", "groundwater_modflow transient", "initial"
+    "`E223`_", "A meteo netCDF map stack cannot be opened", "Meteo maps (e.g. PrecipitationMaps\, TavgMaps)", "Check that the file exists and is a valid netCDF file", "datahandling", "readmeteodata"
+    "`E224`_", "A netCDF map stack with 12 monthly maps cannot be read", "Monthly maps (e.g. lapse rate)", "Check that the file exists and has 12 maps", "datahandling", "readnetcdf12month"
+    "`E225`_", "Precipitation maps not found", "PrecipitationMaps", "Check PrecipitationMaps and PathMeteo", "readmeteo", "initial"
+    "`E226`_", "MODFLOW simulation file mfsim.nam not found in the MODFLOW working folder", "PathGroundwaterModflowOutput\, load_modflow_from_disk", "Delete input_hash in <PathGroundwaterModflowOutput>/wd or set load_modflow_from_disk = False - then the MODFLOW input files are written new", "groundwater_modflow modflow6", "load_bmi"
+    "`E227`_", "MODFLOW input files listed in the name files (or binary files named with OPEN/CLOSE in a package file) are missing - MODFLOW itself would end Python", "PathGroundwaterModflowOutput\, load_modflow_from_disk", "Delete input_hash in <PathGroundwaterModflowOutput>/wd or set load_modflow_from_disk = False - then the MODFLOW input files are written new", "groundwater_modflow modflow6", "load_bmi"
     "`E301`_", "Python version is not 64 bit", "-", "Make sure that you use a 64 bit version of Python", "global", "main"
     "`E302`_", "Settingsfile not found", "-", "Make sure the settings file exists and is at the right location", "configuration", "parse_configuration"
     "`E303`_", "An error occured while reading metaNetcdf.xml", "metaNetcdfFile", "Please check that metaNetcdf is a valid .xml file", "configuration", "read_metanetcdf"
     "`E304`_", "Cannot find alternative option file metaNetcdf.xml not found ", "metaNetcdfFile", "Please check in metaNetcdfFile that the file exists", "configuration", "read_metanetcdf"
-    "`E305`_", "An error occured while reading alternative metaNetcdf.xml", "metaNetcdfFile", "Please check that metaNetcdf is a valid .xml file", "configuration", "read_metanetcdf"
+    "`E305`_", "The routing library is an old version without parallel routing (kinematicPar)", "-", "Use the current routing library t6 (compile it again)", "globals", "clear"
+    "`E306`_", "The routing library (t6) cannot be loaded", "-", "Check that the routing library for your system (t6.dll\, t6_linux.so\, ...) is in the cwatm folder (compile it if needed)", "globals", "clear"
+    "`E307`_", "Settings file cannot be read: no UTF-8 encoding\, a key or section is twice in the file\, a line is outside a section or is not key = value", "Settings file", "Correct the line given in the message", "configuration", "splitout"
+    "`E308`_", "No key PathOut (output directory) in the settings file", "PathOut", "Add PathOut = <output folder> in [FILE_PATHS]", "configuration", "splitout"
+    "`E309`_", "metaNetcdf.xml has no <CWATM> element or an entry without varname", "metaNetcdfFile", "Check the metadata file", "configuration", "read_metanetcdf"
+    "`E310`_", "The MODFLOW library libmf6.dll (Windows) / libmf6.so (Linux) is not found or cannot be loaded", "path_mf6dll", "Check path_mf6dll: the folder needs libmf6.dll / libmf6.so of a MODFLOW 6 release", "groundwater_modflow modflow6", "load_bmi"
+    "`E311`_", "The MODFLOW library is too old for the installed xmipy (e.g. libmf6 6.2.2 has no get_value_ptr)", "path_mf6dll", "Use a current libmf6 (e.g. MODFLOW 6.8.1) in path_mf6dll", "groundwater_modflow modflow6", "load_bmi"
+    "`E312`_", "MODFLOW initialize failed (error from xmipy)", "MODFLOW input files", "Read the MODFLOW error message and the listing file mfsim.lst named in the message", "groundwater_modflow modflow6", "load_bmi"
+    "`E313`_", "MODFLOW stopped (e.g. a Fortran STOP for a wrong input file\, exit code 2) - only the MODFLOW process ends\, not Python", "MODFLOW input files\, modflow_subprocess", "Read the MODFLOW error message and the listing file mfsim.lst named in the message", "groundwater_modflow modflow6_process", "_receive"
+    "`E314`_", "Python error in the MODFLOW process during a time step (e.g. the solver does not converge)", "modflow_timestep\, use_complex_solver_for_modflow", "If the solver does not converge: use a smaller modflow_timestep or use_complex_solver_for_modflow. Read the MODFLOW error message and the listing file mfsim.lst named in the message", "groundwater_modflow modflow6_process", "_child"
+    "`E315`_", "MODFLOW did not finish a call (the start or one time step) within modflow_timeout seconds - the MODFLOW process is stopped", "modflow_timeout", "If MODFLOW is only slow: use a larger modflow_timeout (0: no limit). Else check the MODFLOW input", "groundwater_modflow modflow6_process", "_receive"
+    "`E400`_", "Not an error: only the environmental flow is calculated from an existing discharge file - the run ends with exit code 400", "calc_environflow = True\, calc_ef_afterRun = False\, EFDis", "Nothing to do", "environflow / cwatm_dynamic", "dynamic"
+    "`E601`_", "The temperature maps might be in Kelvin instead of Celsius or vice versa", "TavgMaps\, TminMaps\, TmaxMaps\, [OPTIONS]", "Check the temperature flag in [OPTIONS] (temperature in Kelvin or Celsius)", "readmeteo", "check_celsius"
 
 
 
@@ -478,6 +514,16 @@ E125
 
 
 
+E126
+---------------------------------------------------------------------------
+  :Description:  Time step not stored in the netCDF map stack
+  :Where:        Any netCDF map stack
+  :What to do:   The file has fewer time steps than the run needs - check the file and StepStart / StepEnd
+  :Module:       datahandling, loadmap
+
+
+
+
 E127
 ---------------------------------------------------------------------------
   :Description:  Coordinates are not pairs
@@ -534,6 +580,173 @@ E132
   :Where:        Out_TSS, Out_MAP
   :What to do:   Please correct the writing of the variable name, check also case sensitive e.g. Precipitation instead precipitation
   :Module:       output, dynamic
+
+
+
+
+E133
+---------------------------------------------------------------------------
+  :Description:  The maps seem to be in lat/lon (cell size and corner in degree) - the cell area cannot be derived from the cell size
+  :Where:        MaskMap, gridSizeUserDefined, CellArea
+  :What to do:   Set gridSizeUserDefined = True in [OPTIONS] and give a map of the cell area in m2 with CellArea
+  :Module:       miscInitial, initial
+
+
+
+
+E134
+---------------------------------------------------------------------------
+  :Description:  Coordinates of a gauge are inside the box of the mask map but on a cell outside the mask
+  :Where:        Gauges, MaskMap
+  :What to do:   Move the gauge to a cell inside the mask (or change MaskMap)
+  :Module:       output, appendinfo
+
+
+
+
+E135
+---------------------------------------------------------------------------
+  :Description:  Output variable name is not valid
+  :Where:        output keys e.g. OUT_MAP_Daily, OUT_TSS_MonthAvg
+  :What to do:   Use a variable name, optionally with integer indices e.g. discharge or actualET[1]
+  :Module:       datahandling, parseoutvar
+
+
+
+
+E136
+---------------------------------------------------------------------------
+  :Description:  No key with this name in the settings file (the closest key is shown)
+  :Where:        Any key
+  :What to do:   Check the writing of the key (also upper and lower case) or add it to the settings file
+  :Module:       datahandling, checkOption
+
+
+
+
+E137
+---------------------------------------------------------------------------
+  :Description:  The Excel settings file is not given in the settings file
+  :Where:        Excel_settings_file
+  :What to do:   Add Excel_settings_file = <path>/cwatm_settings.xlsx (needed e.g. for includeCrops)
+  :Module:       initcondition, initial
+
+
+
+
+E138
+---------------------------------------------------------------------------
+  :Description:  A date does not exist in the calendar of the precipitation maps (e.g. 29 February in a 365 day calendar)
+  :Where:        StepStart, StepEnd, SpinUp, StepInit
+  :What to do:   Use a date that exists in the calendar of the meteo maps
+  :Module:       timestep, datenum
+
+
+
+
+E139
+---------------------------------------------------------------------------
+  :Description:  WaterCycle output needs a standard calendar in the precipitation maps
+  :Where:        OUT_TSS_WaterCycle ...
+  :What to do:   Use meteo maps with a standard calendar or no WaterCycle output
+  :Module:       output, writeTssFileNew
+
+
+
+
+E140
+---------------------------------------------------------------------------
+  :Description:  The class map of an area function (npareatotal, npareaaverage, npareamaximum) cannot be used: float values or a negative class id
+  :Where:        Maps used as classes (e.g. waterBodyID, adminSegments)
+  :What to do:   Use a map with integer classes >= 0
+  :Module:       replace_pcr, _classerror
+
+
+
+
+E141
+---------------------------------------------------------------------------
+  :Description:  Circular reference in placeholders $(...) or more than 10 nested levels
+  :Where:        Any key with $(...)
+  :What to do:   Check the placeholders - a key must not refer to itself
+  :Module:       configuration, get
+
+
+
+
+E142
+---------------------------------------------------------------------------
+  :Description:  An option in [OPTIONS] is neither True/False nor an integer
+  :Where:        [OPTIONS]
+  :What to do:   Write True or False (or an integer) e.g. includeWaterDemand = True
+  :Module:       configuration, splitout
+
+
+
+
+E143
+---------------------------------------------------------------------------
+  :Description:  Placeholder cannot be read - it has to be $(SECTION:KEY) or $(KEY)
+  :Where:        Any key with $(...)
+  :What to do:   Check the brackets and the colon of the placeholder
+  :Module:       configuration, get
+
+
+
+
+E144
+---------------------------------------------------------------------------
+  :Description:  Section [OPTIONS] is not written in capital letters
+  :Where:        [OPTIONS]
+  :What to do:   Write [OPTIONS]
+  :Module:       configuration, splitout
+
+
+
+
+E145
+---------------------------------------------------------------------------
+  :Description:  Output key is not possible - it has to be OUT_MAP or OUT_TSS with a valid type (e.g. OUT_MAP_Daily, OUT_TSS_MonthAvg)
+  :Where:        output keys e.g. OUT_MAP_Daily, OUT_TSS_MonthAvg
+  :What to do:   Check the writing of the output key
+  :Module:       configuration, splitout
+
+
+
+
+E146
+---------------------------------------------------------------------------
+  :Description:  nlay is not 1 - the MODFLOW coupling works only with one layer
+  :Where:        nlay
+  :What to do:   Set nlay = 1
+  :Module:       groundwater_modflow transient, initial
+
+
+
+E147
+---------------------------------------------------------------------------
+  :Description:  The CRS of the CWatM grid (MaskMap) is not known - needed for the overlap of CWatM and ModFlow cells
+  :Where:        MaskMap, cwatm_crs
+  :What to do:   Set cwatm_crs = EPSG:... in [GROUNDWATER_MODFLOW] or use a MaskMap with CRS
+  :Module:       groundwater_modflow grid, cwatm_crs
+
+
+
+E148
+---------------------------------------------------------------------------
+  :Description:  More than half of the active ModFlow cells are not inside the CWatM mask
+  :Where:        modflow_basin, MaskMap
+  :What to do:   Check modflow_basin, MaskMap and the CRS of both (cwatm_crs)
+  :Module:       groundwater_modflow grid, ModflowGrid
+
+
+
+E149
+---------------------------------------------------------------------------
+  :Description:  A map at ModFlow resolution (MODFLOW head of a restart or init_water_table) has another size than the ModFlow grid
+  :Where:        init_water_table, <init file>_modflowhead.nc
+  :What to do:   Use a map of the same ModFlow grid (modflow_basin)
+  :Module:       groundwater_modflow grid, read_map
 
 
 
@@ -748,6 +961,66 @@ E221
 
 
 
+E222
+---------------------------------------------------------------------------
+  :Description:  Path to the MODFLOW 6 library does not exist
+  :Where:        path_mf6dll
+  :What to do:   Check path_mf6dll (folder with libmf6.dll / libmf6.so)
+  :Module:       groundwater_modflow transient, initial
+
+
+
+
+E223
+---------------------------------------------------------------------------
+  :Description:  A meteo netCDF map stack cannot be opened
+  :Where:        Meteo maps (e.g. PrecipitationMaps, TavgMaps)
+  :What to do:   Check that the file exists and is a valid netCDF file
+  :Module:       datahandling, readmeteodata
+
+
+
+
+E224
+---------------------------------------------------------------------------
+  :Description:  A netCDF map stack with 12 monthly maps cannot be read
+  :Where:        Monthly maps (e.g. lapse rate)
+  :What to do:   Check that the file exists and has 12 maps
+  :Module:       datahandling, readnetcdf12month
+
+
+
+
+E225
+---------------------------------------------------------------------------
+  :Description:  Precipitation maps not found
+  :Where:        PrecipitationMaps
+  :What to do:   Check PrecipitationMaps and PathMeteo
+  :Module:       readmeteo, initial
+
+
+
+
+E226
+---------------------------------------------------------------------------
+  :Description:  MODFLOW simulation file mfsim.nam not found in the MODFLOW working folder
+  :Where:        PathGroundwaterModflowOutput, load_modflow_from_disk
+  :What to do:   Delete input_hash in <PathGroundwaterModflowOutput>/wd or set load_modflow_from_disk = False - then the MODFLOW input files are written new
+  :Module:       groundwater_modflow modflow6, load_bmi
+
+
+
+
+E227
+---------------------------------------------------------------------------
+  :Description:  MODFLOW input files listed in the name files (or binary files named with OPEN/CLOSE in a package file) are missing - MODFLOW itself would end Python
+  :Where:        PathGroundwaterModflowOutput, load_modflow_from_disk
+  :What to do:   Delete input_hash in <PathGroundwaterModflowOutput>/wd or set load_modflow_from_disk = False - then the MODFLOW input files are written new
+  :Module:       groundwater_modflow modflow6, load_bmi
+
+
+
+
 E301
 ---------------------------------------------------------------------------
   :Description:  Python version is not 64 bit
@@ -790,9 +1063,128 @@ E304
 
 E305
 ---------------------------------------------------------------------------
-  :Description:  An error occured while reading alternative metaNetcdf.xml
+  :Description:  The routing library is an old version without parallel routing (kinematicPar)
+  :Where:        -
+  :What to do:   Use the current routing library t6 (compile it again)
+  :Module:       globals, clear
+
+
+
+E306
+---------------------------------------------------------------------------
+  :Description:  The routing library (t6) cannot be loaded
+  :Where:        -
+  :What to do:   Check that the routing library for your system (t6.dll, t6_linux.so, ...) is in the cwatm folder (compile it if needed)
+  :Module:       globals, clear
+
+
+
+
+E307
+---------------------------------------------------------------------------
+  :Description:  Settings file cannot be read: no UTF-8 encoding, a key or section is twice in the file, a line is outside a section or is not key = value
+  :Where:        Settings file
+  :What to do:   Correct the line given in the message
+  :Module:       configuration, splitout
+
+
+
+
+E308
+---------------------------------------------------------------------------
+  :Description:  No key PathOut (output directory) in the settings file
+  :Where:        PathOut
+  :What to do:   Add PathOut = <output folder> in [FILE_PATHS]
+  :Module:       configuration, splitout
+
+
+
+
+E309
+---------------------------------------------------------------------------
+  :Description:  metaNetcdf.xml has no <CWATM> element or an entry without varname
   :Where:        metaNetcdfFile
-  :What to do:   Please check that metaNetcdf is a valid .xml file
+  :What to do:   Check the metadata file
   :Module:       configuration, read_metanetcdf
+
+
+
+
+E310
+---------------------------------------------------------------------------
+  :Description:  The MODFLOW library libmf6.dll (Windows) / libmf6.so (Linux) is not found or cannot be loaded
+  :Where:        path_mf6dll
+  :What to do:   Check path_mf6dll: the folder needs libmf6.dll / libmf6.so of a MODFLOW 6 release
+  :Module:       groundwater_modflow modflow6, load_bmi
+
+
+
+
+E311
+---------------------------------------------------------------------------
+  :Description:  The MODFLOW library is too old for the installed xmipy (e.g. libmf6 6.2.2 has no get_value_ptr)
+  :Where:        path_mf6dll
+  :What to do:   Use a current libmf6 (e.g. MODFLOW 6.8.1) in path_mf6dll
+  :Module:       groundwater_modflow modflow6, load_bmi
+
+
+
+
+E312
+---------------------------------------------------------------------------
+  :Description:  MODFLOW initialize failed (error from xmipy)
+  :Where:        MODFLOW input files
+  :What to do:   Read the MODFLOW error message and the listing file mfsim.lst named in the message
+  :Module:       groundwater_modflow modflow6, load_bmi
+
+
+
+
+E313
+---------------------------------------------------------------------------
+  :Description:  MODFLOW stopped (e.g. a Fortran STOP for a wrong input file, exit code 2) - only the MODFLOW process ends, not Python
+  :Where:        MODFLOW input files, modflow_subprocess
+  :What to do:   Read the MODFLOW error message and the listing file mfsim.lst named in the message
+  :Module:       groundwater_modflow modflow6_process, _receive
+
+
+
+
+E314
+---------------------------------------------------------------------------
+  :Description:  Python error in the MODFLOW process during a time step (e.g. the solver does not converge)
+  :Where:        modflow_timestep, use_complex_solver_for_modflow
+  :What to do:   If the solver does not converge: use a smaller modflow_timestep or use_complex_solver_for_modflow. Read the MODFLOW error message and the listing file mfsim.lst named in the message
+  :Module:       groundwater_modflow modflow6_process, _child
+
+
+
+
+E315
+---------------------------------------------------------------------------
+  :Description:  MODFLOW did not finish a call (the start or one time step) within modflow_timeout seconds - the MODFLOW process is stopped
+  :Where:        modflow_timeout
+  :What to do:   If MODFLOW is only slow: use a larger modflow_timeout (0: no limit). Else check the MODFLOW input
+  :Module:       groundwater_modflow modflow6_process, _receive
+
+
+
+E400
+---------------------------------------------------------------------------
+  :Description:  Not an error: only the environmental flow is calculated from an existing discharge file - the run ends with exit code 400
+  :Where:        calc_environflow = True, calc_ef_afterRun = False, EFDis
+  :What to do:   Nothing to do
+  :Module:       environflow / cwatm_dynamic, dynamic
+
+
+
+
+E601
+---------------------------------------------------------------------------
+  :Description:  The temperature maps might be in Kelvin instead of Celsius or vice versa
+  :Where:        TavgMaps, TminMaps, TmaxMaps, [OPTIONS]
+  :What to do:   Check the temperature flag in [OPTIONS] (temperature in Kelvin or Celsius)
+  :Module:       readmeteo, check_celsius
+
 
 

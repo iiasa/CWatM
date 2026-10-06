@@ -67,7 +67,7 @@ is totally optional, so if you are not interested, you can simply skip this.
 
 
 How to install a virtual environment
-**********************************
+************************************
 
 There are many ways to set up a virtual environment. Two ways of setup the virtual
 environment will be described (The second one was presented in the CwatM Level A1
@@ -147,6 +147,20 @@ These additional packages are used for the post-processing Notebooks (in CWatM/T
 These additional package are used for CWatM-MODFLOW
 
 * `FloPy <https://www.usgs.gov/software/flopy-python-package-creating-running-and-post-processing-modflow-based-models>`_
+* `xmipy <https://pypi.org/project/xmipy/>`_ (calls the MODFLOW 6 library)
+* the MODFLOW 6 library libmf6.dll (Windows) or libmf6.so (Linux) from a current
+  `MODFLOW 6 release <https://github.com/MODFLOW-ORG/modflow6/releases>`_ (tested: 6.8.1) - its folder is set with
+  path_mf6dll in the settings file. An old library (e.g. 6.2.2) stops with Error 311.
+
+.. note::
+   MODFLOW runs in a separate Python process (modflow_subprocess = True, the default): a MODFLOW error stops CWatM
+   with an error message instead of ending Python. On Windows this process imports the main Python file again.
+   If CWatM with MODFLOW is started from your own Python script (e.g. for a calibration), the script needs::
+
+       if __name__ == "__main__":
+           # start CWatM here
+
+   run_cwatm.py and the pytest tests have it. Without it, each MODFLOW process starts the script again.
 
 
 
@@ -275,9 +289,9 @@ The output should be::
    -v --veryquiet   no output progression is given
    -l --loud        output progression given as time st
    -c --check       input maps and stack maps are check
-   -h --noheader    .tss file have no header and start
    -t --printtime   the computation time for hydrologic
    -w --warranty    copyright and warranty information   
+   -e --error       error messages with the code lines w
 	
 .. warning:: If python is not set in the environment path, the full path of python has to be used
 
@@ -329,6 +343,6 @@ example::
     -v --veryquiet   no output progression is given
     -l --loud        output progression given as time step, date and discharge
     -c --check       input maps and stack maps are checked, output for each input map BUT no model run
-    -h --noheader    .tss file have no header and start immediately with the time series
     -t --printtime   the computation time for hydrological modules are printed
 	-w --warranty    copyright and warranty information
+    -e --error       error messages with the code lines where the error occurred

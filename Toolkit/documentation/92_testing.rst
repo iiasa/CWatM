@@ -32,10 +32,10 @@ A comprehensive pytest-based testing framework for the CWatM (Community Water Mo
 
     | Execute:
     | pytest test_cwatm3.py --html=C:/work/CWATM/report1.html
-    | --settingsfile=test_py_cwatm2.txt  --cwatm=C:/work/CWATM/run_cwatm.py
+    | --settingsfile=cwatm_pytests_settings.ini  --cwatm=C:/work/CWATM/run_cwatm.py
     | Where:
     | --html=C:/work/CWATM/report1.html: results of test are written into this HTML file
-    | --settingsfile=test_py_cwatm2.txt: settings file to tell which tests are executed
+    | --settingsfile=cwatm_pytests_settings.ini: settings file to tell which tests are executed
     | --cwatm=C:/work/CWATM/run_cwatm.py: executable of CWatM
 
 Test Types and Execution Modes
@@ -94,12 +94,12 @@ Usage Examples
 --------------
 Basic execution with HTML reporting:
 
-.. note:: pytest test_cwatm3.py --html=pytest_report_cwatm.html --settingsfile=__cwatm_pytests_settings.ini --cwatm=../run_cwatm.py
+.. note:: pytest test_cwatm3.py --html=pytest_report_cwatm.html --settingsfile=cwatm_pytests_settings.ini --cwatm=../run_cwatm.py
 
 
 Extended execution with code coverage:
 
-.. note:: pytest test_cwatm3.py --html=pytest_report_cwatm.html --cov=cwatm --cov-report=xml --settingsfile=__cwatm_pytests_settings.ini --cwatm=../run_cwatm.py
+.. note:: pytest test_cwatm3.py --html=pytest_report_cwatm.html --cov=cwatm --cov-report=xml --settingsfile=cwatm_pytests_settings.ini --cwatm=../run_cwatm.py
 
 
 The framework provides robust validation for CWatM hydrological model testing across multiple scenarios, ensuring model reliability and consistency across different configurations and use cases.
@@ -113,7 +113,7 @@ Files and folders
 - settings:	Folder with settings templates and created settings files e.g. Settings/30min/global_30min/settings_global_30min.ini
 - metaNetcdf.xml: xml file with metadata for NetCDF files
 - test_cwatm3.py, conftest.py, pytest.ini:		Program files
-- test_py_cwatm1.txt,..				Settings files
+- cwatm_pytests_settings.ini:		List of tests (settings templates and the changes for each test)
 
 Testing CWatM
 -------------
@@ -132,7 +132,7 @@ This report shows an overview of passed, failed and skipped test and the details
 Figure 1: Screenshot of a test report page
 
 
-Example of a pytesat settings file:
+The pytest settings file pytest/cwatm_pytests_settings.ini:
 
-.. literalinclude:: _static/cwatm_pytests_settings2.ini
+.. literalinclude:: ../../pytest/cwatm_pytests_settings.ini
     :linenos:

@@ -15,6 +15,7 @@ import os
 import re
 import warnings
 
+import numpy as np
 from netCDF4 import Dataset, num2date, date2num, date2index
 #from osgeo import gdal
 #from osgeo import gdalconst
@@ -25,9 +26,10 @@ from . import globals
 from cwatm.management_modules.checks import *
 from cwatm.management_modules.dynamicModel import *
 from cwatm.management_modules.messages import *
-from cwatm.management_modules.replace_pcr import *
+from cwatm.management_modules.replace_pcr import (npareatotal, npareaaverage, npareamaximum, npareamajority,
+                                                  AreaIndex)
 from cwatm.management_modules.timestep import *
-from cwatm.management_modules.caching import ncopen, ncclose, ncclose_all, ncstackcache
+from cwatm.management_modules.caching import ncopen, ncclose, ncclose_all, ncstackcache, ncappend, ncwriteclose
 
 
 # output variable names from the settings file: a name, optionally with integer indices e.g. discharge or actualET[1]
@@ -688,7 +690,7 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
                     else: timestepI = int(timestepI) -1
 
                     if not(timestepI in nf1.variables['time'][:]):
-                        msg = "Error 105 time step " + str(int(timestepI)+1)+" not stored in "+ filename
+                        msg = "Error 126: time step " + str(int(timestepI)+1)+" not stored in "+ filename
                         raise CWATMError(msg)
                     itime = np.where(nf1.variables['time'][:] == timestepI)[0][0]
                     if cut:
@@ -707,7 +709,7 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
                 history = ""
             addtoversiondate(filename,history)
 
-        except:
+        except Exception as ncerror:
 
             filename = cbinding(name)
             try:
@@ -723,7 +725,13 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
                         cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
                         mapnp = mapnp[cut2:cut3, cut0:cut1]
                 addtoversiondate(filename)
-            except:
+            except CWATMError:
+                # e.g. Error 108: cell size of the map is different
+                raise
+            except Exception:
+                if isinstance(ncerror, CWATMError):
+                    # netcdf found but wrong (e.g. Error 202, 107) and not readable by rasterio either
+                    raise ncerror
                 msg = "Error 203: File does not exists"
                 raise CWATMFileError(filename,msg,sname=name)
 
@@ -1729,7 +1737,7 @@ def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale
         try:
             nf1 = ncopen(filename)   # shared handle: file was already opened by multinetdf
         except:
-            msg = "Error 211: Netcdf map stacks: \n"
+            msg = "Error 223: Netcdf map stacks: \n"
             raise CWATMFileError(filename, msg, sname=name)
         setmeteochunkcache(nf1.variables[value], loc)
         meteohandles[name] = [nf1, fileno, filename]
@@ -1758,7 +1766,7 @@ def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale
         if maskinfo['shapeflat'][0]!= mapnp.size:
             msg = "Error 109: " + name + " has less or more valid pixels than the mask map \n"
             msg += "if it is the ET maps, it might be from another run with different mask. Please look at the option: calc_evaporation"
-            raise CWATMWarning(msg)
+            raise CWATMError(msg)
 
         mapC = compressArray(mapnp, name=filename,zeros = zeros)
         if Flags['check']:
@@ -1869,10 +1877,12 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros=Fals
             inputcounter[value] += 1
             idx = inputcounter[value]
         else:
+            # look for the record of this year/month: with 1 January / the 1st of the month
+            # 'nearest' finds records dated on the 1st or in the middle of the month/year
             if useDaily == "yearly":
-                date = datetime.datetime(date.year, int(1), int(1))
-#             if useDaily == "monthly":
-                date = datetime.datetime(date.year, date.month, int(1))
+                date = datetime.datetime(date.year, 1, 1)
+            if useDaily == "monthly":
+                date = datetime.datetime(date.year, date.month, 1)
 
             # A netCDF time variable object  - time index (in the netCDF file)
             nctime = nf1.variables['time']
@@ -1937,7 +1947,7 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros=Fals
 
     if maskinfo['shapeflat'][0]!= mapnp.size:
         msg = "Error 110: " + name + " has less or more valid pixels than the mask map \n"
-        raise CWATMWarning(msg)
+        raise CWATMError(msg)
 
     mapC = compressArray(mapnp, name=filename)
     if Flags['check']:
@@ -2042,7 +2052,7 @@ def readnetcdf12month(name, month,value="None"):
     try:
        nf1 = ncopen(filename)   # cached: 12 monthly maps from one file (lapse rate)
     except:
-        msg = "Error 213: Netcdf map stacks: \n"
+        msg = "Error 224: Netcdf map stacks: \n"
         raise CWATMFileError(filename,msg)
     if value == "None":
         value = getvariablename(nf1) # get the last variable name
@@ -2055,7 +2065,7 @@ def readnetcdf12month(name, month,value="None"):
     return mapC
 
 
-def readnetcdfInitial(name, value,default = 0.0):
+def readnetcdfInitial(name, value, default=0.0, warn=True):
     """
     Read initial condition data with fallback defaults.
     
@@ -2071,7 +2081,9 @@ def readnetcdfInitial(name, value,default = 0.0):
         Variable name within the NetCDF file.
     default : float, optional
         Default value to use if file not found. Default is 0.0.
-    
+    warn : bool, optional
+        False: no warning if the variable is not in the file. Default is True.
+
     Returns
     -------
     numpy.ndarray
@@ -2128,7 +2140,10 @@ def readnetcdfInitial(name, value,default = 0.0):
                 msg = "Error 113: map shape is different than mask shape\n"
                 raise CWATMError(msg)
             return mapC
-        except:
+        except CWATMError:
+            # Error 107, 112, 113 are more exact than Error 114
+            raise
+        except Exception:
             #nf1.close()
             msg ="Error 114: ===== Problem reading initial data ====== \n"
             msg += "Initial value: " + value + " is has not the same shape as the mask map\n"
@@ -2136,9 +2151,16 @@ def readnetcdfInitial(name, value,default = 0.0):
             raise CWATMError(msg)
 
     else:
-        msg = "Warning: Initial value: " + value + " is not included in: " + name + " - using default: " + str(default)
-        print(CWATMWarning(msg))
+        if warn:
+            default_text = str(default) if np.ndim(default) == 0 else "map with mean " + str(np.mean(default))
+            msg = "Warning: Initial value: " + value + " is not included in: " + name + " - using default: " + default_text
+            print(CWATMWarning(msg))
         return default
+
+
+def initialIncluded(name, value):
+    """True if the variable value is in the initial condition file name (file opened once, see ncopen)"""
+    return value in ncopen(os.path.normpath(name)).variables
 
 # --------------------------------------------------------------------------------------------
 
@@ -2222,6 +2244,7 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
 
     if not flag:
         ncclose(netfile)   # in case the file was read before as input (cached handle)
+        ncwriteclose(netfile)   # a new file with the same name in the same run
         nf1 = Dataset(netfile, 'w', format='NETCDF4')
 
         # general Attributes
@@ -2448,8 +2471,8 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
         #        value.esri_pe_string = metadataNCDF[var]['esri_pe_string']
 
     else:
-        ncclose(netfile)   # in case the file was read before as input (cached handle)
-        nf1 = Dataset(netfile, 'a')
+        # stays open until the end of the run (ncwriteclose_all) - opening on a network drive costs time
+        nf1 = ncappend(netfile)
 
     if flagTime:
         date_time = nf1.variables['time']
@@ -2464,7 +2487,8 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
     if not(hasattr(inputmap, '__len__')):
         date1 = "%02d/%02d/%02d" % (timeStamp.day, timeStamp.month, timeStamp.year)
         msg = "No values in: " + varname + " on date: " + date1 +"\nCould not write: " + netfile
-        nf1.close()
+        if not flag:
+            nf1.close()   # a new file is closed, an appended file stays open (ncappend)
         print(CWATMWarning(msg))
         return False
 
@@ -2476,7 +2500,8 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
         else:
             # without timeflag
             nf1.variables[varname][:] = inputmap
-        nf1.close()
+        if not flag:
+            nf1.close()   # a new file is closed, an appended file stays open (ncappend)
         flag = True
         return flag
 
@@ -2498,7 +2523,8 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
         # without timeflag
         nf1.variables[varname][:, :] = mapnp
 
-    nf1.close()
+    if not flag:
+        nf1.close()   # a new file is closed, an appended file stays open (ncappend)
     flag = True
 
     return flag
@@ -2832,7 +2858,7 @@ def checkOption(inBinding,checkfirst = False):
         else:
             closest = "- no match -"
 
-        msg = "Error 116: No key with the name: \"" + inBinding + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
+        msg = "Error 136: No key with the name: \"" + inBinding + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
         msg += "Closest key to the required one is: \""+ closest + "\""
         msg += lineclosest
         raise CWATMError(msg)

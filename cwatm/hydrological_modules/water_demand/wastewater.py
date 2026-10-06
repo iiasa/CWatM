@@ -12,6 +12,7 @@
 
 from cwatm.management_modules.data_handling import *
 from cwatm.management_modules.globals import *
+from cwatm.management_modules.replace_pcr import npareatotal
 
 
 class waterdemand_wastewater(object):
@@ -288,17 +289,14 @@ class waterdemand_wastewater(object):
         annual_wwtpIdx = []
         for wwtid in self.var.wwtIdsOrdered:
             tmp = self.var.wwt_def[wwtid]
-            for r in range(tmp.shape[0]):
-                if tmp[r][0] <= year:
-                    if np.isnan(tmp[r][1]) or tmp[r][1] >= year:
-                        annual_mask.append(True)
-                        annual_wwtpIdx.append(r)
-                        # if found the valid instance of WWTP ID - break and don't continute looking for another one
-                        break
-                elif tmp.shape[0] == r + 1:
-                    annual_mask.append(False)
-                    annual_wwtpIdx.append(np.nan)
-        
+            # first instance (row) of the WWTP ID which is valid in this year: start <= year and (no end or end >= year)
+            # none (not built yet or already closed): the WWTP is not used this year
+            # exactly one entry per WWTP ID, so annual_mask and annual_wwtpIdx stay in the order of wwtIdsOrdered
+            # (before: a WWTP whose last instance was already closed got no entry -> lists shifted or index error)
+            valid = [r for r in range(tmp.shape[0]) if tmp[r][0] <= year and (np.isnan(tmp[r][1]) or tmp[r][1] >= year)]
+            annual_mask.append(len(valid) > 0)
+            annual_wwtpIdx.append(valid[0] if valid else np.nan)
+
         self.var.wwtIdsOrdered = np.array(self.var.wwtIdsOrdered)[annual_mask].tolist()
         annual_wwtpIdx = np.array(annual_wwtpIdx)[annual_mask]
         
@@ -315,23 +313,25 @@ class waterdemand_wastewater(object):
         self.var.maskDomesticCollection = 1 + globals.inZero.copy()
         self.var.maskIndustryCollection = 1 + globals.inZero.copy()
         
-        for wwtid in self.var.wwtIdsOrdered:
+        for i, wwtid in enumerate(self.var.wwtIdsOrdered):
 
-            i = np.isin(self.var.wwtIdsOrdered, wwtid)
-            self.var.wwtVolC.append(self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][2])
-            self.var.wwtTimeC.append(self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][3]) 
-            self.var.minHRTC.append(np.maximum(self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][8], 0.001))
+            # valid row of this WWTP for the current year (annual_wwtpIdx is in the same order as wwtIdsOrdered)
+            # (before: annual_wwtpIdx[np.isin(...)] - int() of a 1-element array fails with NumPy >= 2.4)
+            wwtrow = self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])]
+            self.var.wwtVolC.append(wwtrow[2])
+            self.var.wwtTimeC.append(wwtrow[3])
+            self.var.minHRTC.append(np.maximum(wwtrow[8], 0.001))
             # toResManageC control wwt2reservoir operations:
             #   0: attempt to send all to reservior
             #   1: export all treated wastewater
             # 0-1: export the fraction and attempt sending the rest to reservoir
             #  -1: only send to overflow point as discharge (do not send to reservoir)
             
-            mng = self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][5]
+            mng = wwtrow[5]
             self.var.toResManageC.append(float(np.where(np.isnan(mng), 0., mng)))
             # sector collection masks
-            self.var.maskDomesticCollection = np.where(self.var.wwtColArea == wwtid, self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][6], self.var.maskDomesticCollection)
-            self.var.maskIndustryCollection = np.where(self.var.wwtColArea == wwtid, self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][7], self.var.maskIndustryCollection)
+            self.var.maskDomesticCollection = np.where(self.var.wwtColArea == wwtid, wwtrow[6], self.var.maskDomesticCollection)
+            self.var.maskIndustryCollection = np.where(self.var.wwtColArea == wwtid, wwtrow[7], self.var.maskIndustryCollection)
            
         self.var.wwtVolC = np.array(self.var.wwtVolC)
         self.var.wwtTimeC = np.array(self.var.wwtTimeC)

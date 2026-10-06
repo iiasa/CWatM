@@ -254,7 +254,7 @@ class readmeteo(object):
         name = cbinding('PrecipitationMaps')
         nameall = glob.glob(os.path.normpath(name))
         if not nameall:
-            msg = "Error 215: In readmeteo, cannot find precipitation maps "
+            msg = "Error 225: In readmeteo, cannot find precipitation maps "
             raise CWATMFileError(name, msg, sname='PrecipitationMaps')
         namemeteo = nameall[0]
         latmeteo, lonmeteo, _, invcellmeteo, _, _ = readCoordNetCDF(namemeteo)

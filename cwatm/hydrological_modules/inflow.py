@@ -177,16 +177,19 @@ class inflow(object):
                     for i in range(no):
                         line = file.readline().strip('\n')
                         if line in inflowNames:
-                            msg = "Error 217:" + line + " in: " + filename + " is used already"
+                            msg = "Error 217: " + line + " in: " + filename + " is used already"
                             raise CWATMError(msg)
 
                         inflowNames.append(line)
                         names.append(line)
                     file.close()
                     skiplines = 3 + no
-                except:
+                except CWATMError:
+                    # Error 217: name used already
+                    raise
+                except Exception:
                     msg = "Error 218: Mistake reading inflow file\n"
-                    raise CWATMFileError(os.path.join(inDir, name), sname=name)
+                    raise CWATMFileError(os.path.join(inDir, name), msg, sname="QInTS")
 
                 tempTssData = np.genfromtxt(filename, skip_header=skiplines, names=names, 
                                             usecols=names[1:], filling_values=0.0)

@@ -24,7 +24,6 @@ from .messages import *
 from cwatm.hydrological_modules.routing_reservoirs.routing_sub import *
 from cwatm.management_modules.checks import *
 from cwatm.management_modules.data_handling import *
-from cwatm.management_modules.replace_pcr import *
 
 
 class outputTssMap(object):
@@ -751,7 +750,13 @@ class outputTssMap(object):
             if expression[2]:
                 if flagCycle:
                     writeFileHeaderWaterCycle(outputFilename, expression)
-                    dates = pd.date_range(start=dateVar['dateStart1'], end=dateVar['dateEnd1'], freq="D")
+                    # pandas resample needs real dates -> only standard calendar
+                    if dateVar['calendar'] not in ['standard', 'gregorian', 'proleptic_gregorian']:
+                        msg = "Error 139: WaterCycle output in: \"" + outputFilename + "\" needs a standard calendar in the precipitation maps\n"
+                        msg += "Calendar is: \"" + dateVar['calendar'] + "\""
+                        raise CWATMError(msg)
+                    d0 = dateVar['dateStart']
+                    dates = pd.date_range(start=datetime.datetime(d0.year, d0.month, d0.day), periods=dateVar['diffdays'], freq="D")
                     # reformat expression: not the best solution
                     # expression: 1: timesteps 2: stations 3: 79 vars eg expression[3][211][0][78]
                     #expression[3] = np.array(expression[3]).transpose(1, 0, 2)
@@ -811,7 +816,7 @@ class outputTssMap(object):
                 else:
                     for timestep in range(dateVar['intSpin'], dateVar['intEnd'] + 1):
                         if dateVar['checked'][timestep - dateVar['intSpin']] >= daymonthyear:
-                            date1 = dateVar['dateBegin'] + datetime.timedelta(days=timestep - 1)
+                            date1 = dateVar['dates'][timestep - 1]
                             if "month" in os.path.split(outputFilename)[1]:
                                 date1 = date1.replace(day=1)
                             if "annual" in os.path.split(outputFilename)[1]:
@@ -1048,7 +1053,7 @@ class outputTssMap(object):
         nindex = self.var.netcdfasindex
         # number of days which are summed up in the current month/year for monthavg/annualavg
         # (less than the days of the month/year if output starts in the middle of a month/year, e.g. after spin-up)
-        daysWritten = max(1, (dateVar['currDate'] - dateVar['dateStart1']).days + 1)
+        daysWritten = max(1, dateVar['currwrite'])
         daysMonthAvg = min(dateVar['currDate'].day, daysWritten)
         daysYearAvg = min(dateVar['doy'], daysWritten)
         if dateVar['curr'] >= dateVar['intSpin'] or ef:

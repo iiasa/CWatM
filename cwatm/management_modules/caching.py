@@ -21,6 +21,7 @@ import netCDF4
 nchandles = {}    # normalized filename -> open netCDF4.Dataset (read-only)
 excelbooks = {}   # normalized filename -> open pandas.ExcelFile
 ncstackvars = set()   # (normalized filename, variable name) whose chunk cache is already set
+ncwritehandles = {}   # normalized filename -> netCDF4.Dataset open for appending (output files)
 
 
 def _key(filename):
@@ -53,6 +54,7 @@ def ncopen(filename):
         Open dataset (read-only). Do not close it - use ncclose / ncclose_all.
     """
     key = _key(filename)
+    ncwriteclose(filename)   # an output file of this run is read: write it to disk first
     nf = nchandles.get(key)
     if (nf is not None) and nf.isopen():
         return nf
@@ -143,6 +145,42 @@ def ncclose_all():
         except:
             pass
     ncstackvars.clear()
+
+
+def ncappend(filename):
+    """
+    Return an output file opened for appending; it stays open until ncwriteclose / ncwriteclose_all.
+    Output files are written every time step - opening a file on a network drive costs time
+    (Bhima 40 days, output on P: 17.7 s -> local disk 1.4 s).
+    """
+    key = _key(filename)
+    nf = ncwritehandles.get(key)
+    if (nf is not None) and nf.isopen():
+        return nf
+    ncclose(filename)   # a cached read handle of the same file
+    nf = netCDF4.Dataset(filename, 'a')
+    ncwritehandles[key] = nf
+    return nf
+
+
+def ncwriteclose(filename):
+    """Close the output file (if open for appending) - before it is read or created again"""
+    nf = ncwritehandles.pop(_key(filename), None)
+    if nf is not None:
+        try:
+            nf.close()
+        except:
+            pass
+
+
+def ncwriteclose_all():
+    """Close all output files (end of a run, also after an error)"""
+    for key in list(ncwritehandles.keys()):
+        nf = ncwritehandles.pop(key)
+        try:
+            nf.close()
+        except:
+            pass
 
 
 # -------------------------------------------------------------------------

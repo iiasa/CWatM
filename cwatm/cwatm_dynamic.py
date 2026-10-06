@@ -15,6 +15,7 @@ import time
 # Local imports
 from cwatm.management_modules.data_handling import *
 from cwatm.management_modules.messages import *
+from cwatm.management_modules.configuration import check_settings_keys
 
 
 class CWATModel_dyn(DynamicModel):
@@ -158,7 +159,9 @@ class CWATModel_dyn(DynamicModel):
         # self.CalendarDay = int(self.CalendarDate.strftime("%j"))
         timestep_dynamic(self)
 
+        # time measures of this step (names too: otherwise timeMesString grows every step)
         del timeMes[:]
+        del timeMesString[:]
         timemeasure("Start dynamic")
 
         # ************************************************************
@@ -240,6 +243,12 @@ class CWATModel_dyn(DynamicModel):
 
             if self.var.modflow:
                 groundwater_storage = self.var.groundwater_storage_available
+                # unmet demand (taken from fossil groundwater) summed up as without MODFLOW - also for the init file
+                # (MODFLOW storage is not reduced by it)
+                if checkOption('limitAbstraction'):
+                    self.var.unmetDemand_runningSum = globals.inZero.copy()
+                else:
+                    self.var.unmetDemand_runningSum = self.var.unmetDemand_runningSum + self.var.unmetDemand
             elif checkOption('limitAbstraction'):
                 groundwater_storage = self.var.storGroundwater
                 self.var.unmetDemand_runningSum = self.var.storGroundwater * 0
@@ -306,6 +315,11 @@ class CWATModel_dyn(DynamicModel):
                 timeMesSum.append(timeMes[i] - timeMes[0])
             else:
                 timeMesSum[i] += timeMes[i] - timeMes[0]
+
+        # after the first time step all settings of initial and of a normal time step were asked for:
+        # warn about keys which are misspelled or in the wrong section
+        if self.currentStep == self.firstStep:
+            check_settings_keys()
 
         # MODFLOW cleanup: temporary files produced by MODFLOW/Flopy must be properly closed
         # with finalize() to prevent file access conflicts in subsequent runs (pytest, calibration)

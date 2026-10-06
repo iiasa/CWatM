@@ -12,9 +12,9 @@
 import numpy as np
 from cwatm.management_modules import globals
 
-from cwatm.management_modules.replace_pcr import npareatotal, npareamaximum
+from cwatm.management_modules.replace_pcr import npareatotal, npareaaverage, npareamaximum, AreaIndex
 from cwatm.management_modules.data_handling import (returnBool, binding, cbinding, loadmap, divideValues,
-                                                     checkOption, npareaaverage, readnetcdf2)
+                                                     checkOption, readnetcdf2)
 from cwatm.hydrological_modules.water_demand.domestic import waterdemand_domestic
 from cwatm.hydrological_modules.water_demand.industry import waterdemand_industry
 from cwatm.hydrological_modules.water_demand.livestock import waterdemand_livestock
@@ -112,7 +112,9 @@ class water_demand:
     MtoM3C                               Array         conversion factor from m to m3 (compressed map)                         --   
     resId_restricted                     Array         waterbody ID for waste water                                            --   
     waterBodyBuffer                      Array         Create a buffer around water bodies as command areas for lakes and res  m2   
+    waterBodyBufferIndex                 Object        index of waterBodyBuffer for area total/maximum, all cells (AreaIndex)  --   
     waterBodyBuffer_wwt                  Array         Create a buffer around water bodies as command areas for lakes and res  m2   
+    waterBodyBuffer_wwtIndex             Object        index of waterBodyBuffer_wwt for area total/maximum (AreaIndex)         --   
     reservoir_releases_excel_option      Flag          If Excel file is used for addition reservoirs, watertransfer, release   bool 
     lakeResStorage_release_ratioC        Array         daily release ration for reservoirs - compressed                        --   
     M3toM                                Array         Coefficient to change units                                             --   
@@ -218,10 +220,13 @@ class water_demand:
     load_command_areas_wwt               Flag                                                                                  --   
     reservoir_command_areas              Array         Lakes/restricted reservoirs within command areas are removed from the   --   
     reservoir_command_areas_wwt          Array         Lakes and all non-restricted reservoirs within command areas are remov  --   
+    reservoir_command_areasIndex         Object        index of reservoir_command_areas (cells > 0) for area total/max         --   
+    reservoir_command_areas_wwtIndex     Object        index of reservoir_command_areas_wwt (cells > 0) for area total/max     --   
     Water_conveyance_efficiency          Array                                                                                 --   
     segmentArea                          Array                                                                                 --   
     segmentArea_wwt                      Array                                                                                 --   
     canals                               Array         When there are no set canals, the entire command area experiences leak  --   
+    canalsIndex                          Object        index of canals for the area maximum of canal leakage (AreaIndex)       --   
     canals_wwt                           Array         canals for wwt reclaimed water (AI)                                     --   
     canalsArea                           Array                                                                                 --   
     canalsAreaC                          Array                                                                                 --   
@@ -232,9 +237,11 @@ class water_demand:
     swAbstractionFraction_Lift_Irrigati  Array         Input, Fraction of Irrigation demand to be satisfied from Lift areas    %    
     using_lift_areas                     Flag          True if using_lift_areas = True in Settings, False otherwise            bool 
     lift_command_areas                   Array                                                                                 --   
+    lift_command_areasIndex              Object        index of lift_command_areas (cells > 0) for area total (AreaIndex)      --   
     allocSegments                        Array                                                                                 --   
     swAbstractionFraction                Array         Input, Fraction of demands to be satisfied with surface water           %    
     allocation_zone                      Array                                                                                 --   
+    allocation_zoneIndex                 Object        index of allocation_zone for area total, all cells (AreaIndex)          --   
     modflowPumping                       Array                                                                                 --   
     leakage                              Array         Canal leakage leading to either groundwater recharge or runoff          m3   
     pumping                              Array                                                                                 --   
@@ -663,6 +670,11 @@ class water_demand:
                         self.var.reservoir_command_areas_wwt > 0,
                         npareatotal(self.var.cellArea, self.var.reservoir_command_areas_wwt),
                         self.var.cellArea)
+
+                # indexes for the area functions in commandAreaOperation (command area maps not changed after this)
+                # only cells with a command area > 0: the results are only used there
+                self.var.reservoir_command_areasIndex = AreaIndex(self.var.reservoir_command_areas)
+                self.var.reservoir_command_areas_wwtIndex = AreaIndex(self.var.reservoir_command_areas_wwt)
                 # Water abstracted from reservoirs leaks along canals related to conveyance efficiency.
                 # Canals are a map where canal cells have the number of the command area they are associated with
                 # Command areas without canals experience leakage equally throughout the command area
@@ -685,6 +697,8 @@ class water_demand:
                 self.var.canalsArea = np.where(
                     self.var.canals > 0, npareatotal(self.var.cellArea, self.var.canals), 0)
                 self.var.canalsAreaC = np.compress(self.var.compress_LR, self.var.canalsArea)
+                # index for the area maximum of the canal leakage (canals not changed after this; all cells)
+                self.var.canalsIndex = AreaIndex(self.var.canals, onlypositive=False)
 
                 if self.var.load_command_areas_wwt:
                     # canals for wwt reclaimed water
@@ -710,6 +724,8 @@ class water_demand:
 
                     self.var.using_lift_areas = True
                     self.var.lift_command_areas = loadmap('lift_areas').astype(int)
+                    # index for the area functions per lift area (results only used where lift area > 0)
+                    self.var.lift_command_areasIndex = AreaIndex(self.var.lift_command_areas)
 
                     if self.var.sectorSourceAbstractionFractions:
                         self.var.swAbstractionFraction_Lift_Domestic = loadmap(
@@ -797,6 +813,8 @@ class water_demand:
 
             arr = arr[cut2:cut3, cut0:cut1].astype(int)
             self.var.allocation_zone = compressArray(arr, name="array")
+            # index for the area functions per allocation zone (all cells, zone 0 is a zone)
+            self.var.allocation_zoneIndex = AreaIndex(self.var.allocation_zone, onlypositive=False)
 
             self.var.modflowPumping = globals.inZero.copy()
             self.var.leakage = globals.inZero.copy()
@@ -985,7 +1003,7 @@ class water_demand:
 
 
 
-    def commandAreaOperation(self, remainNeed, command_areas, maxFracForIrrigation,
+    def commandAreaOperation(self, remainNeed, command_areas, command_index, maxFracForIrrigation,
                              water_conveyance_efficiency, wwt_only=False):
         """
         Execute coordinated water allocation operations within reservoir command areas.
@@ -1013,6 +1031,9 @@ class water_demand:
             Command area identifier map where cells with same positive integer values
             belong to the same command area. Cells with non-positive values are not
             included in command area operations.
+        command_index : AreaIndex
+            Index of command_areas (cells > 0) for the area total and maximum,
+            built once in initial (reservoir_command_areasIndex or reservoir_command_areas_wwtIndex).
         maxFracForIrrigation : ndarray
             Maximum fraction of reservoir storage available for irrigation abstraction
             per reservoir [dimensionless, 0-1]. Represents operational constraints and
@@ -1067,7 +1088,7 @@ class water_demand:
         """
                             
         demand_Segment = np.where(
-            command_areas > 0, npareatotal(remainNeed * self.var.cellArea, command_areas),
+            command_areas > 0, command_index.total(remainNeed * self.var.cellArea),
             0)  # [M3]
 
         # Reservoir associated with the Command Area
@@ -1091,8 +1112,7 @@ class water_demand:
         # np.put(reservoirStorageM3, self.var.decompress_LR, self.var.reservoirStorageM3C)
         np.put(reservoirStorageM3, self.var.decompress_LR, ReservoirsThatAreCurrentlyReservoirs)
         resStorageTotal_alloc = np.where(command_areas > 0,
-                                        npareamaximum(reservoirStorageM3,
-                                                    command_areas), 0)  # [M3]
+                                        command_index.maximum(reservoirStorageM3), 0)  # [M3]
 
         # In the map resStorageTotal_allocC, the maximum storage from each allocation segment is held
         # in all reservoir cells within that allocation segment. We now correct to remove the
@@ -1115,7 +1135,7 @@ class water_demand:
 
         resStorage_maxFracForIrrigation_CA = np.where(
             command_areas > 0,
-            npareamaximum(resStorage_maxFracForIrrigation, command_areas), 0)
+            command_index.maximum(resStorage_maxFracForIrrigation), 0)
 
         act_bigLakeResAbst_alloc = np.minimum(
             resStorage_maxFracForIrrigation_CA * resStorageTotal_alloc,
@@ -1503,13 +1523,11 @@ class water_demand:
                 # The remaining demand within each command area [M3] is put into a map where each cell in the command
                 # area holds this total demand
                 demand_Segment_lift = np.where(self.var.lift_command_areas > 0,
-                                               npareatotal(remainNeed_afterLocal * self.var.cellArea,
-                                                           self.var.lift_command_areas),
+                                               self.var.lift_command_areasIndex.total(remainNeed_afterLocal * self.var.cellArea),
                                                0) / self.var.cellArea # [M]
 
                 available_Segment_lift = np.where(self.var.lift_command_areas > 0,
-                                                  npareatotal(self.var.readAvlChannelStorageM * self.var.cellArea,
-                                                              self.var.lift_command_areas),
+                                                  self.var.lift_command_areasIndex.total(self.var.readAvlChannelStorageM * self.var.cellArea),
                                                   0) / self.var.cellArea  # [M]
 
                 zone_lift_abstraction = np.minimum(demand_Segment_lift, available_Segment_lift)
@@ -1590,7 +1608,7 @@ class water_demand:
                     if not self.var.load_command_areas_wwt:
                         ## opt 1: buffer with no command areas is used
                         # remainNeedBig = npareatotal(remainNeed, self.var.waterBodyID)
-                        remainNeedBig_wwt = npareatotal(remainNeed,  self.var.waterBodyBuffer_wwt)
+                        remainNeedBig_wwt = self.var.waterBodyBuffer_wwtIndex.total(remainNeed)
                         remainNeedBig_wwtC = np.compress(self.var.compress_LR, remainNeedBig_wwt)
                         #print(np.compress(self.var.compress_LR, npareatotal(remainNeed * self.var.cellArea,  self.var.waterBodyBuffer_wwt)))
                         # Storage of a big lake
@@ -1624,7 +1642,7 @@ class water_demand:
                         np.put(bigLakesFactor_wwt, self.var.decompress_LR, bigLakesFactor_wwtC)
 
                         # bigLakesFactorAllaroundlake = npareamaximum(bigLakesFactor, self.var.waterBodyID)
-                        bigLakesFactorAllaroundlake_wwt = npareamaximum(bigLakesFactor_wwt, self.var.waterBodyBuffer_wwt)
+                        bigLakesFactorAllaroundlake_wwt = self.var.waterBodyBuffer_wwtIndex.maximum(bigLakesFactor_wwt)
                         #print(np.compress(self.var.compress_LR, bigLakesFactorAllaroundlake_wwt))
                         # abstraction from big lakes is partioned to the users around the lake
                         self.var.act_bigLakeResAbst_wwt = remainNeed * bigLakesFactorAllaroundlake_wwt
@@ -1673,7 +1691,7 @@ class water_demand:
                             remainNeed = pot_wwt_Irrigation
                             
                             # remainNeed, command_areas, maxFracForIrrigation, water_conveyance_efficiency        
-                            ResAbstractFactorC, act_bigLakeResAbst_alloc, demand_Segment, resStorageTotal_allocC = self.commandAreaOperation(remainNeed = remainNeedPre, command_areas = self.var.reservoir_command_areas_wwt ,\
+                            ResAbstractFactorC, act_bigLakeResAbst_alloc, demand_Segment, resStorageTotal_allocC = self.commandAreaOperation(remainNeed = remainNeedPre, command_areas = self.var.reservoir_command_areas_wwt, command_index = self.var.reservoir_command_areas_wwtIndex,\
                                 maxFracForIrrigation = resStorage_maxFracForIrrigation, water_conveyance_efficiency = self.var.Water_conveyance_efficiency, wwt_only = True)
                             self.var.lakeStorageC -= self.var.reservoirStorageM3C * ResAbstractFactorC
                             self.var.lakeVolumeM3C -= self.var.reservoirStorageM3C * ResAbstractFactorC
@@ -1709,7 +1727,7 @@ class water_demand:
                         
                         
                                                                 # remainNeed, command_areas, maxFracForIrrigation, water_conveyance_efficiency        
-                        ResAbstractFactorC, act_bigLakeResAbst_alloc, demand_Segment, resStorageTotal_allocC = self.commandAreaOperation(remainNeed = remainNeed, command_areas = self.var.reservoir_command_areas_wwt ,\
+                        ResAbstractFactorC, act_bigLakeResAbst_alloc, demand_Segment, resStorageTotal_allocC = self.commandAreaOperation(remainNeed = remainNeed, command_areas = self.var.reservoir_command_areas_wwt, command_index = self.var.reservoir_command_areas_wwtIndex,\
                                              maxFracForIrrigation = resStorage_maxFracForIrrigation, water_conveyance_efficiency = self.var.Water_conveyance_efficiency, wwt_only = True)
                         self.var.lakeStorageC -= self.var.reservoirStorageM3C * ResAbstractFactorC
                         self.var.lakeVolumeM3C -= self.var.reservoirStorageM3C * ResAbstractFactorC
@@ -1784,7 +1802,7 @@ class water_demand:
 
                 # remainNeedBig = npareatotal(remainNeed, self.var.waterBodyID)
                 # not only the lakes and reservoirs but the command areas around water bodies e.g. here a buffer
-                remainNeedBig = npareatotal(remainNeed0, self.var.waterBodyBuffer)
+                remainNeedBig = self.var.waterBodyBufferIndex.total(remainNeed0)
                 remainNeedBigC = np.compress(self.var.compress_LR, remainNeedBig)
 
                 # Storage of a big lake
@@ -1812,7 +1830,7 @@ class water_demand:
                 np.put(bigLakesFactor, self.var.decompress_LR, bigLakesFactorC)
 
                 # bigLakesFactorAllaroundlake = npareamaximum(bigLakesFactor, self.var.waterBodyID)
-                bigLakesFactorAllaroundlake = npareamaximum(bigLakesFactor, self.var.waterBodyBuffer)
+                bigLakesFactorAllaroundlake = self.var.waterBodyBufferIndex.maximum(bigLakesFactor)
 
                 # abstraction from big lakes is partioned to the users around the lake
                 self.var.act_bigLakeResAbst = remainNeed0  * mskWtrBody_unrestricted * bigLakesFactorAllaroundlake   
@@ -1930,7 +1948,7 @@ class water_demand:
                     #print('water_demand.py: np.sum(remainNeedPre) with reservoirs', np.sum(remainNeedPre))
 
                     # remainNeed, command_areas, maxFracForIrrigation, water_conveyance_efficiency        
-                    ResAbstractFactorC, act_bigLakeResAbst_alloc, demand_Segment, resStorageTotal_allocC = self.commandAreaOperation(remainNeed = remainNeedPre, command_areas = self.var.reservoir_command_areas ,\
+                    ResAbstractFactorC, act_bigLakeResAbst_alloc, demand_Segment, resStorageTotal_allocC = self.commandAreaOperation(remainNeed = remainNeedPre, command_areas = self.var.reservoir_command_areas, command_index = self.var.reservoir_command_areasIndex,\
                       maxFracForIrrigation = resStorage_maxFracForIrrigation, water_conveyance_efficiency = self.var.Water_conveyance_efficiency, wwt_only = False)
 
                     self.var.lakeStorageC -= self.var.reservoirStorageM3C * ResAbstractFactorC
@@ -1978,7 +1996,7 @@ class water_demand:
                 # The map resStorageTotal_alloc holds this maximum reservoir storage
                 #   within a command area in all cells within that command area
 
-                ResAbstractFactorC, act_bigLakeResAbst_alloc, demand_Segment, resStorageTotal_allocC = self.commandAreaOperation(remainNeed = remainNeed2, command_areas = self.var.reservoir_command_areas ,\
+                ResAbstractFactorC, act_bigLakeResAbst_alloc, demand_Segment, resStorageTotal_allocC = self.commandAreaOperation(remainNeed = remainNeed2, command_areas = self.var.reservoir_command_areas, command_index = self.var.reservoir_command_areasIndex,\
                     maxFracForIrrigation = resStorage_maxFracForIrrigation, water_conveyance_efficiency = self.var.Water_conveyance_efficiency, wwt_only = False)
 
                 self.var.lakeStorageC -= self.var.reservoirStorageM3C * ResAbstractFactorC
@@ -2010,8 +2028,7 @@ class water_demand:
                 # Without this, npareamaximum uses the historical maximum
                 self.var.leakageCanals_M = globals.inZero.copy()
                 np.put(self.var.leakageCanals_M, self.var.decompress_LR, self.var.leakageCanalsC_M)  # good
-                self.var.leakageCanals_M = npareamaximum(self.var.leakageCanals_M,
-                                                         self.var.canals)
+                self.var.leakageCanals_M = self.var.canalsIndex.maximum(self.var.leakageCanals_M)
 
                 self.var.act_bigLakeResAbst += remainNeed2 * metRemainSegment
                 self.var.act_SurfaceWaterAbstract += remainNeed2 * metRemainSegment
@@ -2246,7 +2263,7 @@ class water_demand:
                                                 + pot_Channel_Industry + pot_Channel_Irrigation
                                 unmetDemand_sw = unmet_Channel.copy()
 
-                                zoneDemand_sw = npareatotal(unmet_Channel * self.var.cellArea, self.var.allocation_zone) / self.var.cellArea
+                                zoneDemand_sw = self.var.allocation_zoneIndex.total(unmet_Channel * self.var.cellArea) / self.var.cellArea
 
 
                             else:
@@ -2255,9 +2272,9 @@ class water_demand:
                                 #multiply with cellarea [m] -> [m3], otherwise bincount is not correct, divide again by cellarea to get [m] again
                                 unmetDemand_sw = np.minimum(self.var.unmetDemand,
                                                             totalDemand * self.var.swAbstractionFraction- self.var.act_SurfaceWaterAbstract)
-                                zoneDemand_sw = npareatotal(unmetDemand_sw * self.var.cellArea, self.var.allocation_zone) / self.var.cellArea
+                                zoneDemand_sw = self.var.allocation_zoneIndex.total(unmetDemand_sw * self.var.cellArea) / self.var.cellArea
 
-                            zone_sf_avail = npareatotal(left_sf_avail * self.var.cellArea, self.var.allocation_zone) / self.var.cellArea
+                            zone_sf_avail = self.var.allocation_zoneIndex.total(left_sf_avail * self.var.cellArea) / self.var.cellArea
 
                             # zone abstraction is minimum of availability and demand [m3]
                             zone_sf_abstraction = np.minimum(zoneDemand_sw, zone_sf_avail)
@@ -2319,11 +2336,11 @@ class water_demand:
                             left_gw_demand = np.maximum(0., self.var.pot_GroundwaterAbstract - self.var.nonFossilGroundwaterAbs)
                             left_gw_avail = np.maximum(0., self.var.readAvlStorGroundwater - self.var.nonFossilGroundwaterAbs)
 
-                            zone_gw_avail = npareatotal(left_gw_avail * self.var.cellArea, self.var.allocation_zone) / self.var.cellArea
+                            zone_gw_avail = self.var.allocation_zoneIndex.total(left_gw_avail * self.var.cellArea) / self.var.cellArea
 
                             # for groundwater substract demand which is fulfilled by surface zone, calc abstraction and what
                             # is left.
-                            zone_gw_demand = npareatotal(left_gw_demand, self.var.allocation_zone)
+                            zone_gw_demand = self.var.allocation_zoneIndex.total(left_gw_demand)
                             #zone_gw_demand = zoneDemand - zone_sf_abstraction
                             zone_gw_abstraction = np.minimum(zone_gw_demand, zone_gw_avail)
                             # zone_unmetdemand = np.maximum(0., zone_gw_demand - zone_gw_abstraction)

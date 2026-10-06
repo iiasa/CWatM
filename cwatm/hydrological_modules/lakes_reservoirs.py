@@ -10,6 +10,7 @@
 # -------------------------------------------------------------------------
 
 from cwatm.management_modules.data_handling import *
+from cwatm.management_modules.replace_pcr import npareamaximum, AreaIndex
 from cwatm.hydrological_modules.routing_reservoirs.routing_sub import *
 
 from cwatm.management_modules.globals import *
@@ -126,7 +127,9 @@ class lakes_reservoirs(object):
     includeType4                         Flag          True if there is a reservoir of waterbody type 4 in waterBodyTyp map    bool 
     resId_restricted                     Array         waterbody ID for waste water                                            --   
     waterBodyBuffer                      Array         Create a buffer around water bodies as command areas for lakes and res  m2   
+    waterBodyBufferIndex                 Object        index of waterBodyBuffer for area total/maximum, all cells (AreaIndex)  --   
     waterBodyBuffer_wwt                  Array         Create a buffer around water bodies as command areas for lakes and res  m2   
+    waterBodyBuffer_wwtIndex             Object        index of waterBodyBuffer_wwt for area total/maximum (AreaIndex)         --   
     lakeFactor                           Array         factor for the Modified Puls approach to calculate retention of the la  --   
     lakeFactorSqr                        Array         square root factor for the Modified Puls approach to calculate retenti  --   
     lakeInflowOldC                       Array         inflow to the lake from previous days                                   m3   
@@ -168,7 +171,7 @@ class lakes_reservoirs(object):
     MtoM3                                Array         Coefficient to change units                                             --   
     InvDtSec                             Array         inversere of seconds per timestep (default 1/86400)                     1 s-1
     waterBodyID                          Array         lakes/reservoirs map with a single ID for each lake/reservoir           --   
-    waterBodyIndex                       Object        index of lake/reservoir cells for area total/maximum (AreaIndex)        --
+    waterBodyIndex                       Object        index of lake/reservoir cells for area total/maximum (AreaIndex)        --   
     UpArea1                              Array         upstream area of a grid cell                                            m2   
     dirupID_LR                           Array         index river upstream lake/reservoir                                     --   
     lakeEvaFactor                        Array         a factor which increases evaporation from lake because of wind          --   
@@ -553,6 +556,8 @@ class lakes_reservoirs(object):
                 self.var.waterBodyBuffer = buffer_waterbody(rectangular, decompress(waterBody_UnRestricted))
                 if self.var.includeWastewater:
                     self.var.waterBodyBuffer_wwt = buffer_waterbody(rectangular, decompress(self.var.resId_restricted))
+                    # index for the area functions with the buffer map (not changed after this)
+                    self.var.waterBodyBuffer_wwtIndex = AreaIndex(self.var.waterBodyBuffer_wwt, onlypositive=False)
 
                 # rectangular = 1
                 # if "buffer_waterbodies" in binding:
@@ -560,6 +565,9 @@ class lakes_reservoirs(object):
                 # self.var.waterBodyBuffer = buffer_waterbody(rectangular)
             else:
                 self.var.waterBodyBuffer = self.var.waterBodyID.copy()
+            # index for the area functions with the buffer map (not changed after this)
+            # all cells are used (class 0 is a class), so the results are the same as npareatotal/npareamaximum
+            self.var.waterBodyBufferIndex = AreaIndex(self.var.waterBodyBuffer, onlypositive=False)
 
 
 
@@ -1358,7 +1366,7 @@ class lakes_reservoirs(object):
             # Puts the value of lakeResStorage into all cells covered by the waterbody
             # (only needed once per day: lakeResStorage changes only in this last routing substep)
             self.var.lakeResStorage_filled = self.var.waterBodyIndex.maximum(self.var.lakeResStorage)
-            self.var.lakeResStorage_buffer = npareamaximum(self.var.lakeResStorage, self.var.waterBodyBuffer)
+            self.var.lakeResStorage_buffer = self.var.waterBodyBufferIndex.maximum(self.var.lakeResStorage)
 
             #water transfer
             if checkOption('reservoir_transfers', True):

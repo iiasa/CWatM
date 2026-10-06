@@ -5,58 +5,20 @@ import numpy as np
 import os
 
 from cwatm.management_modules.data_handling import *
+from cwatm.hydrological_modules.groundwater_modflow.grid import ModflowGrid
 from cwatm.hydrological_modules.groundwater_modflow.modflow6 import ModFlowSimulation
-# importlib to install libraries on the fly if needed e.g. rasterio
-import importlib
+from cwatm.hydrological_modules.groundwater_modflow.modflow6_process import ModFlowProcess
+import functools
 
 
-def is_float(s):
-    """
-    Check if a string can be converted to float.
-
-    Parameters
-    ----------
-    s : str
-        String to test for float conversion
-
-    Returns
-    -------
-    bool
-        True if string can be converted to float, False otherwise
-    """
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
+def setting_bool(name, default=False):
+    """True/False key of the settings file, default if the key is missing"""
+    return returnBool(name) if name in binding else default
 
 
-def decompress(map, nanvalue=None):
-    """
-    Decompress CWatM maps from 1D to 2D with missing values.
-
-    Converts compressed 1D arrays back to 2D spatial maps using
-    stored mask information and optionally replaces NaN values.
-
-    Parameters
-    ----------
-    map : array_like
-        Compressed 1D array to decompress
-    nanvalue : float, optional
-        Value to replace NaN entries with (default: None)
-
-    Returns
-    -------
-    numpy.ndarray
-        2D spatial map with missing values restored
-    """
-
-    dmap = maskinfo['maskall'].copy()
-    dmap[~maskinfo['maskflat']] = map[:]
-    if nanvalue is not None:
-        dmap.data[np.isnan(dmap.data)] = nanvalue
-
-    return dmap.data
+def option_bool(name):
+    """True/False key of the [OPTIONS] section, False if the key is missing"""
+    return name in option and bool(checkOption(name))
 
 
 class groundwater_modflow:
@@ -75,10 +37,8 @@ class groundwater_modflow:
         CWatM model instance
     modflow : ModFlowSimulation
         MODFLOW 6 simulation instance
-    domain : dict
-        Spatial domain parameters
-    indices : dict
-        Index arrays for CWatM-MODFLOW conversion
+    grid : ModflowGrid
+        ModFlow grid and the conversion of maps between CWatM and ModFlow (grid.py)
 
 
 
@@ -107,9 +67,6 @@ class groundwater_modflow:
     head                                 Array         Simulated ModFlow water level [masl]                                    m    
     gwdepth_adjusted                     Array         Adjusted depth to groundwater table                                     m    
     gwdepth                              Array         Depth to groundwater table                                              m    
-    modflow_cell_area                    Array                                                                                 --   
-    modflowsteady                        Flag          True if modflow_steadystate = True in settings file                     bool 
-    Ndays_steady                         Flag          Number of steady state run before the transient simulation              bool 
     channel_ratio                        Array                                                                                 --   
     modflowtotalSoilThickness            Array         Array (nrows, ncol) used to compute water table depth in post-processi  m    
     load_init_water_table                Flag          defining the initial water table map (it can be a hydraulic head map p  --   
@@ -118,7 +75,6 @@ class groundwater_modflow:
     use_super_complex_solver_for_modflo  Flag                                                                                  --   
     availableGWStorageFraction           Array                                                                                 --   
     wells_index                          Array                                                                                 --   
-    depth                                Array                                                                                 --   
     sumed_sum_gwRecharge                 Array         setting sumed up recharge again to 7 (or 14 or 30...), will be sumed u  --   
     modflow_compteur                     Number        Counts each day relatively to the chosen ModFlow timestep, allow to ru  day  
     modflow_watertable                   Array         water table will be also saved at modflow resolution (AI)               --   
@@ -132,7 +88,6 @@ class groundwater_modflow:
     gwdepth_difference_sim_obs           Array         Difference between simulated and observed groundwater table             m    
     modflow_head_adjusted                Array                                                                                 --   
     cellArea                             Array         Area of cell                                                            m2   
-    waterdemandFixed                     Array                                                                                 --   
     modfPumpingM                         Array         modfPumpingM is initialized every modflow_timestep in groundwater_modf  --   
     ===================================  ==========    ======================================================================  =====
 
@@ -151,102 +106,153 @@ class groundwater_modflow:
         self.model = model
 
 
-    def CWATM2modflow(self, variable, correct_boundary=False):
+    def storage(self, head):
+        """Groundwater storage in the aquifer (m water) at ModFlow resolution from the head"""
+        top, bottom = self.layer_boundaries[0], self.layer_boundaries[1]
+        return (np.where(head > top, top, head) - bottom) * self.porosity[0]
+
+    def read_settings(self):
+        """Settings of the MODFLOW coupling (defaults if a key is missing)"""
+        self.verbose = setting_bool('verbose_GW')
+
+        # MODFLOW in a child process: a MODFLOW error (Fortran STOP) does not end Python (Error 313)
+        # modflow_subprocess = False: libmf6 in the CWatM process (e.g. for debugging)
+        # modflow_timeout: longest time in seconds for one MODFLOW call (start or one time step), 0: no limit
+        timeout = float(cbinding('modflow_timeout')) if 'modflow_timeout' in binding else 3600
+        self.ModFlow = functools.partial(ModFlowProcess, timeout=timeout)
+        if not setting_bool('modflow_subprocess', True):
+            self.ModFlow = ModFlowSimulation
+        # MODFLOW input files are reused if no input changed (hash), load_modflow_from_disk = False: always new
+        self.load_from_disk = setting_bool('load_modflow_from_disk', True)
+        # MODFLOW input files: binary (default) or text (modflow_text_input = True)
+        self.binary = not setting_bool('modflow_text_input')
+
+        # Define the size of the ModFlow time step - means that ModFlow is called each "modflow_timestep"
+        self.var.modflow_timestep = int(loadmap('modflow_timestep'))
+        if self.verbose:
+            print('ModFlow is activated')
+            print('ModFlow timestep is : ', self.var.modflow_timestep, ' days\n')
+
+        self.directory_mf6dll = cbinding('path_mf6dll')
+        if not os.path.isdir(self.directory_mf6dll):
+            msg = "Error 222: Path to Modflow6 files does not exists "
+            raise CWATMDirError(self.directory_mf6dll, msg, sname='path_mf6dll')
+        self.nlay = int(loadmap('nlay'))
+        # top, bottom, permeability, porosity and thickness are only set for one layer
+        if self.nlay != 1:
+            raise CWATMError("Error 146: nlay = " + str(self.nlay) + " - the MODFLOW coupling works only with one layer (nlay = 1)\n")
+
+        # defining the initial water table map (it can be a hydraulic head map previously simulated)
+        self.var.load_init_water_table = setting_bool('load_init_water_table')
+        # test if ModFlow pumping is used as defined in settings file
+        self.var.GW_pumping = setting_bool('Groundwater_pumping')
+        if self.verbose:
+            print('=> Groundwater pumping should be deactivated if includeWaterDemand is False')
+        self.var.use_complex_solver_for_modflow = option_bool('use_complex_solver_for_modflow')
+        self.var.use_super_complex_solver_for_modflow = option_bool('use_super_complex_solver_for_modflow')
+        # water balance check of the CWatM - ModFlow exchange: written to ModFlow_DiscrepancyError.txt
+        self.var.writeerror = setting_bool('writeModflowError')
+        if self.verbose:
+            print('=> ModFlow-CwatM water balance is ' + ('' if self.var.writeerror else 'not ') + 'checked')
+
+    def aquifer_top(self, topography):
         """
-        Convert CWatM 2D variables to MODFLOW 2D format.
-
-        Transforms flow variables from CWatM spatial resolution to MODFLOW
-        spatial resolution using area-weighted averaging.
-
-        Parameters
-        ----------
-        variable : array_like
-            CWatM variable to convert (flow rate L/T)
-        correct_boundary : bool, optional
-            Apply boundary correction (default: False)
-
-        Returns
-        -------
-        numpy.ndarray
-            Variable converted to MODFLOW 2D format
+        Top and bottom of the ModFlow layer (self.layer_boundaries): the top is the topography, minus the soil depth
+        (use_soildepth_as_GWtop) and / or a depth under lakes (correct_soildepth_underlakes), under rivers 1 m lower
         """
-        # Converting flow [L/T] from 2D CWatM map to 2D ModFlow map
-        if correct_boundary:
-            self.var.modflow_cell_area = self.corrected_modflow_cell_area.ravel()
+        soildepth_as_GWtop = setting_bool('use_soildepth_as_GWtop')
+        correct_depth_underlakes = setting_bool('correct_soildepth_underlakes')
+        if self.verbose:
+            print('=> Upper limit of groundwater: topography' + (' minus soil depth' if soildepth_as_GWtop else '')
+                  + (', depth under lakes corrected' if correct_depth_underlakes else ''))
+
+        waterBodyID = loadmap('waterBodyID').astype(np.int64)
+        if soildepth_as_GWtop:  # topographic minus soil depth map is used as groundwater upper boundary
+            soildepth = self.var.soildepth12
+            if correct_depth_underlakes:
+                # in some regions soil depth is around zeros under lakes, it should be similar to neighboring cells
+                median = np.nanmedian(self.var.soildepth12)
+                soildepth = np.where(waterBodyID != 0, median - loadmap('depth_underlakes'), soildepth)
+                # some cells around lakes have small soil depths (before 2026-10 this line started again from
+                # soildepth12, so the lake correction above had no effect)
+                soildepth = np.where(self.var.soildepth12 < 0.4, median, soildepth)
+            soildepth_modflow = self.grid.to_modflow(soildepth, all_cells=True) + 0.05
+        elif correct_depth_underlakes:  # topography minus a depth under lakes
+            soildepth_modflow = self.grid.to_modflow(np.where(waterBodyID != 0, loadmap('depth_underlakes'), 0),
+                                                     all_cells=True)
+        else:  # topographic map is used as groundwater upper boundary
+            soildepth_modflow = np.zeros((self.grid.nrow, self.grid.ncol), dtype=np.float32)
+        soildepth_modflow[np.isnan(soildepth_modflow)] = 0
+
+        self.layer_boundaries = np.empty((self.nlay + 1, self.grid.nrow, self.grid.ncol), dtype=np.float32)
+        self.layer_boundaries[0] = topography - soildepth_modflow
+        self.layer_boundaries[1] = self.layer_boundaries[0] - self.thickness
+
+        lake_modf = self.grid.to_modflow(np.where(waterBodyID != 0, 1, 0), all_cells=True)
+        soildepth_modflow[np.isnan(lake_modf)] = 0
+        # under rivers (channel_ratio > 0, no lake) the top of the aquifer is 1 m lower: groundwater drains
+        # (DRN elevation = top) to the river from 1 m below the surface
+        self.layer_boundaries[0] = np.where(lake_modf <= 0, np.where(self.var.channel_ratio > 0,
+                                                                     self.layer_boundaries[0] - 1,
+                                                                     self.layer_boundaries[0]),
+                                            self.layer_boundaries[0])
+
+        # saving soil thickness at modflow resolution to compute water table depth in postprocessing
+        self.var.modflowtotalSoilThickness = soildepth_modflow
+
+    def initial_head(self):
+        """
+        Initial head at ModFlow resolution: the MODFLOW head saved with the init file (restart), init_water_table
+        or initial_water_table_depth below the top of the aquifer
+        returns the head for CWatM (float32) and the head for MODFLOW (float64 for a restart)
+        """
+        # restart: MODFLOW head saved together with the init file (save_initial) - float64 for MODFLOW;
+        # <init file>_modflowhead.nc, or .npy (written before 2026-10)
+        restart_head = None
+        if self.var.loadInit:
+            for extension in ('.nc', '.npy'):
+                filename = os.path.splitext(self.var.initLoadFile)[0] + '_modflowhead' + extension
+                if os.path.isfile(filename):
+                    restart_head = filename
+                    break
+
+        if restart_head is not None:
+            if self.var.load_init_water_table:
+                print(CWATMWarning("Warning: init_water_table is not used - the MODFLOW head saved with the "
+                                   "init file is used: " + restart_head))
+            head_modflow = self.grid.read_map(restart_head)
+            # CWatM works with float32 heads (as after each MODFLOW step), MODFLOW gets the float64 head
+            return head_modflow.astype(np.float32), head_modflow
+
+        if self.var.load_init_water_table:
+            # head map at ModFlow resolution: netCDF (variable with 2 dimensions row, col) or .npy
+            watertable = cbinding('init_water_table')
+            if self.verbose:
+                print('=> Initial water table depth is uploaded from ', watertable)
+            head = self.grid.read_map(watertable)
         else:
-            self.var.modflow_cell_area = self.domain['rowsize'] * self.domain['colsize']  # in m2
+            start_watertabledepth = loadmap('initial_water_table_depth')
+            if self.verbose:
+                print('=> Water table depth is - ', start_watertabledepth, ' m at the begining')
+            head = self.layer_boundaries[0] - start_watertabledepth
+        return head, head
 
-        array = (np.bincount(
-            self.indices['ModFlow_index'],
-            variable.ravel()[self.indices['CWatM_index']] * self.indices['area'],
-            minlength=self.domain['nrow'] * self.domain['ncol']
-        ) / self.var.modflow_cell_area).reshape((self.domain['nrow'], self.domain['ncol'])).astype(variable.dtype)
-
-        return array
-
-    def modflow2CWATM(self, variable, correct_boundary=False):
-        """
-        Convert MODFLOW 2D variables to CWatM 2D format.
-
-        Transforms flow variables from MODFLOW spatial resolution to CWatM
-        spatial resolution using area-weighted averaging.
-
-        Parameters
-        ----------
-        variable : array_like
-            MODFLOW variable to convert (flow rate L/T)
-        correct_boundary : bool, optional
-            Apply boundary correction (default: False)
-
-        Returns
-        -------
-        numpy.ndarray
-            Variable converted to CWatM 2D format
-        """
-        # Converting flow [L/T] from 2D ModFLow map to 2D CWatM map
-        variable_copy = variable.copy()
-        variable_copy[self.modflow.basin == False] = 0
-        assert not (np.isnan(variable_copy).any())
-        assert self.modflow.basin.dtype == bool
-        if correct_boundary:
-            cwatm_cell_area = self.corrected_cwatm_cell_area.ravel()
-        else:
-            cwatm_cell_area = self.var.cellArea.ravel()  # in m2
-
-        array = (np.bincount(
-            self.indices['CWatM_index'],
-            weights=variable_copy.ravel()[self.indices['ModFlow_index']] * self.indices['area'],
-            minlength=maskinfo['shape'][0] * maskinfo['shape'][1]) / \
-                 decompress(cwatm_cell_area, nanvalue=0)).reshape(
-            maskinfo['shape']).astype(variable_copy.dtype)
-
-        array[maskinfo['mask'] == 1] = np.nan
-
-        return array
-
-    def modflow2CWATMbis(self, variable, correct_boundary=False):
-        """
-        Converting the 2D ModFLow capillary rise map into the fraction of area where capillary rise occurs
-        in the 2D CWatM maps. return a fraction for each CWatM cell, input is the ModFlow capillary rise map
-        the returned array is used to apply leakage from water bodies to the ModFlow layer
-        """
-        variable_copy = variable.copy()
-        variable_copy[self.modflow.basin == False] = 0
-        # Each ModFlow cell is distinguished between producing or not producing capillary rise
-        variable_copy[variable_copy > 0] = 1
-        assert not (np.isnan(variable_copy).any())
-        assert self.modflow.basin.dtype == bool
-        if correct_boundary:
-            cwatm_cell_area = self.corrected_cwatm_cell_area.ravel()
-        else:
-            cwatm_cell_area = self.var.cellArea.ravel()  # in m2
-        array = (np.bincount(
-            self.indices['CWatM_index'],
-            weights=variable_copy.ravel()[self.indices['ModFlow_index']] * self.indices['area'],
-            minlength=maskinfo['shape'][0] * maskinfo['shape'][1]
-        ) / decompress(cwatm_cell_area, nanvalue=0)).reshape(maskinfo['shape']).astype(variable_copy.dtype)
-        array[maskinfo['mask'] == 1] = np.nan
-        return array
+    def pumping_wells(self, modflow_basin):
+        """Wells in each active ModFlow cell (None without pumping) and the storage limit for pumping"""
+        self.var.availableGWStorageFraction = 0.85
+        if not self.var.GW_pumping:
+            return None
+        # wells_index: flat index (row * ncol + col) of each well
+        self.var.wells_index = np.flatnonzero(modflow_basin)
+        if 'water_table_limit_for_pumping' in binding:
+            # if available storage is too low, no pumping in this cell
+            self.var.availableGWStorageFraction = np.maximum(
+                np.minimum(0.98, loadmap('water_table_limit_for_pumping')),
+                0)  # if 85% of the ModFlow cell is empty, we prevent pumping in this cell
+        if self.verbose:
+            print('=> Pumping in the ModFlow layer is prevented if water table is under',
+                  int(100 * (1 - self.var.availableGWStorageFraction)), '% of the layer capacity')
+        return np.copy(modflow_basin)
 
     def initial(self):
         """
@@ -257,426 +263,217 @@ class groundwater_modflow:
         Configures aquifer properties, boundary conditions, and solver settings.
         """
 
-        # check if we we are using steady state option. Not yet implemented in this version,
-        # the user should provide an estimate of the initial water table ("head" variable in the initial part)
+        # no steady state run: the initial water table is given (initial_water_table_depth or init_water_table)
+        self.var.modflow_timestep = 1
+        if not self.var.modflow:
+            return
 
-        # ModFlow6 version is only daily currently
-        self.var.modflowsteady = False  # returnBool('modflow_steadystate')
-        self.var.modflow_timestep = 1  # int(loadmap('modflow_timestep'))
+        self.read_settings()
+        # ModFlow grid, index pairs of CWatM / ModFlow cells and conversion of maps (grid.py)
+        self.grid = ModflowGrid(self.var.cellArea)
+        modflow_basin = self.grid.basin
+        topography = np.where(modflow_basin, self.grid.read_tif('topo_modflow'), np.nan)
+        # the percentage of river at ModFlow resolution, used to partition the upward flow from ModFlow into
+        # capillary rise and baseflow; correction river_percent_factor of the settings file (only where there
+        # is a river), between 0 and 1
+        channel_ratio = self.grid.read_tif('chanRatio')
+        factor_channelratio = float(binding['river_percent_factor']) if 'river_percent_factor' in binding else 0.
+        self.var.channel_ratio = np.where(channel_ratio > 0, np.clip(channel_ratio + factor_channelratio, 0, 1), 0)
 
-        self.var.Ndays_steady = 0  # int(loadmap('Ndays_steady'))
+        # aquifer properties: one value or a map at CWatM resolution (permeability in m/s -> m/day)
+        self.permeability = self.grid.from_cwatm_cells('permeability', 1e-6, factor=86400)
+        self.porosity = self.grid.from_cwatm_cells('poro', 0.02)
+        self.thickness = self.grid.from_cwatm_cells('thickness', 50)
 
-        if self.var.modflow:
+        self.aquifer_top(topography)
+        head, head_modflow = self.initial_head()
 
-            verboseGW = False
-            if 'verbose_GW' in binding:
-                verboseGW = returnBool('verbose_GW')
+        # Defining potential leakage under rivers and lakes or reservoirs
+        self.var.leakageriver_factor = 0
+        if 'leakageriver_permea' in binding:
+            self.var.leakageriver_factor = loadmap('leakageriver_permea')  # in m/day
+            if self.verbose:
+                print('=> Potential groundwater inflow from rivers is ', self.var.leakageriver_factor, ' m/day')
+        self.var.leakagelake_factor = 0
+        if 'leakagelake_permea' in binding:
+            self.var.leakagelake_factor = loadmap('leakagelake_permea')  # in m/day
+            if self.verbose:
+                print('=> Groundwater inflow from lakes/reservoirs is ', self.var.leakagelake_factor, ' m/day')
 
-            # Define the size of the ModFlow time step - means that ModFlow is called each "modflow_timestep"
-            self.var.modflow_timestep = int(loadmap('modflow_timestep'))
-            if verboseGW:
-                print('ModFlow is activated')
-                print('ModFlow timestep is : ', self.var.modflow_timestep, ' days\n')
+        pumpingloc = self.pumping_wells(modflow_basin)
 
-            modflow_directory = cbinding('PathGroundwaterModflow')
-            modflow_directory_output = cbinding('PathGroundwaterModflowOutput')
-            directory_mf6dll = cbinding('path_mf6dll')
-            if not os.path.isdir(directory_mf6dll):
-                msg = "Error 222: Path to Modflow6 files does not exists "
-                raise CWATMDirError(directory_mf6dll, msg, sname='path_mf6dll')
-            nlay = int(loadmap('nlay'))
+        # initializing the ModFlow6 model (specific yield: also the porosity map without pumping - before 2026-10
+        # float(cbinding('poro')), which stopped with a porosity map)
+        self.modflow = self.ModFlow(
+            'transient',
+            cbinding('PathGroundwaterModflowOutput'),
+            self.directory_mf6dll,
+            timestep=self.var.modflow_timestep,
+            specific_storage=0,
+            specific_yield=self.porosity,
+            nlay=self.nlay,
+            nrow=self.grid.domain['nrow'],
+            ncol=self.grid.domain['ncol'],
+            rowsize=self.grid.domain['rowsize'],
+            colsize=self.grid.domain['colsize'],
+            top=self.layer_boundaries[0],
+            bottom=self.layer_boundaries[1],
+            basin=modflow_basin,
+            head=head_modflow,
+            topography=self.layer_boundaries[0],
+            permeability=self.permeability,
+            load_from_disk=self.load_from_disk,
+            setpumpings=self.var.GW_pumping,
+            pumpingloc=pumpingloc,
+            verbose=self.verbose,
+            complex_solver=self.var.use_complex_solver_for_modflow,
+            super_complex_solver=self.var.use_super_complex_solver_for_modflow,
+            binary=self.binary)
 
-            rasterio = importlib.import_module("rasterio", package=None)
-            with rasterio.open(cbinding('modflow_basin'), 'r') as src:
-                modflow_basin = src.read(1).astype(bool)  # read in as 2-dimensional array (nrows, ncols).
-                self.domain = {
-                    'rowsize': abs(src.profile['transform'].e),
-                    'colsize': abs(src.profile['transform'].a),
-                    'nrow': int(src.profile['height']),
-                    'ncol': int(src.profile['width']),
-                    'west': src.profile['transform'].c,
-                    'east': src.profile['transform'].c + (src.profile['width'] - 1) * abs(src.profile['transform'].a),
-                    'north': src.profile['transform'].f,
-                    'south': src.profile['transform'].f - (src.profile['height'] - 1) * abs(src.profile['transform'].e)
-                }
-                domain['rowsize'] = abs(src.profile['transform'].e)
-                domain['colsize'] = abs(src.profile['transform'].a)
-                domain['nrow'] = int(src.profile['height'])
-                domain['ncol'] = int(src.profile['width'])
-                domain['west'] = src.profile['transform'].c
-                domain['east'] = (src.profile['transform'].c +
-                                  (src.profile['width'] - 1) * abs(src.profile['transform'].a))
-                domain['north'] = src.profile['transform'].f
-                domain['south'] = (src.profile['transform'].f -
-                                   (src.profile['height'] - 1) * abs(src.profile['transform'].e))
-                # domain variables will be used here, and in data handlind to save netcdf maps
+        # top of the aquifer at CWatM resolution (constant) for the groundwater depth
+        self.top_cwatm = self.grid.to_cwatm(self.layer_boundaries[0])
 
-            # Coef to multiply transmissivity and storage coefficient (because ModFlow convergence is better if
-            # aquifer's thicknes is big and permeability is small)
-            self.coefficient = 1
+        # initializing arrays
+        # capillary rise from MODFLOW - from the init file for a restart (used by the soil before MODFLOW runs)
+        self.var.capillar = self.var.load_initial('capillar', default=globals.inZero.copy())
+        self.var.baseflow = globals.inZero.copy()
 
-            with rasterio.open(cbinding('topo_modflow'), 'r') as src:
-                topography = src.read(1).astype(np.float32)
-                topography[modflow_basin == False] = np.nan
+        # sumed up groundwater recharge for the number of days
+        self.var.sumed_sum_gwRecharge = globals.inZero.copy()
+        self.var.modflow_compteur = 0  # number of the MODFLOW run (water balance check file)
+        # percentage discrepancy error of each MODFLOW run: (number of the MODFLOW run, date, error in %)
+        self.var.modflowdiscrepancy = []
 
-            with rasterio.open(cbinding('chanRatio'), 'r') as src:
-                # the percentage of river is given at ModFlow resolution, it will be used to partitionning upward flow
-                # from ModFlow into capillary rise and baseflow
-                self.var.channel_ratio = src.read(1).astype(np.float32)
-                self.var.waterdemandFixed = False
+        # water table at ModFlow resolution and converted into CWatM map
+        self.var.modflow_watertable = np.copy(head)
+        self.var.head = self.grid.to_cwatm(head)
 
-                # if a correcting add river_percent_factor is in settingsfile add this to self.var.channel_ratio,
-                # but 0 <= self.var.channel_ratio <= 1 correcting the channelratio from the value indicated in the
-                # settings file
-                factor_channelratio = 0.
-                if "river_percent_factor" in binding:
-                    factor_channelratio = float(binding['river_percent_factor'])
-                self.var.channel_ratio = np.where(self.var.channel_ratio > 0,
-                                                  np.where(self.var.channel_ratio + factor_channelratio > 1, 1,
-                                                           np.where(self.var.channel_ratio + factor_channelratio < 0, 0,
-                                                                    self.var.channel_ratio + factor_channelratio)), 0)
+        # initial groundwater storage at ModFlow resolution and as CWatM map (in meter, used in water demand)
+        self.var.groundwater_storage_top_layer = self.storage(head)
+        self.var.groundwater_storage_available = self.grid.to_cwatm(self.var.groundwater_storage_top_layer)
+        # groundwater storage at full capacity: limits the pumping in water demand
+        self.var.gwstorage_full = self.grid.to_cwatm(
+            (self.layer_boundaries[0] - self.layer_boundaries[1]) * self.porosity[0])
 
-            # uploading arrays allowing to transform 2D arrays from ModFlow to CWatM and conversely
-            modflow_x = np.load(os.path.join(cbinding('cwatm_modflow_indices'), 'modflow_x.npy'))
-            modflow_y = np.load(os.path.join(cbinding('cwatm_modflow_indices'), 'modflow_y.npy'))
-            cwatm_x = np.load(os.path.join(cbinding('cwatm_modflow_indices'), 'cwatm_x.npy'))
-            cwatm_y = np.load(os.path.join(cbinding('cwatm_modflow_indices'), 'cwatm_y.npy'))
+        # permeability need to be translated into CWatM map to compute leakage from surface water bodies
+        self.var.permeability = self.grid.to_cwatm(self.permeability[0])
 
-            self.indices = {
-                'area': np.load(os.path.join(cbinding('cwatm_modflow_indices'), 'area.npy')),
-                'ModFlow_index': np.array(modflow_y * self.domain['ncol'] + modflow_x),
-                'CWatM_index': np.array(cwatm_y * maskinfo['shape'][1] + cwatm_x)
-            }
+    def water_balance(self, recharge, outflow, storage_change, pumping):
+        """
+        Water balance error of the aquifer in % of the mean flow (m3 per MODFLOW period): recharge = capillary rise
+        + baseflow (outflow) + storage change - pumping (actual pumping < 0)
+        """
+        mid_gwflow = np.nansum(((recharge + outflow) * self.grid.cell_area - pumping) / 2)
+        return np.round(100 * (np.nansum(
+            (recharge - outflow - storage_change) * self.grid.cell_area + pumping) / mid_gwflow), 2)
 
-            indices_cell_area = np.bincount(self.indices['CWatM_index'], weights=self.indices['area'],
-                                            minlength=maskinfo['mapC'][0])
-            area_correction = (decompress(self.var.cellArea, nanvalue=0) / indices_cell_area)[
-                self.indices['CWatM_index']]
-            self.indices['area'] = self.indices['area'] * area_correction
+    def write_discrepancy(self):
+        """Writing the ModFlow discrepancies above 0.01 % to ModFlow_DiscrepancyError.txt"""
+        threeshold_modflow_error = 0.01  # in percentage
+        with open(cbinding('PathOut') + '/' + 'ModFlow_DiscrepancyError.txt', "w") as discrep_file:
+            sum_modflow_errors = 0
+            for nrun, date, error in self.var.modflowdiscrepancy:
+                if abs(error) > threeshold_modflow_error:  # if error is higer than threeshold in %, we print it.
+                    discrep_file.write("ModFlow stress period " + str(nrun) + " (" + date +
+                                       ") : percentage error in ModFlow is " + str(error) + "\n")
+                    sum_modflow_errors += 1
+            if sum_modflow_errors == 0:
+                discrep_file.write(
+                    "ModFlow error was always below " + str(threeshold_modflow_error) + ' % during the simulation')
 
-            permeability_m_s = cbinding('permeability')
-            if is_float(permeability_m_s):  # aquifer permeability is constant
-                permeability_m_s = float(permeability_m_s)
-                self.permeability = np.full((nlay, self.domain['nrow'], self.domain['ncol']),
-                                            (24 * 3600 * permeability_m_s) / self.coefficient, dtype=np.float32)
-            else:  # aquifer permeability is given as a tif file at CWatM resolution
-                perm1 = loadmap('permeability') + globals.inZero.copy()
-                perm2 = maskinfo['maskall'].copy()
-                perm2[~maskinfo['maskflat']] = perm1[:]
-                # CWATM 2D array is converted to Modflow 2D array
+    def modflow_run(self):
+        """
+        One MODFLOW run: recharge and pumping of the last MODFLOW period to ModFlow, run, then head, storage,
+        capillary rise, baseflow, actual pumping and saturated fraction back to CWatM
+        """
+        self.var.modflow_compteur += 1
 
-                p1 = maskinfo['maskall'].copy()
-                p1[~maskinfo['maskflat']] = perm1[:]
-                p1 = p1.reshape(maskinfo['shape'])
-                p1[p1.mask] = -9999
+        # converting the CWatM recharge into ModFlow recharge (in meter)
+        # we avoid recharge on saturated ModFlow cells, thus CWatM recharge is concentrated  on unsaturated cells
+        # (a fully saturated CWatM cell, capriseindex = 1, gets no recharge - checked 2026-10: CWatM recharge
+        # is already 0 there, Bhima 40 days: 0.00 % of the recharge)
+        corrected_recharge = np.where(self.var.capriseindex == 1, 0,
+                                      self.var.sumed_sum_gwRecharge / (1 - self.var.capriseindex))
+        groundwater_recharge_modflow = self.grid.to_modflow(corrected_recharge, nanvalue=0)
+        groundwater_recharge_modflow = np.where(self.var.modflow_watertable - self.layer_boundaries[0] >= 0,
+                                                0, groundwater_recharge_modflow)
+        # give the information to ModFlow
+        self.modflow.set_recharge(groundwater_recharge_modflow)
 
-                self.permeability = np.zeros((nlay, self.domain['nrow'], self.domain['ncol']))
-                for i in range(len(modflow_x)):
-                    v = p1[cwatm_y[i], cwatm_x[i]]
-                    self.permeability[0, modflow_y[i], modflow_x[i]] = v
+        # pumping: groundwater demand of the CWatM water demand module (wells in each Modflow cell),
+        # given to ModFlow in m3 per MODFLOW period and < 0
+        if self.var.GW_pumping:
+            groundwater_abstraction = (- self.grid.to_modflow(self.var.modfPumpingM)
+                                       * self.grid.domain['rowsize'] * self.grid.domain['colsize'])
+            self.modflow.set_groundwater_abstraction(groundwater_abstraction)
 
-                self.permeability[np.isnan(self.permeability)] = 1e-6
-                self.permeability[self.permeability == 0] = 1e-6
-                self.permeability[self.permeability < 0] = 1e-6
-                # self.permeability[self.permeability <1e-6] = 1e-6
-                # self.permeability[self.permeability > 5e-5] = 5e-5
-                self.permeability = self.permeability * 86400 / self.coefficient
+        # running ModFlow
+        self.modflow.step()
 
-            self.porosity = cbinding('poro')  # default = 0.1
-            if is_float(self.porosity):  # aquifer porosity is constant
-                self.porosity = float(self.porosity)
-                self.porosity = np.full((nlay, self.domain['nrow'], self.domain['ncol']), self.porosity,
-                                        dtype=np.float32)
-            else:  # aquifer porosity is given as a tif file at CWatM resolution
-                poro = loadmap('poro')
-                p1 = maskinfo['maskall'].copy()
-                p1[~maskinfo['maskflat']] = poro[:]
-                p1 = p1.reshape(maskinfo['shape'])
-                p1[p1.mask] = -9999
+        # extracting the new simulated hydraulic head map
+        head = self.modflow.decompress(self.modflow.head.astype(np.float32))
 
-                self.porosity = np.zeros((nlay, self.domain['nrow'], self.domain['ncol']))
-                for i in range(len(modflow_x)):
-                    v = p1[cwatm_y[i], cwatm_x[i]]
-                    self.porosity[0, modflow_y[i], modflow_x[i]] = v
+        # groundwater storage at ModFlow resolution (in meter) - the previous one for the water balance check
+        groundwater_storage_top_layer0 = self.var.groundwater_storage_top_layer
+        self.var.groundwater_storage_top_layer = self.storage(head)
+        # converting the groundwater storage from ModFlow to CWatM map (in meter)
+        self.var.groundwater_storage_available = self.grid.to_cwatm(self.var.groundwater_storage_top_layer)
 
-                self.porosity[np.isnan(self.porosity)] = 0.02
-                self.porosity[self.porosity == 0] = 0.02
-                self.porosity[self.porosity < 0] = 0.02
+        # groundwater outflow = drain flow of MODFLOW (DRN: conductance = permeability * cell area * timestep,
+        # elevation = top), in m/day per ModFlow cell - before 2026-10 recomputed from the float32 head
+        groundwater_outflow = self.modflow.decompress(
+            -self.modflow.drainage / (self.grid.cell_area * self.var.modflow_timestep))
+        groundwater_outflow[~self.modflow.basin] = 0
+        # saturated ModFlow cells: for the next step, it will prevent recharge where ModFlow cells are saturated,
+        # even if there is no capillary rise (where h==topo)
+        groundwater_outflow2 = np.where(head - self.layer_boundaries[0] >= 0, 1.0, 0.0)
 
-            self.thickness = cbinding('thickness')  # default = 0.1
-            if is_float(self.thickness):  # aquifer porosity is constant
-                self.thickness = float(self.thickness)
-                self.thickness = np.full((nlay, self.domain['nrow'], self.domain['ncol']), self.thickness,
-                                         dtype=np.float32)
-            else:  # aquifer porosity is given as a tif file at CWatM resolution
-                thickness = loadmap('thickness')
-                p1 = maskinfo['maskall'].copy()
-                p1[~maskinfo['maskflat']] = thickness[:]
-                p1 = p1.reshape(maskinfo['shape'])
-                p1[p1.mask] = -9999
+        # capillary rise and baseflow from groundwater are allocated in function of the river percentage of each
+        # ModFlow cell (still in ModFlow coordinates)
+        capillar = groundwater_outflow * (1 - self.var.channel_ratio)
+        baseflow = groundwater_outflow * self.var.channel_ratio
 
-                self.thickness = np.zeros((nlay, self.domain['nrow'], self.domain['ncol']))
-                for i in range(len(modflow_x)):
-                    v = p1[cwatm_y[i], cwatm_x[i]]
-                    self.thickness[0, modflow_y[i], modflow_x[i]] = v
+        # actual ModFlow pumping in m3 (MODFLOW reduces the pumping if a cell is almost dry) - water cycle output
+        # (modfPumpingM_actual) and water balance check; one well in each active ModFlow cell (wells_index)
+        actual_pumping_modflow_array = 0
+        if self.var.GW_pumping:
+            actual_pumping = self.modflow.actualwell_rate.astype(np.float32)
+            actual_pumping_modflow_array = np.bincount(
+                self.var.wells_index, weights=actual_pumping,
+                minlength=self.grid.nrow * self.grid.ncol).reshape((self.grid.nrow, self.grid.ncol))
+            self.var.modfPumpingM_actual = - self.grid.to_cwatm(actual_pumping_modflow_array) / self.grid.cell_area
 
-                self.thickness[np.isnan(self.thickness)] = 50
-                self.thickness[self.thickness == 0] = 50
-                self.thickness[self.thickness < 0] = 50
+        if self.var.writeerror:
+            #  saving modflow discrepancy, it will be written a text file at the end of the simulation
+            error = self.water_balance(groundwater_recharge_modflow, (capillar + baseflow) * self.var.modflow_timestep,
+                                       self.var.groundwater_storage_top_layer - groundwater_storage_top_layer0,
+                                       actual_pumping_modflow_array)
+            self.var.modflowdiscrepancy.append((self.var.modflow_compteur, dateVar['currDatestr'], error))
 
-            # Converting the CWatM soil thickness into ModFlow map, then soil thickness will be removed from
-            # topography if there is a lake or a reservoir soil depth should be replace (instead of 0) by the
-            # averaged soil depth (if not the topography under the lake is above neighboring cells)
+        # converting flows from ModFlow to CWatM domain
+        self.var.capillar = self.grid.to_cwatm(capillar)
+        baseflow = baseflow.astype('float64')  # required for runoff concentration (lib2.runoffConc)
+        self.var.baseflow = self.grid.to_cwatm(baseflow)
 
-            soildepth_as_GWtop = False
-            if 'use_soildepth_as_GWtop' in binding:
-                soildepth_as_GWtop = returnBool('use_soildepth_as_GWtop')
-            correct_depth_underlakes = False
-            if 'correct_soildepth_underlakes' in binding:
-                correct_depth_underlakes = returnBool('correct_soildepth_underlakes')
+        # fraction of saturated ModFlow cells in each CWatM cell (water table >= top of the aquifer)
+        self.var.capriseindex = self.grid.fraction_to_cwatm(groundwater_outflow2)
 
-            if soildepth_as_GWtop:  # topographic minus soil depth map is used as groundwater upper boundary
-                # in some regions or models soil depth is around zeros under lakes, so it should be similar to neighboring cells
-                if correct_depth_underlakes:
-                    if verboseGW:
-                        print('Topography minus soil depth is the upper limit of groundwater. Correcting depth under lakes.')
-                    waterBodyID_temp = loadmap('waterBodyID').astype(np.int64)
-                    soil_depth_temp = np.where(waterBodyID_temp != 0,
-                                               np.nanmedian(self.var.soildepth12) - loadmap('depth_underlakes'),
-                                               self.var.soildepth12)
-                    soil_depth_temp = np.where(self.var.soildepth12 < 0.4, np.nanmedian(self.var.soildepth12),
-                                               self.var.soildepth12)  # some cells around lake have small soil depths
-                    soildepth_modflow = self.CWATM2modflow(decompress(soil_depth_temp)) + 0.05
-                    soildepth_modflow[np.isnan(soildepth_modflow)] = 0
-                else:
-                    if verboseGW:
-                        print('Topography minus soil depth is used as upper limit of groundwater. No correction of depth under lakes')
-                    soildepth_modflow = self.CWATM2modflow(decompress(self.var.soildepth12)) + 0.05
-                    soildepth_modflow[np.isnan(soildepth_modflow)] = 0
-            else:  # topographic map is used as groundwater upper boundary
-                if correct_depth_underlakes:  # we make a manual correction
-                    if verboseGW:
-                        print('Topography is used as upper limit of groundwater. Correcting depth under lakes. It can make ModFlow difficulties to converge')
-                    waterBodyID_temp = loadmap('waterBodyID').astype(np.int64)
-                    soil_depth_temp = np.where(waterBodyID_temp != 0, loadmap('depth_underlakes'), 0)
-                    soildepth_modflow = self.CWATM2modflow(decompress(soil_depth_temp))
-                    soildepth_modflow[np.isnan(soildepth_modflow)] = 0
-                else:
-                    if verboseGW:
-                        print('=> Topography is used as upper limit of groundwater. No correction of depth under lakes')
-                    soildepth_modflow = np.zeros((self.domain['nrow'], self.domain['ncol']), dtype=np.float32)
+        # updating water table maps both at CWatM and ModFlow resolution
+        self.var.head = self.grid.to_cwatm(head)
+        self.var.gwdepth = self.top_cwatm - self.var.head
 
-            # defining the top of the ModFlow layer
-            self.layer_boundaries = np.empty((nlay + 1, self.domain['nrow'], self.domain['ncol']), dtype=np.float32)
-            self.layer_boundaries[0] = topography - soildepth_modflow
-            # defining the bottom of the ModFlow layer
-            self.layer_boundaries[1] = self.layer_boundaries[0] - self.thickness
+        if 'gw_depth_observations' in binding:
+            self.var.gwdepth_difference_sim_obs = self.var.gwdepth - self.var.gwdepth_observations
+        if 'gw_depth_sim_obs' in binding:
+            self.var.gwdepth_adjusted = np.maximum(self.var.gwdepth - self.var.gwdepth_adjuster, 0)
+            self.var.modflow_head_adjusted = self.layer_boundaries[0] - self.grid.to_modflow(self.var.gwdepth_adjusted)
 
-            if not correct_depth_underlakes:  # we make a manual correction
-                waterBodyID_temp = loadmap('waterBodyID').astype(np.int64)
-            lake_modf = np.where(waterBodyID_temp != 0, 1, 0)
-            lake_modf = self.CWATM2modflow(decompress(lake_modf))
-            soildepth_modflow[np.isnan(lake_modf)] = 0
-            self.layer_boundaries[0] = np.where(lake_modf <= 0, np.where(self.var.channel_ratio > 0,
-                                                                         self.layer_boundaries[0] - 1,
-                                                                         self.layer_boundaries[0]),
-                                                self.layer_boundaries[0])
+        self.var.modflow_watertable = np.copy(head)
 
-            # saving soil thickness at modflow resolution to compute water table depth in postprocessing
-            self.var.modflowtotalSoilThickness = soildepth_modflow
-
-            # defining the initial water table map (it can be a hydraulic head map previously simulated)
-            self.var.load_init_water_table = False
-            if 'load_init_water_table' in binding:
-                self.var.load_init_water_table = returnBool('load_init_water_table')
-
-            if self.var.load_init_water_table:
-                if verboseGW:
-                    print('=> Initial water table depth is uploaded from ', cbinding('init_water_table'))
-                watertable = cbinding('init_water_table')
-                if watertable.split(".")[-1] == "npy":
-                    head = np.load(cbinding('init_water_table'))
-                else:
-                    ds = Dataset(watertable)
-                    var = list(ds.variables.keys())[-1]
-                    head = ds[var][:].data
-
-            else:
-                start_watertabledepth = loadmap('initial_water_table_depth')
-                if verboseGW:
-                    print('=> Water table depth is - ', start_watertabledepth, ' m at the begining')
-                head = self.layer_boundaries[
-                           0] - start_watertabledepth  # initiate head 2 m below the top of the aquifer layer
-
-            # Defining potential leakage under rivers and lakes or reservoirs
-            leakageriver_factor = 0
-            if 'leakageriver_permea' in binding:
-                self.var.leakageriver_factor = loadmap('leakageriver_permea')  # in m/day
-                if verboseGW:
-                    print('=> Potential groundwater inflow from rivers is ', self.var.leakageriver_factor, ' m/day')
-            leakagelake_factor = 0
-            if 'leakagelake_permea' in binding:
-                self.var.leakagelake_factor = loadmap('leakagelake_permea')  # in m/day
-                if verboseGW:
-                    print('=> Groundwater inflow from lakes/reservoirs is ', self.var.leakagelake_factor, ' m/day')
-
-            # test if ModFlow pumping is used as defined in settings file
-            Groundwater_pumping = False
-            if 'Groundwater_pumping' in binding:
-                self.var.GW_pumping = returnBool('Groundwater_pumping')
-            if verboseGW:
-                print('=> Groundwater pumping should be deactivated if includeWaterDemand is False')
-
-            self.var.use_complex_solver_for_modflow = False
-            if 'use_complex_solver_for_modflow' in option:
-                if checkOption('use_complex_solver_for_modflow'):
-                    self.var.use_complex_solver_for_modflow = True
-
-            self.var.use_super_complex_solver_for_modflow = False
-            if 'use_super_complex_solver_for_modflow' in option:
-                if checkOption('use_super_complex_solver_for_modflow'):
-                    self.var.use_super_complex_solver_for_modflow = True
-
-            self.var.availableGWStorageFraction = 0.85
-            if self.var.GW_pumping:
-                if verboseGW:
-                    print('THE PUMPING MAP SHOULD BE DEFINED (In transient.py ALSO LINE 420) BEFORE TO RUN THE MODEL AND BE THE SAME FOR ALL THE SIMULATION')
-                # creating a mask to set up pumping wells, TO DO MANUALLY HERE OR TO IMPORT AS A MAP, because running the model with zero pumping rates every cells is consuming
-                self.wells_mask = np.copy(modflow_basin)
-                # for Burgenland we set up only one well for each CWATM cell (1*1km), thus only one well every ten ModFlow cells
-                # TODO NumOfModflowWellsInCWatMCell = 1 #Must be even or 1
-                self.var.wells_index = []
-                index_modflowcell = 0
-                for ir in range(self.domain['nrow']):
-                    for ic in range(self.domain['ncol']):
-                        if modflow_basin[ir][
-                            ic] == 1:  # and int((ir+5.0)/10.0) - (ir+5.0)/10.0 == 0 and int((ic+5.0)/10.0) - (ic+5.0)/10.0 == 0:
-                            # if ir != 0 and ic != 0 and ir != self.domain['nrow']-1 and ic != self.domain['ncol']-1:
-                            self.wells_mask[ir][ic] = True
-                            self.var.wells_index.append(index_modflowcell)
-                        else:
-                            self.wells_mask[ir][ic] = False
-                        index_modflowcell += 1
-
-                if 'water_table_limit_for_pumping' in binding:
-                    # if available storage is too low, no pumping in this cell
-                    self.var.availableGWStorageFraction = np.maximum(
-                        np.minimum(0.98, loadmap('water_table_limit_for_pumping')),
-                        0)  # if 85% of the ModFlow cell is empty, we prevent pumping in this cell
-                if verboseGW:
-                    print('=> Pumping in the ModFlow layer is prevented if water table is under',
-                          int(100 * (1 - self.var.availableGWStorageFraction)), '% of the layer capacity')
-
-                # initializing the ModFlow6 model
-                self.modflow = ModFlowSimulation(
-                    'transient',
-                    modflow_directory_output,
-                    directory_mf6dll,
-                    ndays=globals.dateVar['intEnd'],
-                    timestep=self.var.modflow_timestep,
-                    specific_storage=0,
-                    specific_yield=self.porosity,
-                    nlay=nlay,
-                    nrow=self.domain['nrow'],
-                    ncol=self.domain['ncol'],
-                    rowsize=self.domain['rowsize'],
-                    colsize=self.domain['colsize'],
-                    top=self.layer_boundaries[0],
-                    bottom=self.layer_boundaries[1],
-                    basin=modflow_basin,
-                    head=head,
-                    topography=self.layer_boundaries[0],
-                    permeability=self.permeability,
-                    load_from_disk=returnBool('load_modflow_from_disk'),
-                    setpumpings=True,
-                    pumpingloc=self.wells_mask,
-                    verbose=verboseGW,
-                    complex_solver=self.var.use_complex_solver_for_modflow,
-                    super_complex_solver=self.var.use_super_complex_solver_for_modflow)
-
-
-
-            else:  # no pumping
-                # initializing the ModFlow6 model
-                self.modflow = ModFlowSimulation(
-                    'transient',
-                    modflow_directory_output,
-                    directory_mf6dll,
-                    ndays=globals.dateVar['intEnd'],
-                    timestep=self.var.modflow_timestep,
-                    specific_storage=0,
-                    specific_yield=float(cbinding('poro')),
-                    nlay=nlay,
-                    nrow=self.domain['nrow'],
-                    ncol=self.domain['ncol'],
-                    rowsize=self.domain['rowsize'],
-                    colsize=self.domain['colsize'],
-                    top=self.layer_boundaries[0],
-                    bottom=self.layer_boundaries[1],
-                    basin=modflow_basin,
-                    head=head,
-                    topography=self.layer_boundaries[0],
-                    permeability=self.permeability,
-                    load_from_disk=returnBool('load_modflow_from_disk'),
-                    setpumpings=False,
-                    pumpingloc=None,
-                    verbose=verboseGW,
-                    complex_solver=self.var.use_complex_solver_for_modflow,
-                    super_complex_solver=self.var.use_super_complex_solver_for_modflow)
-
-            # initializing arrays
-            self.var.capillar = globals.inZero.copy()
-            self.var.baseflow = globals.inZero.copy()
-            self.var.depth = globals.inZero.copy()
-
-            self.modflow_watertable = np.copy(head)  # water table will be also saved at modflow resolution
-
-            # sumed up groundwater recharge for the number of days
-            self.var.sumed_sum_gwRecharge = globals.inZero
-            self.var.modflow_compteur = 0  # Usefull ?
-
-            self.var.modflow_watertable = np.copy(head)  # water table will be also saved at modflow resolution
-
-            # initial water table map is converting into CWatM map
-            self.var.head = compressArray(self.modflow2CWATM(head))
-
-            self.var.writeerror = False
-            if 'writeModflowError' in binding:
-                self.var.writeerror = returnBool('writeModflowError')
-            if self.var.writeerror:
-                # This one is to check model's water balance between ModFlow and CwatM exchanges ModFlow discrepancy
-                # for each time step can be extracted from the listing file (.lst file) at the end of the simulation
-                # as well as the actual pumping rate applied in ModFlow (ModFlow automatically reduces the pumping
-                # rate once the ModFlow cell is almost saturated)
-                if verboseGW:
-                    print(
-                    '=> ModFlow-CwatM water balance is checked\nModFlow discrepancy for each time step can be extracted from the listing file (.lst file) at the end of the simulation,\nas well as the actual pumping rate applied in ModFlow (ModFlow automatically reduces the pumping rate once the ModFlow cell is almost saturated)')
-                self.var.modflowdiscrepancy = np.zeros(
-                    dateVar['intEnd'])  # Will contain percentage discrepancy error for ModFLow simulation
-                self.var.modflow_cell_area = self.domain['rowsize'] * self.domain['colsize']  # in m2
-            else:
-                if verboseGW:
-                    print(
-                    '=> ModFlow-CwatM water balance is not checked\nModFlow discrepancy for each time step can be extracted from the listing file (.lst file) at the end of the simulation,\nas well as the actual pumping rate applied in ModFlow (ModFlow automatically reduces the pumping rate once the ModFlow cell is almost saturated)')
-
-            # then, we got the initial groundwater storage map at ModFlow resolution (in meter)
-            self.var.groundwater_storage_top_layer = (np.where(head > self.layer_boundaries[0],
-                                                               self.layer_boundaries[0], head) - self.layer_boundaries[
-                                                          1]) * self.porosity[0]
-
-            # converting the groundwater storage from ModFlow to CWatM map (in meter)
-            self.var.groundwater_storage_available = compressArray(
-                self.modflow2CWATM(self.var.groundwater_storage_top_layer))  # used in water demand module then
-            self.var.gwstorage_full = compressArray(self.modflow2CWATM(
-                (self.layer_boundaries[0] - self.layer_boundaries[1]) * self.porosity[
-                    0]))  # use in water damnd to limit pumping
-
-            # permeability need to be translated into CWatM map to compute leakage from surface water bodies
-            self.var.permeability = compressArray(self.modflow2CWATM(self.permeability[0])) * self.coefficient
-
-        else:
-            ii = 1
-            # print('=> ModFlow coupling is not used')
+        # Re-initializing the weekly (orbi-weekly, or monthly...) sum of groundwater pumping
+        self.var.modfPumpingM = globals.inZero.copy()
+        # Re-initializing the sum of recharge for the next MODFLOW run (as the pumping above)
+        self.var.sumed_sum_gwRecharge = 0
 
     def dynamic(self):
         """
@@ -687,194 +484,26 @@ class groundwater_modflow:
         and data exchange between surface and groundwater models.
         """
 
-        # Sumed recharge is re-initialized here for water budget computing purpose
-        self.var.modfPumpingM_actual = globals.inZero.copy()  # compressArray(self.modflow2CWATM(self.permeability[0]*0))
+        # actual pumping of MODFLOW: only on MODFLOW days (water cycle output)
+        self.var.modfPumpingM_actual = globals.inZero.copy()
 
-        if self.var.modflow_timestep == 1 or ((dateVar['curr'] - int(dateVar[
-                                                                         'curr'] / self.var.modflow_timestep) * self.var.modflow_timestep) == 1):  # if it is the first step of the week,months...
-            # ? Can the above line be replaced with: (dateVar['curr']  % self.var.modflow_timestep) == 0:
-            # setting sumed up recharge again to 7 (or 14 or 30...), will be sumed up for the following 7 days (or 14 or 30...)
-            self.var.sumed_sum_gwRecharge = 0
-
-        # Adding recharge of the day to the weekly (or bi-weekly, or monthly...) sum
+        # Adding recharge of the day to the weekly (or bi-weekly, or monthly...) sum - the sum starts again after
+        # each MODFLOW run (at the end of modflow_run), also after the first run on day 1
         self.var.sumed_sum_gwRecharge = self.var.sumed_sum_gwRecharge + self.var.sum_gwRecharge
 
         # Every modflow timestep (e.g. 7,14,30... days)
-        # print('dateVarcurr', dateVar['curr'])
         if dateVar['curr'] == 1 or (dateVar['curr'] % self.var.modflow_timestep) == 0:
+            self.modflow_run()
 
-            self.var.modflow_compteur += 1
+        # restart: MODFLOW head (float64, MODFLOW grid) saved together with the init file (save_initial / StepInit)
+        # as netCDF <initSave>_<date>_modflowhead.nc - also usable as init_water_table
+        if self.var.saveInit and dateVar['curr'] in dateVar['intInit']:
+            headfile = self.var.saveInitFile + "_%02d%02d%02d_modflowhead.nc" % (
+                dateVar['currDate'].year, dateVar['currDate'].month, dateVar['currDate'].day)
+            self.grid.write_netcdf(headfile, 'head', self.modflow.decompress(
+                np.asarray(self.modflow.head, dtype=np.float64)), 'm', 'MODFLOW head (water table) ' +
+                dateVar['currDate'].strftime('%d/%m/%Y'))
 
-            # converting the CWatM recharge into ModFlow recharge (in meter)
-            # we avoid recharge on saturated ModFlow cells, thus CWatM recharge is concentrated  on unsaturated cells
-            corrected_recharge = np.where(self.var.capriseindex == 1, 0,
-                                          self.var.sumed_sum_gwRecharge / (1 - self.var.capriseindex))
-            groundwater_recharge_modflow = self.CWATM2modflow(decompress(corrected_recharge, nanvalue=0),
-                                                              correct_boundary=False)
-            groundwater_recharge_modflow = np.where(self.var.modflow_watertable - self.layer_boundaries[0] >= 0,
-                                                    0, groundwater_recharge_modflow)
-            # give the information to ModFlow
-            self.modflow.set_recharge(groundwater_recharge_modflow)
-
-            ## INSTALLING WELLS
-            if self.var.GW_pumping:
-                ## Groundwater demand from CWatM installs wells in each Modflow cell
-
-                # Groundwater pumping demand from the CWatM waterdemand module, will be decompressed to 2D array
-                # CWatM 2D groundwater pumping array is converted into Modflow 2D array
-                # Pumping is given to ModFlow in m3 and < 0
-                # print('mean modflow pumping [m]: ', np.nanmean(self.var.modfPumpingM))
-                groundwater_abstraction = - self.CWATM2modflow(decompress(self.var.modfPumpingM)) * domain['rowsize'] * \
-                                          domain['colsize']
-                # * 100 because applied only in one ModFlow cell in Burgenland
-                # give the information to ModFlow
-                self.modflow.set_groundwater_abstraction(groundwater_abstraction)
-
-            # running ModFlow
-            self.modflow.step()
-            # self.modflow.finalize()
-
-            # extracting the new simulated hydraulic head map
-            head = self.modflow.decompress(self.modflow.head.astype(np.float32))
-            # self.var.head = compressArray(self.modflow2CWATM(head))
-
-            if self.var.writeerror:
-                # copying the previous groundwater storage at ModFlow resolution (in meter)
-                groundwater_storage_top_layer0 = np.copy(
-                    self.var.groundwater_storage_top_layer)  # for water balance computation
-
-            # computing the new groundwater storage map at ModFlow resolution (in meter)
-            self.var.groundwater_storage_top_layer = (np.where(head > self.layer_boundaries[0],
-                                                               self.layer_boundaries[0], head) - self.layer_boundaries[
-                                                          1]) * self.porosity[0]
-            # converting the groundwater storage from ModFlow to CWatM map (in meter)
-            self.var.groundwater_storage_available = compressArray(
-                self.modflow2CWATM(self.var.groundwater_storage_top_layer))
-
-            assert self.permeability.ndim == 3
-            # computing the groundwater outflow by re-computing water outflowing the aquifer through the DRAIN ModFlow package
-            groundwater_outflow = np.where(head - self.layer_boundaries[0] >= 0,
-                                           (head - self.layer_boundaries[0]) * self.coefficient * self.permeability[0],
-                                           0)  # in m/day per ModFlow cell
-            groundwater_outflow2 = np.where(head - self.layer_boundaries[0] >= 0, 1.0,
-                                            0.0)  # For the next step, it will prevent recharge where ModFlow cells are saturated, even if there is no capillary rise (where h==topo)
-
-            # capillary rise and baseflow from groundwater are allocated in function of the river percentage of each ModFlow cell
-            capillar = groundwater_outflow * (1 - self.var.channel_ratio)  # We are still in ModFlow coordinate
-            baseflow = groundwater_outflow * self.var.channel_ratio  # We are still in ModFlow coordinate
-
-            if self.var.writeerror:
-                # Check the water balance in the aquifer: recharge = capillary + baseflow + storage change (- pumping)
-
-                if self.var.GW_pumping:
-
-                    # extracting actual ModFlow pumping
-                    actual_pumping = self.modflow.actualwell_rate.astype(np.float32)
-                    # the size of actual pumping corresponds to the number of wells is masked array 'wellsloc'
-                    actual_pumping_modflow_array = np.bincount(self.var.wells_index, weights=actual_pumping,
-                                                               minlength=int(
-                                                                   self.modflow.nrow * self.modflow.ncol)).reshape(
-                        (self.modflow.nrow, self.modflow.ncol))
-                    self.var.modfPumpingM_actual = - compressArray(
-                        self.modflow2CWATM(actual_pumping_modflow_array) / (domain['rowsize'] * domain['colsize']))
-
-                    mid_gwflow = np.nansum(((groundwater_recharge_modflow + (
-                                capillar + baseflow) * self.var.modflow_timestep) * self.var.modflow_cell_area - actual_pumping_modflow_array) / 2)
-                    # in m3/timestep, for water balance computation
-                    Budget_ModFlow_error = np.round(100 * (np.nansum(
-                        (groundwater_recharge_modflow - (capillar + baseflow) * self.var.modflow_timestep -
-                         (
-                                     self.var.groundwater_storage_top_layer - groundwater_storage_top_layer0)) * self.var.modflow_cell_area + actual_pumping_modflow_array) / mid_gwflow),
-                                                    2)
-                    # sumModFlowout = np.nansum((capillar + baseflow) * self.var.modflow_timestep * self.var.modflow_cell_area - groundwater_abstraction)  # m3/timestep, for water balance computation
-
-                else:
-
-                    mid_gwflow = np.nansum((groundwater_recharge_modflow + (
-                                capillar + baseflow) * self.var.modflow_timestep) * self.var.modflow_cell_area / 2)  # in m3/timestep, for water balance computation
-                    Budget_ModFlow_error = np.round(100 * (np.nansum(
-                        (groundwater_recharge_modflow - (capillar + baseflow) * self.var.modflow_timestep -
-                         (
-                                     self.var.groundwater_storage_top_layer - groundwater_storage_top_layer0)) * self.var.modflow_cell_area) / mid_gwflow),
-                                                    2)
-
-                # to check CWatM-ModFlow projection is working well
-                # sumModFlowout = np.nansum((capillar + baseflow) * self.var.modflow_timestep * self.var.modflow_cell_area)  # m3/timestep, for water balance computation
-
-                #  saving modflow discrepancy, it will be written a text file at the end of the simulation
-                self.var.modflowdiscrepancy = Budget_ModFlow_error
-                # print('ModFlow discrepancy : ', Budget_ModFlow_error, ' % (if pumping, it considers pumping demand is satisfied)')
-
-                # to check CWatM-ModFlow projection is working well
-                # sumModFlowin = np.nansum(groundwater_recharge_modflow * self.var.modflow_cell_area)  # m3, for water balance computation
-
-            # converting flows from ModFlow to CWatM domain
-            self.var.capillar = compressArray(self.modflow2CWATM(capillar))
-            baseflow = baseflow.astype('float64')  # required for runoff concentration (lib2.runoffConc)
-            self.var.baseflow = compressArray(self.modflow2CWATM(baseflow))
-
-            # computing saturated fraction of each CWatM cells (where water table >= soil bottom)
-            self.var.capriseindex = compressArray(self.modflow2CWATMbis(
-                groundwater_outflow2))  # initialized in landcoverType module, self.var.capriseindex is the fraction of saturated ModFlow cells in each CWatM cell
-
-            # head = self.modflow.decompress(self.modflow.head.astype(np.float32))
-            # updating water table maps both at CWatM and ModFlow resolution
-            self.var.head = compressArray(self.modflow2CWATM(head))
-            self.var.gwdepth = compressArray(self.modflow2CWATM(self.layer_boundaries[0])) - self.var.head
-
-            if 'gw_depth_observations' in binding:
-                self.var.gwdepth_difference_sim_obs = self.var.gwdepth - self.var.gwdepth_observations
-            if 'gw_depth_sim_obs' in binding:
-                self.var.gwdepth_adjusted = np.maximum(self.var.gwdepth - self.var.gwdepth_adjuster, 0)
-                head_adjusted = self.layer_boundaries[0] - self.CWATM2modflow(decompress(self.var.gwdepth_adjusted))
-
-                self.var.modflow_head_adjusted = np.copy(head_adjusted)
-
-            self.var.modflow_watertable = np.copy(head)
-
-            # Re-initializing the weekly (orbi-weekly, or monthly...) sum of groundwater pumping
-            self.var.modfPumpingM = globals.inZero.copy()
-
-            # to check CWatM-ModFlow projection is working well
-            # if self.var.writeerror:
-            #    # computing the total recharge rate provided by CWatM for this time step (in m3/timestep)
-            #    total_recharge_m3_cwatm = (self.var.sumed_sum_gwRecharge * self.var.cellArea).sum()  # m3/timestep, for water balance computation
-            #
-            #    print('ModFlow-CWatM input conversion error : ', np.round(100 * (total_recharge_m3_cwatm - sumModFlowin)/sumModFlowin, 2), ' %')
-            #    if self.var.GW_pumping:
-            #        print('ModFlow-CWatM output conversion error : ', np.round(100 * (np.nansum((self.var.capillar+self.var.baseflow) * self.var.modflow_timestep *
-            #                                                                                    self.var.cellArea) - np.nansum(groundwater_abstraction) - sumModFlowout) / sumModFlowout, 2), ' %')
-            #        # Check crossed models:
-            #        print('ModFlow discrepancy crossed: ', np.round(100 * (total_recharge_m3_cwatm -
-            #                                                               np.nansum(((capillar + baseflow) * self.var.modflow_timestep +
-            #                                                                          (self.var.groundwater_storage_top_layer - groundwater_storage_top_layer0)) *
-            #                                                                         self.var.modflow_cell_area - groundwater_abstraction)) / mid_gwflow, 2), ' %')
-            #
-            #    else:
-            #        print('ModFlow-CWatM output conversion error : ', np.round(100 * (np.nansum((self.var.capillar + self.var.baseflow) * self.var.modflow_timestep *
-            #                             self.var.cellArea) - sumModFlowout) / sumModFlowout, 2), ' %')
-            #        print('ModFlow discrepancy crossed: ', np.round(100 * (total_recharge_m3_cwatm -
-            #                                                               np.nansum(((capillar + baseflow) * self.var.modflow_timestep + (
-            #                                                                                      self.var.groundwater_storage_top_layer -
-            #                                                                                      groundwater_storage_top_layer0)) * self.var.modflow_cell_area)) / mid_gwflow, 2), ' %')
-
-            # Writing ModFlow discrepancies at the end of simulation:
-            if dateVar['currDate'] == dateVar['dateEnd']:
-                if self.var.writeerror:
-                    discrep_filename = cbinding('PathOut') + '/' + 'ModFlow_DiscrepancyError.txt'
-                    discrep_file = open(discrep_filename, "w")
-                    sum_modflow_errors = 0
-                    threeshold_modflow_error = 0.01  # in percentage
-
-                    for tt in range(dateVar['intEnd']):
-                        if self.var.modflowdiscrepancy > threeshold_modflow_error:  # if error is higer than threeshold in %, we print it.
-                            discrep_file.write(
-                                "ModFlow stress period " + str(tt + 1) + " : percentage error in ModFlow is ")
-                            discrep_file.write(str(self.var.modflowdiscrepancy))
-                            discrep_file.write("\n")
-                            sum_modflow_errors += 1
-                    if sum_modflow_errors == 0:
-                        discrep_file.write(
-                            "ModFlow error was always below " + str(
-                                threeshold_modflow_error) + ' % during the simulation')
-                    discrep_file.close()
+        # Writing ModFlow discrepancies at the end of simulation (also if the last day is not a MODFLOW day)
+        if dateVar['currDate'] == dateVar['dateEnd'] and self.var.writeerror:
+            self.write_discrepancy()

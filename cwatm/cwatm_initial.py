@@ -60,7 +60,7 @@ class Variables:
         Path to the initial condition netCDF file
     """
     
-    def load_initial(self, name, default=0.0, number=None):
+    def load_initial(self, name, default=0.0, number=None, warn=True):
         """
         Load initial hydrological conditions for model state variables.
         
@@ -78,7 +78,9 @@ class Variables:
         number : int, optional
             Layer number for multi-layer variables (e.g., soil layers, snow layers)
             When provided, appended to variable name for identification
-            
+        warn : bool, optional
+            False: no warning if the variable is missing in the init file (default: True)
+
         Returns
         -------
         numpy.ndarray or float
@@ -96,7 +98,7 @@ class Variables:
             name = name + str(number)
 
         if self.loadInit:
-            map = readnetcdfInitial(self.initLoadFile, name)
+            map = readnetcdfInitial(self.initLoadFile, name, default, warn)
             if Flags['calib']:
                 self.initmap[name] = map
             return map

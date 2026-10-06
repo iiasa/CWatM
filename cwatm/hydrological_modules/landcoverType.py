@@ -334,8 +334,11 @@ class landcoverType(object):
         self.var.fallowIrr_max = globals.inZero.copy()
         self.var.fallownonIrr_max = globals.inZero.copy()
 
-        # Fraction of cells where capillary rise occurs (used when ModFlow coupling)
-        self.var.capriseindex = globals.inZero.copy()
+        # Fraction of cells where capillary rise occurs (used when ModFlow coupling) - from the init file
+        if self.var.modflow:
+            self.var.capriseindex = self.var.load_initial('capriseindex', default=globals.inZero.copy())
+        else:
+            self.var.capriseindex = globals.inZero.copy()
         self.var.leakageIntoGw = globals.inZero.copy()
         self.var.leakageIntoRunoff = globals.inZero.copy()
         self.var.availableArableLand = globals.inZero.copy()

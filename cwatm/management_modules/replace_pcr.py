@@ -21,26 +21,51 @@ analyzed within discrete spatial units defined by area class identifiers.
 Key Functions
 -------------
 npareatotal : numpy area total calculation
-npareaaverage : numpy area average calculation  
+npareaaverage : numpy area average calculation
 npareamaximum : numpy area maximum calculation
 npareamajority : numpy area majority calculation
+AreaIndex : precomputed index of a static class map (total, average, maximum)
 
 Notes
 -----
 These functions use NumPy's bincount and advanced indexing operations for
-efficient spatial aggregation. They handle missing values and edge cases
-appropriately for hydrological modeling applications.
+efficient spatial aggregation. The class map must be integer and >= 0
+(np.bincount; a float class map or a negative class gives Error 140).
+Class 0 is a normal class. Missing values are not handled: a NaN in values
+gives NaN for the whole class.
 """
 
 import numpy as np
 
-# ------------------------ all this area commands
-#              np.take(np.bincount(AreaID,weights=Values),AreaID)     #     areasum
-#                (np.bincount(b, a) / np.bincount(b))[b]              # areaaverage
-#              np.take(np.bincount(AreaID,weights=Values),AreaID)     # areaaverage
-#                valueMax = np.zeros(AreaID.max() + 1)
-#                np.maximum.at(valueMax, AreaID, Values)
-#                max = np.take(valueMax, AreaID)             # areamax
+from cwatm.management_modules.messages import CWATMError
+
+__all__ = ["npareatotal", "npareaaverage", "npareamaximum", "npareamajority", "AreaIndex"]
+
+
+def _classerror(areaclass):
+    """
+    Error 140 if the class map cannot be used by np.bincount / as an index, otherwise None.
+
+    Checked only after numpy failed (npareatotal, npareaaverage) or before np.maximum.at
+    (npareamaximum: a negative class would silently index from the end of the array).
+    """
+    a = np.asarray(areaclass)
+    if a.dtype.kind not in "biu":
+        why = "it has the type " + str(a.dtype) + " but must be integer (e.g. .astype(np.int64))"
+    elif a.size and a.min() < 0:
+        why = "it has negative class ids (smallest: " + str(a.min()) + "), class ids must be >= 0"
+    else:
+        return None
+    return CWATMError("Error 140: The class map of an area function (npareatotal, npareaaverage, "
+                      "npareamaximum) cannot be used:\n" + why)
+
+
+# ------------------------ the area commands in short (AreaID = class map, Values = values)
+#   areatotal:    np.take(np.bincount(AreaID, weights=Values), AreaID)
+#   areaaverage:  np.take(np.bincount(AreaID, weights=Values) / np.bincount(AreaID), AreaID)
+#   areamaximum:  valueMax = np.zeros(AreaID.max() + 1); valueMax[AreaID] = -np.inf
+#                 np.maximum.at(valueMax, AreaID, Values)
+#                 np.take(valueMax, AreaID)
 
 
 def npareatotal(values, areaclass):
@@ -69,7 +94,14 @@ def npareatotal(values, areaclass):
     then maps results back to original array positions using np.take.
     This approach is much faster than iterative summation methods.
     """
-    return np.take(np.bincount(areaclass, weights=values), areaclass)
+    try:
+        total = np.bincount(areaclass, weights=values)
+    except (TypeError, ValueError) as err:
+        e = _classerror(areaclass)
+        if e is None:
+            raise
+        raise e from err
+    return np.take(total, areaclass)
 
 
 def npareaaverage(values, areaclass):
@@ -98,7 +130,13 @@ def npareaaverage(values, areaclass):
     then divides to get averages. Error state management prevents warnings
     from division by zero or invalid operations in empty classes.
     """
-    total = np.bincount(areaclass, weights=values)
+    try:
+        total = np.bincount(areaclass, weights=values)
+    except (TypeError, ValueError) as err:
+        e = _classerror(areaclass)
+        if e is None:
+            raise
+        raise e from err
     count = np.bincount(areaclass)
     with np.errstate(invalid='ignore', divide='ignore'):
         if total.size > areaclass.size:
@@ -130,11 +168,19 @@ def npareamaximum(values, areaclass):
         
     Notes
     -----
-    Creates an array sized to hold all possible class IDs, then uses
-    np.maximum.at to efficiently find the maximum value for each class.
+    Creates an array sized to hold all possible class IDs, starting at -inf
+    (so a class with only negative values gets its real maximum, not 0), then
+    uses np.maximum.at to find the maximum value for each class.
     The result is mapped back to original positions using np.take.
+    The class map is checked first (Error 140): a negative class would not
+    raise an error in np.maximum.at but index from the end of the array.
     """
+    e = _classerror(areaclass)
+    if e is not None:
+        raise e
+    # -inf only at the used class ids: np.zeros is cheap for large, sparse ids, np.full would fill all
     valueMax = np.zeros(areaclass.max() + 1)
+    valueMax[areaclass] = -np.inf
     np.maximum.at(valueMax, areaclass, values)
     return np.take(valueMax, areaclass)
 
@@ -148,6 +194,7 @@ class AreaIndex:
     (e.g. lakes); with onlypositive=False class 0 is a normal class and all cells are used.
     For the used cells the results are the same as npareatotal, npareaaverage and npareamaximum
     (bit-identical). The class map must not change after the index is built.
+    For maximum the cells are sorted by class once, so each call is one np.maximum.reduceat.
 
     Parameters
     ----------
@@ -167,6 +214,10 @@ class AreaIndex:
             cls = areaclass
         self.dense = np.unique(cls, return_inverse=True)[1].reshape(-1).astype(np.int64)
         self.count = np.bincount(self.dense)
+        # for maximum: cells sorted by class and the start of each class in the sorted cells
+        # (every class has at least one cell, so the starts are strictly increasing)
+        self.order = np.argsort(self.dense, kind='stable')
+        self.starts = np.concatenate(([0], np.cumsum(self.count)[:-1])).astype(np.int64)
 
     def _values(self, values):
         return values if self.cells is None else values[self.cells]
@@ -183,14 +234,15 @@ class AreaIndex:
         return self._out(np.take(np.bincount(self.dense, weights=self._values(values)), self.dense))
 
     def average(self, values):
-        """Average of values for each class, as npareaaverage"""
-        with np.errstate(invalid='ignore', divide='ignore'):
-            return self._out(np.take(np.bincount(self.dense, weights=self._values(values)) / self.count, self.dense))
+        """Average of values for each class, as npareaaverage (every class has a count >= 1, no division by 0)"""
+        return self._out(np.take(np.bincount(self.dense, weights=self._values(values)) / self.count, self.dense))
 
     def maximum(self, values):
         """Maximum of values for each class, as npareamaximum"""
-        valueMax = np.zeros(self.count.size)
-        np.maximum.at(valueMax, self.dense, self._values(values))
+        if self.count.size == 0:
+            return self._out(np.zeros(0))
+        v = np.asarray(self._values(values), dtype=np.float64)
+        valueMax = np.maximum.reduceat(v[self.order], self.starts)
         return self._out(np.take(valueMax, self.dense))
 
 
@@ -216,11 +268,19 @@ def npareamajority(values, areaclass):
         
     Notes
     -----
-    Uses np.unique to identify distinct area classes, then applies bincount
-    to count occurrences of each value within each class. The most frequent
-    value (argmax of bincount) becomes the majority value for that class.
-    Results are mapped back using the inverse indices from unique operation.
+    Without a loop over the classes: each (class, value) pair gets one number,
+    np.unique counts the pairs, and per class the pair with the highest count
+    is taken. With a tie the smallest value wins (as np.argmax of a bincount).
+    Values can be any discrete numbers (also negative); areaclass can be any integers.
     """
-
-    uni, ind = np.unique(areaclass, return_inverse=True)
-    return np.array([np.argmax(np.bincount(values[areaclass == group])) for group in uni])[ind]
+    _, cls = np.unique(areaclass, return_inverse=True)
+    vuni, val = np.unique(values, return_inverse=True)
+    cls = cls.reshape(-1).astype(np.int64)
+    val = val.reshape(-1).astype(np.int64)
+    # pairs sorted by class, then by value
+    pair, count = np.unique(cls * vuni.size + val, return_counts=True)
+    pcls = pair // vuni.size
+    # per class: highest count first, with a tie the smallest value first
+    order = np.lexsort((pair, -count, pcls))
+    first = order[np.concatenate(([True], pcls[order][1:] != pcls[order][:-1]))]
+    return vuni[pair[first] % vuni.size][cls]

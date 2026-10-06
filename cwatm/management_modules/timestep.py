@@ -9,7 +9,6 @@
 # CWatM is licensed under GNU GENERAL PUBLIC LICENSE Version 3.
 # -------------------------------------------------------------------------
 
-import calendar
 import datetime
 import difflib  # to check the closest word in settingsfile, if an error occurs
 import os
@@ -54,7 +53,13 @@ def datenum(date):
     as the starting time, which results in half-day offsets.
     """
     
-    num = round(date2num(date, units=dateVar['unit'], calendar=dateVar['calendar']))
+    try:
+        num = round(date2num(date, units=dateVar['unit'], calendar=dateVar['calendar']))
+    except ValueError:
+        # e.g. 29/02 with calendar noleap or 31/01 with calendar 360_day
+        msg = "Error 138: Date: " + date2str(date) + " does not exist in the calendar: \"" + dateVar['calendar'] + "\" of the precipitation maps\n"
+        msg += "Check StepStart, StepEnd, SpinUp and StepInit in the settings file"
+        raise CWATMError(msg)
     # changed to round because some date in netcdf have 12:00 as starting time -> results in -0.5
     return num // dateVar['unitConv']
 
@@ -90,7 +95,8 @@ def numdate(num, add=0):
     - Temporal calculations requiring date arithmetic
     - Output timestamp generation
     """
-    return (num2date(int(num) * dateVar['unitConv'] + add, units=dateVar['unit'], calendar=dateVar['calendar']))
+    # num and add in days -> * unitConv to the time unit of the netcdf file (e.g. hours)
+    return (num2date((int(num) + add) * dateVar['unitConv'], units=dateVar['unit'], calendar=dateVar['calendar']))
 
 def date2str(date):
     """
@@ -118,7 +124,7 @@ def date2str(date):
     - Used in progress reporting, output headers, and user interfaces
     """
 
-    return "%02d/%02d/%02d" % (date.day, date.month, date.year)
+    return "%02d/%02d/%04d" % (date.day, date.month, date.year)
 
 
 def ctbinding(inBinding):
@@ -279,11 +285,10 @@ def Calendar(input, errorNo=0):
             d = d.replace('/', '.', 1)
             d = d.replace('/', '/0')
             d = d.replace('.', '/')
-            print(d)
 
         try:
             date = datetime.datetime.strptime(d, formatstr)
-        except:
+        except ValueError:
             if errorNo == 0:
                 msg = ("Error 119: Either date in StepStart is not a date or in SpinUp or StepEnd "
                        "it is neither a number or a date!")
@@ -382,11 +387,12 @@ def addmonths(d, x):
     -----
     Month addition algorithm:
     - Calculates target month and year accounting for wraparound
-    - Handles leap years and varying month lengths correctly
+    - Month length from the calendar of the netcdf file (leap years, noleap, 360_day)
     - Adjusts day to last valid day if original day exceeds month length
-    
+    - Returns a date in the calendar of the netcdf file (comparable with dateEnd)
+
     For example:
-    - January 31 + 1 month = February 28 (or 29 in leap years)
+    - January 31 + 1 month = February 28 (or 29 in leap years, 30 in 360_day)
     - December 15 + 2 months = February 15
     - May 31 + 1 month = June 30
     
@@ -394,14 +400,18 @@ def addmonths(d, x):
     for save state operations and periodic output scheduling.
     """
 
-    days_of_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     newmonth = (((d.month - 1) + x) % 12) + 1
     newyear = d.year + (((d.month - 1) + x) // 12)
-    if d.day > days_of_month[newmonth - 1]:
-        newday = days_of_month[newmonth - 1]
+    # first day of the new month and of the month after in the calendar of the netcdf file
+    first = datenum(datetime.datetime(newyear, newmonth, 1))
+    if newmonth == 12:
+        firstnext = datenum(datetime.datetime(newyear + 1, 1, 1))
     else:
-        newday = d.day
-    return datetime.datetime(newyear, newmonth, newday)
+        firstnext = datenum(datetime.datetime(newyear, newmonth + 1, 1))
+    # same day of month, but at most the last day of the new month
+    newday = min(d.day, firstnext - first)
+    # date in the calendar of the netcdf file (comparable with dateEnd)
+    return numdate(first, newday - 1)
 
 
 
@@ -443,88 +453,64 @@ def datetosaveInit(initdates, begin, end):
     - "Nm": Every N months (e.g., "6m" = every 6 months)  
     - "Nd": Every N days (e.g., "30d" = every 30 days)
     
-    The function generates sequences of save dates starting from the first
-    specified date and continuing until the simulation end date. This
-    enables flexible state saving strategies for long simulations.
+    A pattern repeats the last explicit date before it until the simulation
+    end date; entries after a pattern are also used
+    (e.g. "31/12/1990 1y 15/06/1995"). N has to be a positive integer.
     
     Global variables modified:
     - dateVar['intInit']: List of integer timesteps for state saving
     """
 
-    # datetosaveInit(initdates, dateVar['dateBegin'], dateVar['dateEnd'])
-    # dd = datetoInt(d, dateVar['dateBegin'])
-    # dateVar['intInit'].append(datetoInt(d, dateVar['dateBegin']))
-
-
-    i = 0
     dateVar['intInit'] = []
-    dd = []
+    d2 = datenum(begin)
+    lastdate = None   # last explicit date (as integer timestep) - start of a repetition
 
-    for d in initdates:
-        i += 1
+    for i, d in enumerate(initdates, start=1):
         date1 = Calendar(d, i)
 
-        # check if it a row of dates
+        # repetition of the last date before: e.g. 2y = every 2 years, 6m = every 6 month, 30d = every 30 days
         if date1 == -99999:
-            if not(d[-1] in ["d", "m", "y"]):
-                msg = "Error 121: Second value in StepInit is not a number or date nor indicating a repetition of year(y), month(m) or day(d) \n"
+            rep = d[-1].lower()
+            if rep not in ["d", "m", "y"]:
+                msg = "Error 121: Value " + str(i) + " in StepInit: \"" + d + "\" is not a number or date nor indicating a repetition of year(y), month(m) or day(d)\n"
                 msg += "e.g. 2y for every 2 years or 6m for every 6 month"
                 raise CWATMError(msg)
-            else:
-                try:
-                    add = int(d[0:-1])
-                except:
-                    msg = "Error 122: Third value in StepInit is not an integer after 'y' or 'm' or 'd'"
-                    raise CWATMError(msg)
-                # start = begin + datetime.timedelta(days=dateVar['intInit'][0]-1)
-                d1 = datenum(begin)
-                start = numdate(d1, dateVar['intInit'][0] - 1)
+            try:
+                add = int(d[0:-1])
+            except ValueError:
+                add = 0
+            if add < 1:
+                msg = "Error 122: Value " + str(i) + " in StepInit: \"" + d + "\" needs a positive integer before 'y' or 'm' or 'd'"
+                raise CWATMError(msg)
+            start = numdate(d2, lastdate - 1)
 
-                j = 1
-                while True:
-                    if d[-1] == 'y':
-                        #date2 = start + relativedelta(years=+ add * j)
-                        date2 = start
-                        try:
-                            date2 = date2.replace(year=date2.year + add * j)
-                        except ValueError:
-                            # date2 = date2 - datetime.timedelta(days = 1)
-                            d1 = datenum(date2)
-                            date2 = numdate(d1, -1)
-                            date2 = date2.replace(year=date2.year + add * j)
+            j = 1
+            while True:
+                if rep == 'y':
+                    try:
+                        date2 = start.replace(year=start.year + add * j)
+                    except ValueError:
+                        # 29 February -> 28 February in a year without leap day
+                        date2 = numdate(datenum(start), -1)
+                        date2 = date2.replace(year=date2.year + add * j)
+                elif rep == 'm':
+                    date2 = addmonths(start, add * j)
+                else:
+                    date2 = numdate(datenum(start), add * j)
 
-                    elif d[-1] == 'm':
-                        # date2 = start + relativedelta(months=+ add * j)
-                        date2 = addmonths(start, add * j)
-                    else:
-                        # date2 = start + datetime.timedelta(days= add * j)
-                        d1 = datenum(start)
-                        date2 = numdate(d1, add * j)
-
-                    if date2 > end:
-                        break
-                    else:
-                        # int1 = (date2 - begin).days + 1
-                        d1 = datenum(date2)
-                        d2 = datenum(begin)
-                        int1 = int(d1 - d2) + 1
-                        dateVar['intInit'].append(int1)
-                        dd.append(date2)
-                        j += 1
-                return
-
+                if date2 > end:
+                    break
+                dateVar['intInit'].append(int(datenum(date2) - d2) + 1)
+                j += 1
+            continue
 
         if type(date1) is datetime.datetime:
-            # int1 = (date1 - begin).days + 1
-            d1 = datenum(date1)
-            d2 = datenum(begin)
-            int1 = int(d1 - d2) + 1
+            int1 = int(datenum(date1) - d2) + 1
         else:
             int1 = int(date1)
         dateVar['intInit'].append(int1)
+        lastdate = int1
 
-
-    ii = 1
 
 # noinspection PyTypeChecker
 def checkifDate(start, end, spinup, name):
@@ -582,24 +568,22 @@ def checkifDate(start, end, spinup, name):
     # begin = Calendar(ctbinding('CalendarDayStart'))
     try:
         name = glob.glob(os.path.normpath(name))[0]
-    except:
+    except IndexError:
         msg = "Error 215: Cannot find precipitation maps\n"
         raise CWATMFileError(name,msg, sname='PrecipitationMaps')
 
     nf1 = ncopen(name)   # cached: the same precipitation file is used later by multinetdf/readmeteodata
-    try:
-        dateVar['calendar'] = nf1.variables['time'].calendar
-        dateVar['unit'] = nf1.variables['time'].units
-    except:
-        dateVar['calendar'] = 'standard'
-        dateVar['unit'] = "days since 1901-01-01T00:00:00Z"
+    # time unit and calendar of the precipitation file (defaults if missing)
+    timevar = nf1.variables.get('time')
+    dateVar['calendar'] = getattr(timevar, 'calendar', 'standard')
+    dateVar['unit'] = getattr(timevar, 'units', "days since 1901-01-01T00:00:00Z")
 
     unitconv1 = ["DAYS","HOUR","MINU","SECO"]
     unitconv2 = [1,24,1440,86400]
     unitconv3 = dateVar['unit'] [:4].upper()
     try:
         dateVar['unitConv'] = unitconv2[unitconv1.index(unitconv3)]
-    except:
+    except ValueError:
         dateVar['unitConv'] = 1
 
     startdate = Calendar(ctbinding('StepStart'))
@@ -637,13 +621,10 @@ def checkifDate(start, end, spinup, name):
     # dateVar['dateStart'] = begin + datetime.timedelta(days=dateVar['intSpin']-1)
 
     d1 = datenum(begin)
+    dateVar['datenumBegin'] = d1
     startint = int(d1 + dateVar['intSpin'] - 1)
     dateVar['dateStart'] = numdate(startint)
     dateVar['diffdays'] = dateVar['intEnd'] - dateVar['intSpin'] + 1
-    # dateVar['dateEnd'] = dateVar['dateStart'] + datetime.timedelta(days=dateVar['diffdays']-1)
-
-    dateVar['dateStart1'] = begin + datetime.timedelta(days=dateVar['intSpin'] - 1)
-    dateVar['dateEnd1'] = dateVar['dateStart1'] + datetime.timedelta(days=dateVar['diffdays'] - 1)
 
     d1 = datenum(dateVar['dateStart'])
     endint = int(d1 + dateVar['diffdays'])
@@ -652,42 +633,24 @@ def checkifDate(start, end, spinup, name):
 
     dateVar['curr'] = 0
     dateVar['currwrite'] = 0
-
-    #dateVar['datelastmonth'] = datetime.datetime(year=dateVar['dateEnd'].year, month= dateVar['dateEnd'].month, day=1) - datetime.timedelta(days=1)
-    d1 = datenum(datetime.datetime(year=dateVar['dateEnd'].year, month= dateVar['dateEnd'].month, day=1))
-    dateVar['datelastmonth'] = numdate(d1, -1)
-    #dateVar['datelastyear'] = datetime.datetime(year=dateVar['dateEnd'].year, month= 1, day=1) - datetime.timedelta(days=1)
-    d1 = datenum(datetime.datetime(year=dateVar['dateEnd'].year, month=1, day=1))
-    dateVar['datelastyear'] = numdate(d1, -1)
+    dateVar['currMonth'] = 0
+    dateVar['currYear'] = 0
 
 
+
+    # all dates from the first time step to the day after the last one with one num2date call (time in units of the file -> * unitConv)
+    # used for currDate in timestep_dynamic and for checked
+    dateVar['dates'] = num2date(np.arange(dateVar['datenumBegin'], endint + 1) * dateVar['unitConv'], units=dateVar['unit'], calendar=dateVar['calendar'])
+    # checked: 0 = normal day, 1 = last day of a month, 2 = last day of a year - from the spin up date on
+    months = [d.month for d in dateVar['dates'][dateVar['intSpin'] - 1:]]
     dateVar['checked'] = []
-    # noinspection PyTypeChecker
-    # dates = np.arange(dateVar['dateStart'], dateVar['dateEnd']+ datetime.timedelta(days=1), datetime.timedelta(days = 1)).astype(datetime.datetime)
-    # for d in dates:
-
-    # mid of month days
-
-    for dint in range(startint, endint):
-        d = numdate(dint)
-        #dnext = numdate(dint, 1)
-        dnext = numdate(dint,dateVar['unitConv'])
-        # changed PB 25/09/25 -> if precitpuiation comes as second -> use the convertion anyway
-
-
-        # if d.day == calendar.monthrange(d.year, d.month)[1]:
-        if d.month != dnext.month:
-            if d.month == 12:
+    for i in range(len(months) - 1):
+        if months[i] != months[i + 1]:
+            if months[i] == 12:
                 dateVar['checked'].append(2)
             else:
                 dateVar['checked'].append(1)
         else:
-            # mark mid of month day
-            # if d.month == 2 and d.day==14:
-            #    dateVar['checked'].append(-1)
-            # if d.month != 2 and d.day==15:
-            #    dateVar['checked'].append(-1)
-
             dateVar['checked'].append(0)
 
     dateVar['diffMonth'] = dateVar['checked'].count(1) + dateVar['checked'].count(2)
@@ -740,47 +703,39 @@ def date2indexNew(date, nctime, calendar, select='nearest', name=""):
 
     unit = nctime.units.split()
     if unit[0].upper() == "DAYS":
-        index = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+        index = date2index(date, nctime, calendar=calendar, select=select)
     elif unit[0][0:5].upper() == "MONTH":
+        times = nctime[:]   # read the time axis once
         year0 = int(unit[2][0:4])
-        month0 = int(unit[2][6:7])
+        month0 = int(unit[2][5:7])
         value = (date.year - year0) * 12 + (date.month - month0)
-        if value > max(nctime[:]):
-            value = max(nctime[:]) - 11 + (date.month - month0)
-            msg = " - " + date.strftime('%Y-%m') + " is later then the last dataset in " + name + " -"
-            msg += " instead last year/month dataset is used"
-            if Flags['loud']:
-                iiii = 1
-                # print(CWATMWarning(msg))
-
-
-        index = np.where(nctime[:] == value)[0][0]
+        if value > times.max():
+            # later than the last record: same month in the last year of the dataset (no warning)
+            value = value - 12 * int(np.ceil((value - times.max()) / 12))
+        if value < times.min():
+            # earlier than the first record: same month in the first year of the dataset (no warning)
+            value = value + 12 * int(np.ceil((times.min() - value) / 12))
+        index = np.where(times == value)[0][0]
     elif unit[0][0:4].upper() == "YEAR":
+        times = nctime[:]   # read the time axis once
         year0 = int(unit[2][0:4])
         value = date.year - year0
-        if value > max(nctime[:]):
-            value = max(nctime[:])
-            msg = " - " + date.strftime('%Y') + " is later then the last dataset in " + name + " -"
-            msg += " instead last year dataset is used"
-            if Flags['loud']:
-                iiii = 1
-                # print(CWATMWarning(msg))
-        if value < min(nctime[:]):
-            value = min(nctime[:])
-            msg = " - " + date.strftime('%Y') + " is earlier then the first dataset in " + name + " -"
-            msg += " instead first year dataset is used"
-            if Flags['loud']:
-                iiii = 1
-                # print(CWATMWarning(msg))
-
-
-        index = np.where(nctime[:] == value)[0][0]
+        if value > times.max():
+            # later than the last record: last year of the dataset (no warning)
+            value = times.max()
+        if value < times.min():
+            # earlier than the first record: first year of the dataset (no warning)
+            value = times.min()
+        index = np.where(times == value)[0][0]
     else:
-        index = date2index(date, nctime, calendar=nctime.calendar, select='nearest')
+        index = date2index(date, nctime, calendar=calendar, select=select)
     return index
 
 
 
+
+# first day of year, days in month and days in year per (calendar, unit, year, month) - used by timestep_dynamic
+daysCache = {}
 
 def timestep_dynamic(self):
     """
@@ -823,23 +778,31 @@ def timestep_dynamic(self):
     providing the temporal framework for all model components.
     """
 
-    # print "leap:", globals.leap_flag[0]
-    # dateVar['currDate'] = dateVar['dateBegin'] + datetime.timedelta(days=dateVar['curr'])
-    d1 = datenum(dateVar['dateBegin'])
-    dateVar['currDate'] = numdate(d1, dateVar['curr'] * dateVar['unitConv'])
-    datevarInt = d1 + dateVar['curr']
+    # dates are calculated once in checkifDate
+    dateVar['currDate'] = dateVar['dates'][dateVar['curr']]
+    datevarInt = dateVar['datenumBegin'] + dateVar['curr']
 
     # dateVar['currDatestr'] = dateVar['currDate'].strftime("%d/%m/%Y")
     dateVar['currDatestr'] = date2str(dateVar['currDate'])
 
-    # dateVar['doy'] = int(dateVar['currDate'].strftime('%j'))
-    # replacing this because date less than 1900 is not used
-    firstdoy = datetime.datetime(dateVar['currDate'].year, 1, 1)
-    # dateVar['doy'] = (dateVar['currDate'] - firstdoy).days + 1
-    firstdoyInt = datenum(firstdoy)
+    # first day of the year, days in month and days in year change only with the month -> cached
+    year = dateVar['currDate'].year
+    month = dateVar['currDate'].month
+    key = (dateVar['calendar'], dateVar['unit'], year, month)
+    if key not in daysCache:
+        d1month = datenum(datetime.datetime(year=year, month=month, day=1))
+        if month == 12:
+            d2month = datenum(datetime.datetime(year=year + 1, month=1, day=1))
+        else:
+            d2month = datenum(datetime.datetime(year=year, month=month + 1, day=1))
+        d1year = datenum(datetime.datetime(year=year, month=1, day=1))
+        d2year = datenum(datetime.datetime(year=year + 1, month=1, day=1))
+        daysCache[key] = (d1year, d2month - d1month, d2year - d1year)
+    firstdoyInt, dateVar['daysInMonth'], dateVar['daysInYear'] = daysCache[key]
+    # doy without strftime because of dates before 1900
     dateVar['doy'] = int(datevarInt - firstdoyInt + 1)
-    dateVar['10day'] = int((dateVar['doy'] - 1) / 10)
-    dateVar['30day'] = int((dateVar['doy'] - 1) / 30)
+    dateVar['10day'] = (dateVar['doy'] - 1) // 10
+    dateVar['30day'] = (dateVar['doy'] - 1) // 30
 
     dateVar['laststep'] = False
     if (dateVar['intStart'] + dateVar['curr']) == dateVar['intEnd']:
@@ -850,29 +813,18 @@ def timestep_dynamic(self):
     # count currwrite only after spin time
     if dateVar['curr'] >= dateVar['intSpin']:
         dateVar['currwrite'] += 1
-
-    dateVar['currMonth'] = dateVar['checked'][:dateVar['currwrite']].count(1) + dateVar['checked'][:dateVar['currwrite']].count(2)
-    dateVar['currYear'] = dateVar['checked'][:dateVar['currwrite']].count(2)
+        # count written month ends (checked 1 or 2) and year ends (checked 2)
+        checkedToday = dateVar['checked'][dateVar['currwrite'] - 1]
+        if checkedToday > 0:
+            dateVar['currMonth'] += 1
+            if checkedToday == 2:
+                dateVar['currYear'] += 1
 
     # first timestep
     dateVar['newStart'] = dateVar['curr'] == 1
     dateVar['newMonth'] = dateVar['currDate'].day == 1
     dateVar['newYear'] = (dateVar['currDate'].day == 1) and (dateVar['currDate'].month == 1)
-    dateVar['new10day'] = ((dateVar['doy'] - 1) / 10.0) == dateVar['10day']
-    dateVar['new30day'] = ((dateVar['doy'] - 1) / 30.0) == dateVar['30day']
-
-    d1month = datenum(datetime.datetime(year=dateVar['currDate'].year, month=dateVar['currDate'].month, day=1))
-    if dateVar['currDate'].month == 12:
-        month = 1
-        year = dateVar['currDate'].year + 1
-    else:
-        month = dateVar['currDate'].month + 1
-        year = dateVar['currDate'].year
-    d2month = datenum(datetime.datetime(year=year, month=month, day=1))
-
-    d1year = datenum(datetime.datetime(year=dateVar['currDate'].year, month=1, day=1))
-    d2year = datenum(datetime.datetime(year=dateVar['currDate'].year + 1, month=1, day=1))
-    dateVar['daysInMonth'] = d2month - d1month
-    dateVar['daysInYear'] = d2year - d1year
+    dateVar['new10day'] = (dateVar['doy'] - 1) % 10 == 0
+    dateVar['new30day'] = (dateVar['doy'] - 1) % 30 == 0
 
     return

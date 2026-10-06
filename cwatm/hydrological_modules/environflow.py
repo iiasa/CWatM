@@ -10,7 +10,6 @@
 # -------------------------------------------------------------------------
 
 from cwatm.management_modules.data_handling import *
-from datetime import datetime, timedelta
 
 
 class environflow(object):
@@ -86,8 +85,8 @@ class environflow(object):
                 for map in outMap['output_out_map_daily']:
                     if map[1] == 'discharge':
                         meteolist = {}
-                        indstart = (dateVar['dateStart'] - dateVar['dateBegin']).days
-                        indend = (dateVar['dateEnd'] - dateVar['dateBegin']).days
+                        indstart = dateVar['intSpin'] - 1
+                        indend = dateVar['intEnd'] - 1
                         meteolist[0] = [map[0], indstart, indend, dateVar['dateStart'], dateVar['dateEnd']]
                         meteofiles['EFDis'] = meteolist
 
@@ -124,10 +123,8 @@ class environflow(object):
           if (returnBool('calc_ef_afterRun') is False) or (dateVar['currDate'] == dateVar['dateEnd']):
             # either load already calculated discharge or at the end of the simulation
 
-            # calculate date array
-            # datearray = np.arange(dateVar['dateStart'], dateVar['dateEnd'], 
-            #                       datetime.timedelta(days=1)).astype(datetime.datetime)
-            datearray = np.arange(dateVar['dateStart1'], dateVar['dateEnd1'], timedelta(days=1)).astype(datetime)
+            # month of each written day (from spin up date, without the last day - not yet written) in the calendar of the netcdf files
+            datearray = dateVar['dates'][dateVar['intSpin'] - 1:dateVar['intEnd'] - 1]
 
             montharray = np.array([d.month for d in datearray])
             monthshape = montharray.shape[0]
