@@ -1,0 +1,1 @@
+p:/watmodel/python3810/python p:/watmodel/CWATM/model/cwatm_modflow_layers/run_cwatm.py %run -l

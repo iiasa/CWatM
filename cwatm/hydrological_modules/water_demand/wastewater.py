@@ -12,7 +12,6 @@
 
 from cwatm.management_modules.data_handling import *
 from cwatm.management_modules.globals import *
-from cwatm.management_modules.replace_pcr import npareatotal
 
 
 class waterdemand_wastewater(object):
@@ -56,15 +55,6 @@ class waterdemand_wastewater(object):
     Treatment levels: 1=primary, 2=secondary, 3=tertiary
     Management options: -1=discharge only, 0=send to reservoir, 0-1=export fraction
 
-
-
-
-
-
-
-
-
-
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -79,18 +69,18 @@ class waterdemand_wastewater(object):
     resVolume                            Array         Reservoir volume                                                        m3   
     EWRef                                Array         potential evaporation rate from water surface                           m    
     wwtUrbanLeakage                      Array                                                                                 --   
-    wwtColArea                           Array         Setup wastewater treatment facilities load collection area (AI)         --   
-    urbanleak                            Array         share to collect urban leakage (AI)                                     --   
-    wwtID                                Array         Setup wastewater treatment facilities load inputs (AI)                  --   
+    wwtColArea                           Array                                                                                 --   
+    urbanleak                            Array                                                                                 --   
+    wwtID                                Array                                                                                 --   
     compress_WWT                         Array                                                                                 --   
     decompress_WWT                       Array                                                                                 --   
     wwtC                                 Array                                                                                 --   
     act_bigLakeResAbst_UNRestricted      Array                                                                                 --   
     act_bigLakeResAbst_Restricted        Array                                                                                 --   
-    wwtOverflow                          Array         create outlet for overflow (AI)                                         --   
-    wwtStorage                           Array         create storage variable (AI)                                            --   
-    wwtColShare                          Array         load collection share - default to 100% collected water (AI)            --   
-    wwtSewerCollectedC                   Array         Create variables: wwtSewerCollection = wwtSewerCollectedC + wwtSewerOv  --   
+    wwtOverflow                          Array                                                                                 --   
+    wwtStorage                           Array                                                                                 --   
+    wwtColShare                          Array                                                                                 --   
+    wwtSewerCollectedC                   Array                                                                                 --   
     wwtSewerTreatedC                     Array                                                                                 --   
     wwtExportedTreatedC                  Array                                                                                 --   
     wwtSewerToTreatmentC                 Array                                                                                 --   
@@ -98,11 +88,11 @@ class waterdemand_wastewater(object):
     wwtSewerResOverflowC                 Array                                                                                 --   
     wwtTreatedOverflowC                  Array                                                                                 --   
     wwtSentToResC                        Array                                                                                 --   
-    wwtSewerCollection                   Array         Calculate total sewer collection (AI)                                   --   
-    wwtOverflowOut                       Array         Total overflow output map [m3 to M] (AI)                                --   
+    wwtSewerCollection                   Array                                                                                 --   
+    wwtOverflowOut                       Array                                                                                 --   
     wwtEvapC                             Array                                                                                 --   
-    wwtSewerCollected                    Array         Initiates bigmaps (AI)                                                  --   
-    wwtExportedCollected                 Array         document collection for export (AI)                                     --   
+    wwtSewerCollected                    Array                                                                                 --   
+    wwtExportedCollected                 Array                                                                                 --   
     wwtSewerTreated                      Array                                                                                 --   
     wwtExportedTreated                   Array                                                                                 --   
     wwtSewerToTreatment                  Array                                                                                 --   
@@ -112,32 +102,32 @@ class waterdemand_wastewater(object):
     wwtSewerResOverflow                  Array                                                                                 --   
     wwtTreatedOverflow                   Array                                                                                 --   
     wwtEvap                              Array                                                                                 --   
-    wwtInTreatment                       Array         get relevant reservoirs ids and their fill status. create an output st  --   
+    wwtInTreatment                       Array                                                                                 --   
     wwtIdsOrdered                        List                                                                                  --   
     wwtVolC                              Array                                                                                 --   
     wwtTimeC                             Array                                                                                 --   
     toResManageC                         Array                                                                                 --   
     minHRTC                              Array                                                                                 --   
-    maskDomesticCollection               Array         initiate sector collection masks (AI)                                   --   
+    maskDomesticCollection               Array                                                                                 --   
     maskIndustryCollection               Array                                                                                 --   
-    extensive                            Flag          Extensive WWTP #### Identify extensive systems - if timeLag >= 2 (AI)   --   
-    noPools_extensive                    Array         number of days to fill a treatement pool in extensive systems - defaul  --   
-    poolVolume_extensive                 Array         Volume for an extnesive treatement pool in extensive systems (AI)       --   
-    wwtSurfaceAreaC                      Array         Calculate surface area of treatment pools for evaporation (AI)          --   
+    extensive                            Flag                                                                                  --   
+    noPools_extensive                    Array                                                                                 --   
+    poolVolume_extensive                 Array                                                                                 --   
+    wwtSurfaceAreaC                      Array                                                                                 --   
     extensive_counter                    Array                                                                                 --   
     wwtResIDTemp_compress                Array                                                                                 --   
-    wwtResIDC                            Array         do not alow reservoir use if their type ids is zero (e.g., wetland) or  --   
+    wwtResIDC                            Array                                                                                 --   
     wwtResTypC                           Array                                                                                 --   
     wwtResYearC                          Array                                                                                 --   
     wwtSentToResC_LR                     Array                                                                                 --   
-    wwtOverflowOutM                      Array         convert OverflowOut from m3 to m (AI)                                   --   
+    wwtOverflowOutM                      Array                                                                                 --   
     cellArea                             Array         Area of cell                                                            m2   
     includeWastewater                    Flag                                                                                  --   
     waterBodyTyp_unchanged               Array                                                                                 --   
     lakeVolumeM3C                        Array         compressed map of lake volume                                           m3   
     lakeStorageC                         Array                                                                                 --   
-    reservoirStorageM3C                  Array         Initial reservoir fill (fraction of total storage, [-]) (AI)            --   
-    lakeResStorageC                      Array         and from the combined onenpfor waterbalance issues (AI)                 --   
+    reservoirStorageM3C                  Array                                                                                 --   
+    lakeResStorageC                      Array                                                                                 --   
     lakeResStorage                       Array                                                                                 --   
     wwtEffluentsGenerated                Array                                                                                 --   
     wwtSewerCollection_domestic          Array                                                                                 --   
@@ -253,7 +243,7 @@ class waterdemand_wastewater(object):
         Notes
         -----
         Treatment plant definitions loaded from Excel include:
-        - Daily treatment capacity (Volume in mÃ‚Â³/day)
+        - Daily treatment capacity (Volume in mÂ³/day)
         - Treatment duration (Days, typically 1-3)
         - Treatment level (1=primary, 2=secondary, 3=tertiary)
         - Export share (fraction of outflows exported from basin)
@@ -268,11 +258,11 @@ class waterdemand_wastewater(object):
         (default: 3 pools) to simulate realistic treatment processes and timing.
         
         Sets up the following annual arrays:
-        - wwtVolC : Daily treatment volumes [mÃ‚Â³/day]
+        - wwtVolC : Daily treatment volumes [mÂ³/day]
         - wwtTimeC : Treatment duration [days]
         - toResManageC : Reservoir management strategy [-1 to 1]
         - minHRTC : Minimum hydraulic retention times [days]
-        - wwtSurfaceAreaC : Treatment facility surface areas [mÃ‚Â²]
+        - wwtSurfaceAreaC : Treatment facility surface areas [mÂ²]
         
         Collection masks are updated for domestic and industrial wastewater
         sources based on facility-specific configuration flags.
@@ -284,19 +274,22 @@ class waterdemand_wastewater(object):
         # get ordered wwt IDS for iteration
         wwtIds = self.var.wwtC.copy()
         resKeys = [k  for  k in self.var.wastewater_to_reservoirs.keys()]
-        self.var.wwtIdsOrdered = resKeys + (wwtIds[np.isin(wwtIds, resKeys, invert = True)].tolist())
+        self.var.wwtIdsOrdered = resKeys + (wwtIds[np.in1d(wwtIds, resKeys, invert = True)].tolist())
         annual_mask = []
         annual_wwtpIdx = []
         for wwtid in self.var.wwtIdsOrdered:
             tmp = self.var.wwt_def[wwtid]
-            # first instance (row) of the WWTP ID which is valid in this year: start <= year and (no end or end >= year)
-            # none (not built yet or already closed): the WWTP is not used this year
-            # exactly one entry per WWTP ID, so annual_mask and annual_wwtpIdx stay in the order of wwtIdsOrdered
-            # (before: a WWTP whose last instance was already closed got no entry -> lists shifted or index error)
-            valid = [r for r in range(tmp.shape[0]) if tmp[r][0] <= year and (np.isnan(tmp[r][1]) or tmp[r][1] >= year)]
-            annual_mask.append(len(valid) > 0)
-            annual_wwtpIdx.append(valid[0] if valid else np.nan)
-
+            for r in range(tmp.shape[0]):
+                if tmp[r][0] <= year:
+                    if np.isnan(tmp[r][1]) or tmp[r][1] >= year:
+                        annual_mask.append(True)
+                        annual_wwtpIdx.append(r)
+                        # if found the valid instance of WWTP ID - break and don't continute looking for another one
+                        break
+                elif tmp.shape[0] == r + 1:
+                    annual_mask.append(False)
+                    annual_wwtpIdx.append(np.nan)
+        
         self.var.wwtIdsOrdered = np.array(self.var.wwtIdsOrdered)[annual_mask].tolist()
         annual_wwtpIdx = np.array(annual_wwtpIdx)[annual_mask]
         
@@ -313,25 +306,23 @@ class waterdemand_wastewater(object):
         self.var.maskDomesticCollection = 1 + globals.inZero.copy()
         self.var.maskIndustryCollection = 1 + globals.inZero.copy()
         
-        for i, wwtid in enumerate(self.var.wwtIdsOrdered):
+        for wwtid in self.var.wwtIdsOrdered:
 
-            # valid row of this WWTP for the current year (annual_wwtpIdx is in the same order as wwtIdsOrdered)
-            # (before: annual_wwtpIdx[np.isin(...)] - int() of a 1-element array fails with NumPy >= 2.4)
-            wwtrow = self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])]
-            self.var.wwtVolC.append(wwtrow[2])
-            self.var.wwtTimeC.append(wwtrow[3])
-            self.var.minHRTC.append(np.maximum(wwtrow[8], 0.001))
+            i = np.in1d(self.var.wwtIdsOrdered, wwtid)
+            self.var.wwtVolC.append(self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][2])
+            self.var.wwtTimeC.append(self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][3]) 
+            self.var.minHRTC.append(np.maximum(self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][8], 0.001))
             # toResManageC control wwt2reservoir operations:
             #   0: attempt to send all to reservior
             #   1: export all treated wastewater
             # 0-1: export the fraction and attempt sending the rest to reservoir
             #  -1: only send to overflow point as discharge (do not send to reservoir)
             
-            mng = wwtrow[5]
+            mng = self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][5]
             self.var.toResManageC.append(float(np.where(np.isnan(mng), 0., mng)))
             # sector collection masks
-            self.var.maskDomesticCollection = np.where(self.var.wwtColArea == wwtid, wwtrow[6], self.var.maskDomesticCollection)
-            self.var.maskIndustryCollection = np.where(self.var.wwtColArea == wwtid, wwtrow[7], self.var.maskIndustryCollection)
+            self.var.maskDomesticCollection = np.where(self.var.wwtColArea == wwtid, self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][6], self.var.maskDomesticCollection)
+            self.var.maskIndustryCollection = np.where(self.var.wwtColArea == wwtid, self.var.wwt_def[wwtid][int(annual_wwtpIdx[i])][7], self.var.maskIndustryCollection)
            
         self.var.wwtVolC = np.array(self.var.wwtVolC)
         self.var.wwtTimeC = np.array(self.var.wwtTimeC)
@@ -374,7 +365,7 @@ class waterdemand_wastewater(object):
             wwtid = self.var.wwtIdsOrdered[i]
             self.var.wwtStorage[wwtid] = [0] * int(timeForStorage[i])
             if priorStorage:
-                if np.isin(wwtid, wwtStroage_last.keys()):
+                if np.in1d(wwtid, wwtStroage_last.keys()):
                     l_new = len(self.var.wwtStorage[wwtid])
                     l_old = len(wwtStroage_last[wwtid])
                     if l_new == l_old:
@@ -441,12 +432,12 @@ class waterdemand_wastewater(object):
         
         # identify a list of collection areas with wastewater treatment facilities outside of the mask
         # use wwtC instead of wwtIdsOrdered - so WWTP that are not present due to time constraints would not cause export.
-        collectWtr2Export = np.unique(self.var.wwtColArea)[np.invert(np.isin(np.unique(self.var.wwtColArea), self.var.wwtC))]
+        collectWtr2Export = np.unique(self.var.wwtColArea)[np.invert(np.in1d(np.unique(self.var.wwtColArea), self.var.wwtC))]
        
         collectWtr2Export = np.delete(collectWtr2Export, np.where(collectWtr2Export == 0))
         
         # mask for water2export collection
-        collection2ExportAreaMask = np.isin(self.var.wwtColArea, collectWtr2Export) * 1
+        collection2ExportAreaMask = np.in1d(self.var.wwtColArea, collectWtr2Export) * 1
         
         # document collection for export
         self.var.wwtExportedCollected = collection2ExportAreaMask * self.var.wwtSewerCollection * self.var.cellArea
@@ -618,8 +609,8 @@ class waterdemand_wastewater(object):
                 self.var.wwtSewerTreatedC[idIndex] -= self.var.wwtExportedTreatedC[idIndex]
                     
                     
-                srch =  np.isin(self.var.wastewater_to_reservoirs[wwt_id], self.var.waterBodyOut)
-                self.var.wwtResIDTemp_compress = np.isin(self.var.waterBodyOut, np.compress(srch, self.var.wastewater_to_reservoirs[wwt_id]))
+                srch =  np.in1d(self.var.wastewater_to_reservoirs[wwt_id], self.var.waterBodyOut)
+                self.var.wwtResIDTemp_compress = np.in1d(self.var.waterBodyOut, np.compress(srch, self.var.wastewater_to_reservoirs[wwt_id]))
                     
                 self.var.wwtResIDC = np.compress(self.var.wwtResIDTemp_compress, self.var.waterBodyOut)
                 self.var.wwtResTypC = np.compress(self.var.wwtResIDTemp_compress, self.var.waterBodyTyp_unchanged)
@@ -635,7 +626,7 @@ class waterdemand_wastewater(object):
                 
                 treatedSewer = self.var.wwtSewerTreatedC[idIndex]
                 #### Iterate to allocate as much water as possible to res ####
-                wwtResindex = np.isin(self.var.waterBodyOutC, self.var.wastewater_to_reservoirs[wwt_id])
+                wwtResindex = np.in1d(self.var.waterBodyOutC, self.var.wastewater_to_reservoirs[wwt_id])
                 maxIter = 50
                 iterCounter = 0
                 sendToRes = 0
@@ -665,7 +656,7 @@ class waterdemand_wastewater(object):
                     
                 overflow_temp += overflowMask * np.nansum(self.var.wwtSewerResOverflowC[idIndex])
       
-                wwtSentToRes = np.where(np.isin(np.compress(self.var.compress_LR, self.var.waterBodyOut), self.var.wwtResIDC), self.var.wwtSentToResC, 0.)
+                wwtSentToRes = np.where(np.in1d(np.compress(self.var.compress_LR, self.var.waterBodyOut), self.var.wwtResIDC), self.var.wwtSentToResC, 0.)
                 addToSend = globals.inZero.copy()
                 np.put(addToSend, self.var.decompress_LR, wwtSentToRes)
 

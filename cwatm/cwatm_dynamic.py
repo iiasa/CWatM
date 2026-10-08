@@ -15,7 +15,6 @@ import time
 # Local imports
 from cwatm.management_modules.data_handling import *
 from cwatm.management_modules.messages import *
-from cwatm.management_modules.configuration import check_settings_keys
 
 
 class CWATModel_dyn(DynamicModel):
@@ -28,15 +27,14 @@ class CWATModel_dyn(DynamicModel):
     to simulate the complete water cycle including precipitation, evapotranspiration,
     soil processes, groundwater, surface runoff, routing, and water management.
     
-    The dynamic execution follows a specific sequence to maintain physical 
-    consistency and proper water balance accounting throughout the hydrological system.
+    The dynamic execution follows a specific sequence to maintain physical
+    consistency and proper water balance accounting throughout the hydrological
+    system.
     
     Attributes
     ----------
-    
     All attributes are inherited from the parent DynamicModel class and
     initialized in the CWATModel_ini class, including:
-    
     - Hydrological module instances
     - Model state variables (self.var)
     - Configuration parameters (self.conf)
@@ -44,7 +42,6 @@ class CWATModel_dyn(DynamicModel):
     
     Notes
     -----
-    
     The execution order is critical for maintaining water balance and
     physical consistency. The sequence follows the natural hydrological
     cycle from atmospheric inputs through terrestrial processes to
@@ -52,15 +49,6 @@ class CWATModel_dyn(DynamicModel):
     
     Performance timing is tracked for each major process group to
     identify computational bottlenecks and optimize model efficiency.
-
-
-
-
-
-
-
-
-
 
     **Global variables**
     ===================================  ==========    ======================================================================  =====
@@ -70,17 +58,15 @@ class CWATModel_dyn(DynamicModel):
     unmetDemand_runningSum               Array         Unmet water demand (too less water availability)                        m    
     totalET_WB                           Array         Total evapotranspiration including waterbodies                          m    
     lakeReservoirStorage                 Array         Storage of lakes and reservoirs                                         m3   
-    tws_unmet                            Array                                                                                 --   
     tws                                  Array         Total water storage                                                     m    
     modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
-    stopaftersnow                        Flag          stop run after snow calcualtion -> for snow calibration (AI)            --   
     storGroundwater                      Array         Groundwater storage (non-fossil). This is primarily used when not usin  m    
     smallevapWaterBody                   Array         Evaporation from small lakes                                            m    
     EvapWaterBodyM                       Array         Evaporation from lakes and reservoirs                                   m    
     dynamicLandcover                     Flag          If landcover changes per year or is constant                            bool 
     totalET                              Array         Total evapotranspiration for each cell including all landcover types    m    
     totalSto                             Array         Total soil,snow and vegetation storage for each cell including all lan  m    
-    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
+    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1/m2 
     EvapoChannel                         Array         Channel evaporation                                                     m3   
     gridcell_storage                     Array         storage of water due to runoff concentration                            m    
     groundwater_storage_available        Array         Groundwater storage. Used with MODFLOW.                                 m    
@@ -132,11 +118,8 @@ class CWATModel_dyn(DynamicModel):
         Special execution modes:
         - Environmental flow only: If calc_environflow is True and
           calc_ef_afterRun is False, only environmental flow is calculated
-        - Calibration mode: If Flags['calib'] is True (first calibration run), only
-          meteorological data reading, potential evaporation, storing the meteo data
-          in memory (readmeteo.store_calib) and output generation are performed
-        - Warm runs of the calibration (Flags['warm']): meteo data and potential
-          evaporation are restored from memory, evaporationPot is skipped
+        - Calibration mode: If Flags['calib'] is True, only meteorological
+          data reading and output generation are performed
           
         Output verbosity controlled by flags:
         - 'v' or 'veryquiet': No progress output
@@ -159,9 +142,7 @@ class CWATModel_dyn(DynamicModel):
         # self.CalendarDay = int(self.CalendarDate.strftime("%j"))
         timestep_dynamic(self)
 
-        # time measures of this step (names too: otherwise timeMesString grows every step)
         del timeMes[:]
-        del timeMesString[:]
         timemeasure("Start dynamic")
 
         # ************************************************************
@@ -180,15 +161,10 @@ class CWATModel_dyn(DynamicModel):
         timemeasure("Read meteo")  # 1. timing after read input maps
 
         if Flags['calib']:
-            # first calibration run: potential evaporation before storing -> ETRef, EAct ... are stored as well
-            self.evaporationPot_module.dynamic()
-            self.readmeteo_module.store_calib()
             self.output_module.dynamic()
             return
 
-        # warm runs of the calibration: ETRef, EWRef (and derived meteo variables) are restored from memory in readmeteo
-        if not Flags['warm']:
-            self.evaporationPot_module.dynamic()
+        self.evaporationPot_module.dynamic()
         timemeasure("ET pot")  # 2. timing after read input maps
 
         # if Flags['check']: return  # if check than finish here
@@ -200,19 +176,16 @@ class CWATModel_dyn(DynamicModel):
         self.inflow_module.dynamic()
         self.lakes_reservoirs_module.dynamic()
 
-        # ***** READ land use fraction maps***************************
-        self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'], dynamic=self.var.dynamicLandcover)
-
         # ***** RAIN AND SNOW *****************************************
-        if self.var.usepySnowClim:
-            self.snow_pysnowclim_module.dynamic()
-        else:
-            self.snow_module.dynamic()
-        self.frost_module.dynamic()
+        self.snowfrost_module.dynamic()
         timemeasure("Snow")  # 3. timing
+
         # if only snow the skip the rest:
         if not self.var.stopaftersnow:
 
+        # ***** READ land use fraction maps***************************
+            self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'],
+                                                              dynamic=self.var.dynamicLandcover)
             self.capillarRise_module.dynamic()
             timemeasure("Soil 1.Part")  # 4. timing
 
@@ -243,12 +216,6 @@ class CWATModel_dyn(DynamicModel):
 
             if self.var.modflow:
                 groundwater_storage = self.var.groundwater_storage_available
-                # unmet demand (taken from fossil groundwater) summed up as without MODFLOW - also for the init file
-                # (MODFLOW storage is not reduced by it)
-                if checkOption('limitAbstraction'):
-                    self.var.unmetDemand_runningSum = globals.inZero.copy()
-                else:
-                    self.var.unmetDemand_runningSum = self.var.unmetDemand_runningSum + self.var.unmetDemand
             elif checkOption('limitAbstraction'):
                 groundwater_storage = self.var.storGroundwater
                 self.var.unmetDemand_runningSum = self.var.storGroundwater * 0
@@ -266,17 +233,9 @@ class CWATModel_dyn(DynamicModel):
                         # Sum of lake and reservoirs - here without small lakes
                         self.var.lakeReservoirStorage = self.var.lakeResStorage.copy()
 
-                    self.var.tws_unmet =  (groundwater_storage + self.var.totalSto +
+                    self.var.tws = (groundwater_storage + self.var.totalSto +
                                     self.var.lakeReservoirStorage * self.var.InvCellArea +
                                     self.var.channelStorage * self.var.InvCellArea)
-                    
-                    if not self.var.modflow:
-                        self.var.tws = (self.var.storGroundwater + self.var.totalSto +
-                                        self.var.lakeReservoirStorage * self.var.InvCellArea +
-                                        self.var.channelStorage * self.var.InvCellArea)
-                    else:
-                        self.var.tws = self.var.tws_unmet.copy()
-                    
 
                     self.var.totalET_WB = (self.var.totalET_WB + self.var.totalET + self.var.EvapWaterBodyM)
                     if returnBool('useSmallLakes'):
@@ -288,12 +247,6 @@ class CWATModel_dyn(DynamicModel):
                 self.var.tws = groundwater_storage + self.var.totalSto
 
             if checkOption('includeRunoffConcentration'):
-                # add storage of runoff concentration once to tws and tws_unmet
-                # (tws_unmet is only calculated above with routing and water bodies, otherwise it is tws)
-                if checkOption('includeRouting') and checkOption('includeWaterBodies'):
-                    self.var.tws_unmet = self.var.tws_unmet + self.var.gridcell_storage
-                else:
-                    self.var.tws_unmet = self.var.tws + self.var.gridcell_storage
                 self.var.tws = self.var.tws + self.var.gridcell_storage
 
 
@@ -315,11 +268,6 @@ class CWATModel_dyn(DynamicModel):
                 timeMesSum.append(timeMes[i] - timeMes[0])
             else:
                 timeMesSum[i] += timeMes[i] - timeMes[0]
-
-        # after the first time step all settings of initial and of a normal time step were asked for:
-        # warn about keys which are misspelled or in the wrong section
-        if self.currentStep == self.firstStep:
-            check_settings_keys()
 
         # MODFLOW cleanup: temporary files produced by MODFLOW/Flopy must be properly closed
         # with finalize() to prevent file access conflicts in subsequent runs (pytest, calibration)

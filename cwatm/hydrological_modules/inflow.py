@@ -22,7 +22,6 @@ class inflow(object):
     them at specified spatial locations within the model domain. This module is
     optional and only activates when the 'inflow' option is enabled.
     
-
     Attributes
     ----------
     var : object
@@ -30,22 +29,13 @@ class inflow(object):
     model : object
         Reference to the main CWatM model instance
 
-
-
-
-
-
-
-
-
-
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
     sampleInflow                         Number        location of inflow point                                                lat/l
     noinflowpoints                       Array         number of inflow points                                                 --   
-    inflowTs                             Array         inflow time series data                                                 m3 s-
+    inflowTs                             Array         inflow time series data                                                 m3/s 
     totalQInM3                           Array         total inflow over time (for mass balance calculation)                   m3   
     inflowM3                             Array         inflow to basin                                                         m3   
     DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
@@ -177,19 +167,16 @@ class inflow(object):
                     for i in range(no):
                         line = file.readline().strip('\n')
                         if line in inflowNames:
-                            msg = "Error 217: " + line + " in: " + filename + " is used already"
+                            msg = "Error 217:" + line + " in: " + filename + " is used already"
                             raise CWATMError(msg)
 
                         inflowNames.append(line)
                         names.append(line)
                     file.close()
                     skiplines = 3 + no
-                except CWATMError:
-                    # Error 217: name used already
-                    raise
-                except Exception:
+                except:
                     msg = "Error 218: Mistake reading inflow file\n"
-                    raise CWATMFileError(os.path.join(inDir, name), msg, sname="QInTS")
+                    raise CWATMFileError(os.path.join(inDir, name), sname=name)
 
                 tempTssData = np.genfromtxt(filename, skip_header=skiplines, names=names, 
                                             usecols=names[1:], filling_values=0.0)
@@ -225,7 +212,7 @@ class inflow(object):
         -----
         Inflow values are:
         - Read from pre-loaded time series data
-        - Converted from mÃ‚Â³/s to mÃ‚Â³ per time step
+        - Converted from mÂ³/s to mÂ³ per time step
         - Applied at specified inflow point locations
         - Accumulated for mass balance tracking
         """

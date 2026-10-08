@@ -29,15 +29,6 @@ class waterdemand_livestock:
     model : object
         Parent CWatM model instance
 
-
-
-
-
-
-
-
-
-
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -47,9 +38,9 @@ class waterdemand_livestock:
     livestockTime                        List                                                                                  --   
     livVar                               List                                                                                  --   
     uselivestock                         Flag          True if uselivestock=True in Settings, False otherwise                  bool 
-    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
-    demand_unit                          Flag          non-irrigation input maps have for each month or year the unit m/day (  --   
-    livestockDemand                      Array         avoid small values (less than 1 m3): (AI)                               --   
+    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1/m2 
+    demand_unit                          Flag                                                                                  --   
+    livestockDemand                      Array                                                                                 --   
     pot_livestockConsumption             Array         Potential livestock consumption                                         m    
     liv_efficiency                       Number        Livestock water use efficiency                                          --   
     ===================================  ==========    ======================================================================  =====

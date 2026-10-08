@@ -64,12 +64,12 @@ class Snowpack:
             self.n_lat, dtype=np.float32)  # Cold content
         self.lastpackwater = np.zeros(
             self.n_lat, dtype=np.float32)  # Pack water content
-        self.rain_in_snow = np.zeros(self.n_lat, dtype=np.float32)
-        self.runoff = np.zeros(self.n_lat, dtype=np.float32)
+        self.rain_in_snow = np.zeros(self.n_lat, dtype=np.float32) #np.full(self.n_lat, np.nan, dtype=np.float32)
+        self.runoff = np.zeros(self.n_lat, dtype=np.float32) #np.full(self.n_lat, np.nan, dtype=np.float32)
 
     def initialize_snowpack_runoff(self):
-        """Initialize runoff."""
-        self.runoff = np.zeros(self.n_lat, dtype=np.float32)
+        """Initialize runoff related variables except 'lastpacktemp' and 'snowage'."""
+        self.runoff = np.zeros(self.n_lat, dtype=np.float32) #np.full(self.n_lat, np.nan, dtype=np.float32)
 
 
     def initialize_full_snowpack(self):
@@ -183,7 +183,7 @@ class Snowpack:
         self.rain_in_snow = np.where(has_snow,
                                      np.maximum(self.lastpackwater -
                                                 previouspackwater, 0),
-                                     0)
+                                     np.nan)
 
     def _calculate_albedo(self, parameters, precip,
                           snow_vars, lat, month, day):
@@ -258,7 +258,7 @@ class Snowpack:
             self.lastsnowdepth[~b] = 0
             self.packsnowdensity[~b] = parameters['snow_dens_default']
 
-    def update_pack_sublimation(self, Sublimation, has_sublimation, Deposition):
+    def update_pack_sublimation(self, Sublimation, has_sublimation):
         """
         Update snowpack properties by calculating sublimation.
 
@@ -269,15 +269,8 @@ class Snowpack:
         """
         initialSWE = self.lastswe.copy()
 
-        # Check if SWE - sublimation < 0.
-        Sublimation = np.where(self.lastswe - Sublimation < 0, 0, Sublimation)
-
         # For non-complete sublimation
         self.lastswe[has_sublimation] -= Sublimation[has_sublimation]
-
-        # deposition is negative (mass gain from the air) -> lastswe only increases, no check needed
-        self.lastswe -= Deposition
-
         self.lastsnowdepth[has_sublimation] = self.lastswe[has_sublimation] / \
             self.packsnowdensity[has_sublimation] * const.WATERDENS
 
@@ -285,9 +278,8 @@ class Snowpack:
         cc_sublimation = np.logical_and(has_sublimation,  Sublimation > 0)
         self.lastpackcc[cc_sublimation] *= self.lastswe[cc_sublimation] / \
             initialSWE[cc_sublimation]
-        return Sublimation, Deposition
 
-    def complete_pack_sublimation(self, Evaporation,Condensation, no_snow_left, SnowDensDefault):
+    def complete_pack_sublimation(self, Evaporation, no_snow_left, SnowDensDefault):
         """
         Finishes the sublimation process in the snowpack.
 
@@ -304,11 +296,4 @@ class Snowpack:
         self.packsnowdensity[no_snow_left] = SnowDensDefault
 
         # Update packwater by subtracting evaporation
-        # First Consensation (= always negative)
-        self.lastpackwater -= Condensation
-        # 2nd evaporation, but not if lastpack becomea <0
-        Evaporation = np.where(self.lastpackwater - Evaporation < 0, 0, Evaporation)
-        self.lastpackwater -= Evaporation
-        #self.lastpackwater = np.maximum(0, self.lastpackwater - Evaporation - Condensation)
-
-        return Evaporation
+        self.lastpackwater = np.maximum(0, self.lastpackwater - Evaporation)

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3.8
 
 """
@@ -30,10 +29,6 @@ GNU General Public License for more details
 # --------------------------------------------------
 """
 
-import time
-# wall-clock time at the very beginning of CWatM (before the heavy imports), used to print the total runtime
-runstart = time.time()
-
 from cwatm import __author__, __version__, __date__, __copyright__, __maintainer__, __status__
 
 # to work with some versions of Linux  - a workaround with pyexpat is needed
@@ -45,6 +40,7 @@ import numpy as np
 # to work with some versions of Linux  - a workaround with pyexpat is needed
 import glob
 import sys
+import time
 import datetime
 import subprocess
 from pathlib import Path
@@ -52,26 +48,28 @@ from pathlib import Path
 
 import numpy
 import pandas
+import scipy
 import netCDF4
+from osgeo import gdal
+from osgeo import osr
 
 from cwatm.management_modules.configuration import globalFlags, settingsfile, versioning, platform1, parse_configuration, read_metanetcdf, dateVar, CWATMRunInfo, outputDir, timeMesSum, timeMesString, globalclear, calibclear
 from cwatm.management_modules.data_handling import Flags, cbinding
-from cwatm.management_modules.caching import ncwriteclose_all, ncclose_all
 from cwatm.management_modules.timestep import checkifDate
 from cwatm.management_modules.dynamicModel import ModelFrame
 from cwatm.management_modules.checks import save_check
 from cwatm.cwatm_model import CWATModel
 from cwatm.management_modules.globals import *
-from cwatm.management_modules.messages import CWATMError, print_cwatm_error
 from cwatm.version import *
-
-# number of the CWatM error that stopped the last run of main() or mainwarm(), 0 if none (checked by pytest)
-errornumber = 0
 
 if "modflow_coupling" in option:
     if checkOption('modflow_coupling'):
         import flopy
         import xmipy
+
+#import xlrd
+#import openpyxl
+gdal.UseExceptions()
 
 # ---------------------------
 
@@ -85,7 +83,6 @@ def usage():
     * -l --loud        output progression given as time step, date and discharge
     * -c --check       input maps and stack maps are checked, output for each input map BUT no model run
     * -t --printtime   the computation time for hydrological modules are printed
-    * -e --error       error messages with the code lines where the error occurred
 
     """
     #print('CWatM - Community Water Model')
@@ -103,7 +100,6 @@ def usage():
     -c --check       input maps and stack maps are checked, output for each input map BUT no model run
     -t --printtime   the computation time for hydrological modules are printed
     -w --warranty    copyright and warranty information
-    -e --error       error messages with the code lines where the error occurred
     """)
     return True
 
@@ -150,16 +146,12 @@ def CWATMexe(settings):
     ----------------------------------------------
     """
     if not(Flags['veryquiet']):
-        print(CWATMRunInfo([settingsfile[0], outputDir[0]]))
+        print(CWATMRunInfo([outputDir[0], settingsfile[0]]))
+    start_time = datetime.datetime.now().time()
     if Flags['loud']:
         print("%-6s %10s %11s\n" % ("Step", "Date", "Discharge"), end=' ')
 
-    try:
-        stCWATM.run()
-    finally:
-        # output files are kept open during the run, input files are cached: close them (also after an error)
-        ncwriteclose_all()
-        ncclose_all()
+    stCWATM.run()
 
     # cProfile.run('stLisflood.run()')
     # python -m cProfile -o  l1.pstats cwatm.py settings1.ini
@@ -176,8 +168,9 @@ def CWATMexe(settings):
             print("%2i %-17s %10.2f %8.1f" % (i, timeMesString[i], timePrint[i], 100 * timePrint[i] / timePrint[-1]))
 
     if Flags['loud']:
-        runtime = int(round(time.time() - runstart))
-        print("\nRuntime: %02i:%02i:%02i" % (runtime // 3600, (runtime % 3600) // 60, runtime % 60))
+        current_time = datetime.datetime.now().time()
+        print("\nStart: " + start_time.isoformat())
+        print("End:   " + current_time.isoformat())
 
     # return with last value and true for successfull run for pytest
     if Flags['calib']:
@@ -216,15 +209,11 @@ def CWATMexe2(settings,meteo):
 
     stCWATM = ModelFrame(CWATM, firstTimestep=dateVar["intStart"], lastTimeStep=dateVar["intEnd"])
 
+    start_time = datetime.datetime.now().time()
     if Flags['loud']:
         print("%-6s %10s %11s\n" % ("Step", "Date", "Discharge"), end=' ')
 
-    try:
-        stCWATM.run()
-    finally:
-        # output files are kept open during the run, input files are cached: close them (also after an error)
-        ncwriteclose_all()
-        ncclose_all()
+    stCWATM.run()
 
     if Flags['printtime']:
         print("\n\nTime profiling")
@@ -349,14 +338,11 @@ def headerinfo(usage=0):
 
 def mainwarm(settings, args, meteo):
     success = False
-    global errornumber, runstart
-    errornumber = 0
     #print ("Warm start CWatM")
 
     calibclear()
     if ("pytest" in sys.modules) or ("PySide6" in sys.modules):
         globalclear()
-        runstart = time.time()
 
     globalFlags(settings, args, settingsfile, Flags)
     Flags['warm'] = True
@@ -374,11 +360,7 @@ def mainwarm(settings, args, meteo):
                 return success, last_dis
             except Exception as e:
                 # return in a controlled way with success = False
-                if isinstance(e, CWATMError):
-                    errornumber = e.errornumber
-                    print_cwatm_error(e, Flags['error'])
-                else:
-                    traceback.print_exc()
+                traceback.print_exc()
                 return False, 0
 
     
@@ -393,12 +375,9 @@ def mainwarm(settings, args, meteo):
 
 def main(settings, args):
     success = False
-    global errornumber, runstart
-    errornumber = 0
     # Check if excution comes from pytest or from GUi -> delete all info from previous runs
     if ("pytest" in sys.modules) or ("PySide6" in sys.modules):
         globalclear()
-        runstart = time.time()
 
     globalFlags(settings, args, settingsfile, Flags)
     if Flags['use']:
@@ -429,11 +408,7 @@ def main(settings, args):
                 return success, last_dis
         except Exception as e:
             # return in a controlled way with success = False
-            if isinstance(e, CWATMError):
-                errornumber = e.errornumber
-                print_cwatm_error(e, Flags['error'])
-            else:
-                traceback.print_exc()
+            traceback.print_exc()
             return False, 0
 
 
@@ -447,16 +422,9 @@ def parse_args():
 
 
 def run_from_command_line():
-    """
-    Run CWatM from the command line and end the process with exit code 0 (run successful) or 1 (the run
-    stopped with an error), so scripts and Slurm jobs can see if a run failed.
-    The CWatM error number is printed and stored in errornumber (exit codes only go up to 255).
-    """
     settings, args = parse_args()
-    result = main(settings, args)
-    # main returns (success, last_dis) or with option calib (meteo, success, last_dis)
-    success = result[-2]
-    sys.exit(0 if success else 1)
+    main(settings, args)
 
 if __name__ == "__main__":
-    run_from_command_line()
+    settings, args = parse_args()
+    main(settings, args)

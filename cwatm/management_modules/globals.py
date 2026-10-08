@@ -37,10 +37,10 @@ maskinfo : dict
     Spatial mask and domain information
 modelSteps : list
     Model time step configuration
-binding : KeyTrackDict
-    Variable bindings from settings files (records used / missing keys)
-option : KeyTrackDict
-    Configuration options and parameters (records used / missing keys)
+binding : dict
+    Variable bindings from settings files
+option : dict
+    Configuration options and parameters
 Flags : dict
     Command-line execution flags
 versioning : dict
@@ -57,7 +57,8 @@ domain, indexes : dict
 Platform Detection
 -------------------
 The module automatically detects the operating system and loads appropriate
-shared libraries for computational routines, supporting Windows, Linux and macOS.
+shared libraries for computational routines, supporting Windows, Linux, macOS,
+and Cygwin environments.
 """
 
 import getopt
@@ -95,8 +96,8 @@ def globalclear():
     settingsfile.clear()
     maskinfo.clear()
     modelSteps.clear()
+    xmlstring.clear()
     geotrans.clear()
-    projection.clear()
     versioning.clear()
     timestepInit.clear()
     binding.clear()
@@ -106,7 +107,6 @@ def globalclear():
     inputcounter.clear()
     flagmeteo.clear()
     meteofiles.clear()
-    meteohandles.clear()
 
     initCondVarValue.clear()
     initCondVar.clear()
@@ -121,6 +121,12 @@ def globalclear():
     reportMapsAll.clear()
     reportMapsSteps.clear()
     reportMapsEnd.clear()
+
+
+    ReportSteps.clear()
+    FilterSteps.clear()
+    EnsMembers.clear()
+    nrCores.clear()
     outputDir.clear()
 
     maskmapAttr.clear()
@@ -129,11 +135,6 @@ def globalclear():
 
     domain.clear()
     indexes.clear()
-
-    # time measures (option -t): otherwise a second run in the same process adds to the first one
-    timeMes.clear()
-    timeMesString.clear()
-    timeMesSum.clear()
 
 
 def calibclear():
@@ -152,17 +153,26 @@ def calibclear():
     - Resetting initial condition variables and date variables
     - Clearing time series output but preserving map output structure
     - Maintaining spatial domain information (maskinfo, geotrans, domain)
-    - Preserving model structure (modelSteps) for efficiency
+    - Preserving model structure (modelSteps, xmlstring) for efficiency
     """
 
     for i in Flags.keys():
         Flags[i] = False
     settingsfile.clear()
 
+    # maskinfo.clear()
+    # modelSteps.clear()
+    # xmlstring.clear()
+    # geotrans.clear()
+    # versioning.clear()
+    # timestepInit.clear()
+    # binding.clear()
+    # option.clear()
+    # metaNetcdfVar.clear()
+
     inputcounter.clear()
     flagmeteo.clear()
     meteofiles.clear()
-    meteohandles.clear()
 
     initCondVarValue.clear()
     initCondVar.clear()
@@ -182,6 +192,10 @@ def calibclear():
     # reportMapsEnd.clear()
 
 
+    # ReportSteps.clear()
+    # FilterSteps.clear()
+    # EnsMembers.clear()
+    # nrCores.clear()
     # outputDir.clear()
 
     # maskmapAttr.clear()
@@ -196,87 +210,52 @@ def calibclear():
     binding.clear()
     option.clear()
 
-    # time measures (option -t) of the previous run
-    timeMes.clear()
-    timeMesString.clear()
-    timeMesSum.clear()
 
 
-class KeyTrackDict(dict):
-    """
-    Dict for the settings (binding, option) which records the keys the model asks for.
-
-    Reading a key (d[key], key in d, d.get(key)) adds it to used if it is there and to missing if not.
-    configuration.check_settings_keys uses this after the first time step to find misspelled keys:
-    a key in the settings file which is never used, close to a key the model asked for but did not find.
-    Writing, iteration and .keys() are not recorded.
-
-    Attributes
-    ----------
-    used : set
-        Keys which are in the dict and were read
-    missing : set
-        Keys which were asked for but are not in the dict
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.used = set()
-        self.missing = set()
-
-    def __getitem__(self, key):
-        self.used.add(key)
-        return dict.__getitem__(self, key)
-
-    def __contains__(self, key):
-        if dict.__contains__(self, key):
-            self.used.add(key)
-            return True
-        self.missing.add(key)
-        return False
-
-    def get(self, key, default=None):
-        if dict.__contains__(self, key):
-            self.used.add(key)
-        else:
-            self.missing.add(key)
-        return dict.get(self, key, default)
-
-    def clear(self):
-        self.used.clear()
-        self.missing.clear()
-        dict.clear(self)
-
-
-# module variables, shared with the other modules by "from ... import *"
-# (lists and dicts must be changed in place, e.g. .clear(), not reassigned - otherwise the other modules keep the old one)
+global settingsfile
 settingsfile = []
 
+global maskinfo, zeromap, modelSteps, xmlstring, geotrans
+# noinspection PyRedeclaration
 maskinfo = {}
 modelSteps = []
+xmlstring = []
 geotrans = []
-projection = {}
+
+global binding, option, FlagName, Flags, ReportSteps, FilterSteps, EnsMembers, outputDir
+global MMaskMap, maskmapAttr, bigmapAttr, cutmap, cutmapGlobal, cutmapFine, cutmapVfine, metadataNCDF
+global timestepInit
+global metaNetcdfVar
+global inputcounter
+global versioning
+global meteofiles, flagmeteo
 
 versioning = {}
 timestepInit = []
-binding = KeyTrackDict()
-option = KeyTrackDict()
+binding = {}
+option = {}
 metaNetcdfVar = {}
 
 inputcounter = {}
 flagmeteo = {}
 meteofiles = {}
-meteohandles = {} # open netCDF Dataset per meteo map: name -> [Dataset, file number]
 
 # Initial conditions
+global initCondVar, initCondVarValue
 initCondVarValue = []
 initCondVar = []
 
 
 # date variable
+global dateVar
+# noinspection PyRedeclaration
 dateVar = {}
 
 # Output variables
+global outDir, outsection, outputTyp
+global outMap, outTss
+global outputTypMap,outputTypTss, outputTypTss2
+
 outDir = {}
 outMap = {}
 outTss = {}
@@ -301,6 +280,11 @@ reportMapsAll = {}
 reportMapsSteps = {}
 reportMapsEnd = {}
 
+MMaskMap = 0
+ReportSteps = {}
+FilterSteps = []
+EnsMembers = []
+nrCores = []
 outputDir = []
 
 maskmapAttr = {}
@@ -309,40 +293,38 @@ cutmap = [0, 1, 0, 1]
 cutmapGlobal = [0, 1, 0, 1]
 cutmapFine = [0, 1, 0, 1]
 cutmapVfine = [0, 1, 0, 1]
+cdfFlag = [0, 0, 0, 0, 0, 0, 0]  # flag for netcdf output for all, steps and end, monthly (steps), yearly(steps), monthly , yearly
 metadataNCDF = {}
 
 # groundwater modflow
+global domain, indexes
 domain = {}
 indexes = {}
 
-# time measures (option -t)
+global timeMes, timeMesString, timeMesSum
 timeMes = []
 timeMesString = []  # name of the time measure - filled in dynamic
 timeMesSum = []    # time measure of hydrological modules
 
 
+global coverresult
 coverresult = [False, 0]
 # -------------------------
+global platform1
 
-# sys.platform is instant; platform.uname() takes 0.3 s (Python 3.12) to 3 s (Python 3.8) on Windows
-# (it also asks for the computer name). Same values as platform.uname()[0]: Windows, Darwin, Linux
-platform1 = {"win32": "Windows", "darwin": "Darwin"}.get(sys.platform)
-if platform1 is None:
-    platform1 = platform.system()
+platform1 = platform.uname()[0]
 
 # ----------------------------------
 FlagName = ['quiet', 'veryquiet', 'loud',
-            'check', 'printtime', 'warranty', 'calib', 'warm', 'gui', 'maskmap', 'error']
+            'checkfiles', 'printtime', 'warranty', 'calib', 'warm', 'gui']
 """list: Valid flag names for command-line argument parsing.
 Used by getopt to recognize valid command-line options."""
 
 Flags = {'quiet': False, 'veryquiet': False, 'loud': False,
          'check': False, 'printtime': False, 'warranty': False, 'use': False,
-         'test': False, 'calib': False, 'warm': False, 'gui': False, 'maskmap': False, 'error': False}
+         'test': False, 'calib': False, 'warm': False, 'gui': False, 'maskmap': False}
 """dict: Global execution flags controlling CWatM behavior.
-Controls output verbosity, execution modes, and special features throughout the model.
-Set by globalFlags from the command line (see FlagName), except two internal flags:
-'use' (unknown command-line option -> show the usage) and 'test' (run from pytest)."""
+Controls output verbosity, execution modes, and special features throughout the model."""
 
 
 
@@ -359,41 +341,32 @@ path_global = os.path.dirname(__file__)
 
 if platform1 == "Windows":
     dll_routing = os.path.join(os.path.split(path_global)[0], "hydrological_modules", "routing_reservoirs",
-                               "t6.dll")
-elif platform1 == "Darwin":
-    # Apple: t6_mac_arm64.so (Apple silicon) or t6_mac_x86_64.so (Intel)
-    if platform.machine() in ("arm64", "aarch64"):
-        mac_routing = "t6_mac_arm64.so"
-    else:
-        mac_routing = "t6_mac_x86_64.so"
+                               "t5.dll")
+elif platform1 == "CYGWIN_NT-6.1":
+    # CYGWIN_NT-6.1 - compiled with cygwin
     dll_routing = os.path.join(os.path.split(path_global)[0], "hydrological_modules", "routing_reservoirs",
-                               mac_routing)
+                               "t5cyg.so")
+elif platform1 == "Darwin":
+    # Apple
+    dll_routing = os.path.join(os.path.split(path_global)[0], "hydrological_modules", "routing_reservoirs",
+                               "t5_mac.so")
 
 else:
-    # Linux (and all other systems): t6_linux.so is built for x86_64 - on other processors (e.g. aarch64) Error 306
+    print("Linux\n")
     dll_routing = os.path.join(os.path.split(path_global)[0], "hydrological_modules", "routing_reservoirs",
-                               "t6_linux.so")
+                               "t5_linux.so")
 
 # dll_routing = "C:/work2/test1/t4.dll"
-try:
-    lib2 = ctypes.cdll.LoadLibrary(dll_routing)
-except OSError as e:
-    msg = "Error 306: The routing library (t6) cannot be loaded:\n" + dll_routing + "\n"
-    if not os.path.isfile(dll_routing):
-        msg += "The file does not exist. Please copy the t6 library for " + platform1 + " into this folder\n"
-    else:
-        msg += "The file exists but cannot be used: it may be built for another system or processor (" + \
-               platform1 + " " + platform.machine() + ", Python " + str(python_bit) + " bit),\n" + \
-               "or a library it needs is missing (on Windows e.g. mingw64 not in the PATH)"
-    # the Python reason (e) is printed by print_cwatm_error
-    raise CWATMError(msg) from e
+lib2 = ctypes.cdll.LoadLibrary(dll_routing)
 
-# setup the return types and argument types
-# arrays given to the C functions must have the right type and be contiguous: the C code reads them as one block
-# (a non-contiguous view, e.g. a slice with a step, gives a ctypes ArgumentError instead of wrong values)
+# setup the return typs and argument types
+# input type for the cos_doubles function
+# must be a double array, with single dimension that is contiguous
 array_1d_double = npct.ndpointer(dtype=np.double, ndim=1, flags='CONTIGUOUS')
-array_2d_int = npct.ndpointer(dtype=np.int64, ndim=2, flags='CONTIGUOUS')
-array_1d_int = npct.ndpointer(dtype=np.int64, ndim=1, flags='CONTIGUOUS')
+array_2d_int = npct.ndpointer(dtype=np.int64, ndim=2)
+array_1d_int = npct.ndpointer(dtype=np.int64, ndim=1)
+# array_1d_int16 = npct.ndpointer(dtype=np.int16, ndim=1, flags='CONTIGUOUS')
+# array_2d_int32 = npct.ndpointer(dtype=np.int32, ndim=2, flags='CONTIGUOUS')
 array_2d_double = npct.ndpointer(dtype=np.double, ndim=2, flags='CONTIGUOUS')
 
 
@@ -403,28 +376,18 @@ lib2.ups.argtypes = [array_1d_int, array_1d_int, array_1d_double, ctypes.c_int]
 lib2.dirID.restype = None
 lib2.dirID.argtypes = [array_2d_int, array_2d_int, array_2d_int, ctypes.c_int, ctypes.c_int]
 
-lib2.repairLdd1.restype = None
+# lib2.repairLdd1.argtypes = [ array_2d_int, ctypes.c_int,ctypes.c_int]
 lib2.repairLdd1.argtypes = [array_2d_int, ctypes.c_int, ctypes.c_int]
 
 lib2.repairLdd2.restype = None
 lib2.repairLdd2.argtypes = [array_1d_int, array_1d_int, array_1d_int, ctypes.c_int]
 
-# (the serial routing lib2.kinematic is still in the t6 library but not used any more: kinematicPar below)
-
-# parallel kinematic wave (t6 library from 2026 on): levels of the river network + parallel routing
-if not hasattr(lib2, "kinematicPar"):
-    msg = "Error 305: The routing library " + dll_routing + " is an old version without parallel routing\n"
-    msg += "Please use the new t6 library (t6.dll, t6_linux.so, t6_mac_arm64.so or t6_mac_x86_64.so)"
-    raise CWATMError(msg)
-lib2.kinematicLevels.restype = ctypes.c_int
-#                               dirDown       dirupLen      dirupID       size          ncells        levelOrder    levelStart
-lib2.kinematicLevels.argtypes = [array_1d_int, array_1d_int, array_1d_int, ctypes.c_int, ctypes.c_int, array_1d_int, array_1d_int]
-lib2.kinematicPar.restype = None
-#                             Qold             q                levelOrder    levelStart    nlevels       dirupLen      dirupID
-lib2.kinematicPar.argtypes = [array_1d_double, array_1d_double, array_1d_int, array_1d_int, ctypes.c_int, array_1d_int, array_1d_int,
-                              array_1d_double, array_1d_double, ctypes.c_double, ctypes.c_double, array_1d_double, ctypes.c_int]
-#                             Qnew             alpha            beta             deltaT           deltaX           nthreads
-lib2.kinematicParMaxThreads.restype = ctypes.c_int
+lib2.kinematic.restype = None
+# lib2.kinematic.argtypes = [array_1d_double,array_1d_double, array_1d_int, array_1d_int, array_1d_int,  array_1d_double,  ctypes.c_double, ctypes.c_double,ctypes.c_double, ctypes.c_double, ctypes.c_int]
+#                             qold            q               dirdown        diruplen     dirupid         Qnew              alpha             beta            deltaT          deltaX           size
+lib2.kinematic.argtypes = [array_1d_double, array_1d_double, array_1d_int, array_1d_int, array_1d_int,
+                           array_1d_double, array_1d_double, ctypes.c_double, ctypes.c_double,
+                           array_1d_double, ctypes.c_int]
 
 
 lib2.runoffConc.restype = None
@@ -460,25 +423,23 @@ def globalFlags(setting, arg, settingsfile, Flags):
     - `-q, --quiet`: Minimal output with progress dots
     - `-v, --veryquiet`: No progress output 
     - `-l, --loud`: Verbose output with timestep details
-    - `-c, --check`: Input validation mode only
+    - `-c, --checkfiles`: Input validation mode only
     - `-t, --printtime`: Print computation time for modules
     - `-w, --warranty`: Show copyright and warranty information
-    - `-e, --error`: Error messages with the code lines where the error occurred
     - `-k, --calib`: Enable calibration mode
     - `-0, --warm`: Enable warm start/restart mode
     - `-g, --gui`: Enable GUI mode
     - `-m, --maskmap`: Enable mask map processing
     
-    Internal flags (no command-line option):
-    - 'use': set if getopt finds an unknown option -> run_cwatm shows the usage
-    - 'test': set if CWatM runs from pytest (pytest in sys.modules)
+    The function also automatically detects pytest execution environment
+    and sets the 'test' flag accordingly.
     """
     # put the settingsfile name in a global variable
 
     settingsfile.append(setting)
 
     try:
-        opts, args = getopt.getopt(arg, 'qvlctwk0gme', FlagName)
+        opts, args = getopt.getopt(arg, 'qvlchtwk0gm', FlagName)
     except getopt.GetoptError:
         Flags['use'] = True
         return
@@ -490,7 +451,7 @@ def globalFlags(setting, arg, settingsfile, Flags):
             Flags['veryquiet'] = True
         if o in ('-l', '--loud'):
             Flags['loud'] = True
-        if o in ('-c', '--check'):
+        if o in ('-c', '--checkfiles'):
             Flags['check'] = True
         if o in ('-t', '--printtime'):
             Flags['printtime'] = True
@@ -506,8 +467,6 @@ def globalFlags(setting, arg, settingsfile, Flags):
             Flags['gui'] = True
         if o in ('-m', '--maskmap'):
             Flags['maskmap'] = True
-        if o in ('-e', '--error'):
-            Flags['error'] = True
     # if testing from pytest
     if "pytest" in sys.modules:
         Flags['test'] = True

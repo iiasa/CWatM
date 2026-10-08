@@ -27,26 +27,19 @@ class evaporation(object):
     model : object
         CWatM model instance
 
-
-
-
-
-
-
-
-
-
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
     cropKCmonth                          Array         Crop KC factor for different crops and different seasons                --   
+    snowEvap                             Array         total evaporation from snow for a snow layers                           m    
+    iceEvap                              Array         Evaporation from ice (sublimation)                                      m    
     Crops_names                          Array         Internal: List of specific crops                                        --   
     activatedCrops                       Array         Fraction of area a specific crop is planted                             --   
     load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
     monthCounter                         Array         Month counter for each crop after crop has planted                      --   
-    fracCrops_IrrLandDemand              Array                                                                                 --   
-    fracCrops_nonIrrLandDemand           Array                                                                                 --   
+    fracCrops_IrrLandDemand              Array         Month counter for each crop after crop has planted                      --   
+    fracCrops_nonIrrLandDemand                                                                                                 --   
     ratio_a_p_nonIrr                     Array         Ratio actual to potential evapotranspiration, monthly, non-irrigated [  %    
     totalPotET_month                     Array         Total potential evapotranspiration in a month                           m    
     ratio_a_p_Irr                        Array         Ratio actual to potential evapotranspiration, monthly [crop specific]   %    
@@ -54,12 +47,12 @@ class evaporation(object):
     currentKY                            Array         Yield sensitivity coefficient [crop specific]                           --   
     Yield_Irr                            Array         Relative monthly irrigated yield [crop specific]                        %    
     currentKC                            Array         Current crop coefficient for specific crops                             --   
-    generalIrrCrop_max                   Array         Automatic fallowing for irrigated land (AI)                             --   
+    generalIrrCrop_max                   Array                                                                                 --   
     generalnonIrrCrop_max                Array                                                                                 --   
     weighted_KC_nonIrr                   Array                                                                                 --   
     weighted_KC_nonIrr_woFallow          Array                                                                                 --   
     weighted_KC_Irr                      Array                                                                                 --   
-    _weighted_KC_Irr                                                                                                           --   
+    _weighted_KC_Irr                     Array                                                                                 --   
     weighted_KC_Irr_woFallow             Array                                                                                 --   
     totalPotET_month_segment             Array                                                                                 --   
     PotETaverage_crop_segments           Array                                                                                 --   
@@ -72,14 +65,13 @@ class evaporation(object):
     crop_correct_landCover               Array                                                                                 --   
     includeCrops                         Flag          1 when includeCrops=True in Settings, 0 otherwise                       bool 
     Crops                                Array         Internal: List of specific crops and Kc/Ky parameters                   --   
-    daily_crop_KC                        Array         If the crop inputs are given in days if the total growing season is le  --   
+    daily_crop_KC                        Array                                                                                 --   
     interceptCap                         Array         interception capacity of vegetation                                     m    
     potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m    
     cropKC                               Array         crop coefficient for each of the 4 different land cover types (forest,  --   
     minCropKC                            Array         minimum crop factor (default 0.2)                                       --   
-    minInterceptCap                      Array         minimum interception capacity per land cover type (from settings)       m    
+    minInterceptCap                      Array         Maximum interception read from file for forest and grassland land cove  m    
     irrigatedArea_original               Array                                                                                 --   
-    fracAllCover                         Array                                                                                 --   
     frac_totalnonIrr                     Array         Fraction sown with specific non-irrigated crops                         %    
     frac_totalIrr_max                    Array         Fraction sown with specific irrigated crops, maximum throughout simula  %    
     frac_totalnonIrr_max                 Array         Fraction sown with specific non-irrigated crops, maximum throughout si  %    
@@ -93,6 +85,9 @@ class evaporation(object):
     ETRef                                Array         potential evapotranspiration rate from reference crop                   m    
     Precipitation                        Array         Precipitation (input for the model)                                     m    
     coverTypes                           Array         land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
+    SnowMelt                             Array         total snow melt from all layers                                         m    
+    IceMelt                              Array         Ice melt (not really ice but an additional snow melt in summer)         m    
+    potBareSoilEvap                      Array         potential bare soil evaporation (calculated with minus snow evaporatio  m    
     irr_Paddy_month                      Array                                                                                 --   
     ET_crop_Irr_paddy                    Array                                                                                 --   
     ET_crop_Irr_paddy_fraccrop           Array                                                                                 --   
@@ -100,11 +95,10 @@ class evaporation(object):
     fracCrops_nonIrr                     Array         Fraction of cell currently planted with specific non-irr crops          %    
     actTransTotal_month_nonIrr           Array         Internal variable: Running total of  transpiration for specific non-ir  m    
     actTransTotal_month_Irr              Array         Internal variable: Running total of  transpiration for specific irriga  m    
-    irr_crop_month                       Array                                                                                 --   
+    irr_crop_month                       Number                                                                                --   
     frac_totalIrr                        Array         Fraction sown with specific irrigated crops                             %    
     weighted_KC_Irr_woFallow_fullKc      Array                                                                                 --   
     totalPotET                           Array         Potential evaporation per land use class                                m    
-    potBareSoilEvap                      Array         potential bare soil evaporation (calculated with minus snow evaporatio  m    
     PotET_crop                           Array                                                                                 --   
     fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     adminSegments                        Array         Domestic agents                                                         Int  
@@ -174,21 +168,43 @@ class evaporation(object):
             Potential evaporation from bare soil and potential transpiration values
         """
 
-
         # get crop coefficient
         # to get ETc from ET0 x kc factor  ((see http://www.fao.org/docrep/X0490E/x0490e04.htm#TopOfPage figure 4:)
         # crop coefficient read for forest and grassland from file
 
 
+
+        # calculate potential bare soil evaporation - only once
+        if No == 0:
+            self.var.potBareSoilEvap = self.var.cropCorrect * self.var.minCropKC * self.var.ETRef
+            if self.var.usepySnowClim:
+                # if snow on ground no bare soil evap
+                self.var.potBareSoilEvap = np.where(self.var.ExistSnow == 1,0,self.var.potBareSoilEvap)
+                # snowEvap calcualted already in snow-frost
+            else:
+                # calculate snow and ice evaporation
+                self.var.snowEvap = np.minimum(self.var.SnowMelt, self.var.potBareSoilEvap)
+                self.var.potBareSoilEvap -= self.var.snowEvap
+                self.var.iceEvap = np.minimum(self.var.IceMelt, self.var.potBareSoilEvap)
+                self.var.potBareSoilEvap -= self.var.iceEvap
+
+                self.var.SnowMelt -= self.var.snowEvap
+                self.var.IceMelt -= self.var.iceEvap
+
+        #if dateVar['newStart'] or (dateVar['currDate'].day in [1,11,21]):
+        #    self.var.cropKC[No] = readnetcdf2(coverType + '_cropCoefficientNC', dateVar['10day'], "10day")
+        #    self.var.cropKC[No] = np.maximum(self.var.cropKC[No], self.var.minCropKC)
+        #    self.var.cropKC_landCover[No] = self.var.cropKC[No].copy()
+
         # interpolation for each day from monthly values
         dplus = dateVar['30day'] + 1
-        # day within the 30-day period: 0 ... 29 (same base as dateVar['30day'] = (doy - 1) // 30)
-        dpart = (dateVar['doy'] - 1) % 30
+        dpart = dateVar['doy'] % 30
         if dplus > 12:
             dplus = 0
         self.var.cropKC[No] = ((self.var.cropKCmonth[No, dplus, :] - self.var.cropKCmonth[No, dateVar['30day'], :]) / 30. * 
                                dpart + self.var.cropKCmonth[No, dateVar['30day'], :])
         cropKC_landCover = self.var.cropKC[No]
+
 
         if self.var.includeCrops:
             # includeCrops allows for crops and fallow land to makeup the landcovers grasslands and non-paddy, and
@@ -215,43 +231,27 @@ class evaporation(object):
                               'ratio_a_p_nonIrr_daily', 'ratio_a_p_Irr_daily']:
                         vars(self.var)[z] = np.tile(globals.inZero, (len(self.var.Crops), 1))
 
-                    # copy: never share (and change) globals.inZero - irr_Paddy_month is changed in place
-                    # (soil.py: +=), a run starting not on the 1st of a month changed globals.inZero itself
-                    self.var.irr_Paddy_month = globals.inZero.copy()
+                    self.var.irr_Paddy_month = globals.inZero
                     for z in [crop for crop in self.var.Crops_names]:
-                        vars(self.var)[z + '_Irr'] = globals.inZero.copy()
-                        vars(self.var)[z + '_nonIrr'] = globals.inZero.copy()
+                        vars(self.var)[z + '_Irr'] = globals.inZero
+                        vars(self.var)[z + '_nonIrr'] = globals.inZero
 
-                    self.var.ET_crop_Irr_paddy = globals.inZero.copy()
-                    self.var.ET_crop_Irr_paddy_fraccrop = globals.inZero.copy()
+                    self.var.ET_crop_Irr_paddy = globals.inZero
+                    self.var.ET_crop_Irr_paddy_fraccrop = globals.inZero
 
                     for c in range(len(self.var.Crops)):
 
                         # For creating annual and month total outputs, since such totals don't work with square bracket variables
-                        vars(self.var)['ET_crop_Irr_'+str(c)] = globals.inZero.copy()
-                        vars(self.var)['ET_crop_Irr_fraccrop_'+str(c)] = globals.inZero.copy()
-                        vars(self.var)['ET_crop_nonIrr_'+str(c)] = globals.inZero.copy()
-                        vars(self.var)['ET_crop_nonIrr_fraccrop_'+str(c)] = globals.inZero.copy()
-                        vars(self.var)['irr_crop_'+str(c)] = globals.inZero.copy()
+                        vars(self.var)['ET_crop_Irr_'+str(c)] = globals.inZero
+                        vars(self.var)['ET_crop_Irr_fraccrop_'+str(c)] = globals.inZero
+                        vars(self.var)['ET_crop_nonIrr_'+str(c)] = globals.inZero
+                        vars(self.var)['ET_crop_nonIrr_fraccrop_'+str(c)] = globals.inZero
+                        vars(self.var)['irr_crop_'+str(c)] = globals.inZero
 
                         self.var.activatedCrops[c] = self.var.load_initial("activatedCrops_" + str(c))
                         self.var.fracCrops_Irr[c] = self.var.load_initial('fracCrops_Irr_' + str(c))
                         self.var.fracCrops_nonIrr[c] = self.var.load_initial('fracCrops_nonIrr_' + str(c))
                         self.var.monthCounter[c] = self.var.load_initial("monthCounter_" + str(c))
-                        # crop coefficients: missing in older init files - one warning for all crops below
-                        self.var.currentKC[c] = self.var.load_initial("currentKC_" + str(c), warn=False)
-                        self.var.currentKY[c] = self.var.load_initial("currentKY_" + str(c), warn=False)
-
-                    if self.var.loadInit:
-                        nocrop = len(self.var.Crops)
-                        missing = [c for c in range(nocrop)
-                                   if not initialIncluded(self.var.initLoadFile, "currentKC_" + str(c))]
-                        if missing:
-                            msg = "Warning: Initial values: crop coefficients currentKC_0..%d and currentKY_0..%d" % (
-                                nocrop - 1, nocrop - 1)
-                            msg += " are not included in: " + self.var.initLoadFile + "\n"
-                            msg += "using 0 (as before 2026-10) - they are set on the 1st of the next month"
-                            print(CWATMWarning(msg))
 
                 if dateVar['newStart'] or dateVar['newYear']:
 
@@ -301,7 +301,7 @@ class evaporation(object):
                             self.var.fracVegCover[3] = self.var.irrigatedArea_original.copy()
 
                             remainderLand = np.maximum(
-                                self.var.fracAllCover - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
+                                globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
                                 self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
                                 globals.inZero.copy())
 
@@ -320,13 +320,13 @@ class evaporation(object):
                         # Calculate relative yield for the last month
 
                         self.var.ratio_a_p_nonIrr[c] = np.where(
-                            self.var.totalPotET_month[c] * self.var.activatedCrops[c] * self.var.fracCrops_nonIrr[c] > 0,
+                            self.var.totalPotET_month[c] * self.var.activatedCrops[c] > 0,
                             self.var.actTransTotal_month_nonIrr[c] / (
                                 self.var.totalPotET_month[c] * self.var.fracCrops_nonIrr[c]),
                             0)  # This should always be <= 1.
 
                         self.var.ratio_a_p_Irr[c] = np.where(
-                            self.var.totalPotET_month[c] * self.var.activatedCrops[c] * self.var.fracCrops_Irr[c] > 0,
+                            self.var.totalPotET_month[c] * self.var.activatedCrops[c] > 0,
                             self.var.actTransTotal_month_Irr[c] / (
                                 self.var.totalPotET_month[c] * self.var.fracCrops_Irr[c]),
                             0)  # This should always be <= 1.
@@ -530,7 +530,7 @@ class evaporation(object):
 
                             self.var.fracVegCover[3] = self.var.frac_totalIrr + self.var.GeneralCrop_Irr
                             remainderLand = np.maximum(
-                                self.var.fracAllCover - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
+                                globals.inZero.copy() + 1 - self.var.fracVegCover[4] - self.var.fracVegCover[3] -
                                 self.var.fracVegCover[5] - self.var.fracVegCover[2] - self.var.fracVegCover[0],
                                 globals.inZero.copy())
 
@@ -558,8 +558,7 @@ class evaporation(object):
             if No == 1:
 
                 self.var.weighted_KC_nonIrr = self.var.GeneralCrop_nonIrr * cropKC_landCover
-                # crops without area in any cell add only 0 and are skipped
-                for c in np.flatnonzero(np.any(self.var.fracCrops_nonIrr != 0, axis=1)):
+                for c in range(len(self.var.Crops)):
                     self.var.weighted_KC_nonIrr += self.var.fracCrops_nonIrr[c] * self.var.currentKC[c]
                 self.var.weighted_KC_nonIrr_woFallow = self.var.weighted_KC_nonIrr.copy()
 
@@ -570,11 +569,8 @@ class evaporation(object):
 
             if No == 3:
 
-                # crops without irrigated area in any cell add only 0 and are skipped
-                presentIrr = np.flatnonzero(np.any(self.var.fracCrops_Irr != 0, axis=1))
-
                 self.var.weighted_KC_Irr = self.var.GeneralCrop_Irr * cropKC_landCover
-                for c in presentIrr:
+                for c in range(len(self.var.Crops)):
                     self.var.weighted_KC_Irr += self.var.fracCrops_Irr[c] * self.var.currentKC[c]
                 self.var.weighted_KC_Irr_woFallow_fullKc = self.var.weighted_KC_Irr.copy()
 
@@ -584,7 +580,7 @@ class evaporation(object):
                 self.var.cropKC[3] = self.var.weighted_KC_Irr.copy()
 
                 self.var._weighted_KC_Irr = self.var.GeneralCrop_Irr * (cropKC_landCover - self.var.minCropKC)
-                for c in presentIrr:
+                for c in range(len(self.var.Crops)):
                     self.var._weighted_KC_Irr += self.var.fracCrops_Irr[c] * (self.var.currentKC[c]-self.var.minCropKC)
                 self.var.weighted_KC_Irr_woFallow = self.var._weighted_KC_Irr.copy()
                 
@@ -598,11 +594,7 @@ class evaporation(object):
 
 
         # potTranspiration: Transpiration for each land cover class
-        # uses bare soil evaporation before the reduction by snow: snow must not increase potential transpiration
-        # snow evaporation + (snow reduced) bare soil evaporation can be bigger than the bare soil part
-        # -> the overflow is taken from transpiration, so actual ET cannot be bigger than potential ET
-        budgetBareSoilSnow = np.maximum(self.var.potBareSoilEvapNoSnow, self.var.potBareSoilEvap + self.var.snowEvap)
-        self.var.potTranspiration[No] = np.maximum(0., self.var.totalPotET[No] - budgetBareSoilSnow)
+        self.var.potTranspiration[No] = np.maximum(0., self.var.totalPotET[No] - self.var.potBareSoilEvap)
 
         # checkOption('includeCrops') and checkOption('includeCropSpecificWaterUse')
         if self.var.includeCrops:
@@ -616,36 +608,31 @@ class evaporation(object):
                                               self.var.currentKC[c] * self.var.ETRef)
                     self.var.totalPotET_month[c] += self.var.PotET_crop[c]
 
-                    # For creating named crop maps: only needed if they are in the output settings
-                    if not hasattr(self, 'outputNames'):
-                        from cwatm.management_modules.globals import outMap, outTss
-                        # entries are variable names, or after output.initial lists [file, variable name, ...]
-                        self.outputNames = {str(e[1] if isinstance(e, list) else e).split('[')[0].strip()
-                                            for names in list(outMap.values()) + list(outTss.values()) for e in names}
-                    cropName = self.var.Crops_names[c]
-                    if cropName + '_Irr' in self.outputNames:
-                        vars(self.var)[cropName + '_Irr'] = self.var.fracCrops_Irr[c].copy()
-                    if cropName + '_nonIrr' in self.outputNames:
-                        vars(self.var)[cropName + '_nonIrr'] = self.var.fracCrops_nonIrr[c].copy()
+                    # For creating named crop maps
+                    vars(self.var)[self.var.Crops_names[c] + '_Irr'] = self.var.fracCrops_Irr[c].copy()
+                    vars(self.var)[self.var.Crops_names[c] + '_nonIrr'] = self.var.fracCrops_nonIrr[c].copy()
 
                     
 
                     if 'adminSegments' in binding:
-                        segIndex = self.var.adminSegmentsIndex
-                        self.var.totalPotET_month_segment[c] = segIndex.average(self.var.totalPotET_month[c])
-                        self.var.PotETaverage_crop_segments[c] = segIndex.average(self.var.PotET_crop[c])
+                        self.var.totalPotET_month_segment[c] = npareaaverage(self.var.totalPotET_month[c], self.var.adminSegments)
+                        self.var.PotETaverage_crop_segments[c] = npareaaverage(self.var.PotET_crop[c], self.var.adminSegments)
 
-                        self.var.areaCrops_Irr_segment[c] = segIndex.total(self.var.fracCrops_Irr[c] * self.var.cellArea)
+                        self.var.areaCrops_Irr_segment[c] = npareatotal(self.var.fracCrops_Irr[c] * self.var.cellArea,
+                                                                        self.var.adminSegments)
 
-                        self.var.areaCrops_nonIrr_segment[c] = segIndex.total(
-                            self.var.fracCrops_nonIrr[c] * self.var.cellArea)
+                        self.var.areaCrops_nonIrr_segment[c] = npareatotal(
+                            self.var.fracCrops_nonIrr[c] * self.var.cellArea,
+                            self.var.adminSegments)
 
 
                 if 'adminSegments' in binding:
-                    segIndex = self.var.adminSegmentsIndex
-                    self.var.areaPaddy_Irr_segment = segIndex.total(self.var.fracVegCover[2] * self.var.cellArea)
+                    self.var.areaPaddy_Irr_segment = npareatotal(self.var.fracVegCover[2] * self.var.cellArea,
+                                                             self.var.adminSegments)
 
-                    self.var.Precipitation_segment = segIndex.total(self.var.Precipitation * self.var.cellArea)
+                    self.var.Precipitation_segment = npareatotal(self.var.Precipitation * self.var.cellArea,
+                                                                 self.var.adminSegments)
 
-                    self.var.availableArableLand_segment = segIndex.total(self.var.availableArableLand * self.var.cellArea)
+                    self.var.availableArableLand_segment = npareatotal(self.var.availableArableLand * self.var.cellArea,
+                                                                        self.var.adminSegments)
 

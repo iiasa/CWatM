@@ -10,6 +10,7 @@
 # -------------------------------------------------------------------------
 
 from cwatm.management_modules.data_handling import *
+from datetime import datetime, timedelta
 
 
 class environflow(object):
@@ -27,24 +28,15 @@ class environflow(object):
     model : object
         CWatM model instance
 
-
-
-
-
-
-
-
-
-
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
-    MAF                                  Array         Mean of discharge for all days                                          m3 s-
-    Q90                                  Array         10% of the lowest discharge for all days                                m3 s-
-    MMF                                  Array         Mean of discharge for each month separately                             m3 s-
-    MQ90                                 Array         10% of lowest discharge for each month separately                       m3 s-
-    EF_VMF                               Array         EF requirement with Variable Monthly Flow: Pastor et al.(2014): Accoun  m3 s-
+    MAF                                  Array         Mean of discharge for all days                                          m3/s 
+    Q90                                  Array         10% of the lowest discharge for all days                                m3/s 
+    MMF                                  Array         Mean of discharge for each month separately                             m3/s 
+    MQ90                                 Array         10% of lowest discharge for each month separately                       m3/s 
+    EF_VMF                               Array         EF requirement with Variable Monthly Flow: Pastor et al.(2014): Accoun  m3/s 
     cut_ef_map                           Flag          if TRUE calculated maps of environmental flow are clipped to the area   bool 
     ===================================  ==========    ======================================================================  =====
 
@@ -85,8 +77,8 @@ class environflow(object):
                 for map in outMap['output_out_map_daily']:
                     if map[1] == 'discharge':
                         meteolist = {}
-                        indstart = dateVar['intSpin'] - 1
-                        indend = dateVar['intEnd'] - 1
+                        indstart = (dateVar['dateStart'] - dateVar['dateBegin']).days
+                        indend = (dateVar['dateEnd'] - dateVar['dateBegin']).days
                         meteolist[0] = [map[0], indstart, indend, dateVar['dateStart'], dateVar['dateEnd']]
                         meteofiles['EFDis'] = meteolist
 
@@ -123,8 +115,10 @@ class environflow(object):
           if (returnBool('calc_ef_afterRun') is False) or (dateVar['currDate'] == dateVar['dateEnd']):
             # either load already calculated discharge or at the end of the simulation
 
-            # month of each written day (from spin up date, without the last day - not yet written) in the calendar of the netcdf files
-            datearray = dateVar['dates'][dateVar['intSpin'] - 1:dateVar['intEnd'] - 1]
+            # calculate date array
+            # datearray = np.arange(dateVar['dateStart'], dateVar['dateEnd'], 
+            #                       datetime.timedelta(days=1)).astype(datetime.datetime)
+            datearray = np.arange(dateVar['dateStart1'], dateVar['dateEnd1'], timedelta(days=1)).astype(datetime)
 
             montharray = np.array([d.month for d in datearray])
             monthshape = montharray.shape[0]

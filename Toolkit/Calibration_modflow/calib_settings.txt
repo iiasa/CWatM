@@ -1,0 +1,23 @@
+[DEFAULT]
+RootPC = P:/watmodel/CWATM/model/cwatm_modflow_layers/Toolkit/Calibration_modflow
+cores = 15
+
+[ObservedData]
+ObsGW = observed_data/boreholes_harmonized_clean.shp
+var_col= SWL
+
+[Path]
+Templates = templates_CWatM
+SubCatchmentPath = runs_calibration
+ParamRanges = prms_csv.csv
+OutputFolder = evaluation_folder
+
+[Templates]
+ModelSettings = settings_modflow_tmpl.ini
+RunModel = runpy.bat
+
+[LHS]
+max_models = 30
+
+
+

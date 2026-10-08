@@ -16,7 +16,7 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
                           E0_stable=None, Ts_add=None, smooth_time_steps =None, ground_albedo=None,
                           snow_emis=None, snow_dens_default=None, G=None, max_swe_height=None,
                           downward_radiation_factor=None, downward_radiation_start_month=None,
-                          downward_radiation_end_month=None,snowfactor=None):
+                          downward_radiation_end_month=None):
     """
     Writes parameters to a dictionary.
     Default values are those used in application of the snow model to the
@@ -24,8 +24,7 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
     at SNOTEL stations (Lute et al., 2022).
 
     :param cal: Time period for the model run (default: (2001-10-01 to 2002-09-30))
-                only used by the standalone run (runsnowclim_model.py), not by CWatM
-    :param hours_in_ts: Hours in time step (default: 24 = daily, as used by CWatM)
+    :param hours_in_ts: Hours in time step (default: 4)
     :param stability: Stability setting (default: 1)
     :param windHt: Wind height (default: 10)
     :param tempHt: Temperature height (default: 2)
@@ -43,8 +42,7 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
     :param E0_app: Windless exchange application option (default: 1)
     :param E0_stable: Windless exchange stability option (default: 2)
     :param Ts_add: Temperature add factor (default: 2)
-    :param smooth_time_steps: Smoothing time steps (default: 24 // hours_in_ts = 1 for daily steps;
-                              without effect in CWatM, which calls the model one time step at a time)
+    :param smooth_time_steps: Smoothing time steps (default: 12)
     :param ground_albedo: Ground albedo (default: 0.25)
     :param snow_emis: Snow emissivity (default: 0.98)
     :param snow_dens_default: Default snow density (default: 250)
@@ -53,7 +51,6 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
     :param downward_radiation_factor: Factor to be multiplied by downward radiation when SWE > max_swe_height (default: 1.3)
     :param downward_radiation_start_month: Month where downward_radiation_factor start to be applied (default: 6)
     :param downward_radiation_end_month: Month where downward_radiation_factor ends (default: 10)
-    :param snowfactor  (testing) parameter from CWatM to increase snow because of possible undercatch in measurements
     """
     if cal is None :
         # Time period for the model run (2001-10-01 to 2002-09-30)
@@ -90,8 +87,7 @@ def create_dict_parameters(cal=None, hours_in_ts=24, stability=None, windHt=None
         'max_swe_height': 100 if max_swe_height is None else max_swe_height,
         'downward_radiation_factor': 1.3 if downward_radiation_factor is None else downward_radiation_factor,
         'downward_radiation_start_month': 6 if downward_radiation_start_month is None else downward_radiation_start_month,
-        'downward_radiation_end_month': 10 if downward_radiation_end_month is None else downward_radiation_end_month,
-        'snowfactor': 1.0 if snowfactor is None else snowfactor,
+        'downward_radiation_end_month': 10 if downward_radiation_end_month is None else downward_radiation_end_month,    
         }
 
     return parameters

@@ -19,9 +19,7 @@ from cwatm.hydrological_modules.initcondition import initcondition
 from cwatm.hydrological_modules.readmeteo import readmeteo
 from cwatm.hydrological_modules.evaporationPot import evaporationPot
 from cwatm.hydrological_modules.inflow import inflow
-from cwatm.hydrological_modules.snow import snow
-from cwatm.hydrological_modules.snow_pysnowclim import snow_pysnowclim
-from cwatm.hydrological_modules.frost import frost
+from cwatm.hydrological_modules.snow_frost import snow_frost
 from cwatm.hydrological_modules.soil import soil
 from cwatm.hydrological_modules.landcoverType import landcoverType
 from cwatm.hydrological_modules.sealed_water import sealed_water
@@ -40,7 +38,6 @@ from cwatm.hydrological_modules.lakes_reservoirs import lakes_reservoirs
 from cwatm.hydrological_modules.waterquality1 import waterquality1
 from cwatm.management_modules.output import *
 from cwatm.management_modules.data_handling import *
-from cwatm.management_modules.caching import excelclose_all
 
 
 class Variables:
@@ -60,7 +57,7 @@ class Variables:
         Path to the initial condition netCDF file
     """
     
-    def load_initial(self, name, default=0.0, number=None, warn=True):
+    def load_initial(self, name, default=0.0, number=None):
         """
         Load initial hydrological conditions for model state variables.
         
@@ -78,9 +75,7 @@ class Variables:
         number : int, optional
             Layer number for multi-layer variables (e.g., soil layers, snow layers)
             When provided, appended to variable name for identification
-        warn : bool, optional
-            False: no warning if the variable is missing in the init file (default: True)
-
+            
         Returns
         -------
         numpy.ndarray or float
@@ -98,7 +93,7 @@ class Variables:
             name = name + str(number)
 
         if self.loadInit:
-            map = readnetcdfInitial(self.initLoadFile, name, default, warn)
+            map = readnetcdfInitial(self.initLoadFile, name)
             if Flags['calib']:
                 self.initmap[name] = map
             return map
@@ -160,12 +155,8 @@ class CWATModel_ini(DynamicModel):
         Module for potential evapotranspiration
     inflow_module : inflow
         Module for external inflow handling
-    snow_module : snow
-        Module for snow processes
-    snow_pysnowclim_module : snow_pysnowclim
-        Module for snow with pysnowclim processes
-    frost_module : frost
-        Module for frost processes
+    snowfrost_module : snow_frost
+        Module for snow and frost processes
     soil_module : soil
         Module for soil water processes
     landcoverType_module : landcoverType
@@ -204,21 +195,11 @@ class CWATModel_ini(DynamicModel):
     before meteorological reading to check for steady-state conditions.
     MODFLOW coupling is activated when 'modflow_coupling' is True in settings.
 
-
-
-
-
-
-
-
-
-
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
     modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
-    stopaftersnow                        Flag          stop run after snow calcualtion -> for snow calibration (AI)            --   
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -279,9 +260,7 @@ class CWATModel_ini(DynamicModel):
         self.environflow_module = environflow(self)
         self.evaporationPot_module = evaporationPot(self)
         self.inflow_module = inflow(self)
-        self.snow_module = snow(self)
-        self.snow_pysnowclim_module = snow_pysnowclim(self)
-        self.frost_module = frost(self)        
+        self.snowfrost_module = snow_frost(self)
         self.soil_module = soil(self)
         self.landcoverType_module = landcoverType(self)
         self.evaporation_module = evaporation(self)
@@ -297,6 +276,8 @@ class CWATModel_ini(DynamicModel):
         self.routing_kinematic_module = routing_kinematic(self)
         self.lakes_reservoirs_module = lakes_reservoirs(self)
         self.waterquality1 = waterquality1(self)
+
+
         # ----------------------------------------
 
         # reading of the metainformation of variables to put into output netcdfs
@@ -319,7 +300,6 @@ class CWATModel_ini(DynamicModel):
 
         # run intial misc to get all global variables
         self.misc_module.initial()
-
         self.init_module.initial()
 
         self.readmeteo_module.initial()
@@ -337,16 +317,7 @@ class CWATModel_ini(DynamicModel):
         # routing must be before output and snow behind
         self.routing_kinematic_module.initial()
         self.output_module.initial()
-
-        # before snow: loads dzRel
-        self.capillarRise_module.initial()
-        self.var.usepySnowClim = checkOption('usepySnowClim', True)
-        if self.var.usepySnowClim:
-            self.snow_pysnowclim_module.initial()
-        else:
-            self.snow_module.initial()
-
-        self.frost_module.initial()
+        self.snowfrost_module.initial()
 
         self.landcoverType_module.initial()
         self.evaporation_module.initial()
@@ -358,11 +329,11 @@ class CWATModel_ini(DynamicModel):
             self.lakes_reservoirs_module.initWaterbodies()
             self.lakes_reservoirs_module.initial_lakes()
             self.lakes_reservoirs_module.initial_reservoirs()
+
         self.waterdemand_module.initial()
+
+
         self.environflow_module.initial()
         self.waterquality1.initial()
-        # all Excel settings are read during initialisation -> release the workbook(s)
-        excelclose_all()
-
 
 

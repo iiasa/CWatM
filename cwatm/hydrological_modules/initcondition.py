@@ -10,7 +10,6 @@
 from cwatm.management_modules.data_handling import *
 import importlib
 # importlib to import pandas as pd in has crop sentitive version is used
-from cwatm.management_modules.caching import readexcel
 
 class initcondition(object):
     """
@@ -39,15 +38,6 @@ class initcondition(object):
     All initial conditions can be stored at the end of a model run
     to be used as a warm start for subsequent model executions.
 
-
-
-
-
-
-
-
-
-
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -56,7 +46,7 @@ class initcondition(object):
     Crops_names                          Array         Internal: List of specific crops                                        --   
     includeCrops                         Flag          1 when includeCrops=True in Settings, 0 otherwise                       bool 
     Crops                                Array         Internal: List of specific crops and Kc/Ky parameters                   --   
-    daily_crop_KC                        Array         If the crop inputs are given in days if the total growing season is le  --   
+    daily_crop_KC                        Array                                                                                 --   
     loadInit                             Flag          If true initial conditions are loaded                                   bool 
     includeDesal                         Flag                                                                                  --   
     unlimitedDesal                       Flag                                                                                  --   
@@ -65,7 +55,6 @@ class initcondition(object):
     wastewater_to_reservoirs             Array                                                                                 --   
     initLoadFile                         Number        load file name of the initial condition data                            Strin
     saveInit                             Flag          If true initial conditions are saved                                    bool 
-    initmap                              Flag                                                                                  --   
     saveInitFile                         Flag          save file name of the initial condition data                            bool 
     reservoir_info                       List          Number of lakes and reservoirs in Excel                                 --   
     reservoir_transfers                  Array         [['Giving reservoir'][i], ['Receiving reservoir'][i], ['Fraction of li  array
@@ -110,7 +99,8 @@ class initcondition(object):
         Supports both monthly and daily time step configurations
         with automatic detection based on growth stage lengths.
         """
-        df = readexcel(xl_settings_file_path, 'Crops')
+        pd = importlib.import_module("pandas", package=None)
+        df = pd.read_excel(xl_settings_file_path, sheet_name='Crops')
 
         # Crops = [ [planting date, [length of growth stage i from planting, kc_i, ky_i]_i]_crop]
         Crops = []
@@ -167,7 +157,8 @@ class initcondition(object):
         xl_settings_file_path : str
             Path to Excel file containing reservoir configuration data
         """
-        df = readexcel(xl_settings_file_path, 'Reservoirs', header=None)
+        pd = importlib.import_module("pandas", package=None)
+        df = pd.read_excel(xl_settings_file_path, header=None, sheet_name='Reservoirs')
 
         # reservoir_transfers = [ [Giving reservoir, Receiving reservoir, [366-day array of releases]] ]
         reservoir_info = []
@@ -199,7 +190,8 @@ class initcondition(object):
         xl_settings_file_path : str
             Path to Excel file containing reservoir transfer configurations
         """
-        df = readexcel(xl_settings_file_path, 'Reservoir_transfers', header=None)
+        pd = importlib.import_module("pandas", package=None)
+        df = pd.read_excel(xl_settings_file_path, header=None, sheet_name='Reservoir_transfers')
 
         # reservoir_transfers = [ [Giving reservoir, Receiving reservoir, [366-day array of releases]] ]
         reservoir_transfers = []
@@ -233,7 +225,8 @@ class initcondition(object):
         """
         # fix - build an object with wwtp_id as key and res as values.
         # get unique wwtp_id and iterate
-        df = readexcel(xl_settings_file_path, 'Wastewater_to_reservoirs')
+        pd = importlib.import_module("pandas", package=None)
+        df = pd.read_excel(xl_settings_file_path, sheet_name='Wastewater_to_reservoirs')
         
        
         wwtp_to_reservoir = {}
@@ -258,7 +251,8 @@ class initcondition(object):
         xl_settings_file_path : str
             Path to Excel file containing wastewater treatment definitions
         """
-        df = readexcel(xl_settings_file_path, 'Wastewater_def')
+        pd = importlib.import_module("pandas", package=None)
+        df = pd.read_excel(xl_settings_file_path, sheet_name='Wastewater_def')
         
         cols = ['From year', 'To year', 'Volume (cubic m per day)', 'Treatment days', 'Treatment level', 'Export share', 'Domestic', 'Industrial', 'min_HRT']
         wwtp_definitions = {}
@@ -279,7 +273,8 @@ class initcondition(object):
         xl_settings_file_path : str
             Path to Excel file containing desalination capacity configurations
         """
-        df = readexcel(xl_settings_file_path, 'Desalination')
+        pd = importlib.import_module("pandas", package=None)
+        df = pd.read_excel(xl_settings_file_path, sheet_name='Desalination')
         
         s_year = globals.dateVar['dateBegin'].year
         e_year = globals.dateVar['dateEnd'].year
@@ -287,7 +282,7 @@ class initcondition(object):
         desalCap = {}
         lastDesal = 0
         for year in range(s_year, e_year + 1):
-            if np.isin(year, df['Year']):
+            if np.in1d(year, df['Year']):
                 lastDesal = df[df['Year'] == year]['Capacity'].to_list()[0]
             desalCap[year] = lastDesal
         return desalCap
@@ -299,18 +294,17 @@ class initcondition(object):
 		Puts all the variables which has to be stored in 2 lists:
 
 		* initCondVar: the name of the variable in the init netcdf file
-		* initCondVarValue: the variable name, optionally with integer index e.g. w1[2] (read with getoutvar)
+		* initCondVarValue: the variable as it can be read with the 'eval' command
 
 		Reads the parameter *save_initial* and *save_initial* to know if to save or load initial values
         """
 
         # list all initiatial variables
         # Snow & Frost
-        if not checkOption('usepySnowClim', True):
-            number = int(loadmap('NumberSnowLayers'))
-            for i in range(number):
-                initCondVar.append("SnowCover"+str(i+1))
-                initCondVarValue.append("SnowCoverS["+str(i)+"]")
+        number = int(loadmap('NumberSnowLayers'))
+        for i in range(number):
+            initCondVar.append("SnowCover"+str(i+1))
+            initCondVarValue.append("SnowCoverS["+str(i)+"]")
         initCondVar.append("FrostIndex")
         initCondVarValue.append("FrostIndex")
 
@@ -348,7 +342,7 @@ class initcondition(object):
                 xl_settings_file_path = cbinding('Excel_settings_file')
                 self.var.Crops, self.var.Crops_names = self.crops_initialise(xl_settings_file_path)
             else:
-                msg = "Error 137: The Excel settings file needs to be included into the settings file:\n" \
+                msg = "The Excel settings file needs to be included into the settings file:\n" \
                       "Excel_settings_file ="+r"*PATH*\cwatm_settings.xlsx"+"\n"
                 raise CWATMError(msg)
 
@@ -371,13 +365,6 @@ class initcondition(object):
 
                 initCondVar.append('activatedCrops_'+ str(c))
                 initCondVarValue.append('activatedCrops['+str(c)+']')
-
-                # crop coefficients: set only on the 1st of a month - without them a run starting later in the
-                # month has Kc = 0 until the next month (no crop transpiration, no non-paddy irrigation)
-                initCondVar.append('currentKC_' + str(c))
-                initCondVarValue.append('currentKC[' + str(c) + ']')
-                initCondVar.append('currentKY_' + str(c))
-                initCondVarValue.append('currentKY[' + str(c) + ']')
 
         # water demand
         initCondVar.append("unmetDemandPaddy")
@@ -404,13 +391,6 @@ class initcondition(object):
         if not self.var.modflow:
             initCondVar.append("storGroundwater")
             initCondVarValue.append("storGroundwater")
-        else:
-            # MODFLOW: capillary rise and saturated fraction are used by soil and land cover before MODFLOW runs on
-            # the first day of a restart (the MODFLOW head is saved as <initSave>_<date>_modflowhead.nc)
-            initCondVar.append("capillar")
-            initCondVarValue.append("capillar")
-            initCondVar.append("capriseindex")
-            initCondVarValue.append("capriseindex")
 
         # routing
         Var1 = ["channelStorage", "discharge", "riverbedExchange"]
@@ -421,9 +401,8 @@ class initcondition(object):
 
         # lakes & reservoirs
         if checkOption('includeWaterBodies'):
-            Var1 = ["lakeInflow", "lakeStorage","reservoirStorage","outLake","lakeOutflow","lakeStorageBalance"]
-            Var2 = ["lakeInflow","lakeVolume","reservoirStorage","outLake","lakeOutflow","lakeStorageBalance"]
-
+            Var1 = ["lakeInflow", "lakeStorage","reservoirStorage","outLake","lakeOutflow"]
+            Var2 = ["lakeInflow","lakeVolume","reservoirStorage","outLake","lakeOutflow"]
             initCondVar.extend(Var1)
             initCondVarValue.extend(Var2)
 
@@ -480,7 +459,6 @@ class initcondition(object):
         # or in certain interval e.g. 2y = every 2 years, 3m = every 3 month, 15d = every 15 days
 
         self.var.saveInit = returnBool('save_initial')
-        self.var.initmap = {}
         if self.var.saveInit:
             self.var.saveInitFile = cbinding('initSave')
             initdates = cbinding('StepInit').split()
@@ -505,8 +483,9 @@ class initcondition(object):
                 initVar=[]
                 i = 0
                 for var in initCondVar:
-                    base, index = parseoutvar(initCondVarValue[i])
-                    initVar.append(getoutvar(self.var, base, index))
+                    variabel = "self.var."+initCondVarValue[i]
+                    #print variabel
+                    initVar.append(eval(variabel))
                     i += 1
                 writeIniNetcdf(saveFile, initCondVar,initVar)
 
