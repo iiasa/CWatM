@@ -35,8 +35,6 @@ settingsfile : list
     Storage for settings file paths
 maskinfo : dict  
     Spatial mask and domain information
-modelSteps : list
-    Model time step configuration
 binding : KeyTrackDict
     Variable bindings from settings files (records used / missing keys)
 option : KeyTrackDict
@@ -85,8 +83,7 @@ def globalclear():
     -----
     This function clears all major global data structures including:
     - Configuration and settings (settingsfile, binding, option)
-    - Model spatial information (maskinfo, geotrans, domain, indexes)
-    - Time stepping and initialization data (timestepInit, modelSteps)
+    - Model spatial information (maskinfo, domain, indexes)
     - Input/output management (meteofiles, outDir, outMap, outTss)
     - Reporting and metadata structures (reportMaps*, metadataNCDF)
     - Version control and model tracking (versioning)
@@ -94,11 +91,8 @@ def globalclear():
 
     settingsfile.clear()
     maskinfo.clear()
-    modelSteps.clear()
-    geotrans.clear()
     projection.clear()
     versioning.clear()
-    timestepInit.clear()
     binding.clear()
     option.clear()
     metaNetcdfVar.clear()
@@ -151,8 +145,7 @@ def calibclear():
     - Clearing input data counters and meteorological file tracking
     - Resetting initial condition variables and date variables
     - Clearing time series output but preserving map output structure
-    - Maintaining spatial domain information (maskinfo, geotrans, domain)
-    - Preserving model structure (modelSteps) for efficiency
+    - Maintaining spatial domain information (maskinfo, domain)
     """
 
     for i in Flags.keys():
@@ -169,28 +162,9 @@ def calibclear():
 
     dateVar.clear()
 
-    # outDir.clear()
-    # outMap.clear()
-
+    # kept from the previous run: outDir, outMap, reportTimeSerieAct, reportMaps*, maskmapAttr, bigmapAttr,
+    # metadataNCDF, domain, indexes
     outTss.clear()
-
-
-    # outsection.clear()
-    # reportTimeSerieAct.clear()
-    # reportMapsAll.clear()
-    # reportMapsSteps.clear()
-    # reportMapsEnd.clear()
-
-
-    # outputDir.clear()
-
-    # maskmapAttr.clear()
-    # bigmapAttr.clear()
-    # metadataNCDF.clear()
-
-    # domain.clear()
-    # indexes.clear()
-
     outsection.clear()
     outputDir.clear()
     binding.clear()
@@ -253,12 +227,9 @@ class KeyTrackDict(dict):
 settingsfile = []
 
 maskinfo = {}
-modelSteps = []
-geotrans = []
 projection = {}
 
 versioning = {}
-timestepInit = []
 binding = KeyTrackDict()
 option = KeyTrackDict()
 metaNetcdfVar = {}

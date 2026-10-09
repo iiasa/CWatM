@@ -252,6 +252,30 @@ for model in models:
     info.append(model[0])
 
 
+def check_report(report, csvfile):
+    """
+    Check report of option -c (checks.checkmap): the csv file is written and the numbers fit together.
+    Every input file has a date (also files read later in the run, e.g. monthly water demand).
+    """
+    assert os.path.isfile(csvfile)
+    assert open(csvfile, encoding="utf-8").read() == report
+    lines = [line for line in report.split("\n") if line.strip()]
+    header = [h.strip() for h in lines[0].split(",")]
+    assert header[:3] == ["Name", "File/Value", "Create Date"]
+    assert header[-4:] == ["min", "mean", "max", "Path"]
+    rows = [dict(zip(header, [v.strip() for v in line.split(",")])) for line in lines[1:]]
+    assert len(rows) > 100
+    maprows = [r for r in rows if r["x-y"] != ""]
+    assert maprows
+    for r in maprows:
+        assert r["valid"] in ("True", "False", "-"), r["Name"]
+        assert int(r["Zero values"]) + int(r["NonZero"]) == int(r["number valid"]), r["Name"]
+        if r["min"] != "":
+            assert float(r["min"]) <= float(r["mean"]) <= float(r["max"]), r["Name"]
+        if os.path.splitext(r["File/Value"])[1].lower() in (".nc", ".tif", ".map"):
+            assert r["Create Date"] != "", r["Name"] + " " + r["File/Value"]
+
+
 # ===========================================================================
 # ===========================================================================
 def cwatm(info, model):
@@ -281,7 +305,7 @@ def cwatm(info, model):
     - "error": Tests expected failure scenarios with quiet mode
     - "calibration": Runs a normal run, the calibration run (meteo data stored in memory) and a warm run
       from memory; the discharge of the warm run has to be the same as of the normal run
-    - "checkmap": Validates model configuration without full execution  
+    - "checkmap": option -c, input maps are checked without a model run; the csv report is checked (check_report)
     - Default: Performs standard model run with full execution
     
     All test types use assertions to validate successful execution or expected failures.
@@ -321,9 +345,15 @@ def cwatm(info, model):
         assert last_dis_warm == last_dis_normal
 
     elif model[4].find("checkmap") > -1:
-        # test for check
-        success, last_dis = run_cwatm.main(model[4], ['-c'])
+        # test for check: report of each input map into a csv file in PathOut (main returns the report)
+        pathout = [c.split("=", 1)[1].strip() for c in model[2] if c.split("=")[0].strip() == "PathOut"][-1]
+        csvfile = os.path.join(pathout, model[0] + "_check.csv")
+        if os.path.exists(csvfile):
+            os.remove(csvfile)
+        success, report = run_cwatm.main(model[4], ['-c', csvfile])
         assert success
+        assert cwatm_run.errornumber == 0
+        check_report(report, csvfile)
 
     else:
         # test for normal model run:
@@ -523,6 +553,180 @@ def test_settings_warning(tmp_path, capsys, info):
     assert any("\"SnowMeltRadd\"" in m and "\"SnowMeltRad\"" in m for m in msgs)
     assert any("\"use_flow\" in [OPTIONS] is not used" in m for m in msgs)
     assert any("\"keyinoption\" has to be in [OPTIONS]" in m for m in msgs)
+
+
+# check option -c (checks.py): report of each input map, without a model run
+checks = importlib.import_module("cwatm.management_modules.checks")
+
+
+@pytest.fixture
+def checkglobals():
+    """
+    Empty versioning and maskinfo for a checkmap test; afterwards the old content is put back
+    (versioning: check report, file dates; maskinfo: mask of the last model run)
+    """
+    versioning, maskinfo = cwatm_globals.versioning, cwatm_globals.maskinfo
+    saved = (dict(versioning), dict(maskinfo))
+    versioning.clear()
+    maskinfo.clear()
+    yield cwatm_globals
+    versioning.clear()
+    versioning.update(saved[0])
+    maskinfo.clear()
+    maskinfo.update(saved[1])
+
+
+def check_setup(args, inputdates=None):
+    """Start of a check run as in CWATMexe: command line args after the settings file, dates of the input files"""
+    cwatm_globals.versioning.update({'checkargs': args, 'loadinput': True, 'refvalue': False, 'check': "",
+                                     'inputdates': inputdates if inputdates else {}})
+
+
+def check_rows(text):
+    """Check report (CSV text) -> header (list) and rows (list of dict: column name -> value)"""
+    lines = [line for line in text.split("\n") if line.strip()]
+    header = [h.strip() for h in lines[0].split(",")]
+    rows = [dict(zip(header, [v.strip() for v in line.split(",")])) for line in lines[1:]]
+    return header, rows
+
+
+@pytest.mark.parametrize("info, args, expected", [
+    ("Check files: no file", ['-c'], (None, None)),
+    ("Check files: only the csv file", ['-c', 'o.csv'], (None, 'o.csv')),
+    ("Check files: reference and csv file", ['-c', 'r.nc', 'o.csv'], ('r.nc', 'o.csv')),
+    ("Check files: csv before reference file", ['-c', 'o.csv', 'r.nc'], ('r.nc', 'o.csv')),
+    ("Check files: other option before -c", ['-l', '-c', 'r.nc', 'o.csv'], ('r.nc', 'o.csv')),
+    ("Check files: extension in upper case", ['-c', 'R.NC', 'O.CSV'], ('R.NC', 'O.CSV'))])
+def test_check_files(info, args, expected):
+    """
+    Reference netCDF and output csv file of option -c are found by their extension, in any order
+    """
+    print('\n ===== ', info, ' =============')
+    assert checks.checkfiles(args) == expected
+
+
+@pytest.mark.parametrize("info, filename, attribute, expected", [
+    ("Check reference: same date", "a.nc", "a.nc 01/01/2020 10:00;", "True"),
+    ("Check reference: other date", "a.nc", "a.nc 02/02/2021 11:00;", "False"),
+    ("Check reference: entry without date is skipped", "a.nc", "broken;a.nc 01/01/2020 10:00;", "True"),
+    ("Check reference: file name with spaces", "my map.nc", "my map.nc 01/01/2020 10:00;", "True"),
+    ("Check reference: file without the list of input files", "a.nc", None, "no list of input files"),
+    ("Check reference: file does not exist", "a.nc", "missing", "does not exist")])
+def test_check_reference(tmp_path, capsys, checkglobals, info, filename, attribute, expected):
+    """
+    Comparison with the list of input files (global attribute version_inputfiles) of a reference netCDF.
+    A missing reference file or a file without the list gives a warning and the check goes on without comparison.
+    """
+    print('\n ===== ', info, ' =============')
+    Dataset = importlib.import_module("netCDF4").Dataset
+    ref = str(tmp_path / "ref.nc")
+    if attribute != "missing":
+        with Dataset(ref, "w") as nc:
+            if attribute is not None:
+                nc.setncattr("version_inputfiles", attribute)
+    inputfile = str(tmp_path / filename)
+    check_setup(['-c', ref], {inputfile: filename + " 01/01/2020 10:00;"})
+    checks.checkmap("a", inputfile, 1.0)
+    header, rows = check_rows(cwatm_globals.versioning['check'])
+    assert rows[0]["File/Value"] == filename
+    assert rows[0]["Create Date"] == "01/01/2020 10:00"
+    if expected in ("True", "False"):
+        assert "Ref Date" in header
+        assert rows[0]["Same Date"] == expected
+    else:
+        assert "Ref Date" not in header
+        out = capsys.readouterr().out
+        assert "CWATM Warning" in out and expected in out
+
+
+@pytest.mark.parametrize("info", ["Check numbers: number valid, zero values, min/mean/max only inside the mask"])
+def test_check_map_values(checkglobals, info):
+    """
+    Numbers of a map in the check report on a 3x4 mask with 10 cells: only cells inside the mask with a value count.
+    Missing: NaN, masked, <= -9999, > 1e20. -500 is a valid value. Compressed 1D maps (readmeteo) give the same row,
+    a map with another shape (meteo maps before downscaling) is not compared with the mask (valid "-").
+    """
+    print('\n ===== ', info, ' =============')
+    # True: outside the mask
+    mask = np.array([[True, False, False, False], [False, False, False, False], [False, False, False, True]])
+    cwatm_globals.maskinfo.update({'mask': mask, 'shape': mask.shape, 'maskflat': mask.ravel(),
+                                   'shapeflat': mask.ravel().shape})
+    check_setup(['-c'])
+
+    nan = np.nan
+    # inside the mask: 0, -500, 2, 4, 6 valid - -9999, -3.4e38, 1e30, nan and the masked cell missing
+    values = np.ma.masked_array([[7., 0., -500., 2.], [-9999., -3.4e38, 1e30, nan], [4., 8., 6., 1e5]],
+                                mask=[[False] * 4, [False] * 4, [False, True, False, False]])
+    full = np.arange(12.).reshape(3, 4)
+    checks.checkmap("values", "", values)
+    checks.checkmap("full", "", full)
+    checks.checkmap("compressed", "", full.ravel()[~mask.ravel()])
+    checks.checkmap("othershape", "", np.where(np.arange(25.).reshape(5, 5) < 2, nan, 1.))
+    checks.checkmap("allmissing", "", np.full((3, 4), -9999.))
+    checks.checkmap("number", "0.5", 0.5)
+    header, rows = check_rows(cwatm_globals.versioning['check'])
+    row = {r["Name"]: r for r in rows}
+
+    r = row["values"]
+    assert (r["x-y"], r["number valid"], r["valid"]) == ("3x4", "5", "False")
+    assert (r["Zero values"], r["NonZero"]) == ("1", "4")
+    assert (r["min"], r["mean"], r["max"]) == ("-500.00", "-97.60", "6.00")
+
+    r = row["full"]
+    assert (r["number valid"], r["valid"], r["Zero values"], r["NonZero"]) == ("10", "True", "0", "10")
+    assert (r["min"], r["mean"], r["max"]) == ("1.00", "5.50", "10.00")
+    # compressed 1D map -> same numbers
+    assert {k: v for k, v in row["compressed"].items() if k != "Name"} == {k: v for k, v in r.items() if k != "Name"}
+
+    r = row["othershape"]
+    assert (r["x-y"], r["number valid"], r["valid"]) == ("5x5", "23", "-")
+
+    r = row["allmissing"]
+    assert (r["number valid"], r["valid"], r["min"], r["mean"], r["max"]) == ("0", "False", "", "", "")
+
+    r = row["number"]
+    assert r["File/Value"] == "0.5" and r["x-y"] == "" and r["number valid"] == ""
+
+
+@pytest.mark.parametrize("info", ["Check: file dates by full path, row numbers and header in each check run, csv file"])
+def test_check_dates_counter(tmp_path, capsys, checkglobals, info):
+    """
+    The date of an input file is looked up by its full path (two files with the same name in different folders).
+    Each check run (versioning['check'] = "" as in CWATMexe) starts with the header and row number 1.
+    save_check writes the report into the csv file given after -c.
+    """
+    print('\n ===== ', info, ' =============')
+    filea, fileb = os.path.join("dirA", "x.nc"), os.path.join("dirB", "x.nc")
+    csvfile = str(tmp_path / "check.csv")
+    check_setup(['-c', csvfile], {filea: "x.nc 01/01/2001 01:00;", fileb: "x.nc 02/02/2002 02:00;"})
+    capsys.readouterr()
+    checks.checkmap("a", filea, 1.0)
+    checks.checkmap("b", fileb, 1.0)
+    checks.checkmap("c", "dirA/x.nc", 1.0)     # other separator: same file as filea
+    checks.checkmap("d", os.path.join("dirC", "y.nc"), 1.0)
+    header, rows = check_rows(cwatm_globals.versioning['check'])
+    assert [r["Create Date"] for r in rows] == ["01/01/2001 01:00", "02/02/2002 02:00", "01/01/2001 01:00", ""]
+
+    out = capsys.readouterr().out
+    assert out.count("Name ") == 1
+    assert [line.split()[0] for line in out.split("\n") if line[:1].isdigit()] == ["1", "2", "3", "4"]
+
+    # save_check writes the report of this run
+    checks.save_check()
+    assert open(csvfile, encoding="utf-8").read() == cwatm_globals.versioning['check']
+
+    # next check run in the same process (pytest, GUI): header again and row 1
+    cwatm_globals.versioning['check'] = ""
+    checks.checkmap("e", filea, 1.0)
+    out = capsys.readouterr().out
+    assert out.count("Name ") == 1
+    assert [line.split()[0] for line in out.split("\n") if line[:1].isdigit()] == ["1"]
+
+    # without a csv file after -c nothing is written
+    os.remove(csvfile)
+    cwatm_globals.versioning['checkargs'] = ['-c']
+    checks.save_check()
+    assert not os.path.exists(csvfile)
 
 
 # MODFLOW (modflow6.py, modflow6_process.py): checks before MODFLOW starts, and a MODFLOW error (Fortran STOP)

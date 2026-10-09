@@ -134,7 +134,7 @@ def CWATMexe(settings):
     # this prevent from using relative path in settings!
 
     checkifDate('StepStart', 'StepEnd', 'SpinUp', cbinding('PrecipitationMaps'))
-    # checks if end date is later than start date and puts both in modelSteps
+    # checks if end date is later than start date and puts both in dateVar (intStart, intEnd)
     if Flags['check']:
         dateVar["intEnd"] = dateVar["intStart"]
         versioning['check'] = ""
@@ -202,7 +202,7 @@ def CWATMexe2(settings,meteo):
     read_metanetcdf('metaNetcdf.xml')
 
     checkifDate('StepStart', 'StepEnd', 'SpinUp', cbinding('PrecipitationMaps'))
-    # checks if end date is later than start date and puts both in modelSteps
+    # checks if end date is later than start date and puts both in dateVar (intStart, intEnd)
 
     days = 1 + dateVar["intEnd"] - dateVar["intStart"]
     for i in inputcounter.keys():

@@ -794,9 +794,6 @@ class readmeteo(object):
             else:
                 self.var.TMin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=0)
 
-            if Flags['check']:
-                checkmap('TminMaps', meteofiles['TminMaps'][flagmeteo['TminMaps']][0], self.var.TMin)
-
             #self.var.TMax = readnetcdf2('TmaxMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
             self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
             if self.var.meteodown:
@@ -804,12 +801,13 @@ class readmeteo(object):
             else:
                 self.var.TMax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmax", self.var.wc2_tmax, self.var.wc4_tmax, downscale=0)
 
-            if Flags['check']:
-                checkmap('TmaxMaps', meteofiles['TmaxMaps'][flagmeteo['TmaxMaps']][0], self.var.TMax)
-
             if self.var.TemperatureInKelvin:
                 self.var.TMin -= ZeroKelvin
                 self.var.TMax -= ZeroKelvin
+            if Flags['check']:
+                # after the conversion: in deg C as Tavg (the rows of readmeteodata are in the unit of the input maps)
+                checkmap('TminMaps', meteofiles['TminMaps'][flagmeteo['TminMaps']][0], self.var.TMin)
+                checkmap('TmaxMaps', meteofiles['TmaxMaps'][flagmeteo['TmaxMaps']][0], self.var.TMax)
             # check on the first date if TMin and TMax are really in the same unit as Tavg
             self.check_celsius(self.var.TMin, 'TminMaps')
             self.check_celsius(self.var.TMax, 'TmaxMaps')

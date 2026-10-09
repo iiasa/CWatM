@@ -331,7 +331,7 @@ class groundwater_modflow:
             binary=self.binary)
 
         # top of the aquifer at CWatM resolution (constant) for the groundwater depth
-        self.top_cwatm = self.grid.to_cwatm(self.layer_boundaries[0])
+        self.top_cwatm = self.grid.to_cwatm(self.layer_boundaries[0], mean=True)
 
         # initializing arrays
         # capillary rise from MODFLOW - from the init file for a restart (used by the soil before MODFLOW runs)
@@ -346,7 +346,7 @@ class groundwater_modflow:
 
         # water table at ModFlow resolution and converted into CWatM map
         self.var.modflow_watertable = np.copy(head)
-        self.var.head = self.grid.to_cwatm(head)
+        self.var.head = self.grid.to_cwatm(head, mean=True)
 
         # initial groundwater storage at ModFlow resolution and as CWatM map (in meter, used in water demand)
         self.var.groundwater_storage_top_layer = self.storage(head)
@@ -356,7 +356,7 @@ class groundwater_modflow:
             (self.layer_boundaries[0] - self.layer_boundaries[1]) * self.porosity[0])
 
         # permeability need to be translated into CWatM map to compute leakage from surface water bodies
-        self.var.permeability = self.grid.to_cwatm(self.permeability[0])
+        self.var.permeability = self.grid.to_cwatm(self.permeability[0], mean=True)
 
     def water_balance(self, recharge, outflow, storage_change, pumping):
         """
@@ -459,7 +459,7 @@ class groundwater_modflow:
         self.var.capriseindex = self.grid.fraction_to_cwatm(groundwater_outflow2)
 
         # updating water table maps both at CWatM and ModFlow resolution
-        self.var.head = self.grid.to_cwatm(head)
+        self.var.head = self.grid.to_cwatm(head, mean=True)
         self.var.gwdepth = self.top_cwatm - self.var.head
 
         if 'gw_depth_observations' in binding:

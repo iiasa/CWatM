@@ -367,7 +367,6 @@ def loadsetclone(self, name):
                 t = nf2.transform
                 geotransform = (t.a, t.b, t.c, t.d, t.e, t.f)
 
-                geotrans.append(geotransform)
                 setmaskmapAttr(geotransform[2], geotransform[5], nf2.shape[1], nf2.shape[0], geotransform[0])
                 #setmaskmapAttr( geotransform[0], geotransform[3], nf2.RasterXSize, nf2.RasterYSize, geotransform[1])
                 #band = nf2.GetRasterBand(1)
@@ -673,35 +672,13 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
                 msg = "Error 202: Latitude is in wrong order\n"
                 raise CWATMFileError(filename, msg)
 
-            if not timestepInit:
-                #with np.errstate(invalid='ignore'):
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    # in order to ignore some invalid value comments
-                    if cut:
-                        mapnp = nf1.variables[value][cut2:cut3, cut0:cut1].astype(np.float64)
-                    else:
-                        mapnp = nf1.variables[value][:]
-            else:
-                if 'time' in nf1.variables:
-                    timestepI = Calendar(timestepInit[0])
-                    if type(timestepI) is datetime.datetime:
-                        timestepI = date2num(timestepI,nf1.variables['time'].units)
-                    else: timestepI = int(timestepI) -1
-
-                    if not(timestepI in nf1.variables['time'][:]):
-                        msg = "Error 126: time step " + str(int(timestepI)+1)+" not stored in "+ filename
-                        raise CWATMError(msg)
-                    itime = np.where(nf1.variables['time'][:] == timestepI)[0][0]
-                    if cut:
-                        mapnp = nf1.variables[value][itime,cut2:cut3, cut0:cut1]
-                    else:
-                        mapnp = nf1.variables[value][itime][:]
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                # in order to ignore some invalid value comments
+                if cut:
+                    mapnp = nf1.variables[value][cut2:cut3, cut0:cut1].astype(np.float64)
                 else:
-                    if cut:
-                        mapnp = nf1.variables[value][cut2:cut3, cut0:cut1]
-                    else:
-                        mapnp = nf1.variables[value][:]
+                    mapnp = nf1.variables[value][:]
 
             try:
                 history = nf1.getncattr('history')
@@ -1631,18 +1608,13 @@ def setmeteochunkcache(ncvar, loc, maxcache=1024 * 1024 * 1024):
 def closemeteofile(name):
     """
     Close the open netCDF handle of one meteo map stack (if any).
-    Called when the run moves on to the next file of the stack, and at the end of a run.
+    Called when the run moves on to the next file of the stack.
+    (At the end of a run caching.ncclose_all closes all files; a handle left in meteohandles is then
+    closed and is opened again by readmeteodata, see isopen())
     """
     handle = meteohandles.pop(name, None)
     if handle is not None:
         ncclose(handle[2])   # handle = [Dataset, file number, filename] - shared with caching.ncopen
-
-def closemeteofiles():
-    """
-    Close all open meteo netCDF handles. Call once after the dynamic loop has finished.
-    """
-    for name in list(meteohandles.keys()):
-        closemeteofile(name)
 
 def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale=True,
                   buffering=False, extendback=False, glacier=False):
@@ -1728,7 +1700,7 @@ def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale
 
     # +++++++++++++++ Netcdf ++++++++++++++++++++++
     # the file handle is kept open across timesteps (opened on first use, closed when the
-    # run moves to the next file of the stack or by closemeteofiles() at the end of the run)
+    # run moves to the next file of the stack or by caching.ncclose_all() at the end of the run)
     fileno = flagmeteo[name]
     handle = meteohandles.get(name)
     if (handle is None) or (handle[1] != fileno) or (not handle[0].isopen()):
@@ -1899,8 +1871,9 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros=Fals
 
             if meteo: inputcounter[value] = idx
 
-    # if first day store the name and the date
-    if dateVar["curr"] == 0:
+    # store the name and the date when the file is read the first time (files read only later in the run too,
+    # e.g. monthly water demand)
+    if filename not in versioning.get('inputdates', {}):
         try:
             history = nf1.getncattr('history')
         except:
@@ -2226,11 +2199,13 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
             row = domain['nrow']
             col = domain['ncol']
             metadataNCDF['modflow_x'] = {}
-            metadataNCDF['modflow_x']['standard_name'] = 'X'
+            metadataNCDF['modflow_x']['standard_name'] = 'projection_x_coordinate'
             metadataNCDF['modflow_x']['units'] = 'm'
+            metadataNCDF['modflow_x']['axis'] = 'X'
             metadataNCDF['modflow_y'] = {}
-            metadataNCDF['modflow_y']['standard_name'] = 'Y'
+            metadataNCDF['modflow_y']['standard_name'] = 'projection_y_coordinate'
             metadataNCDF['modflow_y']['units'] = 'm'
+            metadataNCDF['modflow_y']['axis'] = 'Y'
 
 
     # create real varname with variable name + time depending name e.g. discharge + monthavg
@@ -2303,7 +2278,6 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
             latitude = nf1.createVariable('y', 'f8', 'y')
             for i in metadataNCDF['modflow_y']:
                 setattr(latitude, i, str(metadataNCDF['modflow_y'][i]))
-            latitude.axis ="Y"
 
         else:
 
@@ -2351,18 +2325,28 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
 
         # projection -> replace by crs  as in cf1.13
 
-        if projection['crs'] != None:
+        if modflow:
+            # CRS of modflow_basin (e.g. EPSG:3035), not the CWatM one
+            if domain.get('crs') is not None:
+                crs = nf1.createVariable('crs', 'i4', ())
+                crs.crs_wkt = crs.spatial_ref = domain['crs'].to_wkt()
+                try:
+                    # CF attributes (grid_mapping_name ...) for Panoply / netCDF-Java, pyproj is optional
+                    import pyproj
+                    for key, val in pyproj.CRS.from_wkt(crs.crs_wkt).to_cf().items():
+                        setattr(crs, key, val)
+                except ImportError:
+                    pass
+        elif projection['crs'] != None:
             crs = nf1.createVariable('crs', 'i4',())
             for key in projection['crs'].ncattrs():
                 setattr(crs, key, projection['crs'].getncattr(key))
 
         # Fill variables
         if modflow:
-            lats = np.arange(domain['north'], domain['south'] - 1, domain['rowsize'] * -1)
-            lons =  np.arange(domain['west'], domain['east']+1, domain['colsize'])
-            #lons =  np.linspace(domain['north'] , domain['south'], col, endpoint=False)
-            latitude[:] = lats
-            longitude[:] = lons
+            # cell centres (north / west are the edges of modflow_basin)
+            latitude[:] = domain['north'] - (np.arange(row) + 0.5) * domain['rowsize']
+            longitude[:] = domain['west'] + (np.arange(col) + 0.5) * domain['colsize']
 
         else:
             cell = maskmapAttr['cell']
@@ -2463,7 +2447,10 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
         value.long_name = p1 + p2
         value.units= getmeta("unit",prename,varunits)
 
-        if projection['crs'] != None:
+        if modflow:
+            if 'crs' in nf1.variables:
+                value.grid_mapping = "crs"
+        elif projection['crs'] != None:
             value.grid_mapping = "crs"
 
         #for var in list(metadataNCDF.keys()):

@@ -184,6 +184,7 @@ class ModflowGrid:
             }
         # global domain: also used in data_handling to write netcdf maps at ModFlow resolution
         domain.update(self.domain)
+        domain['crs'] = modflow_crs
         self.transform, self.crs = transform, modflow_crs
         self.nrow, self.ncol = self.domain['nrow'], self.domain['ncol']
         self.cell_area = self.domain['rowsize'] * self.domain['colsize']  # in m2
@@ -238,6 +239,13 @@ class ModflowGrid:
         self.cwatm_compressed_basin = compressed[self.cwatm_index[inbasin]]
         self.area_basin = self.area[inbasin]
         self.cwatm_cell_area = np.asarray(cellArea, dtype=np.float64)  # in m2, 1D compressed
+        # area of each CWatM cell covered by active ModFlow cells (border cells: less than the cell area)
+        self.covered_area = np.bincount(self.cwatm_compressed_basin, weights=self.area_basin,
+                                        minlength=maskinfo['mapC'][0])
+        # area of each ModFlow cell inside the CWatM mask (cells partly outside the mask: less than the cell area)
+        self.modflow_covered_all = np.bincount(self.modflow_index, weights=self.area, minlength=self.nrow * self.ncol)
+        self.modflow_covered = np.bincount(self.modflow_index_basin, weights=self.area_basin,
+                                           minlength=self.nrow * self.ncol)
 
     def read_tif(self, name):
         """map at ModFlow resolution (tif, same grid as modflow_basin) as float32"""
@@ -288,37 +296,42 @@ class ModflowGrid:
 
     def to_modflow(self, variable, nanvalue=None, all_cells=False):
         """
-        CWatM map (1D compressed) -> ModFlow map (2D, float64), area-weighted (flow L/T or depth)
+        CWatM map (1D compressed) -> ModFlow map (2D, float64), area-weighted mean of the CWatM cells over the part
+        of the ModFlow cell inside the CWatM mask (flow L/T or depth) - ModFlow cells outside the mask: 0
         nanvalue: value for nan in the CWatM map
         all_cells: also the ModFlow cells outside the basin (e.g. output maps at the start), else only active
         ModFlow cells (MODFLOW steps: faster, the other cells are 0)
         """
         if all_cells:
             variable = decompress(variable, nanvalue)
-            return (np.bincount(
-                self.modflow_index,
-                variable.ravel()[self.cwatm_index] * self.area,
-                minlength=self.nrow * self.ncol
-            ) / self.cell_area).reshape((self.nrow, self.ncol)).astype(variable.dtype)
+            total = np.bincount(self.modflow_index, variable.ravel()[self.cwatm_index] * self.area,
+                                minlength=self.nrow * self.ncol)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                result = np.where(self.modflow_covered_all > 0, total / self.modflow_covered_all, 0)
+            return result.reshape((self.nrow, self.ncol)).astype(variable.dtype)
         variable = np.asarray(variable, dtype=np.float64)
         if nanvalue is not None:
             variable = np.where(np.isnan(variable), nanvalue, variable)
-        return (np.bincount(
-            self.modflow_index_basin,
-            variable[self.cwatm_compressed_basin] * self.area_basin,
-            minlength=self.nrow * self.ncol
-        ) / self.cell_area).reshape((self.nrow, self.ncol))
+        total = np.bincount(self.modflow_index_basin, variable[self.cwatm_compressed_basin] * self.area_basin,
+                            minlength=self.nrow * self.ncol)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(self.modflow_covered > 0, total / self.modflow_covered, 0).reshape((self.nrow, self.ncol))
 
-    def to_cwatm(self, variable):
+    def to_cwatm(self, variable, mean=False):
         """
         ModFlow map (2D) -> CWatM map (1D compressed), area-weighted (only active ModFlow cells)
+        mean = False: divided by the CWatM cell area (flows, storage: volume is kept)
+        mean = True: mean of the active ModFlow cells (head, elevation, permeability) - CWatM cells without an
+        active ModFlow cell: 0
         """
         values = variable.ravel()[self.modflow_index_basin]
         assert not (np.isnan(values).any())
-        return (np.bincount(
-            self.cwatm_compressed_basin,
-            weights=values * self.area_basin,
-            minlength=maskinfo['mapC'][0]) / self.cwatm_cell_area).astype(variable.dtype)
+        total = np.bincount(self.cwatm_compressed_basin, weights=values * self.area_basin,
+                            minlength=maskinfo['mapC'][0])
+        if mean:
+            with np.errstate(divide='ignore', invalid='ignore'):
+                return np.where(self.covered_area > 0, total / self.covered_area, 0).astype(variable.dtype)
+        return (total / self.cwatm_cell_area).astype(variable.dtype)
 
     def fraction_to_cwatm(self, variable):
         """fraction of each CWatM cell covered by ModFlow cells with variable > 0 (1D compressed)"""
