@@ -148,7 +148,58 @@ groundwater module
     :undoc-members:
     :inherited-members:
     :show-inheritance:
-	
+
+groundwater_modflow.transient module
+------------------------------------
+
+**Groundwater with MODFLOW 6: coupling, exchange of recharge, pumping, head, capillary rise and baseflow,
+seepage scheme (modflow_seepage)**
+
+.. automodule:: cwatm.hydrological_modules.groundwater_modflow.transient
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+groundwater_modflow.steady module
+---------------------------------
+
+**MODFLOW steady state with the long-term recharge (run_only_steady_state)**
+
+.. automodule:: cwatm.hydrological_modules.groundwater_modflow.steady
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+groundwater_modflow.grid module
+-------------------------------
+
+**ModFlow grid: overlap of CWatM and ModFlow cells, conversion of maps between the two grids**
+
+.. automodule:: cwatm.hydrological_modules.groundwater_modflow.grid
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+groundwater_modflow.modflow6 module
+-----------------------------------
+
+**MODFLOW 6 through libmf6 (BMI with xmipy), input files written with flopy**
+
+.. automodule:: cwatm.hydrological_modules.groundwater_modflow.modflow6
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+groundwater_modflow.modflow6_process module
+-------------------------------------------
+
+**MODFLOW in a child process (modflow_subprocess)**
+
+.. automodule:: cwatm.hydrological_modules.groundwater_modflow.modflow6_process
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 runoff_concentration module
 ---------------------------
 

@@ -18,6 +18,17 @@ data_handling module
     :inherited-members:
     :show-inheritance:
 
+data_modflow module
+-------------------
+
+**Reading and writing of the files of the MODFLOW coupling (ModFlow grid and maps, restart head, MODFLOW working
+folder, output maps at ModFlow resolution)**
+
+.. automodule:: cwatm.management_modules.data_modflow
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 timestep module
 ---------------
 

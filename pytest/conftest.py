@@ -11,6 +11,9 @@ import importlib
 def pytest_addoption(parser):
     parser.addoption("--settingsfile", action="store")
     parser.addoption("--cwatm", action="store")
+    # water balance check of the normal model runs (test_waterbalance): on / off, tolerance (fraction of In)
+    parser.addoption("--waterbalance", action="store", default="off")
+    parser.addoption("--wbtol", action="store", default="1e-3")
 
 # HTML
 def pytest_configure(config):

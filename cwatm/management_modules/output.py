@@ -78,12 +78,35 @@ class outputTssMap(object):
     noOutpoints                          Number        number of output points                                                 --   
     evalCatch                            Array         indeces of a subbasin in the mask                                       --   
     catcharea                            Array         catchment area of the subbaSIN                                          m2   
-    watercycle                           List                                                                                  --   
+    watercycle                           List          WaterCycle columns: [variable, sum type, flux/storage type]             --   
+    waterbalance                         List          WaterBalance columns: watercycle + waterbalance_extra                   --   
+    waterbalance_extra                   List          Soil layer and land cover columns only in WaterBalance                  --   
+    waterbalanceOut                      Flag          WaterBalance output is written                                          bool 
     netcdfasindex                        Flag          save netcdf file in a compressed way - for splitting runs in several b  bool 
     firstout                             Number        discharge of the first gauge                                            m3 s-
     discharge                            Array         Channel discharge                                                       m3 s-
     usepySnowClim                        Flag          Flag to use pySnowClim                                                  --   
     cellArea                             Array         Area of cell                                                            m2   
+    soilcovers                           List          Land covers with soil in WaterBalance output (2, 4 with irrigation)     --   
+    sum_ta1                              Array         Transpiration from soil layer 1, cell mean (WaterBalance)               m    
+    sum_ta2                              Array         Transpiration from soil layer 2, cell mean (WaterBalance)               m    
+    sum_ta3                              Array         Transpiration from soil layer 3, cell mean (WaterBalance)               m    
+    sum_perc1to2                         Array         Percolation soil layer 1 -> 2, cell mean (WaterBalance)                 m    
+    sum_perc2to3                         Array         Percolation soil layer 2 -> 3, cell mean (WaterBalance)                 m    
+    sum_excess1to2                       Array         Infiltration excess layer 1 -> 2, cell mean (WaterBalance)              m    
+    sum_capRise2to1                      Array         Upward flow soil layer 2 -> 1, cell mean (WaterBalance)                 m    
+    sum_capRise3to2                      Array         Upward flow soil layer 3 -> 2, cell mean (WaterBalance)                 m    
+    sum_capOverflowRunoff                Array         MODFLOW capillary rise overflowing layer 1 -> runoff, cell mean         m    
+    pond2soil3                           Array         Seepage pond overflow into soil layer 3, cell mean (WaterBalance)       m    
+    pond2soil2                           Array         Seepage pond overflow into soil layer 2, cell mean (WaterBalance)       m    
+    <cover>_<term>                       Array         Soil water balance terms of a land cover, cell mean (soil_terms)        m    
+    glacierAreaSnow                      Array         Snowfall on the glacier area of the cell (WaterBalance)                 m3   
+    glacierAreaRain                      Array         Rain on the glacier area of the cell (WaterBalance)                     m3   
+    lake_<term>                          Array         Term of the lakes (type 1, 6), cell value (WaterBalance)                m    
+    res_<term>                           Array         Term of the reservoirs (all other types), cell value (WaterBalance)     m    
+    res_transferIn                       Array         Water received by reservoirs from transfers (WaterBalance)              m3   
+    res_transferOut                      Array         Water given by reservoirs to transfers (WaterBalance)                   m3   
+    lakeInflowTransit                    Array         Water on its way into the lakes, cell value (WaterBalance)              m3   
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -215,7 +238,8 @@ class outputTssMap(object):
                                 # info.append(os.path.join(outDimpontr[sec], str(var) + "_daily.tss"))
                                 newcsvformat = True
                                 suffix = ".csv"
-                                if 'reportOldTss' in option:
+                                # WaterCycle and WaterBalance are always written as csv (writeTssFileNew with flagCycle)
+                                if 'reportOldTss' in option and var not in ['WaterCycle', 'WaterBalance']:
                                     newcsvformat = not(checkOption('reportOldTss'))
                                 if not(newcsvformat):
                                     suffix = ".tss"
@@ -295,7 +319,7 @@ class outputTssMap(object):
             calcCatch = True
         for out in outTss.values():
             # here outTss still has the variable names (appendinfo is called later)
-            if "WaterCycle" in out:
+            if "WaterCycle" in out or "WaterBalance" in out:
                 calcCatch = True
 
         if calcCatch:
@@ -326,7 +350,9 @@ class outputTssMap(object):
 
                       ['tws', 'areasum_m3', 'storage'],['totalSto','areasum_m3','storage'],
                       ['SnowCover', 'areasum_m3', 'storage'],['sum_interceptStor', 'areasum_m3', 'storage'],['sum_soil', 'areasum_m3', 'storage'],
-                      ['storGroundwater','areasum_m3', 'storage'], ['channelStorage', 'sum_m3', 'storage'],
+                      # groundwater storage: with MODFLOW the storage of all layers (storGroundwater does not exist)
+                      ['groundwater_storage_total' if self.var.modflow else 'storGroundwater', 'areasum_m3', 'storage'],
+                      ['channelStorage', 'sum_m3', 'storage'],
 
                       ['discharge', 'm3s-1', 'discharge'], ['avgdischarge', 'm3s-1', 'discharge'], ['cellArea', 'sum_m3', 'area']]
 
@@ -334,11 +360,12 @@ class outputTssMap(object):
         if self.var.usepySnowClim:
             temp =  [['Rain_on_snow', 'areasum_m3', 'flux'],['packwater', 'areasum_m3', 'storage'],['snowReset', 'areasum_m3', 'flux'],
                     ['snowwaterevaporation', 'areasum_m3', 'flux'],['sublimation', 'areasum_m3', 'flux'],
-                    ['condensation', 'areasum_m3', 'flux'],['depostition', 'areasum_m3', 'flux'],
+                    ['condensation', 'areasum_m3', 'flux'],['deposition', 'areasum_m3', 'flux'],
                     ['refrozen', 'areasum_m3', 'flux'],['snowmelt1', 'areasum_m3', 'flux']
                     ]
             self.var.watercycle.extend(temp)
-        if checkOption('CapillarRise'):
+        # with MODFLOW: capillary rise from MODFLOW into the soil
+        if checkOption('CapillarRise') or self.var.modflow:
             temp = [['sum_capRiseFromGW','areasum_m3','flux']]
             self.var.watercycle.extend(temp)
 
@@ -354,6 +381,10 @@ class outputTssMap(object):
         if checkOption('includeRunoffConcentration'):
             temp = [['gridcell_storage','areasum_m3','storage']]
             self.var .watercycle.extend(temp)
+        if checkOption('inflow'):
+            # inflow from outside the basin (inflow module) put into the routing during the day [m3]
+            temp = [['inflowDay','sum_m3','flux']]
+            self.var.watercycle.extend(temp)
 
 
         # waterbodies
@@ -376,7 +407,9 @@ class outputTssMap(object):
                     ['act_indWithdrawal','areasum_m3','demand'],['act_livWithdrawal','areasum_m3','demand'],['act_SurfaceWaterAbstract','areasum_m3','demand'],
                     ['act_irrNonpaddyWithdrawal','areasum_m3','demand'],['pot_GroundwaterAbstract','areasum_m3','demand'],['nonFossilGroundwaterAbs','areasum_m3','demand'],
                     ['returnFlow','areasum_m3','demand'],
-                    ['returnflowIrr','areasum_m3','demand'],['returnflowNonIrr','areasum_m3','demand']]
+                    ['returnflowIrr','areasum_m3','demand'],['returnflowNonIrr','areasum_m3','demand'],
+                    # canal leakage of reservoir command areas: m3 at the reservoir outlet (not m) -> sum_m3
+                    ['leakage','sum_m3','demand']]
             self.var.watercycle.extend(temp)
 
         if 'sectorSourceAbstractionFractions' in option:
@@ -392,9 +425,128 @@ class outputTssMap(object):
         # Modflow
         if self.var.modflow:
             temp = [['leakageIntoGw','areasum_m3','Modflow'],['leakageIntoRunoff','areasum_m3','Modflow'],['riverbedExchangeM','areasum_m3','Modflow'],
-                    ['lakebedExchangeM','areasum_m3','Modflow'],['leakage','areasum_m3','Modflow'],['Pumping_daily','areasum_m3','Modflow'],
-                    ['modfPumpingM_actual','areasum_m3','Modflow'],['groundwater_storage_available','areasum_m3','Modflow']]
+                    ['lakebedExchangeM','areasum_m3','Modflow'],['Pumping_daily','areasum_m3','Modflow'],
+                    ['modfPumpingM_actual','areasum_m3','Modflow'],['groundwater_storage_available','areasum_m3','Modflow'],
+                    # exchange CWatM <-> MODFLOW (transient.py): coupling buffer, rejected recharge used as interflow,
+                    # recharge exported to other groundwater basins
+                    ['modflow_buffer','areasum_m3','storage'],['rejected_recharge_interflow','areasum_m3','Modflow'],
+                    ['capillarUsed','areasum_m3','Modflow'],
+                    ['gwRechargeExported_day','areasum_m3','Modflow']]
+            # (seepageOn is set later in capillarRise.initial; modflow_seepage in transient.initial, before)
+            if self.var.modflow_seepage:
+                # seepage scheme (soil.py): MODFLOW outflow into the seepage pond, capillary rise from the aquifer
+                temp += [['sum_seepage','areasum_m3','Modflow'],['sum_capRiseFromAquifer','areasum_m3','Modflow']]
             self.var.watercycle.extend(temp)
+
+        # WaterBalance output = WaterCycle columns + interception (throughfall), the 3 soil layers, the soil of each
+        # land cover, potential ET, runoff concentration inputs, snow pack (pySnowClim), precipitation on glaciers
+        # (cell means, calculated in waterbalance_cellmeans only if WaterBalance is written)
+        temp = [['sum_throughfall', 'areasum_m3', 'flux'],
+                ['sum_w1', 'areasum_m3', 'storage'], ['sum_w2', 'areasum_m3', 'storage'], ['sum_w3', 'areasum_m3', 'storage'],
+                # (sum_infiltration, sum_perc3toGW: soil land covers only, 0 for sealed and water)
+                ['sum_infiltration', 'areasum_m3', 'flux'],
+                ['sum_ta1', 'areasum_m3', 'flux'], ['sum_ta2', 'areasum_m3', 'flux'], ['sum_ta3', 'areasum_m3', 'flux'],
+                ['sum_perc1to2', 'areasum_m3', 'flux'], ['sum_perc2to3', 'areasum_m3', 'flux'], ['sum_perc3toGW', 'areasum_m3', 'flux'],
+                ['sum_excess1to2', 'areasum_m3', 'flux'], ['sum_capRise2to1', 'areasum_m3', 'flux'],
+                ['sum_capRise3to2', 'areasum_m3', 'flux']]
+        if self.var.modflow:
+            # capillary rise from MODFLOW overflowing soil layer 1 -> direct runoff
+            temp += [['sum_capOverflowRunoff', 'areasum_m3', 'flux']]
+            if self.var.modflow_seepage:
+                # seepage pond overflow into the soil: layer 3 and 2
+                temp += [['pond2soil3', 'areasum_m3', 'flux'], ['pond2soil2', 'areasum_m3', 'flux']]
+        self.var.soilcovers = self.var.coverTypes[:4] if checkOption('includeIrrigation') else self.var.coverTypes[:2]
+        for cover in self.var.soilcovers:
+            temp += [[cover + '_' + term, 'areasum_m3', 'storage' if term == 'soilStor' else 'flux']
+                     for term in self.soil_terms()]
+        # potential vs actual evapotranspiration: potential ET of the land covers (incl. irrigation losses),
+        # potential transpiration (after interception evaporation), reference ET of crops and open water
+        temp += [['sum_totalPotET', 'areasum_m3', 'evap'], ['sum_potTranspiration', 'areasum_m3', 'evap'],
+                 ['ETRef', 'areasum_m3', 'evap'], ['EWRef', 'areasum_m3', 'evap']]
+        # runoff concentration: inputs direct runoff and interflow (baseflow, leakageIntoRunoff, runoff and
+        # gridcell_storage are WaterCycle columns)
+        temp += [['sum_directRunoff', 'areasum_m3', 'flux'], ['sum_interflow', 'areasum_m3', 'flux']]
+        if self.var.usepySnowClim:
+            # snow pack: snow water equivalent (packwater is the other part of SnowCover)
+            temp += [['snowSWE', 'areasum_m3', 'storage']]
+        if self.var.includeGlaciers:
+            # precipitation on the glacier area [m3] (not in the area sums, which leave out the glacier fraction)
+            temp += [['glacierAreaSnow', 'sum_m3', 'glacier'], ['glacierAreaRain', 'sum_m3', 'glacier']]
+        if checkOption('includeWaterBodies'):
+            # lakes (lake routine: type 1, 6) and reservoirs (all other types, also not yet built: inflow = outflow)
+            # separately (waterbalance_cellmeans): storage, inflow, outflow, evaporation, abstraction (cells around the
+            # water body), lakebed exchange (MODFLOW), canal leakage (command areas), reservoir transfers
+            for wb in ['lake', 'res']:
+                temp += [[wb + '_storage', 'sum_m3', 'storage'], [wb + '_inflow', 'areasum_m3', 'lake'],
+                         [wb + '_outflow', 'areasum_m3', 'lake'], [wb + '_evap', 'areasum_m3', 'lake'],
+                         [wb + '_abstraction', 'areasum_m3', 'lake']]
+                if self.var.modflow:
+                    temp += [[wb + '_bedExchange', 'areasum_m3', 'lake']]
+                if checkOption('includeWaterDemand'):
+                    temp += [[wb + '_leakage', 'sum_m3', 'demand']]
+            if checkOption('includeWaterDemand'):
+                # abstraction taken from each water body, at its outlet [m3] (incl. canal leakage of command areas) -
+                # the users (abstraction above) can be outside the catchment of a station
+                temp += [['lakeResAbstOutlet', 'sum_m3', 'lake'], ['lake_abstOutlet', 'sum_m3', 'lake'],
+                         ['res_abstOutlet', 'sum_m3', 'lake']]
+            if checkOption('reservoir_transfers', True):
+                temp += [['res_transferIn', 'sum_m3', 'lake'], ['res_transferOut', 'sum_m3', 'lake']]
+            # water on its way into the lakes, in no other storage (waterbalance_cellmeans)
+            temp += [['lakeInflowTransit', 'sum_m3', 'storage']]
+        if self.var.modflow:
+            # MODFLOW budget of each layer (transient.layer_budget): storage, flow from the same layer (lateral), from
+            # the layer above / below, pumping; recharge and drain flow of layer 1; lateral flow of all layers
+            for n in range(1, self.var.modflow_nlay + 1):
+                name = 'gwlayer' + str(n) + '_'
+                temp += [[name + 'storage', 'areasum_m3', 'storage']]
+                temp += [[name + term, 'areasum_m3', 'Modflow'] for term in ['lateral', 'fromAbove', 'fromBelow', 'pumping']]
+            temp += [['gwlayer1_recharge', 'areasum_m3', 'Modflow'], ['gwlayer1_drain', 'areasum_m3', 'Modflow'],
+                     ['gw_lateral', 'areasum_m3', 'Modflow'],
+                     # recharge moved between CWatM cells by the ModFlow grid (transient.modflow_run)
+                     ['gw_rechargeMoved', 'areasum_m3', 'Modflow']]
+        if checkOption('includeWaterDemand'):
+            # demand (potential) vs withdrawal + unmet: total, irrigation (paddy, non-paddy), non-irrigation, sectors
+            temp += [['totalWaterDemand', 'areasum_m3', 'demand'], ['irrPaddyDemand', 'areasum_m3', 'demand'],
+                     ['irrNonpaddyDemand', 'areasum_m3', 'demand'], ['nonIrrDemand', 'areasum_m3', 'demand'],
+                     ['domesticDemand', 'areasum_m3', 'demand'], ['industryDemand', 'areasum_m3', 'demand'],
+                     ['livestockDemand', 'areasum_m3', 'demand']]
+            # withdrawal -> consumption + return flow + losses per sector: paddy withdrawal, lost fossil water of
+            # irrigation and non-irrigation (unmet_lost), pit latrines (to groundwater)
+            # (water_demand.initial comes after this: the options, not its flags)
+            def option_on(name, default=False):
+                return checkOption(name) if name in option else default
+
+            temp += [['act_irrPaddyWithdrawal', 'areasum_m3', 'demand'], ['unmet_lostirr', 'areasum_m3', 'demand']]
+            if option_on('includeIndusDomesDemand', True):
+                temp += [['unmet_lostNonirr', 'areasum_m3', 'demand']]
+            if option_on('includePitLatrine'):
+                temp += [['pitLatrinToGW', 'areasum_m3', 'demand']]
+            # wastewater (includeWastewater, wastewater.py): sewer collection (m, incl. urban runoff from sealed areas),
+            # collected from the non-irrigation return flow and from urban runoff (m), in treatment (m3 at the plants),
+            # evaporation, export out of the model, overflow / treated water to the river (overflow points) and to
+            # reservoirs (m3), reuse taken from the wastewater reservoirs (m)
+            if option_on('includeWastewater') and option_on('includeIndusDomesDemand', True):
+                temp += [['wwtSewerCollection', 'areasum_m3', 'demand'], ['wwtSewerCollectedBySoruce', 'areasum_m3', 'demand'],
+                         ['wwtUrbanLeakage', 'areasum_m3', 'demand'], ['wwtInTreatment', 'sum_m3', 'storage'],
+                         ['wwtEvap', 'sum_m3', 'demand'], ['wwtSewerExported', 'sum_m3', 'demand'],
+                         ['wwtOverflowOut', 'sum_m3', 'demand'], ['wwtSentToRes', 'sum_m3', 'demand'],
+                         ['act_bigLakeResAbst_wwt', 'areasum_m3', 'demand']]
+            # lift areas: channel water taken in each cell (by its available channel storage) - the cells get it by their
+            # demand (Lift_<sector>), so a lift area across the border of a catchment moves water between catchments
+            if option_on('using_lift_areas'):
+                temp += [['act_channelAbstract_Lift', 'areasum_m3', 'demand']]
+            # further sources by sector (the others are WaterCycle columns): desalination, lift areas, wastewater reuse
+            if option_on('sectorSourceAbstractionFractions'):
+                sources = [source for source, on in [('Desal', option_on('includeDesalination')),
+                                                     ('Lift', option_on('using_lift_areas')),
+                                                     ('wwt', option_on('includeWastewater'))] if on]
+                temp += [[source + '_' + sector, 'areasum_m3', 'sector'] for source in sources
+                         for sector in ['Irrigation', 'Domestic', 'Industry', 'Livestock']]
+        self.var.waterbalance_extra = temp
+        # the WaterCycle columns come first -> WaterCycle output = first len(watercycle) values of WaterBalance
+        self.var.waterbalance = self.var.watercycle + self.var.waterbalance_extra
+        # WaterBalance needed: the values of each day are calculated for the long list (else only for WaterCycle)
+        self.var.waterbalanceOut = any("WaterBalance" in out for out in outTss.values())
 
         # ------------------------------------------------------------------------------
         # report TSS
@@ -439,6 +591,120 @@ class outputTssMap(object):
         self.var.netcdfasindex = False
         if "netcdfasindex" in option:
             self.var.netcdfasindex = checkOption('netcdfasindex')
+
+
+    def soil_terms(self):
+        """
+        Terms of the soil water balance of each land cover in the WaterCycle output (<cover>_<term>).
+
+        In: inWater (throughfall + snow and ice melt), irrigation, capRise (capillary rise from groundwater into the
+        soil), seepage (into the seepage pond, MODFLOW); Out: transp, bareSoilEvap, openWaterEvap (paddy water,
+        seepage pond), directRunoff, perc3toGW, prefFlow; storage: soilStor (3 layers, paddy water, seepage pond)
+        """
+        terms = ['inWater', 'irrigation', 'capRise']
+        if self.var.modflow and self.var.modflow_seepage:
+            terms.append('seepage')
+        return terms + ['transp', 'bareSoilEvap', 'openWaterEvap', 'directRunoff', 'perc3toGW', 'prefFlow', 'soilStor']
+
+    def waterbalance_cellmeans(self):
+        """
+        Cell means (weighted by the land cover fraction) of the soil layers and of the soil of each land cover, and the
+        precipitation on the glacier area for the WaterBalance output - calculated only if WaterBalance is written
+        (sample_watercycle).
+        """
+        frac = self.var.fracVegCover
+        seepage = self.var.modflow and self.var.seepageOn
+        # soil layers: sum over the land covers with soil
+        for name in ['ta1', 'ta2', 'ta3', 'perc1to2', 'perc2to3', 'excess1to2', 'capRise2to1', 'capRise3to2',
+                     'capOverflowRunoff']:
+            v = getattr(self.var, name)
+            vars(self.var)['sum_' + name] = frac[0] * v[0] + frac[1] * v[1] + frac[2] * v[2] + frac[3] * v[3]
+        if seepage:
+            self.var.pond2soil3 = globals.inZero.copy()
+            for No in range(4):
+                self.var.pond2soil3 += frac[No] * self.var.pondToSoil3[No]
+            self.var.pond2soil2 = self.var.pond2soil - self.var.pond2soil3
+        # soil of each land cover
+        for No, cover in enumerate(self.var.soilcovers):
+            stor = self.var.w1[No] + self.var.w2[No] + self.var.w3[No]
+            if No == 2:
+                stor = stor + self.var.topwater
+            values = {'inWater': self.var.availWaterInfiltration[No], 'irrigation': self.var.act_irrConsumption[No],
+                      'capRise': self.var.capRiseFromGW[No], 'transp': self.var.actTransTotal[No],
+                      'bareSoilEvap': self.var.actBareSoilEvap[No], 'openWaterEvap': self.var.openWaterEvap[No],
+                      'directRunoff': self.var.directRunoff[No], 'perc3toGW': self.var.perc3toGW[No],
+                      'prefFlow': self.var.prefFlow[No], 'soilStor': stor}
+            if seepage:
+                values['seepage'] = self.var.seepage[No]
+                values['soilStor'] = stor + self.var.seepagePond[No]
+            for term in self.soil_terms():
+                vars(self.var)[cover + '_' + term] = frac[No] * values[term]
+        # precipitation on the glacier area [m3]
+        if self.var.includeGlaciers:
+            area = self.var.cellArea * self.var.fracGlacierCover
+            self.var.glacierAreaSnow = self.var.Snow * area
+            self.var.glacierAreaRain = self.var.Rain * area
+        # lakes and reservoirs separately: type of the water body (waterBodyTypCTemp of its id) in its cells and in the
+        # cells around it (waterBodyBuffer, abstraction); lake: type 1 or 6 (lake routine), reservoir: all others
+        if checkOption('includeWaterBodies'):
+            order = np.argsort(self.var.waterBodyID_C)
+            ids, types = self.var.waterBodyID_C[order], self.var.waterBodyTypCTemp[order]
+
+            def islake(idmap):
+                pos = np.minimum(np.searchsorted(ids, idmap), ids.size - 1)
+                typ = np.where((idmap > 0) & (ids[pos] == idmap), types[pos], 0)
+                return (typ == 1) | (typ == 6)
+
+            lake = np.where(self.var.waterBodyID > 0, islake(self.var.waterBodyID), islake(self.var.waterBodyBuffer))
+            terms = {'storage': self.var.lakeResStorage, 'inflow': self.var.lakeResInflowM,
+                     'outflow': self.var.lakeResOutflowM, 'evap': self.var.EvapWaterBodyM}
+            if self.var.modflow:
+                terms['bedExchange'] = self.var.lakebedExchangeM
+            if checkOption('includeWaterDemand'):
+                terms['leakage'] = self.var.leakage
+            for term, v in terms.items():
+                vars(self.var)['lake_' + term] = np.where(lake, v, 0.)
+                vars(self.var)['res_' + term] = np.where(lake, 0., v)
+            # abstraction: around the water body (buffer) and, with command areas, in the command areas (act_ResAbst,
+            # also in cells of the buffer of a lake): always from a reservoir (type 2 or 4, commandAreaOperation)
+            abst = self.var.act_bigLakeResAbst
+            if getattr(self.var, 'using_reservoir_command_areas', False):
+                abst = abst - self.var.act_ResAbst
+            self.var.lake_abstraction = np.where(lake, abst, 0.)
+            self.var.res_abstraction = self.var.act_bigLakeResAbst - self.var.lake_abstraction
+            # abstraction taken from each water body at its outlet [m3] (water_demand.py abstractedLakeReservoirM3C, incl.
+            # canal leakage of command areas): the users (act_bigLakeResAbst) are on the cells around the water body
+            # or in command areas, which can be outside the catchment of a station
+            if checkOption('includeWaterDemand'):
+                outlet = globals.inZero.copy()
+                if hasattr(self.var, 'abstractedLakeReservoirM3C'):
+                    np.put(outlet, self.var.decompress_LR, self.var.abstractedLakeReservoirM3C)
+                self.var.lakeResAbstOutlet = outlet
+                self.var.lake_abstOutlet = np.where(lake, outlet, 0.)
+                self.var.res_abstOutlet = outlet - self.var.lake_abstOutlet
+            if checkOption('reservoir_transfers', True):
+                self.var.res_transferIn = self.var.reservoir_transfers_in_M3
+                self.var.res_transferOut = self.var.reservoir_transfers_out_M3
+            # water in transit into the lakes [m3] at the end of the day: has left the channels (or an upstream lake),
+            # but is not yet in lakeResStorage
+            # - the lake module takes the discharge of the cells flowing into a lake (inLakeSrc) before the kinematic
+            #   wave of the substep (routing_kinematic.py): the discharge of the last substep is still on its way
+            # - outflow of a lake into another lake (outLake) gets there in the next substep
+            # - lakes (type 1, 6): Puls inflow (new + old) / 2 -> half of the last substep inflow is still on its way
+            transit = globals.inZero.copy()
+            if checkOption('includeRouting') and hasattr(self.var, 'inLakeSrc'):
+                src = self.var.inLakeSrc
+                transit += np.bincount(src, weights=self.var.discharge[src] * self.var.dtRouting, minlength=transit.size)
+                if np.ndim(self.var.outLake):
+                    transit += self.var.outLake
+                typLake = (self.var.waterBodyTypCTemp == 1) | (self.var.waterBodyTypCTemp == 6)
+                np.add.at(transit, self.var.decompress_LR,
+                          np.where(typLake, 0.5 * self.var.lakeInflowOldC * self.var.dtRouting, 0.))
+            # small lakes (lakes_res_small.py): Puls inflow (new + old) / 2 -> half of the inflow of the day is still on
+            # its way (smallLakedaycorrect); it is taken from the runoff, but not yet in smalllakeStorage
+            if returnBool('useSmallLakes'):
+                transit += 0.5 * self.var.smalllakeInflowOld * self.var.DtSec
+            self.var.lakeInflowTransit = transit
 
 
     def dynamic(self, ef = False):
@@ -517,8 +783,8 @@ class outputTssMap(object):
             using difflib fuzzy string matching when requested variable is not found.
             Handles array-indexed variables by checking base variable name.
             """
-            # adding expression WaterCycle to space to avoid error if watercycle should be stored
-            space.append("WaterCycle")
+            # adding expression WaterCycle and WaterBalance to space to avoid error if watercycle should be stored
+            space += ["WaterCycle", "WaterBalance"]
 
             if not (vari in space):
                 closest = difflib.get_close_matches(vari, space)
@@ -604,6 +870,12 @@ class outputTssMap(object):
 
             return expression
 
+        def cyclelist(expression):
+            """
+            Column list of a WaterCycle or WaterBalance output (WaterBalance = WaterCycle + soil layer/land cover terms).
+            """
+            return self.var.waterbalance if expression[1] == "WaterBalance" else self.var.watercycle
+
         def sample_watercycle(expression, daymonthyear):
             """
             Sample values at gauge points and accumulate for time series output.
@@ -632,15 +904,23 @@ class outputTssMap(object):
             traditional TSS formats.
             """
 
-            # the values of this time step are the same for all WaterCycle outputs (daily, monthtot, annualtot)
-            # -> calculated only for the first one, the others use them from watercycleToday
+            # the values of this time step are the same for all WaterCycle/WaterBalance outputs (daily, monthtot,
+            # annualtot) -> calculated only for the first one, the others use them from watercycleToday
+            # (for the WaterBalance list if WaterBalance is written, WaterCycle uses the first len(watercycle) values)
             if not watercycleToday:
+                if self.var.waterbalanceOut:
+                    self.waterbalance_cellmeans()
+                    varlist = self.var.waterbalance
+                else:
+                    varlist = self.var.watercycle
                 keys = sorted(self.var.sampleAdresses)
                 nofrac = 1 - self.var.fracGlacierCover
                 # value[gauge][variable]; the weights of a variable are calculated once and used for all gauges
                 value = [[] for key in keys]
-                for var in self.var.watercycle:
-                    map = getattr(self.var, var[0])
+                for var in varlist:
+                    # a variable not computed with the chosen options (e.g. act_domWithdrawal without
+                    # includeIndusDomesDemand) is written as 0
+                    map = getattr(self.var, var[0], 0)
                     # if inputmap is a scalar (e.g. a variable which is 0 if an option is off) use this value for all cells
                     # (skipping the time step would shift all following dates)
                     if not (hasattr(map, '__len__')):
@@ -664,7 +944,11 @@ class outputTssMap(object):
                 # end loop variables
                 watercycleToday.append(value)
 
-            expression[3].append(watercycleToday[0])
+            if expression[1] == "WaterBalance" or not self.var.waterbalanceOut:
+                expression[3].append(watercycleToday[0])
+            else:
+                n = len(self.var.watercycle)
+                expression[3].append([v[:n] for v in watercycleToday[0]])
 
             if dateVar['laststep']:
                writeTssFileNew(expression, daymonthyear,True)
@@ -803,7 +1087,7 @@ class outputTssMap(object):
                     numbervalues = len(expression[3][0][0])
                     # run for watercycle and monthly or yearly
                     # per gauge one numpy array (storage variables: last value, others: total) instead of iloc per value
-                    isstorage = np.array([var[2] == "storage" for var in self.var.watercycle])
+                    isstorage = np.array([var[2] == "storage" for var in cyclelist(expression)])
                     values = [np.where(isstorage, storage[k].to_numpy(), totals[k].to_numpy()) for k in range(len(self.var.sampleAdresses))]
                     for i, timestamp in enumerate(totals[0].index):
                         row = timestamp.strftime('%d/%m/%Y')
@@ -926,17 +1210,18 @@ class outputTssMap(object):
             xrow = "xloc"
             yrow = "yloc"
             head = "Date"
+            varlist = cyclelist(expression)
             for x in loc[::2]:
-                for i in self.var.watercycle:
+                for i in varlist:
                     xrow = xrow + "," + "%#.4f" % round(x, 4)
             xrow = xrow + "\n"
             for y in loc[1::2]:
-                for i in self.var.watercycle:
+                for i in varlist:
                     yrow = yrow + "," + "%#.4f" % round(y, 4)
             yrow = yrow + "\n"
 
             for i in range(len(loc[::2])):
-                for var in self.var.watercycle:
+                for var in varlist:
                     head = head + "," + var[0] + "_" + var[1]
             head = head + "\n"
 
@@ -1204,7 +1489,7 @@ class outputTssMap(object):
                     varnameCollect.append(varname2)
 
                     if tss[-5:] == "daily":
-                        if varname == "WaterCycle":
+                        if varname in ["WaterCycle", "WaterBalance"]:
                             outTss[tss][i] = sample_watercycle(outTss[tss][i], 0)
                         else:
                             outTss[tss][i] = sample3(outTss[tss][i], getoutvar(self.var, checkname, index), 0)
@@ -1215,7 +1500,7 @@ class outputTssMap(object):
 
                     if tss[-8:] == "monthtot":
                         # Calculate monthly watercycle variables
-                        if varname == "WaterCycle":
+                        if varname in ["WaterCycle", "WaterBalance"]:
                             outTss[tss][i] = sample_watercycle(outTss[tss][i], 1)
                         else:
                             # if  monthtot is not calculated it is done here
@@ -1241,12 +1526,15 @@ class outputTssMap(object):
                         outTss[tss][i] = sample3(outTss[tss][i], getoutvar(self.var, checkname, index), 2)
 
                     if tss[-9:] == "annualtot":
-
-                        if (varname2 + "_annualtotTss") in vars(self.var):
-                            vars(self.var)[varname2 + "_annualtotTss"] = vars(self.var)[varname2 + "_annualtotTss"] + getoutvar(self.var, checkname, index)
+                        # Calculate annual watercycle variables
+                        if varname in ["WaterCycle", "WaterBalance"]:
+                            outTss[tss][i] = sample_watercycle(outTss[tss][i], 2)
                         else:
-                            vars(self.var)[varname2 + "_annualtotTss"] = 0 + getoutvar(self.var, checkname, index)
-                        outTss[tss][i] = sample3(outTss[tss][i], vars(self.var)[varname2 + "_annualtotTss"], 2)
+                            if (varname2 + "_annualtotTss") in vars(self.var):
+                                vars(self.var)[varname2 + "_annualtotTss"] = vars(self.var)[varname2 + "_annualtotTss"] + getoutvar(self.var, checkname, index)
+                            else:
+                                vars(self.var)[varname2 + "_annualtotTss"] = 0 + getoutvar(self.var, checkname, index)
+                            outTss[tss][i] = sample3(outTss[tss][i], vars(self.var)[varname2 + "_annualtotTss"], 2)
 
                     if tss[-9:] == "annualavg":
                         if (varname2 + "_annualavgTss") in vars(self.var):

@@ -30,7 +30,11 @@ import importlib
 parser = argparse.ArgumentParser(description="load settingsfile on --settingsfile, use cwatm on --cwatm")
 parser.add_argument('--settingsfile')
 parser.add_argument('--cwatm')
-
+# water balance check of each normal model run (WaterCycle output, ../budget/waterbalance_check.py): on / off
+# default off for the moment (channel residual open, see budget/)
+parser.add_argument('--waterbalance', default='off')
+# a box (compartment) is closed if |In - Out - dS| <= wbtol * In over the run period
+parser.add_argument('--wbtol', type=float, default=1e-3)
 
 
 # parses the settings file and the cwatm folder in the command line
@@ -62,6 +66,13 @@ run_cwatm = importlib.import_module(cwatm, package=None)
 Flags = importlib.import_module("cwatm.management_modules.globals").Flags
 # module cwatm.run_cwatm (the wrapper run_cwatm.py only imports main etc.) - errornumber of the last run is stored there
 cwatm_run = importlib.import_module("cwatm.run_cwatm")
+# water balance check (../budget/waterbalance_check.py), results of each model run in WB_RESULTS[settings file]
+waterbalance = args.waterbalance.lower() != "off"
+budget_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "budget")
+sys.path.append(budget_dir)
+waterbalance_check = importlib.import_module("waterbalance_check")
+WB_RESULTS = {}
+WB_SUMMARY = os.path.join(budget_dir, "pytest_waterbalance_summary.csv")
 
 """
 set =  "P:/watmodel/cwatmpublic/develop/pytest/settings/1min/UpperDanube/settings_upper_1min_01.ini"
@@ -252,6 +263,50 @@ for model in models:
     info.append(model[0])
 
 
+def is_normal_run(model):
+    # model runs which are not error, calibration or check tests (see cwatm())
+    return all(model[4].find(k) == -1 for k in ("error", "calibration", "checkmap"))
+
+
+def add_watercycle(setfile):
+    """
+    Add the daily WaterCycle output (OUT_TSS_AreaSum_Daily) to a generated settings file for the water balance check:
+    appended to an active OUT_TSS_AreaSum_Daily line, else a new line at the end (section [OUTPUT])
+    """
+    lines = open(setfile).read().splitlines()
+    found = False
+    for i, line in enumerate(lines):
+        if line.split("=")[0].strip() == "OUT_TSS_AreaSum_Daily":
+            found = True
+            if "watercycle" not in line.lower():
+                lines[i] = line.rstrip() + ", WaterCycle"
+    if not found:
+        lines.append("OUT_TSS_AreaSum_Daily = WaterCycle")
+    open(setfile, "w").write("\n".join(lines) + "\n")
+
+
+def run_waterbalance(model, start):
+    """
+    Water balance check of the WaterCycle csv written by this run (../budget/waterbalance_check.py)
+    -> WB_RESULTS[settings file] and one block of rows in budget/pytest_waterbalance_summary.csv
+    """
+    csvfiles = [os.path.join(d, "WaterCycle_areasum_daily.csv") for d in cwatm_globals.outDir.values()]
+    csvfiles = [f for f in csvfiles if os.path.isfile(f) and os.path.getmtime(f) >= start]
+    if not csvfiles:
+        WB_RESULTS[model[4]] = None
+        return
+    summary = waterbalance_check.check(csvfiles[0], tol=args.wbtol)
+    summary.insert(0, "test", model[0])
+    WB_RESULTS[model[4]] = summary
+    first = not os.path.isfile(WB_SUMMARY) or os.path.getmtime(WB_SUMMARY) < WB_START
+    summary.to_csv(WB_SUMMARY, mode="w" if first else "a", header=first, index=False)
+    print(summary.to_string(index=False, float_format=lambda v: f"{v:.4g}"))
+
+
+# summary csv of the water balance checks is written new in each pytest session
+WB_START = time.time()
+
+
 def check_report(report, csvfile):
     """
     Check report of option -c (checks.checkmap): the csv file is written and the numbers fit together.
@@ -357,8 +412,14 @@ def cwatm(info, model):
 
     else:
         # test for normal model run:
+        # with the daily WaterCycle output for the water balance check (test_waterbalance)
+        if waterbalance:
+            add_watercycle(model[4])
+        start = time.time()
         success, last_dis = run_cwatm.main(model[4], ['-l'])
         assert success
+        if waterbalance:
+            run_waterbalance(model, start)
         """
         if model[5]:
             minvalue = model[6] * 0.99
@@ -846,6 +907,100 @@ def test_modflow_recharge_pumping(tmp_path, info, subprocess, binary):
         m.finalize()
 
 
+@pytest.mark.parametrize("info, subprocess", [
+    ("MODFLOW with 2 layers (modflow_subprocess = True)", True),
+    ("MODFLOW with 2 layers (modflow_subprocess = False)", False)])
+def test_modflow_layers(tmp_path, info, subprocess):
+    """
+    Two layers (20 x 20 cells of 100 m, layer 1 80 - 100 m, layer 2 0 - 80 m, specific yield 0.1, head 95 m): heads of
+    both layers; 0.002 m/day recharge for 5 days is stored in layer 1 (no drain flow below the top): +0.1 m;
+    a low vertical permeability (k33) lets less water reach layer 2
+    """
+    print('\n ===== ', info, ' =============')
+    ModFlow = modflow6_process.ModFlowProcess if subprocess else modflow6.ModFlowSimulation
+    nr = nc = 20
+
+    def run(folder, k33):
+        m = ModFlow("transient", str(folder), mf6dll_path(), timestep=1, specific_storage=0,
+                    specific_yield=np.full((2, nr, nc), 0.1), nlay=2, nrow=nr, ncol=nc, rowsize=100., colsize=100.,
+                    top=np.full((nr, nc), 100.), bottom=np.array([np.full((nr, nc), 80.), np.zeros((nr, nc))]),
+                    basin=np.ones((nr, nc), bool), head=np.full((2, nr, nc), 95.),
+                    topography=np.full((nr, nc), 100.), permeability=np.ones((2, nr, nc)),
+                    permeability_vertical=k33, load_from_disk=False)
+        try:
+            for _ in range(5):
+                m.set_recharge(np.full((nr, nc), 0.002))
+                m.step()
+            return m.decompress(np.asarray(m.head))
+        finally:
+            m.finalize()
+
+    head = run(tmp_path / "k33_1", None)
+    assert head.shape == (2, nr, nc)
+    assert np.allclose(head[0], 95.1, atol=1e-4)
+    low = run(tmp_path / "k33_low", np.full((2, nr, nc), 1e-4))
+    assert np.allclose(low[0], 95.1, atol=1e-4)
+    assert (low[1] - 95.).mean() < 0.9 * (head[1] - 95.).mean()
+
+
+@pytest.mark.parametrize("info, subprocess", [
+    ("MODFLOW drain elevation through the pointer (modflow_subprocess = True)", True),
+    ("MODFLOW drain elevation through the pointer (modflow_subprocess = False)", False)])
+def test_modflow_drainage(tmp_path, info, subprocess):
+    """
+    Drains 2 m below the top, head 0.5 m above the drains: set_drainage with the same elevation gives the same drain
+    flow, drains 0.3 m higher from step 2 stop the drain flow (the elevation reaches the running MODFLOW)
+    """
+    print('\n ===== ', info, ' =============')
+    ModFlow = modflow6_process.ModFlowProcess if subprocess else modflow6.ModFlowSimulation
+    nr = nc = 20
+    top = np.full((nr, nc), 100.)
+
+    def run(folder, raise_m):
+        m = ModFlow("transient", str(folder), mf6dll_path(), timestep=1, specific_storage=0,
+                    specific_yield=np.full((1, nr, nc), 0.1), nlay=1, nrow=nr, ncol=nc, rowsize=100., colsize=100.,
+                    top=top, bottom=np.zeros((nr, nc)), basin=np.ones((nr, nc), bool), head=np.full((nr, nc), 98.5),
+                    topography=top - 2, permeability=np.ones((1, nr, nc)), load_from_disk=False)
+        flows = []
+        try:
+            for step in range(3):
+                m.set_recharge(np.full((nr, nc), 0.001))
+                if step >= 1 and raise_m is not None:
+                    m.set_drainage(top - 2 + raise_m)
+                m.step()
+                flows.append(float(-np.sum(m.drainage)))
+            return flows
+        finally:
+            m.finalize()
+
+    unchanged = run(tmp_path / "a", None)
+    assert run(tmp_path / "b", 0.) == unchanged
+    higher = run(tmp_path / "c", 0.3)
+    assert higher[0] == unchanged[0] and abs(higher[1]) < 1. and unchanged[1] > 1000.
+
+
+@pytest.mark.parametrize("info", ["MODFLOW steady state with a constant head (run_only_steady_state)"])
+def test_modflow_steady_state(tmp_path, info):
+    """
+    Steady state (folder wd_steady): 1 x 3 cells, constant head 5 m in the first cell, no recharge, drains above the
+    head: the steady head is 5 m in all cells
+    """
+    print('\n ===== ', info, ' =============')
+    m = modflow6_process.ModFlowProcess(
+        "steady", str(tmp_path), mf6dll_path(), timestep=1, specific_storage=0, specific_yield=np.full((1, 1, 3), 0.1),
+        nlay=1, nrow=1, ncol=3, rowsize=100., colsize=100., top=np.full((1, 3), 10.), bottom=np.zeros((1, 3)),
+        basin=np.ones((1, 3), bool), head=np.full((1, 3), 3.), topography=np.full((1, 3), 10.),
+        permeability=np.ones((1, 1, 3)), load_from_disk=False, solver='dbd', steady=True, perlen=1.0,
+        constant_head=np.array([[5., np.nan, np.nan]]))
+    try:
+        m.set_recharge(np.zeros((1, 3)))
+        m.step()
+        assert np.allclose(m.head, 5., atol=1e-4)
+    finally:
+        m.finalize()
+    assert os.path.isfile(os.path.join(str(tmp_path), "wd_steady", "STEADY.chd"))
+
+
 @pytest.mark.parametrize("info", ["MODFLOW: one stress period solved again each day, initial head through the "
                                   "pointer, input files reused if the inputs are unchanged"])
 def test_modflow_reuse(tmp_path, info):
@@ -1030,9 +1185,9 @@ def test_cwatm(info, model):
     Parameterized test function for CWatM model execution with various configurations.
     
     This is the main test function that executes all configured CWatM test scenarios.
-    Each test case is defined by the model configuration and runs through the cwatm() 
+    Each test case is defined by the model configuration and runs through the cwatm()
     function which handles different test types (normal, calibration, checkmap, error).
-    
+
     Parameters
     ----------
     info : str
@@ -1040,7 +1195,7 @@ def test_cwatm(info, model):
     model : tuple
         Complete model configuration tuple containing settings file path,
         parameter changes, additional configurations, and validation criteria
-        
+
     Notes
     -----
     This function is parameterized using pytest.mark.parametrize with the models
@@ -1048,6 +1203,27 @@ def test_cwatm(info, model):
     Each model configuration generates a separate test case in the pytest execution.
     """
     cwatm(info, model)
+
+
+@pytest.mark.parametrize("info, model", [m for m in models if is_normal_run(m[1])])
+def test_waterbalance(info, model):
+    """
+    Water balance of a normal model run (runs after all test_cwatm): total balance and sub-balances (snow, soil,
+    groundwater, lakes/reservoirs, channels, routing, water demand) of the daily WaterCycle output have to close
+    (|In - Out - dS| <= wbtol * In). Boxes which cannot be checked from the csv are only reported (status info).
+    Details: ../budget/waterbalance_check.py, all results: ../budget/pytest_waterbalance_summary.csv
+    """
+    if not waterbalance:
+        pytest.skip("--waterbalance=off")
+    summary = WB_RESULTS.get(model[4], "missing")
+    if isinstance(summary, str):
+        pytest.skip("model run failed or did not run - no water balance")
+    if summary is None:
+        pytest.skip("no WaterCycle csv written by this run")
+    notclosed = summary[summary.status == "NOT CLOSED"]
+    print(summary.to_string(index=False, float_format=lambda v: f"{v:.4g}"))
+    assert notclosed.empty, "not closed: " + "; ".join(
+        f"{r.box} {r.residual_mm:.4g} mm ({r.rel:.2e} of In)" for r in notclosed.itertuples())
 
 
 

@@ -212,10 +212,14 @@ This part deals with genuine problems. Please look for your error number
     "`E143`_", "Placeholder cannot be read - it has to be $(SECTION:KEY) or $(KEY)", "Any key with $(...)", "Check the brackets and the colon of the placeholder", "configuration", "get"
     "`E144`_", "Section [OPTIONS] is not written in capital letters", "[OPTIONS]", "Write [OPTIONS]", "configuration", "splitout"
     "`E145`_", "Output key is not possible - it has to be OUT_MAP or OUT_TSS with a valid type (e.g. OUT_MAP_Daily\, OUT_TSS_MonthAvg)", "output keys e.g. OUT_MAP_Daily\, OUT_TSS_MonthAvg", "Check the writing of the output key", "configuration", "splitout"
-    "`E146`_", "nlay is not 1 - the MODFLOW coupling works only with one layer", "nlay", "Set nlay = 1", "groundwater_modflow transient", "initial"
+    "`E146`_", "nlay is smaller than 1", "nlay", "Set nlay = 1 or more (number of ModFlow layers)", "groundwater_modflow transient", "initial"
     "`E147`_", "The CRS of the CWatM grid (MaskMap) is not known - needed for the overlap of CWatM and ModFlow cells", "MaskMap\, cwatm_crs", "Set cwatm_crs = EPSG:... in [GROUNDWATER_MODFLOW] or use a MaskMap with CRS", "groundwater_modflow grid", "cwatm_crs"
     "`E148`_", "More than half of the active ModFlow cells are not inside the CWatM mask", "modflow_basin\, MaskMap", "Check modflow_basin\, MaskMap and the CRS of both (cwatm_crs)", "groundwater_modflow grid", "ModflowGrid"
-    "`E149`_", "A map at ModFlow resolution (MODFLOW head of a restart or init_water_table) has another size than the ModFlow grid", "init_water_table\, <init file>_modflowhead.nc", "Use a map of the same ModFlow grid (modflow_basin)", "groundwater_modflow grid", "read_map"
+    "`E149`_", "A map at ModFlow resolution (MODFLOW head of a restart or init_water_table) has another size than the ModFlow grid or another number of layers than nlay", "init_water_table\, <init file>_modflowhead.nc", "Use a map of the same ModFlow grid (modflow_basin)", "groundwater_modflow grid", "read_map"
+    "`E150`_", "A layer property of the ModFlow layers (e.g. thickness3) is missing in the settings file", "thickness<n>\, poro<n>\, permeability<n>\, nlay", "Give a value or map for each layer n = 1 ... nlay (layer 1 also without number)", "groundwater_modflow grid", "layer_property"
+    "`E151`_", "The MODFLOW solver in modflow_solver is not known", "modflow_solver", "Use one of: simple\, complex\, super_complex\, cooley", "groundwater_modflow transient", "read_settings"
+    "`E152`_", "MODFLOW gives a wrong head (not a number or > 1e6 m) - the MODFLOW solver did not converge", "modflow_solver\, modflow_timestep\, thickness<n>\, permeability<n>\, pumping", "Use another solver (modflow_solver = cooley\, complex or super_complex)\, a smaller modflow_timestep or check the aquifer properties", "groundwater_modflow transient", "modflow_run"
+    "`E153`_", "The netCDF variable (e.g. topo_percentile_prm = z_p10) is not in the file at ModFlow resolution", "topo_percentile_modflow\, topo_percentile_prm", "Use one of the variables listed in the message", "groundwater_modflow grid", "read_map"
     "`E201`_", "Cannot load the maskmap as a file e.g. MaskMap = notexisting.tif", "MaskMap", "Make sure the file you put in MaskMap is existing and is a map e.g. \*.nc\, \*.map\, \*.tif", "datahandling", "loadsetclone"
     "`E202`_", "Your map is upside down", "Any map", "Make sure your map is in right order e.g. latitude coordinate are turned", "datahandling", "loadmap"
     "`E203`_", "Cannot find the map\, filename does not exists at this location", "Any map", "the datafile cannot be found\, the location is wrong or the file is missing", "datahandling", "loadmap"
@@ -716,9 +720,9 @@ E145
 
 E146
 ---------------------------------------------------------------------------
-  :Description:  nlay is not 1 - the MODFLOW coupling works only with one layer
+  :Description:  nlay is smaller than 1
   :Where:        nlay
-  :What to do:   Set nlay = 1
+  :What to do:   Set nlay = 1 or more (number of ModFlow layers)
   :Module:       groundwater_modflow transient, initial
 
 
@@ -743,9 +747,45 @@ E148
 
 E149
 ---------------------------------------------------------------------------
-  :Description:  A map at ModFlow resolution (MODFLOW head of a restart or init_water_table) has another size than the ModFlow grid
+  :Description:  A map at ModFlow resolution (MODFLOW head of a restart or init_water_table) has another size than the ModFlow grid or another number of layers than nlay
   :Where:        init_water_table, <init file>_modflowhead.nc
   :What to do:   Use a map of the same ModFlow grid (modflow_basin)
+  :Module:       groundwater_modflow grid, read_map
+
+
+
+E150
+---------------------------------------------------------------------------
+  :Description:  A layer property of the ModFlow layers (e.g. thickness3) is missing in the settings file
+  :Where:        thickness<n>, poro<n>, permeability<n>, nlay
+  :What to do:   Give a value or map for each layer n = 1 ... nlay (layer 1 can also be given without number, e.g. thickness)
+  :Module:       groundwater_modflow grid, layer_property
+
+
+
+E151
+---------------------------------------------------------------------------
+  :Description:  The MODFLOW solver in modflow_solver is not known
+  :Where:        modflow_solver
+  :What to do:   Use one of: simple, complex, super_complex, cooley
+  :Module:       groundwater_modflow transient, read_settings
+
+
+
+E152
+---------------------------------------------------------------------------
+  :Description:  MODFLOW gives a wrong head (not a number or > 1e6 m) - the MODFLOW solver did not converge
+  :Where:        modflow_solver, modflow_timestep, thickness<n>, permeability<n>, pumping
+  :What to do:   Use another solver (modflow_solver = cooley, complex or super_complex), a smaller modflow_timestep or check the aquifer properties
+  :Module:       groundwater_modflow transient, modflow_run
+
+
+
+E153
+---------------------------------------------------------------------------
+  :Description:  The netCDF variable (e.g. topo_percentile_prm = z_p10) is not in the file at ModFlow resolution
+  :Where:        topo_percentile_modflow, topo_percentile_prm
+  :What to do:   Use one of the variables listed in the message
   :Module:       groundwater_modflow grid, read_map
 
 

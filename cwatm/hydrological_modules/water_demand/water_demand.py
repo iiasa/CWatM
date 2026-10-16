@@ -1327,6 +1327,10 @@ class water_demand:
                 # conversion m3 -> m # minus environmental flow
                 self.var.readAvlChannelStorageM = np.maximum(
                     0., self.var.channelStorage * self.var.M3toM - self.var.envFlow)  # in [m]
+            # no channel water in lake cells: lake cells are pits of the lake network, their kinematic wave is not used
+            # (discharge = lake outflow) - the water of a lake is in the lake storage (act_bigLakeResAbst)
+            if checkOption('includeWaterBodies'):
+                self.var.readAvlChannelStorageM = np.where(self.var.waterBodyID > 0, 0., self.var.readAvlChannelStorageM)
 
             # -------------------------------------
             # WATER DEMAND vs. WATER AVAILABILITY
@@ -1710,7 +1714,8 @@ class water_demand:
                                                                     demand_Segment), 0)  # by definition <= 1
 
                             self.var.act_bigLakeResAbst_wwt = remainNeedPre * metRemainSegment
-                            self.var.act_SurfaceWaterAbstract += remainNeedPre * metRemainSegment
+                            # (added to act_SurfaceWaterAbstract below with act_bigLakeResAbst_wwt - before 2026-10-16
+                            # also here: the non-irrigation reuse was counted twice)
 
                             self.var.act_ResAbst_wwt = remainNeedPre * metRemainSegment
                         
@@ -1819,7 +1824,9 @@ class water_demand:
                 # and from the combined one for waterbalance issues
                 self.var.lakeResStorageC = self.var.lakeResStorageC - act_bigLakeAbstC * self.var.MtoM3C
 
-                self.var.abstractedLakeReservoirM3C = act_bigLakeAbstC.copy() * self.var.MtoM3C
+                # += : with wastewater the abstraction of the wastewater reservoirs (above) is kept (reset at the start
+                # of the lakes part and above without wastewater) - before 2026-10-16 "=" dropped it (output only)
+                self.var.abstractedLakeReservoirM3C += act_bigLakeAbstC * self.var.MtoM3C
 
                 self.var.lakeResStorage = globals.inZero.copy()
                 np.put(self.var.lakeResStorage, self.var.decompress_LR, self.var.lakeResStorageC)
@@ -1942,6 +1949,8 @@ class water_demand:
                 else:
                     resStorage_maxFracForIrrigation = 0.03 + globals.inZero.copy()
 
+                # canal leakage of the reservoir abstraction for domestic, livestock and industry (1st call)
+                leakage_sectorsC = 0
                 if self.var.sectorSourceAbstractionFractions:
 
                     remainNeedPre = pot_Res_Domestic + pot_Res_Livestock + pot_Res_Industry
@@ -1954,9 +1963,9 @@ class water_demand:
                     self.var.lakeStorageC -= self.var.reservoirStorageM3C * ResAbstractFactorC
                     self.var.lakeVolumeM3C -= self.var.reservoirStorageM3C * ResAbstractFactorC
                     self.var.lakeResStorageC -= self.var.reservoirStorageM3C * ResAbstractFactorC
+                    self.var.abstractedLakeReservoirM3C += self.var.reservoirStorageM3C * ResAbstractFactorC
                     self.var.reservoirStorageM3C -= self.var.reservoirStorageM3C * ResAbstractFactorC
 
-                    self.var.abstractedLakeReservoirM3C += self.var.reservoirStorageM3C * ResAbstractFactorC
                     np.put(self.var.abstractedLakeReservoirM3, self.var.decompress_LR,
                            self.var.abstractedLakeReservoirM3C)
 
@@ -1966,6 +1975,10 @@ class water_demand:
                     metRemainSegment = np.where(demand_Segment > 0,
                                                 divideValues(act_bigLakeResAbst_alloc * self.var.Water_conveyance_efficiency,
                                                              demand_Segment), 0)  # by definition <= 1
+                    # the part (1 - Water_conveyance_efficiency) of the water taken from the reservoirs leaks from the
+                    # canals as for the 2nd call below (before 2026-10-12 it was lost: Bhima 589 Mm3 in 2 years)
+                    leakage_sectorsC = resStorageTotal_allocC * ResAbstractFactorC * (
+                        1 - np.compress(self.var.compress_LR, self.var.Water_conveyance_efficiency))
 
                     self.var.act_bigLakeResAbst += remainNeedPre * metRemainSegment
                     self.var.act_SurfaceWaterAbstract += remainNeedPre * metRemainSegment
@@ -2002,9 +2015,9 @@ class water_demand:
                 self.var.lakeStorageC -= self.var.reservoirStorageM3C * ResAbstractFactorC
                 self.var.lakeVolumeM3C -= self.var.reservoirStorageM3C * ResAbstractFactorC
                 self.var.lakeResStorageC -= self.var.reservoirStorageM3C * ResAbstractFactorC
+                self.var.abstractedLakeReservoirM3C += self.var.reservoirStorageM3C * ResAbstractFactorC
                 self.var.reservoirStorageM3C -= self.var.reservoirStorageM3C * ResAbstractFactorC
 
-                self.var.abstractedLakeReservoirM3C += self.var.reservoirStorageM3C * ResAbstractFactorC
                 np.put(self.var.abstractedLakeReservoirM3, self.var.decompress_LR,
                        self.var.abstractedLakeReservoirM3C)
 
@@ -2015,7 +2028,7 @@ class water_demand:
                                             divideValues(act_bigLakeResAbst_alloc * self.var.Water_conveyance_efficiency,
                                                          demand_Segment), 0)  # by definition <= 1
 
-                self.var.leakageC_daily = resStorageTotal_allocC * ResAbstractFactorC * (
+                self.var.leakageC_daily = leakage_sectorsC + resStorageTotal_allocC * ResAbstractFactorC * (
                         1 - np.compress(self.var.compress_LR, self.var.Water_conveyance_efficiency))
 
                 self.var.leakage = globals.inZero.copy()
@@ -2077,12 +2090,14 @@ class water_demand:
                 self.var.pot_GroundwaterAbstract = totalDemand - self.var.act_SurfaceWaterAbstract
 
             if self.var.modflow:
-                # if available storage is too low, no pumping in this cell (defined in transient module)
-
-                self.var.nonFossilGroundwaterAbs = np.where(self.var.groundwater_storage_available > (
-                        1 - self.var.availableGWStorageFraction) * self.var.gwstorage_full,
-                                                            np.minimum(self.var.groundwater_storage_available,
-                                                                       self.var.pot_GroundwaterAbstract), 0)
+                # groundwater storage that can be pumped: above the minimum saturated fraction of each layer
+                # (water_table_limit_for_pumping, groundwater_modflow/transient.py, Dor's version) - before 2026-10 no
+                # pumping if the storage was below (1 - water_table_limit_for_pumping) * full storage. Minus the pumping
+                # of the days since the last MODFLOW run (modfPumpingM, modflow_timestep > 1: the available storage is
+                # updated only by MODFLOW runs) - before 2026-10-11 each day could take the full available storage
+                self.var.nonFossilGroundwaterAbs = np.minimum(
+                    np.maximum(self.var.groundwater_storage_available - self.var.modfPumpingM, 0),
+                    self.var.pot_GroundwaterAbstract)
             else:
                 self.var.nonFossilGroundwaterAbs = np.maximum(0., np.minimum(self.var.readAvlStorGroundwater,
                                                                              self.var.pot_GroundwaterAbstract))

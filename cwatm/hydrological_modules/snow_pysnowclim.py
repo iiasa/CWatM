@@ -148,13 +148,14 @@ class snow_pysnowclim(object):
     ExistSnow                            Array                                                                                 --   
     Rain_on_snow                         Array         spilt between rain on snow and rain (AI)                                --   
     Snow                                 Array         Snow (equal to a part of Precipitation)                                 m    
-    packwater                            List                                                                                  --   
-    snowwaterevaporation                 Array                                                                                 --   
-    depostition                          Array                                                                                 --   
-    sublimation                          Array                                                                                 --   
-    condensation                         Array                                                                                 --   
-    refrozen                             Array                                                                                 --   
-    snowmelt1                            Array                                                                                 --   
+    snowSWE                              Array         Snow water equivalent (without pack water), cell mean of the samples    m    
+    packwater                            Array         Liquid water in the snow pack, cell mean of the samples                 m    
+    snowwaterevaporation                 Array         Evaporation of liquid water from the snow pack, cell mean               m    
+    deposition                           Array         Deposition on the snow pack (negative = gain), cell mean                m    
+    sublimation                          Array         Sublimation from the snow pack, cell mean                               m    
+    condensation                         Array         Condensation on the snow pack (negative = gain), cell mean              m    
+    refrozen                             Array         Pack water refrozen to snow (SWE), cell mean                            m    
+    snowmelt1                            Array         Snow (SWE) melted to pack water, cell mean                              m    
     precipitation_sn                     Array         CWatM uses a snow undercatch correction if calibrated. This precipitat  m    
     potBareSoilEvap                      Array         potential bare soil evaporation (reduced by the snow covered fraction)  m    
     fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
@@ -526,6 +527,11 @@ class snow_pysnowclim(object):
         self.var.SnowCover = globals.inZero.copy()
         self.var.snowEvap = globals.inZero.copy()
         self.var.SnowFraction = globals.inZero.copy()
+        # terms of the snow pack water balance, cell means of the samples (WaterBalance output)
+        pack = ['snowSWE', 'packwater', 'sublimation', 'condensation', 'deposition', 'snowwaterevaporation',
+                'refrozen', 'snowmelt1']
+        for name in pack:
+            vars(self.var)[name] = globals.inZero.copy()
 
         no = self.var.numberSnowSamples
         for sample in range(self.var.numberSnowSamples):
@@ -558,11 +564,15 @@ class snow_pysnowclim(object):
             SnowFractionS = np.where(SnowCoverS > 0.05, 0.5 / no, SnowFractionS)
             SnowFractionS = np.where(SnowCoverS > 0.10, 1.0 / no, SnowFractionS)
             self.var.SnowFraction += SnowFractionS
-            
-            
-            
-            
-            
+
+            # snow pack water balance terms [m]: SWE and pack water (storage), sublimation and evaporation of pack
+            # water (loss), condensation and deposition (negative = gain), refreezing (pack water -> SWE) and melt
+            # (SWE -> pack water); the pack water leaving the pack is SnowMelt
+            mv = self.var.snowModelvarsAll[sample]
+            for name, v in zip(pack, [mv.SnowWaterEq, mv.PackWater, mv.Sublimation, mv.Condensation, mv.Deposition,
+                                      mv.Evaporation, mv.RefrozenWater, mv.SnowMelt]):
+                vars(self.var)[name] += (v / self.var.constSnowClim.WATERDENS) / no
+
         # precipitation including snow undercatch correction (for water balance output)
         self.var.precipitation_sn = self.var.Snow + self.var.Rain  # + self.var.Rain_on_snow # -> I am not sure if this is added for total precipitation
 
@@ -570,19 +580,7 @@ class snow_pysnowclim(object):
         # SnowWaterEq += snow - Sublimation - Condensation   + RefrozenWater - SnowMelt
         # PackWater   += rain_on_snow - Runoff - Evaporation - RefrozenWater + SnowMelt
         # SnowWaterEQ + PackWater = Snow + rain_on_snow - Runoff - Sublimation - Condensation - Evaporation
-
-        """
-        # This one is for watercycle output only
-        self.var.packwater = self.var.snowModelvars.PackWater / self.var.constSnowClim.WATERDENS
-        self.var.snowwaterevaporation = self.var.snowModelvars.Evaporation / self.var.constSnowClim.WATERDENS
-        self.var.depostition = self.var.snowModelvars.Deposition / self.var.constSnowClim.WATERDENS
-        self.var.sublimation = self.var.snowModelvars.Sublimation / self.var.constSnowClim.WATERDENS
-        self.var.condensation = self.var.snowModelvars.Condensation / self.var.constSnowClim.WATERDENS
-
-        self.var.refrozen = self.var.snowModelvars.RefrozenWater / self.var.constSnowClim.WATERDENS
-        self.var.snowmelt1 = self.var.snowModelvars.SnowMelt / self.var.constSnowClim.WATERDENS
-        # ----------
-        """
+        # (cell means of these terms for the WaterBalance output: above, in the loop over the samples)
 
         # bare soil evaporation only from the part of the cell which is not covered by snow
         # (before: 0 for the whole cell if any snow existed at the start of the day)

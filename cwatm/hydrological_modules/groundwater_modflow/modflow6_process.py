@@ -15,7 +15,8 @@ import os
 
 from cwatm.management_modules import globals
 from cwatm.management_modules.messages import CWATMError
-from cwatm.hydrological_modules.groundwater_modflow.modflow6 import ModFlowSimulation, mf6_error_text
+from cwatm.hydrological_modules.groundwater_modflow.modflow6 import ModFlowSimulation
+from cwatm.management_modules.data_modflow import mf6_error_text, remove_file
 
 # child processes not finalized yet (e.g. a former run in the same Python process stopped with an error)
 _running = []
@@ -39,14 +40,17 @@ def _child(conn, working_directory, args, kwargs):
         while True:
             command, values = conn.recv()
             if command == 'step':
-                recharge, abstraction = values
+                recharge, abstraction, drain = values
                 if recharge is not None:
                     sim.set_recharge(recharge)
                 if abstraction is not None:
                     sim.set_groundwater_abstraction(abstraction)
+                if drain is not None:
+                    sim.set_drainage(drain)
                 sim.step()
                 actualwell = sim.actualwell_rate.copy() if hasattr(sim, 'actualwell_rate') else None
-                conn.send(('ok', (sim.head.copy(), actualwell, sim.drainage.copy())))
+                conn.send(('ok', (sim.head.copy(), actualwell, sim.drainage.copy(), sim.converged,
+                                  sim.layer_flows())))
             elif command == 'finalize':
                 sim.finalize()
                 conn.send(('ok', None))
@@ -60,7 +64,8 @@ def _child(conn, working_directory, args, kwargs):
     except Exception as e:
         msg = "Error 314: MODFLOW error\n" + type(e).__name__ + ": " + str(e) + "\n"
         if type(e).__name__ == 'XMIError':
-            msg += "If the MODFLOW solver does not converge: use a smaller modflow_timestep or use_complex_solver_for_modflow\n"
+            msg += "If the MODFLOW solver does not converge: use a smaller modflow_timestep or another solver "
+            msg += "(modflow_solver = cooley, complex or super_complex)\n"
         answer = ('error', CWATMError.header, msg + mf6_error_text(working_directory))
     try:
         conn.send(answer)
@@ -85,18 +90,18 @@ class ModFlowProcess:
         self.basin = kwargs['basin']
         self.nrow = kwargs['nrow']
         self.ncol = kwargs['ncol']
-        self.working_directory = os.path.join(folder, 'wd')
+        self.working_directory = os.path.join(folder, 'wd_steady' if kwargs.get('steady') else 'wd')
         self.actualwell_rate = None
         self.drainage = None
+        self._layer_flows = None
+        self.converged = True
         self.nstep = 0
         self._recharge = None
         self._abstraction = None
+        self._drain = None
 
         # mfsim.lst of a former run would give a wrong error report if MODFLOW stops before writing a new one
-        try:
-            os.remove(os.path.join(self.working_directory, 'mfsim.lst'))
-        except OSError:
-            pass
+        remove_file(os.path.join(self.working_directory, 'mfsim.lst'))
 
         # spawn: a new Python process on all systems, libmf6 is loaded only in the child process
         context = multiprocessing.get_context('spawn')
@@ -152,20 +157,30 @@ class ModFlowProcess:
             raise e
         return answer[1]
 
+    def layer_flows(self):
+        """Flows into each active cell of all layers in the last time step (ModFlowSimulation.layer_flows)"""
+        return self._layer_flows
+
     def set_recharge(self, recharge):
-        """Set recharge, value in m/day (given to MODFLOW at the next step)"""
+        """Set recharge, value in m per MODFLOW period (given to MODFLOW at the next step)"""
         self._recharge = recharge
 
     def set_groundwater_abstraction(self, groundwater_abstraction):
-        """Set well rate, value in m3/day (given to MODFLOW at the next step)"""
+        """Set well rate, value in m3 per MODFLOW period, < 0 for pumping (given to MODFLOW at the next step)"""
         self._abstraction = groundwater_abstraction
+
+    def set_drainage(self, drain_elevation):
+        """Set the drain elevation, m (given to MODFLOW at the next step)"""
+        self._drain = drain_elevation
 
     def step(self):
         self.nstep += 1
-        self._send('step', (self._recharge, self._abstraction))
-        self.head, self.actualwell_rate, self.drainage = self._receive('MODFLOW time step ' + str(self.nstep))
+        self._send('step', (self._recharge, self._abstraction, self._drain))
+        self.head, self.actualwell_rate, self.drainage, self.converged, self._layer_flows = self._receive(
+            'MODFLOW time step ' + str(self.nstep))
         self._recharge = None
         self._abstraction = None
+        self._drain = None
 
     def finalize(self):
         """Finalize MODFLOW and end the child process"""

@@ -83,7 +83,7 @@ class CWATModel_dyn(DynamicModel):
     InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
     EvapoChannel                         Array         Channel evaporation                                                     m3   
     gridcell_storage                     Array         storage of water due to runoff concentration                            m    
-    groundwater_storage_available        Array         Groundwater storage. Used with MODFLOW.                                 m    
+    groundwater_storage_total            Array         Groundwater storage of all MODFLOW layers                               m
     lakeResStorage                       Array                                                                                 --   
     smalllakeStorage                     Array                                                                                 --   
     unmetDemand                          Array         Unmet groundwater demand to determine potential fossil groundwaterwate  m    
@@ -242,7 +242,8 @@ class CWATModel_dyn(DynamicModel):
             # [m3] >> [m] --> * InvCellArea
 
             if self.var.modflow:
-                groundwater_storage = self.var.groundwater_storage_available
+                # storage of all MODFLOW layers (groundwater_storage_available: only the pumpable storage of cells with wells)
+                groundwater_storage = self.var.groundwater_storage_total
                 # unmet demand (taken from fossil groundwater) summed up as without MODFLOW - also for the init file
                 # (MODFLOW storage is not reduced by it)
                 if checkOption('limitAbstraction'):

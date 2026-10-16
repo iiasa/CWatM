@@ -53,6 +53,7 @@ class interception(object):
     IceMelt                              Array         Ice melt (not really ice but an additional snow melt in summer)         m    
     snowEvap                             Array         total evaporation from snow for a snow layers                           m    
     actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m    
+    throughfall                          Array         Rain above the interception capacity per land cover                     m    
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -108,6 +109,7 @@ class interception(object):
         throughfall = np.maximum(0.0, self.var.Rain + self.var.interceptStor[No] - interceptCap)
         # update interception storage after throughfall
         self.var.interceptStor[No] = self.var.interceptStor[No] + self.var.Rain - throughfall
+        self.var.throughfall[No] = throughfall
 
         # availWaterInfiltration Available water for infiltration: throughfall + snow melt
         self.var.availWaterInfiltration[No] = throughfall + self.var.SnowMelt + self.var.IceMelt

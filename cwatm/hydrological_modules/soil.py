@@ -56,7 +56,7 @@ class soil(object):
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
-    capRiseFrac                          Array         fraction of a grid cell where capillar rise may happen                  m    
+    capRiseFrac                          Array         fraction of a grid cell where capillar rise may happen                  --   
     modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
     activatedCrops                       Array         Fraction of area a specific crop is planted                             --   
     currentKC                            Array         Current crop coefficient for specific crops                             --   
@@ -167,6 +167,27 @@ class soil(object):
     act_irrConsumption                   Array         actual irrigation water consumption                                     m    
     act_irrNonpaddyWithdrawal            Array         non-paddy irrigation withdrawal                                         m    
     act_irrPaddyWithdrawal               Array         paddy irrigation withdrawal                                             m    
+    recharge_limit                       Array         Recharge limit with MODFLOW (vertical permeability, low perm. cover)    m/day
+    modflow_seepage                      Flag          Seepage scheme with MODFLOW: modflow_seepage in settings, default True  bool 
+    seepageOn                            Flag          True if modflow_coupling = True and modflow_seepage = True              bool 
+    saturatedFrac                        Array         Share of the cell with the water table at the surface (seepage scheme)  --   
+    seepage                              Array         MODFLOW outflow not taken up by the soil, goes to the seepage pond      m    
+    capRiseFromAquifer                   Array         Capillary rise from the aquifer (seepage scheme), negative recharge     m    
+    capRiseAquiferLimit                  Array         Max. capillary rise from the aquifer: 10 % of layer-1 storage per day   m    
+    seepagePond                          Array         Seepage pond per land cover (max. 0.1 m x saturated share)              m    
+    seepageEvap                          Array         Evaporation from the seepage pond, up to EWRef x saturated share        m    
+    pondOverflow                         Array         Seepage pond overflow to direct runoff (rest after the soil) per cover  m    
+    pondarea                             Array         Pond area: max(capriseindex, saturatedFrac), share of soil covers       --   
+    pondToSoil                           Array         Seepage pond overflow into the soil (layer 3, 2 up to field cap.)       m    
+    pondDepth                            Number        Depth of the seepage pond over the pond area (seepage_pond_depth)       m    
+    ta1                                  Array         Transpiration from soil layer 1 per land cover                          m    
+    ta2                                  Array         Transpiration from soil layer 2 per land cover                          m    
+    ta3                                  Array         Transpiration from soil layer 3 per land cover                          m    
+    capRise2to1                          Array         Flow layer 2 -> 1: capillary rise + overflow of GW capillary rise       m    
+    capRise3to2                          Array         Flow layer 3 -> 2: capillary rise + overflow of GW capillary rise       m    
+    excess1to2                           Array         Infiltration above the storage capacity of layer 1 -> layer 2           m    
+    capOverflowRunoff                    Array         MODFLOW capillary rise overflowing soil layer 1 -> direct runoff        m    
+    pondToSoil3                          Array         Part of pondToSoil into soil layer 3 (the rest into layer 2)            m    
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -176,8 +197,12 @@ class soil(object):
     # -> a new self.var.xxx[No] = ... in dynamic() has to be added here too
     WRITE_LC = ['w1', 'w2', 'w3', 'openWaterEvap', 'actBareSoilEvap', 'prefFlow', 'infiltration',
                 'directRunoff', 'capRiseFromGW', 'perc1to2', 'perc2to3', 'perc3toGW', 'theta1', 'theta2',
-                'theta3', 'actTransTotal', 'actualET', 'totalPotET', 'interflow', 'gwRecharge', 'gwRecharge2']
-    WRITE_CELL = ['topwater']
+                'theta3', 'actTransTotal', 'actualET', 'totalPotET', 'interflow', 'gwRecharge', 'gwRecharge2',
+                # fluxes of the single soil layers (WaterBalance output)
+                'ta1', 'ta2', 'ta3', 'capRise2to1', 'capRise3to2', 'excess1to2', 'capOverflowRunoff',
+                # seepage scheme (MODFLOW, lists of arrays per land cover with soil)
+                'seepage', 'capRiseFromAquifer', 'seepagePond', 'seepageEvap', 'pondToSoil', 'pondOverflow', 'pondToSoil3']
+    WRITE_CELL = ['topwater', 'pondarea']
 
     def __init__(self, model):
         """
@@ -255,6 +280,8 @@ class soil(object):
         self.var.pumping_actual = globals.inZero.copy()
         self.var.capillar = globals.inZero.copy()
         self.var.baseflow = globals.inZero.copy()
+        # seepage scheme with MODFLOW (modflow_seepage, set in groundwater_modflow/transient.py): off without MODFLOW
+        self.var.modflow_seepage = False
 
         if 'gw_depth_observations' in binding:
             self.var.gwdepth_observations = readnetcdfWithoutTime(cbinding('gw_depth_observations'),
@@ -304,6 +331,11 @@ class soil(object):
 
         availWaterInfiltration = self.var.availWaterInfiltration[No].copy()
         availWaterInfiltration = availWaterInfiltration + self.var.act_irrConsumption[No]
+        # upward fluxes between the soil layers (capillary rise and overflow of the capillary rise from groundwater)
+        # and capillary rise overflowing layer 1 to runoff - for the water balance of each layer (WaterBalance output)
+        self.var.capRise2to1[No] = 0.
+        self.var.capRise3to2[No] = 0.
+        self.var.capOverflowRunoff[No] = 0.
         # availWaterInfiltration = water net from precipitation (- soil - interception - snow + snow melt) + 
         # water for irrigation
 
@@ -349,20 +381,40 @@ class soil(object):
 
         # add capillary rise from groundwater if modflow is used
         if self.var.modflow:
+            capillar = self.var.capillar
+            if self.var.seepageOn:
+                # seepage scheme: capillary rise into layer 3 by the depth to water (as without MODFLOW, capRiseFrac of
+                # capillarRise.py), supplied from the MODFLOW outflow first, then from the aquifer (capRiseAquiferLimit,
+                # groundwater_modflow/transient.py); the rest of the outflow is seepage on the surface
+                NoSoil = 0 if No == 0 else 1
+                availWater3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No])
+                satTerm3 = np.maximum(np.minimum(availWater3 / self.var.wrange3[No], 1.0), 0)
+                kUnSat3 = self.var.KSat3[NoSoil] * np.sqrt(satTerm3) * np.square(
+                    1 - (1 - satTerm3 ** self.var.genuInvM3[NoSoil]) ** self.var.genuM3[NoSoil])
+                satTermFC3 = availWater3 / (self.var.wfc3[No] - self.var.wres3[No])
+                potCapRise = 0.5 * self.var.capRiseFrac * np.maximum(0., 1 - satTermFC3) * np.sqrt(
+                    self.var.KSat3[NoSoil] * kUnSat3)
+                fromOutflow = np.minimum(potCapRise, self.var.capillar)
+                self.var.capRiseFromAquifer[No] = np.minimum(potCapRise - fromOutflow, self.var.capRiseAquiferLimit)
+                self.var.seepage[No] = self.var.capillar - fromOutflow
+                capillar = fromOutflow + self.var.capRiseFromAquifer[No]
             # if GW capillary rise saturates soil layers, water is sent to the above layer, then to runoff
-            self.var.w3[No] = self.var.w3[No] + self.var.capillar
+            self.var.w3[No] = self.var.w3[No] + capillar
             # CAPRISE from GW to soilayer 3 , if this is full it is send to soil layer 2
-            self.var.w2[No] = self.var.w2[No] + np.where(self.var.w3[No] > self.var.ws3[No], 
-                                                          self.var.w3[No] - self.var.ws3[No], 0)
+            over3to2 = np.where(self.var.w3[No] > self.var.ws3[No], self.var.w3[No] - self.var.ws3[No], 0)
+            self.var.w2[No] = self.var.w2[No] + over3to2
             self.var.w3[No] = np.minimum(self.var.ws3[No], self.var.w3[No])
             # CAPRISE from GW to soilayer 2 , if this is full it is send to soil layer 1
-            self.var.w1[No] = self.var.w1[No] + np.where(self.var.w2[No] > self.var.ws2[No], 
-                                                          self.var.w2[No] - self.var.ws2[No], 0)
+            over2to1 = np.where(self.var.w2[No] > self.var.ws2[No], self.var.w2[No] - self.var.ws2[No], 0)
+            self.var.w1[No] = self.var.w1[No] + over2to1
             self.var.w2[No] = np.minimum(self.var.ws2[No], self.var.w2[No])
             # CAPRISE from GW to soilayer 1 , if this is full it is send to RUNOFF
-            saverunofffromGW = +np.where(self.var.w1[No] > self.var.ws1[No], 
+            saverunofffromGW = +np.where(self.var.w1[No] > self.var.ws1[No],
                                          self.var.w1[No] - self.var.ws1[No], 0)
             self.var.w1[No] = np.minimum(self.var.ws1[No], self.var.w1[No])
+            self.var.capRise3to2[No] = self.var.capRise3to2[No] + over3to2
+            self.var.capRise2to1[No] = self.var.capRise2to1[No] + over2to1
+            self.var.capOverflowRunoff[No] = saverunofffromGW
 
             # Now, we need to add transfer between soil layers  # MODIF LUCA TO IMPROVE MODFLOW COUPLING
 
@@ -406,6 +458,8 @@ class soil(object):
             self.var.w2[No] = self.var.w2[No] - capRise1 + capRise2
             # GW capillary rise has already been added to the soil
             self.var.w3[No] = self.var.w3[No] - capRise2
+            self.var.capRise2to1[No] = self.var.capRise2to1[No] + capRise1
+            self.var.capRise3to2[No] = self.var.capRise3to2[No] + capRise2
 
         # ---------------------------------------------------------
         # calculate transpiration
@@ -535,8 +589,10 @@ class soil(object):
             self.var.prefFlow[No] = np.where(self.var.FrostDay, 0.0, self.var.prefFlow[No])
 
         if self.var.modflow:
-            # multiplied by the fraction of ModFlow unsaturated cells
-            self.var.prefFlow[No] = self.var.prefFlow[No] * (1 - self.var.capriseindex)
+            # multiplied by the fraction of ModFlow unsaturated cells - seepage scheme: the unsaturated share from the
+            # sub-grid elevation (capillarRise.py), no 0/1 switch of whole ModFlow cells (2-day flip-flop)
+            saturated = self.var.saturatedFrac if self.var.seepageOn else self.var.capriseindex
+            self.var.prefFlow[No] = self.var.prefFlow[No] * (1 - saturated)
 
         # ---------------------------------------------------------
         # calculate infiltration
@@ -562,8 +618,8 @@ class soil(object):
 
         # infiltration to soilayer 1 , if this is full it is send to soil layer 2
         self.var.w1[No] = self.var.w1[No] + self.var.infiltration[No]
-        self.var.w2[No] = self.var.w2[No] + np.where(self.var.w1[No] > self.var.ws1[No], 
-                                                      self.var.w1[No] - self.var.ws1[No], 0)
+        self.var.excess1to2[No] = np.where(self.var.w1[No] > self.var.ws1[No], self.var.w1[No] - self.var.ws1[No], 0)
+        self.var.w2[No] = self.var.w2[No] + self.var.excess1to2[No]
         self.var.w1[No] = np.minimum(self.var.ws1[No], self.var.w1[No])
 
         # ----------------------------------------------------------
@@ -619,6 +675,9 @@ class soil(object):
         if self.var.modflow:
             # from Modflow
             self.var.capRiseFromGW[No] = self.var.capillar
+            if self.var.seepageOn:
+                # into the soil: the outflow without the seepage, plus the capillary rise from the aquifer
+                self.var.capRiseFromGW[No] = self.var.capillar - self.var.seepage[No] + self.var.capRiseFromAquifer[No]
         else:
             self.var.capRiseFromGW[No] = np.maximum(0., (1 - satTermFC3) * 
                                                     np.sqrt(self.var.KSat3[NoSoil] * kUnSat3))
@@ -630,6 +689,8 @@ class soil(object):
 
         self.var.w1[No] = self.var.w1[No] + capRise1
         self.var.w2[No] = self.var.w2[No] - capRise1 + capRise2
+        self.var.capRise2to1[No] = self.var.capRise2to1[No] + capRise1
+        self.var.capRise3to2[No] = self.var.capRise3to2[No] + capRise2
         if self.var.modflow:
             # GW capillary rise has already been added to the soil
             self.var.w3[No] = self.var.w3[No] - capRise2
@@ -729,9 +790,9 @@ class soil(object):
             subperc2to3 = np.where(self.var.FrostDay, 0, subperc2to3)
 
             if self.var.modflow:
-                # multiplied by the fraction of ModFlow unsaturated cells
+                # multiplied by the fraction of ModFlow unsaturated cells (seepage scheme: sub-grid, see prefFlow)
                 subperc3toGW = np.minimum(availWater3, np.minimum(kUnSat3 * DtSub, availWater3)) * (
-                    1 - self.var.capriseindex)
+                    1 - saturated)
             else:
                 subperc3toGW = np.minimum(availWater3, np.minimum(kUnSat3 * DtSub, availWater3))
 
@@ -781,6 +842,10 @@ class soil(object):
         # ---------------------------------------------------------------------------------------------
         # total actual transpiration
         self.var.actTransTotal[No] = ta1 + ta2 + ta3
+        # transpiration of each soil layer (WaterBalance output)
+        self.var.ta1[No] = ta1
+        self.var.ta2[No] = ta2
+        self.var.ta3[No] = ta3
 
         self.var.actualET[No] = (self.var.actualET[No] + self.var.actBareSoilEvap[No] + 
                                  self.var.openWaterEvap[No] + self.var.actTransTotal[No])
@@ -795,6 +860,12 @@ class soil(object):
 
         if self.var.modflow:
             self.var.gwRecharge[No] = (1 - self.var.percolationImp) * toGWorInterflow
+            if self.var.recharge_limit is not None:
+                # recharge limited by the vertical permeability of the aquifer and a low permeability cover (MODFLOW
+                # coupling, groundwater_modflow/transient.py, Dor's version); the rest goes to interflow
+                limited = np.minimum(self.var.gwRecharge[No], self.var.recharge_limit)
+                self.var.interflow[No] = self.var.interflow[No] + self.var.gwRecharge[No] - limited
+                self.var.gwRecharge[No] = limited
         else:
             # net recharge: can be negative (capillar rise > percolation) -> taken from groundwater storage
             # (capRiseFromGW is already added to w3 and limited by the available groundwater storage)
@@ -803,6 +874,40 @@ class soil(object):
 
             testgw = np.minimum(self.var.gwRecharge2[No], 0)
             self.var.gwRecharge2[No] = self.var.gwRecharge2[No] - testgw
+
+        if self.var.seepageOn:
+            # seepage scheme: net recharge - the capillary rise from the aquifer is taken from MODFLOW as negative
+            # recharge (groundwater_modflow/transient.py)
+            self.var.gwRecharge[No] = self.var.gwRecharge[No] - self.var.capRiseFromAquifer[No]
+            # seepage pond on the saturated part of the cell: share of saturated ModFlow cells or sub-grid saturated
+            # share, the larger one (before 2026-10-13 only capriseindex: the drains below the aquifer top give
+            # seepage where capriseindex = 0 - UNWMZ 9 of 10 mm/yr pond overflow, Q +3 %): shallow open water with
+            # plants, evaporation up to EWRef (before 2026-10-13 EWRef minus the actual ET of today: UNWMZ ET -8 mm/yr,
+            # the actual ET is near EWRef in a humid climate); the pond above pondDepth (seepage_pond_depth, default
+            # 0.1 m, over the saturated part) overflows
+            pondArea = np.maximum(self.var.capriseindex, self.var.saturatedFrac)
+            self.var.pondarea = pondArea
+            pond = self.var.seepagePond[No] + self.var.seepage[No]
+            self.var.seepageEvap[No] = np.minimum(pond, pondArea * self.var.EWRef)
+            pond = pond - self.var.seepageEvap[No]
+            overflow = np.maximum(pond - self.var.pondDepth * pondArea, 0.)
+            self.var.seepagePond[No] = pond - overflow
+            # overflow first into the soil as capillary rise: layer 3, then layer 2, each up to field capacity (below
+            # field capacity hardly any percolation: no loop soil -> aquifer -> seepage), the rest to direct runoff.
+            # Before 2026-10-13 all to direct runoff (UNWMZ, drains at the 10 % sub-grid elevation: 24 of 24 mm/yr to
+            # the rivers, Q +10 %, ET -22 mm/yr; into the soil: 23 mm/yr, ET as with the drains at the aquifer top)
+            toSoil3 = np.minimum(overflow, np.maximum(self.var.wfc3[No] - self.var.w3[No], 0.))
+            self.var.w3[No] = self.var.w3[No] + toSoil3
+            toSoil2 = np.minimum(overflow - toSoil3, np.maximum(self.var.wfc2[No] - self.var.w2[No], 0.))
+            self.var.w2[No] = self.var.w2[No] + toSoil2
+            self.var.pondToSoil[No] = toSoil3 + toSoil2
+            self.var.pondToSoil3[No] = toSoil3
+            overflow = overflow - self.var.pondToSoil[No]
+            self.var.pondOverflow[No] = overflow
+            self.var.directRunoff[No] = self.var.directRunoff[No] + overflow
+            self.var.openWaterEvap[No] = self.var.openWaterEvap[No] + self.var.seepageEvap[No]
+            self.var.actualET[No] = self.var.actualET[No] + self.var.seepageEvap[No]
+            self.var.totalPotET[No] = np.maximum(self.var.totalPotET[No], self.var.actualET[No])
 
 
     def dynamic_crops(self):

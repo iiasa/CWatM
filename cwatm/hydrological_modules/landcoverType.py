@@ -74,7 +74,14 @@ class SubVar(object):
     def scatter(self, names_lc, names_cell, No):
         for name in names_lc:
             if name in self._c:
-                getattr(self._var, name)[No, self._idx] = self._c[name][No]
+                target = getattr(self._var, name)
+                if isinstance(target, list):
+                    # list of arrays per land cover (seepage scheme): copy, the array may be shared
+                    full = target[No].copy()
+                    full[self._idx] = self._c[name][No]
+                    target[No] = full
+                else:
+                    target[No, self._idx] = self._c[name][No]
         for name in names_cell:
             if name in self._c:
                 # copy: never write into an array which may be shared (e.g. globals.inZero)
@@ -219,7 +226,6 @@ class landcoverType(object):
     Rain_times_fracNonPaddy              Array                                                                                 --   
     fracGlacierCover                     Array         Fraction of glacier cover in a grid cell                                %    
     areaGlacier                          Area          Area of glacier in a gridcell                                           --   
-    pretotalSto                          Array         Previous totalSto                                                       m    
     prefFlow_GW                          Array         Preferential flow to groundwater. sum_prefFlow goes either to groundwa  m    
     sum_prefFlow                         Array         Preferential flow from soil to groundwater (summed up for all land cov  m    
     sum_perc3toGW                        Array         Percolation from 3rd soil layer to groundwater (summed up for all land  m    
@@ -230,7 +236,6 @@ class landcoverType(object):
     sum_actBareSoilEvap                  Array         actual bare soil evaporation (sum over all land cover types)            m    
     sum_interceptEvap                    Array                                                                                 --   
     sum_runoff                           Array         Runoff above the soil, more interflow, including all landcover types    m    
-    GWVolumeVariation                    Number                                                                                --   
     MtoM3                                Array         Coefficient to change units                                             --   
     InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
     Precipitation                        Array         Precipitation (input for the model)                                     m    
@@ -240,6 +245,8 @@ class landcoverType(object):
     coverTypes                           Array         land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
     sum_directRunoff                     Array         direct runoff from surface  (sum over all land cover types)             m    
     sum_interflow                        Array         sum of iterflow from all land cover types                               m    
+    rejected_recharge_previous_day       Array         CWatM recharge not given to MODFLOW (saturated, dry cells), interflow   m    
+    rejected_recharge_interflow          Array         Rejected recharge of the last MODFLOW run, added to interflow today     m    
     availWaterInfiltration               Array         quantity of water reaching the soil after interception, more snowmelt   m    
     Rain                                 Array         Precipitation less snow                                                 m    
     snowEvap                             Array         total evaporation from snow for a snow layers                           m    
@@ -277,6 +284,28 @@ class landcoverType(object):
     includeWastewaterPits                Flag                                                                                  --   
     pitLatrinToGW                        Array                                                                                 --   
     addtoevapotrans                      Array         Irrigation application loss to evaporation                              m    
+    seepageOn                            Flag          True if modflow_coupling = True and modflow_seepage = True              bool 
+    seepagePond                          Array         Seepage pond per land cover (max. 0.1 m x saturated share)              m    
+    seepage                              Array         MODFLOW outflow not taken up by the soil, goes to the seepage pond      m    
+    seepageEvap                          Array         Evaporation from the seepage pond, up to EWRef x saturated share        m    
+    capRiseFromAquifer                   Array         Capillary rise from the aquifer (seepage scheme), negative recharge     m    
+    sum_seepagePond                      Array         Seepage pond, cell mean of the land covers with soil                    m    
+    sum_seepage                          Array         Seepage to the pond, cell mean                                          m    
+    sum_seepageEvap                      Array         Evaporation from the seepage pond, cell mean                            m    
+    sum_capRiseFromAquifer               Array         Capillary rise from the aquifer, cell mean                              m    
+    pondOverflow                         Array         Seepage pond overflow to direct runoff (rest after the soil) per cover  m    
+    over2river                           Array         Seepage pond overflow to direct runoff (rest after soil), cell mean     m    
+    pondToSoil                           Array         Seepage pond overflow into the soil (layer 3, 2 up to field cap.)       m    
+    pond2soil                            Array         Seepage pond overflow into the soil, cell mean (output)                 m    
+    throughfall                          Array         Rain above the interception capacity per land cover                     m    
+    sum_throughfall                      Array         Throughfall, sum over all land cover types                              m    
+    ta1                                  Array         Transpiration from soil layer 1 per land cover                          m    
+    ta2                                  Array         Transpiration from soil layer 2 per land cover                          m    
+    ta3                                  Array         Transpiration from soil layer 3 per land cover                          m    
+    capRise2to1                          Array         Flow layer 2 -> 1: capillary rise + overflow of GW capillary rise       m    
+    capRise3to2                          Array         Flow layer 3 -> 2: capillary rise + overflow of GW capillary rise       m    
+    excess1to2                           Array         Infiltration above the storage capacity of layer 1 -> layer 2           m    
+    capOverflowRunoff                    Array         MODFLOW capillary rise overflowing soil layer 1 -> direct runoff        m    
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -334,9 +363,12 @@ class landcoverType(object):
         self.var.fallowIrr_max = globals.inZero.copy()
         self.var.fallownonIrr_max = globals.inZero.copy()
 
-        # Fraction of cells where capillary rise occurs (used when ModFlow coupling) - from the init file
+        # Fraction of cells where capillary rise occurs (used when ModFlow coupling) - from the init file, else from
+        # the initial MODFLOW head (capriseindex_start, groundwater_modflow/transient.py; not set: 0)
         if self.var.modflow:
-            self.var.capriseindex = self.var.load_initial('capriseindex', default=globals.inZero.copy())
+            start = getattr(self.var, 'capriseindex_start', None)
+            self.var.capriseindex = self.var.load_initial(
+                'capriseindex', default=globals.inZero.copy() if start is None else start.copy())
         else:
             self.var.capriseindex = globals.inZero.copy()
         self.var.leakageIntoGw = globals.inZero.copy()
@@ -376,7 +408,7 @@ class landcoverType(object):
                          'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTransTotal',
                          'gwRecharge','gwRecharge2', 'interflow','actualET', 'pot_irrConsumption', 'act_irrConsumption', 'irrDemand',
                          'topWaterLayer',
-                         'perc3toGW', 'capRiseFromGW', 'netPercUpper', 'netPerc', 'prefFlow']
+                         'perc3toGW', 'capRiseFromGW', 'netPercUpper', 'netPerc', 'prefFlow', 'throughfall']
      
         # for 6 landcover types
         for variable in landcoverVars:
@@ -384,8 +416,10 @@ class landcoverType(object):
 
 
         # for 4 landcover types with soil underneath
-        landcoverVarsSoil = ['arnoBeta', 'rootZoneWaterStorageCap', 'rootZoneWaterStorageCap12', 'perc1to2', 
-                             'perc2to3', 'theta1', 'theta2', 'theta3']
+        landcoverVarsSoil = ['arnoBeta', 'rootZoneWaterStorageCap', 'rootZoneWaterStorageCap12', 'perc1to2',
+                             'perc2to3', 'theta1', 'theta2', 'theta3',
+                             # fluxes of the single soil layers (soil.py, WaterBalance output)
+                             'ta1', 'ta2', 'ta3', 'capRise2to1', 'capRise3to2', 'excess1to2', 'capOverflowRunoff']
         for variable in landcoverVarsSoil:
             vars(self.var)[variable] = np.tile(globals.inZero, (4, 1))
 
@@ -398,7 +432,8 @@ class landcoverType(object):
         self.var.landcoverSum = ['interceptStor', 'interflow',
                                  'directRunoff', 'totalPotET', 'potTranspiration', 'availWaterInfiltration',
                                  'interceptEvap', 'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTransTotal', 
-                                 'gwRecharge','gwRecharge2', 'openWaterEvap', 'capRiseFromGW', 'perc3toGW', 'prefFlow','act_irrConsumption']
+                                 'gwRecharge','gwRecharge2', 'openWaterEvap', 'capRiseFromGW', 'perc3toGW', 'prefFlow','act_irrConsumption',
+                                 'throughfall']
         for variable in self.var.landcoverSum:
             vars(self.var)["sum_" + variable] = globals.inZero.copy()
 
@@ -678,6 +713,12 @@ class landcoverType(object):
         self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
         self.var.sum_soil = self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
         self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_soil
+        if self.var.seepageOn:
+            # MODFLOW seepage scheme (soil.py): the seepage pond is land storage (not zero after a restart)
+            self.var.sum_seepagePond = globals.inZero.copy()
+            for No in range(4):
+                self.var.sum_seepagePond += self.var.fracVegCover[No] * self.var.seepagePond[No]
+            self.var.totalSto = self.var.totalSto + self.var.sum_seepagePond
 
         # for maximum of topwater flooding (default = 0.05m)
         self.var.maxtopwater = 0.05
@@ -889,16 +930,6 @@ class landcoverType(object):
         And sums every thing up depending on the land cover type fraction
         """
 
-        ### To compute water balance for modflow
-        # Currently, only daily time scale is implemented for this version')
-        #if self.var.modflow:
-            #if (dateVar['curr'] - int(dateVar['curr'] / self.var.modflow_timestep) * self.var.modflow_timestep) == 1 and \
-            #        dateVar['curr'] > self.var.modflow_timestep:  # if it is the first step of the week
-            #    self.var.presumed_sum_gwRecharge = self.var.sumed_sum_gwRecharge.copy()
-                # stormodf = np.nansum((self.var.presumed_sum_gwRecharge/self.var.modflow_timestep-self.var.capillar-self.var.baseflow) * self.var.cellArea) # From ModFlow during the previous step
-                # stormodf = self.var.GWVolumeVariation / self.var.modflow_timestep # GW volume change from the previous ModFlow run (difference betwwen water levels times porosity)
-        self.var.pretotalSto = self.var.totalSto.copy()
-
         coverNo = 0
         # update soil (loop per each land cover type):
         for coverType in self.var.coverTypes:
@@ -977,6 +1008,13 @@ class landcoverType(object):
             for No in range(6):
                 vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
+        # recharge which MODFLOW did not get in its last run (saturated or dry ModFlow cells, groundwater_modflow/
+        # transient.py) goes to interflow on the next days - before 2026-10-11 it was lost. Kept for
+        # runoff_concentration.py, which runs after MODFLOW (rejected_recharge_previous_day is then the new value)
+        if self.var.modflow:
+            self.var.rejected_recharge_interflow = self.var.rejected_recharge_previous_day
+            self.var.sum_interflow = self.var.sum_interflow + self.var.rejected_recharge_interflow
+
         # for watercycle output of preflow and perc3toGW
         self.var.prefFlow_GW = divideValues(self.var.sum_prefFlow, self.var.sum_prefFlow + self.var.sum_perc3toGW) * self.var.sum_gwRecharge
         self.var.perc3toGW_GW = divideValues(self.var.sum_perc3toGW, self.var.sum_prefFlow + self.var.sum_perc3toGW) * self.var.sum_gwRecharge
@@ -985,8 +1023,12 @@ class landcoverType(object):
             # computing leakage from rivers (if modflow coupling is used)
 
             # leakage depends on water bodies storage, water bodies fraction and modflow saturated area
+            # no leakage where more than 75 % of the ModFlow cells are saturated - except with the seepage scheme
+            # (modflow_seepage): the leaked water comes back as outflow -> seepage pond (evaporation, overflow), so the
+            # shallow floodplain evaporates river water (Tisa 1990-1992: Q -3.4 to -3.7 %)
+            saturatedSwitch = 1. if self.var.seepageOn else (1 - self.var.capriseindex + 0.25) // 1
             self.var.riverbedExchangeM = np.minimum(self.var.leakageriver_factor * np.maximum(self.var.fracVegCover[5], 0) *
-                                                    ((1 - self.var.capriseindex + 0.25) // 1),
+                                                    saturatedSwitch,
                                                     0.80 * self.var.readAvlChannelStorageM)  # leakage in m/d
             self.var.riverbedExchangeM = np.where(self.var.riverbedExchangeM > self.var.InvCellArea,
                                                        self.var.riverbedExchangeM, 0)  # to avoid too small values
@@ -1090,25 +1132,26 @@ class landcoverType(object):
         # (added to totalPotET of paddy and non paddy above -> included in sum_totalPotET)
         self.var.sum_soil = self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
         self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_soil
+        if self.var.seepageOn:
+            # MODFLOW seepage scheme (soil.py), cell means: seepage pond (land storage), seepage, its evaporation (in
+            # sum_openWaterEvap -> totalET) and the capillary rise from the aquifer (taken from MODFLOW, transient.py)
+            for variable in ['seepagePond', 'seepage', 'seepageEvap', 'capRiseFromAquifer']:
+                vars(self.var)["sum_" + variable] = globals.inZero.copy()
+                for No in range(4):
+                    vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
+            self.var.totalSto = self.var.totalSto + self.var.sum_seepagePond
+            # pond overflow into the soil and to direct runoff, cell means (outputs)
+            self.var.pond2soil = globals.inZero.copy()
+            self.var.over2river = globals.inZero.copy()
+            for No in range(4):
+                self.var.pond2soil += self.var.fracVegCover[No] * self.var.pondToSoil[No]
+                self.var.over2river += self.var.fracVegCover[No] * self.var.pondOverflow[No]
 
         # leakageIntoRunoff is also added in runoff_concentration
         self.var.sum_runoff = self.var.sum_directRunoff + self.var.sum_interflow + self.var.leakageIntoRunoff
         self.var.Rain_times_fracPaddy = self.var.fracVegCover[2] * self.var.Rain
         self.var.Rain_times_fracNonPaddy = self.var.fracVegCover[3] * self.var.Rain
 
-        ### Printing the soil+GW water balance (considering no pumping), without the surface part
-        #print('Date : ', dateVar['currDatestr'])
-        if checkOption('calcWaterBalance'):
-            if self.var.modflow:
-                if dateVar['curr'] > self.var.modflow_timestep:  # from the second step
-
-                    storcwat = np.sum((self.var.totalSto - self.var.pretotalSto) * self.var.cellArea)  # Daily CWAT storage variations
-                    #cwatbudg = np.sum((self.var.Precipitation - self.var.sum_runoff - self.var.totalET + self.var.presumed_sum_gwRecharge / self.var.modflow_timestep - self.var.sum_gwRecharge - self.var.baseflow) * self.var.cellArea)  # Inputs-Outputs (baseflow comes from the previous ModFlow model)
-                    cwatbudg = np.sum((self.var.Precipitation - self.var.sum_runoff - self.var.totalET + self.var.sum_gwRecharge - self.var.sum_gwRecharge - self.var.baseflow) * self.var.cellArea)  # Inputs-Outputs (baseflow comes from the previous ModFlow model)
-
-                    print('CWatM-ModFlow water balance error [%]: ',
-                          round(100 * (cwatbudg - storcwat - self.var.GWVolumeVariation / self.var.modflow_timestep) /
-                                (0.5 * cwatbudg + 0.5 * storcwat + 0.5 * self.var.GWVolumeVariation / self.var.modflow_timestep) * 100) / 100)
 
         # --------------------------------------------------------------------
 

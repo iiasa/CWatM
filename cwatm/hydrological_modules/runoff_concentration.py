@@ -73,6 +73,8 @@ class runoff_concentration(object):
     runoff_m3                            Array         runoff of the grid cell in m3 (plus glacier melt and rain)              m3   
     sum_directRunoff                     Array         direct runoff from surface  (sum over all land cover types)             m    
     sum_interflow                        Array         sum of iterflow from all land cover types                               m    
+    rejected_recharge_previous_day       Array         CWatM recharge not given to MODFLOW (saturated, dry cells), interflow   m    
+    rejected_recharge_interflow          Array         Rejected recharge of the last MODFLOW run, added to interflow today     m    
     runoff_peak                          List          peak time of runoff for each land use class                             day  
     tpeak_interflow                      Array         peak time of interflow                                                  day  
     tpeak_baseflow                       Array         peak time of baseflow                                                   day  
@@ -281,6 +283,10 @@ class runoff_concentration(object):
             self.var.sum_directRunoff += self.var.fracVegCover[No] * self.var.directRunoff[No]
             self.var.landSurfaceRunoff[No] = self.var.directRunoff[No] + self.var.interflow[No]
             self.var.sum_landSurfaceRunoff += self.var.fracVegCover[No] * self.var.landSurfaceRunoff[No]
+
+        # recharge which MODFLOW did not get goes to interflow: the same value as in sum_interflow (landcoverType.py)
+        if self.var.modflow:
+            self.var.sum_landSurfaceRunoff = self.var.sum_landSurfaceRunoff + self.var.rejected_recharge_interflow
 
         #PB 06/26: correction if glaciers - runoff should be not reduced in unit m , but later for m3
         # runoff [m] is calculated for the total area

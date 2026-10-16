@@ -1,13 +1,13 @@
 # Purpose: grid of the CWatM - MODFLOW coupling: ModFlow domain, the index pairs of overlapping CWatM / ModFlow cells
 # (with the area of each overlap) and the conversion of maps between the CWatM and the ModFlow grid.
-import os
-
+# Reading and writing of files: management_modules/data_modflow.py
 import numpy as np
-import rasterio
 import rasterio.warp
 from rasterio.crs import CRS
 
 from cwatm.management_modules.data_handling import *
+from cwatm.management_modules.data_modflow import (raster_crs, read_modflow_basin, read_modflow_tif, on_modflow_grid,
+                                                   write_modflow_netcdf, read_modflow_netcdf)
 
 
 def is_float(s):
@@ -135,12 +135,9 @@ def cwatm_crs():
     """
     if 'cwatm_crs' in binding:
         return CRS.from_user_input(cbinding('cwatm_crs'))
-    try:
-        with rasterio.open(cbinding('MaskMap')) as src:
-            if src.crs is not None:
-                return src.crs
-    except Exception:
-        pass  # MaskMap as coordinates or a file without CRS
+    crs = raster_crs(cbinding('MaskMap'))  # None: MaskMap as coordinates or a file without CRS
+    if crs is not None:
+        return crs
     west, north, cell = maskmapAttr['x'], maskmapAttr['y'], maskmapAttr['cell']
     east, south = west + maskmapAttr['col'] * cell, north - maskmapAttr['row'] * cell
     if cell < 1 and -180 <= west < east <= 360 and -90 <= south < north <= 90:
@@ -155,9 +152,8 @@ class ModflowGrid:
     ModFlow grid and the conversion of maps between CWatM (1D compressed) and ModFlow (2D: nrow, ncol)
 
     Settings: modflow_basin (tif of the active ModFlow cells with CRS, defines the ModFlow grid). The pairs of
-    overlapping CWatM / ModFlow cells are computed from the two grids (CRS of CWatM: see cwatm_crs). With
-    modflow_indices_from_files = True they are read from cwatm_modflow_indices (modflow_x/y, cwatm_x/y, area.npy)
-    as before 2026-10.
+    overlapping CWatM / ModFlow cells are computed from the two grids (CRS of CWatM: see cwatm_crs) - before
+    2026-10-13 they could also be read from .npy files (modflow_indices_from_files, cwatm_modflow_indices).
 
     Attributes
     ----------
@@ -168,20 +164,19 @@ class ModflowGrid:
 
     def __init__(self, cellArea):
         """cellArea: CWatM cell area (1D, m2) - the overlap areas are corrected to add up to it"""
-        with rasterio.open(cbinding('modflow_basin'), 'r') as src:
-            self.basin = src.read(1).astype(bool)  # read in as 2-dimensional array (nrows, ncols).
-            transform = src.profile['transform']
-            modflow_crs = src.crs
-            self.domain = {
-                'rowsize': abs(transform.e),
-                'colsize': abs(transform.a),
-                'nrow': int(src.profile['height']),
-                'ncol': int(src.profile['width']),
-                'west': transform.c,
-                'east': transform.c + (src.profile['width'] - 1) * abs(transform.a),
-                'north': transform.f,
-                'south': transform.f - (src.profile['height'] - 1) * abs(transform.e)
-            }
+        # active ModFlow cells as 2-dimensional array (nrows, ncols), grid and CRS
+        self.basin, transform, modflow_crs = read_modflow_basin(cbinding('modflow_basin'))
+        height, width = self.basin.shape
+        self.domain = {
+            'rowsize': abs(transform.e),
+            'colsize': abs(transform.a),
+            'nrow': int(height),
+            'ncol': int(width),
+            'west': transform.c,
+            'east': transform.c + (width - 1) * abs(transform.a),
+            'north': transform.f,
+            'south': transform.f - (height - 1) * abs(transform.e)
+        }
         # global domain: also used in data_handling to write netcdf maps at ModFlow resolution
         domain.update(self.domain)
         domain['crs'] = modflow_crs
@@ -189,26 +184,22 @@ class ModflowGrid:
         self.nrow, self.ncol = self.domain['nrow'], self.domain['ncol']
         self.cell_area = self.domain['rowsize'] * self.domain['colsize']  # in m2
 
-        # index pairs of overlapping CWatM / ModFlow cells
+        # index pairs of overlapping CWatM / ModFlow cells (before 2026-10-13 optionally read from .npy files:
+        # modflow_indices_from_files - no longer used)
         if 'modflow_indices_from_files' in binding and returnBool('modflow_indices_from_files'):
-            folder = cbinding('cwatm_modflow_indices')
-            self.modflow_x = np.load(os.path.join(folder, 'modflow_x.npy'))
-            self.modflow_y = np.load(os.path.join(folder, 'modflow_y.npy'))
-            self.cwatm_x = np.load(os.path.join(folder, 'cwatm_x.npy'))
-            self.cwatm_y = np.load(os.path.join(folder, 'cwatm_y.npy'))
-            area = np.load(os.path.join(folder, 'area.npy'))
-        else:
-            # ModFlow grid without CRS: same CRS as CWatM
-            cw_crs = cwatm_crs()
-            pairs = overlap_table(transform, self.basin.shape, cw_crs if modflow_crs is None else modflow_crs, maskmapAttr['x'],
-                                  maskmapAttr['y'], maskmapAttr['cell'], maskinfo['shape'], cw_crs)
-            # only CWatM cells inside the mask (the others have no cell area); sorted by ModFlow cell, CWatM cell
-            inmask = ~maskinfo['mask'][pairs[2], pairs[3]]
-            self.modflow_y, self.modflow_x, self.cwatm_y, self.cwatm_x, area = (a[inmask] for a in pairs)
-            order = np.lexsort((self.cwatm_y * maskinfo['shape'][1] + self.cwatm_x,
-                                self.modflow_y * self.ncol + self.modflow_x))
-            self.modflow_y, self.modflow_x, self.cwatm_y, self.cwatm_x, area = (
-                a[order] for a in (self.modflow_y, self.modflow_x, self.cwatm_y, self.cwatm_x, area))
+            print(CWATMWarning("Warning: modflow_indices_from_files is not used any more - the index pairs of CWatM "
+                               "and ModFlow cells are computed from modflow_basin and MaskMap"))
+        # ModFlow grid without CRS: same CRS as CWatM
+        cw_crs = cwatm_crs()
+        pairs = overlap_table(transform, self.basin.shape, cw_crs if modflow_crs is None else modflow_crs, maskmapAttr['x'],
+                              maskmapAttr['y'], maskmapAttr['cell'], maskinfo['shape'], cw_crs)
+        # only CWatM cells inside the mask (the others have no cell area); sorted by ModFlow cell, CWatM cell
+        inmask = ~maskinfo['mask'][pairs[2], pairs[3]]
+        self.modflow_y, self.modflow_x, self.cwatm_y, self.cwatm_x, area = (a[inmask] for a in pairs)
+        order = np.lexsort((self.cwatm_y * maskinfo['shape'][1] + self.cwatm_x,
+                            self.modflow_y * self.ncol + self.modflow_x))
+        self.modflow_y, self.modflow_x, self.cwatm_y, self.cwatm_x, area = (
+            a[order] for a in (self.modflow_y, self.modflow_x, self.cwatm_y, self.cwatm_x, area))
         self.modflow_index = np.array(self.modflow_y * self.ncol + self.modflow_x)
         self.cwatm_index = np.array(self.cwatm_y * maskinfo['shape'][1] + self.cwatm_x)
 
@@ -228,6 +219,9 @@ class ModflowGrid:
         with np.errstate(divide='ignore', invalid='ignore'):
             area_correction = (cwatm_cell_area / indices_cell_area)[self.cwatm_index]
         self.area = area * area_correction
+        # for each ModFlow cell the pair with the largest overlap (from_cwatm_cells); same area: the last pair as before
+        order = np.lexsort((np.nan_to_num(self.area), self.modflow_index))
+        self.largest_pair = order[np.append(self.modflow_index[order][1:] != self.modflow_index[order][:-1], True)]
 
         # for each MODFLOW step (to_modflow, to_cwatm): only the pairs of active ModFlow cells and CWatM cells in the
         # mask (the others are not used by MODFLOW or add 0, Bhima: half of them), with the CWatM cell as index of
@@ -248,51 +242,24 @@ class ModflowGrid:
                                            minlength=self.nrow * self.ncol)
 
     def read_tif(self, name):
-        """map at ModFlow resolution (tif, same grid as modflow_basin) as float32"""
-        with rasterio.open(cbinding(name), 'r') as src:
-            return src.read(1).astype(np.float32)
+        """map at ModFlow resolution (tif of the settings key name, same grid as modflow_basin) as float32"""
+        return read_modflow_tif(cbinding(name))
 
     def write_netcdf(self, filename, name, data, units, long_name):
         """
-        Map at ModFlow resolution (2D, nrow x ncol) as netCDF: float64 (exact values, e.g. the head for a restart),
-        x / y of the cell centres, CRS of modflow_basin, nan outside the basin
+        Map at ModFlow resolution (2D, nrow x ncol, or 3D with layers, nlay x nrow x ncol) as netCDF: float64 (exact
+        values, e.g. the head for a restart), x / y of the cell centres, CRS of modflow_basin, nan outside the basin
         """
-        with Dataset(filename, 'w', format='NETCDF4') as nc:
-            nc.title = 'CWatM - MODFLOW: ' + long_name
-            nc.createDimension('y', self.nrow)
-            nc.createDimension('x', self.ncol)
-            for axis, size, start, step in (('y', self.nrow, self.transform.f, self.transform.e),
-                                            ('x', self.ncol, self.transform.c, self.transform.a)):
-                coordinate = nc.createVariable(axis, 'f8', (axis,))
-                coordinate.standard_name = 'projection_' + axis + '_coordinate'
-                coordinate.units = 'm'
-                coordinate[:] = start + (np.arange(size) + 0.5) * step
-            variable = nc.createVariable(name, 'f8', ('y', 'x'), zlib=True, fill_value=np.nan)
-            variable.long_name = long_name
-            variable.units = units
-            if self.crs is not None:
-                crs = nc.createVariable('crs', 'i4')
-                crs.crs_wkt = crs.spatial_ref = self.crs.to_wkt()
-                variable.grid_mapping = 'crs'
-            variable[:] = np.asarray(data, dtype=np.float64)
+        write_modflow_netcdf(filename, name, data, units, long_name, self.transform, self.crs)
 
-    def read_map(self, filename):
+    def read_map(self, filename, nlay=1, variable=None):
         """
-        Map at ModFlow resolution from a netCDF file (the variable with 2 dimensions: row, col) or a .npy file,
-        values as they are stored (no mask)
+        Maps of nlay layers at ModFlow resolution (nlay, nrow, ncol) from a netCDF file (the variable with 3
+        dimensions layer, row, col - or 2 dimensions row, col for one layer), values as they are stored (no mask).
+        variable: name of the netCDF variable (default: the last variable with 2 or 3 dimensions). Before 2026-10-13
+        also a .npy file
         """
-        if os.path.splitext(filename)[1].lower() == '.npy':
-            data = np.load(filename)
-        else:
-            with Dataset(filename) as nc:
-                nc.set_auto_mask(False)
-                name = [v for v in nc.variables if nc[v].ndim == 2][-1]
-                data = nc[name][:]
-        if data.shape != (self.nrow, self.ncol):
-            msg = "Error 149: the map has " + str(data.shape[0]) + " x " + str(data.shape[1]) + " cells (rows x cols)"
-            msg += " - the ModFlow grid (modflow_basin) has " + str(self.nrow) + " x " + str(self.ncol) + "\n"
-            raise CWATMFileError(filename, msg=msg)
-        return data
+        return read_modflow_netcdf(filename, nlay, self.nrow, self.ncol, variable)
 
     def to_modflow(self, variable, nanvalue=None, all_cells=False):
         """
@@ -337,10 +304,23 @@ class ModflowGrid:
         """fraction of each CWatM cell covered by ModFlow cells with variable > 0 (1D compressed)"""
         return self.to_cwatm(np.where(variable > 0, 1, variable).astype(variable.dtype))
 
+    def kept_to_cwatm(self, variable, kept):
+        """
+        Part of a CWatM map (1D compressed, depth) which the overlap pairs give to the active ModFlow cells with kept
+        (2D bool), as depth over each CWatM cell (1D compressed): the share of each CWatM cell itself - to_modflow
+        mixes the CWatM cells of a ModFlow cell
+        """
+        weights = np.nan_to_num(np.asarray(variable, dtype=np.float64))[self.cwatm_compressed_basin] * self.area_basin
+        weights = weights * kept.ravel()[self.modflow_index_basin]
+        return np.bincount(self.cwatm_compressed_basin, weights=weights,
+                           minlength=maskinfo['mapC'][0]) / self.cwatm_cell_area
+
     def from_cwatm_cells(self, name, fill, factor=1):
         """
         Property on the ModFlow grid (one layer: 1, nrow, ncol): one value in the settings file, or a map at CWatM
-        resolution (each ModFlow cell gets the value of its CWatM cell; nan, 0, negative and masked cells: fill).
+        resolution (each ModFlow cell gets the value of the CWatM cell with the largest overlap - before 2026-10-11
+        the last pair, i.e. the CWatM cell with the highest row / column; nan, 0, negative and masked cells: fill,
+        fill = None: kept).
         factor: unit conversion (e.g. permeability m/s -> m/day)
         """
         value = cbinding(name)
@@ -351,6 +331,57 @@ class ModflowGrid:
         p1 = p1.reshape(maskinfo['shape'])
         p1[p1.mask] = -9999
         values = np.zeros((1, self.nrow, self.ncol))
-        values[0, self.modflow_y, self.modflow_x] = p1.data[self.cwatm_y, self.cwatm_x]
-        values[np.isnan(values) | (values <= 0)] = fill
+        pair = self.largest_pair
+        values[0, self.modflow_y[pair], self.modflow_x[pair]] = p1.data[self.cwatm_y[pair], self.cwatm_x[pair]]
+        if fill is not None:
+            values[np.isnan(values) | (values <= 0)] = fill
         return values * factor
+
+    def on_modflow_grid(self, filename):
+        """True if filename is a raster with the ModFlow grid (same size and position as modflow_basin)"""
+        return on_modflow_grid(filename, (self.nrow, self.ncol), self.transform)
+
+    def layer_key(self, name, n):
+        """
+        Settings key of layer n (1, 2, ...): <name><n>, for layer 1 also <name> (settings files before 2026-10);
+        None if missing
+        """
+        if name + str(n) in binding:
+            return name + str(n)
+        if n == 1 and name in binding:
+            return name
+        return None
+
+    def property_map(self, key, fill=None, factor=1):
+        """
+        One layer (nrow, ncol) from a settings key: a value, a raster at ModFlow resolution (same grid as
+        modflow_basin, read as float32) or a map at CWatM resolution (see from_cwatm_cells)
+        fill: value for nan, 0 and negative values (None: kept). factor: unit conversion (e.g. m/s -> m/day)
+        """
+        value = cbinding(key)
+        if not is_float(value) and self.on_modflow_grid(value):
+            layer = self.read_tif(key)
+            if fill is not None:
+                layer[np.isnan(layer) | (layer <= 0)] = fill
+            return layer * factor
+        return self.from_cwatm_cells(key, fill, factor)[0]
+
+    def layer_property(self, name, nlay, fill=None, factor=1, default=None):
+        """
+        Property of each layer on the ModFlow grid (nlay, nrow, ncol) from the settings keys <name>1 ... <name><nlay>
+        (layer 1 also <name>), each a value or a map (see property_map).
+        default: array (nlay, nrow, ncol) used for a missing key; None: a missing key is an error
+        """
+        layers = []
+        for n in range(1, nlay + 1):
+            key = self.layer_key(name, n)
+            if key is not None:
+                layers.append(self.property_map(key, fill, factor))
+            elif default is not None:
+                layers.append(default[n - 1])
+            else:
+                msg = "Error 150: " + name + str(n) + " is missing in the settings file - with nlay = " + str(nlay)
+                msg += " each layer needs a value or map: "
+                msg += ", ".join(name + str(i) for i in range(1, nlay + 1)) + "\n"
+                raise CWATMError(msg)
+        return np.stack(layers)

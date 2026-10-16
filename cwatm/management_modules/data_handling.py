@@ -30,6 +30,7 @@ from cwatm.management_modules.replace_pcr import (npareatotal, npareaaverage, np
                                                   AreaIndex)
 from cwatm.management_modules.timestep import *
 from cwatm.management_modules.caching import ncopen, ncclose, ncclose_all, ncstackcache, ncappend, ncwriteclose
+from cwatm.management_modules.data_modflow import modflow_netcdf_grid, modflow_netcdf_variable
 
 
 # output variable names from the settings file: a name, optionally with integer indices e.g. discharge or actualET[1]
@@ -2192,20 +2193,11 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
     col = np.abs(cutmap[1] - cutmap[0])
 
 
-    # check if it is a modflow grid which has another resolution
-    modflow = False
-    if "modflow" in prename.lower():
-            modflow = True
-            row = domain['nrow']
-            col = domain['ncol']
-            metadataNCDF['modflow_x'] = {}
-            metadataNCDF['modflow_x']['standard_name'] = 'projection_x_coordinate'
-            metadataNCDF['modflow_x']['units'] = 'm'
-            metadataNCDF['modflow_x']['axis'] = 'X'
-            metadataNCDF['modflow_y'] = {}
-            metadataNCDF['modflow_y']['standard_name'] = 'projection_y_coordinate'
-            metadataNCDF['modflow_y']['units'] = 'm'
-            metadataNCDF['modflow_y']['axis'] = 'Y'
+    # check if it is a modflow grid which has another resolution (grid and variable: data_modflow.py)
+    modflow = "modflow" in prename.lower()
+    if modflow:
+        row = domain['nrow']
+        col = domain['ncol']
 
 
     # create real varname with variable name + time depending name e.g. discharge + monthavg
@@ -2268,16 +2260,9 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
 
 
 
-        # Dimension
+        # Dimension (ModFlow grid: dimensions, coordinates and crs in data_modflow.py)
         if modflow:
-            lon = nf1.createDimension('x', col)  # x 1000
-            longitude = nf1.createVariable('x', 'f8', ('x',))
-            for i in metadataNCDF['modflow_x']:
-                setattr(longitude, i, str(metadataNCDF['modflow_x'][i]))
-            lat = nf1.createDimension('y', row)  # x 950
-            latitude = nf1.createVariable('y', 'f8', 'y')
-            for i in metadataNCDF['modflow_y']:
-                setattr(latitude, i, str(metadataNCDF['modflow_y'][i]))
+            modflow_netcdf_grid(nf1, domain)
 
         else:
 
@@ -2323,32 +2308,15 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
                         setattr(latitude, i, str(metadataNCDF['lat'][i]))
                     latitude.axis = "Y"
 
-        # projection -> replace by crs  as in cf1.13
+        # projection -> replace by crs  as in cf1.13 (ModFlow grid: set in modflow_netcdf_grid)
 
-        if modflow:
-            # CRS of modflow_basin (e.g. EPSG:3035), not the CWatM one
-            if domain.get('crs') is not None:
-                crs = nf1.createVariable('crs', 'i4', ())
-                crs.crs_wkt = crs.spatial_ref = domain['crs'].to_wkt()
-                try:
-                    # CF attributes (grid_mapping_name ...) for Panoply / netCDF-Java, pyproj is optional
-                    import pyproj
-                    for key, val in pyproj.CRS.from_wkt(crs.crs_wkt).to_cf().items():
-                        setattr(crs, key, val)
-                except ImportError:
-                    pass
-        elif projection['crs'] != None:
+        if not modflow and projection['crs'] != None:
             crs = nf1.createVariable('crs', 'i4',())
             for key in projection['crs'].ncattrs():
                 setattr(crs, key, projection['crs'].getncattr(key))
 
-        # Fill variables
-        if modflow:
-            # cell centres (north / west are the edges of modflow_basin)
-            latitude[:] = domain['north'] - (np.arange(row) + 0.5) * domain['rowsize']
-            longitude[:] = domain['west'] + (np.arange(col) + 0.5) * domain['colsize']
-
-        else:
+        # Fill variables (ModFlow grid: filled in modflow_netcdf_grid)
+        if not modflow:
             cell = maskmapAttr['cell']
             xl = maskmapAttr['x']
             xr = xl + col * cell
@@ -2381,8 +2349,7 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
             time.axis = "T"
 
             if modflow:
-                value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True, fill_value=1e20,
-                                           chunksizes=(1, row, col))
+                value = modflow_netcdf_variable(nf1, varname, flagTime, domain)
             else:
                 latlon = True
                 if 'x' in list(metadataNCDF.keys()):
@@ -2413,7 +2380,7 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
                             value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20,chunksizes=(1,row,col))
         else:
           if modflow:
-              value = nf1.createVariable(varname, 'f4', ('y', 'x'), zlib=True, fill_value=1e20)
+              value = modflow_netcdf_variable(nf1, varname, flagTime, domain)
           else:
               latlon = True
               if 'x' in list(metadataNCDF.keys()):
@@ -2447,10 +2414,8 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
         value.long_name = p1 + p2
         value.units= getmeta("unit",prename,varunits)
 
-        if modflow:
-            if 'crs' in nf1.variables:
-                value.grid_mapping = "crs"
-        elif projection['crs'] != None:
+        # ModFlow grid: grid_mapping set in modflow_netcdf_variable
+        if not modflow and projection['crs'] != None:
             value.grid_mapping = "crs"
 
         #for var in list(metadataNCDF.keys()):

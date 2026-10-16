@@ -411,6 +411,14 @@ class initcondition(object):
             initCondVarValue.append("capillar")
             initCondVar.append("capriseindex")
             initCondVarValue.append("capriseindex")
+            # rejected recharge of the last MODFLOW run: goes to interflow on the next day (landcoverType.py)
+            initCondVar.append("rejected_recharge_previous_day")
+            initCondVarValue.append("rejected_recharge_previous_day")
+            # seepage scheme (modflow_seepage, groundwater_modflow/transient.py): seepage pond of the land covers with soil
+            if returnBool('modflow_seepage') if 'modflow_seepage' in binding else True:
+                for No in range(4):
+                    initCondVar.append(self.var.coverTypes[No] + "_seepagePond")
+                    initCondVarValue.append("seepagePond[" + str(No) + "]")
 
         # routing
         Var1 = ["channelStorage", "discharge", "riverbedExchange"]
@@ -418,6 +426,10 @@ class initcondition(object):
 
         initCondVar.extend(Var1)
         initCondVarValue.extend(Var2)
+        # inflow of the previous day (inflow.py): the routing interpolates the inflow of the day from it
+        if checkOption('inflow'):
+            initCondVar.append("QInM3Old")
+            initCondVarValue.append("QInM3Old")
 
         # lakes & reservoirs
         if checkOption('includeWaterBodies'):

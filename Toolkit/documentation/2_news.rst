@@ -35,6 +35,26 @@ Major Updates
 =============
 
 
+October 2026
+------------
+
+- CWatM-MODFLOW with several layers and a steady state run (merged from the multi-layer version of Dor Fridman,
+  branch modflow_layers_df, in develop branch): layer properties thickness<n>, poro<n>, permeability<n>,
+  permeability_vertical<n>, pumping per layer, drains at sub-grid elevation percentiles and main rivers, solver
+  option modflow_solver, run_only_steady_state; MODFLOW 6.8.1 (libmf6) in a child process
+- CWatM-MODFLOW seepage scheme (modflow_seepage = True, the default; False: the former coupling): the MODFLOW outflow
+  on the land goes to the soil only as capillary rise the soil can take, the rest is seepage into a shallow pond on
+  the saturated share of the cell (pond evaporation up to EWRef, overflow first into the soil up to field capacity,
+  the rest to the rivers); capillary rise also from the aquifer; riverbed leakage also under saturated cells. This
+  removes the 2-day flip-flop of capillary rise / recharge and the recycling of groundwater through the soil.
+  New outputs: pondarea, over2river, pond2soil (and sum_seepage, sum_seepageEvap, sum_seepagePond,
+  sum_capRiseFromAquifer)
+- Drains of MODFLOW at a sub-grid elevation percentile (topo_percentile_modflow, topo_percentile_prm, e.g. the 10 %
+  level of each ModFlow cell): lower water table and smaller seepage pond area than drains at the top of the aquifer
+- All reading and writing of the MODFLOW coupling in management_modules/data_modflow.py; the steady state in
+  groundwater_modflow/steady.py; maps at ModFlow resolution only as netCDF (no .npy files any more; the index files
+  of CWatM / ModFlow cells are always computed)
+
 June 2026
 ---------
 

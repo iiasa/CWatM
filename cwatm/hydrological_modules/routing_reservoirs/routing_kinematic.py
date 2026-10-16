@@ -74,6 +74,8 @@ class routing_kinematic(object):
     sumResEvapWaterBodyC                 Array         sum of all routingsteps of evaporation from lakes and reservoirs   - s  --   
     discharge                            Array         Channel discharge                                                       m3 s-
     inflowDt                             Number        flow from inlets per sub step (AI)                                      --   
+    inflowDay                            Array         inflow put into the routing during the day (sum of the sub steps)       m3   
+    returnFlowLakeM3                     Array         return flow of lake cells, goes into the lake (not into the channel)    m3   
     downstruct                           Array         structure of the river network in downstream direction                  --   
     sum_openWaterEvap                    Array         sum of open water evaporation from all different land cover types       m    
     chanLength                           Array         Input, Channel length                                                   m    
@@ -451,11 +453,9 @@ class routing_kinematic(object):
             eWaterBody = np.maximum(0.0, EWRefavg * self.var.lakeArea) / self.var.noRoutingSteps
             # compressed to the number lakes
             self.var.evapWaterBodyC = self.var.lakeEvaFactorC * np.compress(self.var.compress_LR, eWaterBody)
-            # exclude evaporation where lakes are, because they are filled in again with evapWaterBodyC
-            self.var.EvapoChannel = np.where(
-                self.var.waterBodyID > 0,
-                (self.var.fracAllCover - self.var.fracVegCover[5]) * self.var.EvapoChannel,
-                self.var.EvapoChannel)
+            # no channel evaporation in lake cells: lake cells have no channel (pits of the lake network),
+            # the evaporation of a lake is evapWaterBodyC
+            self.var.EvapoChannel = np.where(self.var.waterBodyID > 0, 0., self.var.EvapoChannel)
             #self.var.riverbedExchange = np.where(self.var.waterBodyID > 0, 0., self.var.riverbedExchange)
 
             # sum of all routingsteps of evaporation from lakes and reservoirs   - set to 0 each time step
@@ -472,6 +472,11 @@ class routing_kinematic(object):
             self.var.QDelta = (self.var.inflowM3 - self.var.QInM3Old) / self.var.noRoutingSteps
             # difference between old and new inlet flow  per sub step
             # in order to calculate the amount of inlet flow in the routing loop
+            # inflow put into the routing during the day (sum of the sub steps) for the WaterCycle output
+            self.var.inflowDay = globals.inZero.copy()
+
+        # return flow of lake cells (water demand): lake cells have no channel -> handed to the lake module
+        self.var.returnFlowLakeM3 = 0.
 
         WDAddM3Dt = 0
         if checkOption('includeWaterDemand'):
@@ -481,14 +486,20 @@ class routing_kinematic(object):
             # The water abstractions from the channel are thus the surface water abstractions subtract the lake and reservoir abstractions
 
             if checkOption('includeWaterBodies'):
+                # (wastewater reuse act_bigLakeResAbst_wwt: taken from the wastewater reservoirs in water_demand.py,
+                # not from the channels - before 2026-10-16 it was taken from the channels too)
                 WDAddM3Dt = self.var.act_SurfaceWaterAbstract - \
-                            (self.var.act_bigLakeResAbst + self.var.act_smallLakeResAbst)
+                            (self.var.act_bigLakeResAbst + self.var.act_smallLakeResAbst + self.var.act_bigLakeResAbst_wwt)
             else:
                 WDAddM3Dt = self.var.act_SurfaceWaterAbstract
 
             # return flow from (m) non irrigation water demand
             # WDAddM3Dt = WDAddM3Dt - self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrDemand
             WDAddM3Dt = WDAddM3Dt - self.var.returnFlow
+            if checkOption('includeWaterBodies'):
+                # return flow of lake cells is not put into the channel of lake cells (pits of the lake network)
+                self.var.returnFlowLakeM3 = np.where(self.var.waterBodyID > 0, self.var.returnFlow * self.var.cellArea, 0.)
+                WDAddM3Dt = WDAddM3Dt + np.where(self.var.waterBodyID > 0, self.var.returnFlow, 0.)
             WDAddM3Dt = WDAddM3Dt * self.var.cellArea / self.var.noRoutingSteps
 
             # sideflowChanM3 -= self.var.sum_act_SurfaceWaterAbstract * self.var.cellArea
@@ -535,6 +546,7 @@ class routing_kinematic(object):
                 self.var.inflowDt = (self.var.QInM3Old + (subrouting + 1) * self.var.QDelta) / self.var.noRoutingSteps
                 # flow from inlets per sub step
                 sideflowChanM3 += self.var.inflowDt
+                self.var.inflowDay += self.var.inflowDt
 
             if checkOption('includeWaterBodies'):
                 lakesResOut, lakeOutflowDis = self.lakes_reservoirs_module.dynamic_inloop(subrouting)
@@ -579,6 +591,10 @@ class routing_kinematic(object):
 
         preStor = self.var.channelStorage.copy()
         self.var.channelStorage = self.var.channelAlpha * self.var.chanLength * Qnew ** self.var.beta
+        if checkOption('includeWaterBodies'):
+            # lake cells have no channel: the water of a lake is in lakeResStorage (the kinematic wave of lake cells,
+            # pits of the lake network, is not used - their discharge is the lake outflow)
+            self.var.channelStorage = np.where(self.var.waterBodyID > 0, 0., self.var.channelStorage)
 
         # discharge only at the outlets to sea or endorheic lakes, otherwise value is 0.
         # as average discharge over timestep e.g. 1 day

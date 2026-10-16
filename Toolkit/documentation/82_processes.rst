@@ -501,6 +501,42 @@ where recession_Coeff is a reservoir constant [1/days] and can be calculated lik
 
 :math:`GW_{Storage} = GW_{Storage} - baseflow`
 
+Groundwater with MODFLOW: seepage scheme
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With MODFLOW (modflow_coupling = True) groundwater flows in MODFLOW 6. The outflow of the ModFlow cells through the
+drains is split by the channel ratio into baseflow (to the river) and an outflow on the land (capillar). With
+modflow_seepage = True (the default) the outflow on the land is handled as seepage:
+
+1. **Saturated share of the cell** (capillarRise.py): from the sub-grid relative elevation (relativeElevation) and the
+   mean depth of the MODFLOW water table, the share of the cell that lies below the water table (saturatedFrac) and
+   the share within the capillary reach above it (capRiseFrac). The percolation and the preferential flow of the soil
+   are reduced by the saturated share.
+
+2. **Capillary rise into the soil** (soil.py): the soil takes only what it can draw up from below
+
+   :math:`CR_{pot} = 0.5 \cdot capRiseFrac \cdot (1 - S_{fc,3}) \cdot \sqrt{K_{sat,3} \cdot K_{unsat,3}}`
+
+   first from the MODFLOW outflow, the rest from the aquifer storage (at most 10 % of the storage of layer 1 per
+   MODFLOW period, given to MODFLOW as negative recharge).
+
+3. **Seepage pond**: the outflow the soil does not take goes into a shallow pond on the pond area
+   :math:`A_{pond} = max(capriseindex, saturatedFrac)` (capriseindex: share of saturated ModFlow cells). The pond
+   evaporates up to :math:`A_{pond} \cdot EW_{Ref}`; water above 0.1 m :math:`\cdot A_{pond}` overflows, first into
+   soil layer 3 and then layer 2 up to field capacity (below field capacity hardly any percolation, so no loop
+   soil - aquifer - seepage), the rest goes to the rivers as direct runoff.
+
+4. **Riverbed leakage** also under saturated cells: the leaked river water comes back as seepage and can evaporate
+   from the pond (shallow floodplains).
+
+Outputs: pondarea (pond area), sum_seepage (seepage into the pond), sum_seepageEvap (pond evaporation), pond2soil
+(overflow into the soil), over2river (overflow to the rivers), sum_capRiseFromAquifer, sum_seepagePond.
+
+The water table, and so the pond area, depends on the elevation of the drains: at the top of the aquifer (default)
+or at a sub-grid elevation percentile of each ModFlow cell (topo_percentile_modflow, e.g. the 10 % level), which
+gives a lower water table. With modflow_seepage = False the whole outflow on the land goes into the soil and
+recharge on saturated ModFlow cells is rejected (the former coupling).
+
 Runoff concentration
 --------------------
 

@@ -50,6 +50,7 @@ class inflow(object):
     inflowM3                             Array         inflow to basin                                                         m3   
     DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
     QInM3Old                             Array         Inflow from previous day                                                m3   
+    load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -206,7 +207,9 @@ class inflow(object):
                 # d = rfn.merge_arrays((a,b), flatten=True, usemask=False)
 
 
-            self.var.QInM3Old = globals.inZero.copy()
+            # inflow of the previous day (routing_kinematic.py interpolates between it and today's inflow) - from the
+            # init file for a restart, else None: the inflow of the first day (inflow.dynamic)
+            self.var.QInM3Old = self.var.load_initial('QInM3Old', default=None, warn=False)
             # Initialising cumulative output variables
             # These are all needed to compute the cumulative mass balance error
             self.var.totalQInM3 = globals.inZero.copy()
@@ -241,5 +244,9 @@ class inflow(object):
                 # Convert to [m3] per time step
             self.var.totalQInM3 += self.var.inflowM3
             # Map of total inflow from inflow hydrographs [m3]
+            # first day without an init file: the inflow of the day as the previous inflow (before 2026-10-13: 0, the
+            # routing got only (N+1)/2N of the first day's inflow, N = NoRoutingSteps: Tisa 52 %)
+            if self.var.QInM3Old is None:
+                self.var.QInM3Old = self.var.inflowM3.copy()
 
 

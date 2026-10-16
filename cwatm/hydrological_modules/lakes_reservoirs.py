@@ -120,6 +120,7 @@ class lakes_reservoirs(object):
     EvapWaterBodyMOutlet                 Array         Evaporation from waterbodies - sum at the outlet                        m    
     lakeResInflowM                       Array         lake reservoir inflow in [m]                                            m    
     lakeResOutflowM                      Array         lake reservoiroutflow in [m]                                            m    
+    returnFlowLakeM3                     Array         return flow of lake cells, goes into the lake (not into the channel)    m3   
     wetlands_variable_area               Array         variable area of wetlands per day                                       m2   
     wetland_area                         Array         variable area of wetlands per day                                       m2   
     wetland_maxlevel                     Array         maximum waterlevel of wetlands                                          m    
@@ -471,6 +472,7 @@ class lakes_reservoirs(object):
 
             # init water balance [m]
             self.var.EvapWaterBodyMOutlet = globals.inZero.copy()
+            self.var.EvapWaterBodyM = globals.inZero.copy()
             self.var.lakeResInflowM = globals.inZero.copy()
             self.var.lakeResOutflowM = globals.inZero.copy()
 
@@ -1297,7 +1299,8 @@ class lakes_reservoirs(object):
                              minlength=ix.cells.size) * self.var.DtSec
 
         # sum up runoff and discharge on the lake
-        inflowLake = np.bincount(ix.dense, weights=dis_LR + self.var.runoff_m3[ix.cells])
+        # + return flow of lake cells (routing_kinematic.py, 0 without water demand)
+        inflowLake = np.bincount(ix.dense, weights=dis_LR + (self.var.runoff_m3 + self.var.returnFlowLakeM3)[ix.cells])
 
         # only once at the outlet
         # calculate total inflow into lakes and compress it to waterbodie outflow point
