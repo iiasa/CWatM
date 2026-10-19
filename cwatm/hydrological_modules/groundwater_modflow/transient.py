@@ -83,8 +83,6 @@ class groundwater_modflow:
     modflowtotalSoilThickness            Array         Array (nrows, ncol) used to compute water table depth in post-processi  m    
     load_init_water_table                Flag          defining the initial water table map (it can be a hydraulic head map p  --   
     GW_pumping                           Flag          Input, True if Groundwater_pumping=True                                 bool 
-    use_complex_solver_for_modflow       Flag                                                                                  --   
-    use_super_complex_solver_for_modflo  Flag                                                                                  --   
     availableGWStorageFraction           Array         Minimum saturated fraction kept in each layer (pumping limit)           --   
     wells_index                          Array                                                                                 --   
     sumed_sum_gwRecharge                 Array         setting sumed up recharge again to 7 (or 14 or 30...), will be sumed u  --   
@@ -269,17 +267,25 @@ class groundwater_modflow:
         self.var.GW_pumping = setting_bool('Groundwater_pumping')
         if self.verbose:
             print('=> Groundwater pumping should be deactivated if includeWaterDemand is False')
-        self.var.use_complex_solver_for_modflow = option_bool('use_complex_solver_for_modflow')
-        self.var.use_super_complex_solver_for_modflow = option_bool('use_super_complex_solver_for_modflow')
-        # MODFLOW solver: modflow_solver = simple, complex, super_complex or cooley (Dor's version); without the key
-        # the [OPTIONS] use_complex_solver_for_modflow / use_super_complex_solver_for_modflow
-        self.solver = None
+        # MODFLOW solver: modflow_solver = simple (default), complex, super_complex, cooley (Dor's version) or dbd
+        self.solver = 'simple'
         if 'modflow_solver' in binding:
             self.solver = cbinding('modflow_solver').strip().lower()
             if self.solver not in MF6_SOLVERS:
                 msg = "Error 151: modflow_solver = " + cbinding('modflow_solver') + " is not known - use one of: "
                 msg += ", ".join(MF6_SOLVERS) + "\n"
                 raise CWATMError(msg)
+        # the former [OPTIONS] use_complex_solver_for_modflow / use_super_complex_solver_for_modflow are not used any
+        # more (2026-10-16): a warning; with True and without modflow_solver they still choose their solver (as before)
+        for old, solver in [('use_super_complex_solver_for_modflow', 'super_complex'),
+                            ('use_complex_solver_for_modflow', 'complex')]:
+            if old in option:
+                msg = ("Warning: " + old + " in [OPTIONS] is not used any more - use modflow_solver = " + solver +
+                       " in [GROUNDWATER_MODFLOW]")
+                if option_bool(old) and 'modflow_solver' not in binding:
+                    self.solver = solver
+                    msg += " (" + solver + " is used for this run)"
+                print(CWATMWarning(msg))
         # water balance check of the CWatM - ModFlow exchange: written to ModFlow_DiscrepancyError.txt
         self.var.writeerror = setting_bool('writeModflowError')
         if self.verbose:
@@ -581,8 +587,6 @@ class groundwater_modflow:
             setpumpings=self.var.GW_pumping,
             pumpingloc=pumpingloc,
             verbose=self.verbose,
-            complex_solver=self.var.use_complex_solver_for_modflow,
-            super_complex_solver=self.var.use_super_complex_solver_for_modflow,
             solver=self.solver,
             binary=self.binary)
 

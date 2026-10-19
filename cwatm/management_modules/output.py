@@ -1048,7 +1048,8 @@ class outputTssMap(object):
                     expression[3] = np.array(expression[3][(dateVar['intSpin'] - 1):(dateVar['intEnd'])]).transpose(1, 0, 2)
                     totals = []
                     storage = []
-                    
+                    means = []
+
                     # DF 29092026
                     if version.parse(pd.__version__) >= version.parse("2.2.0"):
                         FREQ_MONTH = "ME"
@@ -1060,18 +1061,15 @@ class outputTssMap(object):
                     for k in range(len(self.var.sampleAdresses)):
                         df = pd.DataFrame(expression[3][k], index=dates)
                         if daymonthyear == 1:
-                            #totals.append(df.resample("ME").sum())
-                            totals.append(df.resample(FREQ_MONTH).sum())
-                            #storage.append(df.resample("ME").last())
-                            storage.append(df.resample(FREQ_MONTH).last())
+                            freq = FREQ_MONTH
                         elif daymonthyear == 2:
-                            #totals.append(df.resample("YE").sum())
-                            totals.append(df.resample(FREQ_YEAR).sum())
-                            #storage.append(df.resample("YE").last())
-                            storage.append(df.resample(FREQ_YEAR).last())
+                            freq = FREQ_YEAR
                         else:
-                            totals.append(df.resample("D").sum())
-                            storage.append(df.resample("D").last())
+                            freq = "D"
+                        totals.append(df.resample(freq).sum())
+                        storage.append(df.resample(freq).last())
+                        # discharge [m3/s]: average of the month / year (not the sum of the days)
+                        means.append(df.resample(freq).mean())
                     
                 else:
                     writeFileHeaderNew(outputFilename,expression)
@@ -1086,9 +1084,13 @@ class outputTssMap(object):
                 if flagCycle:
                     numbervalues = len(expression[3][0][0])
                     # run for watercycle and monthly or yearly
-                    # per gauge one numpy array (storage variables: last value, others: total) instead of iloc per value
-                    isstorage = np.array([var[2] == "storage" for var in cyclelist(expression)])
-                    values = [np.where(isstorage, storage[k].to_numpy(), totals[k].to_numpy()) for k in range(len(self.var.sampleAdresses))]
+                    # per gauge one numpy array instead of iloc per value: storage variables and cellArea: last value,
+                    # discharge [m3/s]: average, others: total
+                    kind = np.array([var[2] for var in cyclelist(expression)])
+                    islast = np.isin(kind, ["storage", "area"])
+                    ismean = kind == "discharge"
+                    values = [np.select([islast, ismean], [storage[k].to_numpy(), means[k].to_numpy()], totals[k].to_numpy())
+                              for k in range(len(self.var.sampleAdresses))]
                     for i, timestamp in enumerate(totals[0].index):
                         row = timestamp.strftime('%d/%m/%Y')
                         for k in range(len(self.var.sampleAdresses)):

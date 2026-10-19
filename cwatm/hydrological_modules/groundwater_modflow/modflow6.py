@@ -109,9 +109,9 @@ def mf6_list(name, cells, values, binary):
 
 
 def mf6_input_hash(timestep, specific_storage, specific_yield, nlay, nrow, ncol, rowsize, colsize, top, bottom,
-                   basin, topography, permeability, setpumpings=False, pumpingloc=None, complex_solver=False,
-                   super_complex_solver=False, binary=True, permeability_vertical=None, confined=None,
-                   drain_elevation=None, solver=None, steady=False, perlen=1.0, constant_head=None):
+                   basin, topography, permeability, setpumpings=False, pumpingloc=None, binary=True,
+                   permeability_vertical=None, confined=None, drain_elevation=None, solver=None, steady=False,
+                   perlen=1.0, constant_head=None):
     """
     Hash over everything that goes into the MODFLOW input files, the flopy version and the source code of this
     file (a code change writes the files new). The initial head and the run length are not part of the files
@@ -121,8 +121,8 @@ def mf6_input_hash(timestep, specific_storage, specific_yield, nlay, nrow, ncol,
     h.update(read_binary(__file__))
     h.update(flopy.__version__.encode())
     for value in (timestep, specific_storage, specific_yield, nlay, nrow, ncol, rowsize, colsize, top, bottom,
-                  basin, topography, permeability, setpumpings, pumpingloc, complex_solver, super_complex_solver,
-                  binary, permeability_vertical, confined, drain_elevation, solver, steady, perlen, constant_head):
+                  basin, topography, permeability, setpumpings, pumpingloc, binary, permeability_vertical, confined,
+                  drain_elevation, solver, steady, perlen, constant_head):
         if value is None:
             # not as array: an object array would give a memory address (different in each run)
             h.update(b'None')
@@ -142,8 +142,8 @@ class ModFlowSimulation:
     (nrow, ncol) or (nlay, nrow, ncol). Recharge into layer 1, drains in layer 1 at drain_elevation (None:
     topography). Pumping wells (setpumpings) in the cells of pumpingloc ((nrow, ncol): layer 1, or (nlay, nrow,
     ncol)). load_from_disk: reuse the input files in <folder>/wd if no input changed (hash), binary: binary input
-    files (else text). Solver: solver = simple, complex, super_complex or cooley (MF6_SOLVERS); solver None:
-    SIMPLE, or complex_solver / super_complex_solver.
+    files (else text). Solver: solver = simple, complex, super_complex, cooley or dbd (MF6_SOLVERS); solver None:
+    simple.
 
     Attributes used by transient.py: head (active cells), drainage (drain flow, m3 per period), actualwell_rate
     (actual pumping, m3 per period), basin, decompress, layer_flows, set_recharge, set_groundwater_abstraction, step,
@@ -152,9 +152,8 @@ class ModFlowSimulation:
 
     def __init__(self, name, folder, path_mf6dll, timestep, specific_storage, specific_yield, nlay, nrow, ncol,
                  rowsize, colsize, top, bottom, basin, head, topography, permeability, load_from_disk=False,
-                 setpumpings=False, pumpingloc=None, verbose=False, complex_solver=False,
-                 super_complex_solver=False, binary=True, permeability_vertical=None, confined=None,
-                 drain_elevation=None, solver=None, steady=False, perlen=1.0, constant_head=None):
+                 setpumpings=False, pumpingloc=None, verbose=False, binary=True, permeability_vertical=None,
+                 confined=None, drain_elevation=None, solver=None, steady=False, perlen=1.0, constant_head=None):
 
         self.name = name.upper()  # MODFLOW requires the name to be uppercase
         self.dir_mf6dll = path_mf6dll
@@ -174,9 +173,9 @@ class ModFlowSimulation:
         # load_from_disk = False: always write new
         hash_file = os.path.join(self.working_directory, 'input_hash')
         input_hash = mf6_input_hash(timestep, specific_storage, specific_yield, nlay, nrow, ncol, rowsize, colsize,
-                                    top, bottom, basin, topography, permeability, setpumpings, pumpingloc,
-                                    complex_solver, super_complex_solver, binary, permeability_vertical, confined,
-                                    drain_elevation, solver, steady, perlen, constant_head)
+                                    top, bottom, basin, topography, permeability, setpumpings, pumpingloc, binary,
+                                    permeability_vertical, confined, drain_elevation, solver, steady, perlen,
+                                    constant_head)
         reuse = load_from_disk and read_text(hash_file) == input_hash
 
         if reuse:
@@ -185,15 +184,15 @@ class ModFlowSimulation:
         else:
             remove_file(hash_file)
             self.write_input(timestep, specific_storage, specific_yield, nlay, top, bottom, topography, permeability,
-                             setpumpings, complex_solver, super_complex_solver, binary, permeability_vertical,
-                             confined, drain_elevation, solver, steady, perlen, constant_head)
+                             setpumpings, binary, permeability_vertical, confined, drain_elevation, solver, steady,
+                             perlen, constant_head)
             write_text(hash_file, input_hash)
 
         self.load_bmi(setpumpings)
 
     def write_input(self, timestep, specific_storage, specific_yield, nlay, top, bottom, topography, permeability,
-                    setpumpings, complex_solver, super_complex_solver, binary, permeability_vertical=None,
-                    confined=None, drain_elevation=None, solver=None, steady=False, perlen=1.0, constant_head=None):
+                    setpumpings, binary, permeability_vertical=None, confined=None, drain_elevation=None,
+                    solver=None, steady=False, perlen=1.0, constant_head=None):
         """Write the MODFLOW input files with flopy (the packages are registered in the simulation)"""
         flopy = importlib.import_module("flopy")
         if self.verbose:
@@ -206,9 +205,9 @@ class ModFlowSimulation:
 
         # iterative model solution. If the model fails with xmipy.errors.XMIError: MODFLOW 6 BMI, exception in:
         # finalize_solve () - use a smaller modflow_timestep, or another solver (modflow_solver)
+        # (the [OPTIONS] use_complex_solver_for_modflow / use_super_complex_solver_for_modflow: transient.py)
         if solver is None:
-            # [OPTIONS] use_complex_solver_for_modflow / use_super_complex_solver_for_modflow (before 2026-10)
-            solver = 'complex' if complex_solver else 'super_complex' if super_complex_solver else 'simple'
+            solver = 'simple'
         ims = MF6_SOLVERS[solver]
         if self.verbose:
             print('MODFLOW solver', solver, '- complexity', ims['complexity'])
