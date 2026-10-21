@@ -280,8 +280,7 @@ class groundwater_modflow:
         for old, solver in [('use_super_complex_solver_for_modflow', 'super_complex'),
                             ('use_complex_solver_for_modflow', 'complex')]:
             if old in option:
-                msg = ("Warning: " + old + " in [OPTIONS] is not used any more - use modflow_solver = " + solver +
-                       " in [GROUNDWATER_MODFLOW]")
+                msg = "Warning: " + old + " in [OPTIONS] is not used any more"
                 if option_bool(old) and 'modflow_solver' not in binding:
                     self.solver = solver
                     msg += " (" + solver + " is used for this run)"

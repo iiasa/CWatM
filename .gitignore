@@ -7,6 +7,27 @@ pytesting/init
 pytesting/output
 !pytesting/output/*/output.txt
 
+review*.md
+claude.md
+
+# notebook with outputs - not committed
+Toolkit/check_waterbalance/watercycle.ipynb
+
+# build and run outputs
+.ipynb_checkpoints/
+mfsim.lst
+mfsim.stdout
+/mf6_681/
+pytest/output/
+Toolkit/check_waterbalance/runs/
+Toolkit/documentation/_build/
+cwatm/hydrological_modules/routing_reservoirs/new/*.dll
+cwatm/hydrological_modules/routing_reservoirs/new/*.so
+cwatm/hydrological_modules/routing_reservoirs/new/*.lib
+cwatm/hydrological_modules/routing_reservoirs/old/*.dll
+cwatm/hydrological_modules/routing_reservoirs/old/*.so
+cwatm/hydrological_modules/routing_reservoirs/old/*.o
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

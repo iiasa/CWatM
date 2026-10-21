@@ -61,7 +61,8 @@ REASON = {"potential": "no balance: potential vs actual, the difference is the d
 def read_csv(csv_file, station=None, start_date=None, end_date=None):
     """
     Stations of the csv (a block of columns with the same xloc / yloc each) and the daily values of one station
-    (None: largest catchment = outlet) with short column names; period from start_date (baseline: the day before)
+    (None: largest catchment = outlet) with short column names (rows: days, or months / years of a monthtot /
+    annualtot file); period from start_date (baseline: the row before)
     to end_date, None: whole file
     """
     with open(csv_file, encoding="utf-8", errors="ignore", newline="") as f:
@@ -119,7 +120,9 @@ def balance(csv_file, station=None, threshold=1e-3, start_date=None, end_date=No
     opts, title = settings_options(settings_file)
     area = df["cellArea"].iloc[0]
     days = df.index[1:]
-    nyears = max(len(days), 1) / 365.25
+    # days of the balance from the dates (the first row is the baseline): daily, monthtot or annualtot file
+    ndays = (df.index[-1] - df.index[0]).days
+    nyears = max(ndays, 1) / 365.25
 
     # options: from the settings file, else from the csv columns, else the CWatM default (routing on)
     on = {}
@@ -143,7 +146,9 @@ def balance(csv_file, station=None, threshold=1e-3, start_date=None, end_date=No
 
     if "groundwater_storage_total" in df.columns:
         df["storGroundwater"] = df["groundwater_storage_total"]
-    df["Q_m3"] = z("avgdischarge") * 86400.
+    # discharge [m3/s]: value of the day (daily file) or mean of the month / year (monthtot / annualtot file)
+    # -> times the days of each row
+    df["Q_m3"] = z("avgdischarge") * 86400. * df.index.to_series().diff().dt.days.fillna(1.)
     if on["includeGlaciers"]:
         df["glacier"] = z("GlacierMelt") + z("GlacierRain")
     # routing off (includeRouting = False): no discharge - runoff, glacier water and return flow leave the catchment
@@ -507,9 +512,10 @@ def balance(csv_file, station=None, threshold=1e-3, start_date=None, end_date=No
     summary.insert(9, "passed", passed)
     failed = summary[~summary["passed"]]
     lon, lat = stations.loc[station, "lon"], stations.loc[station, "lat"]
-    # days: days of the balance (the first day of the csv is the baseline), rundays: simulated days (rows of the csv)
-    return dict(summary=summary, others=others, failed=failed, days=len(days), rundays=len(df), station=station, lon=lon, lat=lat,
-                area_km2=area / 1e6, period=f"{days[0]:%d/%m/%Y} to {days[-1]:%d/%m/%Y}" if len(days) else "",
+    # days: days of the balance (the first row of the csv is the baseline), rundays: simulated days (from the dates)
+    return dict(summary=summary, others=others, failed=failed, days=ndays, rundays=ndays + 1, station=station, lon=lon, lat=lat,
+                area_km2=area / 1e6,
+                period=f"{df.index[0] + pd.Timedelta(days=1):%d/%m/%Y} to {days[-1]:%d/%m/%Y}" if len(days) else "",
                 title=title, settings_file=settings_file, threshold=threshold, abs_threshold=abs_threshold)
 
 

@@ -113,14 +113,17 @@ def read_watercycle(csvfile):
 
 
 def add_derived(df, opts):
-    """derived series [m3 per day or m3]; returns the function z(name) (column or 0)"""
+    """derived series [m3 per row (day, month or year) or m3]; returns the function z(name) (column or 0)"""
     def z(name):
         return df[name] if name in df.columns else pd.Series(0., index=df.index)
 
     modflow = "Pumping_daily" in df.columns
     if "groundwater_storage_total" in df.columns:          # with MODFLOW: storage of all layers
         df["storGroundwater"] = df["groundwater_storage_total"]
-    df["Q_m3"] = z("avgdischarge") * 86400.
+    # discharge [m3/s]: value of the day (daily file) or mean of the month / year (monthtot / annualtot file)
+    # -> times the days of each row (from the dates, the first row is the baseline)
+    ndays = df.index.to_series().diff().dt.days.fillna(1.)
+    df["Q_m3"] = z("avgdischarge") * 86400. * ndays
     df["glacier"] = z("GlacierMelt") + z("GlacierRain")
     # routing off (includeRouting = False): no discharge - runoff, glacier water and return flow leave the catchment
     # directly (output of Total)
@@ -208,7 +211,7 @@ def check(csvfile, tol=1e-3, opts=None):
             rows.append(dict(station=label, box=name, In_mm=In * to_mm, Out_mm=fout.sum() * to_mm, dS_mm=ds.sum() * to_mm,
                              residual_mm=res.sum() * to_mm, rel=res.sum() / In if In else np.nan,
                              maxdaily_mm=res.abs().max() * to_mm, status=status, note=reason if not closed else "",
-                             days=len(res), area_km2=area / 1e6))
+                             days=(df.index[-1] - df.index[0]).days, area_km2=area / 1e6))
     return pd.DataFrame(rows)
 
 

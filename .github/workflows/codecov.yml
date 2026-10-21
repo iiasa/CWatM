@@ -1,28 +1,22 @@
 name: workflow uploading Codecov
-on: [push]
+# uploads pytest/coverage.xml of the pushed commit to Codecov (branch main or develop, taken from the push)
+# coverage.xml is made locally: "pytest/▶️ pytest_cwatm*.bat" (pytest --cov=cwatm) + pytest/fix_coverage_paths.py
+# (file paths cwatm/... relative to the repository root)
+on:
+  push:
+    branches: [main, develop]
 jobs:
-  run:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    env:
-      OS: ${{ matrix.os }}
-      PYTHON: "3.10"
+  upload:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@main
-      - name: Setup Python
-        uses: actions/setup-python@main
-        with:
-          python-version: "3.10"
+      - uses: actions/checkout@v4
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          directory: ./coverage/reports/
-          env_vars: OS,PYTHON
+          files: ./pytest/coverage.xml
+          disable_search: true
           fail_ci_if_error: true
-          files: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
+          flags: pytest
+          name: cwatm-pytest
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
