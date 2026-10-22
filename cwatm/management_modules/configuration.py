@@ -345,12 +345,12 @@ def check_settings_keys():
     Optional keys are checked in the code with e.g. "if 'stopaftersnow' in option" - a misspelled
     stopAfterSnoww = True would be ignored without this check and the default would be used.
     Keys used only in $(...) placeholders count as used. Keys asked for later than the first time step
-    are not checked. Obsolete options (reportMap, reportTss, sumWaterBalance, writeNetcdfStack) are ignored.
+    are not checked. Obsolete options (reportMap, reportTss, sumWaterBalance, writeNetcdfStack, netcdfasindex) are ignored.
     """
 
     # old options which are still in many settings files but not used by the code any more
     # (e.g. reportTss would else be taken as a misspelled reportOldTss)
-    obsolete = {"reportMap", "reportTss", "sumWaterBalance", "writeNetcdfStack"}
+    obsolete = {"reportMap", "reportTss", "sumWaterBalance", "writeNetcdfStack", "netcdfasindex"}
     msgs = []
     unused = {"[OPTIONS]": [k for k in option.keys() if k not in option.used and k not in obsolete],
               "settings": [k for k in binding.keys() if k not in binding.used]}

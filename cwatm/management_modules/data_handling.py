@@ -31,6 +31,7 @@ from cwatm.management_modules.replace_pcr import (npareatotal, npareaaverage, np
 from cwatm.management_modules.timestep import *
 from cwatm.management_modules.caching import ncopen, ncclose, ncclose_all, ncstackcache, ncappend, ncwriteclose
 from cwatm.management_modules.data_modflow import modflow_netcdf_grid, modflow_netcdf_variable
+from cwatm.version import version_attributes
 
 
 # output variable names from the settings file: a name, optionally with integer indices e.g. discharge or actualET[1]
@@ -2139,7 +2140,7 @@ def initialIncluded(name, value):
 # --------------------------------------------------------------------------------------------
 
 def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt, flag, flagTime, 
-                nrdays=None, dateunit="days", netcdfindex=False):
+                nrdays=None, dateunit="days"):
     """
     Write CWatM results to NetCDF output files with proper metadata.
     
@@ -2172,8 +2173,6 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
         Number of days for averaging calculations. Default is None.
     dateunit : str, optional
         Time unit specification. Default is "days".
-    netcdfindex : bool, optional
-        Use NetCDF indexing format. Default is False.
     
     Returns
     -------
@@ -2203,9 +2202,6 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
     # create real varname with variable name + time depending name e.g. discharge + monthavg
     varname = prename + addname
 
-    # save only index values:
-    if netcdfindex:
-        netfile = netfile.split(".")[0] + "_index.nc"
     #remove ' in the name. Can happen under Linux
     #netfile = netfile.replace("'","")
 
@@ -2218,7 +2214,7 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
         settings = os.path.realpath(settingsfile[0])
         nf1.settingsfile = settings + ": " + xtime.ctime(os.path.getmtime(settings))
         nf1.history = "Created "+ xtime.ctime(xtime.time())
-        nf1.Source_Software = 'CWatM Python: ' + versioning['exe'] + " Git Branch:" + versioning['git']["git_branch"] + " Hash:" + versioning['git']["git_hash"]
+        nf1.Source_Software = 'CWatM Python: ' + versioning['exe'] + " Git Branch:" + versioning['git']["git_branch"] + " Hash:" + versioning['git']["git_hash"] + " " + versioning['git']["state"]
         nf1.Platform = versioning['platform']
         nf1.Version = versioning['version']  + ": " + versioning['lastfile']  + " " + versioning['lastdate']
         nf1.institution = cbinding ("institution")
@@ -2227,7 +2223,7 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
         nf1.Conventions = 'CF-1.13'
 
         try:
-            nf1.git_commit = versioning['git']["git_hash"]
+            nf1.setncatts(version_attributes())
             gname = os.path.basename(netfile)
             # save the versioning of input files in discharge or ET EW maps
             # save the settingsfile
@@ -2361,23 +2357,8 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
                     value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True, fill_value=1e20,
                                                chunksizes=(1, row, col))
                 if latlon:
-                    if netcdfindex:
-                        size = maskinfo['mapC'][0]
-                        sizeall = len(maskinfo['maskflat'].data)
-                        index = nf1.createDimension('index', size)
-                        index1 = nf1.createVariable('index', 'i4', 'index')
-                        indexlatlon = nf1.createDimension('indexlatlon', sizeall)
-                        indexlatlon1 = nf1.createVariable('indexlatlon', 'i4', 'indexlatlon')
-                        index1[:] = np.arange(size)
-                        indexlatlon1[:] = np.arange(sizeall)
-                        latlon = nf1.createVariable("latlon", 'i1', ('indexlatlon'))
-                        latlon[:] = maskinfo['maskflat'].data
-                        value = nf1.createVariable(varname, 'f4', ('time', 'index'), zlib=True, fill_value=1e20, chunksizes=(1, size))
-
-                    else:
-                        if 'lon' in list(metadataNCDF.keys()):
-                            #value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20)
-                            value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20,chunksizes=(1,row,col))
+                    if 'lon' in list(metadataNCDF.keys()):
+                        value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20,chunksizes=(1,row,col))
         else:
           if modflow:
               value = modflow_netcdf_variable(nf1, varname, flagTime, domain)
@@ -2390,22 +2371,9 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
                   latlon = False
                   value = nf1.createVariable(varname, 'f4', ('y', 'x'), zlib=True,fill_value=1e20)
               if latlon:
-                  if netcdfindex:
-                      size = maskinfo['mapC'][0]
-                      sizeall = len(maskinfo['maskflat'].data)
-                      index = nf1.createDimension('index', size)
-                      index1 = nf1.createVariable('index', 'i4', 'index')
-                      indexlatlon = nf1.createDimension('indexlatlon', sizeall)
-                      indexlatlon1 = nf1.createVariable('indexlatlon', 'i4', 'indexlatlon')
-                      index1[:] = np.arange(size)
-                      indexlatlon1[:] = np.arange(sizeall)
-                      latlon = nf1.createVariable("latlon", 'i1', ('indexlatlon'))
-                      latlon[:] = maskinfo['maskflat'].data
-                      value = nf1.createVariable(varname, 'f4', ('index'), zlib=True, fill_value=1e20)
-                  else:
-                      if 'lon' in list(metadataNCDF.keys()):
-                         # for world lat/lon coordinates
-                         value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
+                  if 'lon' in list(metadataNCDF.keys()):
+                      # for world lat/lon coordinates
+                      value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
 
         ## remove as in cf1.13 standard name is defined in a list
         ###value.standard_name = getmeta("standard_name",prename,varname)
@@ -2446,18 +2414,6 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
 
     if modflow:
         mapnp = inputmap
-    elif netcdfindex:
-        if flagTime:
-            nf1.variables[varname][posCnt - 1, :] = inputmap
-        else:
-            # without timeflag
-            nf1.variables[varname][:] = inputmap
-        if not flag:
-            nf1.close()   # a new file is closed, an appended file stays open (ncappend)
-        flag = True
-        return flag
-
-
     else:
         mapnp[~maskinfo['maskflat']] = inputmap[:]
         #mapnp = mapnp.reshape(maskinfo['shape']).data
@@ -2526,6 +2482,7 @@ def writeIniNetcdf(netfile,varlist, inputlist):
     nf1.settingsfile = os.path.realpath(settingsfile[0])
     nf1.date_created = xtime.ctime(xtime.time())
     nf1.Source_Software = 'CWATM Python'
+    nf1.setncatts(version_attributes())
     nf1.institution = cbinding ("institution")
     nf1.title = cbinding ("title")
     nf1.source = 'CWATM initial conditions maps'

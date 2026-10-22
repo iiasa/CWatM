@@ -4,7 +4,7 @@
 [![license](https://img.shields.io/github/license/iiasa/CWatM?color=1)](https://github.com/iiasa/CWatM/blob/version1.05/LICENSE)
 [![python](https://img.shields.io/badge/python-3.7_|_3.8_|_3.9_|_3.10|_3.11-blue?logo=python&logoColor=white)](https://github.com/iiasa/CWatM/tree/develop))
 [![pytest](https://github.com/IAMconsortium/pyam/actions/workflows/pytest.yml/badge.svg)](https://github.com/iiasa/CWatM/tree/develop))
-[![codecov](https://codecov.io/gh/iiasa/CWatM/graph/badge.svg?token=W3CAO5X4QK)](https://codecov.io/gh/iiasa/CWatM/tree/develop)
+[![codecov](https://codecov.io/gh/iiasa/CWatM/branch/develop/graph/badge.svg?token=W3CAO5X4QK)](https://codecov.io/gh/iiasa/CWatM)
 [![Repo size](https://img.shields.io/github/repo-size/iiasa/CWatM)]
 [![ReadTheDocs](https://readthedocs.org/projects/pyam-iamc/badge/?version=latest)](https://cwatm.iiasa.ac.at/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3528097.svg)](https://doi.org/10.5281/zenodo.3528097)

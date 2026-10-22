@@ -457,7 +457,6 @@ This list of variables gives an overview of possible output variables.
     "V439","MtoMM","Coefficient to change units","-","Number","miscInitial"
     "V440","natureUse","","","Array","routing_kinematic"
     "V441","Ndays_steady","Number of steady state run before the transient simulation","bool","Flag","transient"
-    "V442","netcdfasindex","save netcdf file in a compressed way - for splitting runs in several basins","bool","Flag","output"
     "V443","noinflowpoints","number of inflow points","-","Array","inflow"
     "V444","nondmgQC","Reservoir calculation: ","m3/s","Array","lakes_reservoirs"
     "V445","nonFossilGroundwaterAbs","Non-fossil groundwater abstraction. Used primarily without MODFLOW.","m","Array","water_demand"

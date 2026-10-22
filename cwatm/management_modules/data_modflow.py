@@ -12,6 +12,7 @@ import rasterio
 from netCDF4 import Dataset
 
 from cwatm.management_modules.messages import CWATMError, CWATMFileError, CWATMDirError
+from cwatm.version import version_attributes
 
 
 def raster_crs(filename):
@@ -56,6 +57,7 @@ def write_modflow_netcdf(filename, name, data, units, long_name, transform, crs)
     nrow, ncol = np.shape(data)[-2:]
     with Dataset(filename, 'w', format='NETCDF4') as nc:
         nc.title = 'CWatM - MODFLOW: ' + long_name
+        nc.setncatts(version_attributes())
         nc.createDimension('y', nrow)
         nc.createDimension('x', ncol)
         for axis, size, start, step in (('y', nrow, transform.f, transform.e),

@@ -82,7 +82,6 @@ class outputTssMap(object):
     waterbalance                         List          WaterBalance columns: watercycle + waterbalance_extra                   --   
     waterbalance_extra                   List          Soil layer and land cover columns only in WaterBalance                  --   
     waterbalanceOut                      Flag          WaterBalance output is written                                          bool 
-    netcdfasindex                        Flag          save netcdf file in a compressed way - for splitting runs in several b  bool 
     firstout                             Number        discharge of the first gauge                                            m3 s-
     discharge                            Array         Channel discharge                                                       m3 s-
     usepySnowClim                        Flag          Flag to use pySnowClim                                                  --   
@@ -587,10 +586,6 @@ class outputTssMap(object):
                 if entry != "None":
                     self.outvarparsed[entry[1]] = parseoutvar(entry[1])
 
-        # save netcdf as index maps (not lar/lon) but only the valid cells
-        self.var.netcdfasindex = False
-        if "netcdfasindex" in option:
-            self.var.netcdfasindex = checkOption('netcdfasindex')
 
 
     def soil_terms(self):
@@ -1091,7 +1086,11 @@ class outputTssMap(object):
                     ismean = kind == "discharge"
                     values = [np.select([islast, ismean], [storage[k].to_numpy(), means[k].to_numpy()], totals[k].to_numpy())
                               for k in range(len(self.var.sampleAdresses))]
-                    for i, timestamp in enumerate(totals[0].index):
+                    # the last month / year can end before the end of the calendar month / year:
+                    # label it with the last simulated day (checkers count days from the labels)
+                    labels = list(totals[0].index)
+                    labels[-1] = min(labels[-1], dates[-1])
+                    for i, timestamp in enumerate(labels):
                         row = timestamp.strftime('%d/%m/%Y')
                         for k in range(len(self.var.sampleAdresses)):
                             for j in range(numbervalues):
@@ -1149,7 +1148,7 @@ class outputTssMap(object):
             # outputFile.write("timeseries " + self._spatialDatatype.lower() + "\n")
             header = "Timeseries," + "settingsfile: " + os.path.realpath(settingsfile[0]) + ",Runnning date: " + xtime.ctime(
                 xtime.time())
-            header += ",CWATM: " + versioning['exe'] + " Git-Branch:" + versioning['git']["git_branch"] + " Hash:" + versioning['git']["git_hash"]
+            header += ",CWATM: " + versioning['exe'] + " Git-Branch:" + versioning['git']["git_branch"] + " Hash:" + versioning['git']["git_short_hash"] + " " + versioning['git']["state"]
             header += "\n"
 
             outputFile.write(header)
@@ -1203,7 +1202,7 @@ class outputTssMap(object):
             # outputFile.write("timeseries " + self._spatialDatatype.lower() + "\n")
             header = "Timeseries," + "settingsfile: " + os.path.realpath(settingsfile[0]) + ",Runnning date: " + xtime.ctime(
                 xtime.time())
-            header += ",CWATM: " + versioning['exe'] + " Git-Branch:" + versioning['git']["git_branch"] + " Hash:" + versioning['git']["git_hash"]
+            header += ",CWATM: " + versioning['exe'] + " Git-Branch:" + versioning['git']["git_branch"] + " Hash:" + versioning['git']["git_short_hash"] + " " + versioning['git']["state"]
             header += "\n"
 
             outputFile.write(header)
@@ -1264,11 +1263,7 @@ class outputTssMap(object):
             # outputFile.write("timeseries " + self._spatialDatatype.lower() + "\n")
             header = "timeseries " + " settingsfile: " + os.path.realpath(settingsfile[0]) + " date: " + xtime.ctime(xtime.time())
             header += " CWATM: " + versioning['exe']  + ", " +versioning['lastdate']
-            try:
-                import git
-                header += "git commit " + git.Repo(search_parent_directories=True).head.object.hexsha
-            except:
-                ii = 1
+            header += " Git-Branch:" + versioning['git']["git_branch"] + " Hash:" + versioning['git']["git_short_hash"] + " " + versioning['git']["state"]
             header += "\n"
 
             outputFile.write(header)
@@ -1336,8 +1331,6 @@ class outputTssMap(object):
         varnameCollect = []
         # water cycle values of this time step: calculated once and used for all WaterCycle outputs (daily, monthtot ...)
         watercycleToday = []
-        # set this tru if only the valid cell are stored in netcdf
-        nindex = self.var.netcdfasindex
         # number of days which are summed up in the current month/year for monthavg/annualavg
         # (less than the days of the month/year if output starts in the middle of a month/year, e.g. after spin-up)
         daysWritten = max(1, dateVar['currwrite'])
@@ -1369,11 +1362,11 @@ class outputTssMap(object):
 
                         if map[-5:] == "daily":
                             outMap[map][i][2] = writenetcdf(netfile, varname,"", "undefined", getoutvar(self.var, checkname, index),  dateVar['currDate'],dateVar['currwrite'],
-                                                            flag, True, dateVar['diffdays'],netcdfindex=nindex)
+                                                            flag, True, dateVar['diffdays'])
                         if map[-8:] == "monthend":
                             if dateVar['checked'][dateVar['currwrite'] - 1]>0:
                                 outMap[map][i][2] = writenetcdf(netfile, varname, "_monthend", "undefined", getoutvar(self.var, checkname, index),  dateVar['currDate'], dateVar['currMonth'],
-                                                                flag,True,dateVar['diffMonth'],netcdfindex=nindex)
+                                                                flag,True,dateVar['diffMonth'])
                         if map[-8:] == "monthtot":
                             # sum up daily value to monthly values
                             vars(self.var)[varname2 + "_monthtot"] = vars(self.var)[varname2 + "_monthtot"] +  getoutvar(self.var, checkname, index)
@@ -1384,7 +1377,7 @@ class outputTssMap(object):
                             if (returnBool('calc_ef_afterRun') == False) or (dateVar['currDate'] == dateVar['dateEnd']):
                                 # either load already calculated discharge or at the end of the simulation
                                 outMap[map][i][2] = writenetcdf(netfile, varname,"", "undefined", getoutvar(self.var, checkname, index),
-                                                            dateVar['currDate'], dateVar['currwrite'], flag, False,netcdfindex=nindex)
+                                                            dateVar['currDate'], dateVar['currwrite'], flag, False)
                         if map[-7:] == "12month":
                             if (returnBool('calc_ef_afterRun') == False) or (dateVar['currDate'] == dateVar['dateEnd']):
                                 # either load already calculated discharge or at the end of the simulation
@@ -1392,24 +1385,24 @@ class outputTssMap(object):
                                 for j in range(12):
                                     date1 = datetime.datetime(dateVar['dateEnd'].year, j+1, 1, 0, 0)
                                     outMap[map][i][2] = writenetcdf(netfile, varname,"", "undefined", getoutvar(self.var, checkname, index)[j], date1, j+1,
-                                                                    flag1, True,12,netcdfindex=nindex)
+                                                                    flag1, True,12)
                                     flag1 = True # now append to netcdf file
 
                         # if end of month is reached
                         if dateVar['checked'][dateVar['currwrite'] - 1]>0:
                             if map[-8:] == "monthtot":
                                 outMap[map][i][2] = writenetcdf(netfile, varname,"_monthtot", "undefined", vars(self.var)[varname2 + "_monthtot"], dateVar['currDate'],
-                                                                dateVar['currMonth'], flag, True, dateVar['diffMonth'],dateunit="months",netcdfindex=nindex)
+                                                                dateVar['currMonth'], flag, True, dateVar['diffMonth'],dateunit="months")
                             if map[-8:] == "monthavg":
                                 #days = calendar.monthrange(dateVar['currDate'].year, dateVar['currDate'].month)[1]
                                 avgmap = vars(self.var)[varname2 + "_monthavg"] / daysMonthAvg
                                 outMap[map][i][2] = writenetcdf(netfile, varname,"_monthavg", "undefined", avgmap,dateVar['currDate'], dateVar['currMonth'],
-                                                                flag, True,dateVar['diffMonth'],dateunit="months",netcdfindex=nindex)
+                                                                flag, True,dateVar['diffMonth'],dateunit="months")
 
                         if map[-9:] == "annualend":
                             if dateVar['checked'][dateVar['currwrite'] - 1]==2:
                                 outMap[map][i][2] = writenetcdf(netfile, varname,"_annualend", "undefined", getoutvar(self.var, checkname, index),  dateVar['currDate'], dateVar['currYear'],
-                                                                flag,True,dateVar['diffYear'], dateunit="years", netcdfindex=nindex)
+                                                                flag,True,dateVar['diffYear'], dateunit="years")
                         if map[-9:] == "annualtot":
                             vars(self.var)[varname2 + "_annualtot"] = vars(self.var)[varname2 + "_annualtot"] + getoutvar(self.var, checkname, index)
                         if map[-9:] == "annualavg":
@@ -1418,11 +1411,11 @@ class outputTssMap(object):
                         if dateVar['checked'][dateVar['currwrite'] - 1]==2:
                             if map[-9:] == "annualtot":
                                     outMap[map][i][2] = writenetcdf(netfile, varname,"_annualtot", "undefined", vars(self.var)[varname2 + "_annualtot"], dateVar['currDate'], dateVar['currYear'], flag, True,
-                                                                    dateVar['diffYear'], dateunit="years", netcdfindex=nindex)
+                                                                    dateVar['diffYear'], dateunit="years")
                             if map[-9:] == "annualavg":
                                         avgmap = vars(self.var)[varname2 + "_annualavg"] / daysYearAvg
                                         outMap[map][i][2] = writenetcdf(netfile, varname,"_annualavg", "undefined", avgmap, dateVar['currDate'], dateVar['currYear'], flag, True,
-                                                                        dateVar['diffYear'],dateunit="years", netcdfindex=nindex)
+                                                                        dateVar['diffYear'],dateunit="years")
 
                         if map[-8:] == "totaltot":
                             if dateVar['curr'] >= dateVar['intSpin']:
@@ -1430,7 +1423,7 @@ class outputTssMap(object):
                                 if dateVar['currDate'] == dateVar['dateEnd']:
                                     # at the end of simulation write this map
                                     outMap[map][i][2] = writenetcdf(netfile, varname,"_totaltot", "undefined", vars(self.var)[varname2 + "_totaltot"],
-                                                                dateVar['currDate'], dateVar['currwrite'], flag, False, netcdfindex=nindex)
+                                                                dateVar['currDate'], dateVar['currwrite'], flag, False)
 
                         if map[-8:] == "totalavg":
                             if dateVar['curr'] >= dateVar['intSpin']:
@@ -1438,14 +1431,14 @@ class outputTssMap(object):
                                 if dateVar['currDate'] == dateVar['dateEnd']:
                                     # at the end of simulation write this map
                                     outMap[map][i][2] = writenetcdf(netfile, varname,"_totalavg", "undefined", vars(self.var)[varname2 + "_totalavg"],
-                                                                    dateVar['currDate'], dateVar['currwrite'], flag, False, netcdfindex=nindex)
+                                                                    dateVar['currDate'], dateVar['currwrite'], flag, False)
 
                         if map[-8:] == "totalend":
                             if dateVar['currDate'] == dateVar['dateEnd']:
                                 # at the end of simulation write this map
                                 vars(self.var)[varname2 + "_totalend"] = getoutvar(self.var, checkname, index)
                                 outMap[map][i][2] = writenetcdf(netfile, varname,"_totalend","undefined", getoutvar(self.var, checkname, index),
-                                                                dateVar['currDate'], dateVar['currwrite'], flag, False, netcdfindex=nindex)
+                                                                dateVar['currDate'], dateVar['currwrite'], flag, False)
 
 
                                 # ************************************************************

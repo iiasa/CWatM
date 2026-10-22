@@ -32,6 +32,7 @@ import os
 import argparse
 import importlib
 import shutil
+import datetime
 
 # ------------------------------------------------------
 
@@ -160,6 +161,15 @@ def replace_setting(iset, outset, changes, adds):
 
 # =================================================================
 noskip = {}
+# unit tests (not from the settings file) in groups, switched on/off by "unittest: <group> True/False" in [Tests]
+# (a group without a line runs)
+unittest_groups = {"commandline": ("test_cwatm_without_settings",),
+                   "area": ("test_area_",),
+                   "settings": ("test_settings_", "test_metanetcdf_error"),
+                   "check": ("test_check_",),
+                   "modflow": ("test_modflow_",),
+                   "restart": ("test_restart",)}
+unittest_on = {}
 runs = []
 models = []
 number = 0  # number of models with variations
@@ -169,6 +179,14 @@ abs_threshold = None  # or largest |error| per year of a circle [mm/yr] (balance
 # ---------------------
 set_load = []
 dict_name = []
+
+def section_on(name):
+    # the section with "name: <name>" runs if [Tests] has "runtest: <name> True" (matched by name, not by position)
+    if name not in noskip:
+        raise ValueError("name: " + name + " in " + test_settingfile + " has no line \"runtest: " + name +
+                         " True/False\" in [Tests]")
+    return noskip[name]
+
 
 tin = open(test_settingfile)
 test_run = False
@@ -201,6 +219,11 @@ for line in tin:
                         noskip[runs[-1]] = False
                         if s[1].upper() == "TRUE":
                             noskip[runs[-1]] = True
+                    if first == "unittest":
+                        s = secon.split()
+                        if s[0] not in unittest_groups:
+                            print("unittest: " + s[0] + " is not a group - use one of: " + ", ".join(unittest_groups))
+                        unittest_on[s[0]] = s[1].upper() == "TRUE"
                     if first == "balance_threshold":
                         threshold = float(secon)
                     if first == "balance_abs_threshold":
@@ -249,7 +272,7 @@ for line in tin:
                     if first == "base_setting":  # finish the setting when next one is in
 
                         # join to modelruns if it is not skip
-                        if noskip[runs[number]]:
+                        if section_on(dict_name[-1]):
                             for i in range(len(set_text1)):
                                 replace_setting(set_load[-1], setout1[i], changes1[i], adds1[i])
                                 model = (set_text1[i], set_description1[i], changes1[i], adds1[i],
@@ -263,7 +286,7 @@ for line in tin:
 tin.close()
 
 # join to modelruns if it is not skip
-if noskip[runs[number]]:
+if section_on(dict_name[-1]):
     for i in range(len(set_text1)):
         replace_setting(set_load[-1], setout1[i], changes1[i], adds1[i])
         model = (set_text1[i], set_description1[i], changes1[i], adds1[i], setout1[i], threshold, values1[i],
@@ -271,15 +294,72 @@ if noskip[runs[number]]:
         models.append((set_description1[i], model))
         # a little bit complicated, but to make sure that the description shows up in the report
 
+# a runtest line without a section (e.g. a base_setting line lost in a comment) would be ignored silently
+for name in runs:
+    if name not in dict_name:
+        raise ValueError("runtest: " + name + " in " + test_settingfile + " has no section with \"name: " + name + "\"")
+
 # to show the description in the report html it is separated here in the variable info
 info = []
 for model in models:
     info.append(model[0])
 
 
+@pytest.fixture(autouse=True)
+def unittest_switch(request):
+    # skips a unit test if its group is switched off in [Tests] (unittest: <group> False)
+    name = request.function.__name__
+    for group, prefixes in unittest_groups.items():
+        if name.startswith(prefixes) and not unittest_on.get(group, True):
+            pytest.skip("unittest: " + group + " False in " + test_settingfile)
+
+
 def is_normal_run(model):
     # model runs which are not error, calibration or check tests (see cwatm())
     return all(model[4].find(k) == -1 for k in ("error", "calibration", "checkmap"))
+
+
+def setting_value(lines, key):
+    # last value of "key = value" in the lines of a settings file (comments left out), None if not there
+    value = None
+    for line in lines:
+        line = line.split('#')[0]
+        if '=' in line and line.split('=')[0].strip() == key:
+            value = line.split('=', 1)[1].strip()
+    return value
+
+
+def setting_date(value):
+    # date of StepStart / StepEnd as in timestep.Calendar (dd/mm/yyyy, also . or - and 2-digit years), else None
+    d = value.replace('.', '/').replace('-', '/')
+    try:
+        return datetime.datetime.strptime(d, "%d/%m/%Y" if len(d.split('/')[-1]) == 4 else "%d/%m/%y")
+    except ValueError:
+        return None
+
+
+def has_waterbalance_check(model):
+    """
+    test_waterbalance only for normal runs which write the WaterBalance csv (OUT_TSS_AreaSum_Daily with
+    WaterBalance in the written settings file) and run >= WB_MINDAYS days (StepEnd as number of days or as a
+    date). If the length can not be read from the file the test stays in (test_waterbalance skips a short run).
+    """
+    if not is_normal_run(model):
+        return False
+    lines = open(model[4]).readlines()
+    out = setting_value(lines, "OUT_TSS_AreaSum_Daily")
+    if out is None or "WaterBalance" not in [o.strip() for o in out.split(',')]:
+        return False
+    start, end = setting_value(lines, "StepStart"), setting_value(lines, "StepEnd")
+    if start is None or end is None or setting_date(start) is None:
+        return True
+    try:
+        days = int(float(end))
+    except ValueError:
+        if setting_date(end) is None:
+            return True
+        days = (setting_date(end) - setting_date(start)).days + 1
+    return days >= WB_MINDAYS
 
 
 def store_waterbalance_csv(model, start):
@@ -1209,28 +1289,27 @@ def test_cwatm(info, model):
     cwatm(info, model)
 
 
-@pytest.mark.parametrize("info, model", [m for m in models if is_normal_run(m[1])])
+@pytest.mark.parametrize("info, model", [m for m in models if has_waterbalance_check(m[1])])
 def test_waterbalance(info, model):
     """
-    Water balance of a normal model run of >= 30 days (runs after all test_cwatm): every circle of the daily
+    Water balance of a normal model run of >= 30 days with OUT_TSS_AreaSum_Daily = WaterBalance (only these runs
+    get this test, see has_waterbalance_check; runs after all test_cwatm): every circle of the daily
     WaterBalance output at the outlet (total, interception, soil, soil layers, groundwater, aquifer layers, runoff
     concentration, snow, lakes, reservoirs, channels, routing, water demand, ...) has to close:
     |error / In| <= balance_threshold or |error| per year <= balance_abs_threshold [mm/yr]. Table as in cell 07 of
     budget/watercycle.ipynb (watercycle_balance.py), all results: output/waterbalance_summary4.csv.
-    A run of < 30 days and a run without WaterBalance csv pass without the check; if the model run failed, this
-    test fails too (no water balance).
+    A run which still writes no csv or is shorter than 30 days (not seen in the settings file) is skipped; if the
+    model run failed, this test fails too (no water balance).
     """
     if not waterbalance:
         pytest.skip("--waterbalance=off")
     csvfile = WB_CSV.get(model[4], "missing")
     assert csvfile != "missing", "model run failed or did not run - no water balance"
     if csvfile is None:
-        print("no WaterBalance csv written by this run - no water balance check")
-        return
+        pytest.skip("no WaterBalance csv written by this run - no water balance check")
     res = watercycle_balance.balance(csvfile, threshold=model[5], abs_threshold=model[7])
     if res["rundays"] < WB_MINDAYS:
-        print(f"run of {res['rundays']} days - water balance is checked only for runs of at least {WB_MINDAYS} days")
-        return
+        pytest.skip(f"run of {res['rundays']} days - water balance is checked only for runs of at least {WB_MINDAYS} days")
     write_waterbalance_summary(model, res)
     print(watercycle_balance.report(res))
     absth = "" if model[7] is None else f" and |error| per year = {model[7]:g} mm/yr"

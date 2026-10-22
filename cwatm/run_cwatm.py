@@ -46,8 +46,6 @@ import numpy as np
 import glob
 import sys
 import datetime
-import subprocess
-from pathlib import Path
 
 
 import numpy
@@ -284,62 +282,29 @@ def headerinfo(usage=0):
     """
     versioning['git'] = get_version_info()
     versioning['exe'] = __file__
-    versioning['lastdate'] = versioning['git'] ['build_timestamp'][0:10]
+    versioning['lastdate'] = versioning['git']['commit_date'][0:10]
     __date__ = versioning['lastdate']
     versioning['lastfile'] = "___"
     # versioning all input files
     versioning['input'] = ""
-
-
-    realPath = os.path.dirname(os.path.realpath(versioning['exe']))
-
-
     versioning['version'] = __version__
     versioning['platform'] = platform1
-    hash = versioning['git']['git_branch'] + " " + versioning['git']['git_short_hash']
 
-    # test git hash agains current version
-    try:
-        repo_path = Path(__file__).parents[1]
-
-        result = subprocess.run(["git", "diff", "--name-only",
-                   versioning['git']['git_hash']],cwd=repo_path, capture_output=True, text=True, check=True)
-        all_files = [f.strip() for f in result.stdout.split('\n') if f.strip()]
-
-        # Filter for .py files and exclude version.py
-        python_files = []
-        for file_path in all_files:
-            path = Path(file_path)
-            if (path.suffix == '.py' and
-                    path.name != 'version.py' and
-                    'version.py' not in str(path)):
-                python_files.append(file_path)
-
-
-
-        if python_files !=[]:
-            veri = " dirty "
-        else:
-            veri = " verified "
-    except:
-        veri = " not checked "
-
-
-    s = "CWATM - Community Water Model Version: " + hash + veri +", Date: " + versioning['lastdate'] + "\n"
+    s = "CWATM - Community Water Model Version: " + versioning['git']['label'] + ", Date: " + versioning['lastdate'] + "\n"
     s += "International Institute of Applied Systems Analysis (IIASA)\n"
     s += "Running under platform: " + platform1 + "\n"
     s += "-----------------------------------------------------------"
 
 
     if usage == 1:
-        if veri == " verified ":
+        if versioning['git']['dirty'] is False:
             s += "\nNo change to last git commit\n"
-        elif veri == " not checked ":
+        elif versioning['git']['dirty'] is None:
             s += "\nGit cannot be checked\n"
         else:
             s += "\nChanged files to last git commit:\n"
-            for pyf in python_files:
-                s += pyf +"\n"
+            for pyf in versioning['git']['changed']:
+                s += pyf + "\n"
 
 
     if not (Flags['veryquiet']) and not (Flags['quiet']):
