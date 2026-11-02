@@ -636,7 +636,9 @@ class outputTssMap(object):
             ids, types = self.var.waterBodyID_C[order], self.var.waterBodyTypCTemp[order]
 
             def islake(idmap):
-                pos = np.minimum(np.searchsorted(ids, idmap), ids.size - 1)
+                if ids.size == 0:
+                    return np.zeros(idmap.shape, dtype=bool)
+                pos =np.minimum(np.searchsorted(ids, idmap), ids.size - 1)
                 typ = np.where((idmap > 0) & (ids[pos] == idmap), types[pos], 0)
                 return (typ == 1) | (typ == 6)
 
