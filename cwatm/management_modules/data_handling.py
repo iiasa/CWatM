@@ -7,7 +7,6 @@
 # CWatM is licensed under GNU GENERAL PUBLIC LICENSE Version 3.
 # -------------------------------------------------------------------------
 
-import calendar
 import difflib  # to check the closest word in settingsfile, if an error occurs
 import glob
 import math
@@ -17,9 +16,6 @@ import warnings
 
 import numpy as np
 from netCDF4 import Dataset, num2date, date2num, date2index
-#from osgeo import gdal
-#from osgeo import gdalconst
-#from osgeo import osr
 import rasterio
 
 from . import globals
@@ -29,7 +25,7 @@ from cwatm.management_modules.messages import *
 from cwatm.management_modules.replace_pcr import (npareatotal, npareaaverage, npareamaximum, npareamajority,
                                                   AreaIndex)
 from cwatm.management_modules.timestep import *
-from cwatm.management_modules.caching import ncopen, ncclose, ncclose_all, ncstackcache, ncappend, ncwriteclose
+from cwatm.management_modules.caching import ncopen, ncclose, ncclose_all, ncstackcache, ncappend, ncwriteclose, mapcoords, coordkey
 from cwatm.management_modules.data_modflow import modflow_netcdf_grid, modflow_netcdf_variable
 from cwatm.version import version_attributes
 
@@ -148,8 +144,9 @@ def valuecell(coordx, coordstr, returnmap=True):
     null[null == 0] = -9999
 
     for i in range(int(len(coord) / 2)):
-        col.append(int((coord[i * 2] - maskmapAttr['x']) * maskmapAttr['invcell']))
-        row.append(int((maskmapAttr['y'] - coord[i * 2 + 1]) * maskmapAttr['invcell']))
+        # floor, not int(): int() truncates towards 0, so a gauge up to one cell outside the map would land in cell 0
+        col.append(int(np.floor((coord[i * 2] - maskmapAttr['x']) * maskmapAttr['invcell'])))
+        row.append(int(np.floor((maskmapAttr['y'] - coord[i * 2 + 1]) * maskmapAttr['invcell'])))
 
         if col[i] >= 0 and row[i] >= 0 and col[i] < maskmapAttr['col'] and row[i] < maskmapAttr['row']:
             null[row[i], col[i]] = i + 1
@@ -166,10 +163,6 @@ def valuecell(coordx, coordstr, returnmap=True):
             box += "%5s ---------\n" % ""
             box += "%5s %5.1f\n" % ("", y2)
 
-            #print box
-
-            print("%2s %-17s %10s %8s" % ("No", "Name", "time[s]", "%"))
-
             msg = "Error 102: Coordinates: x = " + str(coord[i * 2]) + '  y = ' + str(
                 coord[i * 2 + 1]) + " of gauge is outside mask map\n\n"
             msg += box
@@ -180,6 +173,91 @@ def valuecell(coordx, coordstr, returnmap=True):
         return mapnp
     else:
         return col, row
+
+
+def readInflowCsv(filename):
+    """
+    Read an inflow file in the csv format of the CWatM time series output.
+
+    Parameters
+    ----------
+    filename : str
+        Path of the csv file: header lines, then "Date,G1,G2", then rows of "day/month/year,value,value".
+
+    Returns
+    -------
+    tuple
+        Column names (point number without the G), dates as (day, month, year), values [rows, columns]
+
+    Raises
+    ------
+    CWATMFileError
+        If the file is missing or does not have this format (Error 218).
+    """
+
+    try:
+        with open(filename, "r") as file:
+            lines = file.read().splitlines()
+        start = [i for i, line in enumerate(lines) if line.startswith("Date,")][0]
+        names = [name.strip().lstrip("G") for name in lines[start].split(",")[1:]]
+        dates = []
+        values = []
+        for line in lines[start + 1:]:
+            if line.strip():
+                row = line.split(",")
+                day, month, year = row[0].split("/")
+                dates.append((int(day), int(month), int(year)))
+                values.append([float(value) for value in row[1:]])
+        values = np.array(values)
+        if values.ndim != 2 or values.shape[1] != len(names):
+            raise ValueError("number of values does not fit the header")
+    except Exception:
+        msg = "Error 218: Mistake reading inflow file\nIt has to be a csv file like the time series output of CWatM "
+        msg += "(a line \"Date,G1,G2\", then rows \"day/month/year,value,value\")\n"
+        raise CWATMFileError(filename, msg, sname="QInTS")
+    return names, dates, values
+
+
+def invcellsize(cell):
+    """
+    Inverse of the cell size.
+
+    A cell size like 0.00833333 (coordinates in single precision or with few digits) belongs to a whole number
+    of cells per unit (120), so the inverse is rounded. Other cell sizes (0.75, 0.3, 1.5, 0.4) are kept: rounding
+    them would change the cell size.
+
+    Parameters
+    ----------
+    cell : float
+        Cell size
+
+    Returns
+    -------
+    float
+        Number of cells per unit of the coordinates
+    """
+    invcell = round(1 / cell, 0)
+    if invcell > 0 and abs(1 / cell - invcell) <= 0.002 * invcell:
+        return invcell
+    return 1 / cell
+
+
+def samecellsize(invcell1, invcell2):
+    """
+    Check if two maps have the same cell size. Cell sizes without a whole number of cells per unit (0.3, 0.4) are
+    not rounded, and in a file with coordinates in single precision they are up to about 0.05 % off.
+
+    Parameters
+    ----------
+    invcell1, invcell2 : float
+        Inverse of the two cell sizes (see invcellsize)
+
+    Returns
+    -------
+    bool
+        True if the cell sizes are the same
+    """
+    return abs(invcell1 - invcell2) <= 0.0005 * abs(invcell2)
 
 
 def setmaskmapAttr(x, y, col, row, cell):
@@ -225,21 +303,11 @@ def setmaskmapAttr(x, y, col, row, cell):
     This spatial reference is used by functions like valuecell(), loadmap(),
     and coordinate transformation routines throughout the model.
     """
-    invcell = round(1/cell, 0)
     # getgeotransform only delivers single precision!
-    if invcell == 0:
-        invcell = 1/cell
+    invcell = invcellsize(cell)
     cell = 1 / invcell
-    if (x - int(x)) != 0.:
-        if abs(x - int(x)) > 1e9:
-            x = 1/round(1/(x - int(x)), 4) + int(x)
-        else:
-            x = round(x, 6)
-    if (y - int(y)) != 0.:
-        if abs(y - int(y)) > 1e9:
-            y = 1 / round(1 / (y - int(y)), 4) + int(y)
-        else:
-            y = round(y, 6)
+    x = round(x, 6)
+    y = round(y, 6)
     # This is still not ok! Some rounding issues still appear sometimes
 
     maskmapAttr['x'] = x
@@ -263,46 +331,36 @@ def getvariablename(nf1):
     name: variable name
     """
 
-    value = list(nf1.variables.items())[-1][0]  # get the last variable name
-    if value in ["X", "Y", "x", "y", "lon", "lat", "time","crs"]:
-        numbervars = len(list(nf1.variables.items()))
-        for i in range(2, numbervars+1):
-            value = list(nf1.variables.items())[-i][0]
-            if not (value in ["X", "Y", "x", "y", "lon", "lat", "time","crs"]): break
-    return value
+    names = list(nf1.variables)
+    others = [v for v in names if v not in ["X", "Y", "x", "y", "lon", "lat", "time", "crs"]]
+    # the data has at least 2 dimensions; this leaves out grid mappings (spatial_ref, 0 dimensions)
+    # and the bounds of the coordinates (lat_bnds, time_bnds), which are named in the bounds attribute of the coordinate
+    bounds = [nf1.variables[v].getncattr('bounds') for v in names if 'bounds' in nf1.variables[v].ncattrs()]
+    data = [v for v in others if nf1.variables[v].ndim >= 2 and v not in bounds and not v.endswith(("_bnds", "_bounds"))]
+    if data:
+        return data[-1]
+    return others[-1] if others else names[0]
 
 def loadsetclone(self, name):
     """
-    Load and set the clone map that defines the model domain.
-    
-    The clone map is the fundamental spatial reference for CWatM, defining
-    the model grid, coordinate system, and computational domain. This function
-    loads the clone map from various formats (NetCDF, GeoTIFF), extracts spatial
-    attributes, and sets up the global spatial reference system used throughout
-    the model.
-    
+    Load the mask map that defines the model domain and set the spatial reference.
+
+    The mask can be a NetCDF or GeoTIFF map, a rectangle (5 numbers) or a point (2 numbers; the
+    catchment of this point is taken from the Ldd). Sets maskmapAttr, maskinfo and globals.inZero.
+
     Parameters
     ----------
     name : str
-        Path to the clone map file. Can be NetCDF or GeoTIFF format.
-        The binding key for the clone map in the configuration.
-    
+        Binding key of the mask map in the settings file.
+
     Returns
     -------
-    None
-        Sets up global spatial reference and mask attributes.
-    
+    numpy.ndarray or tuple
+        Compressed mask. With a point and Flags['maskmap']: (mask2D, xleft, yup).
+
     Notes
     -----
-    The clone map determines:
-    - Model grid dimensions and spatial resolution
-    - Coordinate reference system and geotransformation
-    - Active model domain (non-NoData cells)
-    - Spatial attributes for all subsequent data loading
-    
-    This function must be called before any other spatial data operations.
-    It populates the global maskmapAttr dictionary and sets the model's
-    spatial framework.
+    Must be called before any other spatial data operation.
     """
   
     filename = cbinding(name)
@@ -342,11 +400,11 @@ def loadsetclone(self, name):
             ylast = list(nf1.variables.values())[lat_idx][-1]
 
             # swap to make y1 the biggest number
-            if y1 < ylast:  y1, ylast = ylast, y1
+            turn_latitude = y1 < ylast
+            if turn_latitude:  y1, ylast = ylast, y1
 
             cellSize = np.abs(x2 - x1)
-            invcell = round(1/cellSize)
-            if invcell == 0: invcell = 1/cellSize
+            invcell = invcellsize(cellSize)
             nrRows = int(0.5 + np.abs(ylast - y1) * invcell + 1)
             nrCols = int(0.5 + np.abs(xlast - x1) * invcell + 1)
             x = x1 - cellSize / 2
@@ -354,32 +412,28 @@ def loadsetclone(self, name):
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                mapnp = np.array(nf1.variables[value][0:nrRows, 0:nrCols])
+                # missing values in the file are not part of the mask
+                mapnp = np.ma.filled(nf1.variables[value][0:nrRows, 0:nrCols], 0)
+                mapnp[np.isnan(mapnp) | (np.abs(mapnp) > 1e15) | (mapnp == -9999)] = 0
+            if turn_latitude:
+                mapnp = np.flipud(mapnp)
             setmaskmapAttr( x, y, nrCols, nrRows, cellSize)
-            flagmap = True
 
         except:
             # load geotiff
             try:
 
                 filename = cbinding(name)
-                #nf3 = gdal.Open(filename, gdalconst.GA_ReadOnly)
-                #geotransform1 = nf3.GetGeoTransform()
-                nf2 =  rasterio.open(filename)
-                t = nf2.transform
-                geotransform = (t.a, t.b, t.c, t.d, t.e, t.f)
+                with rasterio.open(filename) as nf2:
+                    t = nf2.transform
+                    geotransform = (t.a, t.b, t.c, t.d, t.e, t.f)
 
-                setmaskmapAttr(geotransform[2], geotransform[5], nf2.shape[1], nf2.shape[0], geotransform[0])
-                #setmaskmapAttr( geotransform[0], geotransform[3], nf2.RasterXSize, nf2.RasterYSize, geotransform[1])
-                #band = nf2.GetRasterBand(1)
-                #bandtype = gdal.GetDataTypeName(band.DataType)
-                #mapnp = band.ReadAsArray(0, 0, nf3.shape[1], nf3.shape[0])
-                mapnp = nf2.read(1)
+                    setmaskmapAttr(geotransform[2], geotransform[5], nf2.shape[1], nf2.shape[0], geotransform[0])
+                    mapnp = nf2.read(1)
                 # 10 because that includes all valid LDD values [1-9]
                 mapnp[mapnp > 10] = 0
                 mapnp[mapnp < -10] = 0
                 addtoversiondate(filename)
-                flagmap = True
 
             except:
                 raise CWATMFileError(filename,msg = "Error 201: File reading Error\n", sname=name)
@@ -394,7 +448,8 @@ def loadsetclone(self, name):
     # put in the ldd map
     # if there is no ldd at a cell, this cell should be excluded from modelling
 
-    maskldd = loadmap('Ldd', compress = False)
+    # missing values in Ldd (netcdf mask, tif nodata, NaN) are no ldd
+    maskldd = np.nan_to_num(np.ma.filled(loadmap('Ldd', compress = False, masked = True), 0))
     maskarea = np.bool_(mapnp)
     mask = np.logical_not(np.logical_and(maskldd,maskarea))
 
@@ -458,41 +513,23 @@ def loadsetclone(self, name):
 
 def maskfrompoint(mask2D, xleft, yup):
     """
-    Convert 2D mask array to compressed 1D format for CWatM processing.
-    
-    Transforms a full 2D boolean mask to the compressed 1D format used
-    internally by CWatM. This compression removes NoData cells and creates
-    efficient storage for hydrological computations, significantly reducing
-    memory usage and computation time for sparse domains.
-    
+    Set a 2D mask of a catchment (found from a point) as the new model domain.
+
+    Moves maskmapAttr to the rectangle of the catchment and sets maskinfo and globals.inZero.
+
     Parameters
     ----------
     mask2D : numpy.ndarray
-        2D boolean array where True indicates active model cells.
-    xleft : float
-        X-coordinate of the left edge of the domain.
-    yup : float
-        Y-coordinate of the upper edge of the domain.
-    
+        2D array of the new mask, != 0 for active cells.
+    xleft : int
+        Column of the left edge of mask2D; -1: the point has no valid value in the Ldd (Error 104).
+    yup : int
+        Row of the upper edge of mask2D.
+
     Returns
     -------
     numpy.ndarray
-        1D compressed mask array containing only active cells.
-    
-    Notes
-    -----
-    - Uses global spatial reference attributes from maskmapAttr
-    - Creates mapping between 2D grid positions and 1D compressed indices
-    - Essential for CWatM's efficient spatial data handling
-    - All subsequent spatial operations use this compressed format
-    """
-    """
-    load a static map either value or pc raster map or netcdf
-
-    :param mask2D: 2D array of new mask
-    :param xleft: left lon coordinate
-    :param yup: upper lat coordinate
-    :return:  new mask map
+        1D compressed mask.
     """
 
     if xleft == -1:
@@ -524,35 +561,17 @@ def maskfrompoint(mask2D, xleft, yup):
 
 def addtoversiondate(filename,history=""):
     """
-    Generate version and timestamp information for output files.
-    
-    Creates standardized version metadata that includes git information,
-    build timestamp, and model version. This information is embedded in
-    output NetCDF files to ensure full traceability and reproducibility
-    of model results.
-    
+    Add name and date of an input file to versioning['input'] (each file only once).
+
+    This list goes into the attribute version_inputfiles of discharge and evaporation output maps.
+
     Parameters
     ----------
     filename : str
-        Name of the file being created (used in history string).
+        Input file.
     history : str, optional
-        Additional history information to include. Default is empty string.
-    
-    Returns
-    -------
-    str
-        Formatted history string containing version, timestamp, and git info.
-    
-    Notes
-    -----
-    The version string includes:
-    - CWatM version number
-    - Git commit hash and branch information
-    - Whether the build has uncommitted changes ("dirty" vs "verified")
-    - Build timestamp
-    - User-provided history information
-    
-    This ensures complete provenance tracking for all model outputs.
+        Attribute history of a netCDF file: its date is used. If there is none, the creation
+        date of the file is used. Default is empty string.
     """
 
     # each file only once: no second date lookup on disk (slow on network drives) and no double entry
@@ -571,7 +590,6 @@ def addtoversiondate(filename,history=""):
     add = os.path.basename(filename) +" "+ date1.strftime('%d/%m/%Y %H:%M')+';'
     versioning['input'] += add
     inputdates[filename] = add
-    ii =1
 
 
 def loadcrs (name):
@@ -593,11 +611,11 @@ def loadcrs (name):
         # no warning - is a bit annoying
         #msg = "\nWarning: Projection not defined as crs variable in: " + filename + "\n"
         #print(msg)
-        ii = 1
+        pass
     return crs
 
 
-def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
+def loadmap(name, lddflag=False,compress = True, local = False, cut = True, masked = False):
     """
     Load spatial data from various file formats into CWatM arrays.
     
@@ -620,7 +638,9 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
         If True, load data relative to local directory. Default is False.
     cut : bool, optional
         If True, clip data to model domain. Default is True.
-    
+    masked : bool, optional
+        If True, a tif read with compress=False has its nodata cells masked. Default is False.
+
     Returns
     -------
     numpy.ndarray
@@ -649,7 +669,6 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
 
     try:  # loading an integer or float but not a map
         mapC = float(value)
-        flagmap = False
         load = True
         if Flags['check']:
             checkmap(name, filename, mapC)
@@ -664,7 +683,7 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
 
         try:
             nf1 = ncopen(filename)   # cached: same handle as used by mapattrNetCDF/readCoord
-            cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check = False)
+            cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, cover = cut)
 
             # load netcdf map but only the rectangle needed
             value = getvariablename(nf1)
@@ -692,17 +711,16 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
 
             filename = cbinding(name)
             try:
-                #nf2 = gdal.Open(filename, gdalconst.GA_ReadOnly)
-                #band = nf2.GetRasterBand(1)
-                #mapnp = band.ReadAsArray(0, 0, nf2.RasterXSize, nf2.RasterYSize).astype(np.float64)
-                nf2 = rasterio.open(filename)
-                mapnp = nf2.read(1)
+                with rasterio.open(filename) as nf2:
+                    # masked: nodata cells are missing values as in a netcdf map (compressArray); compress=False: values as in the file
+                    # float64 for all data types of a tif, as for a netcdf map
+                    mapnp = nf2.read(1, masked=compress or masked).astype(np.float64)
 
-                # if local no cut
-                if not local:
-                    if cut:
-                        cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
-                        mapnp = mapnp[cut2:cut3, cut0:cut1]
+                    # if local no cut
+                    if not local:
+                        if cut:
+                            cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
+                            mapnp = mapnp[cut2:cut3, cut0:cut1]
                 addtoversiondate(filename)
             except CWATMError:
                 # e.g. Error 108: cell size of the map is different
@@ -714,16 +732,10 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
                 msg = "Error 203: File does not exists"
                 raise CWATMFileError(filename,msg,sname=name)
 
-        try:
-            if any(maskinfo) and compress: mapnp.mask = maskinfo['mask']
-        except:
-            ii=0
-
-
         if compress:
             mapC = compressArray(mapnp,name=filename)
             if Flags['check']:
-                checkmap(name, filename, mapnp)
+                checkmap(name, filename, np.ma.masked_array(mapnp, maskinfo['mask']))
         else:
             mapC = mapnp
             if Flags['check'] and not(name == "Ldd"):
@@ -740,51 +752,45 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True):
 def compressArray(map, name="None", zeros = 0.):
     """
     Compress 2D array to 1D format by removing inactive cells.
-    
+
     Core data compression function that converts full 2D spatial arrays
-    to the efficient 1D compressed format used throughout CWatM. This
-    compression removes NoData cells and cells outside the model domain,
-    significantly reducing memory usage and computational overhead.
-    
+    to the efficient 1D compressed format used throughout CWatM.
+
     Parameters
     ----------
     map : numpy.ndarray
         2D spatial array to be compressed.
     name : str, optional
-        Variable name for error reporting. Default is "None".
+        File name for error messages. Not "None": NaN inside the mask gives a warning.
     zeros : float, optional
-        Value to use for replacing zero values. Default is 0.0.
-    
+        Value for missing values of the file (masked cells). Default is 0.0.
+
     Returns
     -------
     numpy.ndarray
         1D compressed array containing only active model cells.
-    
+
     Notes
     -----
     - Uses global maskinfo for determining active cells
-    - Preserves spatial relationships through index mapping
-    - Essential for CWatM's memory-efficient spatial operations
     - All hydrological calculations use this compressed format
-    - Zero replacement helps avoid numerical issues in computations
     """
 
     if map.shape != maskinfo['mask'].shape:
         msg = "Error 105: " + name + " has a different shape than area or ldd \n"
         raise CWATMError(msg)
     
-    mapnp1 = np.ma.masked_array(map, maskinfo['mask'])
+    # missing values of the file (its own mask) get the value of zeros
+    mapnp1 = np.ma.masked_array(np.ma.filled(map, zeros), maskinfo['mask'])
     mapC = np.ma.compressed(mapnp1)
     # if fill: mapC[np.isnan(mapC)]=0
     if name != "None":
         if np.max(np.isnan(mapC)):
-            msg = "Error 106:" + name + " has less valid pixels than area or ldd \n"
-            #raise CWATMError(msg)
-            mapC[np.isnan(mapC)] = 0.000001
-            # test if map has less valid pixel than area.map (or ldd)
-    # if a value is bigger or smaller than 1e20, -1e20 than the standard value is taken
-    mapC[mapC > 1.E20] = zeros
-    mapC[mapC < -1.E20] = zeros
+            msg = "Error 106: " + name + " has NaN at " + str(np.count_nonzero(np.isnan(mapC))) + " cells inside the mask map \n"
+            raise CWATMError(msg)
+    # if a value is 1e20 or -1e20 or beyond than the standard value is taken
+    mapC[mapC >= 1.E20] = zeros
+    mapC[mapC <= -1.E20] = zeros
 
     return mapC
 
@@ -825,9 +831,7 @@ def decompress(map):
         checkint = str(map.dtype)
     except:
         checkint = "x"
-    if checkint == "int16" or checkint == "int32":
-        dmap[dmap.mask] = -9999
-    elif checkint == "int8":
+    if checkint == "int8":
         dmap[dmap < 0] = 0
     else:
         dmap[dmap.mask] = -9999
@@ -880,33 +884,9 @@ def getmeta(key, varname, alternative):
 
 def metaNetCDF():
     """
-    Generate standard NetCDF metadata attributes for CWatM outputs.
-    
-    Creates a dictionary of global attributes that provide essential
-    information about the model run, including version, contact information,
-    and data description. These attributes ensure proper documentation
-    and traceability of CWatM output files.
-    
-    Returns
-    -------
-    dict
-        Dictionary of NetCDF global attributes including title, institution,
-        source, history, and contact information.
-    
-    Notes
-    -----
-    Standard attributes include:
-    - title: Descriptive name for the dataset
-    - institution: Organization responsible for the data
-    - source: Model version and configuration information  
-    - history: Processing history and timestamps
-    - contact: Maintainer contact information
-    
-    These attributes follow CF conventions and support data discovery
-    and provenance tracking in scientific workflows.
-    """
-    """
-    get the map metadata from precipitation netcdf maps
+    Get the attributes of all variables of the first precipitation map (metadataNCDF).
+
+    They give the names and attributes of the coordinates in output files.
     """
 
     try:
@@ -922,29 +902,23 @@ def metaNetCDF():
 
 def readCoord(name):
     """
-    Read coordinate information from various raster file formats.
-    
-    Extracts spatial reference information including extent, resolution,
-    and coordinate system from raster files. Supports multiple formats
-    and provides unified coordinate information for spatial data alignment.
-    
+    Read the coordinates of a map: netCDF if a .nc file of this name exists, otherwise GeoTIFF.
+
     Parameters
     ----------
     name : str
-        Path to the raster file or configuration binding key.
-    
+        Path to the map.
+
     Returns
     -------
     tuple
-        Coordinate information (extent, resolution, projection details).
-    
-    Notes
-    -----
-    - Supports GeoTIFF, NetCDF, and other GDAL-supported formats
-    - Extracts geotransform and projection information
-    - Used for spatial consistency checking and data alignment
-    - Provides foundation for coordinate transformations
+        lat, lon, cell, invcell, rows, cols.
     """
+
+    # a GeoTIFF was already read: no need to try the netCDF file again
+    key = coordkey(name)
+    if key in mapcoords:
+        return mapcoords[key]
 
     namenc = os.path.splitext(name)[0] + '.nc'
 
@@ -956,24 +930,13 @@ def readCoord(name):
     if nc:
         lat, lon, cell, invcell, rows, cols = readCoordNetCDF(namenc)
     else:
-        #raster = gdal.Open(name)
-        #rows = raster.RasterYSize
-        #cols = raster.RasterXSize
-        #gt = raster.GetGeoTransform()
-
-        raster = rasterio.open(name)
-        gt = raster.transform
-        rows = raster.shape[0]
-        cols = raster.shape[1]
-
-        #gdal -> rasterio  0->2 3->5, 1->0
-        #setmaskmapAttr(geotransform[2], geotransform[5], nf2.shape[1], nf2.shape[0], geotransform[0])
-        #gdal
-        # setmaskmapAttr( geotransform[0], geotransform[3], nf2.RasterXSize, nf2.RasterYSize, geotransform[1])
+        with rasterio.open(name) as raster:
+            gt = raster.transform
+            rows = raster.shape[0]
+            cols = raster.shape[1]
 
         cell = gt[0]
-        invcell = round(1.0 / cell, 0)
-        if invcell == 0: invcell = 1. / cell
+        invcell = invcellsize(cell)
 
         # getgeotransform only delivers single precision!
         cell = 1 / invcell
@@ -981,6 +944,7 @@ def readCoord(name):
         lat = gt[5]
         #lon = 1 / round(1 / (x1 - int(x1)), 4) + int(x1)
         #lat = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
+        mapcoords[key] = lat, lon, cell, invcell, rows, cols
 
     return lat, lon, cell, invcell, rows, cols
 
@@ -1039,6 +1003,11 @@ def readCoordNetCDF(name,check = True):
         maskmapAttr['coordx'] = 'x'
         maskmapAttr['coordy'] = 'y'
 
+    # the lines above run on every call because they set maskmapAttr; the file is read only once per coordinate name
+    key = coordkey(name, maskmapAttr['coordx'], maskmapAttr['coordy'])
+    if key in mapcoords:
+        return mapcoords[key]
+
     rows = nf1.variables[maskmapAttr['coordy']].shape[0]
     cols = nf1.variables[maskmapAttr['coordx']].shape[0]
 
@@ -1056,69 +1025,43 @@ def readCoordNetCDF(name,check = True):
         lat0, latlast = latlast, lat0
 
     cell = round(np.abs(lon1 - lon0),8)
-    invcell = round(1.0 / cell, 0)
-    if invcell == 0: invcell = 1./cell
+    invcell = invcellsize(cell)
 
     lon = round(lon0 - cell / 2,8)
     lat = round(lat0 + cell / 2,8)
 
+    mapcoords[key] = lat, lon, cell, invcell, rows, cols
     return lat,lon, cell,invcell,rows,cols
 
 def readCalendar(name):
     """
-    Extract calendar information from NetCDF time dimensions.
-    
-    Reads time coordinate metadata to determine the calendar system
-    used in NetCDF files. This is essential for proper temporal
-    alignment and date calculations in CWatM.
-    
+    Set dateVar['calendar'] to the calendar of the time variable of a NetCDF file.
+
     Parameters
     ----------
     name : str
-        Path to NetCDF file or configuration binding key.
-    
-    Returns
-    -------
-    str
-        Calendar type ('standard', 'gregorian', '365_day', etc.).
-    
-    Notes
-    -----
-    - Supports CF-compliant calendar conventions
-    - Defaults to 'standard' calendar if not specified
-    - Critical for accurate temporal data processing
-    - Used by date conversion and time indexing functions
+        Path to the NetCDF file.
     """
     nf1 = ncopen(name)
     dateVar['calendar'] = nf1.variables['time'].calendar
 
 def checkMeteo_Wordclim(meteodata, wordclimdata):
     """
-    Validate consistency between meteorological and WorldClim climatology data.
-    
-    Performs quality control checks to ensure that meteorological forcing
-    data is reasonable compared to long-term climatological averages from
-    WorldClim. This helps detect data quality issues and potential errors
-    in meteorological inputs.
-    
+    Check if a meteo map and a WorldClim map cover the same extent (each edge within 0.00001).
+
+    Only the coordinates are compared, not the values.
+
     Parameters
     ----------
-    meteodata : numpy.ndarray
-        Current meteorological data values.
-    wordclimdata : numpy.ndarray
-        WorldClim climatological reference values.
-    
+    meteodata : str
+        Path to the meteo map.
+    wordclimdata : str
+        Path to the WorldClim map.
+
     Returns
     -------
-    bool or numpy.ndarray
-        Validation results indicating data quality status.
-    
-    Notes
-    -----
-    - Compares current values against climatological norms
-    - Helps identify unrealistic meteorological data
-    - Supports quality assurance in operational modeling
-    - Can flag potential data processing errors
+    bool
+        True if the extents are the same.
     """
 
     try:
@@ -1173,10 +1116,8 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
         latW0, latW1 = latW1, latW0
     latW0 = round(latW0 + cellW,8)
     latW1 = round(latW1 - cellW,8)
-    # calculate the controll variable
-    contr1 = (lonM0 + lonM1 + latM0 + latM1)
-    contr2 = (lonW0 + lonW1 + latW0 + latW1)
-    contr = abs(round(contr1 - contr2,5))
+    # calculate the controll variable: each edge on its own, in a sum a shift east and a shift south cancel out
+    contr = max(abs(round(lonM0 - lonW0,5)), abs(round(lonM1 - lonW1,5)), abs(round(latM0 - latW0,5)), abs(round(latM1 - latW1,5)))
 
     check = True
     if contr > 0.00001:
@@ -1186,46 +1127,61 @@ def checkMeteo_Wordclim(meteodata, wordclimdata):
 
     return check
 
-def mapattrNetCDF(name, check=True):
+def checkmapcover(name, dx, dy, aligned=True):
     """
-    Extract complete spatial attributes from NetCDF files.
-    
-    Comprehensive function for reading all spatial metadata from NetCDF
-    files including dimensions, coordinates, projection, and extent.
-    Provides complete spatial reference information needed for data
-    alignment and processing.
-    
+    Check if a map can be cut for the mask map: it has to reach the west and north edge of the mask
+    and (if it has the resolution of the mask) it has to be on the same grid.
+    A map which ends before the east or south edge gets Error 105 in compressArray.
+
     Parameters
     ----------
     name : str
-        Path to NetCDF file or configuration binding key.
-    check : bool, optional
-        If True, validate spatial consistency with model domain.
-        Default is True.
-    
+        Name of the map (for the error message)
+    dx, dy : float
+        Number of cells from the west / north edge of the map to the west / north edge of the mask.
+        Negative: the map starts inside the mask.
+    aligned : bool, optional
+        False: only the coverage is checked (meteo maps can have a coarser resolution). Default is True.
+    """
+    tolerance = 0.1   # part of a cell: coordinates are stored with a limited precision
+    if dx < -tolerance or dy < -tolerance:
+        msg = "Error 154: Map does not cover the mask map: " + name + "\n"
+        msg += "Number of cells from the map edge to the mask edge (has to be 0 or more): west: %.1f north: %.1f\n" % (dx, dy)
+        raise CWATMError(msg)
+    if aligned and (abs(dx - round(dx)) > tolerance or abs(dy - round(dy)) > tolerance):
+        msg = "Error 155: Map is not on the same grid as the mask map: " + name + "\n"
+        msg += "Number of cells from the map edge to the mask edge (has to be a whole number): west: %.2f north: %.2f\n" % (dx, dy)
+        raise CWATMError(msg)
+
+
+def mapattrNetCDF(name, cover=True):
+    """
+    Calculate which part of a NetCDF map fits to the mask map.
+
+    Parameters
+    ----------
+    name : str
+        Path to the NetCDF file.
+    cover : bool, optional
+        True: Error 154/155 if the map does not cover the mask (checkmapcover). Default is True.
+
     Returns
     -------
-    dict
-        Complete spatial attribute dictionary with coordinate information,
-        dimensions, and transformation parameters.
-    
-    Notes
-    -----
-    - Handles both meteorological and static NetCDF files
-    - Extracts coordinate reference system information
-    - Validates spatial consistency when check=True
-    - Used for proper data alignment and processing
+    tuple
+        cut0, cut1, cut2, cut3: first and last + 1 column, first and last + 1 row.
     """
 
     lat, lon, cell, invcell, rows, cols = readCoord(name)
 
-    if maskmapAttr['invcell'] != invcell:
+    if not samecellsize(maskmapAttr['invcell'], invcell):
         msg = "Error 107: Cell size different in maskmap: " + \
             binding['MaskMap'] + " and: " + name
         raise CWATMError(msg)
 
     xx = maskmapAttr['x']
     yy = maskmapAttr['y']
+    if cover:
+        checkmapcover(name, (xx - lon) * invcell, (lat - yy) * invcell)
     #cut0 = int(0.0001 + np.abs(xx - lon) * invcell) # argmin() ??
     #cut2 = int(0.0001 + np.abs(yy - lat) * invcell) #
     cut0 = int(np.abs(xx + maskmapAttr['cell']/2 - lon) * invcell) # argmin() ??
@@ -1277,6 +1233,8 @@ def mapattrNetCDFMeteo(name, check = True):
     lonend = lon0 + maskmapAttr['col'] / maskmapAttr['invcell']
     latend = lat0 - maskmapAttr['row'] / maskmapAttr['invcell']
 
+    checkmapcover(name, (lon0 - lon) * invcell, (lat - lat0) * invcell, aligned=False)
+
     # cut for 0.5 deg map based on finer resolution
 
     # lats = nc_simulated.variables['lat'][:]
@@ -1321,29 +1279,17 @@ def mapattrNetCDFMeteo(name, check = True):
 
 def mapattrTiff(nf2):
     """
-    Extract spatial attributes from GeoTIFF files using GDAL.
-    
-    Reads complete spatial reference information from GeoTIFF files
-    including geotransform, projection, dimensions, and extent.
-    Provides unified spatial metadata extraction for raster data.
-    
+    Calculate which part of a GeoTIFF map fits to the mask map.
+
     Parameters
     ----------
-    nf2 : gdal.Dataset
-        Opened GDAL dataset object for the GeoTIFF file.
-    
+    nf2 : rasterio.DatasetReader
+        Opened GeoTIFF file.
+
     Returns
     -------
-    dict
-        Spatial attribute dictionary containing coordinate reference
-        information, dimensions, and transformation parameters.
-    
-    Notes
-    -----
-    - Extracts geotransform coefficients
-    - Reads projection and coordinate system information
-    - Handles various GeoTIFF conventions and formats
-    - Provides foundation for raster data integration
+    tuple
+        cut0, cut1, cut2, cut3: first and last + 1 column, first and last + 1 row.
     """
 
     t = nf2.transform
@@ -1353,11 +1299,7 @@ def mapattrTiff(nf2):
     y1 = geotransform[5]
     cellSize = geotransform[0]
 
-    #invcell = round(1/cellSize,0)
-    if cellSize > 1:
-        invcell = 1 / cellSize
-    else:
-        invcell = round(1/cellSize,0)
+    invcell = invcellsize(cellSize)
 
     # getgeotransform only delivers single precision!
     cellSize = 1 / invcell
@@ -1366,11 +1308,13 @@ def mapattrTiff(nf2):
     if (y1-int(y1)) != 0:
         y1 = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
 
-    if maskmapAttr['invcell'] != invcell:
+    if not samecellsize(maskmapAttr['invcell'], invcell):
         msg = "Error 108: Cell size different in maskmap: " + \
             binding['MaskMap']
         raise CWATMError(msg)
 
+
+    checkmapcover(nf2.name, (maskmapAttr['x'] - x1) * invcell, (y1 - maskmapAttr['y']) * invcell)
 
     x = x1 - cellSize / 2
     y = y1 + cellSize / 2
@@ -1383,21 +1327,18 @@ def mapattrTiff(nf2):
     return cut0, cut1, cut2, cut3
 
 
-def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
+def multinetdf(meteomaps, startcheck = 'dateBegin'):
     """
     Set up multiple NetCDF meteorological files for efficient reading.
     
     Initializes data structures and index mappings for reading from
     multiple meteorological NetCDF files. Optimizes data access patterns
-    and supports buffering strategies for improved I/O performance during
-    long model runs.
+    during long model runs.
     
     Parameters
     ----------
     meteomaps : list
         List of meteorological variable names to process.
-    usebuffer : bool
-        If True, enable data buffering for improved performance.
     startcheck : str, optional
         Date key to use for temporal validation. Default is 'dateBegin'.
     
@@ -1410,7 +1351,6 @@ def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
     Notes
     -----
     - Optimizes I/O patterns for multiple meteorological files
-    - Sets up buffering strategies based on available memory
     - Handles temporal indexing across file boundaries
     - Critical for efficient forcing data processing
     """
@@ -1427,6 +1367,7 @@ def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
         nameall.sort()
         meteolist = {}
         startfile = 0
+        nextdate = None   # day after the end of the last file used
 
         for filename in nameall:
 
@@ -1451,18 +1392,10 @@ def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
             except:
                 history = ""
             addtoversiondate(filename,history)
-            datestart = num2date(int(round(nctime[:][0],0)), units=nctime.units,calendar=nctime.calendar)
-
-            # sometime daily records have a strange hour to start with -> it is changed to 0:00 to have the same record
-            datestart = datestart.replace(hour=0, minute=0)
-            datestartint = int(round(nctime[0].data.tolist(),0)) // datediv
-            datelen= len(nctime[:])
+            # round down: a daily record stamped e.g. at 12:00 (x.5) belongs to day x (1e-6: float noise of x.9999999)
+            datestartint = int(math.floor(nctime[0].data.tolist() + 1e-6)) // datediv
+            datelen= len(nctime)
             dateendint = datestartint + datelen - 1
-            dateend = num2date(dateendint, units=nctime.units, calendar=nctime.calendar)
-            #dateend = num2date(int(round(nctime[:][-1],0)), units=nctime.units, calendar=nctime.calendar)
-            #dateendint = int(round(nctime[:][-1].data.tolist(),0)) // datediv
-
-            dateend = dateend.replace(hour=0, minute=0)
             #if dateVar['leapYear'] > 0:
             startint = int(date2num(dateVar[startcheck],nctime.units,calendar=nctime.calendar))
             start = num2date(startint, units=nctime.units, calendar=nctime.calendar)
@@ -1476,12 +1409,9 @@ def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
             value = getvariablename(nf1)
 
             # check if mask = map size -> if yes do not cut the map
-            cutcheckmask = maskinfo['shape'][0] * maskinfo['shape'][1]
             shapey = nf1.variables[value].shape[1]
             shapex = nf1.variables[value].shape[2]
-            cutcheckmap = shapey * shapex
-            cutcheck = True
-            if cutcheckmask == cutcheckmap: cutcheck = False
+            cutcheck = (shapey, shapex) != tuple(maskinfo['shape'])
 
             # check if it is x or X
             yy = maskmapAttr['coordy']
@@ -1495,80 +1425,44 @@ def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
             if (nf1.variables[yy][0] - nf1.variables[yy][-1]) < 0:
                 turn_latitude = True
 
-            # calculate buffer
-            if not(usebuffer):
-                buffer = [0,0,0,0]
-            else:
-                buffer = 1
-                #          buffer1
-                #         ---------
-                # buffer3¦        ¦ buffer4
-                #        ¦        ¦
-                #         ---------
-                #          buffer2
-                buffer4, buffer2 = [1,1]
-                #if the input map should be used until the last column there is no buffer
-                if shapex == cutmapFine[1]:
-                    buffer4 = 0
-                # if the input map should be used at the last row there is no buffer
-                if shapey == cutmapFine[3]:
-                    buffer2 = 0
-                # if the input map should be used at the first row or column there is no buffer
-                if (cutmapFine[2] == 0) and (cutmapFine[0] == 0):
-                     buffer1 = 0
-                     buffer3 = 0
-                # if the input map should be used at the first row there is no buffer
-                elif cutmapFine[2] == 0:
-                    buffer1 = 0
-                    buffer3 = -1
-                # if the input map should be used at the first column there is no buffer
-                elif cutmapFine[0] == 0:
-                    buffer1 = -1
-                    buffer3 = 0
-                else:
-                    buffer1 = -1
-                    buffer3 = -1
-                buffer = [buffer1,buffer2,buffer3,buffer4]
-
-
             if startfile == 0:  # search first file where dynamic run starts
                 if (dateendint >= startint): # if enddate of a file is bigger than the start of run
                     # and (datestartint <= startint):  # remove thiis, because glacier maps could start latter, than the day of the year of first year is  use
                     startfile = 1
-                    #indstart = (start - datestart).days
                     indstart = startint - datestartint
 
-                    #indend = (dateend -datestart).days
                     indend = dateendint - datestartint
 
-                    # value varname of netcdf as index: 5
-                    # cutmap as index 6
-                    # name of y or latitude: 7
-                    # if map is turned )North is down): 8
-                    # buffer atound the map for interpolation: 9
-                    # shapey, shapex : shape y and y of total map  10, 11
-                    # Number - no of meteofile  12
-                    meteolist[startfile-1] = [filename,indstart,indend, start,dateend,value,cutcheck,yy,turn_latitude, buffer, shapey, shapex,no]
+                    # value varname of netcdf as index: 4
+                    # cutmap as index 5
+                    # name of y or latitude: 6
+                    # if map is turned )North is down): 7
+                    # shapey, shapex : shape y and y of total map  8, 9
+                    # Number - no of meteofile  10
+                    meteolist[startfile-1] = [filename,indstart,indend, start,value,cutcheck,yy,turn_latitude, shapey, shapex,no]
                     inputcounter[maps] = indstart  # startindex of timestep 1
                     startint = dateendint + 1
                     start = num2date(startint * datediv, units=nctime.units, calendar=nctime.calendar)
+                    nextdate = start
                     no += 1
 
                     # counter is set to a minus value - for some maps (e.g. glacier) if the counter is negativ
                     # the doy of a year of first year is loaded -> to use runs  before glacier maps are calculated
             else:
-                if (datestartint >= startint) and (datestartint < endint ):
+                if (datestartint >= startint) and (datestartint <= endint):
+                    # this file has to start on the day after the previous file ended
+                    missing = datestartint - int(date2num(nextdate, nctime.units, calendar=nctime.calendar)) // datediv
+                    if missing > 0:
+                        msg = "Error 228: " + str(missing) + " days are missing in the map stack before: " + filename + "\n"
+                        raise CWATMFileError(filename, msg, sname=maps)
                     startfile += 1
                     indstart = startint - datestartint
                     indend = dateendint - datestartint
-                    #meteolist[startfile - 1] = [filename, indstart,indend, start, dateend,value,cutcheck,yy,turn_latitude, buffer, shapey, shapex,no,
-                    #                            AsyncReader(filename,value)]
-                    meteolist[startfile - 1] = [filename, indstart,indend, start, dateend,value,cutcheck,yy,turn_latitude, buffer, shapey, shapex,no]
+                    meteolist[startfile - 1] = [filename, indstart,indend, start,value,cutcheck,yy,turn_latitude, shapey, shapex,no]
 
-                    #start = dateend + datetime.timedelta(days=1)
-                    #start = start.replace(hour=0, minute=0)
                     startint = dateendint + 1
                     start = num2date(startint * datediv, units=nctime.units, calendar=nctime.calendar)
+                    nextdate = start
                     no += 1
 
             # --- End Netcdf -------------
@@ -1576,6 +1470,78 @@ def multinetdf(meteomaps, usebuffer,startcheck = 'dateBegin'):
         flagmeteo[maps] = 0
 
     return
+
+def readDischargeFiles(name, disall, nodays):
+    """
+    Read all days of a stack of netCDF discharge files (environmental flow) into an array.
+
+    Parameters
+    ----------
+    name : str
+        Key of meteofiles: files in time order, as from multinetdf (0: file, 1: index of the first day,
+        5: the map has to be cut, 7: the latitude has to be turned).
+    disall : numpy.ndarray
+        Array [days, cells]; the first nodays rows are filled, missing values are NaN.
+    nodays : int
+        Number of days to read.
+
+    Returns
+    -------
+    str
+        Name of the last file read.
+    """
+
+    row = 0
+    filename = ""
+    for key in sorted(meteofiles[name]):
+        info = meteofiles[name][key]
+        filename = os.path.normpath(info[0])
+        # only the first file can start before the period, the next ones are used from their first day
+        indstart = info[1] if key == 0 else 0
+        cut = info[5]
+        turn_latitude = info[7]
+
+        if indstart < 0:
+            msg = "Error 166: Discharge file starts " + str(-indstart) + " days after the start of the period"
+            msg += " (SpinUp or StepStart)\n"
+            raise CWATMFileError(filename, msg, sname=name)
+
+        try:
+            nf1 = ncopen(filename)   # closes the file first if it is an output file of this run
+        except Exception:
+            msg = "Error 219: Netcdf map stacks: \n"
+            raise CWATMFileError(filename, msg, sname=name)
+
+        var = nf1.variables[getvariablename(nf1)]
+        loc = [cutmap[2], cutmap[3], cutmap[0], cutmap[1]] if cut else [0, var.shape[1], 0, var.shape[2]]
+        setmeteochunkcache(var, loc)
+
+        for i in range(indstart, indstart + min(var.shape[0] - indstart, nodays - row)):
+            if turn_latitude:
+                # south is up in the file: first turn it, then cut
+                mapnp = np.flipud(var[i])
+                if cut:
+                    mapnp = mapnp[loc[0]:loc[1], loc[2]:loc[3]]
+            else:
+                mapnp = var[i, loc[0]:loc[1], loc[2]:loc[3]]
+
+            if mapnp.shape != tuple(maskinfo['shape']):
+                msg = "Error 169: Discharge map has the size " + str(var.shape[1:])
+                if cut:
+                    msg += ", cut to " + str(mapnp.shape)
+                msg += ", the mask map has " + str(tuple(maskinfo['shape'])) + "\n"
+                raise CWATMFileError(filename, msg, sname=name)
+
+            disall[row, :] = compressArray(mapnp, zeros=np.nan)
+            row += 1
+
+        ncclose(filename)
+
+    if row < nodays:
+        msg = "Error 166: Discharge files have only " + str(row) + " of the " + str(nodays) + " days needed\n"
+        raise CWATMFileError(filename, msg, sname=name)
+    return filename
+
 
 def setmeteochunkcache(ncvar, loc, maxcache=1024 * 1024 * 1024):
     """
@@ -1619,14 +1585,14 @@ def closemeteofile(name):
         ncclose(handle[2])   # handle = [Dataset, file number, filename] - shared with caching.ncopen
 
 def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale=True,
-                  buffering=False, extendback=False, glacier=False):
+                  extendback=False, glacier=False):
     """
     Read meteorological forcing data for specific time steps.
     
     Primary function for loading time-varying meteorological data during
     model execution. Handles temporal indexing, data extraction, scaling,
     and format conversion for various meteorological variables. Supports
-    efficient buffering and caching strategies for improved performance.
+    efficient caching for improved performance.
     
     Parameters
     ----------
@@ -1642,8 +1608,6 @@ def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale
         Value to use when addZeros=True. Default is 0.0.
     mapsscale : bool, optional
         If True, apply scaling factors and offsets. Default is True.
-    buffering : bool, optional
-        If True, use buffered reading for performance. Default is False.
     extendback : bool, optional
         If True, extend data backward in time if needed. Default is False.
     
@@ -1657,7 +1621,7 @@ def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale
     -----
     - Handles various temporal conventions and calendars
     - Supports data scaling and unit conversions
-    - Implements efficient caching and buffering
+    - Implements efficient caching
     - Critical for model forcing data integration
     - Manages memory usage during long simulations
     """
@@ -1684,18 +1648,15 @@ def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale
 
     warnings.filterwarnings("ignore")
     if value == "None":
-        value = meteofiles[name][flagmeteo[name]][5]
-    cutcheck = meteofiles[name][flagmeteo[name]][6]
-    yy = meteofiles[name][flagmeteo[name]][7]
-    turn_latitude = meteofiles[name][flagmeteo[name]][8]
+        value = meteofiles[name][flagmeteo[name]][4]
+    cutcheck = meteofiles[name][flagmeteo[name]][5]
+    yy = meteofiles[name][flagmeteo[name]][6]
+    turn_latitude = meteofiles[name][flagmeteo[name]][7]
 
     if cutcheck:
         loc = [cutmapFine[2],cutmapFine[3],cutmapFine[0], cutmapFine[1]]
-        if buffering:
-            buffer = meteofiles[name][flagmeteo[name]][9]
-            loc = loc + buffer
     else:
-        loc = [0,meteofiles[name][flagmeteo[name]][10], 0, meteofiles[name][flagmeteo[name]][11]]
+        loc = [0,meteofiles[name][flagmeteo[name]][8], 0, meteofiles[name][flagmeteo[name]][9]]
 
         if glacier:
             loc = maskmapAttr['cut']
@@ -1725,12 +1686,9 @@ def readmeteodata(name, date, value='None', addZeros=False, zeros=0.0, mapsscale
 
     if turn_latitude:
         mapnp = np.flipud(mapnp)
-    try:
-        mapnp.mask.all()
-        mapnp = mapnp.data
-        mapnp[mapnp>1e15] = np.nan
-    except:
-        ii =1
+    # missing values of the file become NaN
+    mapnp = np.ma.filled(mapnp, np.nan)
+    mapnp[mapnp>1e15] = np.nan
 
 
     # add zero values to maps in order to supress missing values
@@ -1885,35 +1843,31 @@ def readnetcdf2(namebinding, date, useDaily='daily', value='None', addZeros=Fals
 
     #checkif latitude is reversed
     turn_latitude = False
-    try:
-        if (nf1.variables['lat'][0] - nf1.variables['lat'][-1]) < 0:
-           turn_latitude = True
-           mapnp = nf1.variables[value][idx].astype(np.float64)
-           mapnp = np.flipud(mapnp)
-    except:
-       ii = 1
+    for yy in ('lat', 'y', 'Y'):
+        if yy in nf1.variables and nf1.variables[yy].ndim == 1:
+            if (nf1.variables[yy][0] - nf1.variables[yy][-1]) < 0:
+                turn_latitude = True
+                mapnp = nf1.variables[value][idx].astype(np.float64)
+                mapnp = np.flipud(mapnp)
+            break
     if 'Glacier' in namebinding:
-        cutcheckmask = maskinfo['shape'][0] * maskinfo['shape'][1]
-        cutcheckmap = nf1.variables[value].shape[1] * nf1.variables[value].shape[2]
-        cut = True
-        if cutcheckmask == cutcheckmap: cut = False
+        cut = tuple(nf1.variables[value].shape[1:3]) != tuple(maskinfo['shape'])
 
     if cut:
+        # the cut of this file only: the global cutmap is used by the other maps
+        cuts = cutmap
         if 'maps_cut_individually' in option:
             if checkOption('maps_cut_individually'):
-                cutmap[0], cutmap[1], cutmap[2], cutmap[3] = mapattrNetCDF(name)
+                cuts = mapattrNetCDF(name)
         if turn_latitude:
-            mapnp = mapnp[cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]]
+            mapnp = mapnp[cuts[2]:cuts[3], cuts[0]:cuts[1]]
         else:
-            mapnp = nf1.variables[value][idx, cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
+            mapnp = nf1.variables[value][idx, cuts[2]:cuts[3], cuts[0]:cuts[1]].astype(np.float64)
     else:
         if not(turn_latitude):
             mapnp = nf1.variables[value][idx].astype(np.float64)
-    try:
-        mapnp.mask.all()
-        mapnp = mapnp.data
-    except:
-        ii =1
+    # missing values of the file get the value of zeros; compress=False: the caller (downscaling) gets the file's values
+    mapnp = np.ma.filled(mapnp, zeros) if compress else np.ma.getdata(mapnp)
 
     # add zero values to maps in order to supress missing values
     if addZeros: mapnp[np.isnan(mapnp)] = zeros
@@ -1970,11 +1924,13 @@ def readnetcdfWithoutTime(name, value="None", counter=0):
     if value == "None":
         value = getvariablename(nf1)
 
-    '''
-    if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
-        msg = "Error 111: Latitude is in wrong order\n"
-        raise CWATMFileError(filename, msg)
-    '''
+    # south to north would load the map upside down (the name of y can differ from the mask map)
+    for yy in (maskmapAttr['coordy'], 'lat', 'latitude', 'y', 'Y'):
+        if yy in nf1.variables:
+            if (nf1.variables[yy][0] - nf1.variables[yy][-1]) < 0:
+                msg = "Error 111: Latitude is in wrong order\n"
+                raise CWATMFileError(filename, msg)
+            break
 
     mapnp = nf1.variables[value][cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
     # store date
@@ -2034,6 +1990,13 @@ def readnetcdf12month(name, month,value="None"):
 
     mapnp = nf1.variables[value][month,cutmap[2]:cutmap[3], cutmap[0]:cutmap[1]].astype(np.float64)
 
+    # store date (addtoversiondate: each file only once)
+    try:
+        history = nf1.getncattr('history')
+    except:
+        history = ""
+    addtoversiondate(filename, history)
+
     mapC = compressArray(mapnp, name=filename)
     if Flags['check']:
         checkmap(value, filename, mapnp)
@@ -2072,8 +2035,6 @@ def readnetcdfInitial(name, value, default=0.0, warn=True):
     - Used for hydrological state variables and storage initialization
     """
 
-    if value == "storGroundwater":
-        ii = 1
     filename =  os.path.normpath(name)
     try:
        nf1 = ncopen(filename)   # init file is opened only once for all initial variables
@@ -2089,7 +2050,7 @@ def readnetcdfInitial(name, value, default=0.0, warn=True):
                 maskmapAttr['coordx'] = 'x'
                 maskmapAttr['coordy'] = 'y'
             
-            cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check=False)
+            cut0, cut1, cut2, cut3 = mapattrNetCDF(filename)
 
             if (nf1.variables[maskmapAttr['coordy']][0] - nf1.variables[maskmapAttr['coordy']][-1]) < 0:
                 msg = "Error 112: Latitude is in wrong order\n"
@@ -2110,7 +2071,6 @@ def readnetcdfInitial(name, value, default=0.0, warn=True):
             mapC = compressArray(mapnp, name=filename)
             if Flags['check']:
                 checkmap(value, filename, mapnp)
-            a = globals.inZero
             if mapC.shape != globals.inZero.shape:
                 msg = "Error 113: map shape is different than mask shape\n"
                 raise CWATMError(msg)
@@ -2135,9 +2095,73 @@ def readnetcdfInitial(name, value, default=0.0, warn=True):
 
 def initialIncluded(name, value):
     """True if the variable value is in the initial condition file name (file opened once, see ncopen)"""
-    return value in ncopen(os.path.normpath(name)).variables
+    filename = os.path.normpath(name)
+    try:
+        nf1 = ncopen(filename)
+    except:
+        msg = "Error 214: Netcdf Initial file: \n"
+        raise CWATMFileError(filename,msg)
+    return value in nf1.variables
 
 # --------------------------------------------------------------------------------------------
+
+def ncgrid(nf1, row, col, axis=True, lonlat_fill=None):
+    """
+    Create and fill the x and y coordinates of a new netCDF file and copy the crs variable.
+
+    Name and attributes of the coordinates come from the precipitation maps (metaNetCDF).
+
+    Parameters
+    ----------
+    nf1 : netCDF4.Dataset
+        New file, open for writing.
+    row, col : int
+        Number of rows and columns.
+    axis : bool, optional
+        True: coordinates get the attribute axis. Default is True.
+    lonlat_fill : float, optional
+        Fill value of lon and lat. Default is None.
+
+    Returns
+    -------
+    tuple
+        Names of the dimensions for a map: ('y', 'x') or ('lat', 'lon').
+    """
+    # SHMI meteorogist have a capital X and Y
+    fields = [('x', 'x', col, 'X', None), ('y', 'y', row, 'Y', None), ('X', 'x', col, 'X', None), ('Y', 'y', row, 'Y', None)]
+    latlon = not ('x' in metadataNCDF or 'X' in metadataNCDF)
+    if latlon:
+        fields += [('lon', 'lon', col, 'X', lonlat_fill), ('lat', 'lat', row, 'Y', lonlat_fill)]
+
+    coord = {}
+    for key, dim, size, axisname, fill in fields:
+        if key in metadataNCDF:
+            nf1.createDimension(dim, size)
+            coord[axisname] = nf1.createVariable(dim, 'f8', (dim,), fill_value=fill)
+            for i in metadataNCDF[key]:
+                setattr(coord[axisname], i, str(metadataNCDF[key][i]))
+            if axis:
+                coord[axisname].axis = axisname
+
+    # projection -> replace by crs  as in cf1.13
+    if projection['crs'] != None:
+        crs = nf1.createVariable('crs', 'i4',())
+        for key in projection['crs'].ncattrs():
+            setattr(crs, key, projection['crs'].getncattr(key))
+
+    cell = maskmapAttr['cell']
+    xl = maskmapAttr['x']
+    xr = xl + col * cell
+    yu = maskmapAttr['y']
+    yd = yu - row * cell
+    lats = np.linspace(yu, yd, row, endpoint=False)
+    lons = np.linspace(xl, xr, col, endpoint=False)
+
+    coord['Y'][:] = lats - cell / 2.0
+    coord['X'][:] = lons + cell /2.0
+
+    return ('lat', 'lon') if latlon else ('y', 'x')
+
 
 def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt, flag, flagTime, 
                 nrdays=None, dateunit="days"):
@@ -2243,7 +2267,7 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
 
 
         except:
-            ii =1
+            pass
 
 
         # put the additional genaral meta data information from the xml file into the netcdf file
@@ -2256,73 +2280,11 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
 
 
 
-        # Dimension (ModFlow grid: dimensions, coordinates and crs in data_modflow.py)
+        # Dimension, coordinates and crs (ModFlow grid: in data_modflow.py)
         if modflow:
             modflow_netcdf_grid(nf1, domain)
-
         else:
-
-            latlon = True
-            if 'x' in list(metadataNCDF.keys()):
-                lon = nf1.createDimension('x', col)  # x 1000
-                longitude = nf1.createVariable('x', 'f8', ('x',))
-                latlon = False
-                for i in metadataNCDF['x']:
-                    setattr(longitude, i, str(metadataNCDF['x'][i]))
-                longitude.axis = "X"
-            if 'y' in list(metadataNCDF.keys()):
-                lat = nf1.createDimension('y', row)  # x 950
-                latitude = nf1.createVariable('y', 'f8', 'y')
-                for i in metadataNCDF['y']:
-                    setattr(latitude, i, str(metadataNCDF['y'][i]))
-                latitude.axis = "Y"
-            # SHMI meteorogist have a capital X and Y
-            if 'X' in list(metadataNCDF.keys()):
-                lon = nf1.createDimension('x', col)  # x 1000
-                longitude = nf1.createVariable('x', 'f8', ('x',))
-                latlon = False
-                for i in metadataNCDF['X']:
-                    setattr(longitude, i, str(metadataNCDF['X'][i]))
-                longitude.axis = "X"
-            if 'Y' in list(metadataNCDF.keys()):
-                lat = nf1.createDimension('y', row)  # x 950
-                latitude = nf1.createVariable('y', 'f8', 'y')
-                for i in metadataNCDF['Y']:
-                    setattr(latitude, i, str(metadataNCDF['Y'][i]))
-                latitude.axis = "Y"
-            if latlon:
-                if 'lon' in list(metadataNCDF.keys()):
-                    lon = nf1.createDimension('lon', col)
-                    longitude = nf1.createVariable('lon', 'f8', ('lon',))
-                    for i in metadataNCDF['lon']:
-                        setattr(longitude, i, str(metadataNCDF['lon'][i]))
-                    longitude.axis = "X"
-                if 'lat' in list(metadataNCDF.keys()):
-                    lat = nf1.createDimension('lat', row)  # x 950
-                    latitude = nf1.createVariable('lat', 'f8', 'lat')
-                    for i in metadataNCDF['lat']:
-                        setattr(latitude, i, str(metadataNCDF['lat'][i]))
-                    latitude.axis = "Y"
-
-        # projection -> replace by crs  as in cf1.13 (ModFlow grid: set in modflow_netcdf_grid)
-
-        if not modflow and projection['crs'] != None:
-            crs = nf1.createVariable('crs', 'i4',())
-            for key in projection['crs'].ncattrs():
-                setattr(crs, key, projection['crs'].getncattr(key))
-
-        # Fill variables (ModFlow grid: filled in modflow_netcdf_grid)
-        if not modflow:
-            cell = maskmapAttr['cell']
-            xl = maskmapAttr['x']
-            xr = xl + col * cell
-            yu = maskmapAttr['y']
-            yd = yu - row * cell
-            lats = np.linspace(yu, yd, row, endpoint=False)
-            lons = np.linspace(xl, xr, col, endpoint=False)
-
-            latitude[:] = lats - cell / 2.0
-            longitude[:] = lons + cell /2.0
+            griddims = ncgrid(nf1, row, col)
 
         if flagTime:
 
@@ -2347,33 +2309,12 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
             if modflow:
                 value = modflow_netcdf_variable(nf1, varname, flagTime, domain)
             else:
-                latlon = True
-                if 'x' in list(metadataNCDF.keys()):
-                    latlon = False
-                    value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True, fill_value=1e20,
-                                               chunksizes=(1, row, col))
-                if 'X' in list(metadataNCDF.keys()):
-                    latlon = False
-                    value = nf1.createVariable(varname, 'f4', ('time', 'y', 'x'), zlib=True, fill_value=1e20,
-                                               chunksizes=(1, row, col))
-                if latlon:
-                    if 'lon' in list(metadataNCDF.keys()):
-                        value = nf1.createVariable(varname, 'f4', ('time', 'lat', 'lon'), zlib=True, fill_value=1e20,chunksizes=(1,row,col))
+                value = nf1.createVariable(varname, 'f4', ('time',) + griddims, zlib=True, fill_value=1e20, chunksizes=(1, row, col))
         else:
           if modflow:
               value = modflow_netcdf_variable(nf1, varname, flagTime, domain)
           else:
-              latlon = True
-              if 'x' in list(metadataNCDF.keys()):
-                  latlon = False
-                  value = nf1.createVariable(varname, 'f4', ('y', 'x'), zlib=True,fill_value=1e20)
-              if 'X' in list(metadataNCDF.keys()):
-                  latlon = False
-                  value = nf1.createVariable(varname, 'f4', ('y', 'x'), zlib=True,fill_value=1e20)
-              if latlon:
-                  if 'lon' in list(metadataNCDF.keys()):
-                      # for world lat/lon coordinates
-                      value = nf1.createVariable(varname, 'f4', ('lat', 'lon'), zlib=True, fill_value=1e20)
+              value = nf1.createVariable(varname, 'f4', griddims, zlib=True,fill_value=1e20)
 
         ## remove as in cf1.13 standard name is defined in a list
         ###value.standard_name = getmeta("standard_name",prename,varname)
@@ -2416,14 +2357,11 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
         mapnp = inputmap
     else:
         mapnp[~maskinfo['maskflat']] = inputmap[:]
-        #mapnp = mapnp.reshape(maskinfo['shape']).data
         mapnp = mapnp.reshape(maskinfo['shape'])
 
         if coverresult[0]:
-            mapnp = mapnp.reshape(maskinfo['shape']).data
-            mapnp = np.where(coverresult[1], mapnp, np.nan)
-        else:
-            mapnp = mapnp.reshape(maskinfo['shape'])
+            # cells outside the mask have no value: NaN, also where cover = 1
+            mapnp = np.where(coverresult[1], np.ma.filled(mapnp, np.nan), np.nan)
 
     if flagTime:
         nf1.variables[varname][posCnt -1, :, :] = mapnp
@@ -2486,7 +2424,7 @@ def writeIniNetcdf(netfile,varlist, inputlist):
     nf1.institution = cbinding ("institution")
     nf1.title = cbinding ("title")
     nf1.source = 'CWATM initial conditions maps'
-    nf1.Conventions = 'CF-1.6'
+    nf1.Conventions = 'CF-1.13'
 
     # put the additional genaral meta data information from the xml file into the netcdf file
     # infomation from the settingsfile comes first
@@ -2498,91 +2436,25 @@ def writeIniNetcdf(netfile,varlist, inputlist):
                    nf1.__setattr__(key, metaNetcdfVar["initcondition"][key])
 
 
-    # Dimension
-    latlon = True
-    if 'x' in list(metadataNCDF.keys()):
-        latlon = False
-        lon = nf1.createDimension('x', col)  # x 1000
-        longitude = nf1.createVariable('x', 'f8', ('x',))
-        for i in metadataNCDF['x']:
-            setattr(longitude, i, str(metadataNCDF['x'][i]))
-    if 'y' in list(metadataNCDF.keys()):
-        lat = nf1.createDimension('y', row)  # x 950
-        latitude = nf1.createVariable('y', 'f8', 'y')
-        for i in metadataNCDF['y']:
-            setattr(latitude, i, str(metadataNCDF['y'][i]))
-    if 'X' in list(metadataNCDF.keys()):
-        latlon = False
-        lon = nf1.createDimension('x', col)  # x 1000
-        longitude = nf1.createVariable('x', 'f8', ('x',))
-        for i in metadataNCDF['X']:
-            setattr(longitude, i, str(metadataNCDF['X'][i]))
-    if 'Y' in list(metadataNCDF.keys()):
-        lat = nf1.createDimension('y', row)  # x 950
-        latitude = nf1.createVariable('y', 'f8', 'y')
-        for i in metadataNCDF['Y']:
-            setattr(latitude, i, str(metadataNCDF['Y'][i]))
-    if latlon:
-        if 'lon' in list(metadataNCDF.keys()):
-            lon = nf1.createDimension('lon', col)
-            longitude = nf1.createVariable('lon', 'f8', ('lon',), fill_value=1e20)
-            for i in metadataNCDF['lon']:
-                setattr(longitude, i, str(metadataNCDF['lon'][i]))
-        if 'lat' in list(metadataNCDF.keys()):
-            lat = nf1.createDimension('lat', row)  # x 950
-            latitude = nf1.createVariable('lat', 'f8', 'lat', fill_value=1e20)
-            for i in metadataNCDF['lat']:
-                setattr(latitude, i, str(metadataNCDF['lat'][i]))
-
-    # projection
-    if 'laea' in list(metadataNCDF.keys()):
-        proj = nf1.createVariable('laea', 'i4')
-        for i in metadataNCDF['laea']:
-            setattr(proj, i, str(metadataNCDF['laea'][i]))
-    if 'lambert_azimuthal_equal_area' in list(metadataNCDF.keys()):
-        proj = nf1.createVariable('lambert_azimuthal_equal_area', 'i4')
-        for i in metadataNCDF['lambert_azimuthal_equal_area']:
-            setattr(proj, i, str(metadataNCDF['lambert_azimuthal_equal_area'][i]))
-
-    # Fill variables
-    cell = maskmapAttr['cell']
-    xl = maskmapAttr['x']
-    xr = xl + col * cell
-    yu = maskmapAttr['y']
-    yd = yu - row * cell
-    lats = np.linspace(yu, yd, row, endpoint=False)
-    lons = np.linspace(xl, xr, col, endpoint=False)
-
-    latitude[:] = lats - cell / 2.0
-    longitude[:] = lons + cell /2.0
-
+    # Dimension, coordinates and crs
+    griddims = ncgrid(nf1, row, col, axis=False, lonlat_fill=1e20)
 
     i = 0
     for varname in varlist:
         dtype_str = np.asarray(inputlist[i][0]).dtype.name
         type_args = {'float64':'f8', 'float32':'f4'}
-        latlon = True
-        if 'x' in list(metadataNCDF.keys()):
-            latlon = False
-            #value = nf1.createVariable(varname, 'f8', ('y', 'x'), zlib=True,fill_value=1e20)
-            value = nf1.createVariable(varname, type_args[dtype_str], ('y', 'x'), zlib=True,fill_value=1e20)
-        if 'X' in list(metadataNCDF.keys()):
-            latlon = False
-            value = nf1.createVariable(varname, type_args[dtype_str], ('y', 'x'), zlib=True, fill_value=1e20)
-        if latlon:
-            if 'lon' in list(metadataNCDF.keys()):
-                # for world lat/lon coordinates
-                value = nf1.createVariable(varname, type_args[dtype_str], ('lat', 'lon'), zlib=True, fill_value=1e20)
+        value = nf1.createVariable(varname, type_args[dtype_str], griddims, zlib=True, fill_value=1e20)
 
-        value.standard_name= getmeta("standard_name",varname,varname)
+        ## as in writenetcdf: in cf1.13 standard name is defined in a list
         value.long_name= getmeta("long_name",varname,varname)
         value.units= getmeta("unit",varname,"undefined")
+        if projection['crs'] != None:
+            value.grid_mapping = "crs"
 
         # write values
         mapnp = maskinfo['maskall'].copy()
         help = np.minimum(10e15,np.maximum(-9999., inputlist[i][:]))
         mapnp[~maskinfo['maskflat']] = help
-        #mapnp = mapnp.reshape(maskinfo['shape']).data
         mapnp = mapnp.reshape(maskinfo['shape'])
 
         nf1.variables[varname][:, :] = mapnp
@@ -2593,88 +2465,50 @@ def writeIniNetcdf(netfile,varlist, inputlist):
     nf1.close()
 
 # --------------------------------------------------------------------------------------------
-# report .tif and .maps
+# report .tif
 
 def report(valueIn,name,compr=True):
     """
-    Generate standardized output reports for model variables.
-    
-    Universal reporting function that handles output formatting,
-    spatial decompression, and file writing for various CWatM outputs.
-    Supports multiple output formats and handles the conversion between
-    internal compressed format and standard output formats.
-    
+    Write a map as GeoTIFF.
+
     Parameters
     ----------
     valueIn : numpy.ndarray
-        Input data to report (typically 1D compressed format).
+        Map: 1D compressed (compr=True) or 2D (compr=False). An integer map is written as int32, others keep their type.
     name : str
-        Variable name for output identification.
+        Name of the file. It always gets the ending .tif.
     compr : bool, optional
         If True, input data is in compressed format. Default is True.
-    
+
     Returns
     -------
     None
-        Generates output files according to configuration settings.
-    
-    Notes
-    -----
-    - Handles various output formats (NetCDF, GeoTIFF, text)
-    - Manages spatial decompression and coordinate information
-    - Supports temporal aggregation and statistical reporting
-    - Central function for all model output generation
     """
 
-    filename = os.path.splitext(name)
-    pcmap = False
-    if filename[1] == ".map":   pcmap = True
+    name = os.path.splitext(name)[0] + ".tif"
+    nodata = -9999
 
-    if compr:
-        value = decompress(valueIn)
-    else:
-        value = valueIn
-    value = value.data
+    value = decompress(valueIn) if compr else valueIn
+    # decompress gives float64 also for integer maps
+    checkint = np.asarray(valueIn).dtype.char in np.typecodes['AllInteger']
+    value = np.ma.filled(value, nodata)
+    if checkint:
+        value = value.astype(np.int32)
 
-    checkint = value.dtype.char in np.typecodes['AllInteger']
     ny, nx = value.shape
-    #geo = (maskmapAttr['x'], maskmapAttr['cell'], 0.0, maskmapAttr['y'], 0.0, -maskmapAttr['cell'])
-    #           0                 1          2          3     4                      5
-    geo = (maskmapAttr['cell'], 0.0, maskmapAttr['x'], 0.0, -maskmapAttr['cell'], maskmapAttr['y'] )
+    geo = (maskmapAttr['cell'], 0.0, maskmapAttr['x'], 0.0, -maskmapAttr['cell'], maskmapAttr['y'])
 
-    # gdal -> rasterio  0->2 3->5, 1->0
-    # setmaskmapAttr(geotransform[2], geotransform[5], nf2.shape[1], nf2.shape[0], geotransform[0])
-    #             0          1      2    3        4             5
-    #Affine(0.0166666666667, 0.0, 15.0, 0.0, -0.0166666666667, 50.5)
+    # projection from the settings, otherwise lat/lon if the coordinates can be lat/lon
+    crsvar = projection.get('crs')
+    crs = getattr(crsvar, 'crs_wkt', getattr(crsvar, 'spatial_ref', None))
+    if crs is None and abs(maskmapAttr['x']) <= 360 and abs(maskmapAttr['y']) <= 90:
+        crs = "+proj=latlong"
 
-    # gdal
-    # setmaskmapAttr( geotransform[0], geotransform[3], nf2.RasterXSize, nf2.RasterYSize, geotransform[1])
-    #  0           1            2   3       4        5
-    # (15.0, 0.0166666666667, 0.0, 50.5, 0.0, -0.0166666666667)
-
-    if pcmap:
-        # if it is a map
-        #raster = gdal.GetDriverByName('PCRaster')
-        if checkint:
-            value = value.astype(np.int32)
-            #ds = raster.Create(name, nx, ny, 1, gdal.GDT_Int32, ["PCRASTER_VALUESCALE=VS_NOMINAL"])
-
-        else:
-            value = value.astype(np.float32)
-            #ds = raster.Create(name, nx, ny, 1, gdal.GDT_Float32, ["PCRASTER_VALUESCALE=VS_SCALAR"])
-
-        with rasterio.open(name,
-            mode="w", driver="PCRaster", height=ny, width=nx, count=1,
-            dtype=value.dtype, crs="+proj=latlong",  transform=geo,
-        ) as new_dataset:
-            new_dataset.write(value, 1)
-
-    else: # if is not a .map
-        with rasterio.open(name,
-            mode="w", driver="GTiff", height=ny, width=nx, count=1,
-            dtype=value.dtype, crs="+proj=latlong",  transform=geo,
-        ) as new_dataset:
-            new_dataset.write(value, 1)
+    with rasterio.open(name,
+        mode="w", driver="GTiff", height=ny, width=nx, count=1,
+        dtype=value.dtype, crs=crs, transform=geo, nodata=nodata,
+    ) as new_dataset:
+        new_dataset.write(value, 1)
 
 # --------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------
@@ -2756,19 +2590,17 @@ def checkOption(inBinding,checkfirst = False):
         close = difflib.get_close_matches(inBinding, list(option.keys()))
         if close:
             closest = close[0]
-            with open(settingsfile[0]) as f:
+            with open(settingsfile[0], encoding='utf-8', errors='replace') as f:
                 i = 0
                 for line in f:
                     i +=1
                     if closest in line:
                         lineclosest = "Line No. " + str(i) + ": "+ line
-
-            if not closest: closest = ["- no match -"]
         else:
             closest = "- no match -"
 
         msg = "Error 136: No key with the name: \"" + inBinding + "\" in the settings file: \"" + settingsfile[0] + "\"\n"
-        msg += "Closest key to the required one is: \""+ closest + "\""
+        msg += "Closest key to the required one is: \""+ closest + "\"\n"
         msg += lineclosest
         raise CWATMError(msg)
 
@@ -2808,14 +2640,12 @@ def cbinding(inBinding):
         if close:
             closest = close[0]
 
-            with open(settingsfile[0]) as f:
+            with open(settingsfile[0], encoding='utf-8', errors='replace') as f:
                 i = 0
                 for line in f:
                     i +=1
                     if closest in line:
                         lineclosest = "Line No. " + str(i) + ": "+ line
-
-            if not closest: closest = "- no match -"
         else:
             closest = "- no match -"
 
@@ -2857,11 +2687,14 @@ def divideValues(x,y, default = 0.):
     - Used throughout CWatM for ratio and rate calculations
     - Maintains numerical stability in model computations
     """
-    # np.array(copy=True): y can also be a scalar (e.g. a parameter given as a number in the settings)
-    y1 = np.array(y, copy=True)
-    y1[y1 == 0.] = 1.0
-    z = x / y1
-    z[y == 0.] = default
+    # y can also be a scalar (e.g. a parameter given as a number in the settings)
+    zero = y == 0.
+    # 1 and not 1.0: keeps the type of y
+    z = x / np.where(zero, 1, y)
+    # x and y both scalars: the result is a scalar
+    if np.ndim(z) == 0:
+        return default if zero else z
+    z[zero] = default
 
     #with np.errstate(invalid='ignore', divide='ignore'):
     #    z = np.where(y > 0., x/y, default)

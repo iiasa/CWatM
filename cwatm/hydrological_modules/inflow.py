@@ -11,7 +11,6 @@
 # -------------------------------------------------------------------------
 
 
-import math
 from cwatm.management_modules.data_handling import *
 
 class inflow(object):
@@ -30,23 +29,12 @@ class inflow(object):
     model : object
         Reference to the main CWatM model instance
 
-
-
-
-
-
-
-
-
-
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
-    sampleInflow                         Number        location of inflow point                                                lat/l
-    noinflowpoints                       Array         number of inflow points                                                 --   
-    inflowTs                             Array         inflow time series data                                                 m3 s-
-    totalQInM3                           Array         total inflow over time (for mass balance calculation)                   m3   
+    sampleInflow                         Dictionary    cell of each inflow point (number of the point: cell)                   --   
+    inflowTs                             Dictionary    inflow time series data per day of the run, for each point              m3 s-
     inflowM3                             Array         inflow to basin                                                         m3   
     DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
     QInM3Old                             Array         Inflow from previous day                                                m3   
@@ -71,17 +59,15 @@ class inflow(object):
         """
         Initialize inflow points and load time series data.
         
-        Reads inflow point locations from configuration files or coordinates,
-        loads time series data from multiple files, and prepares data structures
-        for dynamic inflow application during model execution.
+        Reads inflow point locations from a map or coordinates, loads the time
+        series from one or more csv files and checks them before the first day.
         
         Notes
         -----
         This method performs several key operations:
         - Identifies spatial locations for inflow application
-        - Reads and validates time series data from multiple files
-        - Merges time series data from different sources
-        - Initializes cumulative inflow tracking variables
+        - Reads and validates time series data from the csv files
+        - Stores the flow of each point per day of the run
         """
 
         def getlocOutpoints(out):
@@ -102,148 +88,165 @@ class inflow(object):
                 Dictionary mapping inflow point IDs to linear array indices
             """
 
+            # a point number in two cells: the dictionary would keep only the last cell
+            numbers, counts = np.unique(out[out > 0], return_counts=True)
+            if np.any(counts > 1):
+                number = numbers[counts > 1][0]
+                msg = "Error 163: Inflow point: " + str(number) + " is in more than one cell of: " + cbinding('InflowPoints') + "\n"
+                cellsOfMask = np.flatnonzero(~maskinfo['maskflat'])
+                for i in np.flatnonzero(out == number):
+                    row, col = np.unravel_index(cellsOfMask[i], maskinfo['shape'])
+                    x = maskmapAttr['x'] + (col + 0.5) * maskmapAttr['cell']
+                    y = maskmapAttr['y'] - (row + 0.5) * maskmapAttr['cell']
+                    msg += "x = " + str(round(float(x), 5)) + "  y = " + str(round(float(y), 5)) + "\n"
+                msg += "Each cell needs its own point number"
+                raise CWATMError(msg)
+
             sampleAdresses = {}
             for i in range(maskinfo['mapC'][0]):
                 if out[i] > 0:
                     sampleAdresses[out[i]] = i
             return sampleAdresses
 
-        def join_struct_arrays2(arrays):
-            """
-            Merge multiple structured numpy arrays into a single array.
-            
-            Combines structured arrays with potentially different field names
-            into a unified structured array containing all fields from input arrays.
-            
-            Parameters
-            ----------
-            arrays : list of numpy.ndarray
-                List of structured numpy arrays to be merged
-                
-            Returns
-            -------
-            numpy.ndarray
-                Combined structured array containing all fields from input arrays
-            """
-
-            newdtype = sum((a.dtype.descr for a in arrays), [])
-            newrecarray = np.empty(len(arrays[0]), dtype=newdtype)
-            for a in arrays:
-                for name in a.dtype.names:
-                    newrecarray[name] = a[name]
-            return newrecarray
-
-
-
         if checkOption('inflow'):
 
-            localGauges = returnBool('InLocal')
+            # the inflow is put into the channels by the routing: without routing it would not be used
+            if not checkOption('includeRouting'):
+                msg = "Error 164: inflow = True needs includeRouting = True, without routing the inflow is not used"
+                raise CWATMError(msg)
 
             where = "InflowPoints"
             inflowPointsMap = cbinding(where)
             coord = cbinding(where).split()  # could be gauges, sites, lakeSites etc.
-            if len(coord) % 2 == 0:
+            try:
+                [float(xy) for xy in coord]
+                isNumbers = len(coord) > 0
+            except ValueError:
+                isNumbers = False
+
+            inflowPointsAll = None
+            # a file first: the path of a map can have blanks
+            if os.path.exists(inflowPointsMap):
+                # not compressed first: to see the points of the map which are outside the mask
+                inflowPointsAll = loadmap(where, compress=False, local=returnBool('InLocal'), masked=True)
+                inflowPoints = compressArray(inflowPointsAll, name=inflowPointsMap).astype(np.int64)
+            elif isNumbers and len(coord) % 2 == 0:
                 inflowPoints = valuecell(coord, inflowPointsMap)
             else:
-                if os.path.exists(inflowPointsMap):
-                    inflowPoints = loadmap(where, local=localGauges).astype(np.int64)
+                if isNumbers:
+                    msg = "Error 127: Coordinates are not pairs\n"
                 else:
-                    if len(coord) == 1:
-                        msg = "Error 216: Checking output-points file\n"
-                    else:
-                        msg = "Error 127: Coordinates are not pairs\n"
-                    raise CWATMFileError(inflowPointsMap, msg, sname="Gauges")
-
+                    msg = "Error 216: Inflow points are neither coordinates nor a file\n"
+                raise CWATMFileError(inflowPointsMap, msg, sname=where)
 
             inflowPoints[inflowPoints < 0] = 0
             self.var.sampleInflow = getlocOutpoints(inflowPoints)  # for key in sorted(mydict):
-            self.var.noinflowpoints = len(self.var.sampleInflow)
+
+            # every point of the settings has to be inside the mask. Points of a map: the map can hold more points
+            # than this mask (e.g. a map for several catchments), so at least one has to be inside
+            if inflowPointsAll is None:
+                lost = [i for i in range(len(coord) // 2) if i + 1 not in self.var.sampleInflow]
+                if lost:
+                    msg = "Error 158: Inflow points outside the mask map, or in the same cell as another point:\n"
+                    for i in lost:
+                        msg += "x = " + coord[i * 2] + "  y = " + coord[i * 2 + 1] + "\n"
+                    msg += "Please have a look at \"InflowPoints\" and \"MaskMap\""
+                    raise CWATMError(msg)
+            else:
+                pointsAll = np.unique(np.ma.compressed(inflowPointsAll).astype(np.int64))
+                lost = [str(i) for i in pointsAll if i > 0 and i not in self.var.sampleInflow]
+                if not self.var.sampleInflow:
+                    msg = "Error 158: No inflow point of the map: " + inflowPointsMap + " is inside the mask map\n"
+                    msg += "Please have a look at \"InflowPoints\" and \"MaskMap\""
+                    raise CWATMError(msg)
+                if lost:
+                    msg = "Inflow points of the map: " + inflowPointsMap + " outside the mask map are not used: "
+                    print(CWATMWarning(msg + " ".join(lost)))
 
             inDir = cbinding('In_Dir')
             inflowFile = cbinding('QInTS').split()
 
-            inflowNames =[]
-            flagFirstTss = True
+            # days of this run: the inflow of each point is stored per day of the run
+            noDays = dateVar['intEnd'] - dateVar['intStart'] + 1
+            runDates = [(d.day, d.month, d.year) for d in dateVar['dates'][:noDays]]
+
+            self.var.inflowTs = {}
+            inflowFiles = {}   # file of each column, for the error messages
+            inflowNames = []
+            firstFile = None
             for name in inflowFile:
-                names =['timestep']
-                try:
+                filename = os.path.join(inDir, name)
+                names, dates, values = readInflowCsv(filename)
 
-                    filename = os.path.join(inDir,name)
-                    file = open(filename, "r")
+                for column in names:
+                    if column in inflowNames:
+                        msg = "Error 217: " + column + " in: " + filename + " is used already"
+                        raise CWATMError(msg)
+                    inflowNames.append(column)
+                    inflowFiles[column] = filename
 
-                    # read data header
-                    line = file.readline()
-                    no = int(file.readline()) - 1
-                    line = file.readline()
-                    for i in range(no):
-                        line = file.readline().strip('\n')
-                        if line in inflowNames:
-                            msg = "Error 217: " + line + " in: " + filename + " is used already"
-                            raise CWATMError(msg)
+                # all files need the same number of rows
+                if firstFile is None:
+                    firstFile = (filename, len(dates))
+                elif len(dates) != firstFile[1]:
+                    msg = "Error 162: Inflow files have a different number of rows:\n"
+                    msg += firstFile[0] + ": " + str(firstFile[1]) + "\n" + filename + ": " + str(len(dates))
+                    raise CWATMError(msg)
 
-                        inflowNames.append(line)
-                        names.append(line)
-                    file.close()
-                    skiplines = 3 + no
-                except CWATMError:
-                    # Error 217: name used already
-                    raise
-                except Exception:
-                    msg = "Error 218: Mistake reading inflow file\n"
-                    raise CWATMFileError(os.path.join(inDir, name), msg, sname="QInTS")
+                # the flow of a day is found by its date
+                rowOfDate = {date: i for i, date in enumerate(dates)}
+                missing = [date for date in runDates if date not in rowOfDate]
+                if missing:
+                    msg = "Error 161: Inflow file: " + filename + " has no value for " + str(len(missing))
+                    msg += " of the " + str(noDays) + " days of this run, first: %02d/%02d/%d\n" % missing[0]
+                    msg += "It needs daily values from StepStart to StepEnd"
+                    raise CWATMError(msg)
+                rows = [rowOfDate[date] for date in runDates]
+                for i, column in enumerate(names):
+                    self.var.inflowTs[column] = values[rows, i]
 
-                tempTssData = np.genfromtxt(filename, skip_header=skiplines, names=names, 
-                                            usecols=names[1:], filling_values=0.0)
-
-                if flagFirstTss:
-                    self.var.inflowTs = tempTssData.copy()
-                    flagFirstTss = False
-                    # copy temp data into the inflow data
-                else:
-                    self.var.inflowTs = join_struct_arrays2((self.var.inflowTs, tempTssData))
-                    # join this dataset with the ones before
-
-                # import numpy.lib.recfunctions as rfn
-                # d = rfn.merge_arrays((a,b), flatten=True, usemask=False)
-
+            # all points need a column in the files, with values which can go into the routing
+            for key in self.var.sampleInflow:
+                column = str(key)
+                if column not in self.var.inflowTs:
+                    msg = "Error 160: Inflow point: " + column + " has no column in the inflow files: " + " ".join(inflowFile)
+                    msg += "\nColumns in the files: " + " ".join(inflowNames)
+                    raise CWATMError(msg)
+                series = self.var.inflowTs[column]
+                wrong = np.flatnonzero(~np.isfinite(series) | (series < 0.) | (series >= 1e30))
+                if wrong.size > 0:
+                    msg = "Error 159: Inflow file: " + inflowFiles[column] + " point: " + column + " has " + str(wrong.size)
+                    msg += " missing or negative value(s) in this run\nFirst: " + str(series[wrong[0]])
+                    msg += " on %02d/%02d/%d" % runDates[wrong[0]]
+                    raise CWATMError(msg)
 
             # inflow of the previous day (routing_kinematic.py interpolates between it and today's inflow) - from the
             # init file for a restart, else None: the inflow of the first day (inflow.dynamic)
             self.var.QInM3Old = self.var.load_initial('QInM3Old', default=None, warn=False)
-            # Initialising cumulative output variables
-            # These are all needed to compute the cumulative mass balance error
-            self.var.totalQInM3 = globals.inZero.copy()
-
-
 
     def dynamic(self):
         """
         Apply inflow hydrographs at specified locations for current time step.
         
         Retrieves inflow values from time series data for the current time step,
-        applies them at the corresponding spatial locations, and updates cumulative
-        inflow tracking variables.
+        and applies them at the corresponding spatial locations.
         
         Notes
         -----
         Inflow values are:
         - Read from pre-loaded time series data
-        - Converted from mÃ‚Â³/s to mÃ‚Â³ per time step
+        - Converted from m3/s to m3 per time step
         - Applied at specified inflow point locations
-        - Accumulated for mass balance tracking
         """
 
         if checkOption('inflow'):
 
-            # Get inflow hydrograph at each inflow point [m3/s]
+            # Get inflow hydrograph at each inflow point [m3 per time step]
             self.var.inflowM3 = globals.inZero.copy()
             for key in self.var.sampleInflow:
                 loc = self.var.sampleInflow[key]
                 index = dateVar['curr'] - 1
                 self.var.inflowM3[loc] = self.var.inflowTs[str(key)][index] * self.var.DtSec
-                # Convert to [m3] per time step
-            self.var.totalQInM3 += self.var.inflowM3
-            # Map of total inflow from inflow hydrographs [m3]
             # first day without an init file: the inflow of the day as the previous inflow (before 2026-10-13: 0, the
             # routing got only (N+1)/2N of the first day's inflow, N = NoRoutingSteps: Tisa 52 %)
             if self.var.QInM3Old is None:

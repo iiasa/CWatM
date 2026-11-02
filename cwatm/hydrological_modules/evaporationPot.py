@@ -391,7 +391,6 @@ class evaporationPot(object):
         # if dateVar['curr'] == 32:
         # ii = 1
 
-        # report(decompress(self.var.sumETRef), "C:\work\output2/sumetref.map")
 
     def dynamic_2(self):
         """

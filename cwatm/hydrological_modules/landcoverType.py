@@ -356,8 +356,9 @@ class landcoverType(object):
 
         self.var.frac_totalIrr = globals.inZero.copy()
         self.var.frac_totalnonIrr = globals.inZero.copy()
-        self.var.frac_totalIrr_max = globals.inZero.copy()
-        self.var.frac_totalnonIrr_max = globals.inZero.copy()
+        # maximum over the simulation so far: from the init file for a restart (saved with includeCrops only -> no warning)
+        self.var.frac_totalIrr_max = self.var.load_initial('frac_totalIrr_max', default=globals.inZero.copy(), warn=False)
+        self.var.frac_totalnonIrr_max = self.var.load_initial('frac_totalnonIrr_max', default=globals.inZero.copy(), warn=False)
         self.var.fallowIrr = globals.inZero.copy()
         self.var.fallownonIrr = globals.inZero.copy()
         self.var.fallowIrr_max = globals.inZero.copy()

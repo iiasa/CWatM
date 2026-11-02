@@ -134,7 +134,11 @@ def CWATMexe(settings):
     checkifDate('StepStart', 'StepEnd', 'SpinUp', cbinding('PrecipitationMaps'))
     # checks if end date is later than start date and puts both in dateVar (intStart, intEnd)
     if Flags['check']:
+        # -c runs only one day: the dates for the output have to fit (else WaterBalance / WaterCycle output stops)
         dateVar["intEnd"] = dateVar["intStart"]
+        dateVar["intSpin"] = dateVar["intStart"]
+        dateVar["diffdays"] = 1
+        dateVar["dateStart"] = dateVar["dateBegin"]
         versioning['check'] = ""
         versioning['loadinput'] = True
         versioning['refvalue'] = False

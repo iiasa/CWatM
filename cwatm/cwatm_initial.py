@@ -52,8 +52,6 @@ class Variables:
     
     Attributes
     ----------
-    initmap : dict
-        Dictionary storing initial condition maps during calibration mode
     loadInit : bool
         Flag indicating whether to load initial conditions from netCDF files
     initLoadFile : str
@@ -88,8 +86,6 @@ class Variables:
             
         Notes
         -----
-        During calibration mode (Flags['calib']), loaded initial maps are stored
-        in the initmap dictionary for potential reuse across calibration runs.
         Multi-layer variables are identified by appending the layer number to
         the base variable name.
         """
@@ -98,10 +94,7 @@ class Variables:
             name = name + str(number)
 
         if self.loadInit:
-            map = readnetcdfInitial(self.initLoadFile, name, default, warn)
-            if Flags['calib']:
-                self.initmap[name] = map
-            return map
+            return readnetcdfInitial(self.initLoadFile, name, default, warn)
         else:
             return default
 

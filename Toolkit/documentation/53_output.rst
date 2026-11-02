@@ -62,8 +62,6 @@ Or time series at specified points
 **********************************
 
 | Timeseries are produced as ASCII .csv files, which can be read with every text editor or Excel
-| If you need the old version .tss with you can read with `PCRaster Aquila <http://pcraster.geo.uu.nl/projects/developments/aguila/>`_
-| you need to put reportOldTss = True in [Option]
 
 | The specific point(s) where timeseries are provided are defined in the settings file as *Gauges*:
 | Can be several points in the format lon lat lon lat ..

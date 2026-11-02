@@ -136,7 +136,6 @@ class readmeteo(object):
     meteomapsscale                       Array         if meteo maps have the same extend as the other spatial static maps ->  --   
     meteodown                            Array         if meteo maps should be downscaled                                      --   
     InterpolationMethod                  Number        can be spline or kron                                                   Strin
-    buffer                               List                                                                                  --   
     includeOnlyGlaciersMelt              Flag          Include only glacier melt but not rain on glacier                       bool 
     preMaps                              Array         choose between steady state precipitation maps for steady state modflo  --   
     tempMaps                             Array         choose between steady state temperature maps for steady state modflow   --   
@@ -269,7 +268,7 @@ class readmeteo(object):
 
         # if meteo maps have the same extend as the other spatial static maps -> meteomapsscale = True
         self.var.meteomapsscale = True
-        if invcellmeteo != invcellldd:
+        if not samecellsize(invcellmeteo, invcellldd):
             if (not (Flags['quiet'])) and (not (Flags['veryquiet'])) and (not (Flags['check'])):
                 msg = ("Resolution of meteo forcing is " + str(maskmapAttr['reso_mask_meteo']) + 
                        " times higher than base maps.")
@@ -285,7 +284,6 @@ class readmeteo(object):
         self.var.meteodown = False
         # if interpolationmethod not defined in settingsfil, use spline interpolation
         self.var.InterpolationMethod = 'spline'
-        self.var.buffer = False
         if "usemeteodownscaling" in binding:
             self.var.meteodown = returnBool('usemeteodownscaling')
             if 'InterpolationMethod' in binding:
@@ -464,7 +462,7 @@ class readmeteo(object):
                 if not self.var.includeOnlyGlaciersMelt:
                     meteomaps.append(self.var.glacierrainMaps)
 
-        multinetdf(meteomaps,self.var.buffer)
+        multinetdf(meteomaps)
 
         # calibration: names of the variables stored in memory in the first run and restored in the warm runs
         # the list depends only on the settings -> same order in the calibration run and in the warm runs
@@ -700,7 +698,7 @@ class readmeteo(object):
         # -------------------------------------------------------------
         # read netcdf data
 
-        self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
+        self.var.Precipitation = readmeteodata(self.var.preMaps, dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
         self.var.Precipitation = self.var.Precipitation * self.var.DtDay * self.var.con_precipitation
 
         self.var.Precipitation = np.maximum(0., self.var.Precipitation)
@@ -718,7 +716,7 @@ class readmeteo(object):
         # 273.15 if temperature is in Kelvin -> conversion to deg C, otherwise 0 (see initial)
         ZeroKelvin = self.var.ZeroKelvin
 
-        self.var.Tavg = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
+        self.var.Tavg = readmeteodata(self.var.tempMaps,dateVar['currDate'], addZeros=True, zeros = ZeroKelvin, mapsscale = self.var.meteomapsscale)
 
         if self.var.meteodown:
             self.var.Tavg, self.var.wc2_tavg, self.var.wc4_tavg  = self.downscaling2(self.var.Tavg, "downscale_wordclim_tavg", self.var.wc2_tavg, self.var.wc4_tavg, downscale=1)
@@ -788,14 +786,14 @@ class readmeteo(object):
         if self.var.calc_evapo:
 
             #self.var.TMin = readnetcdf2('TminMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
-            self.var.TMin = readmeteodata('TminMaps',dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
+            self.var.TMin = readmeteodata('TminMaps',dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale)
             if self.var.meteodown:
                 self.var.TMin, self.var.wc2_tmin, self.var.wc4_tmin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=1)
             else:
                 self.var.TMin = self.downscaling2(self.var.TMin, "downscale_wordclim_tmin", self.var.wc2_tmin, self.var.wc4_tmin, downscale=0)
 
             #self.var.TMax = readnetcdf2('TmaxMaps', dateVar['currDate'], addZeros = True, zeros = ZeroKelvin, meteo = True)
-            self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale, buffering= self.var.buffer)
+            self.var.TMax = readmeteodata('TmaxMaps', dateVar['currDate'], addZeros=True, zeros=ZeroKelvin, mapsscale = self.var.meteomapsscale)
             if self.var.meteodown:
                 self.var.TMax, self.var.wc2_tmax, self.var.wc4_tmax = self.downscaling2(self.var.TMax, "downscale_wordclim_tmax", self.var.wc2_tmax, self.var.wc4_tmax, downscale=1)
             else:
@@ -886,8 +884,7 @@ class readmeteo(object):
             self.var.Tdew = readmeteodata('TdewMaps',
                                           dateVar['currDate'],
                                           addZeros=True, zeros=ZeroKelvin,
-                                          mapsscale = self.var.meteomapsscale,
-                                          buffering= self.var.buffer)
+                                          mapsscale = self.var.meteomapsscale)
             self.var.Tdew = self.downscaling2(self.var.Tdew)
             if self.var.TemperatureInKelvin:
                 self.var.Tdew -= ZeroKelvin

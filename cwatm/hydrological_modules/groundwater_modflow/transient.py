@@ -463,10 +463,13 @@ class groundwater_modflow:
 
     def river_drains(self):
         """
-        Drain elevation with the water depth of the main rivers (Dor's version, formula as in waterquality1.py):
-        drains + water depth from the discharge (no flood plain), at most the top of the aquifer
+        Drain elevation with the water depth of the main rivers (Dor's version, formula of van Vliet et al. 2012):
+        drains + water depth from the discharge (no flood plain), at most the top of the aquifer.
+        Above the discharge which fills the cross section the depth stays the same: the width of the formula grows with
+        the discharge, with a fixed cross section the depth would fall with rising discharge
         """
         discharge = np.maximum(self.var.discharge, 0.0001)
+        discharge = np.minimum(discharge, (self.var.totalCrossSectionArea / 0.4148) ** (1 / 0.898))
         width = 1.22 * discharge ** 0.557
         cross_section = np.minimum(0.4148 * discharge ** 0.898, self.var.totalCrossSectionArea)
         depth = self.grid.to_modflow(np.where(self.river_main, cross_section / width, 0.), nanvalue=0)

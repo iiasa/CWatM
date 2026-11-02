@@ -3,7 +3,7 @@ CWatM version information: git hash, branch, commit date and dirty state of the 
 
 Found once when the model starts (no generated file, no extra commit), the first that works is used:
 
-1. git clone, git on PATH: git log / rev-parse / describe / diff
+1. git clone, git on PATH or in the usual Git for Windows folders: git log / rev-parse / describe / diff
 2. git clone, git not on PATH: hash and branch from .git/HEAD, .git/refs/heads/<branch> or .git/packed-refs
    (no date, dirty: not checked) - reading these files here is an allowed exception to "all file I/O via
    data_handling"
@@ -32,9 +32,23 @@ MODELCODE = ["cwatm", "run_cwatm.py", ":(exclude)*.md"]
 _info = None
 
 
+def _gitexe():
+    """git executable: on PATH, else the usual Git for Windows install folders, None if not found"""
+    exe = shutil.which("git")
+    if exe is None and os.name == "nt":
+        for base in (os.environ.get("LOCALAPPDATA"), os.environ.get("ProgramFiles"),
+                     os.environ.get("ProgramFiles(x86)")):
+            if base:
+                cand = os.path.join(base, "Programs" if base == os.environ.get("LOCALAPPDATA") else "",
+                                    "Git", "cmd", "git.exe")
+                if os.path.isfile(cand):
+                    return cand
+    return exe
+
+
 def _git(*args):
     """output of one git command in the repository (stripped), None if git is missing or the command fails"""
-    exe = shutil.which("git")
+    exe = _gitexe()
     if exe is None:
         return None
     try:

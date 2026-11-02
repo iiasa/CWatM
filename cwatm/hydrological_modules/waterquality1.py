@@ -27,43 +27,43 @@ class waterquality1(object):
         
     Notes
     -----
-    The module calculates:
-    - Flow velocity based on discharge and cross-sectional area
-    - Travel time and distance for water routing
-    - Water depth in channels and floodplains
-    - Water temperature using air temperature relationships
-    
-    Hydraulic calculations use empirical relationships from van Vliet et al. (2012)
-    for channel width and cross-sectional area based on discharge.
-    
-    Water temperature estimation follows the logistic relationship from
-    Morrill et al. (2005) and Mohseni et al. (1998).
+    The module calculates in the river channels, with the channel of the routing:
+    - Cross section from the discharge with Manning: channel of the routing (width, gradient, roughness) without its
+      calibration factors, which are not physical (the depth at the biggest cell of the Rhine would be 18 m)
+    - Flow velocity = discharge / cross section, so area x velocity is the discharge (down to a minimum velocity)
+    - Travel time and distance
+    - Water level: with chanWidth up to bankfull, above it on a floodplain wider than the channel
+    - Water temperature using air temperature relationships (logistic, Morrill et al. 2005, Mohseni et al. 1998)
 
+    Cells of lakes and reservoirs have no river: all results are NaN there.
 
-
-
-
-
-
-
-
-
+    Parameters from the settings file (a number or a map), with their default:
+    minFlowVelocity = 1000 [m/day], floodplainWidthFactor = 2, waterTempMax = 28 [deg C], waterTempMin = 3 [deg C],
+    waterTempGamma = 0.18 [1/deg C], waterTempBeta = 14 [deg C]
 
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
     DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
-    Tavg                                 Array         Input, average air Temperature                                          K    
+    Tavg                                 Array         Input, average air Temperature                                          degC 
     discharge                            Array         Channel discharge                                                       m3 s-
     chanLength                           Array         Input, Channel length                                                   m    
-    totalCrossSectionArea                Array         Total cross-sectional area [m2]: if initial value in binding equals -9  --   
-    cellArea                             Array         Area of cell                                                            m2   
+    chanWidth                            Array         Input, Channel bottom width                                             m    
+    channelAlpha                         Array         Alpha of the kinematic wave of the routing, with calibration            --   
+    alphaManning                         Array         Alpha without calibration: cross section = alphaManning * Q ** beta     --   
+    beta                                 Array         Beta of the kinematic wave                                              --   
+    waterBodyID                          Array         ID of the lakes and reservoirs, 0: no water body                        --   
+    totalCrossSectionAreaBankFull        Array         Area (sq m) of bank full discharge cross section [m2] (AI)              --   
     waterquality                         Flag          Flag to use waterquality                                                bool 
-    celllength                           Array         Cell length, defined as the square root of cell area                    m    
-    downdist                             Array         flowdistance inside a cell. Diagonal = 1.414* celllength                m    
+    minVelocity                          Array         Minimum flow velocity                                                   m s-1
+    floodplainWidthFactor                Array         Width of the floodplain as a multiple of the channel width              --   
+    waterTempMax                         Array         Maximum water temperature                                               degC 
+    waterTempMin                         Array         Minimum water temperature                                               degC 
+    waterTempGamma                       Array         Steepness of the water temperature curve                                1/deg
+    waterTempBeta                        Array         Air temperature at the middle of the water temperature curve            degC 
     travelDistance                       Array         travel distance of water: flow velocity per day                         m    
-    travelTime                           List          time to travel a gridcell: chanLength / flowVelocity                    day  
+    travelTime                           Array         time to travel a gridcell: chanLength / flowVelocity                    s    
     waterLevel                           Array         Water level                                                             m    
     waterTemperature                     Array         Temperature of water                                                    degC 
     ===================================  ==========    ======================================================================  =====
@@ -84,21 +84,7 @@ class waterquality1(object):
 
     def initial(self):
         """
-        Initialize water quality calculation parameters.
-        
-        Sets up geometric parameters for flow distance calculations including
-        cell length and downstream distances accounting for diagonal flow
-        directions in the local drainage direction network.
-        
-        Notes
-        -----
-        Initialization includes:
-        - Cell length calculation from cell area
-        - Downstream distance adjustment for diagonal flow directions
-        - Geometric corrections for 8-direction flow (LDD values 1,3,7,9)
-        
-        Diagonal flow distances are multiplied by Ã¢Ë†Å¡2 (Ã¢â€°Ë†1.414214) to account
-        for longer flow paths in diagonal directions.
+        Read the option and the parameters of the settings file.
         """
 
         self.var.waterquality = False
@@ -106,105 +92,83 @@ class waterquality1(object):
             self.var.waterquality = checkOption('waterquality')
 
         if self.var.waterquality:
-            self.var.celllength = np.sqrt(self.var.cellArea)
-            ldd = loadmap('Ldd')
-            self.var.downdist = self.var.celllength
-            self.var.downdist = np.where(ldd == 1, 1.414214 * self.var.downdist, self.var.downdist)
-            self.var.downdist =np.where(ldd == 3, 1.414214 * self.var.downdist , self.var.downdist )
-            self.var.downdist =np.where(ldd == 7, 1.414214 * self.var.downdist , self.var.downdist )
-            self.var.downdist =np.where(ldd == 9, 1.414214 * self.var.downdist , self.var.downdist )
+            # the results come from the discharge: without routing it would stay at the value of the first day
+            if not checkOption('includeRouting'):
+                msg = "Error 170: waterquality = True needs includeRouting = True, without routing the discharge does not change"
+                raise CWATMError(msg)
+
+            # channelAlpha of the routing without its factor 2.5 and the calibration factor manningsN: Manning's equation
+            # with chanMan, chanGrad and the wetted perimeter of the routing
+            self.var.alphaManning = self.var.channelAlpha / (2.5 * loadmap('manningsN') ** self.var.beta)
+
+            # parameters: a number or a map in the settings file, else the default
+            def parameter(key, default):
+                return loadmap(key) if key in binding else default
+
+            self.var.minVelocity = parameter('minFlowVelocity', 1000.) / 86400.
+            self.var.floodplainWidthFactor = parameter('floodplainWidthFactor', 2.)
+            self.var.waterTempMax = parameter('waterTempMax', 28.)
+            self.var.waterTempMin = parameter('waterTempMin', 3.)
+            self.var.waterTempGamma = parameter('waterTempGamma', 0.18)
+            self.var.waterTempBeta = parameter('waterTempBeta', 14.)
 
     # --------------------------------------------------------------------------
-    # --------------------------------------------------------------------------
-
 
     def dynamic(self):
         """
         Calculate water quality variables for current time step.
         
-        Computes flow velocity, travel time, water depth, and water temperature
-        based on current discharge and meteorological conditions. Uses empirical
-        relationships to relate hydraulic properties to discharge.
-        
+        Computes flow velocity, travel time, water level and water temperature from the discharge of the routing
+        and the air temperature. Cells of lakes and reservoirs get NaN.
+
         Notes
         -----
-        Calculation sequence:
-        1. Channel width and cross-sectional area from discharge relationships
-        2. Flow velocity with constraints to avoid extremes
-        3. Travel time and distance for water routing
-        4. Water depth in channels and floodplains
-        5. Water temperature from air temperature
-        
-        Empirical relationships used:
-        - Width = 1.22 * Q^0.557 (van Vliet et al. 2012)
-        - Cross-section = 0.4148 * Q^0.898
-        - Velocity = min(Q/Area, 0.36 * Q^0.24) with minimum constraint
+        - Cross section = alphaManning * Q ** beta (Manning, without the calibration of the routing)
+        - Velocity = Q / cross section, at least minVelocity
+        - Level = cross section / chanWidth up to bankfull,
+          above it chanDepth + water above bankfull / (floodplainWidthFactor * chanWidth)
         - Water temperature = logistic function of air temperature
-        
+
         References
         ----------
-        van Vliet, M.T.H. et al. (2012) Coupled daily streamflow and water
-        temperature modelling in large river basins. Hydrol. Earth Syst. Sci.
-        
-        Morrill et al. (2005), Mohseni et al. (1998) for water temperature
+        Morrill et al. (2005), Mohseni et al. (1998), van Vliet et al. (2012) for water temperature
         """
 
         if self.var.waterquality:
 
-          # crossArea = 0.34 * (self.var.discharge ** 0.341) * 1.22 * (self.var.discharge ** 0.557)
-          dis = np.where(self.var.discharge < 0.0001, 0.0001, self.var.discharge)
-          width = 1.22 * (dis ** 0.557)
-          crossArea = 0.4148 * dis ** 0.898
-          # van Vliet et al. 2012
-          #van Vliet, M.T.H., Yearsley, J.R., Franssen, W.H.P., Ludwig, F., Haddeland, I., Lettenmaier, D.P., and Kabat, P.: Coupled daily streamflow and water
-          #temperature modelling in large river  basins, Hydrol.Earth Syst.Sci., 16, 4303ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ4321, https: // doi.org / 10.5194 / hess - 16 - 4303 - 2012, 2012.
+            # no division by 0
+            dis = np.where(self.var.discharge < 1e-7, 1e-7, self.var.discharge)
 
-          #flowVelocity = np.minimum(self.var.discharge /self.var.totalCrossSectionArea, 0.36*self.var.discharge**0.24)
-          flowVelocity = np.minimum(self.var.discharge / crossArea, 0.36 * dis ** 0.24)
-          flowVelocity = np.maximum(flowVelocity, 10.*0.0011575)
-             # Channel velocity (m/s); dividing Q (m3/s) by CrossSectionArea (m2)
-             # avoid extreme velocities by using the Wollheim 2006 equation
-             #  minimum velocity = 1000 m per day!
-             #FlowVelocity = FlowVelocity * np.min(PixelLength/ChanLength,1)
-             # reduction for sinuosity of channels
+            # cross section of the channel with Manning
+            crossArea = self.var.alphaManning * dis ** self.var.beta
 
+            # Channel velocity [m/s]: area x velocity = discharge, down to the minimum velocity
+            flowVelocity = np.maximum(dis / crossArea, self.var.minVelocity)
 
-          self.var.travelDistance = flowVelocity * self.var.DtSec
-             # if flow is fast, Traveltime=1, TravelDistance is high: Pixellength*DtSec
-             # if flow is slow, Traveltime=DtSec then TravelDistance=PixelLength
-             # maximum set to 30km/day for 5km cell, is at DtSec/Traveltime=6, is at Traveltime<DtSec/6
+            # distance per time step [m]
+            travelDistance = flowVelocity * self.var.DtSec
+            # time to travel through the cell [s]
+            travelTime = self.var.chanLength / flowVelocity
 
-          #TravelTime = downstreamdist(Ldd) * (ChanLength/PixelLength) / FlowVelocity
-          self.var.travelTime = self.var.chanLength / flowVelocity
-          self.var.travelTime = np.where(self.var.travelTime > 200000, 200000, self.var.travelTime)
-                # Traveltime through gridcell (sec)
-                # further calculation with pc raster: l2.map = ldddist(ldd.map,p1.map,ttime1.map/cell.map)/86400
-                # / cell.map (here 0.8333 deg is necessary because it is multiplied again in the ldddist command
-                # p1.map is boolean map with mouth as 1, rest as 0
+            # Water level [m]: in the channel up to bankfull, the water above it on the floodplain
+            bankFull = self.var.totalCrossSectionAreaBankFull
+            chanWaterDepth = np.minimum(crossArea, bankFull) / self.var.chanWidth
+            floodPlainWaterDepth = np.maximum(crossArea - bankFull, 0.) / (self.var.floodplainWidthFactor * self.var.chanWidth)
+            waterLevel = chanWaterDepth + floodPlainWaterDepth
 
+            # Water-Air temperature relationship based on Morrill et al. (2005), Mohseni et al. (1998), van Vliet et al. (2012)
+            waterTemperature = self.var.waterTempMin + (self.var.waterTempMax - self.var.waterTempMin) / \
+                               (1 + np.exp(self.var.waterTempGamma * (self.var.waterTempBeta - self.var.Tavg)))
 
-          # Water level
-          chanCrossSectionArea = np.where(crossArea < self.var.totalCrossSectionArea, crossArea, self.var.totalCrossSectionArea)
-          chanWaterDepth = chanCrossSectionArea / width
-          # Water level in channel [m]
+            # lakes and reservoirs have no river: as in the routing, cells with a water body are not channels
+            if checkOption('includeWaterBodies'):
+                lake = self.var.waterBodyID > 0
+                travelDistance = np.where(lake, np.nan, travelDistance)
+                travelTime = np.where(lake, np.nan, travelTime)
+                waterLevel = np.where(lake, np.nan, waterLevel)
+                waterTemperature = np.where(lake, np.nan, waterTemperature)
 
-          floodPlainCrossSectionArea = np.where(crossArea < self.var.totalCrossSectionArea, 0, crossArea - self.var.totalCrossSectionArea)
-          floodPlainWaterDepth = floodPlainCrossSectionArea / (2.0 * width)
-          # Water level on floodplain [m]
-          self.var.waterLevel = chanWaterDepth + floodPlainWaterDepth
-          # Total water level [m]
-
-          # Water-Air temperature relationship based on Morrill et al. (2005), Mohseni et al. (1998), van Vliet et al. (2012)
-          # Water Temperature equation parameters
-
-          WTalpha = 28.0
-          # this is the max water temperature (degree Celsius)
-          WTmu = 3.0
-          # this is the min water temperature (degree Celsius)
-          WTgamma = 0.18
-          WTbeta = 14
-
-          #WaterTemperature = 3.0 + (28-3)/(1+exp(0.18*(14-AirTemperature)));
-          self.var.waterTemperature = WTmu + (WTalpha - WTmu)/(1 + np.exp(WTgamma * (WTbeta -  self.var.Tavg)))
-             # Water-Air temperature relationship based on Morrill et al. (2005)
-          i =1
+            self.var.travelDistance = travelDistance
+            self.var.travelTime = travelTime
+            self.var.waterLevel = waterLevel
+            self.var.waterTemperature = waterTemperature

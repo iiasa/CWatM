@@ -487,22 +487,22 @@ class water_demand:
                     loadmap('irrigation_agent_SW_request_month_m3') + globals.inZero.copy(),
                     self.var.adminSegments)
 
-                if 'relax_sw_agent' in binding:
-                    if self.var.loadInit:
-                        self.var.relaxSWagent = self.var.load_initial('relaxSWagent')
-                    else:
-                        self.var.relaxSWagent = loadmap('relax_sw_agent')
+                # saved with relax_irrigation_agents (initcondition.py), also without relax_sw_agent
+                if self.var.loadInit and ('relax_sw_agent' in binding or self.var.relax_irrigation_agents):
+                    self.var.relaxSWagent = self.var.load_initial('relaxSWagent', default=globals.inZero.copy())
+                elif 'relax_sw_agent' in binding:
+                    self.var.relaxSWagent = loadmap('relax_sw_agent')
 
             if 'irrigation_agent_GW_request_month_m3' in binding and self.var.activate_irrigation_agents:
                 self.var.irrWithdrawalGW_max = npareaaverage(
                     loadmap('irrigation_agent_GW_request_month_m3') + globals.inZero.copy(),
                     self.var.adminSegments)
 
-                if 'relax_gw_agent' in binding:
-                    if self.var.loadInit:
-                        self.var.relaxGWagent = self.var.load_initial('relaxGWagent')
-                    else:
-                        self.var.relaxGWagent = loadmap('relax_gw_agent')
+                # saved with relax_irrigation_agents (initcondition.py), also without relax_gw_agent
+                if self.var.loadInit and ('relax_gw_agent' in binding or self.var.relax_irrigation_agents):
+                    self.var.relaxGWagent = self.var.load_initial('relaxGWagent', default=globals.inZero.copy())
+                elif 'relax_gw_agent' in binding:
+                    self.var.relaxGWagent = loadmap('relax_gw_agent')
 
             if 'relax_abstraction_fraction_initial' in binding:
                 self.var.relax_abstraction_fraction_initial = loadmap(
@@ -792,7 +792,7 @@ class water_demand:
             latldd, lonldd, cell, invcellldd, rows, cols = readCoord(cbinding('Ldd'))
             filename = os.path.splitext(cbinding('Ldd'))[0] + '.nc'
             if os.path.isfile(filename):
-                cut0, cut1, cut2, cut3 = mapattrNetCDF(filename, check=False)
+                cut0, cut1, cut2, cut3 = mapattrNetCDF(filename)
             else:
                 filename = os.path.splitext(cbinding('Ldd'))[0] + '.tif'
 

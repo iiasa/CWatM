@@ -69,11 +69,11 @@ ForcingStart = datetime.datetime.strptime(parser.get('DEFAULT','ForcingStart'),"
 timeperiod = parser.get('DEFAULT','timeperiod')
 if timeperiod == "monthly":
 	monthly = 1
-	dischargetss = 'discharge_monthavg.tss'
+	dischargetss = 'discharge_monthavg.csv'
 	frequen = 'MS'
 else:
 	monthly = 0
-	dischargetss = 'discharge_daily.tss'
+	dischargetss = 'discharge_daily.csv'
 	frequen = 'd'
 
 
@@ -243,7 +243,7 @@ def RunModel(Individual):
 	if os.path.isfile(Qsim_tss)==False:
 		print("run_rand_id: "+str(run_rand_id)+" File: "+ Qsim_tss)
 		raise Exception("No simulated streamflow found. Probably the model failed to start? Check the log files of the run!")
-	simulated_streamflow = pandas.read_csv(Qsim_tss,sep=r"\s+",index_col=0,skiprows=4,header=None,skipinitialspace=True)
+	simulated_streamflow = pandas.read_csv(Qsim_tss,sep=",",index_col=0,skiprows=4,header=None,skipinitialspace=True)
 	simulated_streamflow[1][simulated_streamflow[1]==1e31] = np.nan
 
 	if len(observed_streamflow) != len(simulated_streamflow[1]):
@@ -560,7 +560,7 @@ if __name__ == "__main__":
 
 		Qsim_tss = os.path.join(directory_run,dischargetss)
 		
-		simulated_streamflow = pandas.read_table(Qsim_tss,sep=r"\s+",index_col=0,skiprows=4,header=None,skipinitialspace=True)
+		simulated_streamflow = pandas.read_table(Qsim_tss,sep=",",index_col=0,skiprows=4,header=None,skipinitialspace=True)
 		simulated_streamflow[1][simulated_streamflow[1]==1e31] = np.nan
 		Qsim = simulated_streamflow[1].values
 
@@ -568,9 +568,6 @@ if __name__ == "__main__":
 		print(">> Saving \"best\" simulated streamflow (streamflow_simulated_best.csv)")
 		Qsim = pandas.DataFrame(data=Qsim, index=pandas.date_range(ForcingStart, periods=len(Qsim), freq=frequen))
 		Qsim.to_csv(os.path.join(path_subcatch,"streamflow_simulated_best.csv"),',',header="")
-		try: os.remove(os.path.join(path_subcatch,"out",'streamflow_simulated_best.tss'))
-		except: pass
-		#os.rename(Qsim_tss, os.path.join(path_subcatch,"out",'streamflow_simulated_best.tss'))
 
 	"""
 	# Delete all .xml, .bat, .tmp, and .txt files created for the runs

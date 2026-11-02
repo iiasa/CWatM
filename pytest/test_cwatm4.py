@@ -464,14 +464,10 @@ def cwatm(info, model):
 
     if model[4].find("error") > -1:
         # test for error testing: the run has to stop with the error number of error_number
-        try:
-            success, last_dis = run_cwatm.main(model[4], ['-q'])
-            errornumber = cwatm_run.errornumber
-        except SystemExit as e:
-            # Error 400: only environmental flow calculation - the run ends with sys.exit(400)
-            success, errornumber = False, e.code
-        assert (success == 0)
-        assert errornumber == int(model[6])
+        # (error_number 0: a run in the error section which has to end normally)
+        success, last_dis = run_cwatm.main(model[4], ['-q'])
+        assert bool(success) == (int(model[6]) == 0)
+        assert cwatm_run.errornumber == int(model[6])
 
     elif model[4].find("calibration") > -1:
         # test for calibration: normal run, first calibration run (meteo stored in memory), warm run from memory

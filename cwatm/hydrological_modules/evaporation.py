@@ -72,7 +72,7 @@ class evaporation(object):
     crop_correct_landCover               Array                                                                                 --   
     includeCrops                         Flag          1 when includeCrops=True in Settings, 0 otherwise                       bool 
     Crops                                Array         Internal: List of specific crops and Kc/Ky parameters                   --   
-    daily_crop_KC                        Array         If the crop inputs are given in days if the total growing season is le  --   
+    daily_crop_KC                        Flag          True if the growth stages in Excel are in days (longest season > 36)    bool 
     interceptCap                         Array         interception capacity of vegetation                                     m    
     potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m    
     cropKC                               Array         crop coefficient for each of the 4 different land cover types (forest,  --   
@@ -365,8 +365,9 @@ class evaporation(object):
                         self.var.fracCrops_nonIrr[c] = np.where(self.var.monthCounter[c] > 0,
                                                                 self.var.fracCrops_nonIrr[c], 0)
                         if self.var.daily_crop_KC:
+                            # day of the season per cell -> Kc of that day (the counter is a float map)
                             self.var.currentKC[c] = np.where(self.var.monthCounter[c] > 0,
-                                                             self.var.Crops[c][-1][self.var.monthCounter[c]-1], 0)
+                                                             np.take(self.var.Crops[c][-1], self.var.monthCounter[c].astype(int) - 1), 0)
                             for a in range(1, 4):
                                 self.var.currentKY[c] = np.where(self.var.monthCounter[c] > self.var.Crops[c][a][0],
                                                                  self.var.Crops[c][a + 1][2], self.var.currentKY[c])
@@ -451,7 +452,7 @@ class evaporation(object):
                                 self.var.activatedCrops[c], self.var.monthCounter[c])
 
                             self.var.currentKC[c] = np.where(self.var.monthCounter[c] > 0,
-                                                             self.var.Crops[c][-1][self.var.monthCounter[c] - 1], 0)
+                                                             np.take(self.var.Crops[c][-1], self.var.monthCounter[c].astype(int) - 1), 0)
 
                             self.var.currentKY[c] = np.where(
                                 self.var.Crops[c][0] == dateVar['doy'] and self.var.monthCounter[c] == 1,
@@ -473,7 +474,8 @@ class evaporation(object):
                                 self.var.currentKY[c])
 
                 #if No == 3 and (dateVar['newStart'] or dateVar['currDate'].day == 1):
-                if dateVar['newStart'] or dateVar['currDate'].day == 1:
+                # daily crops are planted and harvested on any day -> the land fractions change every day
+                if dateVar['newStart'] or dateVar['currDate'].day == 1 or self.var.daily_crop_KC:
 
                     frac_totalIrr, frac_totalnonIrr = globals.inZero.copy(), globals.inZero.copy()
                     for i in range(len(self.var.Crops)):

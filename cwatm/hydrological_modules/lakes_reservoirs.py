@@ -75,7 +75,7 @@ class lakes_reservoirs(object):
     load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
     wastewater_to_reservoirs             Array                                                                                 --   
     saveInit                             Flag          If true initial conditions are saved                                    bool 
-    reservoir_info                       List          Number of lakes and reservoirs in Excel                                 --   
+    reservoir_info                       List          Values per reservoir from Excel sheet Reservoirs                        --   
     reservoir_transfers                  Array         [['Giving reservoir'][i], ['Receiving reservoir'][i], ['Fraction of li  array
     waterBodyID_C                        Array         ID of the waterbody - compressed                                        --   
     compress_LR                          Array         boolean map as mask map for compressing lake/reservoir                  --   
@@ -541,7 +541,8 @@ class lakes_reservoirs(object):
             # needs to be changed - maybe update all reservoir to spreadsheet
             self.var.resId_restricted = globals.inZero.copy()
             if self.var.includeWastewater:
-                resIdList = np.unique(list(self.var.wastewater_to_reservoirs.values()))
+                # one list of reservoirs per WWTP, the lists can have different lengths
+                resIdList = np.unique([res for reservoirs in self.var.wastewater_to_reservoirs.values() for res in reservoirs])
                 for rid in resIdList:
                     self.var.resId_restricted += np.where(self.var.waterBodyID == rid, rid, 0)
 
@@ -1310,7 +1311,7 @@ class lakes_reservoirs(object):
         inflowC = inflowLake[self.var.outletDense] / self.var.noRoutingSteps + outLakeC
 
         if checkOption('inflow'):
-            # if inflow ( from module inflow) goes to a lake this is not counted, because lakes,reservoirs are dislinked from the network
+            # inflow (from module inflow) into a cell of a lake or reservoir goes into the lake or reservoir
             inflow2basin = np.bincount(ix.dense, weights=self.var.inflowDt[ix.cells])
             inflowC = inflowC + inflow2basin[self.var.outletDense]
 

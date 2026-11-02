@@ -17,11 +17,13 @@
 import os
 import importlib
 import netCDF4
+from cwatm.management_modules.messages import CWATMError
 
 nchandles = {}    # normalized filename -> open netCDF4.Dataset (read-only)
 excelbooks = {}   # normalized filename -> open pandas.ExcelFile
 ncstackvars = set()   # (normalized filename, variable name) whose chunk cache is already set
 ncwritehandles = {}   # normalized filename -> netCDF4.Dataset open for appending (output files)
+mapcoords = {}    # coordkey -> coordinates of a map, read from the file only once
 
 
 def _key(filename):
@@ -30,6 +32,13 @@ def _key(filename):
     same path (slashes, '..', upper/lower case on Windows) share one handle.
     """
     return os.path.normcase(os.path.abspath(os.path.normpath(filename)))
+
+
+def coordkey(filename, *names):
+    """
+    Key of mapcoords: normalized filename, plus the names of the coordinate variables for a netCDF map.
+    """
+    return (_key(filename),) + names
 
 
 # -------------------------------------------------------------------------
@@ -131,6 +140,9 @@ def ncclose(filename):
     # chunk cache settings belong to the open file -> forget them
     for k in [k for k in ncstackvars if k[0] == key]:
         ncstackvars.discard(k)
+    # the file may be written new -> read its coordinates again
+    for k in [k for k in mapcoords if k[0] == key]:
+        del mapcoords[k]
 
 
 def ncclose_all():
@@ -145,6 +157,7 @@ def ncclose_all():
         except:
             pass
     ncstackvars.clear()
+    mapcoords.clear()
 
 
 def ncappend(filename):
@@ -210,8 +223,15 @@ def excelfile(filename):
 def readexcel(filename, sheet_name, header=0):
     """
     Read one sheet of an Excel workbook as DataFrame (replaces pd.read_excel).
+    A missing file, a missing sheet or an unreadable workbook gives Error 229.
     """
-    return excelfile(filename).parse(sheet_name, header=header)
+    try:
+        return excelfile(filename).parse(sheet_name, header=header)
+    except Exception as e:
+        msg = "Error 229: Excel settings file: " + filename + "\n"
+        msg += "Sheet \"" + sheet_name + "\" cannot be read\n"
+        msg += "Python: " + type(e).__name__ + ": " + str(e) + "\n"
+        raise CWATMError(msg)
 
 
 def excelsheetnames(filename):

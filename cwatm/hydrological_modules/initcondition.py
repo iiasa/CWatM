@@ -1,6 +1,6 @@
 # -------------------------------------------------------------------------
 # Name:        INITCONDITION
-# Purpose:     Read/write initial condtions for warm start
+# Purpose:     Read/write initial conditions for warm start
 #
 # Author:      PB
 # Created:     19/08/2016
@@ -8,8 +8,6 @@
 # -------------------------------------------------------------------------
 
 from cwatm.management_modules.data_handling import *
-import importlib
-# importlib to import pandas as pd in has crop sentitive version is used
 from cwatm.management_modules.caching import readexcel
 
 class initcondition(object):
@@ -56,18 +54,17 @@ class initcondition(object):
     Crops_names                          Array         Internal: List of specific crops                                        --   
     includeCrops                         Flag          1 when includeCrops=True in Settings, 0 otherwise                       bool 
     Crops                                Array         Internal: List of specific crops and Kc/Ky parameters                   --   
-    daily_crop_KC                        Array         If the crop inputs are given in days if the total growing season is le  --   
+    daily_crop_KC                        Flag          True if the growth stages in Excel are in days (longest season > 36)    bool 
     loadInit                             Flag          If true initial conditions are loaded                                   bool 
     includeDesal                         Flag                                                                                  --   
     unlimitedDesal                       Flag                                                                                  --   
     desalAnnualCap                       Number                                                                                --   
     wwt_def                              Flag                                                                                  --   
     wastewater_to_reservoirs             Array                                                                                 --   
-    initLoadFile                         Number        load file name of the initial condition data                            Strin
+    initLoadFile                         String        load file name of the initial condition data                            --   
     saveInit                             Flag          If true initial conditions are saved                                    bool 
-    initmap                              Flag                                                                                  --   
-    saveInitFile                         Flag          save file name of the initial condition data                            bool 
-    reservoir_info                       List          Number of lakes and reservoirs in Excel                                 --   
+    saveInitFile                         String        save file name of the initial condition data                            --   
+    reservoir_info                       List          Values per reservoir from Excel sheet Reservoirs                        --   
     reservoir_transfers                  Array         [['Giving reservoir'][i], ['Receiving reservoir'][i], ['Fraction of li  array
     coverTypes                           Array         land cover types - forest - grassland - irrPaddy - irrNonPaddy - water  --   
     ===================================  ==========    ======================================================================  =====
@@ -85,6 +82,27 @@ class initcondition(object):
         """
         self.var = model.var
         self.model = model
+
+    def excel_settings_file(self, use):
+        """
+        Path of the Excel settings file; Error 137 if it is not in the settings file.
+
+        Parameters
+        ----------
+        use : str
+            What the file is needed for - for the error message
+
+        Returns
+        -------
+        str
+            Path of the Excel settings file
+        """
+        if 'Excel_settings_file' in binding:
+            return cbinding('Excel_settings_file')
+        msg = "Error 137: The Excel settings file needs to be included into the settings file:\n" \
+              "Excel_settings_file ="+r"*PATH*\cwatm_settings.xlsx"+"\n"
+        msg += "It is needed for: " + use + "\n"
+        raise CWATMError(msg)
 
     def crops_initialise(self, xl_settings_file_path):
         """
@@ -112,6 +130,20 @@ class initcondition(object):
         """
         df = readexcel(xl_settings_file_path, 'Crops')
 
+        # Growth stages are given in months or in days, for all crops in the same way
+        # The longest season decides: more than 36 cannot be months (so far at most 17 months are used)
+        stages = df[['GS1', 'GS2', 'GS3', 'GS4']]
+        seasons = stages.sum(axis=1)
+        self.var.daily_crop_KC = bool(len(df) > 0 and seasons.max() > 36)
+        if self.var.daily_crop_KC:
+            # with days: a season below 25 is most likely a crop given in months (mixed table)
+            wrong = df['Crop'][(seasons < 25) | (stages % 1 != 0).any(axis=1)].tolist()
+            if wrong:
+                msg = "Error 157: Excel settings file: " + xl_settings_file_path + "\n"
+                msg += "Sheet \"Crops\": the longest season is " + str(seasons.max()) + " -> growth stages are read as days\n"
+                msg += "All crops need whole days for GS1 to GS4 and a season of at least 25 days. Not valid: " + str(wrong) + "\n"
+                raise CWATMError(msg)
+
         # Crops = [ [planting date, [length of growth stage i from planting, kc_i, ky_i]_i]_crop]
         Crops = []
         Crops_names = []
@@ -129,18 +161,14 @@ class initcondition(object):
             # using the first three crop coefficients and four growth stages, following the
             # flat - linear increase - flat - linear decrease standard FAO/AEZ crop coefficient timeseries
 
-            # We detect if the crop inputs are given in days if the total growing season is less than 36:
-            # This assumes crops have growing to harvest lengths of less than 60 months and a minimum of 60 days
-            self.var.daily_crop_KC = False
-            if growth_stage_end_month > 60:
-                self.var.daily_crop_KC = True
+            if self.var.daily_crop_KC:
+                # whole days (checked above), a column can be read as float
+                gs1, gs2, gs3, gs4 = [int(df['GS' + str(gs)][i]) for gs in range(1, 5)]
 
-                KC_crop_daily_stage_1 = [df['KC1'][i]] * df['GS1'][i]
-                KC_crop_daily_stage_2 = [df['KC1'][i] * (1 - (d / df['GS2'][i])) + df['KC2'][i] * (d / df['GS2'][i]) for
-                                         d in range(df['GS2'][i])]
-                KC_crop_daily_stage_3 = [df['KC2'][i]] * df['GS3'][i]
-                KC_crop_daily_stage_4 = [df['KC2'][i] * (1 - (d / df['GS4'][i])) + df['KC3'][i] * (d / df['GS4'][i]) for
-                                         d in range(df['GS4'][i])]
+                KC_crop_daily_stage_1 = [df['KC1'][i]] * gs1
+                KC_crop_daily_stage_2 = [df['KC1'][i] * (1 - (d / gs2)) + df['KC2'][i] * (d / gs2) for d in range(gs2)]
+                KC_crop_daily_stage_3 = [df['KC2'][i]] * gs3
+                KC_crop_daily_stage_4 = [df['KC2'][i] * (1 - (d / gs4)) + df['KC3'][i] * (d / gs4) for d in range(gs4)]
 
                 # crop = [planting date,
                 #        [length of growth stage i from planting, kc_i, ky_i]_i,
@@ -156,31 +184,43 @@ class initcondition(object):
 
     def reservoir_addinfo(self, xl_settings_file_path):
         """
-        Load additional reservoir information from Excel configuration.
-        
-        Reads supplementary reservoir parameters including new reservoir
-        locations, operational characteristics, and configuration flags
-        from Excel spreadsheet for enhanced reservoir modeling.
+        Read the sheet Reservoirs: new reservoirs and values replacing the maps for existing reservoirs.
+
+        The first 19 rows of each column from the 6th column on: ID, new reservoir, lat, lon, type, name,
+        area, outflow, volume, lake factors, year, storage limits and outflow limits.
         
         Parameters
         ----------
         xl_settings_file_path : str
             Path to Excel file containing reservoir configuration data
+
+        Returns
+        -------
+        list
+            One list of 19 values per reservoir
         """
         df = readexcel(xl_settings_file_path, 'Reservoirs', header=None)
 
-        # reservoir_transfers = [ [Giving reservoir, Receiving reservoir, [366-day array of releases]] ]
+        # reservoir_info = one list of the 19 values of a reservoir per column, from the 6th column on
         reservoir_info = []
-        #         0      1      2
-        dtypes = ['int', 'bool', 'float', 'float', 'int', 'str', 'float', 'float', 'float', 'float', 'float', 
-                  'float', 'float', 'float', 'float', 'float', 'float', 'float']
+        if len(df) < 19:
+            msg = "Error 126: Excel settings file: " + xl_settings_file_path + "\n"
+            msg += "Sheet \"Reservoirs\" needs at least 19 rows, it has " + str(len(df)) + "\n"
+            raise CWATMError(msg)
         for col in list(df)[5:]:
             info = []
             # more complicated by sometimes excel mismatch dtypes
             for var in range(19):
                 v = np.array(df[col][var]).tolist()
                 info.append(v)
-            # info = np.array([df[col][values] for values in range(19)])
+
+            # an empty cell is NaN: it would count as True for "New Reservoir" and cannot be converted to int
+            blank = [isinstance(v, float) and np.isnan(v) for v in info]
+            if blank[0] or blank[1] or (info[1] and (blank[2] or blank[3])):
+                msg = "Error 126: Excel settings file: " + xl_settings_file_path + "\n"
+                msg += "Sheet \"Reservoirs\", column " + str(col + 1) + ": needs an ID and New Reservoir (True or False)"
+                msg += " and for a new reservoir also lat and lon\n"
+                raise CWATMError(msg)
             reservoir_info.append(info)
 
         return reservoir_info
@@ -203,6 +243,10 @@ class initcondition(object):
 
         # reservoir_transfers = [ [Giving reservoir, Receiving reservoir, [366-day array of releases]] ]
         reservoir_transfers = []
+        if len(df) < 370:
+            msg = "Error 156: Excel settings file: " + xl_settings_file_path + "\n"
+            msg += "Sheet \"Reservoir_transfers\" needs 370 rows (4 rows + 366 days), it has " + str(len(df)) + "\n"
+            raise CWATMError(msg)
 
         for col in list(df)[5:]:
             releases = [df[col][4+day] for day in range(366)]
@@ -210,9 +254,17 @@ class initcondition(object):
             # default rule = 1
             try:
                 rule = int(df[col][0])
-            except:
+            except (ValueError, TypeError):
+                # e.g. empty cell
                 rule = 1
-            transfer = [rule, int(df[col][1]), int(df[col][2]), df[col][3], releases]
+            try:
+                giver, receiver = int(df[col][1]), int(df[col][2])
+            except (ValueError, TypeError):
+                msg = "Error 156: Excel settings file: " + xl_settings_file_path + "\n"
+                msg += "Sheet \"Reservoir_transfers\", column " + str(col + 1)
+                msg += ": giving and receiving reservoir have to be whole numbers (0 = from/to outside)\n"
+                raise CWATMError(msg)
+            transfer = [rule, giver, receiver, df[col][3], releases]
             reservoir_transfers.append(transfer)
 
         return reservoir_transfers
@@ -220,16 +272,17 @@ class initcondition(object):
     # To initialize wastewater2reservoir; and wastewater attributes
     def wastewater_to_reservoirs(self, xl_settings_file_path):
         """
-        Configure wastewater discharge to reservoirs.
-        
-        Sets up wastewater treatment and discharge parameters including
-        treatment efficiencies, discharge locations, and operational
-        characteristics from Excel configuration data.
+        Read the sheet Wastewater_to_reservoirs: which treatment plant sends water to which reservoirs.
         
         Parameters
         ----------
         xl_settings_file_path : str
             Path to Excel file containing wastewater discharge configurations
+
+        Returns
+        -------
+        dict
+            WWTP ID -> list of receiving reservoirs
         """
         # fix - build an object with wwtp_id as key and res as values.
         # get unique wwtp_id and iterate
@@ -240,23 +293,24 @@ class initcondition(object):
 
         for wwtpid in df['Sending WWTP'].unique():
             wwtp_to_reservoir[wwtpid] = df[df['Sending WWTP'] == wwtpid]['Receiving Reservoir'].tolist()
-            #transfer = [df['Sending WWTP'][i], df['Receiving Reservoir'][i]]
-            #wwtp_to_reservoir.append(transfer)
-        #print(wwtp_to_reservoir)
         return wwtp_to_reservoir
     
-    def wasterwater_def(self, xl_settings_file_path):
+    def wastewater_def(self, xl_settings_file_path):
         """
-        Define wastewater treatment parameters and characteristics.
-        
-        Configures wastewater treatment system parameters including
-        treatment capacities, removal efficiencies, and operational
-        parameters from Excel configuration files.
+        Read the sheet Wastewater_def: the definition of each treatment plant.
+
+        Columns: from year, to year, volume, treatment days, treatment level, export share, domestic,
+        industrial and minimum hydraulic retention time.
         
         Parameters
         ----------
         xl_settings_file_path : str
             Path to Excel file containing wastewater treatment definitions
+
+        Returns
+        -------
+        dict
+            WWTP ID -> array with one row per period
         """
         df = readexcel(xl_settings_file_path, 'Wastewater_def')
         
@@ -268,24 +322,29 @@ class initcondition(object):
     
     def desalinationCapacity(self, xl_settings_file_path):
         """
-        Initialize desalination plant capacity and operational parameters.
-        
-        Configures desalination facility characteristics including production
-        capacities, energy requirements, and operational constraints from
-        Excel configuration data.
+        Read the sheet Desalination: the capacity of each year of the run.
+
+        A year which is not in the sheet takes the capacity of the last year before it (0 if there is none).
         
         Parameters
         ----------
         xl_settings_file_path : str
             Path to Excel file containing desalination capacity configurations
+
+        Returns
+        -------
+        dict
+            Year -> capacity
         """
         df = readexcel(xl_settings_file_path, 'Desalination')
         
-        s_year = globals.dateVar['dateBegin'].year
-        e_year = globals.dateVar['dateEnd'].year
+        s_year = dateVar['dateBegin'].year
+        e_year = dateVar['dateEnd'].year
         
         desalCap = {}
-        lastDesal = 0
+        # capacity of the last Excel year before the start of the run (0 if there is none)
+        before = df[df['Year'] < s_year].sort_values('Year')['Capacity'].to_list()
+        lastDesal = before[-1] if before else 0
         for year in range(s_year, e_year + 1):
             if np.isin(year, df['Year']):
                 lastDesal = df[df['Year'] == year]['Capacity'].to_list()[0]
@@ -296,15 +355,15 @@ class initcondition(object):
     def initial(self):
         """
         initial part of the initcondition module
-		Puts all the variables which has to be stored in 2 lists:
+        Puts all the variables which have to be stored in 2 lists:
 
-		* initCondVar: the name of the variable in the init netcdf file
-		* initCondVarValue: the variable name, optionally with integer index e.g. w1[2] (read with getoutvar)
+        * initCondVar: the name of the variable in the init netcdf file
+        * initCondVarValue: the variable name, optionally with integer index e.g. w1[2] (read with getoutvar)
 
-		Reads the parameter *save_initial* and *save_initial* to know if to save or load initial values
+        Reads the parameters *save_initial* and *load_initial* to know if to save or load initial values
         """
 
-        # list all initiatial variables
+        # list all initial variables
         # Snow & Frost
         if not checkOption('usepySnowClim', True):
             number = int(loadmap('NumberSnowLayers'))
@@ -320,14 +379,13 @@ class initcondition(object):
                 initCondVarValue.append("runoff_conc[" + str(i) + "]")
 
         # soil / landcover
-        i = 0
         self.var.coverTypes = list(map(str.strip, cbinding("coverTypes").split(",")))
 
         # soil paddy irrigation
         initCondVar.append("topwater")
         initCondVarValue.append("topwater")
 
-        for coverType in self.var.coverTypes:
+        for i, coverType in enumerate(self.var.coverTypes):
             if coverType in ['forest', 'grassland', 'irrPaddy', 'irrNonPaddy']:
                 for cond in ["interceptStor", "w1","w2","w3"]:
                     initCondVar.append(coverType+"_"+ cond)
@@ -336,7 +394,6 @@ class initcondition(object):
                 for cond in ["interceptStor"]:
                     initCondVar.append(coverType+"_"+ cond)
                     initCondVarValue.append(cond+"["+str(i)+"]")
-            i += 1
 
         self.var.includeCrops = False
         if "includeCrops" in option:
@@ -344,13 +401,8 @@ class initcondition(object):
 
         if self.var.includeCrops:
 
-            if 'Excel_settings_file' in binding:
-                xl_settings_file_path = cbinding('Excel_settings_file')
-                self.var.Crops, self.var.Crops_names = self.crops_initialise(xl_settings_file_path)
-            else:
-                msg = "Error 137: The Excel settings file needs to be included into the settings file:\n" \
-                      "Excel_settings_file ="+r"*PATH*\cwatm_settings.xlsx"+"\n"
-                raise CWATMError(msg)
+            xl_settings_file_path = self.excel_settings_file('includeCrops')
+            self.var.Crops, self.var.Crops_names = self.crops_initialise(xl_settings_file_path)
 
             initCondVar.append('frac_totalIrr_max')
             initCondVarValue.append('frac_totalIrr_max')
@@ -397,7 +449,7 @@ class initcondition(object):
         if self.var.includeDesal:
             self.var.unlimitedDesal = returnBool('unlimitedDesalinationCapacity')
             if not self.var.unlimitedDesal:
-                xl_settings_file_path = cbinding('Excel_settings_file')
+                xl_settings_file_path = self.excel_settings_file('includeDesalination')
                 self.var.desalAnnualCap = self.desalinationCapacity(xl_settings_file_path)
         
         # groundwater
@@ -421,11 +473,9 @@ class initcondition(object):
                     initCondVarValue.append("seepagePond[" + str(No) + "]")
 
         # routing
-        Var1 = ["channelStorage", "discharge", "riverbedExchange"]
-        Var2 = ["channelStorage", "discharge", "riverbedExchange"]
-
-        initCondVar.extend(Var1)
-        initCondVarValue.extend(Var2)
+        routing = ["channelStorage", "discharge", "riverbedExchange"]
+        initCondVar.extend(routing)
+        initCondVarValue.extend(routing)
         # inflow of the previous day (inflow.py): the routing interpolates the inflow of the day from it
         if checkOption('inflow'):
             initCondVar.append("QInM3Old")
@@ -439,9 +489,6 @@ class initcondition(object):
             initCondVar.extend(Var1)
             initCondVarValue.extend(Var2)
 
-        # lakes & reservoirs
-
-        if checkOption('includeWaterBodies'):
             if returnBool('useSmallLakes'):
                 Var1 = ["smalllakeInflow","smalllakeStorage","smalllakeOutflow"]
                 Var2 = ["smalllakeInflowOld","smalllakeVolumeM3","smalllakeOutflow"]
@@ -451,23 +498,20 @@ class initcondition(object):
 
         if 'reservoir_add_info_in_Excel' in option:
             if checkOption('reservoir_add_info_in_Excel'):
-                if 'Excel_settings_file' in binding:
-                    xl_settings_file_path = cbinding('Excel_settings_file')
-                    self.var.reservoir_info = self.reservoir_addinfo(xl_settings_file_path)
+                xl_settings_file_path = self.excel_settings_file('reservoir_add_info_in_Excel')
+                self.var.reservoir_info = self.reservoir_addinfo(xl_settings_file_path)
 
 
         if 'reservoir_transfers' in option:
             if checkOption('reservoir_transfers'):
-                if 'Excel_settings_file' in binding:
-                    xl_settings_file_path = cbinding('Excel_settings_file')
-                    self.var.reservoir_transfers = self.reservoir_transfers(xl_settings_file_path)
+                xl_settings_file_path = self.excel_settings_file('reservoir_transfers')
+                self.var.reservoir_transfers = self.reservoir_transfers(xl_settings_file_path)
         
         if 'includeWastewater' in option:
             if checkOption('includeWastewater'):
-                if 'Excel_settings_file' in binding:
-                    xl_settings_file_path = cbinding('Excel_settings_file')
-                    self.var.wwt_def = self.wasterwater_def(xl_settings_file_path)
-                    self.var.wastewater_to_reservoirs = self.wastewater_to_reservoirs(xl_settings_file_path)
+                xl_settings_file_path = self.excel_settings_file('includeWastewater')
+                self.var.wwt_def = self.wastewater_def(xl_settings_file_path)
+                self.var.wastewater_to_reservoirs = self.wastewater_to_reservoirs(xl_settings_file_path)
                     
         
         if 'relax_irrigation_agents' in option:
@@ -485,27 +529,22 @@ class initcondition(object):
         if self.var.loadInit:
             self.var.initLoadFile = cbinding('initLoad')
 
-        # Safe init file
+        # Save init file
         # several initial conditions can be stored in different netcdf files
         # initSave has the path and the first part of the name
         # intInit has the dates - as a single date, as several dates
         # or in certain interval e.g. 2y = every 2 years, 3m = every 3 month, 15d = every 15 days
 
         self.var.saveInit = returnBool('save_initial')
-        self.var.initmap = {}
         if self.var.saveInit:
             self.var.saveInitFile = cbinding('initSave')
             initdates = cbinding('StepInit').split()
             datetosaveInit(initdates,dateVar['dateBegin'],dateVar['dateEnd'])
 
-            #for d in initdates:
-            #    dd = datetoInt(d, dateVar['dateBegin'])
-            #    dateVar['intInit'].append(datetoInt(d, dateVar['dateBegin']))
-
     def dynamic(self):
         """
         Dynamic part of the initcondition module
-        write initital conditions into a single netcdf file
+        write initial conditions into a single netcdf file
 
         Note:
             Several dates can be stored in different netcdf files
@@ -515,10 +554,8 @@ class initcondition(object):
             if  dateVar['curr'] in dateVar['intInit']:
                 saveFile = self.var.saveInitFile + "_" + "%02d%02d%02d.nc" % (dateVar['currDate'].year, dateVar['currDate'].month, dateVar['currDate'].day)
                 initVar=[]
-                i = 0
-                for var in initCondVar:
-                    base, index = parseoutvar(initCondVarValue[i])
+                for value in initCondVarValue:
+                    base, index = parseoutvar(value)
                     initVar.append(getoutvar(self.var, base, index))
-                    i += 1
                 writeIniNetcdf(saveFile, initCondVar,initVar)
 
