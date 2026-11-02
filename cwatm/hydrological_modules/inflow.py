@@ -60,13 +60,14 @@ class inflow(object):
         Initialize inflow points and load time series data.
         
         Reads inflow point locations from a map or coordinates, loads the time
-        series from one or more csv files and checks them before the first day.
+        series from one or more csv files (or tss files in the old format if there is no csv file) and checks them
+        before the first day.
         
         Notes
         -----
         This method performs several key operations:
         - Identifies spatial locations for inflow application
-        - Reads and validates time series data from the csv files
+        - Reads and validates time series data from the csv (or tss) files
         - Stores the flow of each point per day of the run
         """
 
@@ -175,8 +176,8 @@ class inflow(object):
             inflowNames = []
             firstFile = None
             for name in inflowFile:
-                filename = os.path.join(inDir, name)
-                names, dates, values = readInflowCsv(filename)
+                # csv file, or the old tss format if only a tss file exists
+                names, dates, values, filename = readInflowFile(os.path.join(inDir, name))
 
                 for column in names:
                     if column in inflowNames:
@@ -187,11 +188,15 @@ class inflow(object):
 
                 # all files need the same number of rows
                 if firstFile is None:
-                    firstFile = (filename, len(dates))
-                elif len(dates) != firstFile[1]:
+                    firstFile = (filename, len(values))
+                elif len(values) != firstFile[1]:
                     msg = "Error 162: Inflow files have a different number of rows:\n"
-                    msg += firstFile[0] + ": " + str(firstFile[1]) + "\n" + filename + ": " + str(len(dates))
+                    msg += firstFile[0] + ": " + str(firstFile[1]) + "\n" + filename + ": " + str(len(values))
                     raise CWATMError(msg)
+
+                # a tss file has no dates: the first row is the first day of the run (StepStart)
+                if dates is None:
+                    dates = runDates[:len(values)]
 
                 # the flow of a day is found by its date
                 rowOfDate = {date: i for i, date in enumerate(dates)}

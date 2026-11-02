@@ -218,6 +218,82 @@ def readInflowCsv(filename):
     return names, dates, values
 
 
+def readInflowTss(filename):
+    """
+    Read an inflow file in the old tss format (PCRaster time series, written by CWatM before 2026-11-01).
+
+    Parameters
+    ----------
+    filename : str
+        Path of the tss file: a header line, the number of columns, "timestep", one line per column name,
+        then rows of "timestep value value" separated by blanks.
+
+    Returns
+    -------
+    tuple
+        Column names, values [rows, columns]. The file has no dates: row 1 is the first day of the run.
+
+    Raises
+    ------
+    CWATMFileError
+        If the file does not have this format (Error 218).
+    """
+
+    try:
+        with open(filename, "r") as file:
+            lines = file.read().splitlines()
+        no = int(lines[1]) - 1
+        names = [name.strip() for name in lines[3:3 + no]]
+        values = []
+        for line in lines[3 + no:]:
+            if line.strip():
+                values.append([float(value) for value in line.split()[1:]])
+        values = np.array(values)
+        if no < 1 or values.ndim != 2 or values.shape[1] != len(names):
+            raise ValueError("number of values does not fit the header")
+    except Exception:
+        msg = "Error 218: Mistake reading inflow file\nIt has to be a tss file (a header line, the number of columns, "
+        msg += "\"timestep\", one line per column name, then rows \"timestep value value\")\n"
+        raise CWATMFileError(filename, msg, sname="QInTS")
+    return names, values
+
+
+def readInflowFile(filename):
+    """
+    Read an inflow file: the csv file, or the old tss file if only this one exists.
+
+    Parameters
+    ----------
+    filename : str
+        Path of the inflow file. With the ending .csv or .tss, first name.csv is used and name.tss only if there is
+        no csv file. Another ending is read as csv.
+
+    Returns
+    -------
+    tuple
+        Column names, dates as (day, month, year) or None for a tss file (no dates), values [rows, columns],
+        name of the file which was read
+
+    Raises
+    ------
+    CWATMFileError
+        If no file is found or the file does not have the format (Error 218).
+    """
+
+    root, ext = os.path.splitext(filename)
+    if ext.lower() in (".csv", ".tss"):
+        found = [name for name in (root + ".csv", root + ".tss") if os.path.isfile(name)]
+        if not found:
+            msg = "Error 218: Inflow file not found, looked for: " + root + ".csv and " + root + ".tss\n"
+            raise CWATMFileError(filename, msg, sname="QInTS")
+        filename = found[0]
+    if filename.lower().endswith(".tss"):
+        names, values = readInflowTss(filename)
+        return names, None, values, filename
+    names, dates, values = readInflowCsv(filename)
+    return names, dates, values, filename
+
+
 def invcellsize(cell):
     """
     Inverse of the cell size.

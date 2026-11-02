@@ -346,14 +346,19 @@ def check_settings_keys():
     stopAfterSnoww = True would be ignored without this check and the default would be used.
     Keys used only in $(...) placeholders count as used. Keys asked for later than the first time step
     are not checked. Obsolete options (reportMap, reportTss, reportOldTss, sumWaterBalance, writeNetcdfStack, netcdfasindex)
-    are ignored.
+    are ignored, and so are keys which are only read if an option is on while this option is off
+    (wwt_reservoir_releases with includeWastewater = False).
     """
 
     # old options which are still in many settings files but not used by the code any more
     obsolete = {"reportMap", "reportTss", "reportOldTss", "sumWaterBalance", "writeNetcdfStack", "netcdfasindex"}
+    # keys which are only read if this option is on: with the option off they are not used, but not misspelled
+    # (dict.get: reading the option here does not count as used)
+    switchedOff = {k for k, opt in {"wwt_reservoir_releases": "includeWastewater"}.items()
+                   if not dict.get(option, opt, False)}
     msgs = []
     unused = {"[OPTIONS]": [k for k in option.keys() if k not in option.used and k not in obsolete],
-              "settings": [k for k in binding.keys() if k not in binding.used]}
+              "settings": [k for k in binding.keys() if k not in binding.used and k not in switchedOff]}
     for where, d in (("[OPTIONS]", option), ("settings", binding)):
         other = "settings" if where == "[OPTIONS]" else "[OPTIONS]"
         for key in sorted(d.missing):
