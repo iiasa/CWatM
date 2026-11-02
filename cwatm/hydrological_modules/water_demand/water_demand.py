@@ -1847,7 +1847,9 @@ class water_demand:
                 # minlake = np.maximum(0.,self.var.smalllakeStorage - self.var.minsmalllakeStorage) * self.var.M3toM
 
                 if returnBool('useSmallLakes'):
-                    minlake = np.maximum(0., 0.98 * self.var.smalllakeStorage) * self.var.M3toM
+                    # limit by the Puls volume too: abstraction is taken from both, a negative volume is set to 0
+                    # in lakes_res_small.py (max(0, SI)) and the abstracted water would be created again
+                    minlake = np.maximum(0., 0.98 * np.minimum(self.var.smalllakeStorage, self.var.smalllakeVolumeM3)) * self.var.M3toM
                     self.var.act_smallLakeResAbst = np.minimum(minlake, remainNeed1)
                     # act_smallLakesres is substracted from small lakes storage
                     self.var.smalllakeVolumeM3 = self.var.smalllakeVolumeM3 - self.var.act_smallLakeResAbst * self.var.MtoM3

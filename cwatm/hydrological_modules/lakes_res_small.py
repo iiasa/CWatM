@@ -21,7 +21,7 @@ class lakes_res_small(object):
     Small lakes and reservoirs module for water bodies with limited catchment area.
     
     Handles water retention and outflow calculations for small water bodies
-    (catchment area < 5000 kmÃ‚Â² or lake area < 100 kmÃ‚Â²) using the modified Puls
+    (catchment area < 5000 km2 or lake area < 100 km2) using the modified Puls
     approach. Processes distributed small water bodies within grid cells rather
     than individual large water bodies.
     
@@ -53,29 +53,26 @@ class lakes_res_small(object):
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
     load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
-    smallpart                            Array         fraction of the cellarea which is a small lake                          --   
+    smallpart                            Array         fraction of the cell area which is the catchment of small lakes         --   
     smalllakeArea                        Array         Lake area of small lakes (not part of the main river network)           m2   
-    smalllakeDis0                        Array         Starting discharge of small lakes                                       m3 s-
-    smalllakeA                           Array         Lake A facor of small lakes                                             --   
-    smalllakeFactor                      Array         Internal calculation value for modified Puls approach for small lakes   --   
-    smalllakeFactorSqr                   Array         Internal calculation value for modified Puls approach for small lakes   --   
+    smalllakeDis0                        Array         average discharge of small lakes (for lake parameter A, min 0.01)       m3 s-
+    smalllakeA                           Array         Lake parameter A of small lakes (channel width, gravity, weir coeff.)   --   
+    smalllakeFactor                      Array         Modified Puls factor of small lakes: area / (dt * sqrt(A))              --   
+    smalllakeFactorSqr                   Array         square of smalllakeFactor                                               --   
     smalllakeInflowOld                   Array         Inflow of the previous day                                              m3 s-
-    smalllakeOutflow                     Array         Outflow from small alkes                                                m3 s-
+    smalllakeOutflow                     Array         Outflow from small lakes                                                m3 s-
     smalllakeLevel                       Array         Lake level for small lakes                                              m    
-    minsmalllakeVolumeM3                 Array         Storage volume of small lakes                                           m3   
-    smallLakedaycorrect                  Array         a water balance correction term for a day because Modified Puld approa  m    
     smallLakeIn                          Array         Inflow into small lakes = lakeIn * time / area                          m    
     smallevapWaterBody                   Array         Evaporation from small lakes                                            m    
-    smallLakeout                         Array         small lake outflow but in [m]                                           m    
-    smallrunoffDiff                      Number        Not used                                                                --   
+    smallLakeout                         Array         Outflow from small lakes per day                                        m3   
     DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
     InvDtSec                             Array         inversere of seconds per timestep (default 1/86400)                     1 s-1
     EWRef                                Array         potential evaporation rate from water surface                           m    
     lakeEvaFactor                        Array         a factor which increases evaporation from lake because of wind          --   
-    runoff_m3                            Array         back to [m]  # with and without in m3 (AI)                              --   
+    runoff_m3                            Array         runoff of the cell (after small lakes: outflow + rest of the cell)      m3   
     cellArea                             Array         Area of cell                                                            m2   
-    smalllakeVolumeM3                    Array         act_smallLakesres is substracted from small lakes storage (AI)          --   
-    smalllakeStorage                     Array                                                                                 --   
+    smalllakeVolumeM3                    Array         Puls volume of small lakes (abstraction subtracted in water_demand)     m3   
+    smalllakeStorage                     Array         water balance storage of small lakes (in - out - evap - abstraction)    m3   
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -92,6 +89,26 @@ class lakes_res_small(object):
         self.var = model.var
         self.model = model
 
+    def puls_parameters(self):
+        """
+        Lake parameter A and Modified Puls factor of the small lakes
+        (depend on smalllakeArea and - with averageRunoff - on smallpart: new each year with dynamicLakesRes)
+        """
+        # lake discharge at outlet to calculate alpha: parameter of channel width, gravity and weir coefficient
+        # Lake parameter A (suggested  value equal to outflow width in [m])
+        # multiplied with the calibration parameter LakeMultiplier
+        if "averageRunoff" in binding:
+            self.var.smalllakeDis0 = (loadmap('averageRunoff') * self.var.smallpart *
+                                      self.var.cellArea * self.var.InvDtSec)
+        else:
+            self.var.smalllakeDis0 = loadmap('smallwaterBodyDis')
+        self.var.smalllakeDis0 = np.maximum(self.var.smalllakeDis0, 0.01)
+        chanwidth = 7.1 * np.power(self.var.smalllakeDis0, 0.539)
+        self.var.smalllakeA = loadmap('lakeAFactor') * 0.612 * 2 / 3 * chanwidth * (2 * 9.81) ** 0.5
+        self.var.smalllakeFactor = self.var.smalllakeArea / (self.var.DtSec * np.sqrt(self.var.smalllakeA))
+        # for faster calculation inside dynamic section
+        self.var.smalllakeFactorSqr = np.square(self.var.smalllakeFactor)
+
     def initial(self):
         """
         Initialize small water body parameters and initial conditions.
@@ -107,7 +124,6 @@ class lakes_res_small(object):
         - Loading small water body surface areas
         - Calculating discharge coefficients and lake factors
         - Setting initial storage, inflow, and outflow conditions
-        - Configuring minimum storage constraints if specified
         
         Small water bodies are characterized by:
         - Distributed coverage within grid cells (smallpart fraction)
@@ -132,27 +148,14 @@ class lakes_res_small(object):
             self.var.smalllakeArea = (readnetcdf2('smallLakesRes', year, useDaily="yearly", value='area') * 
                                       1000 * 1000)
 
-			
 
-            # lake discharge at outlet to calculate alpha: parameter of channel width, gravity and weir coefficient
-            # Lake parameter A (suggested  value equal to outflow width in [m])
-            # multiplied with the calibration parameter LakeMultiplier
-            testRunoff = "averageRunoff" in binding
-            if testRunoff:
-                self.var.smalllakeDis0 = (loadmap('averageRunoff') * self.var.smallpart * 
-                                          self.var.cellArea * self.var.InvDtSec)
-            else:
-                self.var.smalllakeDis0 = loadmap('smallwaterBodyDis')
-            self.var.smalllakeDis0 = np.maximum(self.var.smalllakeDis0, 0.01)
-            chanwidth = 7.1 * np.power(self.var.smalllakeDis0, 0.539)
-            self.var.smalllakeA = loadmap('lakeAFactor') * 0.612 * 2 / 3 * chanwidth * (2 * 9.81) ** 0.5
-            self.var.smalllakeFactor = self.var.smalllakeArea / (self.var.DtSec * np.sqrt(self.var.smalllakeA))
-
-            self.var.smalllakeFactorSqr = np.square(self.var.smalllakeFactor)
-            # for faster calculation inside dynamic section
+            # lake parameter A and Modified Puls factor
+            self.puls_parameters()
 
             # inflow in m3/s estimate
-            self.var.smalllakeInflowOld = self.var.load_initial("smalllakeInflow", self.var.smalllakeDis0)
+            # cells without a small lake get no starting inflow (smalllakeDis0 >= 0.01 is only for parameter A)
+            inflowIni = np.where(self.var.smalllakeArea > 0, self.var.smalllakeDis0, 0.)
+            self.var.smalllakeInflowOld = self.var.load_initial("smalllakeInflow", inflowIni)
             
             old = self.var.smalllakeArea * np.sqrt(self.var.smalllakeInflowOld / self.var.smalllakeA)
             self.var.smalllakeVolumeM3 = self.var.load_initial("smalllakeStorage", old)
@@ -170,13 +173,10 @@ class lakes_res_small(object):
 
             # lake storage ini
             self.var.smalllakeLevel = divideValues(self.var.smalllakeVolumeM3, self.var.smalllakeArea)
-            self.var.smalllakeStorage = self.var.smalllakeVolumeM3.copy()
+            # water balance storage (in - out - evap; differs from the Puls volume by (Q - Qstart) * dt / 2)
+            # from the init file - cold start or old init file: = volume
+            self.var.smalllakeStorage = self.var.load_initial("smalllakeStorageBalance", self.var.smalllakeVolumeM3.copy())
 
-            testStorage = "minStorage" in binding
-            if testStorage:
-                self.var.minsmalllakeVolumeM3 = loadmap('minStorage')
-            else:
-                self.var.minsmalllakeVolumeM3 = 9.e99
 
 
    # ------------------ End init ------------------------------------------------------------------------------------
@@ -216,12 +216,12 @@ class lakes_res_small(object):
             Parameters
             ----------
             inflow : numpy.ndarray
-                Inflow to small lakes [mÃ‚Â³] per time step
+                Inflow to small lakes [m3] per time step
                 
             Returns
             -------
             numpy.ndarray
-                Lake outflow [mÃ‚Â³] per time step
+                Lake outflow [m3] per time step
                 
             Notes
             -----
@@ -238,27 +238,22 @@ class lakes_res_small(object):
 
             inflowM3S = inflow / self.var.DtSec
 
-            # just for day to day waterbalance -> get X as difference
-            # lakeIn = in + X ->  (in + old) * 0.5 = in + X  ->   in + old = 2in + 2X -> in - 2in +old = 2x
-            # -> (old - in) * 0.5 = X
-            self.var.smallLakedaycorrect = (0.5 * (self.var.smalllakeInflowOld * self.var.DtSec - inflow) / 
-                                           self.var.cellArea)
-
             # Lake inflow in [m3/s]
             lakeIn = (inflowM3S + self.var.smalllakeInflowOld) * 0.5
             # for Modified Puls Method: (S2/dtime + Qout2/2) = (S1/dtime + Qout1/2) - Qout1 + (Qin1 + Qin2)/2
             # here: (Qin1 + Qin2)/2
             self.var.smallLakeIn = lakeIn * self.var.DtSec / self.var.cellArea  # in [m]
 
-            self.var.smallevapWaterBody = self.var.lakeEvaFactor * self.var.EWRef * self.var.smalllakeArea
-
-            self.var.smallevapWaterBody = np.where((self.var.smalllakeVolumeM3 - self.var.smallevapWaterBody) > 0., 
-                                                   self.var.smallevapWaterBody, self.var.smalllakeVolumeM3)
-            self.var.smallevapWaterBody = np.maximum(0., self.var.smallevapWaterBody)
+            # evaporation [m3] limited by the lake volume (not below 0) - same as in lakes_reservoirs.py
+            # rate as for channels and big lakes (routing_kinematic.py EWRefact): minus the evaporation of the
+            # water land cover fraction (openWaterEvap[5]), the small lakes are part of this fraction
+            evapRate = np.maximum(0., self.var.lakeEvaFactor * self.var.EWRef - self.var.openWaterEvap[5])
+            self.var.smallevapWaterBody = np.minimum(evapRate * self.var.smalllakeArea,
+                                                     np.maximum(self.var.smalllakeVolumeM3, 0.))
             self.var.smalllakeVolumeM3 = self.var.smalllakeVolumeM3 - self.var.smallevapWaterBody
             # lakestorage - evaporation from lakes
 
-            self.var.smalllakeInflowOld = inflowM3S.copy()
+            self.var.smalllakeInflowOld = inflowM3S
             # Qin2 becomes Qin1 for the next time step
 
             lakeStorageIndicator = np.maximum(0.0, self.var.smalllakeVolumeM3 / self.var.DtSec - 
@@ -279,12 +274,6 @@ class lakes_res_small(object):
                                          QsmallLakeOut - self.var.smallevapWaterBody)
             # for mass balance, the lake storage is calculated every time step
 
-            # if dateVar['curr'] >= dateVar['intSpin']:
-            #   self.var.minsmalllakeStorageM3 = np.where(self.var.smalllakeStorageM3 < 
-            #                                             self.var.minsmalllakeStorageM3,
-            #                                             self.var.smalllakeStorageM3,
-            #                                             self.var.minsmalllakeStorageM3)
-
             self.var.smallevapWaterBody = self.var.smallevapWaterBody / self.var.cellArea  # back to [m]
             self.var.smalllakeLevel = divideValues(self.var.smalllakeVolumeM3, self.var.smalllakeArea)
 
@@ -302,7 +291,8 @@ class lakes_res_small(object):
         if checkOption('includeWaterBodies') and returnBool('useSmallLakes'):
 
             # check years
-            if dateVar['newStart'] or dateVar['newYear']:
+            # new year: area of the new year (at the start this is done in initial)
+            if dateVar['newYear'] and not dateVar['newStart']:
                 if returnBool('useResAndLakes') and returnBool('dynamicLakesRes'):
                     year = datetime.datetime(dateVar['currDate'].year, 1, 1)
                 else:
@@ -315,27 +305,16 @@ class lakes_res_small(object):
                 self.var.smalllakeArea = (readnetcdf2('smallLakesRes', year, useDaily="yearly", 
                                                          value='area') * 1000 * 1000)
                 # mult with 1,000,000 to convert from km2 to m2
+                # new area (and smallpart) -> new lake parameter A and Modified Puls factor
+                self.puls_parameters()
 
 
 
-            # ----------
-            # inflow lakes
-            # 1.  dis = upstream1(self.var.downstruct_LR, self.var.discharge)   # from river upstream
-            # 2.  runoff = npareatotal(self.var.waterBodyID, self.var.waterBodyID)  # from cell itself
-            # 3.                  # outflow from upstream lakes
-
-            # ----------
-
-            # runoff to the lake as a part of the cell basin
-            inflow = self.var.smallpart * self.var.runoff_m3  # inflow in m3
-            self.var.smallLakeout = dynamic_smalllakes(inflow) # as [m3]
-            # back to [m]  # with and without in m3
+            # runoff of the catchment part of the small lakes goes into the lakes [m3]
+            inflow = self.var.smallpart * self.var.runoff_m3
+            self.var.smallLakeout = dynamic_smalllakes(inflow)  # [m3]
+            # runoff of the cell [m3] = small lake outflow + runoff of the rest of the cell
             self.var.runoff_m3 = self.var.smallLakeout + (1 - self.var.smallpart) * self.var.runoff_m3
-
-            return
-
-        else:
-            self.var.smallrunoffDiff = 0
 
 
 # --------------------------------------------------------------------------

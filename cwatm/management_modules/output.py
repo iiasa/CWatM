@@ -686,7 +686,7 @@ class outputTssMap(object):
                 np.add.at(transit, self.var.decompress_LR,
                           np.where(typLake, 0.5 * self.var.lakeInflowOldC * self.var.dtRouting, 0.))
             # small lakes (lakes_res_small.py): Puls inflow (new + old) / 2 -> half of the inflow of the day is still on
-            # its way (smallLakedaycorrect); it is taken from the runoff, but not yet in smalllakeStorage
+            # its way; it is taken from the runoff, but not yet in smalllakeStorage
             if returnBool('useSmallLakes'):
                 transit += 0.5 * self.var.smalllakeInflowOld * self.var.DtSec
             self.var.lakeInflowTransit = transit
