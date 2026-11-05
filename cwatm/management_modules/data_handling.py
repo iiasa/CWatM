@@ -821,6 +821,43 @@ def loadmap(name, lddflag=False,compress = True, local = False, cut = True, mask
     return mapC
 
 
+def loadmapYearly(name, date, value='None'):
+    """
+    Load a map which is either a single map or a netCDF stack with one map per year.
+
+    A single map is a number, a GeoTIFF or a netCDF without time; a stack is a netCDF whose variable has a time
+    dimension. The stack is found from the file (not from an error of loadmap: loadmap does not fail on a stack).
+
+    Parameters
+    ----------
+    name : str
+        settings key of the map
+    date : datetime.datetime
+        date of the year to read from a stack
+    value : str, optional
+        variable name in a stack, default 'None': found by getvariablename
+
+    Returns
+    -------
+    map : numpy.ndarray or float
+        the map (of this year, if a stack)
+    stack : bool
+        True if a stack: the caller reads it again every new year
+    """
+    filename = cbinding(name)
+    stack = False
+    if os.path.splitext(filename)[1].lower() == '.nc' and os.path.isfile(filename):
+        nf1 = ncopen(filename)
+        var = getvariablename(nf1) if value == 'None' else value
+        if var not in nf1.variables:
+            msg = "Error 177: variable " + var + " is not in the netCDF file\n"
+            raise CWATMFileError(filename, msg, sname=name)
+        stack = 'time' in nf1.variables[var].dimensions
+    if stack:
+        return readnetcdf2(name, date, 'yearly', value=value), True
+    return loadmap(name), False
+
+
 # -----------------------------------------------------------------------
 # Compressing to 1-dimensional numpy array
 # -----------------------------------------------------------------------
@@ -1401,6 +1438,44 @@ def mapattrTiff(nf2):
     cut3 = cut2 + maskmapAttr['row']
 
     return cut0, cut1, cut2, cut3
+
+
+def regularZones(inner):
+    """
+    Zones of a regular grid of inner x inner cells, numbered over the whole Ldd map and cut to the mask map.
+
+    Used for the zonal abstraction of water_demand (allocation_area). The grid starts at the upper left corner
+    of the Ldd map (netCDF, GeoTIFF or PCRaster .map with the same name), so the zones do not depend on the mask.
+
+    Parameters
+    ----------
+    inner : int
+        Size of a zone in cells (inner x inner).
+
+    Returns
+    -------
+    numpy.ndarray
+        Compressed zone number of each cell (int, zone 0 is a zone).
+    """
+    _, _, _, _, rows, cols = readCoord(cbinding('Ldd'))
+    base = os.path.splitext(cbinding('Ldd'))[0]
+    if os.path.isfile(base + '.nc'):
+        cut0, cut1, cut2, cut3 = mapattrNetCDF(base + '.nc')
+    else:
+        filename = base + '.tif'
+        if not os.path.isfile(filename):
+            filename = base + '.map'
+        with rasterio.open(filename) as nf2:   # before 2026-11 opened in water_demand.py and never closed
+            cut0, cut1, cut2, cut3 = mapattrTiff(nf2)
+
+    # make the grid as big that it can be divided through inner (one zone row/column more than needed if it can
+    # be divided already - harmless), then cut to the mask map
+    cols1 = (cols // inner + 1) * inner
+    rows1 = (rows // inner + 1) * inner
+    arr = np.kron(np.arange(rows1 // inner * cols1 // inner).reshape((rows1 // inner, cols1 // inner)),
+                  np.ones((inner, inner)))
+    arr = arr[cut2:cut3, cut0:cut1].astype(int)
+    return compressArray(arr, name="array")
 
 
 def multinetdf(meteomaps, startcheck = 'dateBegin'):
@@ -2529,7 +2604,8 @@ def writeIniNetcdf(netfile,varlist, inputlist):
 
         # write values
         mapnp = maskinfo['maskall'].copy()
-        help = np.minimum(10e15,np.maximum(-9999., inputlist[i][:]))
+        # no lower limit: balance storages (e.g. lakeStorageBalance in m3) can be below -9999 - a limit changes the restart
+        help = np.minimum(10e15, inputlist[i][:])
         mapnp[~maskinfo['maskflat']] = help
         mapnp = mapnp.reshape(maskinfo['shape'])
 

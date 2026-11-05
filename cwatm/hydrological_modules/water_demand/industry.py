@@ -9,10 +9,8 @@
 # CWatM is licensed under GNU GENERAL PUBLIC LICENSE Version 3.
 # -------------------------------------------------------------------------
 
-from cwatm.management_modules import globals
-import numpy as np
-from cwatm.management_modules.data_handling import (returnBool, binding, cbinding, loadmap, readnetcdf2,
-                                                     divideValues, option, checkOption)
+from cwatm.management_modules.data_handling import binding, cbinding
+from cwatm.hydrological_modules.water_demand.sector_demand import sector_time, new_sector_time, read_sector_demand
 
 class waterdemand_industry:
     """
@@ -43,15 +41,12 @@ class waterdemand_industry:
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
-    industryTime                         List          Monthly' when industryTimeMonthly = True, and 'Yearly' otherwise.       --   
-    indWithdrawalVar                     List          Settings industryWithdrawalvarname, variable name in industryWaterDema  --   
-    indConsumptionVar                    List          Settings industryConsuptionvarname, variable name in domesticWaterDema  --   
-    pot_industryConsumption              Array                                                                                 --   
-    M3toM                                Array         Coefficient to change units                                             --   
-    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
-    demand_unit                          Flag          non-irrigation input maps have for each month or year the unit m/day (  --   
-    industryDemand                       Array                                                                                 --   
-    ind_efficiency                       Array                                                                                 --   
+    industryTime                         List          'monthly' or 'yearly' (settings industryTimeMonthly)                    str  
+    indWithdrawalVar                     List          Settings industryWithdrawalvarname: withdrawal variable in the netCDF   str  
+    indConsumptionVar                    List          Settings industryConsuptionvarname: consumption variable in the netCDF  str  
+    pot_industryConsumption              Array         Potential industry water consumption                                    m    
+    industryDemand                       Array         Industry water demand (withdrawal)                                      m    
+    ind_efficiency                       Array         Industry consumption / withdrawal, at most 1                            --   
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -76,13 +71,7 @@ class waterdemand_industry:
         configures variable names for withdrawal and consumption data reading,
         and initializes industrial water demand processing parameters.
         """
-        if "industryTimeMonthly" in binding:
-            if returnBool('industryTimeMonthly'):
-                self.var.industryTime = 'monthly'
-            else:
-                self.var.industryTime = 'yearly'
-        else:
-            self.var.industryTime = 'monthly'
+        self.var.industryTime = sector_time('industryTimeMonthly')
 
         if "industryWithdrawalvarname" in binding:
             self.var.indWithdrawalVar = cbinding("industryWithdrawalvarname")
@@ -109,39 +98,8 @@ class waterdemand_industry:
         """
 
 
-        if self.var.industryTime == 'monthly':
-            new = 'newMonth'
-        else:
-            new = 'newYear'
-
-        if globals.dateVar['newStart'] or globals.dateVar[new]:
-
-            self.var.industryDemand = readnetcdf2('industryWaterDemandFile', wd_date, self.var.industryTime,
-                                                  value=self.var.indWithdrawalVar)
-            self.var.pot_industryConsumption = readnetcdf2('industryWaterDemandFile', wd_date,
-                                                           self.var.industryTime,
-                                                           value=self.var.indConsumptionVar)
-
-            # Allows for user to scale industrial demand and potential consumption through the settings file.
-            # Industrial demand and potential consumption will be multiplied by the scaling factor.
-            if 'scale_industrial_demand' in binding:
-                scale_industrial_demand = loadmap('scale_industrial_demand') + globals.inZero
-                self.var.industryDemand = self.var.industryDemand * scale_industrial_demand
-                self.var.pot_industryConsumption = self.var.pot_industryConsumption * scale_industrial_demand
-
-            self.var.industryDemand = np.where(self.var.industryDemand > self.var.InvCellArea,
-                                               self.var.industryDemand, 0.0)
-            self.var.pot_industryConsumption = np.where(self.var.pot_industryConsumption > self.var.InvCellArea,
-                                                        self.var.pot_industryConsumption, 0.0)
-
-            # transform from mio m3 per year (or month) to m/day if necessary
-            if not self.var.demand_unit:
-                if self.var.industryTime == 'monthly':
-                    timediv = globals.dateVar['daysInMonth']
-                else:
-                    timediv = globals.dateVar['daysInYear']
-                self.var.industryDemand = self.var.industryDemand * 1000000 * self.var.M3toM / timediv
-                self.var.pot_industryConsumption = (self.var.pot_industryConsumption * 1000000 *
-                                                    self.var.M3toM / timediv)
-            self.var.ind_efficiency = divideValues(self.var.pot_industryConsumption,
-                                                   self.var.industryDemand)
+        if new_sector_time(self.var.industryTime):
+            # read, scale (scale_industrial_demand), m/day, values < 1 m3/day -> 0, efficiency (sector_demand.py)
+            self.var.industryDemand, self.var.pot_industryConsumption, self.var.ind_efficiency = read_sector_demand(
+                self.var, 'industryWaterDemandFile', wd_date, self.var.industryTime,
+                self.var.indWithdrawalVar, self.var.indConsumptionVar, 'scale_industrial_demand')

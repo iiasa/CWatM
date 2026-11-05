@@ -80,11 +80,10 @@ class lakes_reservoirs(object):
     waterBodyID_C                        Array         ID of the waterbody - compressed                                        --   
     compress_LR                          Array         boolean map as mask map for compressing lake/reservoir                  --   
     waterBodyOut                         Array         biggest outlet (biggest accumulation of ldd network) of a waterbody     --   
-    dirUp                                Array         river network in upstream direction                                     --   
+    dirshort                             Array         index of the downstream cell (-1 at pits)                               --   
     ldd_LR                               Array         change river network (put pits in where lakes are)                      --   
     lddCompress                          Array         compressed river network (without missing values)                       --   
     lddCompress_LR                       Array         compressed river network lakes/reservoirs (without missing values)      --   
-    dirUp_LR                             Array         river network direction upstream lake/reservoirs                        --   
     dirupLen_LR                          Array         number of bifurcation upstream lake/reservoir                           --   
     downstruct_LR                        Array         river network downstream lake/reservoir                                 --   
     catchment_LR                         Array         catchments lake/reservoir                                               --   
@@ -381,7 +380,7 @@ class lakes_reservoirs(object):
             self.var.waterBodyOut = np.where(self.var.UpArea1 == lakeResmax, self.var.waterBodyID, 0)
 
             # dismiss water bodies that are not a subcatchment of an outlet
-            sub = subcatchment1(self.var.dirUp, self.var.waterBodyOut, self.var.UpArea1)
+            sub = subcatchment1(self.var.dirshort, self.var.waterBodyOut, self.var.UpArea1)
             self.var.waterBodyID = np.where(self.var.waterBodyID == sub, sub, 0)
 
             
@@ -394,7 +393,7 @@ class lakes_reservoirs(object):
             self.var.ldd_LR = np.where(self.var.waterBodyID > 0, 5, self.var.lddCompress)
 
             # create new ldd without lakes reservoirs
-            self.var.lddCompress_LR, dirshort_LR, self.var.dirUp_LR, self.var.dirupLen_LR, self.var.dirupID_LR, \
+            self.var.lddCompress_LR, dirshort_LR, self.var.dirupLen_LR, self.var.dirupID_LR, \
             self.var.downstruct_LR, self.var.catchment_LR, self.var.dirDown_LR, self.var.lendirDown_LR = defLdd2(
                 self.var.ldd_LR)
 
@@ -451,7 +450,7 @@ class lakes_reservoirs(object):
             self.var.reservoir_transfers_out_M3 = globals.inZero.copy()
 
             # a factor which increases evaporation from lake because of wind
-            self.var.lakeEvaFactor = globals.inZero + loadmap('lakeEvaFactor')
+            # (lakeEvaFactor is loaded in routing_kinematic.initial, which runs before)
             self.var.lakeEvaFactorC = np.compress(self.var.compress_LR, self.var.lakeEvaFactor)
 
             # initial only the big arrays are set to 0,

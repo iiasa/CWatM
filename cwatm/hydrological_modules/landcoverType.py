@@ -12,34 +12,6 @@
 from cwatm.management_modules.data_handling import *
 
 
-def decompress(map, nanvalue=None):
-    """
-    Decompress CWatM maps from 1D compressed to 2D spatial arrays.
-    
-    Converts compressed 1D arrays back to full 2D spatial maps using
-    the model mask, handling missing values appropriately.
-    
-    Parameters
-    ----------
-    map : numpy.ndarray
-        Compressed 1D array to be expanded to 2D
-    nanvalue : float, optional
-        Value to assign to NaN locations in the decompressed map
-        
-    Returns
-    -------
-    numpy.ndarray
-        Decompressed 2D spatial array with mask-based reconstruction
-    """
-
-    dmap = maskinfo['maskall'].copy()
-    dmap[~maskinfo['maskflat']] = map[:]
-    if nanvalue is not None:
-        dmap.data[np.isnan(dmap.data)] = nanvalue
-
-    return dmap.data
-
-
 class SubVar(object):
     """
     Compressed view of model.var for the cells idx.
@@ -122,14 +94,6 @@ class landcoverType(object):
     for each type, and aggregates results weighted by land cover fractions
     for pixel-scale water balance calculations.
 
-
-
-
-
-
-
-
-
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
@@ -143,8 +107,9 @@ class landcoverType(object):
     maxGWCapRise                         Array         influence of capillary rise above groundwater level                     m    
     minCropKC                            Array         minimum crop factor (default 0.2)                                       --   
     minInterceptCap                      Array         minimum interception capacity per land cover type (from settings)       m    
-    irrigatedArea_original               Array                                                                                 --   
-    fracAllCover                         Array                                                                                 --   
+    irrigatedArea_original               Array         Fraction of non-paddy before moveIrrFallowToNonIrr                      --   
+    landcoverChangeToGW                  Array         Water of land cover stores that lost their land, to groundwater rechargem    
+    fracAllCover                         Array         Sum of the fractions of all land covers                                 --   
     frac_totalnonIrr                     Array         Fraction sown with specific non-irrigated crops                         %    
     frac_totalIrr_max                    Array         Fraction sown with specific irrigated crops, maximum throughout simula  %    
     frac_totalnonIrr_max                 Array         Fraction sown with specific non-irrigated crops, maximum throughout si  %    
@@ -166,13 +131,13 @@ class landcoverType(object):
     staticLandCoverMaps                  Flag          1=staticLandCoverMaps in settings file is True, 0=otherwise             bool 
     landcoverSum                         Array         Sum of all landcover, should be 1.0                                     %    
     totalET                              Array         Total evapotranspiration for each cell including all landcover types    m    
-    sum_interceptStor                    Array         Total of simulated vegetation interception storage including all landc  m    
+    sum_interceptStor                    Array         Interception storage (sum over all land cover types)                    m    
     minTopWaterLayer                     Array         minimum water level above the top soil zone (for paddy rice)            m    
-    maxRootDepth                         Array         maximum root depth                                                      m    
+    maxRootDepth                         Array         maximum root depth x soildepth_factor per land cover (4)                m    
     rootDepth                            Array         rootdepth of different layers                                           m    
-    KSat1                                Array         Saturated conductivity layer 1                                          cm da
-    KSat2                                Array         Saturated conductivity layer 2                                          cm da
-    KSat3                                Array         Saturated conductivity layer 3                                          cm da
+    KSat1                                Array         Saturated conductivity layer 1                                          m/day
+    KSat2                                Array         Saturated conductivity layer 2                                          m/day
+    KSat3                                Array         Saturated conductivity layer 3                                          m/day
     alpha1                               Array         Van Genuchten parameter alpha layer1                                    --   
     alpha2                               Array         Van Genuchten parameter alpha layer2                                    --   
     alpha3                               Array         Van Genuchten parameter alpha layer3                                    --   
@@ -197,44 +162,40 @@ class landcoverType(object):
     wres1                                Array         Residual storage capacity in layer 1                                    m    
     wres2                                Array         Residual storage capacity in layer 2                                    m    
     wres3                                Array         Residual storage capacity in layer 3                                    m    
-    wrange1                              Array         maximum soil moisture (ws) - residual soil mositure (wres) layer 1      m    
-    wrange2                              Array         maximum soil moisture (ws) - residual soil mositure (wres) layer 2      m    
-    wrange3                              Array         maximum soil moisture (ws) - residual soil mositure (wres) layer 3      m    
+    wrange1                              Array         maximum soil moisture (ws) - residual soil moisture (wres) layer 1      m    
+    wrange2                              Array         maximum soil moisture (ws) - residual soil moisture (wres) layer 2      m    
+    wrange3                              Array         maximum soil moisture (ws) - residual soil moisture (wres) layer 3      m    
     wwp1                                 Array         Soil moisture at wilting point in layer 1                               m    
     wwp2                                 Array         Soil moisture at wilting point in layer 2                               m    
     wwp3                                 Array         Soil moisture at wilting point in layer 3                               m    
-    kUnSat3FC                            Array         calculation from van Genuchten, Mualem equation                         m day
-    kunSatFC12                           Array         calculation from van Genuchten, Mualem equation                         m day
-    kunSatFC23                           Array         calculation from van Genuchten, Mualem equation                         m day
-    rootFraction1                        Array                                                                                 --   
-    cropCoefficientNC_filename           List                                                                                  --   
-    interceptCapNC_filename              List                                                                                  --   
-    coverFractionNC_filename             Array         landcover type + coverFractionNC                                        --   
-    ElevationStD                         Array         Standard elevation from DEM                                             m    
-    arnoBetaOro                          Array         chosen ModFlow model timestep (1day, 7days, 30days, etc.)               m    
-    arnoBeta                             Array         arnoBeta defines the shape of soil water capacity distribution curve a  --   
-    adjRoot                              Array                                                                                 --   
-    sum_topwater                         Array         quantity of water on the soil (flooding) (weighted sum for all landcov  m    
-    sum_soil                             Array         sum of all soilmpositure in all 3 layers + topwater                     m    
-    sum_w1                               Array         sum of actual soil mositure, weighted by the fraction of landcover      m    
-    sum_w2                               Array         sum of actual soil mositure, weighted by the fraction of landcover      m    
-    sum_w3                               Array         sum of actual soil mositure, weighted by the fraction of landcover      m    
-    totalSto                             Array         Total soil,snow and vegetation storage for each cell including all lan  m    
+    kunSatFC12                           Array         unsaturated conductivity at field capacity, between layer 1 and 2       m/day
+    kunSatFC23                           Array         unsaturated conductivity at field capacity, between layer 2 and 3       m/day
+    rootFraction1                        Array         fraction of the roots in soil layers 1 + 2 per land cover               --   
+    ElevationStD                         Array         Standard deviation of the elevation in a cell                           m    
+    arnoBetaOro                          Array         Arno beta from the orography (std. dev. of elevation), 0.01 - 1.2       --   
+    arnoBeta                             Array         Arno beta: shape of the soil water capacity distribution, per cover     --   
+    adjRoot                              Array         root fraction per soil layer and land cover (sum of the layers = 1)     --   
+    sum_topwater                         Array         paddy water layer (flooding) x paddy fraction                           m    
+    sum_soil                             Array         sum of all soil moisture in all 3 layers + topwater                     m    
+    sum_w1                               Array         soil moisture layer 1, weighted by the fraction of land cover           m    
+    sum_w2                               Array         soil moisture layer 2, weighted by the fraction of land cover           m    
+    sum_w3                               Array         soil moisture layer 3, weighted by the fraction of land cover           m    
+    totalSto                             Array         Total soil, snow, interception (+ seepage pond) storage of a cell       m    
     maxtopwater                          Array         maximum heigth of topwater                                              m    
+    paddyFloodKC                         Array         Input, irrPaddy_floodKC (0.75), paddy flooded + irrigated if cropKC >   --   
+    nonpaddyIrrKC                        Array         Input, irrNonPaddy_minKC (0.20), non-paddy irrigated if cropKC > this   --   
     totAvlWater                          Array         Field capacity minus wilting point in soil layers 1 and 2               m    
-    Rain_times_fracPaddy                 Array                                                                                 --   
-    Rain_times_fracNonPaddy              Array                                                                                 --   
     fracGlacierCover                     Array         Fraction of glacier cover in a grid cell                                %    
-    areaGlacier                          Area          Area of glacier in a gridcell                                           --   
+    areaGlacier                          Array         Area of glacier in a gridcell                                           m2   
     prefFlow_GW                          Array         Preferential flow to groundwater. sum_prefFlow goes either to groundwa  m    
     sum_prefFlow                         Array         Preferential flow from soil to groundwater (summed up for all land cov  m    
     sum_perc3toGW                        Array         Percolation from 3rd soil layer to groundwater (summed up for all land  m    
     perc3toGW_GW                         Array         Percolation from 3rd soil layer to groundwater. sum_perc3toGW goes eit  m    
-    riverbedExchangeM3                   Array         converting leakage in m3 (AI)                                           --   
+    riverbedExchangeM3                   Array         Flow from channel into groundwater (MODFLOW)                            m3   
     lakebedExchangeM                     Array         Flow of water from lakes and reservoirs into groundwater                m    
     sum_actTransTotal                    Array         actual total transpiration  (sum over all land cover types)             m    
     sum_actBareSoilEvap                  Array         actual bare soil evaporation (sum over all land cover types)            m    
-    sum_interceptEvap                    Array                                                                                 --   
+    sum_interceptEvap                    Array         interception evaporation (sum over all land cover types)                m    
     sum_runoff                           Array         Runoff above the soil, more interflow, including all landcover types    m    
     MtoM3                                Array         Coefficient to change units                                             --   
     InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
@@ -253,7 +214,7 @@ class landcoverType(object):
     SnowCover                            Array         snow cover (sum over all layers)                                        m    
     frac_totalIrr                        Array         Fraction sown with specific irrigated crops                             %    
     soilLayers                           List          Number of soil layers                                                   --   
-    soildepth                            Array         Thickness of the first soil layer                                       m    
+    soildepth                            Array         Thickness of the 3 soil layers                                          m    
     wfc1                                 Array         Soil moisture at field capacity in layer 1                              m    
     wfc2                                 Array         Soil moisture at field capacity in layer 2                              m    
     wfc3                                 Array         Soil moisture at field capacity in layer 3                              m    
@@ -264,25 +225,25 @@ class landcoverType(object):
     baseflow                             Array         simulated baseflow (= groundwater discharge to river)                   m    
     capriseindex                         Array         computing saturated fraction of each CWatM cells (where water table >=  --   
     soildepth12                          Array         Total thickness of layer 2 and 3                                        m    
-    leakageriver_factor                  Array                                                                                 --   
-    leakagelake_factor                   Array                                                                                 --   
+    leakageriver_factor                  Array         river leakage factor (MODFLOW)                                          m/day
+    leakagelake_factor                   Array         lake leakage factor (MODFLOW)                                           m/day
     modflow_timestep                     Array         Chosen ModFlow model timestep (1day, 7days, 30days, etc.)               day  
-    wwtUrbanLeakage                      Array                                                                                 --   
-    wwtColArea                           Array         Setup wastewater treatment facilities load collection area (AI)         --   
-    urbanleak                            Array         share to collect urban leakage (AI)                                     --   
+    wwtUrbanLeakage                      Array         Urban runoff of the sealed area collected by wastewater treatment       m    
+    wwtColArea                           Array         Wastewater treatment collection area                                    --   
+    urbanleak                            Array         Share of urban runoff collected by wastewater treatment                 --   
     fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
     cellArea                             Array         Area of cell                                                            m2   
-    includeWastewater                    Flag                                                                                  --   
+    includeWastewater                    Flag          True if wastewater treatment is included                                bool 
     lakeVolumeM3C                        Array         compressed map of lake volume                                           m3   
-    lakeStorageC                         Array                                                                                 --   
-    reservoirStorageM3C                  Array         Initial reservoir fill (fraction of total storage, [-]) (AI)            --   
-    lakeResStorageC                      Array         and from the combined onenpfor waterbalance issues (AI)                 --   
-    lakeResStorage                       Array                                                                                 --   
+    lakeStorageC                         Array         compressed map of lake storage                                          m3   
+    reservoirStorageM3C                  Array         compressed map of reservoir storage                                     m3   
+    lakeResStorageC                      Array         compressed map of lake + reservoir storage                              m3   
+    lakeResStorage                       Array         lake + reservoir storage at the outlet cells                            m3   
     act_SurfaceWaterAbstract             Array         Surface water abstractions                                              m    
-    readAvlChannelStorageM               Array         coversersion m3 -> m # minus environmental flow (AI)                    --   
-    leakageCanals_M                      Array         Without this, npareamaximum uses the historical maximum (AI)            --   
-    includeWastewaterPits                Flag                                                                                  --   
-    pitLatrinToGW                        Array                                                                                 --   
+    readAvlChannelStorageM               Array         available channel storage minus environmental flow                      m    
+    leakageCanals_M                      Array         Canal leakage                                                           m    
+    includeWastewaterPits                Flag          True if pit latrines are included                                       bool 
+    pitLatrinToGW                        Array         Water from pit latrines to groundwater                                  m    
     addtoevapotrans                      Array         Irrigation application loss to evaporation                              m    
     seepageOn                            Flag          True if modflow_coupling = True and modflow_seepage = True              bool 
     seepagePond                          Array         Seepage pond per land cover (max. 0.1 m x saturated share)              m    
@@ -393,19 +354,15 @@ class landcoverType(object):
         for variable in landcoverAll:
             vars(self.var)[variable] = np.tile(globals.inZero, (6, 1))
 
-        landcoverPara = ['minInterceptCap', 'cropDeplFactor', 'rootFraction1',
-                         'maxRootDepth', 'topWaterLayer', 'interflow',
-                         'cropCoefficientNC_filename', 'interceptCapNC_filename', 'coverFractionNC_filename']
-        # arrays stored as list not as numpy, because it can contain strings, single parameters or arrays
+        landcoverPara = ['minInterceptCap', 'rootFraction1', 'maxRootDepth']
+        # stored as list not as numpy array, because it can contain single parameters or arrays
         # list is filled with append afterwards
         for variable in landcoverPara:
             vars(self.var)[variable] = []
 
-        # fraction (m2) of a certain irrigation type over (only) total irrigation area ; will be assigned by 
-        # the landSurface module output variable per land cover class
-        landcoverVars = ['irrTypeFracOverIrr', 'fractionArea', 'totAvlWater', 'cropKC', 'cropKC_landCover',
-                         'effSatAt50', 'effPoreSizeBetaAt50', 'rootZoneWaterStorageMin', 'rootZoneWaterStorageRange',
-                         'totalPotET', 'potTranspiration', 'soilWaterStorage',
+        # variables per land cover class (6 land cover types)
+        landcoverVars = ['totAvlWater', 'cropKC', 'cropKC_landCover',
+                         'totalPotET', 'potTranspiration',
                          'infiltration', 'actBareSoilEvap', 'landSurfaceRunoff', 'actTransTotal',
                          'gwRecharge','gwRecharge2', 'interflow','actualET', 'pot_irrConsumption', 'act_irrConsumption', 'irrDemand',
                          'topWaterLayer',
@@ -417,10 +374,12 @@ class landcoverType(object):
 
 
         # for 4 landcover types with soil underneath
-        landcoverVarsSoil = ['arnoBeta', 'rootZoneWaterStorageCap', 'rootZoneWaterStorageCap12', 'perc1to2',
+        landcoverVarsSoil = ['arnoBeta', 'perc1to2',
                              'perc2to3', 'theta1', 'theta2', 'theta3',
                              # fluxes of the single soil layers (soil.py, WaterBalance output)
-                             'ta1', 'ta2', 'ta3', 'capRise2to1', 'capRise3to2', 'excess1to2', 'capOverflowRunoff']
+                             'ta1', 'ta2', 'ta3', 'capRise2to1', 'capRise3to2', 'excess1to2', 'capOverflowRunoff',
+                             # root zone water stress factor (soil.py)
+                             'rws']
         for variable in landcoverVarsSoil:
             vars(self.var)[variable] = np.tile(globals.inZero, (4, 1))
 
@@ -453,7 +412,15 @@ class landcoverType(object):
         # ----------------------------------------------------------
         # Load initial values and calculate basic soil parameters which are not changed in time
 
+        # water of land cover stores that lost their land (moveLandcoverStorage) -> groundwater recharge
+        self.var.landcoverChangeToGW = globals.inZero.copy()
         self.dynamic_fracIrrigation(init=True, dynamic=True)
+        # warm start: land cover fractions of the saved day (init files before 2026-11 do not have them: no move)
+        self.var.fracVegCoverInit = None
+        if self.var.loadInit:
+            fracInit = [self.var.load_initial("fracVegCover_" + c, None, warn=False) for c in self.var.coverTypes]
+            if all(isinstance(f, np.ndarray) for f in fracInit):
+                self.var.fracVegCoverInit = np.array(fracInit)
         i = 0
         for coverType in self.var.coverTypes:
             self.var.minInterceptCap.append(loadmap(coverType + "_minInterceptCap"))
@@ -469,21 +436,20 @@ class landcoverType(object):
         self.var.minTopWaterLayer = loadmap("minTopWaterLayer")
         self.var.maxGWCapRise = loadmap("maxGWCapRise")
 
+        soildepth_factor = loadmap('soildepth_factor')
         i = 0
         for coverType in self.var.coverTypes[:4]:
             # calculate rootdepth for each soillayer and each land cover class
-
-            soildepth_factor = loadmap('soildepth_factor')
             self.var.maxRootDepth.append(loadmap(coverType + "_maxRootDepth") * soildepth_factor)
 
-            self.var.rootDepth[0][i] = self.var.soildepth[0].copy()  # 0.05 m
-            # if land cover = forest
+            self.var.rootDepth[0][i] = self.var.soildepth[0].copy()  # depth of the first soil layer (map)
+            # forest, paddy and non paddy (not grassland): layer 2 reaches down to the maximum root depth
             if coverType != 'grassland':
-                # soil layer 1 = root max of land cover  - first soil layer
+                # soil layer 2 = max. root depth of the land cover - first soil layer
                 h1 = np.maximum(self.var.soildepth[1], self.var.maxRootDepth[i] - self.var.soildepth[0])
-                #
+                # leaves at least 0.05 m for soil layer 3
                 self.var.rootDepth[1][i] = np.minimum(self.var.soildepth12 - 0.05, h1)
-                # soil layer is minimim 0.05 m
+                # soil layer 3 is minimum 0.05 m
                 self.var.rootDepth[2][i] = np.maximum(0.05, self.var.soildepth12 - self.var.rootDepth[1][i])
             else:
                 self.var.rootDepth[1][i] = self.var.soildepth[1].copy()
@@ -497,21 +463,21 @@ class landcoverType(object):
         for variable in soilVars1:
             vars(self.var)[variable] = []
 
-        # ksat multiplier
+        # ksat multiplier (calibration, no limit)
         if 'ksat_fact' in binding:
-            ksat_fact = loadmap('ksat_fact')  # define limit
+            ksat_fact = loadmap('ksat_fact')
         else:
             ksat_fact = 1.
 
-        # thetas multiplier
+        # thetas multiplier (calibration, no limit)
         if 'thetas_fact' in binding:
-            thetas_fact = loadmap('thetas_fact')  # define limit
+            thetas_fact = loadmap('thetas_fact')
         else:
             thetas_fact = 1.
 
-        # thetar multiplier - limits 0.1 - 2.0
+        # thetar multiplier (calibration) - limits 0.1 - 2.0
         if 'thetar_fact' in binding:
-            thetar_fact = loadmap('thetar_fact')  # define limit
+            thetar_fact = loadmap('thetar_fact')
             thetar_fact = np.maximum(0.1, np.minimum(thetar_fact, 2.0))
         else:
             thetar_fact = 1.
@@ -522,7 +488,7 @@ class landcoverType(object):
                 pre = coverType + "_"
             else:
                 pre = ""
-            # ksat in cm/d-1 -> m/dm
+            # ksat in cm/day -> m/day
             self.var.KSat1.append(ksat_fact * (loadmap(pre + "KSat1")) / 100)
             self.var.KSat2.append(ksat_fact * (loadmap(pre + "KSat2")) / 100)
             self.var.KSat3.append(ksat_fact * (loadmap(pre + "KSat3")) / 100)
@@ -613,69 +579,52 @@ class landcoverType(object):
                 1 - (1 - satTerm1FC ** self.var.genuInvM1[j]) ** self.var.genuM1[j])
             kUnSat2FC = self.var.KSat2[j] * np.sqrt(satTerm2FC) * np.square(
                 1 - (1 - satTerm2FC ** self.var.genuInvM2[j]) ** self.var.genuM2[j])
-            self.var.kUnSat3FC = self.var.KSat3[j] * np.sqrt(satTerm3FC) * np.square(
+            kUnSat3FC = self.var.KSat3[j] * np.sqrt(satTerm3FC) * np.square(
                 1 - (1 - satTerm3FC ** self.var.genuInvM3[j]) ** self.var.genuM3[j])
             self.var.kunSatFC12.append(np.sqrt(kUnSat1FC * kUnSat2FC))
-            self.var.kunSatFC23.append(np.sqrt(kUnSat2FC * self.var.kUnSat3FC))
+            self.var.kunSatFC23.append(np.sqrt(kUnSat2FC * kUnSat3FC))
 
             i += 1
 
 
+        # it is better to start with a humid soil to avoid too much pumping at the begining because of
+        # the irrigation demand (with MODFLOW: start between wilting point and field capacity, else wilting point)
+        start_soil_humid = 0.
+        if self.var.modflow:
+            start_soil_humid = 0.75
+            if 'start_soil_humid' in binding:
+                start_soil_humid = loadmap('start_soil_humid')
+            print('=> Soil moisture is filled at ', 100 * start_soil_humid, ' % at the begining')
+
+        # Improved Arno's scheme parameters: Hageman and Gates 2003
+        # arnoBeta defines the shape of soil water capacity distribution curve as a function of
+        # topographic variability. b = max( (oh - o0)/(oh + omax), 0.01)
+        # oh: the standard deviation of orography, o0: minimum std dev, omax: max std dev
+        self.var.ElevationStD = loadmap('ElevationStD')
+        self.var.arnoBetaOro = (self.var.ElevationStD - 10.0) / (self.var.ElevationStD + 1500.0)
+        # for CALIBRATION
+        self.var.arnoBetaOro = self.var.arnoBetaOro + loadmap('arnoBeta_add')
+        self.var.arnoBetaOro = np.minimum(1.2, np.maximum(0.01, self.var.arnoBetaOro))
+
+        # rootFrac = False in the settings: root fraction of each layer from the layer depth
+        rootFracByDepth = 'rootFrac' in binding and not checkOption('rootFrac')
+
         i = 0
         for coverType in self.var.coverTypes[:4]:
-            # other paramater values
-            # b coefficient of soil water storage capacity distribution
-            # self.var.minTopWaterLayer.append(loadmap(coverType + "_minTopWaterLayer"))
-            # self.var.minCropKC.append(loadmap(coverType + "_minCropKC"))
-
-            # self.var.minInterceptCap.append(loadmap(coverType + "_minInterceptCap"))
-            # self.var.cropDeplFactor.append(loadmap(coverType + "_cropDeplFactor"))
-            # parameter values
-
             self.var.rootFraction1.append(loadmap(coverType + "_rootFraction1"))
-            # self.var.rootFraction2 = self.var.rootFraction1
-            self.var.maxRootDepth.append(loadmap(coverType + "_maxRootDepth"))
-
-            # store filenames
-            self.var.cropCoefficientNC_filename.append(coverType + "_cropCoefficientNC")
-            self.var.interceptCapNC_filename.append(coverType + "_interceptCapNC")
-            self.var.coverFractionNC_filename.append(coverType + "_coverFractionNC")
 
             # init values
-            # self.var.interflow[i] = self.var.load_initial(coverType + "_interflow")
-            self.var.w1[i] = self.var.load_initial(coverType + "_w1", default=self.var.wwp1[i])
-            self.var.w2[i] = self.var.load_initial(coverType + "_w2", default=self.var.wwp2[i])
-            self.var.w3[i] = self.var.load_initial(coverType + "_w3", default=self.var.wwp3[i])
-
-            # it is better to start with a humid soil to avoid too much pumping at the begining because of 
-            # the irrigation demand
             if self.var.modflow:
-                start_soil_humid = 0.75
-                if 'start_soil_humid' in binding:
-                    start_soil_humid = loadmap('start_soil_humid')
-                if i == 0:
-                    print('=> Soil moisture is filled at ', 100 * start_soil_humid, ' % at the begining')
-                self.var.w1[i] = self.var.load_initial(coverType + "_w1", 
-                                                       default=self.var.wwp1[i] + start_soil_humid * 
+                self.var.w1[i] = self.var.load_initial(coverType + "_w1", default=self.var.wwp1[i] + start_soil_humid *
                                                        (self.var.wfc1[i] - self.var.wwp1[i]))
-                self.var.w2[i] = self.var.load_initial(coverType + "_w2", 
-                                                       default=self.var.wwp2[i] + start_soil_humid * 
+                self.var.w2[i] = self.var.load_initial(coverType + "_w2", default=self.var.wwp2[i] + start_soil_humid *
                                                        (self.var.wfc2[i] - self.var.wwp2[i]))
-                self.var.w3[i] = self.var.load_initial(coverType + "_w3", 
-                                                       default=self.var.wwp3[i] + start_soil_humid * 
+                self.var.w3[i] = self.var.load_initial(coverType + "_w3", default=self.var.wwp3[i] + start_soil_humid *
                                                        (self.var.wfc3[i] - self.var.wwp3[i]))
-            
-            # Improved Arno's scheme parameters: Hageman and Gates 2003
-            # arnoBeta defines the shape of soil water capacity distribution curve as a function of 
-            # topographic variability. b = max( (oh - o0)/(oh + omax), 0.01)
-            # oh: the standard deviation of orography, o0: minimum std dev, omax: max std dev
-
-            self.var.ElevationStD = loadmap('ElevationStD')
-            self.var.arnoBetaOro = (self.var.ElevationStD - 10.0) / (self.var.ElevationStD + 1500.0)
-
-            # for CALIBRATION
-            self.var.arnoBetaOro = self.var.arnoBetaOro + loadmap('arnoBeta_add')
-            self.var.arnoBetaOro = np.minimum(1.2, np.maximum(0.01, self.var.arnoBetaOro))
+            else:
+                self.var.w1[i] = self.var.load_initial(coverType + "_w1", default=self.var.wwp1[i])
+                self.var.w2[i] = self.var.load_initial(coverType + "_w2", default=self.var.wwp2[i])
+                self.var.w3[i] = self.var.load_initial(coverType + "_w3", default=self.var.wwp3[i])
 
             self.var.arnoBeta[i] = self.var.arnoBetaOro + loadmap(coverType + "_arnoBeta")
             self.var.arnoBeta[i] = np.minimum(1.2, np.maximum(0.01, self.var.arnoBeta[i]))
@@ -691,11 +640,10 @@ class landcoverType(object):
             rootFrac[1] = (1 - fractionroot12) * self.var.rootFraction1[i]
             rootFrac[2] = 1.0 - self.var.rootFraction1[i]
 
-            if 'rootFrac' in binding:
-                if not checkOption('rootFrac'):
-                    root_depth_sum = self.var.rootDepth[0][i] + self.var.rootDepth[1][i] + self.var.rootDepth[2][i]
-                    for layer in range(3):
-                        rootFrac[layer] = self.var.rootDepth[layer][i] / root_depth_sum
+            if rootFracByDepth:
+                root_depth_sum = self.var.rootDepth[0][i] + self.var.rootDepth[1][i] + self.var.rootDepth[2][i]
+                for layer in range(3):
+                    rootFrac[layer] = self.var.rootDepth[layer][i] / root_depth_sum
 
             rootFracSum = np.sum(rootFrac, axis=0)
 
@@ -710,7 +658,8 @@ class landcoverType(object):
                 vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
         # for paddy irrigation flooded paddy fields
-        self.var.topwater = self.var.load_initial("topwater", default=0.) * globals.inZero.copy()
+        # (+ inZero: array also for the scalar default; before 2026-11-03 * inZero set the loaded water to 0)
+        self.var.topwater = self.var.load_initial("topwater", default=0.) + globals.inZero
         self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
         self.var.sum_soil = self.var.sum_w1 + self.var.sum_w2 + self.var.sum_w3 + self.var.sum_topwater
         self.var.totalSto = self.var.SnowCover + self.var.sum_interceptStor + self.var.sum_soil
@@ -726,17 +675,23 @@ class landcoverType(object):
         if "irrPaddy_maxtopwater" in binding:
             self.var.maxtopwater = loadmap('irrPaddy_maxtopwater')
 
-        # for irrigation of non paddy -> No =3
-        totalWaterPlant1 = np.maximum(0., self.var.wfc1[3] - self.var.wwp1[3])  # * self.var.rootDepth[0][3]
-        totalWaterPlant2 = np.maximum(0., self.var.wfc2[3] - self.var.wwp2[3])  # * self.var.rootDepth[1][3]
-        # totalWaterPlant3 = np.maximum(0., self.var.wfc3[3] - self.var.wwp3[3]) * self.var.rootDepth[2][3]
-        self.var.totAvlWater = totalWaterPlant1 + totalWaterPlant2  # + totalWaterPlant3
+        # crop calendar of the irrigation (soil.py and water_demand/irrigation.py): paddy fields are flooded and
+        # irrigated if cropKC > paddyFloodKC, non-paddy is irrigated if cropKC > nonpaddyIrrKC
+        # (before 2026-11 fixed numbers 0.75 and 0.20 in 4 + 1 places)
+        self.var.paddyFloodKC = 0.75
+        if "irrPaddy_floodKC" in binding:
+            self.var.paddyFloodKC = loadmap('irrPaddy_floodKC')
+        self.var.nonpaddyIrrKC = 0.20
+        if "irrNonPaddy_minKC" in binding:
+            self.var.nonpaddyIrrKC = loadmap('irrNonPaddy_minKC')
 
-        self.var.Rain_times_fracPaddy = globals.inZero.copy()
-        self.var.Rain_times_fracNonPaddy = globals.inZero.copy()
+        # for irrigation of non paddy -> No =3: field capacity - wilting point of soil layers 1 and 2 [m]
+        totalWaterPlant1 = np.maximum(0., self.var.wfc1[3] - self.var.wwp1[3])
+        totalWaterPlant2 = np.maximum(0., self.var.wfc2[3] - self.var.wwp2[3])
+        self.var.totAvlWater = totalWaterPlant1 + totalWaterPlant2
     # --------------------------------------------------------------------------
 
-    def dynamic_fracIrrigation(self, init=False, dynamic=True):
+    def dynamic_fracIrrigation(self, init=False, dynamic=True, move=False):
         """
         Update irrigation fractions dynamically or during initialization.
         
@@ -750,39 +705,38 @@ class landcoverType(object):
             Flag for initialization mode (default: False)
         dynamic : bool, optional
             Flag for dynamic update mode (default: True)
-            
+        move : bool, optional
+            True: keep the water of the land cover stores when the fractions change (moveLandcoverStorage),
+            not in initial, where the stores are loaded afterwards (default: False)
+
         Notes
         -----
-        Updates irrigation fractions based on:
-        - Temporal irrigation datasets
-        - Seasonal irrigation patterns
-        - Long-term irrigation changes
-        - Crop calendar considerations
+        * loads the fraction of the land cover types for each year from netcdf maps (or static maps)
+        * corrects grassland and forest so that the sum is 1.0
+        * if used takes the glacier area from the land covers
+        * without irrigation paddy and non paddy are added to grassland
         """
-        """
-        Dynamic part of the land cover type module
-
-        Calculating fraction of land cover
-
-        * loads the fraction of landcover for each year from netcdf maps
-        * calculate the fraction of 6 land cover types based on the maps
-        * if used add glacier maps
-
-        :param init: (optional) True: set for the first time of a run
-        :param dynamic: used in the dynmic run not in the initial phase
-        :return: -
-
-        """
-
-        #if checkOption('includeIrrigation') and checkOption('dynamicIrrigationArea'):
 
         # updating fracVegCover of landCover (for historical irrigation areas, done at yearly basis)
         # if first day of the year or first day of run
 
+        # warm start: the loaded stores belong to the fractions of the saved day, not to the map fractions of the
+        # first day -> their water is moved once (as in a run without stop; before 2026-11 it was not moved)
+        fracStart = None
+        if move and dateVar['newStart'] and self.var.fracVegCoverInit is not None:
+            fracStart = self.var.fracVegCoverInit
+            self.var.fracVegCoverInit = None
+
         if init and dynamic:
+            fracOld = np.array(self.var.fracVegCover, copy=True)
+            if fracStart is not None:
+                fracOld = fracStart
+                fracStart = None
 
             if self.var.staticLandCoverMaps:
-
+                # grassland is the rest (correction below): from 0 as in initial, not from the value before - a start on
+                # 1 January computed it twice and got 1 bit less in some cells than a restart (stop and go test)
+                self.var.fracVegCover[1] = globals.inZero.copy()
                 self.var.fracVegCover[0] = loadmap('forest_fracVegCover')
                 self.var.fracVegCover[2] = loadmap('irrPaddy_fracVegCover')
                 self.var.fracVegCover[3] = loadmap('irrNonPaddy_fracVegCover')
@@ -810,12 +764,24 @@ class landcoverType(object):
                 self.var.fracVegCover[2] = loadmap('paddyfraction')
                 self.var.fracVegCover[3] = loadmap('nonpaddyfraction')
 
-            # correction of grassland if sum is not 1.0
-            sum = np.sum(self.var.fracVegCover, axis=0)
-            self.var.fracVegCover[1] = np.maximum(0., self.var.fracVegCover[1] + 1.0 - sum)
-            sum = np.sum(self.var.fracVegCover, axis=0)
-            self.var.fracVegCover[0] = np.maximum(0., self.var.fracVegCover[0] + 1.0 - sum)
-            sum = np.sum(self.var.fracVegCover, axis=0)
+            # correction of grassland if sum is not 1.0, then of forest (if the sum is above 1 and grassland is 0)
+            fracSum = np.sum(self.var.fracVegCover, axis=0)
+            self.var.fracVegCover[1] = np.maximum(0., self.var.fracVegCover[1] + 1.0 - fracSum)
+            fracSum = np.sum(self.var.fracVegCover, axis=0)
+            self.var.fracVegCover[0] = np.maximum(0., self.var.fracVegCover[0] + 1.0 - fracSum)
+            # sealed + water + paddy + non paddy > 1 (maps that do not fit together, e.g. staticLandCoverMaps,
+            # static_irrigation_map): all fractions divided by the sum - before 2026-11-03 the sum stayed > 1 and
+            # these cells got more than 100 % of rain and fluxes (Bhima: 21 cells 1.33, UpperDanube 2, Ebro 1 cell 1.05)
+            fracSum = np.sum(self.var.fracVegCover, axis=0)
+            tooLarge = fracSum > 1.0 + 1e-6
+            if np.any(tooLarge):
+                self.var.fracVegCover[:] = np.where(tooLarge, self.var.fracVegCover / fracSum, self.var.fracVegCover)
+                if not getattr(self, 'fracSumWarned', False):
+                    self.fracSumWarned = True
+                    msg = "Land cover fractions: sealed + water + paddy + non paddy is above 1 in " + \
+                          str(np.count_nonzero(tooLarge)) + " cells (max. %.3f)" % np.max(fracSum) + \
+                          " - all fractions are divided by their sum there (warning shown once)"
+                    print(CWATMWarning(msg))
 
 
             # Adjust because of Glaciers. If glaicers than glacier area should be taken from grassland
@@ -858,19 +824,7 @@ class landcoverType(object):
                             self.var.fracVegCover[i] / invfracGlacierCover)
                         i += 1
 
-                """
-            temp = loadmap('reservoir_command_areas').astype(np.int)
-            self.var.fracVegCover[3] += np.where(temp > 0, self.var.fracVegCover[1] * 0.25, 0)
-            self.var.fracVegCover[1] -= np.where(temp > 0, self.var.fracVegCover[1] * 0.25, 0)
-            self.var.fracVegCover[3] += np.where(temp == 46, self.var.fracVegCover[1] * 0.25, 0)
-            self.var.fracVegCover[1] -= np.where(temp == 46, self.var.fracVegCover[1] * 0.25, 0)
-            """
-
-
             self.var.irrigatedArea_original = self.var.fracVegCover[3].copy()
-
-            # sum of landcover without water and sealed
-            # self.var.sum_fracVegCover = np.sum(self.var.fracVegCover[0:4], axis=0)
 
             # if irrigation is off every fraction of paddy and non paddy irrigation is put to land dcover 'grassland'
             if not (checkOption('includeIrrigation')):
@@ -879,20 +833,110 @@ class landcoverType(object):
                 self.var.fracVegCover[2] = 0.0
                 self.var.fracVegCover[3] = 0.0
 
-
-
-            #self.var.fracVegCover[0] = self.var.fracVegCover[0] + self.var.fracVegCover[4]
-            #self.var.fracVegCover[1] = self.var.fracVegCover[1] + self.var.fracVegCover[5]
-            """
-            self.var.fracVegCover[0] = 0.2   # forest
-            self.var.fracVegCover[1] = 0.2  # others (grassland)
-            self.var.fracVegCover[2] = 0.2  # paddy irrigation
-            self.var.fracVegCover[3] = 0.2  # non paddy irrigation
-            self.var.fracVegCover[4] = 0.1
-            self.var.fracVegCover[5] = 0.1
-            """
             self.var.fracAllCover = np.sum(self.var.fracVegCover, axis=0)
 
+            # keep the water of the land cover stores (not in initial: the stores are loaded afterwards)
+            if move:
+                self.moveLandcoverStorage(fracOld)
+
+        if fracStart is not None:
+            if self.var.includeCrops and 'moveIrrFallowToNonIrr' in option and checkOption('moveIrrFallowToNonIrr'):
+                # evaporation moves the water after the fallow change of the first day (one move, as in a long run)
+                self.var.fracVegCoverStart = fracStart
+            else:
+                self.moveLandcoverStorage(fracStart)
+
+    def moveLandcoverStorage(self, fracOld):
+        """
+        Keep the water of the land cover stores when the land cover fractions change (yearly land cover maps,
+        glacier area, moveIrrFallowToNonIrr).
+
+        The stores are depths [m] per land cover, the water of a cell is fraction x depth. Land that a land cover
+        loses takes its water with it. The land a land cover gains comes from all land covers that lose land, in
+        proportion to their loss, and brings the mean water of that land.
+        Soil: the layers have different depths per land cover (root depth), so the soil water of the moved land is
+        taken as one column (w1 + w2 + w3) and put into the layers of the receiving land cover with the same
+        relative water content in each layer (between residual and saturation), then mixed with the water there.
+        Water of land that goes to a land cover without this store (e.g. soil -> sealed or water) and soil water
+        above the saturation of the receiving column go to the groundwater recharge (landcoverChangeToGW, added to
+        sum_gwRecharge in dynamic).
+
+        Parameters
+        ----------
+        fracOld : numpy.ndarray
+            land cover fractions (6, cells) before the change, self.var.fracVegCover holds the new ones
+        """
+        fracNew = self.var.fracVegCover
+        loss = np.maximum(fracOld - fracNew, 0.)
+        gain = np.maximum(fracNew - fracOld, 0.)
+        moved = np.sum(loss, axis=0)  # land that changes its land cover (= sum of the gains)
+        if not np.any(moved > 0):
+            return
+        toGW = globals.inZero.copy()
+
+        # soil as one column: mean column water [m] of the land that moves (from the land covers that lose land)
+        w = [self.var.w1, self.var.w2, self.var.w3]
+        ws = [self.var.ws1, self.var.ws2, self.var.ws3]
+        wres = [self.var.wres1, self.var.wres2, self.var.wres3]
+        released = sum(loss[No] * (w[0][No] + w[1][No] + w[2][No]) for No in range(4))
+        meanIn = divideValues(released, moved)
+        for No in range(4):
+            # only where this land cover changes: unchanged cells stay bit-identical
+            changed = (loss[No] > 0) | (gain[No] > 0)
+            resSum = wres[0][No] + wres[1][No] + wres[2][No]
+            satSum = ws[0][No] + ws[1][No] + ws[2][No]
+            # incoming column in the layers of this land cover: the same relative water content in each layer,
+            # below the residual content split by the residual content, above saturation -> groundwater
+            col = np.minimum(meanIn, satSum)
+            toGW += np.where(changed, gain[No] * (meanIn - col), 0.)
+            rel = divideValues(col - resSum, satSum - resSum)
+            for k in range(3):
+                inLayer = np.where(col >= resSum, wres[k][No] + rel * (ws[k][No] - wres[k][No]),
+                                   divideValues(col * wres[k][No], resSum))
+                water = (fracOld[No] - loss[No]) * w[k][No] + gain[No] * inLayer
+                w[k][No] = np.where(changed & (fracNew[No] > 0), divideValues(water, fracNew[No]), w[k][No])
+        # part of the moved land that went to land covers without soil (sealed, water)
+        toGW += released - meanIn * sum(gain[No] for No in range(4))
+
+        # stores without layers: interception, seepage pond (MODFLOW)
+        stores = [(self.var.interceptStor, range(5))]
+        if hasattr(self.var, 'seepagePond'):
+            stores.append((self.var.seepagePond, range(4)))
+        for depth, covers in stores:
+            released = sum(loss[No] * depth[No] for No in covers)
+            meanIn = divideValues(released, moved)
+            for No in covers:
+                changed = (loss[No] > 0) | (gain[No] > 0)
+                water = (fracOld[No] - loss[No]) * depth[No] + gain[No] * meanIn
+                depth[No] = np.where(changed & (fracNew[No] > 0), divideValues(water, fracNew[No]), depth[No])
+            toGW += released - meanIn * sum(gain[No] for No in covers)
+
+        # paddy water layer: only paddy has it, the paddy land that goes away gives its water to the groundwater
+        toGW += loss[2] * self.var.topwater
+        self.var.topwater = np.where((loss[2] > 0) | (gain[2] > 0),
+                                     divideValues((fracOld[2] - loss[2]) * self.var.topwater, fracNew[2]),
+                                     self.var.topwater)
+        self.var.landcoverChangeToGW += toGW
+
+    def lake_leakage_init(self):
+        """
+        Cells of the lakes and reservoirs for the lake leakage with MODFLOW (computed once, on the first day):
+
+        * lakeOutlet: outlet cell of each water body (decompress_LR, one outlet per water body)
+        * lakeCells: cells with a water body (waterBodyID > 0)
+        * lakePos: for each of lakeCells the position of its water body in lakeOutlet
+        * lakeArea: area of each water body [m2] (order of lakeOutlet)
+        """
+        self.lakeOutlet = np.asarray(self.var.decompress_LR, dtype=np.int64)
+        ids = self.var.waterBodyID
+        # water body ID -> position of its outlet in lakeOutlet (-1: no outlet)
+        lut = np.full(int(ids.max()) + 1 if ids.size else 1, -1, dtype=np.int64)
+        lut[ids[self.lakeOutlet]] = np.arange(self.lakeOutlet.size)
+        pos = np.where(ids > 0, lut[np.maximum(ids, 0)], -1)
+        self.lakeCells = np.flatnonzero(pos >= 0)
+        self.lakePos = pos[self.lakeCells]
+        self.lakeArea = np.bincount(self.lakePos, weights=self.var.cellArea[self.lakeCells],
+                                    minlength=self.lakeOutlet.size)
 
 # --------------------------------------------------------------------------
 
@@ -918,26 +962,15 @@ class landcoverType(object):
         Each land cover type maintains separate state variables that
         are integrated based on their spatial fractions within each pixel.
         """
-        """
-        Dynamic part of the land cover type module
 
-        Calculating soil for each of the 6  land cover class
-
-        * calls evaporation_module.dynamic
-        * calls interception_module.dynamic
-        * calls soil_module.dynamic
-        * calls sealed_water_module.dynamic
-
-        And sums every thing up depending on the land cover type fraction
-        """
+        if checkOption('includeIrrigation'):
+            usecovertype = 4  # include paddy and non paddy irrigation
+        else:
+            usecovertype = 2   # exclude irrigation
 
         coverNo = 0
         # update soil (loop per each land cover type):
         for coverType in self.var.coverTypes:
-            if checkOption('includeIrrigation'):
-                usecovertype = 4  # include paddy and non paddy irrigation
-            else:
-                usecovertype = 2   # exclude irrigation
             # calculate evaporation and transpiration for soil land cover types (not for sealed and water covered areas)
             if coverNo < usecovertype:
                 self.model.evaporation_module.dynamic(coverType, coverNo)
@@ -962,11 +995,6 @@ class landcoverType(object):
         # Calculate soil
         coverNo = 0
         for coverType in self.var.coverTypes:
-            if checkOption('includeIrrigation'):
-                usecovertype = 4  # include paddy and non paddy irrigation
-            else:
-                usecovertype = 2   # exclude irrgation
-
             if coverNo < usecovertype:
                 # calculate soil only where the land cover type exists (fraction > 0)
                 # cells without it keep their soil states (weighted with fraction 0 everywhere)
@@ -1004,9 +1032,13 @@ class landcoverType(object):
 
 
         # aggregated variables by fraction of land cover
+        # only land covers which exist somewhere (fraction 0 everywhere adds 0: e.g. paddy and non paddy without
+        # irrigation); checked every day, the fractions may change (land cover maps, moveIrrFallowToNonIrr)
+        coversAll = [No for No in range(6) if np.any(self.var.fracVegCover[No])]
+        coversSoil = [No for No in coversAll if No < 4]
         for variable in self.var.landcoverSum:
             vars(self.var)["sum_" + variable] = globals.inZero.copy()
-            for No in range(6):
+            for No in coversAll:
                 vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
         # recharge which MODFLOW did not get in its last run (saturated or dry ModFlow cells, groundwater_modflow/
@@ -1024,10 +1056,12 @@ class landcoverType(object):
             # computing leakage from rivers (if modflow coupling is used)
 
             # leakage depends on water bodies storage, water bodies fraction and modflow saturated area
-            # no leakage where more than 75 % of the ModFlow cells are saturated - except with the seepage scheme
-            # (modflow_seepage): the leaked water comes back as outflow -> seepage pond (evaporation, overflow), so the
-            # shallow floodplain evaporates river water (Tisa 1990-1992: Q -3.4 to -3.7 %)
-            saturatedSwitch = 1. if self.var.seepageOn else (1 - self.var.capriseindex + 0.25) // 1
+            # no leakage where more than 25 % of the ModFlow cells are saturated (capriseindex > 0.25) - except with the
+            # seepage scheme (modflow_seepage): the leaked water comes back as outflow -> seepage pond (evaporation,
+            # overflow), so the shallow floodplain evaporates river water (Tisa 1990-1992: Q -3.4 to -3.7 %)
+            # lakes always use the switch without the seepage exception (lakeSwitch, see lake leakage below)
+            lakeSwitch = np.where(self.var.capriseindex <= 0.25, 1., 0.)
+            saturatedSwitch = 1. if self.var.seepageOn else lakeSwitch
             self.var.riverbedExchangeM = np.minimum(self.var.leakageriver_factor * np.maximum(self.var.fracVegCover[5], 0) *
                                                     saturatedSwitch,
                                                     0.80 * self.var.readAvlChannelStorageM)  # leakage in m/d
@@ -1052,33 +1086,22 @@ class landcoverType(object):
 
             if checkOption('includeWaterBodies'):
 
-                # first, lakes variable need to be extended to their area and not only to the discharge point
-                lakeIDbyID = np.unique(self.var.waterBodyID)
-                if len(lakeIDbyID) > 1:
-
+                # cells of the water bodies, their outlet and area (once; lakes_reservoirs.initial runs after initial)
+                if not hasattr(self, 'lakeCells'):
+                    self.lake_leakage_init()
+                if self.lakeCells.size > 0:
+                    # lakes variable need to be extended to their area and not only to the outlet:
+                    # storage of the outlet [m3] / area of the water body [m2] in each cell of it [m]
+                    # (outlet cells are fixed: before 2026-11-03 searched every day by storage > 0, a dry water body
+                    # gave cell 0)
+                    pos = self.lakePos
+                    typ = self.var.waterBodyTypTemp[self.lakeOutlet][pos]
+                    isLake = typ == 1
+                    isRes = (typ != 0) & ~isLake
                     lakestor_id = np.copy(self.var.lakeStorage)
                     resstor_id = np.copy(self.var.resStorage)
-                    for id in range(len(lakeIDbyID)):  # for each lake or reservoir
-                        if lakeIDbyID[id] != 0:
-                            temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.lakeStorage > 0, 1, 0), 0)  # Looking for the discharge point of the lake
-                            if np.sum(temp_map) == 0:  # try reservoir
-                                temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.resStorage > 0, 1, 0), 0)  # Looking for the discharge point of the reservoir
-                            discharge_point = np.nanargmax(temp_map)  # Index of the cell where the lake outlet is stored
-                            if self.var.waterBodyTypTemp[discharge_point] != 0:
-
-                                if self.var.waterBodyTypTemp[discharge_point] == 1:  # this is a lake
-                                    # computing the lake area
-                                    area_stor = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id], self.var.cellArea, 0))  # required to keep mass balance rigth
-                                    # computing the lake storage in meter and put this value in each cell including the lake
-                                    lakestor_id = np.where(self.var.waterBodyID == lakeIDbyID[id],
-                                                           self.var.lakeStorage[discharge_point] / area_stor, lakestor_id)  # in meter
-
-                                else:  # this is a reservoir
-                                    # computing the reservoir area
-                                    area_stor = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id], self.var.cellArea, 0))  # required to keep mass balance rigth
-                                    # computing the reservoir storage in meter and put this value in each cell including the reservoir
-                                    resstor_id = np.where(self.var.waterBodyID == lakeIDbyID[id],
-                                                           self.var.resStorage[discharge_point] / area_stor, resstor_id)  # in meter
+                    lakestor_id[self.lakeCells[isLake]] = (self.var.lakeStorage[self.lakeOutlet] / self.lakeArea)[pos[isLake]]
+                    resstor_id[self.lakeCells[isRes]] = (self.var.resStorage[self.lakeOutlet] / self.lakeArea)[pos[isRes]]
 
                     # Gathering lakes and reservoirs in the same array
                     lakeResStorage = np.where(self.var.waterBodyTypTemp == 0, 0., np.where(self.var.waterBodyTypTemp == 1, lakestor_id, resstor_id))  # in meter
@@ -1086,26 +1109,26 @@ class landcoverType(object):
                     minlake = np.maximum(0., 0.98 * lakeResStorage)  # reasonable but arbitrary limit
 
                     # leakage depends on water bodies storage, water bodies fraction and modflow saturated area
+                    # no lake leakage where more than 25 % of the ModFlow cells are saturated, also with the seepage
+                    # scheme: lakes in saturated areas are fed by the groundwater rather than losing water to it
+                    # (with the seepage exception as for rivers, Tisa 1990: lakes leak 0.05 m/day, lake storage -57 %)
                     lakebedExchangeM_temp = np.minimum(self.var.leakagelake_factor * np.maximum(self.var.fracVegCover[5], 0) *
-                                                       ((1 - self.var.capriseindex + 0.25) // 1), minlake)  # leakage in m/d
+                                                       lakeSwitch, minlake)  # leakage in m/d
 
-                    # Now, leakage is converted again from the lake/reservoir area to discharge point to be removed from the lake/reservoir store
+                    # Now, leakage is converted again from the lake/reservoir area to the outlet to be removed from the
+                    # lake/reservoir store: sum of the leakage [m3] of the cells of each water body, at its outlet
                     self.var.lakebedExchangeM = np.zeros(np.shape(self.var.cellArea))
-                    for id in range(len(lakeIDbyID)):  # for each lake or reservoir
-                        if lakeIDbyID[id] != 0:
-                            temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.lakeStorage > 0, 1, 0), 0)  # Looking for the discharge point of the lake
-                            if np.sum(temp_map) == 0:  # try reservoir
-                                temp_map = np.where(self.var.waterBodyID == lakeIDbyID[id], np.where(self.var.resStorage > 0, 1, 0), 0)  # Looking for the discharge point of the reservoir
-                            discharge_point = np.nanargmax(temp_map)  # Index of the cell where the lake outlet is stored
-                        # Converting the lake/reservoir leakage from meter to cubic meter and put this value in the cell corresponding to the outlet
-                        self.var.lakebedExchangeM[discharge_point] = np.sum(np.where(self.var.waterBodyID == lakeIDbyID[id],
-                                                                                                            lakebedExchangeM_temp * self.var.cellArea, 0))  # in m3
+                    self.var.lakebedExchangeM[self.lakeOutlet] = np.bincount(
+                        self.lakePos, weights=(lakebedExchangeM_temp * self.var.cellArea)[self.lakeCells],
+                        minlength=self.lakeOutlet.size)  # in m3
                     self.var.lakebedExchangeM = self.var.lakebedExchangeM / self.var.MtoM3  # in meter
 
                     # compressed version for lakes and reservoirs
                     lakeExchangeM = np.compress(self.var.compress_LR, self.var.lakebedExchangeM)
 
-                    # substract from both, because it is sorted by self.var.waterBodyTypCTemp
+                    # substract from the lake and the reservoir arrays: lakes_reservoirs.py runs the lake and the
+                    # reservoir routine for all water bodies and picks the result by waterBodyTypCTemp, the value
+                    # in the array of the other type is not used (same in water_demand.py for the abstractions)
                     self.var.lakeStorageC = self.var.lakeStorageC - lakeExchangeM * self.var.MtoM3C
                     self.var.lakeVolumeM3C = self.var.lakeVolumeM3C - lakeExchangeM * self.var.MtoM3C
                     self.var.reservoirStorageM3C = self.var.reservoirStorageM3C - lakeExchangeM * self.var.MtoM3C
@@ -1120,11 +1143,16 @@ class landcoverType(object):
         
         if self.var.includeWastewaterPits:
             self.var.sum_gwRecharge += self.var.pitLatrinToGW
+
+        # water of land cover stores that lost their land (moveLandcoverStorage), once on the day of the change
+        if np.any(self.var.landcoverChangeToGW):
+            self.var.sum_gwRecharge += self.var.landcoverChangeToGW
+            self.var.landcoverChangeToGW = globals.inZero.copy()
             
         soilVars = ['w1','w2','w3','theta1','theta2','theta3']
         for variable in soilVars:
                 vars(self.var)["sum_" + variable] = globals.inZero.copy()
-                for No in range(4):
+                for No in coversSoil:
                     vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
 
         self.var.sum_topwater = self.var.fracVegCover[2] * self.var.topwater
@@ -1138,21 +1166,16 @@ class landcoverType(object):
             # sum_openWaterEvap -> totalET) and the capillary rise from the aquifer (taken from MODFLOW, transient.py)
             for variable in ['seepagePond', 'seepage', 'seepageEvap', 'capRiseFromAquifer']:
                 vars(self.var)["sum_" + variable] = globals.inZero.copy()
-                for No in range(4):
+                for No in coversSoil:
                     vars(self.var)["sum_" + variable] += self.var.fracVegCover[No] * vars(self.var)[variable][No]
             self.var.totalSto = self.var.totalSto + self.var.sum_seepagePond
             # pond overflow into the soil and to direct runoff, cell means (outputs)
             self.var.pond2soil = globals.inZero.copy()
             self.var.over2river = globals.inZero.copy()
-            for No in range(4):
+            for No in coversSoil:
                 self.var.pond2soil += self.var.fracVegCover[No] * self.var.pondToSoil[No]
                 self.var.over2river += self.var.fracVegCover[No] * self.var.pondOverflow[No]
 
         # leakageIntoRunoff is also added in runoff_concentration
         self.var.sum_runoff = self.var.sum_directRunoff + self.var.sum_interflow + self.var.leakageIntoRunoff
-        self.var.Rain_times_fracPaddy = self.var.fracVegCover[2] * self.var.Rain
-        self.var.Rain_times_fracNonPaddy = self.var.fracVegCover[3] * self.var.Rain
-
-
-        # --------------------------------------------------------------------
 

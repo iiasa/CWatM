@@ -20,6 +20,7 @@ mfsim.stdout
 /mf6_681/
 pytest/output/
 Toolkit/check_waterbalance/runs/
+Toolkit/check_stopandrerun/runs/
 Toolkit/documentation/_build/
 cwatm/hydrological_modules/routing_reservoirs/new/*.dll
 cwatm/hydrological_modules/routing_reservoirs/new/*.so

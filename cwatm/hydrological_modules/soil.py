@@ -14,6 +14,116 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+def rootZoneStress(var, No, irrigated):
+    """
+    Water stress factor of the whole root zone of a land cover (as LISFLOOD soilloop.py).
+
+    Water above wilting point / critical water above wilting point, both weighted with the root fraction of the
+    soil layers: a layer without roots drops out, a wet layer makes up for a dry one (before 2026-11 one factor per
+    layer, each clipped to 0..1). Used by soil.dynamic (transpiration) and water_demand/irrigation.py (irrigation
+    demand of non-paddy), so that irrigation starts at the stress the plants feel.
+
+    Parameters
+    ----------
+    var : object
+        model variables (or the SubVar view of the cells with this land cover)
+    No : int
+        land cover number (0 forest, 1 grassland, 2 paddy, 3 non-paddy)
+    irrigated : bool
+        True for paddy and non-paddy: crop group 1 (low adaptation to dry climate), else the crop group number map
+
+    Returns
+    -------
+    rws : numpy.ndarray
+        water stress factor 0..1 (1 = no stress, 0 = wilting point)
+    wCrit : tuple of numpy.ndarray
+        critical soil moisture of layer 1, 2, 3 [m]
+    avail : tuple of numpy.ndarray
+        water above wilting point of layer 1, 2, 3 [m], 0 in layers without roots
+    """
+
+    etpotMax = np.minimum(100 * var.totalPotET[No], 1.0)
+    # to avoid a strange behaviour of the p-formula's, ETRef is set to a maximum of 10 mm/day.
+    # etpotMax in cm/d for the formular from Van Diepen
+
+    if irrigated:
+        p = 1 / (0.76 + 1.5 * etpotMax) - 0.4
+        # soil water depletion fraction (easily available soil water) # Van Diepen et al., 1988: WOFOST 6.0, p.87.
+        p = p + (etpotMax - 0.6) / 4
+        # correction for crop group 1  (Van Diepen et al, 1988) -> p between 0.14 - 0.77
+        # The crop group number is a indicator of adaptation to dry climate,
+        # e.g. olive groves are adapted to dry climate, therefore they can extract more water from drying out
+        # soil than e.g. rice. The crop group number of olive groves is 4 and of rice fields is 1
+        # for irrigation it is expected that the crop has a low adaptation to dry climate
+    else:
+        p = 1 / (0.76 + 1.5 * etpotMax) - 0.10 * (5 - var.cropGroupNumber)
+        # soil water depletion fraction (easily available soil water)
+        # Van Diepen et al., 1988: WOFOST 6.0, p.87
+        # to avoid a strange behaviour of the p-formula's, ETRef is set to a maximum of
+        # 10 mm/day. Thus, p will range from 0.15 to 0.45 at ETRef eq 10 and
+        # CropGroupNumber 1-5
+        p = np.where(var.cropGroupNumber <= 2.5,
+                     p + (etpotMax - 0.6) / (var.cropGroupNumber * (var.cropGroupNumber + 3)),
+                     p)
+        # correction for crop groups 1 and 2 (Van Diepen et al, 1988)
+
+    p = np.maximum(np.minimum(p, 1.0), 0.)
+    # p is between 0 and 1 => if p =1 wcrit = wwp, if p= 0 wcrit = wfc
+    # p is closer to 0 if evapo is bigger and cropgroup is smaller
+
+    wCrit1 = ((1 - p) * (var.wfc1[No] - var.wwp1[No])) + var.wwp1[No]
+    wCrit2 = ((1 - p) * (var.wfc2[No] - var.wwp2[No])) + var.wwp2[No]
+    wCrit3 = ((1 - p) * (var.wfc3[No] - var.wwp3[No])) + var.wwp3[No]
+
+    a1 = var.adjRoot[0][No]
+    a2 = var.adjRoot[1][No]
+    a3 = var.adjRoot[2][No]
+    # water above wilting point, only in layers with roots
+    avail1 = np.where(a1 > 0, np.maximum(var.w1[No] - var.wwp1[No], 0.), 0.)
+    avail2 = np.where(a2 > 0, np.maximum(var.w2[No] - var.wwp2[No], 0.), 0.)
+    avail3 = np.where(a3 > 0, np.maximum(var.w3[No] - var.wwp3[No], 0.), 0.)
+    availRoot = a1 * avail1 + a2 * avail2 + a3 * avail3
+    critRoot = (a1 * (wCrit1 - var.wwp1[No]) + a2 * (wCrit2 - var.wwp2[No]) +
+                a3 * (wCrit3 - var.wwp3[No]))
+    # critRoot = 0 (p = 1: wCrit = wilting point) -> no water stress
+    rws = np.maximum(np.minimum(divideValues(availRoot, critRoot, default=1.), 1.), 0.)
+    return rws, (wCrit1, wCrit2, wCrit3), (avail1, avail2, avail3)
+
+
+def arnoInfiltrationCapacity(w1, w2, ws1, ws2, arnoBeta):
+    """
+    Infiltration capacity of soil layers 1 + 2 (Arno scheme).
+
+    Fraction of the cell at saturation as a function of the relative saturation: distribution function from
+    Zhao 1977, as cited in Todini 1996 (JoH 175, 339-382). Used by soil.dynamic and water_demand/irrigation.py
+    (limit of the non-paddy irrigation).
+
+    Parameters
+    ----------
+    w1, w2 : numpy.ndarray
+        water storage in soil layer 1 and 2 [m]
+    ws1, ws2 : numpy.ndarray
+        storage at saturation of soil layer 1 and 2 [m]
+    arnoBeta : numpy.ndarray
+        shape of the soil water capacity distribution curve [-]
+
+    Returns
+    -------
+    potInf : numpy.ndarray
+        infiltration capacity [m]
+    relSat : numpy.ndarray
+        relative saturation of layers 1 + 2, at most 1 [-]
+    """
+    soilWaterStorageCap = ws1 + ws2
+    relSat = np.minimum((w1 + w2) / soilWaterStorageCap, 1.0)
+    # (1 - satAreaFrac) ** ((arnoBeta + 1) / arnoBeta) = (1 - relSat) ** (arnoBeta + 1) = relSatBeta * (1 - relSat)
+    # with satAreaFrac = 1 - relSatBeta (arnoBeta >= 0.01); limited to 1 like a clamp of satAreaFrac if relSat < 0
+    relSatBeta = (1 - relSat) ** arnoBeta
+    store = soilWaterStorageCap / (arnoBeta + 1)
+    potInf = store - store * (1 - np.minimum(relSatBeta * (1 - relSat), 1.0))
+    return potInf, relSat
+
+
 class soil(object):
     """
     Soil water dynamics module using the Arno scheme for vertical water transfer.
@@ -40,17 +150,8 @@ class soil(object):
     - Soil hydraulic property management
     - Capillary rise from groundwater
     
-    Based on concepts from PCRGLOBE, LISFLOOD, and HBV models.
+    Based on concepts from PCR-GLOBWB, LISFLOOD, and HBV models.
     References the Arno scheme for spatially variable soil moisture.
-
-
-
-
-
-
-
-
-
 
     **Global variables**
     ===================================  ==========    ======================================================================  =====
@@ -60,17 +161,17 @@ class soil(object):
     modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
     activatedCrops                       Array         Fraction of area a specific crop is planted                             --   
     currentKC                            Array         Current crop coefficient for specific crops                             --   
-    weighted_KC_Irr_woFallow             Array                                                                                 --   
-    storGroundwater                      Array         Groundwater storage (non-fossil). This is primarily used when not usin  m    
+    weighted_KC_Irr_woFallow             Array         (KC - minCropKC) x fraction of crops, general crop on non-paddy         --   
+    storGroundwater                      Array         Groundwater storage (non-fossil), used without MODFLOW                  m    
     includeCrops                         Flag          1 when includeCrops=True in Settings, 0 otherwise                       bool 
     Crops                                Array         Internal: List of specific crops and Kc/Ky parameters                   --   
     potTranspiration                     Array         Potential transpiration (after removing of evaporation)                 m    
     cropKC                               Array         crop coefficient for each of the 4 different land cover types (forest,  --   
     minCropKC                            Array         minimum crop factor (default 0.2)                                       --   
     rootDepth                            Array         rootdepth of different layers                                           m    
-    KSat1                                Array         Saturated conductivity layer 1                                          cm da
-    KSat2                                Array         Saturated conductivity layer 2                                          cm da
-    KSat3                                Array         Saturated conductivity layer 3                                          cm da
+    KSat1                                Array         Saturated conductivity layer 1                                          m/day
+    KSat2                                Array         Saturated conductivity layer 2                                          m/day
+    KSat3                                Array         Saturated conductivity layer 3                                          m/day
     genuM1                               Array         soil: lambda / (1+ lambda)  layer1                                      --   
     genuM2                               Array         soil: lambda / (1+ lambda)  layer2                                      --   
     genuM3                               Array         soil: lambda / (1+ lambda)  layer3                                      --   
@@ -89,30 +190,32 @@ class soil(object):
     wwp1                                 Array         Soil moisture at wilting point in layer 1                               m    
     wwp2                                 Array         Soil moisture at wilting point in layer 2                               m    
     wwp3                                 Array         Soil moisture at wilting point in layer 3                               m    
-    kunSatFC12                           Array         calculation from van Genuchten, Mualem equation                         m day
-    kunSatFC23                           Array         calculation from van Genuchten, Mualem equation                         m day
+    kunSatFC12                           Array         Unsat. conductivity at field capacity layer 2 (van Genuchten, Mualem)   m/day
+    kunSatFC23                           Array         Unsat. conductivity at field capacity layer 3 (van Genuchten, Mualem)   m/day
     arnoBeta                             Array         arnoBeta defines the shape of soil water capacity distribution curve a  --   
-    adjRoot                              Array                                                                                 --   
+    adjRoot                              Array         Root fraction of soil layer 1, 2, 3 per land cover                      --   
     maxtopwater                          Array         maximum heigth of topwater                                              m    
+    paddyFloodKC                         Array         Input, irrPaddy_floodKC (0.75), paddy flooded + irrigated if cropKC >   --   
     EWRef                                Array         potential evaporation rate from water surface                           m    
     availWaterInfiltration               Array         quantity of water reaching the soil after interception, more snowmelt   m    
     FrostDay                             Array         frost index in soil [degree days] based on Molnau and Bissel (1983, A   --   
-    irr_Paddy_month                      Array                                                                                 --   
-    ET_crop_Irr_paddy                    Array                                                                                 --   
-    ET_crop_Irr_paddy_fraccrop           Array                                                                                 --   
-    fracCrops_Irr                        Array         Fraction of cell currently planted with specific irrigated crops        %    
-    fracCrops_nonIrr                     Array         Fraction of cell currently planted with specific non-irr crops          %    
+    irr_Paddy_month                      Array         Paddy irrigation withdrawal, running sum of the month                   m    
+    ET_crop_Irr_paddy                    Array         Actual ET of paddy x paddy fraction (transp. + soil + open water)       m    
+    ET_crop_Irr_paddy_fraccrop           Array         Actual ET of paddy per paddy area                                       m    
+    fracCrops_Irr                        Array         Fraction of cell currently planted with specific irrigated crops        --   
+    fracCrops_nonIrr                     Array         Fraction of cell currently planted with specific non-irr crops          --   
     actTransTotal_month_nonIrr           Array         Internal variable: Running total of  transpiration for specific non-ir  m    
     actTransTotal_month_Irr              Array         Internal variable: Running total of  transpiration for specific irriga  m    
-    irr_crop_month                       Array                                                                                 --   
-    frac_totalIrr                        Array         Fraction sown with specific irrigated crops                             %    
-    weighted_KC_Irr_woFallow_fullKc      Array                                                                                 --   
+    irr_crop_month                       Array         Irrigation withdrawal per irrigated crop, running sum of the month      m    
+    frac_totalIrr                        Array         Fraction sown with specific irrigated crops                             --   
+    weighted_KC_Irr_woFallow_fullKc      Array         KC x fraction of crops and general crop on non-paddy (no fallow)        --   
     totalPotET                           Array         Potential evaporation per land use class                                m    
     potBareSoilEvap                      Array         potential bare soil evaporation (calculated with minus snow evaporatio  m    
-    PotET_crop                           Array                                                                                 --   
+    PotET_crop                           Array         Potential ET of irrigated crops (non-paddy) [crop specific]             m    
+    PotET_crop_nonIrr                    Array         Potential ET of rainfed crops (grassland) [crop specific]               m    
     actualET                             Array         simulated evapotranspiration from soil, flooded area and vegetation     m    
     soilLayers                           List          Number of soil layers                                                   --   
-    soildepth                            Array         Thickness of the first soil layer                                       m    
+    soildepth                            Array         Thickness of the 3 soil layers                                          m    
     wfc1                                 Array         Soil moisture at field capacity in layer 1                              m    
     wfc2                                 Array         Soil moisture at field capacity in layer 2                              m    
     wfc3                                 Array         Soil moisture at field capacity in layer 3                              m    
@@ -123,18 +226,15 @@ class soil(object):
     directRunoff                         Array         Simulated surface runoff                                                m    
     interflow                            Array         Simulated flow reaching runoff instead of groundwater                   m    
     openWaterEvap                        Array         Simulated evaporation from open areas                                   m    
-    percolationImp                       Array         Fraction of area covered by the corresponding landcover type            m    
-    cropGroupNumber                      Array         soil water depletion fraction, Van Diepen et al., 1988: WOFOST 6.0, p.  --   
+    percolationImp                       Array         Fraction of area where percolation to groundwater is impeded            --   
+    cropGroupNumber                      Array         Crop group number 1-5 (adaptation to dry climate), WOFOST 6.0           --   
     cPrefFlow                            Array         Factor influencing preferential flow (flow from surface to GW)          --   
-    pumping_actual                       Array         This is here, as groundwater.py is not called if MODFLOW is used (AI)   --   
-    gwdepth_observations                 Array         Input, gw_depth_observations, groundwater depth observations            m    
-    gwdepth_adjuster                     Array         Groundwater depth adjuster                                              m    
-    rws                                  Array         Transpiration reduction factor (in case of water stress)                --   
+    pumping_actual                       Array         This is here, as groundwater.py is not called if MODFLOW is used        --   
+    rws                                  Array         Root zone water stress factor per land cover: 1 no stress, 0 wilting pt --   
     actBareSoilEvap                      Array         Simulated evaporation from the first soil layer                         m    
     prefFlow                             Array         Flow going directly from soil surface to groundwater [land class speci  m    
     infiltration                         Array         Water actually infiltrating the soil                                    m    
     capRiseFromGW                        Array         Simulated capillary rise from groundwater                               m    
-    NoSubSteps                           Array         Number of sub steps to calculate soil percolation                       --   
     perc1to2                             Array         Simulated water flow from soil layer 1 to soil layer 2                  m    
     perc2to3                             Array         Simulated water flow from soil layer 2 to soil layer 3                  m    
     perc3toGW                            Array         Simulated water flow from soil layer 3 to groundwater                   m    
@@ -148,21 +248,21 @@ class soil(object):
     actTransTotal_nonpaddy               Array         Transpiration from non-paddy land cover                                 m    
     actTransTotal_crops_Irr              Array         Transpiration associated with specific irrigated crops                  m    
     actTransTotal_crops_nonIrr           Array         Transpiration associated with specific non-irr crops                    m    
-    ET_crop_Irr                          Array                                                                                 --   
-    ET_crop_nonIrr                       Array                                                                                 --   
-    irr_crop                             Array                                                                                 --   
-    ratio_a_p_nonIrr_daily               Array                                                                                 --   
-    ratio_a_p_Irr_daily                  Array                                                                                 --   
-    irrM3_crop_month_segment             Array                                                                                 --   
-    irrM3_Paddy_month_segment            Array                                                                                 --   
+    ET_crop_Irr                          Array         Actual ET per irrigated crop (transp. + bare soil) x crop fraction      m    
+    ET_crop_nonIrr                       Array         Actual ET per rainfed crop (transp. + bare soil) x crop fraction        m    
+    irr_crop                             Array         Non-paddy irrigation withdrawal per irrigated crop (by KC x fraction)   m    
+    ratio_a_p_nonIrr_daily               Array         Daily ratio actual / potential ET per rainfed crop                      --   
+    ratio_a_p_Irr_daily                  Array         Daily ratio actual / potential ET per irrigated crop                    --   
+    irrM3_crop_month_segment             Array         Irrigation per irrigated crop and admin segment, sum of the month       m3   
+    irrM3_Paddy_month_segment            Array         Paddy irrigation per admin segment, sum of the month                    m3   
     gwRecharge                           Array         groundwater recharge                                                    m    
-    gwRecharge2                          Array                                                                                 --   
+    gwRecharge2                          Array         Recharge from layer 3 (without preferential flow), >= 0, no MODFLOW     m    
     baseflow                             Array         simulated baseflow (= groundwater discharge to river)                   m    
     capillar                             Array         Flow from groundwater to the third CWATM soil layer. Used with MODFLOW  m    
     capriseindex                         Array         computing saturated fraction of each CWatM cells (where water table >=  --   
     soildepth12                          Array         Total thickness of layer 2 and 3                                        m    
-    fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
-    adminSegments                        Array         Domestic agents                                                         Int  
+    fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         --   
+    adminSegments                        Array         Administrative segments for the crop irrigation totals                  Int  
     cellArea                             Array         Area of cell                                                            m2   
     act_irrConsumption                   Array         actual irrigation water consumption                                     m    
     act_irrNonpaddyWithdrawal            Array         non-paddy irrigation withdrawal                                         m    
@@ -175,7 +275,7 @@ class soil(object):
     capRiseFromAquifer                   Array         Capillary rise from the aquifer (seepage scheme), negative recharge     m    
     capRiseAquiferLimit                  Array         Max. capillary rise from the aquifer: 10 % of layer-1 storage per day   m    
     seepagePond                          Array         Seepage pond per land cover (max. 0.1 m x saturated share)              m    
-    seepageEvap                          Array         Evaporation from the seepage pond, up to EWRef x saturated share        m    
+    seepageEvap                          Array         Seepage pond evap.: pond area x (max(EWRef, pot. ET) - actual soil ET)  m    
     pondOverflow                         Array         Seepage pond overflow to direct runoff (rest after the soil) per cover  m    
     pondarea                             Array         Pond area: max(capriseindex, saturatedFrac), share of soil covers       --   
     pondToSoil                           Array         Seepage pond overflow into the soil (layer 3, 2 up to field cap.)       m    
@@ -188,6 +288,9 @@ class soil(object):
     excess1to2                           Array         Infiltration above the storage capacity of layer 1 -> layer 2           m    
     capOverflowRunoff                    Array         MODFLOW capillary rise overflowing soil layer 1 -> direct runoff        m    
     pondToSoil3                          Array         Part of pondToSoil into soil layer 3 (the rest into layer 2)            m    
+    snowEvap                             Array         Evaporation from snow (sublimation)                                     m    
+    interceptEvap                        Array         Simulated evaporation from interception storage                         m    
+    nonFossilGroundwaterAbs              Array         Non-fossil groundwater abstraction (today, before soil)                 m    
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -199,7 +302,7 @@ class soil(object):
                 'directRunoff', 'capRiseFromGW', 'perc1to2', 'perc2to3', 'perc3toGW', 'theta1', 'theta2',
                 'theta3', 'actTransTotal', 'actualET', 'totalPotET', 'interflow', 'gwRecharge', 'gwRecharge2',
                 # fluxes of the single soil layers (WaterBalance output)
-                'ta1', 'ta2', 'ta3', 'capRise2to1', 'capRise3to2', 'excess1to2', 'capOverflowRunoff',
+                'ta1', 'ta2', 'ta3', 'capRise2to1', 'capRise3to2', 'excess1to2', 'capOverflowRunoff', 'rws',
                 # seepage scheme (MODFLOW, lists of arrays per land cover with soil)
                 'seepage', 'capRiseFromAquifer', 'seepagePond', 'seepageEvap', 'pondToSoil', 'pondOverflow', 'pondToSoil3']
     WRITE_CELL = ['topwater', 'pondarea']
@@ -244,7 +347,7 @@ class soil(object):
         self.var.percolationImp = np.maximum(0, np.minimum(1, loadmap('percolationImp') * 
                                                             loadmap('factor_interflow')))
 
-        # ------------ Preferential Flow constant ------------------------------------------
+        # ------------ Crop group number ---------------------------------------------------
         self.var.cropGroupNumber = loadmap('cropgroupnumber')
         # soil water depletion fraction, Van Diepen et al., 1988: WOFOST 6.0, p.86, Doorenbos et. al 1978
         # crop groups for formular in van Diepen et al, 1988
@@ -255,10 +358,7 @@ class soil(object):
         # ------------ SOIL DEPTH ----------------------------------------------------------
         # soil thickness and storage
 
-        # soilDepthLayer = [('soildepth', 'SoilDepth'),('storCap','soilWaterStorageCap')]
-        soilDepthLayer = [('soildepth', 'SoilDepth')]
-        for layer, property in soilDepthLayer:
-            vars(self.var)[layer] = np.tile(globals.inZero, (self.var.soilLayers, 1))
+        self.var.soildepth = np.tile(globals.inZero, (self.var.soilLayers, 1))
 
         # first soil layer = 5 cm to represent a shallow soil layer which can be used to compare with remote sensing data
         self.var.soildepth[0] = 0.05 + globals.inZero
@@ -282,12 +382,6 @@ class soil(object):
         self.var.baseflow = globals.inZero.copy()
         # seepage scheme with MODFLOW (modflow_seepage, set in groundwater_modflow/transient.py): off without MODFLOW
         self.var.modflow_seepage = False
-
-        if 'gw_depth_observations' in binding:
-            self.var.gwdepth_observations = readnetcdfWithoutTime(cbinding('gw_depth_observations'),
-                                                                  value='Groundwater depth')
-        if 'gw_depth_sim_obs' in binding:
-            self.var.gwdepth_adjuster = loadmap('gw_depth_sim_obs')
 
         # --------------------------------------------------------------------------
 
@@ -329,8 +423,9 @@ class soil(object):
 
         # ---------------------------------------------------------
 
-        availWaterInfiltration = self.var.availWaterInfiltration[No].copy()
-        availWaterInfiltration = availWaterInfiltration + self.var.act_irrConsumption[No]
+        availWaterInfiltration = self.var.availWaterInfiltration[No] + self.var.act_irrConsumption[No]
+        # frozen soil somewhere today: otherwise the np.where(FrostDay, 0, ..) are skipped (speed, same result)
+        frost = np.any(self.var.FrostDay)
         # upward fluxes between the soil layers (capillary rise and overflow of the capillary rise from groundwater)
         # and capillary rise overflowing layer 1 to runoff - for the water balance of each layer (WaterBalance output)
         self.var.capRise2to1[No] = 0.
@@ -342,42 +437,43 @@ class soil(object):
         potBareSoilEvap = self.var.potBareSoilEvap
         # a local soil evap to be changed only by irrpaddy or irrigation
         if coverType == 'irrPaddy':
-            # depending on the crop calender -> here if cropKC > 0.75 paddies are flooded to 50mm (as set in settings file)
-
-            # if self.var.cropKC[No] > 0.75:
-            #     ii = 1
-
-            self.var.topwater = np.where(self.var.cropKC[No] > 0.75, 
+            # depending on the crop calender -> here if cropKC > paddyFloodKC (default 0.75) paddies are flooded
+            # up to maxtopwater (default 50 mm)
+            self.var.topwater = np.where(self.var.cropKC[No] > self.var.paddyFloodKC,
                                          self.var.topwater + availWaterInfiltration, 
                                          self.var.topwater)
 
-            # open water evaporation from the paddy field - using potential evaporation from open water
-            self.var.openWaterEvap[No] = np.minimum(np.maximum(0., self.var.topwater), self.var.EWRef)
+            # open water evaporation from the paddy field - using potential evaporation from open water, but not more
+            # than the crop based potential ET of the paddy minus snow and interception evaporation (the crop
+            # coefficient of rice includes the evaporation of the water surface, FAO 56)
+            maxOpenWaterEvap = np.maximum(0., self.var.totalPotET[No] - self.var.snowEvap - self.var.interceptEvap[No])
+            self.var.openWaterEvap[No] = np.minimum(np.maximum(0., self.var.topwater),
+                                                    np.minimum(self.var.EWRef, maxOpenWaterEvap))
             self.var.topwater = self.var.topwater - self.var.openWaterEvap[No]
 
             # if paddies are flooded, avail water is calculated before: top + avail, otherwise it is calculated here
-            availWaterInfiltration = np.where(self.var.cropKC[No] > 0.75, 
-                                              self.var.topwater, 
+            availWaterInfiltration = np.where(self.var.cropKC[No] > self.var.paddyFloodKC,
+                                              self.var.topwater,
                                               self.var.topwater + availWaterInfiltration)
 
-            # open water can evaporate more than maximum bare soil + transpiration because it is calculated from 
-            # open water pot evaporation
-            # h = self.var.potBareSoilEvap - self.var.openWaterEvap[No]
+            # the open water evaporation replaces the bare soil evaporation; the part above the bare soil evaporation
+            # is taken from the potential transpiration -> open water + bare soil + transpiration <= potential ET
+            # (before 2026-11 open water evaporation up to EWRef plus the full transpiration)
             potBareSoilEvap = np.maximum(0., self.var.potBareSoilEvap - self.var.openWaterEvap[No])
-            # if open water revaporation is bigger than bare soil, transpiration rate is reduced
-            # self.var.potTranspiration[No] = np.where( h > 0, self.var.potTranspiration[No], 
-            #                                           np.maximum(0.,self.var.potTranspiration[No] + h))
+            potTransp = np.maximum(0., self.var.potTranspiration[No] -
+                                   np.maximum(0., self.var.openWaterEvap[No] - self.var.potBareSoilEvap))
 
         else:
             self.var.openWaterEvap[No] = 0.
+            potTransp = self.var.potTranspiration[No]
 
         # bare soil evaporation not bigger than potential ET minus snow and interception evaporation
         # (only matters if potential ET < bare soil part, then potTranspiration is already 0)
         potBareSoilEvap = np.minimum(potBareSoilEvap, np.maximum(0., self.var.totalPotET[No] - self.var.snowEvap -
                                                                  self.var.interceptEvap[No]))
 
-        # if (dateVar['curr'] >= 0) and (No == 3):
-        #     ii = 1
+        # soil parameters: 0 forest, 1 all other land covers
+        NoSoil = 0 if No == 0 else 1
 
         # add capillary rise from groundwater if modflow is used
         if self.var.modflow:
@@ -386,9 +482,8 @@ class soil(object):
                 # seepage scheme: capillary rise into layer 3 by the depth to water (as without MODFLOW, capRiseFrac of
                 # capillarRise.py), supplied from the MODFLOW outflow first, then from the aquifer (capRiseAquiferLimit,
                 # groundwater_modflow/transient.py); the rest of the outflow is seepage on the surface
-                NoSoil = 0 if No == 0 else 1
                 availWater3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No])
-                satTerm3 = np.maximum(np.minimum(availWater3 / self.var.wrange3[No], 1.0), 0)
+                satTerm3 = np.minimum(availWater3 / self.var.wrange3[No], 1.0)   # >= 0: availWater3 >= 0
                 kUnSat3 = self.var.KSat3[NoSoil] * np.sqrt(satTerm3) * np.square(
                     1 - (1 - satTerm3 ** self.var.genuInvM3[NoSoil]) ** self.var.genuM3[NoSoil])
                 satTermFC3 = availWater3 / (self.var.wfc3[No] - self.var.wres3[No])
@@ -401,134 +496,54 @@ class soil(object):
             # if GW capillary rise saturates soil layers, water is sent to the above layer, then to runoff
             self.var.w3[No] = self.var.w3[No] + capillar
             # CAPRISE from GW to soilayer 3 , if this is full it is send to soil layer 2
-            over3to2 = np.where(self.var.w3[No] > self.var.ws3[No], self.var.w3[No] - self.var.ws3[No], 0)
+            over3to2 = np.maximum(self.var.w3[No] - self.var.ws3[No], 0.)
             self.var.w2[No] = self.var.w2[No] + over3to2
             self.var.w3[No] = np.minimum(self.var.ws3[No], self.var.w3[No])
             # CAPRISE from GW to soilayer 2 , if this is full it is send to soil layer 1
-            over2to1 = np.where(self.var.w2[No] > self.var.ws2[No], self.var.w2[No] - self.var.ws2[No], 0)
+            over2to1 = np.maximum(self.var.w2[No] - self.var.ws2[No], 0.)
             self.var.w1[No] = self.var.w1[No] + over2to1
             self.var.w2[No] = np.minimum(self.var.ws2[No], self.var.w2[No])
             # CAPRISE from GW to soilayer 1 , if this is full it is send to RUNOFF
-            saverunofffromGW = +np.where(self.var.w1[No] > self.var.ws1[No],
-                                         self.var.w1[No] - self.var.ws1[No], 0)
+            saverunofffromGW = np.maximum(self.var.w1[No] - self.var.ws1[No], 0.)
             self.var.w1[No] = np.minimum(self.var.ws1[No], self.var.w1[No])
             self.var.capRise3to2[No] = self.var.capRise3to2[No] + over3to2
             self.var.capRise2to1[No] = self.var.capRise2to1[No] + over2to1
             self.var.capOverflowRunoff[No] = saverunofffromGW
 
-            # Now, we need to add transfer between soil layers  # MODIF LUCA TO IMPROVE MODFLOW COUPLING
-
-            # Percolation -----------------------------------------------
-            if No == 0:
-                NoSoil = 0
-            else:
-                NoSoil = 1
-
-            # Available water in both soil layers [m]
-            availWater1 = np.maximum(0., self.var.w1[No] - self.var.wres1[No])
-            availWater2 = np.maximum(0., self.var.w2[No] - self.var.wres2[No])
-            availWater3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No])
-
-            satTerm2 = availWater2 / self.var.wrange2[No]
-            satTerm3 = availWater3 / self.var.wrange3[No]
-
-            # Saturation term in Van Genuchten equation (always between 0 and 1)
-            satTerm2 = np.maximum(np.minimum(satTerm2, 1.0), 0)
-            satTerm3 = np.maximum(np.minimum(satTerm3, 1.0), 0)
-
-            # Unsaturated conductivity
-            kUnSat2 = self.var.KSat2[NoSoil] * np.sqrt(satTerm2) * np.square(
-                1 - (1 - satTerm2 ** self.var.genuInvM2[NoSoil]) ** self.var.genuM2[NoSoil])
-            kUnSat3 = self.var.KSat3[NoSoil] * np.sqrt(satTerm3) * np.square(
-                1 - (1 - satTerm3 ** self.var.genuInvM3[NoSoil]) ** self.var.genuM3[NoSoil])
-
-            # ----------------------------------------------------------
-            # Capillar Rise
-
-            satTermFC1 = np.maximum(0., self.var.w1[No] - self.var.wres1[No]) / (
-                self.var.wfc1[No] - self.var.wres1[No])
-            satTermFC2 = np.maximum(0., self.var.w2[No] - self.var.wres2[No]) / (
-                self.var.wfc2[No] - self.var.wres2[No])
-            satTermFC3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No]) / (
-                self.var.wfc3[No] - self.var.wres3[No])
-            capRise1 = np.minimum(np.maximum(0., (1 - satTermFC1) * kUnSat2), self.var.kunSatFC12[No])
-            capRise2 = np.minimum(np.maximum(0., (1 - satTermFC2) * kUnSat3), self.var.kunSatFC23[No])
-
-            self.var.w1[No] = self.var.w1[No] + capRise1
-            self.var.w2[No] = self.var.w2[No] - capRise1 + capRise2
-            # GW capillary rise has already been added to the soil
-            self.var.w3[No] = self.var.w3[No] - capRise2
-            self.var.capRise2to1[No] = self.var.capRise2to1[No] + capRise1
-            self.var.capRise3to2[No] = self.var.capRise3to2[No] + capRise2
-
         # ---------------------------------------------------------
         # calculate transpiration
         # ***** SOIL WATER STRESS ************************************
+        # root zone water stress factor (also used by the irrigation demand, water_demand/irrigation.py)
+        a1 = self.var.adjRoot[0][No]
+        a2 = self.var.adjRoot[1][No]
+        a3 = self.var.adjRoot[2][No]
+        self.var.rws[No], (wCrit1, wCrit2, wCrit3), (avail1, avail2, avail3) = rootZoneStress(
+            self.var, No, coverType in ('irrPaddy', 'irrNonPaddy'))
 
-        etpotMax = np.minimum(100 * self.var.totalPotET[No] , 1.0)
-        # to avoid a strange behaviour of the p-formula's, ETRef is set to a maximum of 10 mm/day.
-        # etpotMax in cm/d for the formular from Van Diepen
+        # actual transpiration of the root zone, 0 when soil is frozen, limited by the water above wilting point
+        potTa = np.where(self.var.FrostDay, 0., potTransp) if frost else potTransp
+        ta = np.minimum(potTa * self.var.rws[No], avail1 + avail2 + avail3)
 
-        if coverType == 'irrPaddy' or coverType == 'irrNonPaddy':
-
-            p = 1 / (0.76 + 1.5 * etpotMax) - 0.4
-            # soil water depletion fraction (easily available soil water) # Van Diepen et al., 1988: WOFOST 6.0, p.87.
-            p = p + (etpotMax - 0.6) / 4
-            # correction for crop group 1  (Van Diepen et al, 1988) -> p between 0.14 - 0.77
-            # The crop group number is a indicator of adaptation to dry climate,
-            # e.g. olive groves are adapted to dry climate, therefore they can extract more water from drying out 
-            # soil than e.g. rice. The crop group number of olive groves is 4 and of rice fields is 1
-            # for irrigation it is expected that the crop has a low adaptation to dry climate
-        else:
-
-            p = 1 / (0.76 + 1.5 * etpotMax) - 0.10 * (5 - self.var.cropGroupNumber)
-            # soil water depletion fraction (easily available soil water)
-            # Van Diepen et al., 1988: WOFOST 6.0, p.87
-            # to avoid a strange behaviour of the p-formula's, ETRef is set to a maximum of
-            # 10 mm/day. Thus, p will range from 0.15 to 0.45 at ETRef eq 10 and
-            # CropGroupNumber 1-5
-            p = np.where(self.var.cropGroupNumber <= 2.5, 
-                         p + (etpotMax - 0.6) / (self.var.cropGroupNumber * (self.var.cropGroupNumber + 3)), 
-                         p)
-            # correction for crop groups 1 and 2 (Van Diepen et al, 1988)
-
-        p = np.maximum(np.minimum(p, 1.0), 0.)
-        # p is between 0 and 1 => if p =1 wcrit = wwp, if p= 0 wcrit = wfc
-        # p is closer to 0 if evapo is bigger and cropgroup is smaller
-
-        wCrit1 = ((1 - p) * (self.var.wfc1[No] - self.var.wwp1[No])) + self.var.wwp1[No]
-        wCrit2 = ((1 - p) * (self.var.wfc2[No] - self.var.wwp2[No])) + self.var.wwp2[No]
-        wCrit3 = ((1 - p) * (self.var.wfc3[No] - self.var.wwp3[No])) + self.var.wwp3[No]
-
-        # Transpiration reduction factor (in case of water stress)
-        rws1 = divideValues((self.var.w1[No] - self.var.wwp1[No]), (wCrit1 - self.var.wwp1[No]), default=1.)
-        rws2 = divideValues((self.var.w2[No] - self.var.wwp2[No]), (wCrit2 - self.var.wwp2[No]), default=1.)
-        rws3 = divideValues((self.var.w3[No] - self.var.wwp3[No]), (wCrit3 - self.var.wwp3[No]), default=1.)
-
-        # with np.errstate(invalid='ignore', divide='ignore'):
-        # rws1 = np.where((wCrit1 - self.var.wwp1[No]) > 0, 
-        #                 (self.var.w1[No] - self.var.wwp1[No]) / (wCrit1 - self.var.wwp1[No]), 1.0)
-        # rws2 = np.where((wCrit2 - self.var.wwp2[No]) > 0, 
-        #                 (self.var.w2[No] - self.var.wwp2[No]) / (wCrit2 - self.var.wwp2[No]), 1.0)
-        # rws3 = np.where((wCrit3 - self.var.wwp3[No]) > 0, 
-        #                 (self.var.w3[No] - self.var.wwp3[No]) / (wCrit3 - self.var.wwp3[No]), 1.0)
-
-        rws1 = np.maximum(np.minimum(1., rws1), 0.) * self.var.adjRoot[0][No]
-        rws2 = np.maximum(np.minimum(1., rws2), 0.) * self.var.adjRoot[1][No]
-        rws3 = np.maximum(np.minimum(1., rws3), 0.) * self.var.adjRoot[2][No]
-        self.var.rws = rws1 + rws2 + rws3
-
-        TaMax = self.var.potTranspiration[No] * self.var.rws
-        # transpiration is 0 when soil is frozen
-        TaMax = np.where(self.var.FrostDay, 0., TaMax)
-
-        ta1 = np.maximum(np.minimum(TaMax * self.var.adjRoot[0][No], self.var.w1[No] - self.var.wwp1[No]), 0.0)
-        ta2 = np.maximum(np.minimum(TaMax * self.var.adjRoot[1][No], self.var.w2[No] - self.var.wwp2[No]), 0.0)
-        ta3 = np.maximum(np.minimum(TaMax * self.var.adjRoot[2][No], self.var.w3[No] - self.var.wwp3[No]), 0.0)
-
-        # if (dateVar['curr'] == 23) and (No == 1):
-        #     ii = 1
-        #     # print ('t', self.var.w1[No][0:3])
+        # from which layer (no order, as LISFLOOD in 2 steps): 1st the water above the critical soil moisture,
+        # proportional to this water in the layers; 2nd the rest proportional to the water above wilting point left
+        # -> sum of the layers = ta, no layer below wilting point
+        unstr1 = np.where(a1 > 0, np.maximum(self.var.w1[No] - wCrit1, 0.), 0.)
+        unstr2 = np.where(a2 > 0, np.maximum(self.var.w2[No] - wCrit2, 0.), 0.)
+        unstr3 = np.where(a3 > 0, np.maximum(self.var.w3[No] - wCrit3, 0.), 0.)
+        unstrSum = unstr1 + unstr2 + unstr3
+        taUnstr = np.minimum(ta, unstrSum)
+        fracUnstr = divideValues(taUnstr, unstrSum)
+        ta1 = fracUnstr * unstr1
+        ta2 = fracUnstr * unstr2
+        ta3 = fracUnstr * unstr3
+        left1 = np.maximum(avail1 - ta1, 0.)
+        left2 = np.maximum(avail2 - ta2, 0.)
+        left3 = np.maximum(avail3 - ta3, 0.)
+        # <= 1 (rest <= water left), min only against rounding
+        fracLeft = np.minimum(divideValues(ta - taUnstr, left1 + left2 + left3), 1.)
+        ta1 = ta1 + fracLeft * left1
+        ta2 = ta2 + fracLeft * left2
+        ta3 = ta3 + fracLeft * left3
 
         self.var.w1[No] = self.var.w1[No] - ta1
         self.var.w2[No] = self.var.w2[No] - ta2
@@ -538,7 +553,8 @@ class soil(object):
         # -------------------------------------------------------------
         # Actual potential bare soil evaporation - upper layer
         self.var.actBareSoilEvap[No] = np.minimum(potBareSoilEvap, np.maximum(0., self.var.w1[No] - self.var.wres1[No]))
-        self.var.actBareSoilEvap[No] = np.where(self.var.FrostDay, 0., self.var.actBareSoilEvap[No])
+        if frost:
+            self.var.actBareSoilEvap[No] = np.where(self.var.FrostDay, 0., self.var.actBareSoilEvap[No])
 
         # no bare soil evaporation in the inundated paddy field
         if coverType == 'irrPaddy':
@@ -549,32 +565,9 @@ class soil(object):
 
         # -------------------------------------------------------------
 
-        # Infiltration capacity
-        # ========================================
-        # first 2 soil layers to estimate distribution between runoff and infiltration
-        soilWaterStorage = self.var.w1[No] + self.var.w2[No]
-        soilWaterStorageCap = self.var.ws1[No] + self.var.ws2[No]
-        relSat = soilWaterStorage / soilWaterStorageCap
-        relSat = np.minimum(relSat, 1.0)
-
-        # if np.min(self.var.w1[No]) < 0.:
-        #     ii = 1
-
-        # if (dateVar['curr'] == 23) and (No == 1):
-        #     ii = 1
-        #     print(No, self.var.w1[No][0:3])
-
-        # (1 - relSat) ** arnoBeta is used for satAreaFrac and potInf
-        relSatBeta = (1 - relSat) ** self.var.arnoBeta[No]
-        satAreaFrac = 1 - relSatBeta
-        # Fraction of pixel that is at saturation as a function of the ratio Theta1/ThetaS1.
-        # Distribution function taken from Zhao,1977, as cited in Todini, 1996 (JoH 175, 339-382)
-        satAreaFrac = np.maximum(np.minimum(satAreaFrac, 1.0), 0.0)
-
-        store = soilWaterStorageCap / (self.var.arnoBeta[No] + 1)
-        # (1 - satAreaFrac) ** ((arnoBeta + 1) / arnoBeta) = (1 - relSat) ** (arnoBeta + 1) = relSatBeta * (1 - relSat)
-        # (arnoBeta >= 0.01); limited to 1 like the clamp of satAreaFrac if relSat < 0
-        potInf = store - store * (1 - np.minimum(relSatBeta * (1 - relSat), 1.0))
+        # Infiltration capacity (Arno scheme) of layers 1 + 2, relSat also for the preferential flow
+        potInf, relSat = arnoInfiltrationCapacity(self.var.w1[No], self.var.w2[No], self.var.ws1[No],
+                                                  self.var.ws2[No], self.var.arnoBeta[No])
 
 
 
@@ -586,7 +579,8 @@ class soil(object):
             self.var.prefFlow[No] = 0.
         else:
             self.var.prefFlow[No] = availWaterInfiltration * relSat ** self.var.cPrefFlow
-            self.var.prefFlow[No] = np.where(self.var.FrostDay, 0.0, self.var.prefFlow[No])
+            if frost:
+                self.var.prefFlow[No] = np.where(self.var.FrostDay, 0.0, self.var.prefFlow[No])
 
         if self.var.modflow:
             # multiplied by the fraction of ModFlow unsaturated cells - seepage scheme: the unsaturated share from the
@@ -596,17 +590,19 @@ class soil(object):
 
         # ---------------------------------------------------------
         # calculate infiltration
-        # infiltration, limited with KSat1 and available water in topWaterLayer
+        # infiltration, limited by the infiltration capacity potInf (Arno scheme) and the water reaching the soil
         self.var.infiltration[No] = np.minimum(potInf, availWaterInfiltration - self.var.prefFlow[No])
-        self.var.infiltration[No] = np.where(self.var.FrostDay, 0.0, self.var.infiltration[No])
+        if frost:
+            self.var.infiltration[No] = np.where(self.var.FrostDay, 0.0, self.var.infiltration[No])
         self.var.directRunoff[No] = np.maximum(0., availWaterInfiltration - self.var.infiltration[No] - 
                                                self.var.prefFlow[No])
 
         if coverType == 'irrPaddy':
             self.var.topwater = np.maximum(0., self.var.topwater - self.var.infiltration[No])
-            # if paddy fields flooded only runoff if topwater > 0.05m
+            # if paddy fields flooded only runoff if topwater > maxtopwater
             h = np.maximum(0., self.var.topwater - self.var.maxtopwater)
-            self.var.directRunoff[No] = np.where(self.var.cropKC[No] > 0.75, h, self.var.directRunoff[No])
+            self.var.directRunoff[No] = np.where(self.var.cropKC[No] > self.var.paddyFloodKC, h,
+                                                 self.var.directRunoff[No])
             self.var.topwater = np.maximum(0., self.var.topwater - self.var.directRunoff[No])
 
 
@@ -618,28 +614,12 @@ class soil(object):
 
         # infiltration to soilayer 1 , if this is full it is send to soil layer 2
         self.var.w1[No] = self.var.w1[No] + self.var.infiltration[No]
-        self.var.excess1to2[No] = np.where(self.var.w1[No] > self.var.ws1[No], self.var.w1[No] - self.var.ws1[No], 0)
+        self.var.excess1to2[No] = np.maximum(self.var.w1[No] - self.var.ws1[No], 0.)
         self.var.w2[No] = self.var.w2[No] + self.var.excess1to2[No]
         self.var.w1[No] = np.minimum(self.var.ws1[No], self.var.w1[No])
 
-        # ----------------------------------------------------------
-        # to the water demand module  # could not be done before from landcoverType_module because 
-        # readAvlWater is needed
-
-        # for plants availailabe water
-        # availWaterPlant1 = np.maximum(0., self.var.w1[No] - self.var.wwp1[No]) * self.var.rootDepth[0][No]
-        # availWaterPlant2 = np.maximum(0., self.var.w2[No] - self.var.wwp2[No]) * self.var.rootDepth[1][No]
-        # availWaterPlant3 = np.maximum(0., self.var.w3[No] - self.var.wwp3[No]) * self.var.rootDepth[2][No]
-        # readAvlWater = availWaterPlant1 + availWaterPlant2 + availWaterPlant3
-
         # Percolation -----------------------------------------------
-        if No == 0:
-            NoSoil = 0
-        else:
-            NoSoil = 1
-
-        # Available water in both soil layers [m]
-        availWater1 = np.maximum(0., self.var.w1[No] - self.var.wres1[No])
+        # Available water in soil layers 2 and 3 [m] (for the capillary rise)
         availWater2 = np.maximum(0., self.var.w2[No] - self.var.wres2[No])
         availWater3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No])
 
@@ -647,9 +627,9 @@ class soil(object):
         satTerm2 = availWater2 / self.var.wrange2[No]
         satTerm3 = availWater3 / self.var.wrange3[No]
 
-        # Saturation term in Van Genuchten equation (always between 0 and 1)
-        satTerm2 = np.maximum(np.minimum(satTerm2, 1.0), 0)
-        satTerm3 = np.maximum(np.minimum(satTerm3, 1.0), 0)
+        # Saturation term in Van Genuchten equation (between 0 and 1: availWater >= 0)
+        satTerm2 = np.minimum(satTerm2, 1.0)
+        satTerm3 = np.minimum(satTerm3, 1.0)
 
         # Unsaturated conductivity
         kUnSat2 = self.var.KSat2[NoSoil] * np.sqrt(satTerm2) * np.square(
@@ -666,26 +646,28 @@ class soil(object):
             self.var.wfc1[No] - self.var.wres1[No])
         satTermFC2 = np.maximum(0., self.var.w2[No] - self.var.wres2[No]) / (
             self.var.wfc2[No] - self.var.wres2[No])
-        satTermFC3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No]) / (
-            self.var.wfc3[No] - self.var.wres3[No])
         capRise1 = np.minimum(np.maximum(0., (1 - satTermFC1) * kUnSat2), self.var.kunSatFC12[No])
         capRise2 = np.minimum(np.maximum(0., (1 - satTermFC2) * kUnSat3), self.var.kunSatFC23[No])
 
 
         if self.var.modflow:
-            # from Modflow
-            self.var.capRiseFromGW[No] = self.var.capillar
-            if self.var.seepageOn:
-                # into the soil: the outflow without the seepage, plus the capillary rise from the aquifer
-                self.var.capRiseFromGW[No] = self.var.capillar - self.var.seepage[No] + self.var.capRiseFromAquifer[No]
+            # from Modflow, already added to the soil above (seepage scheme: the outflow without the seepage, plus the
+            # capillary rise from the aquifer)
+            self.var.capRiseFromGW[No] = capillar
         else:
-            self.var.capRiseFromGW[No] = np.maximum(0., (1 - satTermFC3) * 
+            satTermFC3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No]) / (
+                self.var.wfc3[No] - self.var.wres3[No])
+            self.var.capRiseFromGW[No] = np.maximum(0., (1 - satTermFC3) *
                                                     np.sqrt(self.var.KSat3[NoSoil] * kUnSat3))
             self.var.capRiseFromGW[No] = 0.5 * self.var.capRiseFrac * self.var.capRiseFromGW[No]
             # limited by groundwater storage left after today's abstraction (water demand runs before soil)
             # -> groundwater storage cannot become negative by a negative gwRecharge
             self.var.capRiseFromGW[No] = np.minimum(np.maximum(0., self.var.storGroundwater -
                                                     self.var.nonFossilGroundwaterAbs), self.var.capRiseFromGW[No])
+            # not above saturation of layer 3 (after capRise2 to layer 2), otherwise negative percolation in the loop
+            # (guard, not seen in Morava/Bhima: only a thin layer 3 with a high KSat3)
+            self.var.capRiseFromGW[No] = np.minimum(self.var.capRiseFromGW[No],
+                                                    np.maximum(0., self.var.ws3[No] - self.var.w3[No] + capRise2))
 
         self.var.w1[No] = self.var.w1[No] + capRise1
         self.var.w2[No] = self.var.w2[No] - capRise1 + capRise2
@@ -698,7 +680,7 @@ class soil(object):
             self.var.w3[No] = self.var.w3[No] - capRise2 + self.var.capRiseFromGW[No]
 
         # Percolation -----------------------------------------------
-        # Available water in both soil layers [m]
+        # Available water in the three soil layers [m]
         availWater1 = np.maximum(0., self.var.w1[No] - self.var.wres1[No])
         availWater2 = np.maximum(0., self.var.w2[No] - self.var.wres2[No])
         availWater3 = np.maximum(0., self.var.w3[No] - self.var.wres3[No])
@@ -711,10 +693,10 @@ class soil(object):
         satTerm2 = availWater2 / self.var.wrange2[No]
         satTerm3 = availWater3 / self.var.wrange3[No]
 
-        # Saturation term in Van Genuchten equation (always between 0 and 1)
-        satTerm1 = np.maximum(np.minimum(satTerm1, 1.0), 0)
-        satTerm2 = np.maximum(np.minimum(satTerm2, 1.0), 0)
-        satTerm3 = np.maximum(np.minimum(satTerm3, 1.0), 0)
+        # Saturation term in Van Genuchten equation (between 0 and 1: availWater >= 0)
+        satTerm1 = np.minimum(satTerm1, 1.0)
+        satTerm2 = np.minimum(satTerm2, 1.0)
+        satTerm3 = np.minimum(satTerm3, 1.0)
 
         # Unsaturated conductivity
         kUnSat1 = self.var.KSat1[NoSoil] * np.sqrt(satTerm1) * np.square(
@@ -724,27 +706,9 @@ class soil(object):
         kUnSat3 = self.var.KSat3[NoSoil] * np.sqrt(satTerm3) * np.square(
             1 - (1 - satTerm3 ** self.var.genuInvM3[NoSoil]) ** self.var.genuM3[NoSoil])
 
-        """
-        # Courant condition for computed soil moisture fluxes:
-        # if Courant gt CourantCrit: sub-steps needed for required numerical accuracy
-        with np.errstate(invalid='ignore', divide='ignore'):
-            courant1to2 = np.where(availWater1 == 0, 0, kUnSat1 / availWater1)
-            courant2to3 = np.where(availWater2 == 0, 0, kUnSat2 / availWater2)
-            courant3toGW = np.where(availWater3 == 0, 0, kUnSat3 / availWater3)
-
-        # Flow between soil layers and flow to GW
-        # need to be numerically stable, so number of sub-steps is
-        # based on process with largest Courant number
-        courantSoil = np.maximum(courant1to2, courant2to3, courant3toGW)
-        # Number of sub-steps needed for required numerical
-        # accuracy. Always greater than or equal to 1
-        # Do not change, default value of 2.5. Generally combines sufficient numerical accuracy within a limited number of sub - steps
-        NoSubS = np.maximum(1, np.ceil(courantSoil * 2.5))
-        self.var.NoSubSteps = int(np.nanmax(NoSubS))
-        """
-
-        self.var.NoSubSteps = 3
-        DtSub = 1. / self.var.NoSubSteps
+        # fixed 3 sub-steps (the Courant criterion of LISFLOOD for a variable number of sub-steps is not used)
+        NoSubSteps = 3
+        DtSub = 1. / NoSubSteps
 
 
         # Copy current value of W1 and W2 to temporary variables,
@@ -762,16 +726,16 @@ class soil(object):
 
         # Start iterating
 
-        for i in range(self.var.NoSubSteps):
+        for i in range(NoSubSteps):
             if i > 0:
                 # Saturation term in Van Genuchten equation
                 satTerm1 = np.maximum(0., wtemp1 - self.var.wres1[No]) / self.var.wrange1[No]
                 satTerm2 = np.maximum(0., wtemp2 - self.var.wres2[No]) / self.var.wrange2[No]
                 satTerm3 = np.maximum(0., wtemp3 - self.var.wres3[No]) / self.var.wrange3[No]
-
-                satTerm1 = np.maximum(np.minimum(satTerm1, 1.0), 0)
-                satTerm2 = np.maximum(np.minimum(satTerm2, 1.0), 0)
-                satTerm3 = np.maximum(np.minimum(satTerm3, 1.0), 0)
+                # <= 1 (>= 0 already)
+                satTerm1 = np.minimum(satTerm1, 1.0)
+                satTerm2 = np.minimum(satTerm2, 1.0)
+                satTerm3 = np.minimum(satTerm3, 1.0)
 
                 # Unsaturated hydraulic conductivities
                 kUnSat1 = self.var.KSat1[NoSoil] * np.sqrt(satTerm1) * np.square(
@@ -786,15 +750,15 @@ class soil(object):
             subperc2to3 = np.minimum(availWater2, np.minimum(kUnSat2 * DtSub, capLayer3))
 
             # Frozen soils do not facilitate percolation
-            subperc1to2 = np.where(self.var.FrostDay, 0, subperc1to2)
-            subperc2to3 = np.where(self.var.FrostDay, 0, subperc2to3)
+            if frost:
+                subperc1to2 = np.where(self.var.FrostDay, 0, subperc1to2)
+                subperc2to3 = np.where(self.var.FrostDay, 0, subperc2to3)
 
             if self.var.modflow:
                 # multiplied by the fraction of ModFlow unsaturated cells (seepage scheme: sub-grid, see prefFlow)
-                subperc3toGW = np.minimum(availWater3, np.minimum(kUnSat3 * DtSub, availWater3)) * (
-                    1 - saturated)
+                subperc3toGW = np.minimum(kUnSat3 * DtSub, availWater3) * (1 - saturated)
             else:
-                subperc3toGW = np.minimum(availWater3, np.minimum(kUnSat3 * DtSub, availWater3))
+                subperc3toGW = np.minimum(kUnSat3 * DtSub, availWater3)
 
             # Update water balance for all layers
             availWater1 = availWater1 - subperc1to2
@@ -814,11 +778,8 @@ class soil(object):
             self.var.perc2to3[No] += subperc2to3   # 0 if frozen
             self.var.perc3toGW[No] += subperc3toGW
 
-        # When the soil is frozen (frostindex larger than threshold), no perc1 and 2
-        self.var.perc1to2[No] = np.where(self.var.FrostDay, 0, self.var.perc1to2[No])
-        self.var.perc2to3[No] = np.where(self.var.FrostDay, 0, self.var.perc2to3[No])
-
-        # Update soil moisture
+        # Update soil moisture (frozen soil: perc1to2 and perc2to3 are already 0 from the sub-steps)
+        # testw: guard against negative storage (not seen in Morava/Bhima)
         self.var.w1[No] = self.var.w1[No] - self.var.perc1to2[No]
         testw = np.minimum(self.var.w1[No], 0)
         self.var.w1[No] = self.var.w1[No] - testw
@@ -834,7 +795,7 @@ class soil(object):
         self.var.w3[No] = self.var.w3[No] - testw
         self.var.perc3toGW[No] = self.var.perc3toGW[No] + testw
 
-        # Compute the amount of water that could not infiltrate and add this water to the surface runoff
+        # volumetric soil moisture of the layers (water storage / layer thickness)
         self.var.theta1[No] = self.var.w1[No] / self.var.rootDepth[0][No]
         self.var.theta2[No] = self.var.w2[No] / self.var.rootDepth[1][No]
         self.var.theta3[No] = self.var.w3[No] / self.var.rootDepth[2][No]
@@ -849,8 +810,7 @@ class soil(object):
 
         self.var.actualET[No] = (self.var.actualET[No] + self.var.actBareSoilEvap[No] + 
                                  self.var.openWaterEvap[No] + self.var.actTransTotal[No])
-        # actual evapotranspiration can be bigger than pot, because openWater is taken from pot open water
-        # evaporation (paddy) or snow evaporation alone is bigger than pot (snowEvapFactor > 1,
+        # actual evapotranspiration can be bigger than pot, because snow evaporation alone is bigger than pot (snowEvapFactor > 1,
         # crop_correct_<landcover> < snowEvapFactor, pySnowClim sublimation), therefore self.var.totalPotET[No] is adjusted
         self.var.totalPotET[No] = np.maximum(self.var.totalPotET[No], self.var.actualET[No])
 
@@ -882,13 +842,16 @@ class soil(object):
             # seepage pond on the saturated part of the cell: share of saturated ModFlow cells or sub-grid saturated
             # share, the larger one (before 2026-10-13 only capriseindex: the drains below the aquifer top give
             # seepage where capriseindex = 0 - UNWMZ 9 of 10 mm/yr pond overflow, Q +3 %): shallow open water with
-            # plants, evaporation up to EWRef (before 2026-10-13 EWRef minus the actual ET of today: UNWMZ ET -8 mm/yr,
-            # the actual ET is near EWRef in a humid climate); the pond above pondDepth (seepage_pond_depth, default
-            # 0.1 m, over the saturated part) overflows
+            # plants; on the pond area soil ET + pond evaporation together up to the larger of EWRef and the potential
+            # ET of the land cover (2026-10-13 to 2026-11: pondArea x EWRef on top of the full soil ET, Bhima ET above
+            # the potential ET +44 %; before 2026-10-13 EWRef minus the actual ET of today, not area weighted); the
+            # pond above pondDepth (seepage_pond_depth, default 0.1 m, over the saturated part) overflows
             pondArea = np.maximum(self.var.capriseindex, self.var.saturatedFrac)
             self.var.pondarea = pondArea
             pond = self.var.seepagePond[No] + self.var.seepage[No]
-            self.var.seepageEvap[No] = np.minimum(pond, pondArea * self.var.EWRef)
+            # totalPotET >= actualET here (raised above)
+            self.var.seepageEvap[No] = np.minimum(pond, pondArea * np.maximum(
+                np.maximum(self.var.EWRef, self.var.totalPotET[No]) - self.var.actualET[No], 0.))
             pond = pond - self.var.seepageEvap[No]
             overflow = np.maximum(pond - self.var.pondDepth * pondArea, 0.)
             self.var.seepagePond[No] = pond - overflow
@@ -929,93 +892,106 @@ class soil(object):
         self.var.ET_crop_Irr_paddy_fraccrop = np.where(self.var.fracVegCover[2] > 0, 
                                                        self.var.ET_crop_Irr_paddy / self.var.fracVegCover[2], 0)
 
-        if self.var.includeCrops and checkOption('includeIrrigation'):
+        if self.var.includeCrops:
             # checkOption('includeCrops') and checkOption('includeCropSpecificWaterUse')
-            # before: inside dynamic with No == 3, which is only calculated with irrigation
-
-            # Method 1: Area proportional
-
-            # for c in range(len(self.var.Crops)):
-            #     self.var.actTransTotal_crops_Irr[c] = np.where(self.var.fracVegCover[3] > 0, self.var.fracCrops_Irr[c] / (self.var.fracVegCover[3]), 0) * self.var.actTransTotal_nonpaddy
-            #     self.var.actTransTotal_crops_nonIrr[c] = np.where(self.var.fracVegCover[1] > 0, self.var.fracCrops_nonIrr[c] / (self.var.fracVegCover[1]), 0) * self.var.actTransTotal_paddy
+            # rainfed crops (grassland) also without irrigation, irrigated crops (non-paddy) only with irrigation
+            # (without irrigation evaporation.dynamic is not called for 2 and 3: no weighted_KC_Irr)
+            irrigation = checkOption('includeIrrigation')
 
             # Crop-specific transpiration (m) scales the land-class specific transpiration according to its
             # specific potential evapotranspiration and the land-class specific potential evapotranspiration
 
             # the same for all crops
-            denIrr = self.var.fracVegCover[3] * (self.var.cropKC[3] - self.var.minCropKC)
-            condIrr = denIrr > 0
+            if irrigation:
+                denIrr = self.var.fracVegCover[3] * (self.var.cropKC[3] - self.var.minCropKC)
+                condIrr = denIrr > 0
+                # condition on the divisor (before 2026-11: frac_totalIrr x weighted_KC_Irr_woFallow > 0)
+                condIrrCrop = self.var.weighted_KC_Irr_woFallow_fullKc > 0
             denNonIrr = self.var.fracVegCover[1] * (self.var.cropKC[1] - self.var.minCropKC)
             condNonIrr = denNonIrr > 0
-            condIrrCrop = self.var.frac_totalIrr * self.var.weighted_KC_Irr_woFallow > 0
             # crops not activated and not planted anywhere give 0 everywhere -> skipped
             present = (np.any(self.var.activatedCrops > 0, axis=1) | np.any(self.var.fracCrops_Irr > 0, axis=1) |
                        np.any(self.var.fracCrops_nonIrr > 0, axis=1))
+            # variables only for the output (named copies per crop, sums per admin segment): computed only if they
+            # are in the output settings (as in evaporation.py)
+            if not hasattr(self, 'outputNames'):
+                from cwatm.management_modules.globals import outMap, outTss
+                # entries are variable names, or after output.initial lists [file, variable name, ...]
+                self.outputNames = {str(e[1] if isinstance(e, list) else e).split('[')[0].strip()
+                                    for names in list(outMap.values()) + list(outTss.values()) for e in names}
+            out = self.outputNames
+            segments = 'adminSegments' in binding
 
             for c in range(len(self.var.Crops)):
                 if not present[c]:
                     continue
 
                 # Area and transpiration-Kc proportional
-                self.var.actTransTotal_crops_Irr[c] = np.where(
-                    condIrr,
-                    (self.var.fracCrops_Irr[c] * (self.var.currentKC[c] - self.var.minCropKC)) / denIrr,
-                    0) * self.var.actTransTotal_nonpaddy
-                
+                if irrigation:
+                    self.var.actTransTotal_crops_Irr[c] = np.where(
+                        condIrr,
+                        (self.var.fracCrops_Irr[c] * (self.var.currentKC[c] - self.var.minCropKC)) / denIrr,
+                        0) * self.var.actTransTotal_nonpaddy
+
                 self.var.actTransTotal_crops_nonIrr[c] = np.where(
                     condNonIrr,
                     (self.var.fracCrops_nonIrr[c] * (self.var.currentKC[c] - self.var.minCropKC)) / denNonIrr,
                     0) * self.var.actTransTotal_grasslands
 
+                if irrigation:
+                    self.var.ET_crop_Irr[c] = (self.var.actTransTotal_crops_Irr[c] +
+                                               self.var.actBareSoilEvap[3] * self.var.fracCrops_Irr[c])
+                    if 'ET_crop_Irr_' + str(c) in out:
+                        vars(self.var)['ET_crop_Irr_' + str(c)] = self.var.ET_crop_Irr[c].copy()
+                    if 'ET_crop_Irr_fraccrop_' + str(c) in out:
+                        vars(self.var)['ET_crop_Irr_fraccrop_' + str(c)] = np.where(
+                            self.var.fracCrops_Irr[c] > 0,
+                            self.var.ET_crop_Irr[c] / self.var.fracCrops_Irr[c], 0)
 
-
-                self.var.ET_crop_Irr[c] = (self.var.actTransTotal_crops_Irr[c] +
-                                           self.var.actBareSoilEvap[3] * self.var.fracCrops_Irr[c])
-                vars(self.var)['ET_crop_Irr_' + str(c)] = self.var.ET_crop_Irr[c].copy()
-                vars(self.var)['ET_crop_Irr_fraccrop_' + str(c)] = np.where(
-                    self.var.fracCrops_Irr[c] > 0,
-                    self.var.ET_crop_Irr[c] / self.var.fracCrops_Irr[c], 0)
-
-                self.var.actTransTotal_month_Irr[c] += self.var.ET_crop_Irr[c]
+                    self.var.actTransTotal_month_Irr[c] += self.var.ET_crop_Irr[c]
 
                 self.var.ET_crop_nonIrr[c] = (self.var.actTransTotal_crops_nonIrr[c] +
                                               self.var.actBareSoilEvap[1] * self.var.fracCrops_nonIrr[c])
-                vars(self.var)['ET_crop_nonIrr_' + str(c)] = self.var.ET_crop_nonIrr[c].copy()
-                vars(self.var)['ET_crop_nonIrr_fraccrop_' + str(c)] = np.where(
-                    self.var.fracCrops_nonIrr[c] > 0,
-                    self.var.ET_crop_nonIrr[c] / self.var.fracCrops_nonIrr[c], 0)
+                if 'ET_crop_nonIrr_' + str(c) in out:
+                    vars(self.var)['ET_crop_nonIrr_' + str(c)] = self.var.ET_crop_nonIrr[c].copy()
+                if 'ET_crop_nonIrr_fraccrop_' + str(c) in out:
+                    vars(self.var)['ET_crop_nonIrr_fraccrop_' + str(c)] = np.where(
+                        self.var.fracCrops_nonIrr[c] > 0,
+                        self.var.ET_crop_nonIrr[c] / self.var.fracCrops_nonIrr[c], 0)
 
                 self.var.actTransTotal_month_nonIrr[c] += self.var.ET_crop_nonIrr[c]
 
-
-                self.var.irr_crop[c] = np.where(
-                    condIrrCrop, 
-                    (self.var.fracCrops_Irr[c] * self.var.currentKC[c]) / 
-                    self.var.weighted_KC_Irr_woFallow_fullKc,
-                    0) * self.var.act_irrNonpaddyWithdrawal
-                vars(self.var)['irr_crop_' + str(c)] = self.var.irr_crop[c].copy()
-
+                if irrigation:
+                    self.var.irr_crop[c] = np.where(
+                        condIrrCrop,
+                        (self.var.fracCrops_Irr[c] * self.var.currentKC[c]) /
+                        self.var.weighted_KC_Irr_woFallow_fullKc,
+                        0) * self.var.act_irrNonpaddyWithdrawal
+                    if 'irr_crop_' + str(c) in out:
+                        vars(self.var)['irr_crop_' + str(c)] = self.var.irr_crop[c].copy()
 
                 # daily ratio of actual transpiration to potential ET
-                # numerator = ET_crop_nonIrr[c] / ET_crop_Irr[c] (same expression as before)
-                condPot = self.var.PotET_crop[c] * self.var.activatedCrops[c] > 0
+                # rainfed: potential ET with the correction factor of grassland (PotET_crop_nonIrr)
+                condPotNonIrr = self.var.PotET_crop_nonIrr[c] * self.var.activatedCrops[c] * self.var.fracCrops_nonIrr[c] > 0
                 self.var.ratio_a_p_nonIrr_daily[c] = np.where(
-                    condPot,
-                    self.var.ET_crop_nonIrr[c] / (self.var.PotET_crop[c] * self.var.fracCrops_nonIrr[c]),
+                    condPotNonIrr,
+                    self.var.ET_crop_nonIrr[c] / (self.var.PotET_crop_nonIrr[c] * self.var.fracCrops_nonIrr[c]),
                     0)  # This should always be <= 1.
 
-                self.var.ratio_a_p_Irr_daily[c] = np.where(
-                    condPot,
-                    self.var.ET_crop_Irr[c] / (self.var.PotET_crop[c] * self.var.fracCrops_Irr[c]),
-                    0)  # This should always be <= 1.
+                if irrigation:
+                    condPot = self.var.PotET_crop[c] * self.var.activatedCrops[c] * self.var.fracCrops_Irr[c] > 0
+                    self.var.ratio_a_p_Irr_daily[c] = np.where(
+                        condPot,
+                        self.var.ET_crop_Irr[c] / (self.var.PotET_crop[c] * self.var.fracCrops_Irr[c]),
+                        0)  # This should always be <= 1.
 
+                    self.var.irr_crop_month[c] += self.var.irr_crop[c]
+                    if segments and 'irrM3_crop_month_segment' in out:
+                        self.var.irrM3_crop_month_segment[c] = self.var.adminSegmentsIndex.total(
+                            self.var.irr_crop_month[c] * self.var.cellArea)
 
-                self.var.irr_crop_month[c] += self.var.irr_crop[c]
-                if 'adminSegments' in binding:
-                    self.var.irrM3_crop_month_segment[c] = self.var.adminSegmentsIndex.total(
-                        self.var.irr_crop_month[c] * self.var.cellArea)
-
-            self.var.irr_Paddy_month += self.var.act_irrPaddyWithdrawal
-            if 'adminSegments' in binding:
-                self.var.irrM3_Paddy_month_segment = self.var.adminSegmentsIndex.total(
-                    self.var.irr_Paddy_month * self.var.cellArea)
+            if irrigation:
+                self.var.irr_Paddy_month += self.var.act_irrPaddyWithdrawal
+                if segments and 'irrM3_Paddy_month_segment' in out:
+                    self.var.irrM3_Paddy_month_segment = self.var.adminSegmentsIndex.total(
+                        self.var.irr_Paddy_month * self.var.cellArea)

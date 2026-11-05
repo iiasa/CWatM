@@ -125,6 +125,10 @@ class readmeteo(object):
     calc_evapo                           Flag          and missing meteo variables have to be calculated in evapoPot.py (AI)   --   
     pet_modus                            Number        Index which ETP approach is used e.g. 1 for Penman-Monteith             bool 
     without_rlds                         Flag                                                                                  --   
+    readRsdl                             Flag          long wave downward radiation maps are read (not if FAO 56 estimate)     bool 
+    readWind                             Flag          wind speed maps are read (Penman-Monteith, PET_modus 1 and 3)           bool 
+    readPsurf                            Flag          surface air pressure maps are read                                      bool 
+    readHum                              Flag          relative or specific humidity maps are read                             bool 
     TMin                                 Array         minimum air temperature                                                 K    
     TMax                                 Array         maximum air temperature                                                 K    
     Tavg                                 Array         Input, average air Temperature                                          K    
@@ -396,11 +400,40 @@ class readmeteo(object):
         if "ETsamePr" in binding:
             self.var.ETsamePr = returnBool('ETsamePr')
 
+        # only the meteo maps used by the PET method are read
+        # measured long wave radiation: not used if it is estimated with FAO-56 (without_rlds with calculated
+        # evaporation, same as snowFAOlongwave in evaporationPot.initial), except as forcing of pySnowClim
+        self.var.readRsdl = not self.var.only_radiation and \
+            (not (self.var.without_rlds and self.var.calc_evapo) or self.var.usepySnowClim)
+        self.var.readWind = False
+        self.var.readPsurf = False
+        self.var.readHum = False
+
         if self.var.calc_evapo:
             # if PET_modus is missing use Penman Monteith
             self.var.pet_modus = 1
             if "PET_modus" in option:
                 self.var.pet_modus = checkOption('PET_modus')
+                # [OPTIONS] values are read with getboolean first: PET_modus = 1 is stored as True -> int
+                if isinstance(self.var.pet_modus, bool):
+                    self.var.pet_modus = int(self.var.pet_modus)
+                if not isinstance(self.var.pet_modus, int) or self.var.pet_modus not in (1, 2, 3, 4, 5):
+                    msg = "Error 173: PET_modus = " + str(self.var.pet_modus) + " is not a valid method " \
+                          "for the potential evaporation\nuse 1 (Penman-Monteith), 2 (Milly-Dunne), " \
+                          "3 (Penman-Monteith with CO2 correction of Yang et al.), 4 (Priestley-Taylor) or " \
+                          "5 (modified Thornthwaite)\n"
+                    raise CWATMError(msg)
+
+            # Penman-Monteith (1, 3): wind, air pressure and humidity
+            # Milly-Dunne (2) and Priestley-Taylor (4): humidity (and air pressure for specific humidity) only for
+            # the vapour pressure of the FAO-56 long wave estimate (without_rlds)
+            # only_radiation: vapour pressure maps instead of air pressure and humidity
+            # era5: dew point temperature (TdewMaps) instead of humidity
+            penman = self.var.pet_modus in (1, 3)
+            eactFAO = self.var.pet_modus in (2, 4) and self.var.without_rlds
+            self.var.readWind = penman
+            self.var.readPsurf = not self.var.only_radiation and (penman or (eactFAO and self.var.useHuss))
+            self.var.readHum = not self.var.only_radiation and not self.var.era5 and (penman or eactFAO)
 
             # pySnowClim needs wind, air pressure, humidity and radiation: these are only read here and
             # completed in evaporationPot.dynamic_1, which runs for PET_modus 1 (Penman-Monteith) and 3 (Yang)
@@ -410,33 +443,29 @@ class readmeteo(object):
                       "for the snow model\n"
                 raise CWATMError(msg)
 
-            if self.var.only_radiation:
-                # if addiation snowmlet from radiation
-                #if self.var.snowmelt_radiation:
-                #    meteomaps = [self.var.preMaps, self.var.tempMaps, 'RGDMaps','EActMaps']
-                #else:
-                # for maps from EMO-5 with total radiation and vapor pressure instead of huss, air pressure, rsds and rlds
-                meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','WindMaps','RGDMaps','EActMaps']
-            else:
-                meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','PSurfMaps','WindMaps','RSDSMaps','RSDLMaps']
+            meteomaps = [self.var.preMaps, self.var.tempMaps, 'TminMaps', 'TmaxMaps']
+            # radiation for PET_modus 1-4 (modified Thornthwaite uses only tmin, tmax, tavg)
+            if self.var.pet_modus < 5:
+                if self.var.only_radiation:
+                    # for maps from EMO-5 with total radiation and vapor pressure instead of huss, air pressure, rsds and rlds
+                    meteomaps += ['RGDMaps', 'EActMaps']
+                else:
+                    meteomaps.append('RSDSMaps')
+                    if self.var.readRsdl:
+                        meteomaps.append('RSDLMaps')
+            if self.var.readWind:
+                meteomaps.append('WindMaps')
+            if self.var.readPsurf:
+                meteomaps.append('PSurfMaps')
+            if self.var.readHum:
                 if self.var.useHuss:
                     meteomaps.append('QAirMaps')
                 else:
                     meteomaps.append('RhsMaps')
-            if self.var.pet_modus == 4:
-                # Priestley-Taylor: tmin, tmax, tavg, rsds, rlds (or rsd)
-                if not(self.var.only_radiation):
-                    meteomaps = [self.var.preMaps, self.var.tempMaps, 'TminMaps', 'TmaxMaps','RSDSMaps', 'RSDLMaps']
-            if self.var.pet_modus == 5:
-                # for modified Thornthwaite: uses only tmin, tmax, tavg
-                meteomaps = [self.var.preMaps, self.var.tempMaps, 'TminMaps', 'TmaxMaps']
-            if self.var.usepySnowClim and self.var.useTdew:
-                meteomaps.append('TdewMaps')
-
             if self.var.era5:
-                meteomaps = [self.var.preMaps, self.var.tempMaps,'TminMaps','TmaxMaps','PSurfMaps',
-                             'WindMaps','RSDSMaps','RSDLMaps','TdewMaps']
                 self.var.useTdew = True
+            if self.var.useTdew:
+                meteomaps.append('TdewMaps')
 
 
             if self.var.includeGlaciers:
@@ -474,10 +503,11 @@ class readmeteo(object):
             # forcing of pySnowClim (snow_pysnowclim.py)
             self.var.meteo_names += ['Wind', 'Rsds', 'Rsdl', 'Psurf', 'huss', 'rhs', 'Tdew']
         elif self.var.snowmelt_radiation:
-            # radiation snow melt (snow.py): incoming long wave estimated with FAO-56 (needs EAct) or measured (Rsdl)
-            # same condition as snowFAOlongwave in snow.py
+            # radiation snow melt (snow.py): incoming long wave estimated with FAO-56 (factor longwaveFactor from
+            # evaporationPot.fao_longwave) or measured (Rsdl)
+            # same condition as snowFAOlongwave in evaporationPot.initial
             if self.var.without_rlds and (self.var.only_radiation or self.var.calc_evapo):
-                self.var.meteo_names += ['Rsds', 'EAct']
+                self.var.meteo_names += ['Rsds', 'longwaveFactor']
             else:
                 self.var.meteo_names += ['Rsds', 'Rsdl']
         if self.var.includeGlaciers:
@@ -769,14 +799,15 @@ class readmeteo(object):
                     self.var.Rsds = readmeteodata('RSDSMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
                     self.var.Rsds = self.downscaling2(self.var.Rsds)
                         # radiation surface downwelling shortwave maps [W/m2]
-
-                    self.var.Rsdl = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-                    self.var.Rsdl = self.downscaling2(self.var.Rsdl)
-                        # radiation surface downwelling longwave maps [W/m2]
-
                     # conversion from W/m2 to MJ/m2/day
                     self.var.Rsds = self.var.Rsds * self.var.WtoMJ
-                    self.var.Rsdl = self.var.Rsdl * self.var.WtoMJ
+
+                    # not read if the long wave radiation is estimated with FAO-56 (without_rlds)
+                    if self.var.readRsdl:
+                        self.var.Rsdl = readmeteodata('RSDLMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+                        self.var.Rsdl = self.downscaling2(self.var.Rsdl)
+                            # radiation surface downwelling longwave maps [W/m2]
+                        self.var.Rsdl = self.var.Rsdl * self.var.WtoMJ
 
         # -----------------------------------------------------------------------
         # if evaporation has to be calculated load all the meteo map sets
@@ -822,11 +853,8 @@ class readmeteo(object):
                         thermalI = thermalI[cutmapFine[2]:cutmapFine[3], cutmapFine[0]:cutmapFine[1]]
                         self.var.thermalI = self.downscaling2(thermalI)
 
-            elif self.var.pet_modus == 4:
-                self.var.Wind = 0
-                # no additional data needed
-            else:
-                # with priestley ET or Thornewaite ET no wind, psurf,qair available
+            # wind, air pressure and humidity only if the PET method uses them (flags set in initial)
+            if self.var.readWind:
                 self.var.Wind = readmeteodata('WindMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
                 self.var.Wind = self.downscaling2(self.var.Wind)
                 # wind speed maps at 10m [m/s]
@@ -836,24 +864,22 @@ class readmeteo(object):
                 # Shuttleworth, W.J. (1993) in Maidment, D.R. (1993), p. 4.36
                 self.var.Wind = self.var.Wind * 0.749
 
-                if not self.var.only_radiation:
+            if self.var.readPsurf:
+                self.var.Psurf = readmeteodata('PSurfMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
+                self.var.Psurf = self.downscaling2(self.var.Psurf)
+                # Instantaneous surface pressure[Pa]
+                # conversion [Pa] to [KPa]
+                self.var.Psurf = self.var.Psurf * 0.001
 
-                    #self.var.Psurf = readnetcdf2('PSurfMaps', dateVar['currDate'], addZeros = True, meteo = True)
-                    self.var.Psurf = readmeteodata('PSurfMaps', dateVar['currDate'], addZeros=True, mapsscale = self.var.meteomapsscale)
-                    self.var.Psurf = self.downscaling2(self.var.Psurf)
-                    # Instantaneous surface pressure[Pa]
-                    # conversion [Pa] to [KPa]
-                    self.var.Psurf = self.var.Psurf * 0.001
-
-                    # era5: dew point temperature instead of humidity -> Tdew is read below (useTdew = True)
-                    if not self.var.era5:
-                        if self.var.useHuss:
-                            self.var.huss = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
-                            self.var.huss = self.downscaling2(self.var.huss)
-                            # 2 m istantaneous specific humidity[kg / kg]
-                        else:
-                            self.var.rhs = readmeteodata('RhsMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
-                            self.var.rhs = self.downscaling2(self.var.rhs)
+            # era5: dew point temperature instead of humidity -> Tdew is read below (useTdew = True)
+            if self.var.readHum:
+                if self.var.useHuss:
+                    self.var.huss = readmeteodata('QAirMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
+                    self.var.huss = self.downscaling2(self.var.huss)
+                    # 2 m istantaneous specific humidity[kg / kg]
+                else:
+                    self.var.rhs = readmeteodata('RhsMaps', dateVar['currDate'], addZeros=True, mapsscale =self.var.meteomapsscale)
+                    self.var.rhs = self.downscaling2(self.var.rhs)
 
         # if pot evaporation is already precalulated
         else:

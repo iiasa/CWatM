@@ -203,7 +203,7 @@ class CWATModel_dyn(DynamicModel):
         self.lakes_reservoirs_module.dynamic()
 
         # ***** READ land use fraction maps***************************
-        self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'], dynamic=self.var.dynamicLandcover)
+        self.landcoverType_module.dynamic_fracIrrigation(init=dateVar['newYear'], dynamic=self.var.dynamicLandcover, move=True)
 
         # ***** RAIN AND SNOW *****************************************
         if self.var.usepySnowClim:
@@ -236,6 +236,9 @@ class CWATModel_dyn(DynamicModel):
 
             self.routing_kinematic_module.dynamic()
             timemeasure("Routing_Kin")  # 10. timing
+
+            # variables only for the output (human use, averages per adminSegment) - only if they are in the output
+            self.waterdemand_module.dynamic_output()
 
             self.waterquality1.dynamic()
 

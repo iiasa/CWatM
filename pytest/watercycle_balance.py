@@ -313,7 +313,8 @@ def balance(csv_file, station=None, threshold=1e-3, start_date=None, end_date=No
                      ("Percolation", cov + "_perc3toGW"), ("Preferential flow", cov + "_prefFlow")],
                 S=[("Soil", cov + "_soilStor")])
     parts.update({k: v for k, v in NEWPARTS.items() if v["S"][0][1] in df.columns})
-    if "sum_directRunoff" in df.columns:
+    # (sum_directRunoff is also a WaterCycle column, sum_interflow only in WaterBalance)
+    if "sum_directRunoff" in df.columns and "sum_interflow" in df.columns:
         parts["Runoff concentration"] = dict(
             In=[("Direct runoff", "sum_directRunoff"), ("Interflow", "sum_interflow"), ("Baseflow", "baseflow"),
                 ("Canal leakage", "leakageIntoRunoff")],

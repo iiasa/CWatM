@@ -70,7 +70,7 @@ class outputTssMap(object):
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
-    dirUp                                Array         river network in upstream direction                                     --   
+    dirshort                             Array         index of the downstream cell (-1 at pits)                               --   
     fracGlacierCover                     Array         Fraction of glacier cover in a grid cell                                %    
     meteo                                Array         store all meteo data in memeory for warm start (eg calibration)         compl
     sampleAdresses                       List          outflowpoints as 1D index                                               --   
@@ -298,7 +298,6 @@ class outputTssMap(object):
             self.var.sampleAdresses, self.var.outpoints = getlocOutpoints(outpoints)  # for key in sorted(mydict):
 
         self.var.noOutpoints = len(self.var.sampleAdresses)
-        # catch = subcatchment1(self.var.dirUp,outpoints,self.var.UpArea1)
 
         # check if catchment area calculation is necessary (areaavg, areasum or WaterCycle output)
         calcCatch = False
@@ -322,7 +321,7 @@ class outputTssMap(object):
                 outp = globals.inZero.copy()
                 outp[self.var.sampleAdresses[key]] = key
 
-                self.var.evalCatch[key] = catchment1(self.var.dirUp, outp)
+                self.var.evalCatch[key] = catchment1(self.var.dirshort, outp)
                 self.var.catcharea[key] = np.bincount(self.var.evalCatch[key], weights=self.var.cellArea)[key]
                 self.var.catchIndex[key] = np.flatnonzero(self.var.evalCatch[key] == key)
                 self.var.catchZero[key] = np.zeros(len(self.var.catchIndex[key]), dtype=np.int64)
@@ -331,7 +330,9 @@ class outputTssMap(object):
         # for storing water cycle variable the list of variables if pulled together
         self.var.watercycle = [['precipitation_sn', 'areasum_m3', 'flux'], ['Rain', 'areasum_m3', 'flux'], ['Snow', 'areasum_m3', 'flux'],
                       ['SnowMelt','areasum_m3','flux'],['IceMelt', 'areasum_m3', 'flux'],
-                      ['runoff', 'areasum_m3','flux'], ['runoff_m3','sum_m3', 'flux'], ['baseflow', 'areasum_m3', 'flux'],
+                      ['runoff', 'areasum_m3','flux'], ['runoff_m3','sum_m3', 'flux'],
+                      ['sum_directRunoff', 'areasum_m3', 'flux'], ['sum_interflow', 'areasum_m3', 'flux'],
+                      ['baseflow', 'areasum_m3', 'flux'],
                       ['totalET', 'areasum_m3', 'evap'], ['sum_actTransTotal', 'areasum_m3', 'evap'],
                       ['sum_actBareSoilEvap','areasum_m3', 'evap'], ['sum_interceptEvap', 'areasum_m3', 'evap'], ['sum_openWaterEvap', 'areasum_m3', 'evap'],
                       ['snowEvap', 'areasum_m3', 'evap'], ['EvapoChannel', 'areasum_m3', 'evap'],
@@ -428,7 +429,7 @@ class outputTssMap(object):
             self.var.watercycle.extend(temp)
 
         # WaterBalance output = WaterCycle columns + interception (throughfall), the 3 soil layers, the soil of each
-        # land cover, potential ET, runoff concentration inputs, snow pack (pySnowClim), precipitation on glaciers
+        # land cover, potential ET, snow pack (pySnowClim), precipitation on glaciers
         # (cell means, calculated in waterbalance_cellmeans only if WaterBalance is written)
         temp = [['sum_throughfall', 'areasum_m3', 'flux'],
                 ['sum_w1', 'areasum_m3', 'storage'], ['sum_w2', 'areasum_m3', 'storage'], ['sum_w3', 'areasum_m3', 'storage'],
@@ -452,9 +453,6 @@ class outputTssMap(object):
         # potential transpiration (after interception evaporation), reference ET of crops and open water
         temp += [['sum_totalPotET', 'areasum_m3', 'evap'], ['sum_potTranspiration', 'areasum_m3', 'evap'],
                  ['ETRef', 'areasum_m3', 'evap'], ['EWRef', 'areasum_m3', 'evap']]
-        # runoff concentration: inputs direct runoff and interflow (baseflow, leakageIntoRunoff, runoff and
-        # gridcell_storage are WaterCycle columns)
-        temp += [['sum_directRunoff', 'areasum_m3', 'flux'], ['sum_interflow', 'areasum_m3', 'flux']]
         if self.var.usepySnowClim:
             # snow pack: snow water equivalent (packwater is the other part of SnowCover)
             temp += [['snowSWE', 'areasum_m3', 'storage']]

@@ -9,9 +9,9 @@
 # CWatM is licensed under GNU GENERAL PUBLIC LICENSE Version 3.
 # -------------------------------------------------------------------------
 
-import numpy as np
 from cwatm.management_modules import globals
-from cwatm.management_modules.data_handling import returnBool, binding, cbinding, loadmap, readnetcdf2
+from cwatm.management_modules.data_handling import returnBool, binding, cbinding
+from cwatm.hydrological_modules.water_demand.sector_demand import sector_time, new_sector_time, read_sector_demand
 
 class waterdemand_livestock:
     """
@@ -42,16 +42,12 @@ class waterdemand_livestock:
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
-    M3toM                                Array         Coefficient to change units                                             --   
-    domesticTime                         List          Monthly' when domesticTimeMonthly = True, and 'Yearly' otherwise.       str  
-    livestockTime                        List                                                                                  --   
-    livVar                               List                                                                                  --   
+    livestockTime                        List          'monthly' or 'yearly' (settings livestockTimeMonthly)                   str  
+    livVar                               List          Settings livestockvarname: variable in livestockWaterDemandFile         str  
     uselivestock                         Flag          True if uselivestock=True in Settings, False otherwise                  bool 
-    InvCellArea                          Array         Inverse of cell area of each simulated mesh                             1 m-2
-    demand_unit                          Flag          non-irrigation input maps have for each month or year the unit m/day (  --   
-    livestockDemand                      Array         avoid small values (less than 1 m3): (AI)                               --   
-    pot_livestockConsumption             Array         Potential livestock consumption                                         m    
-    liv_efficiency                       Number        Livestock water use efficiency                                          --   
+    livestockDemand                      Array         Livestock water demand (withdrawal)                                     m    
+    pot_livestockConsumption             Array         Potential livestock water consumption (= livestock demand)              m    
+    liv_efficiency                       Number        Livestock consumption / withdrawal (= 1)                                --   
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -76,14 +72,7 @@ class waterdemand_livestock:
         Initializes livestock demand processing parameters for animal water requirements.
         """
 
-        self.var.livestockTime = 'monthly'
-        if "livestockTimeMonthly" in binding:
-            if returnBool('livestockTimeMonthly'):
-                self.var.livestockTime = 'monthly'
-            else:
-                self.var.livestockTime = 'yearly'
-        else:
-            self.var.livestockTime = 'monthly'
+        self.var.livestockTime = sector_time('livestockTimeMonthly')
 
         if "livestockvarname" in binding:
             self.var.livVar = cbinding("livestockvarname")
@@ -110,30 +99,13 @@ class waterdemand_livestock:
             Current simulation date for reading time-dependent data
         """
         if self.var.uselivestock:
-            new = 'newYear'
-            if self.var.livestockTime == 'monthly':
-                new = 'newMonth'
-            if globals.dateVar['newStart'] or globals.dateVar[new]:
-                self.var.livestockDemand = readnetcdf2('livestockWaterDemandFile', wd_date,
-                                                        self.var.domesticTime, value=self.var.livVar)
-                # avoid small values (less than 1 m3):
-                self.var.livestockDemand = np.where(self.var.livestockDemand > self.var.InvCellArea,
-                                                     self.var.livestockDemand, 0.0)
-                self.var.pot_livestockConsumption = self.var.livestockDemand
-                self.var.liv_efficiency = 1.
-
-                # transform from mio m3 per year (or month) to m/day if necessary
-                # if demand_unit = False -> transform from mio m3 per month or year
-                if not self.var.demand_unit:
-                    if self.var.livestockTime == 'monthly':
-                        timediv = globals.dateVar['daysInMonth']
-                    else:
-                        timediv = globals.dateVar['daysInYear']
-                    self.var.livestockDemand = (self.var.livestockDemand * 1000000 *
-                                                 self.var.M3toM / timediv)
-                    self.var.pot_livestockConsumption = self.var.livestockDemand
-
+            if new_sector_time(self.var.livestockTime):
+                # read, m/day, values < 1 m3/day -> 0 (sector_demand.py); consumption = withdrawal, efficiency 1
+                self.var.livestockDemand, self.var.pot_livestockConsumption, self.var.liv_efficiency = \
+                    read_sector_demand(self.var, 'livestockWaterDemandFile', wd_date, self.var.livestockTime,
+                                       self.var.livVar)
         else:
-            self.var.livestockDemand = 0.
-            self.var.pot_livestockConsumption = 0.
+            # maps (before 2026-11 the scalar 0)
+            self.var.livestockDemand = globals.inZero.copy()
+            self.var.pot_livestockConsumption = globals.inZero.copy()
             self.var.liv_efficiency = 1.

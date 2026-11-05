@@ -1,39 +1,39 @@
 # -------------------------------------------------------------------------
-# Name:        Snow module
-# Purpose: Snow and frost processes module for precipitation partitioning and snow dynamics.
-# Simulates snowfall, snow accumulation, snowmelt, and refreezing processes.
-# based on pySnowClim:
+# Name:        Snow module with pySnowClim (usepySnowClim = True)
+# Purpose: Energy balance snow model for precipitation partitioning and snow dynamics.
+# Simulates snowfall, snow accumulation, snowmelt, refreezing, sublimation and condensation
+# in snow samples (elevation zones) with pySnowClim:
 # Lute, A. C. et al. (2022)
-
+# Frost index: frost.py, degree-day snow model: snow.py
 #
 # Author:      PB, MS, SH
 # Created:     13/07/2016
-# Snow albedo: 15/09/2026
 # CWatM is licensed under GNU GENERAL PUBLIC LICENSE Version 3.
 # -------------------------------------------------------------------------
 
 from cwatm.management_modules.data_handling import *
-
-
+# functions used by both snow modules: only defined in snow.py
+from cwatm.hydrological_modules.snow import snowZoneOffsets, loadLapseRate, zoneTemperature, snowCoverFraction
+# saturation vapour pressure (FAO 56 Magnus formula): only defined in evaporationPot.py
+from cwatm.hydrological_modules.evaporationPot import satVapPress
 
 import importlib
 
 
-
-def _satVapPress(t):
-    """Saturation vapour pressure [kPa] over temperature t [C], FAO56 Magnus as in evaporationPot."""
-    return 0.61078 * np.exp(17.27 * t / (237.3 + t))
-
 class snow_pysnowclim(object):
     """
-    Snow and frost processes module for precipitation partitioning and snow dynamics.
-    
-    Handles the partitioning of precipitation into rain and snow, calculates snowmelt
-    base on pysnowclim: 
+    Snow module with the energy balance snow model pySnowClim (usepySnowClim = True).
+
+    Handles the partitioning of precipitation into rain and snow and calculates the snow pack
+    (snow water equivalent, pack water, melt, refreezing, sublimation, condensation, deposition)
+    with pySnowClim for each snow sample (elevation zone, temperature, dew point, air pressure and
+    humidity corrected with the elevation of the zone). The cell values are the means of the samples.
+    Based on pySnowClim:
     Lute, A. C., Abatzoglou, J., and Link, T.: SnowClim v1.0: high-resolution snow model and data for the western United States, Geosci. Model Dev.,
     15, 5045–5071, https://doi.org/10.5194/gmd-15-5045-2022
+    The frost index is calculated in frost.py.
 
-    
+
     Attributes
     ----------
     var : object
@@ -45,52 +45,44 @@ class snow_pysnowclim(object):
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
-    stopaftersnow                        Flag          stop run after snow calcualtion -> for snow calibration (AI)            --   
-    load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
+    stopaftersnow                        Flag          stop run after snow calculation -> for snow calibration                 --   
     cropCorrect                          Array         calibration factor of crop KC factor                                    --   
     saveInit                             Flag          If true initial conditions are saved                                    bool 
     minCropKC                            Array         minimum crop factor (default 0.2)                                       --   
-    DtDay                                Array         seconds in a timestep (default=86400)                                   s    
     ETRef                                Array         potential evapotranspiration rate from reference crop                   m    
     Precipitation                        Array         Precipitation (input for the model)                                     m    
-    only_radiation                       Flag          Boolean if only radiation is use for calculation e.g JRC EMO dataset    bool 
-    Psurf                                Array         Instantaneous surface pressure                                          kPa
-    Rsdl                                 Array         long wave downward surface radiation fluxes                             MJ/m2/day
-    huss                                 Array         2 m istantaneous specific humidity[kg / kg] (AI)                        --   
-    EAct                                 Array         Daily vapor pressure                                                    kPa
-    rhs                                  Array                                                                                 --   
-    Tdew                                 Array         calculate Tdew (Magnus Formula) based on FAO56 https://www.fao.org/4/X  --   
-    Tavg                                 Array         Input, average air Temperature                                          °C
-    Rsds                                 Array         short wave downward surface radiation fluxes                            MJ/m2/day
-    Wind                                 Array         wind speed                                                              m s-1
-    snowmelt_radiation                   Array         use radiation term in snow melt (AI)                                    --   
-    WtoMJ                                Array         Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6          --   
+    Psurf                                Array         surface air pressure                                                    kPa  
+    Rsdl                                 Array         long wave downward surface radiation fluxes                             MJ/m2
+    huss                                 Array         2 m specific humidity                                                   kg/kg
+    rhs                                  Array         relative humidity                                                       %    
+    Tdew                                 Array         dew point temperature (map or Magnus formula, FAO 56)                   deg C
+    Tavg                                 Array         Input, average air Temperature                                          deg C
+    Rsds                                 Array         short wave downward surface radiation fluxes                            MJ/m2
+    Wind                                 Array         wind speed at 2 m                                                       m/s  
+    WtoMJ                                Number        Conversion factor from [W] to [MJ] for radiation: 86400 * 1E-6          --   
     dzRel                                Array         relative elevation in a gridcell by fraction of area                    m    
-    usepySnowClim                        Flag          Flag to use pySnowClim                                                  --   
-    dem                                  Array         Digital elevation model                                                 m    
-    lat                                  Array         Latitude                                                                deg  
-    Rain                                 Array         Precipitation less snow                                                 m    
-    SnowMelt                             Array         total snow melt from all layers                                         m    
-    IceMelt                              Array         Summer ice melt + snow melted by surplus potential of higher zones      m    
-    snowEvap                             Array         total evaporation from snow for a snow layers                           m    
-    SnowCover                            Array         snow cover (sum over all layers)                                        m    
+    lat                                  Array         Latitude (Tarboton albedo)                                              deg  
+    Rain                                 Array         Precipitation less snow (pySnowClim: rain on snow free ground)          m    
+    SnowMelt                             Array         snow melt (mean of all layers / samples)                                m    
+    IceMelt                              Array         Summer ice melt + snow melted by surplus of higher zones (pySnowClim 0  m    
+    snowEvap                             Array         evaporation (sublimation) from snow (mean of all layers / samples)      m    
+    SnowCover                            Array         snow cover (mean over all layers / samples)                             m    
     SnowFactor                           Array         Multiplier applied to precipitation that falls as snow                  --   
-    numberSnowLayers                     Array         Number of snow layers (up to 10)                                        --   
-    _process_forcings_and_energy         Flag          load libraries, but only if pySnowClim is used (AI)                     --   
-    _run_snowclim_step                   Flag                                                                                  --   
-    _prepare_outputs                     Flag                                                                                  --   
-    Snowpack                             List                                                                                  --   
-    constSnowClim                        Array                                                                                 --   
-    stability                            Array         Parameter foor pySnowClim , also calibration parameters see Table2 in   --   
-    windHt                               Array         Wind height (default: 10 meters) (AI)                                   --   
-    tempHt                               Array         Temperature height (default: 2 meters) (AI)                             --   
-    snowoff_month                        Array         Month of snow-off (default: 9) (AI)                                     --   
-    snowoff_day                          Array         Day of snow-off (default: 1) (AI)                                       --   
-    albedo_option                        Flag                                                                                  --   
+    _process_forcings_and_energy         Function      pySnowClim: forcings and energy of a time step                          --   
+    _run_snowclim_step                   Function      pySnowClim: one time step of the snow pack                              --   
+    _prepare_outputs                     Function      pySnowClim: snow model variables -> outputs (mm)                        --   
+    Snowpack                             Class         pySnowClim snow pack class                                              --   
+    constSnowClim                        Module        pySnowClim constants (e.g. WATERDENS)                                   --   
+    stability                            Array         pySnowClim stability setting (Table 2 Lute et al. 2022)                 --   
+    windHt                               Array         Wind height (default: 10 meters)                                        m    
+    tempHt                               Array         Temperature height (default: 2 meters)                                  m    
+    snowoff_month                        Number        Month of snow-off reset (0 = no reset)                                  --   
+    snowoff_day                          Number        Day of snow-off reset (default: 1)                                      --   
+    albedo_option                        Number        pySnowClim albedo scheme (2 = Tarboton, needs latitude)                 --   
     max_albedo                           Array         Maximum albedo (default: 0.85) (calib: 0.85-0.90) (AI)                  --   
     z_0                                  Array         Roughness length (default: 0.00001 m) (10-5 - 10-3) (AI)                --   
     z_h                                  Array         Roughness length for heat (default: z_0/10) (AI)                        --   
-    lw_max                               Array                                                                                 --   
+    lw_max                               Array         Maximum liquid water content of the snow pack (default: 0.1)            --   
     Tstart                               Array         Starting temperature (default: 0°C) (AI)                                --   
     Tadd                                 Array         Temperature adjustment (default: -10000°C) (AI)                         --   
     maxtax                               Array         Maximum tax (default: 0.9) (calib: 0.3-0.9) (AI)                        --   
@@ -103,50 +95,18 @@ class snow_pysnowclim(object):
     snow_emis                            Array         Snow emissivity (default: 0.98) (AI)                                    --   
     snow_dens_default                    Array         Default snow density (default: 250 kg/m³) (AI)                          --   
     G                                    Array         Ground conduction (default: 173/86400 kJ/m²/s) (AI)                     --   
-    max_swe_height                       Array         Max height of SWE before solar radiation factor starts to work (defaul  --   
-    downward_radiation_factor            Array                                                                                 --   
-    downward_radiation_start_month       Array                                                                                 --   
-    downward_radiation_end_month         Array         Month where solar_radiation_factor ends (default: 10) (AI)              --   
-    snowclimParameters                   List          then passed is to give clarify using the xml file variables. (AI)       --   
-    snowpack                             Array                                                                                 --   
-    snowModelvars                        Array         pzSnowclim variables -> CWatM (AI)                                      --   
-    pySnowClimInitVars                   List                                                                                  --   
-    saveInitpySnowClim                   Flag                                                                                  --   
-    saveInitFilepySnowClim               Flag                                                                                  --   
-    SnowFraction                         Array         Fraction of snow in a gridcell                                          --   
-    numberSnowLayersFloat                Array         Number of snow layers (up to 10)                                        --
-    glaciertransportZone                 Number        Number of layers which can be mimiced as glacier transport zone         --   
-    dzSnow                               Array         which dzRel is taken for snow calculation                               --   
-    lapseratevar                         Flag          True or False if a variable lapse rate is used                          --   
-    lapseR                               Array         Lapserate per month                                                     deg C
-    lapseRate                            Array         Lapserate per month                                                     deg C
-    frac_snow_redistribution             Array          Maximum fraction of snow that can be redistributed in elevation zones  --   
-    snowEvapFactor                       Array         a factor to evaporation assuming higher albedo for snow (AI)            --   
-    swe_forest                           Array                                                                                 --   
-    swe_other                            Array                                                                                 --   
-    SnowDayDegrees                       Array         day of the year to degrees: 360/365.25 = 0.9856                         --   
-    SeasonalSnowMeltSin                  Array                                                                                 --   
-    redistr_factor                       Array                                                                                 --   
-    summerSeasonStart                    Array         day when summer season starts = 165                                     --   
-    IceDayDegrees                        Array         days of summer (15th June-15th Sept.) to degree: 180/(259-165)          --   
-    SnowSeason                           Array         seasonal melt factor                                                    m deg
-    TempSnow                             Array         Average temperature at which snow melts                                 °C   
-    SnowMeltCoef                         Array         Snow melt coefficient - default: 0.004                                  --   
-    IceMeltCoef                          Array         Ice melt coefficnet - default  0.007                                    --   
-    TempMelt                             Array         Average temperature at which snow melts                                 °C   
-    SnowMeltRad                          Array         calibration value a factor to radiation coefficient                     --   
-    SnowCoverS                           Array         snow cover for each layer                                               m    
-    freshSnowThreshold                   Array         Snowfall (SWE) per day that resets albedo and snow age (default 0.001)  m
-    snowDensity                          Array         Snow density relative to water to get snow depth (default: 0.3)         --
-    snowDepthAlbedo                      Array         Snow depth below which ground shows through (default: 0.15)             m
-    groundAlbedo                         Array         Albedo of ground/vegetation under shallow snow (default: 0.20)          --
-    noSnowThreshold                      Number        Snow cover (SWE) below which a cell is taken as snow free (1e-6)        m
-    SnowAge                              Array         snow age of the cell (days since last fresh snow, 0 without snow)       day
-    SnowAlbedo                           Array         snow albedo of the cell (without snow depth correction)                 --
-    snowSurfaceAlbedo                    Array         surface albedo used in snow melt of all layers (with depth correction)  --
-    SnowWaterEquivalent                  Array         Snow water equivalent, (based on snow density of 450 kg/m3) (e.g. Tarb  --   
-    ExistSnow                            Array                                                                                 --   
-    Rain_on_snow                         Array         spilt between rain on snow and rain (AI)                                --   
+    max_swe_height                       Array         SWE above which downward_radiation_factor is used (snow towers)         m    
+    downward_radiation_factor            Array         factor for long wave radiation of snow towers (SWE > max_swe_height)    --   
+    downward_radiation_start_month       Number        Month where downward_radiation_factor starts (default: 6)               --   
+    downward_radiation_end_month         Number        Month where downward_radiation_factor ends (default: 10)                --   
+    snowclimParameters                   Dict          parameter dictionary of pySnowClim                                      --   
+    pySnowClimInitVars                   List          snow pack variables saved / loaded as initial conditions                --   
+    saveInitpySnowClim                   Flag          If true pySnowClim initial conditions are saved                         bool 
+    saveInitFilepySnowClim               String        save file name of the pySnowClim initial conditions                     --   
+    SnowFraction                         Array         snow covered fraction of the cell (snowCoverFraction)                   --   
+    SnowCoverS                           List          snow cover for each layer / sample                                      m    
+    ExistSnow                            Array         fraction of samples with snow (pySnowClim ExistSnow)                    --   
+    Rain_on_snow                         Array         rain falling on snow (goes into the snow pack)                          m    
     Snow                                 Array         Snow (equal to a part of Precipitation)                                 m    
     snowSWE                              Array         Snow water equivalent (without pack water), cell mean of the samples    m    
     packwater                            Array         Liquid water in the snow pack, cell mean of the samples                 m    
@@ -158,16 +118,22 @@ class snow_pysnowclim(object):
     snowmelt1                            Array         Snow (SWE) melted to pack water, cell mean                              m    
     precipitation_sn                     Array         CWatM uses a snow undercatch correction if calibrated. This precipitat  m    
     potBareSoilEvap                      Array         potential bare soil evaporation (reduced by the snow covered fraction)  m    
-    fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
-    cellArea                             Array         Area of cell                                                            m2   
+    numberSnowSamples                    Number        Number of pySnowClim snow samples (elevation zones), default 1          --   
+    dzZone                               List          elevation offset of each snow zone / sample to the cell median          m    
+    dewLapseRate                         Array         dew point lapse rate (default 0.002)                                    K/m  
+    snowpackAll                          List          pySnowClim snow pack of each sample                                     --   
+    snowModelvarsAll                     List          pySnowClim snow model variables of each sample                          --   
+    loadInit                             Flag          If true initial conditions are loaded                                   bool 
+    potBareSoilEvapNoSnow                Array         potential bare soil evaporation before the snow reduction               m    
+    snowReset                            Array         snow + pack water removed by the snow-off reset (mean of samples)       m    
     ===================================  ==========    ======================================================================  =====
 
     """
 
     def __init__(self, model):
         """
-        Initialize snow and frost module.
-        
+        Initialize snow module with pySnowClim.
+
         Parameters
         ----------
         model : object
@@ -178,58 +144,31 @@ class snow_pysnowclim(object):
 
     def initial(self):
         """
-        Initialize snow and frost module parameters and elevation zones.
-        
-        Loads parameters for the day-degree approach for precipitation partitioning,
-        snowmelt, and ice melt calculations. Sets up multiple elevation zones for
-        representing topographic variability, initializes snow cover distributions,
-        and configures frost index parameters.
-        
+        Initialize the pySnowClim snow module: snow samples (elevation zones), lapse rates,
+        pySnowClim parameters and snow packs.
+
         Notes
         -----
         Key initialization components:
-        - Elevation zone configuration (1-10 zones) based on relative elevation data
-        - Temperature lapse rate setup (constant or variable)
-        - Snow redistribution parameters based on slope and land cover
-        - Seasonal snow melt coefficient parameters
-        - Initial snow cover distribution across elevation zones
-        - Snow albedo parameters and initial snow age / snow albedo of the cell (initial_snowalbedo)
-        - Frost index parameters for soil freezing calculations
+        - Snow sample configuration (NumberSnowSamples, default 1) based on relative elevation data (snowZoneOffsets)
+        - Temperature lapse rate setup (constant or variable, loadLapseRate) and dew point lapse rate
+        - pySnowClim libraries and parameters (Table 2 in Lute et al. 2022)
+        - latitude for the Tarboton albedo (albedo_option = 2)
+        - one pySnowClim snow pack per sample, initial conditions from initLoad_pySnowClim
+          (one file for all samples: variable name + sample number, e.g. lastswe1, lastswe2 ...)
         """
 
         # --- Topography -----------------------------------------------------
-        # Same as in snow.py! Just the numberSnowLayers is replaced by numberSnowSamples
         # relative elevation dzRel (13 layers 0% ... 100%) is loaded in capillarRise.initial
 
-        self.var.numberSnowSamples = int(loadmap('NumberSnowSamples'))
-        # default 0 -> highest zone
-        # elevation offset of each snow zone [m], computed once
-        # of all zone centres -> mean temperature of all zones = Tavg; dzSnow table relative to dzRel[7] (50%)
-        pct = [0.0, 0.01, 0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1.00]
-        self.var.dzZone = []
-        for i in range(self.var.numberSnowSamples):
-            # zone 0 is the highest: center at percentile 1 - (i + 0.5) / n
-            p = 1.0 - (i + 0.5) / self.var.numberSnowSamples
-            # interval j: pct[j] <= p < pct[j+1], j = 0..11
-            j = int(min(max(np.searchsorted(pct, p+0.000001)-1, 0), 11))
-            # w: weight for w * (x[j+1] - x[j])
-            w = (p - pct[j]) / (pct[j + 1] - pct[j])
-            self.var.dzZone.append(self.var.dzRel[j] + w * (self.var.dzRel[j + 1] - self.var.dzRel[j]))
-
-        self.var.dzZone = [dz - self.var.dzRel[7] for dz in self.var.dzZone]
-
-        self.var.lapseratevar = False
-        if 'LapseRateVariable' in binding:
-            self.var.lapseratevar = returnBool('LapseRateVariable')
-        if self.var.lapseratevar:
-            self.var.lapseR = []
-            for i in range(12):
-                self.var.lapseR.append(readnetcdf12month(cbinding('LapseRate'), i))
-                # read lapse rate from Dutra et al. 2022 global 0.25 deg
-                # values are negative
-                # https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2019ea000984
-        else:
-            self.var.lapseRate = loadmap('TemperatureLapseRate')
+        # number of snow samples (elevation zones); settings without the key (older files) -> 1 sample
+        self.var.numberSnowSamples = 1
+        if 'NumberSnowSamples' in binding:
+            self.var.numberSnowSamples = int(loadmap('NumberSnowSamples'))
+        # elevation offset of each snow sample [m] (zone centres relative to the cell median), computed once
+        self.var.dzZone = snowZoneOffsets(self.var.numberSnowSamples, self.var.dzRel)
+        # temperature lapse rate (constant or monthly maps)
+        loadLapseRate(self.var)
 
         # dewpoint lapse rate [K/m], positive, ~1/3 of the temperature lapse rate. Used for the snow
         # zones together with the temperature lapse (tdmean, psfc, relhum, huss follow the zone)
@@ -237,7 +176,7 @@ class snow_pysnowclim(object):
 
         # loading snowfactor, a factor to account for snow udercatching when measuring snow
         self.var.SnowFactor = loadmap('SnowFactor')
-        # not use in pysnowclim (but used in watercycles)
+        # no ice melt in pySnowClim (IceMelt is used in the water balance and in the soil module) -> always 0
         self.var.IceMelt = globals.inZero.copy()
 
         # load libraries, but only if pySnowClim is used
@@ -253,7 +192,6 @@ class snow_pysnowclim(object):
                                          'Snowpack')
         SnowModelVariables = getattr(importlib.import_module('cwatm.hydrological_modules.pySnowClim.SnowModelVariables'),
                                          'SnowModelVariables')
-        #import cwatm.hydrological_modules.pySnowClim.constants as const
         self.var.constSnowClim = importlib.import_module('cwatm.hydrological_modules.pySnowClim.constants')
 
         # Parameter foor pySnowClim , also calibration parameters
@@ -287,9 +225,8 @@ class snow_pysnowclim(object):
             'downward_radiation_start_month')  # Month where solar_radiation_factor start to be applied (default: 6)
         self.var.downward_radiation_end_month = loadmap('downward_radiation_end_month')  # Month where solar_radiation_factor ends (default: 10)
 
-        # The lines below can be replace by for example
-        # stability = loadmap('stability'). The reason is neing loaded before
-        # then passed is to give clarify using the xml file variables.
+        # parameter dictionary of pySnowClim (the parameters are loaded above one by one, so that each has its own
+        # self.var name, as documented in metaNetcdf.xml)
         self.var.snowclimParameters = create_dict_parameters(
             stability = self.var.stability,
             windHt = self.var.windHt,
@@ -324,6 +261,8 @@ class snow_pysnowclim(object):
             try:
                 self.var.lat = loadmap('latitude')
             except (CWATMError, CWATMFileError) as e:
+                # no latitude map: latitude from the y coordinate of the mask map (cell centres)
+                # -> only right for a lat/lon grid, on a projected grid the y coordinate is in m
                 rows = maskmapAttr['row']
                 cell_size = maskmapAttr['cell']
                 yu = maskmapAttr['y']
@@ -332,49 +271,81 @@ class snow_pysnowclim(object):
                 latitudes = latitudes - cell_size/2
                 latitudes_hstack = np.transpose([latitudes]*maskmapAttr['col'])
                 self.var.lat = compressArray(latitudes_hstack)
+                msg = "Warning: albedo_option = 2 (Tarboton) without a latitude map: latitude is taken from the y " \
+                      "coordinate of the mask map"
+                if np.max(np.abs(self.var.lat)) > 90.:
+                    msg += " - but the y coordinate is not a latitude (projected grid?) -> put latitude in the settings"
+                print(CWATMWarning(msg))
 
+        # snow pack variables of pySnowClim which are saved / loaded as initial conditions
         self.var.pySnowClimInitVars = ['lastpacktemp', 'snowage', 'lastalbedo', 'lastswe', 'lastsnowdepth', 'packsnowdensity', 'lastpackcc',
                                        'lastpackwater', 'rain_in_snow']
 
-        #self.var.snowpack = self.var.Snowpack(globals.inZero.shape[0], self.var.snowclimParameters)
-        #self.var.snowModelvars = SnowModelVariables(globals.inZero.shape[0])
+        # one pySnowClim snow pack and one set of snow model variables per snow sample
         self.var.snowpackAll = [self.var.Snowpack(globals.inZero.shape[0], self.var.snowclimParameters)
                                 for _ in range(self.var.numberSnowSamples)]
         self.var.snowModelvarsAll = [SnowModelVariables(globals.inZero.shape[0])
                                 for _ in range(self.var.numberSnowSamples)]
 
-        # snow fraction: 0 at start, calculated in dynamic from SnowCover
+        # snow cover of the cell and of each sample [m]: 0 at a cold start (set from the init file below)
         self.var.SnowCover = globals.inZero.copy()
         self.var.SnowCoverS = np.tile(globals.inZero, (self.var.numberSnowSamples, 1))
 
         # ----------------------------
-        # Loading in initial conditions
-        if returnBool('load_initial_pySnowClim'):
+        # Loading in initial conditions: one file for all samples, variable name + sample number (lastswe1, lastswe2 ...)
+        # like SnowCover1, SnowCover2 ... in snow.py; an init file from before the samples has the names without number
+        loadInitpySnowClim = False
+        if 'load_initial_pySnowClim' in binding:
+            loadInitpySnowClim = returnBool('load_initial_pySnowClim')
+        if loadInitpySnowClim:
             loadInitFilepySnowClim = cbinding('initLoad_pySnowClim')
-            for samples in range(self.var.numberSnowSamples):
-                for v in self.var.pySnowClimInitVars:
-                    # variable missing in init file -> keep the cold-start value of Snowpack (not a scalar 0)
-                    var = readnetcdfInitial(loadInitFilepySnowClim+str(samples), v, default=None)
-                    if var is not None:
-                        setattr(self.var.snowpackAll[samples], v, var)
-
-                #self.var.SnowCover = self.var.snowModelvars.SnowWaterEq / self.var.constSnowClim.WATERDENS  # replace 9/2026
-                # snowModelvars is only filled in dynamic -> take snow storage [m] directly from the loaded snowpack
-                self.var.SnowCoverS[samples] = (self.var.snowpack[samples].lastswe +
-                                                self.var.snowpack[samples].lastpackwater)
+            # number of samples in the init file
+            nFile = 0
+            while readnetcdfInitial(loadInitFilepySnowClim, 'lastswe' + str(nFile + 1), default=None, warn=False) is not None:
+                nFile += 1
+            numbers = [str(k + 1) for k in range(nFile)] if nFile > 0 else ['']
+            if len(numbers) != self.var.numberSnowSamples:
+                msg = "Warning: " + loadInitFilepySnowClim + " has " + str(len(numbers)) + " snow samples but NumberSnowSamples = " + \
+                      str(self.var.numberSnowSamples) + " -> every sample starts with the mean of the samples in the file"
+                print(CWATMWarning(msg))
+            for v in self.var.pySnowClimInitVars:
+                values = [readnetcdfInitial(loadInitFilepySnowClim, v + k, default=None) for k in numbers]
+                # variable missing in init file (warning) -> keep the cold-start value of Snowpack (not a scalar 0)
+                if any(value is None for value in values):
+                    continue
+                for sample in range(self.var.numberSnowSamples):
+                    value = values[sample] if len(values) == self.var.numberSnowSamples else np.mean(values, axis=0)
+                    snowpack = self.var.snowpackAll[sample]
+                    # astype: own copy for each sample, same dtype as pySnowClim (float32)
+                    setattr(snowpack, v, value.astype(getattr(snowpack, v).dtype))
+            for sample in range(self.var.numberSnowSamples):
+                # snow storage [m] of the sample from the loaded snowpack (snowModelvars is only filled in dynamic)
+                self.var.SnowCoverS[sample] = self.var.snowpackAll[sample].lastswe + self.var.snowpackAll[sample].lastpackwater
+            # cell snow storage before the first time step (e.g. totalSto in landcoverType.initial)
+            self.var.SnowCover = np.mean(self.var.SnowCoverS, axis=0)
+        elif self.var.loadInit:
+            msg = "Warning: load_initial = True but load_initial_pySnowClim = False -> the pySnowClim snow pack starts empty"
+            print(CWATMWarning(msg))
 
         # Saving initial condition
-        self.var.saveInitpySnowClim = returnBool('save_initial_pySnowClim')
+        self.var.saveInitpySnowClim = False
+        if 'save_initial_pySnowClim' in binding:
+            self.var.saveInitpySnowClim = returnBool('save_initial_pySnowClim')
         if self.var.saveInitpySnowClim:
             self.var.saveInitFilepySnowClim = cbinding('initSave_pySnowClim')
 
 
     # --------------------------------------------------------------------------
-# --------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def dynamic(self):
         """
-        Calculate snow and frost processes for current time step.
+        Calculate the snow processes for the current time step with pySnowClim.
+
+        For each snow sample the forcings are corrected for the elevation of the zone, the snow-off
+        reset is applied (snowoff_month > 0) and one pySnowClim step is run. The cell values (snow, rain,
+        snow melt, snow cover, snow evaporation, snow fraction, snow pack balance terms) are the means of
+        the samples. Frost index: frost.py.
 
         References
         ----------
@@ -392,28 +363,19 @@ class snow_pysnowclim(object):
         # (otherwise the snow reduction of bare soil evaporation would increase potential transpiration)
         self.var.potBareSoilEvapNoSnow = self.var.potBareSoilEvap    # -> goes to evaporation.py
 
-
-        #if self.var.usepySnowClim:
-        # TODO remove the hard coded unit transformations
-        # ###############################################
-        #               ATTENTION !!!!!                 #
-        # ###############################################
-        # All the transformations in the forcings data were added to adjust
-        # the forcings to the correct units used by pySnowClim, which are:
-        # lrad - downward longwave radiation (kJ/m2/hr) (time x space)
-        # tavg - average air temperature (C) (time x space)
-        # ppt - precipitation (m) (time x space)
-        # solar - downward shortwave radiation (kJ/m2/hr) (time x space)
-        # tdmean  - dewpoint temperature (C) (time x space)
-        # vs - windspeed (m/s) (time x space)
-        # relhum - relative humidity (%) (time x space)
-        # psfc - air pressure (hPa or mb) (time x space)
-        # huss - specific humidity (kg/kg) (time x space)
+        # forcings in the units of pySnowClim:
+        # lrad - downward longwave radiation (kJ/m2 per time step)
+        # tavg - average air temperature (C)
+        # ppt - precipitation (m)
+        # solar - downward shortwave radiation (kJ/m2 per time step)
+        # tdmean  - dewpoint temperature (C)
+        # vs - windspeed (m/s)
+        # relhum - relative humidity (%)
+        # psfc - air pressure (hPa or mb)
+        # huss - specific humidity (kg/kg)
 
         # kPa to hPA
-        Psurf = self.var.Psurf.copy() * 10
-        #pressure_with_units = (Psurf) * units('hPa')
-        #dewpoint_with_units = (self.var.Tdew) * units('degC')
+        Psurf = self.var.Psurf * 10
 
         time_value = [dateVar['currDate'].year, dateVar['currDate'].month, dateVar['currDate'].day]
         # There is only 1 albedo scheme which uses lat. Tavg is passed here
@@ -424,21 +386,13 @@ class snow_pysnowclim(object):
             # lat only required with tarboton albedo
             coords = {"lat": self.var.Tavg}
 
-        forcings = {"tavg": self.var.Tavg,
-                    "psfc": Psurf,
-                    # For wind speed there is an adjustment for measurement height made on readmeteo.
-                    # Correction from wind speed measured at 10 m to 2 m height
-                    "vs": self.var.Wind/0.749, # correction back from the internal correction made by CwatM, from wind at 2m to wind at 10m height
+        # forcings which are the same for all samples; the zone values (tavg, tdmean, psfc, relhum, huss) and lrad
+        # are set in the loop over the samples
+        forcings = {# wind speed: readmeteo converts the 10 m wind to 2 m (* 0.749) -> back to 10 m (windHt)
+                    "vs": self.var.Wind/0.749,
                     "ppt": self.var.Precipitation,
-                    # from W/m2 to kJ/m2/hr *time step
+                    # Rsds [MJ/m2/day] / WtoMJ -> W/m2, * 3.6 -> kJ/m2/hr, * hours_in_ts -> kJ/m2 per time step
                     "solar": (self.var.Rsds/self.var.WtoMJ)*3.6*self.var.snowclimParameters['hours_in_ts'],
-                    "lrad": (self.var.Rsdl/self.var.WtoMJ)*3.6*self.var.snowclimParameters['hours_in_ts'],
-                    #"huss": specific_humidity.magnitude,
-                    "huss": self.var.huss,
-                    # TODO create a variable for RH.
-                    # Qa ir is in fact RH when using the option useHuss
-                    "relhum": self.var.rhs,
-                    "tdmean": self.var.Tdew
             }
 
         # Because CWatM handles data differenty and it is daily these
@@ -450,16 +404,19 @@ class snow_pysnowclim(object):
         # precipitation of each sample: rain/snow partition depends on the zone temperature,
         # so it has to be kept per sample for the aggregation below
         precipAll = [None] * self.var.numberSnowSamples
+        # snow-off reset as in pySnowClim (run_snowclim_model): on snowoff_month / snowoff_day every snow pack is set
+        # back to an empty snow pack (snowoff_month = 0 -> no reset); the removed snow + pack water [m] (mean of the
+        # samples) is booked as snowReset in the water balance (water leaves the model)
+        snowOff = self.var.snowoff_month > 0 and time_value[1] == self.var.snowoff_month and \
+                  time_value[2] == self.var.snowoff_day
+        self.var.snowReset = globals.inZero.copy()
 
         for sample in range(self.var.numberSnowSamples):
 
-            if self.var.lapseratevar:
-                # lapse rate from Dutra et al. 2022 is negative
-                TavgS = self.var.Tavg + self.var.lapseR[dateVar['currDate'].month - 1] * self.var.dzZone[sample]
-            else:
-                TavgS = self.var.Tavg - self.var.lapseRate * self.var.dzZone[sample]
-                
-            # solar or lrad or both are changed during the process
+            TavgS = zoneTemperature(self.var, sample, dateVar['currDate'].month - 1)
+
+            # lrad is changed by pySnowClim (snow towers in summer: * downward_radiation_factor) -> new for each sample
+            # Rsdl [MJ/m2/day] -> kJ/m2 per time step (as solar)
             forcings['lrad'] = (self.var.Rsdl/self.var.WtoMJ)*3.6*self.var.snowclimParameters['hours_in_ts']
 
             forcings['tavg'] = TavgS
@@ -479,31 +436,24 @@ class snow_pysnowclim(object):
             # relhum and huss follow tdmean and psfc only by their *relative* change, so CWatM's own
             # rhs/huss are kept at dzZone = 0 (recomputing them from ESat(Tavg) would not match
             # evaporationPot.py). Clip bounds come from the cell value, as rhs itself can exceed 100.
-            eRatio = _satVapPress(tdmeanS) / _satVapPress(self.var.Tdew)
+            eRatio = satVapPress(tdmeanS) / satVapPress(self.var.Tdew)
             
-            forcings['relhum'] = np.clip(self.var.rhs * (eRatio * (_satVapPress(self.var.Tavg) / _satVapPress(TavgS))),
+            forcings['relhum'] = np.clip(self.var.rhs * (eRatio * (satVapPress(self.var.Tavg) / satVapPress(TavgS))),
                                          np.minimum(1., self.var.rhs), np.maximum(100., self.var.rhs))
             forcings['huss'] = self.var.huss * (eRatio * (Psurf / psfcS))
             forcings['tdmean'] = tdmeanS
             forcings['psfc'] = psfcS
-            #forcings['tavg'] = self.var.Tavg
             forcings_data = {"forcings": forcings, "coords": coords}
 
-            # loading necessary data to run the model
+            # loading necessary data to run the model (precip: partition between snow and rain made by pySnowClim)
             input_forcings, snow_vars, previous_energy, precip = self.var._process_forcings_and_energy(
                 index_snowclim, forcings_data, self.var.snowclimParameters, snow_model_instances)
-            # partition between snow and rain made by snowclim
-            #Snow = precip.sfe.copy()
-            #Rain = precip.rain.copy()
 
-            # snow and pack water removed by the reset [m] -> reported as snowReset (water leaves the model)
-            """
-            self.var.snowReset = globals.inZero.copy()
-            if self.var.snowoff_month > 0:
-                if time_value[1] == self.var.snowoff_month and time_value[2] == self.var.snowoff_day:
-                    self.var.snowReset = self.var.snowpack.lastswe + self.var.snowpack.lastpackwater
-                    #self.var.snowpack = self.var.Snowpack(globals.inZero.shape[0], self.var.snowclimParameters)
-            """
+            # snow-off reset: same place as in pySnowClim (after the forcings, before the snow step)
+            if snowOff:
+                snowpack = self.var.snowpackAll[sample]
+                self.var.snowReset += (snowpack.lastswe + snowpack.lastpackwater) / self.var.numberSnowSamples
+                self.var.snowpackAll[sample] = self.var.Snowpack(globals.inZero.shape[0], self.var.snowclimParameters)
             self.var.snowpackAll[sample], snow_vars = self.var._run_snowclim_step(
                 snow_vars,
                 self.var.snowpackAll[sample],
@@ -514,7 +464,7 @@ class snow_pysnowclim(object):
                 time_value,
                 previous_energy)
 
-            ## pzSnowclim variables -> CWatM
+            # pySnowClim variables -> CWatM
             self.var.snowModelvarsAll[sample] = self.var._prepare_outputs(snow_vars, precip)
             precipAll[sample] = precip
 
@@ -556,25 +506,27 @@ class snow_pysnowclim(object):
             # lost due to sublimation and win through condensation (condesation is negative here)
             snowE = (self.var.snowModelvarsAll[sample].Sublimation +
                                  self.var.snowModelvarsAll[sample].Condensation) / self.var.constSnowClim.WATERDENS
-            snowE += (self.var.snowModelvarsAll[sample].Deposition
+            # Deposition is in m (pySnowClim _prepare_outputs scales all other terms to mm, not Deposition)
+            snowE += (self.var.snowModelvarsAll[sample].Deposition * self.var.constSnowClim.WATERDENS
                                   + self.var.snowModelvarsAll[sample].Evaporation) / self.var.constSnowClim.WATERDENS
             self.var.snowEvap += snowE / no
             
-            SnowFractionS = np.where(SnowCoverS > 0.01, 0.25 / no, 0.)
-            SnowFractionS = np.where(SnowCoverS > 0.05, 0.5 / no, SnowFractionS)
-            SnowFractionS = np.where(SnowCoverS > 0.10, 1.0 / no, SnowFractionS)
-            self.var.SnowFraction += SnowFractionS
+            # snow covered fraction of the sample (same thresholds as snow.py, defined in snowCoverFraction)
+            self.var.SnowFraction += snowCoverFraction(SnowCoverS) / no
 
             # snow pack water balance terms [m]: SWE and pack water (storage), sublimation and evaporation of pack
             # water (loss), condensation and deposition (negative = gain), refreezing (pack water -> SWE) and melt
             # (SWE -> pack water); the pack water leaving the pack is SnowMelt
             mv = self.var.snowModelvarsAll[sample]
-            for name, v in zip(pack, [mv.SnowWaterEq, mv.PackWater, mv.Sublimation, mv.Condensation, mv.Deposition,
+            # Deposition already in m (see snowE above) -> times WATERDENS, so that all terms are divided the same way
+            for name, v in zip(pack, [mv.SnowWaterEq, mv.PackWater, mv.Sublimation, mv.Condensation,
+                                      mv.Deposition * self.var.constSnowClim.WATERDENS,
                                       mv.Evaporation, mv.RefrozenWater, mv.SnowMelt]):
                 vars(self.var)[name] += (v / self.var.constSnowClim.WATERDENS) / no
 
-        # precipitation including snow undercatch correction (for water balance output)
-        self.var.precipitation_sn = self.var.Snow + self.var.Rain  # + self.var.Rain_on_snow # -> I am not sure if this is added for total precipitation
+        # precipitation including snow undercatch correction (for water balance output): all precipitation, also the
+        # rain on snow, which goes into the snow pack (WaterBalance Salzach: without Rain_on_snow error -17 % of P)
+        self.var.precipitation_sn = self.var.Snow + self.var.Rain + self.var.Rain_on_snow
 
         # additional variables to close the waterbalance
         # SnowWaterEq += snow - Sublimation - Condensation   + RefrozenWater - SnowMelt
@@ -592,11 +544,12 @@ class snow_pysnowclim(object):
             if  dateVar['curr'] in dateVar['intInit']:
                 saveFile = (self.var.saveInitFilepySnowClim + "_" + "%02d%02d%02d.nc" %
                             (dateVar['currDate'].year, dateVar['currDate'].month,dateVar['currDate'].day))
+                # all samples in one file: variable name + sample number (lastswe1, lastswe2 ...)
+                varNames = []
                 initVar = []
-                #var_dict = {k : v for k, v in vars(self.var.snowpack).items() if k in self.var.pySnowClimInitVars}
-                #np.savez_compressed(saveFile, **var_dict)
-
-                for v in self.var.pySnowClimInitVars:
-                    initVar.append(getattr(self.var.snowpack, v))
-                writeIniNetcdf(saveFile, self.var.pySnowClimInitVars, initVar)
+                for sample in range(self.var.numberSnowSamples):
+                    for v in self.var.pySnowClimInitVars:
+                        varNames.append(v + str(sample + 1))
+                        initVar.append(getattr(self.var.snowpackAll[sample], v))
+                writeIniNetcdf(saveFile, varNames, initVar)
 

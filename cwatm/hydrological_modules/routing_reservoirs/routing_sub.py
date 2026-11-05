@@ -12,7 +12,6 @@ import numpy as np
 import math
 from cwatm.management_modules.data_handling import *
 
-sys.setrecursionlimit(5000)
 """
 ROUTING subroutines
 partly using C++ for speeding up
@@ -68,122 +67,93 @@ def decompress1(map):
     return dmap
 
 
-def postorder(dirUp, catchment, node, catch, dirDown):
+def pointerJump(dirshort, value, keepDownstream):
     """
-    Perform postorder tree traversal of drainage network.
+    For every cell: a marked cell on its way downstream to the pit (the cell itself included), found by pointer
+    jumping (no recursion, no loop over the cells: about log2(longest flow path) NumPy passes).
 
-    Traverses the drainage network tree structure in postorder to assign
-    catchment identifiers and establish downstream flow directions.
-
-    Parameters
-    ----------
-    dirUp : list
-        Upstream direction lookup table
-    catchment : array_like
-        Catchment identifier array
-    node : int
-        Current node being processed
-    catch : int
-        Catchment identifier to assign
-    dirDown : list
-        Downstream direction list being built
-
-    Returns
-    -------
-    tuple
-        Updated dirDown and catchment arrays
+    :param dirshort: index of the downstream cell, -1 at pits
+    :param value: marked cells: their own index, other cells -1
+    :param keepDownstream: True: the most downstream marked cell, False: the nearest marked cell
+    :return: index of the marked cell for every cell, -1 if there is none
     """
 
-    if dirUp[node] != []:
-        postorder(dirUp, catchment, dirUp[node][0], catch, dirDown)
-        catchment[dirUp[node][0]] = catch
-        dirDown.append(dirUp[node][0])
-        if len(dirUp[node]) > 1:
-            postorder(dirUp, catchment, dirUp[node][1], catch, dirDown)
-            catchment[dirUp[node][1]] = catch
-            dirDown.append(dirUp[node][1])
-            if len(dirUp[node]) > 2:
-                postorder(dirUp, catchment, dirUp[node][2], catch, dirDown)
-                catchment[dirUp[node][2]] = catch
-                dirDown.append(dirUp[node][2])
-                if len(dirUp[node]) > 3:
-                    postorder(dirUp, catchment, dirUp[node][3], catch, dirDown)
-                    catchment[dirUp[node][3]] = catch
-                    dirDown.append(dirUp[node][3])
-                    if len(dirUp[node]) > 4:
-                        postorder(dirUp, catchment, dirUp[node][4], catch, dirDown)
-                        catchment[dirUp[node][4]] = catch
-                        dirDown.append(dirUp[node][4])
-                        if len(dirUp[node]) > 5:
-                            postorder(dirUp, catchment, dirUp[node][5], catch, dirDown)
-                            catchment[dirUp[node][5]] = catch
-                            dirDown.append(dirUp[node][5])
-                            if len(dirUp[node]) > 6:
-                                postorder(dirUp, catchment, dirUp[node][6], catch, dirDown)
-                                catchment[dirUp[node][6]] = catch
-                                dirDown.append(dirUp[node][6])
-                                if len(dirUp[node]) > 7:
-                                    postorder(dirUp, catchment, dirUp[node][7], catch, dirDown)
-                                    catchment[dirUp[node][7]] = catch
-                                    dirDown.append(dirUp[node][7])
+    cells = np.arange(dirshort.size, dtype=np.int64)
+    # ptr: a cell further downstream (pits point to themselves); value[c]: the result for the path from c to ptr[c]
+    ptr = np.where(dirshort < 0, cells, dirshort).astype(np.int64)
+    value = value.astype(np.int64)
+    while True:
+        down = value[ptr]
+        if keepDownstream:
+            # a marked cell further downstream wins
+            new = np.where(down >= 0, down, value)
+        else:
+            # the nearest marked cell: keep it, only take the one further downstream if there is none yet
+            new = np.where(value >= 0, value, down)
+        nxt = ptr[ptr]
+        if np.array_equal(nxt, ptr) and np.array_equal(new, value):
+            break
+        value, ptr = new, nxt
+    return value
 
 
 def dirUpstream(dirshort):
     """
-    Build upstream direction network from drainage direction map.
+    Upstream cells of every cell (CSR arrays), with NumPy.
 
-    Creates upstream direction lookup tables from the compressed drainage
-    direction array, enabling traversal from outlets to sources.
-
-    Parameters
-    ----------
-    dirshort : array_like
-        Compressed drainage direction array
-
-    Returns
-    -------
-    tuple
-        Upstream direction arrays (dirUp, dirupLen, dirupID)
+    :param dirshort: index of the downstream cell, -1 at pits
+    :return: dirupLen (start index of the upstream cells of each cell in dirupID, length cells + 1),
+             dirupID (upstream cells, ascending index for each cell - same order as the former Python loop)
     """
 
-    # -- up direction
-    dirUp = list([] for i in range(maskinfo['mapC'][0]))
-    for i in range(dirshort.shape[0]):
-        value = dirshort[i]
-        if value > -1:
-            dirUp[value].append(i)
-
-    dirupLen = [0]
-    dirupID = []
-    j = 0
-    for i in range(dirshort.shape[0]):
-        j += len(dirUp[i])
-        dirupLen.append(j)
-        for k in range(len(dirUp[i])):
-            dirupID.append(dirUp[i][k])
-
-    return dirUp, np.array(dirupLen).astype(np.int64), np.array(dirupID).astype(np.int64)
+    n = maskinfo['mapC'][0]
+    up = dirshort >= 0
+    # number of upstream cells of each cell
+    cnt = np.bincount(dirshort[up], minlength=n)
+    dirupLen = np.concatenate(([0], np.cumsum(cnt))).astype(np.int64)
+    # upstream cells grouped by their downstream cell, ascending index inside a group (stable sort)
+    dirupID = np.nonzero(up)[0][np.argsort(dirshort[up], kind='stable')].astype(np.int64)
+    return dirupLen, dirupID
 
 
-def dirDownstream(dirUp, lddcomp, dirDown):
+def dirDownstream(dirshort, lddcomp):
     """
-    runs the river network tree downstream - from source to outlet
+    River network order downstream - every cell after all cells upstream of it - and the catchment of each pit.
 
-    :param dirUp:
-    :param lddcomp:
-    :param dirDown:
-    :return: direction downstream
+    Without recursion and without a loop over the cells (NumPy, pointer jumping): for every cell the pit it drains
+    to and the number of cells to it. Order = cells sorted by this distance (largest first), cells with the same
+    distance by their index. The upstream cells of a cell are therefore in the same order as before (ascending index)
+    -> upstreamArea adds them in the same order (bit-identical). (Before 2026-11-04: postorder from every pit, same
+    catchment and upstream areas, other order of dirDown.)
+
+    :param dirshort: index of the downstream cell, -1 at pits
+    :param lddcomp: repaired ldd, 5 = pit
+    :return: dirDown (cells in routing order), catchment (id of the pit catchment, pits numbered 1, 2, ... by index)
     """
 
-    catchment = np.array(np.zeros(maskinfo['mapC'][0]), dtype=np.int64)
-    j = 0
-    for pit in range(maskinfo['mapC'][0]):
-        if lddcomp[pit] == 5:
-            j += 1
-            postorder(dirUp, catchment, pit, j, dirDown)
-            dirDown.append(pit)
-            catchment[pit] = j
-    return np.array(dirDown).astype(np.int64), np.array(catchment).astype(np.int64)
+    n = maskinfo['mapC'][0]
+    cells = np.arange(n, dtype=np.int64)
+    # pointer to the downstream cell, pits point to themselves
+    ptr = np.where(dirshort < 0, cells, dirshort).astype(np.int64)
+    # number of steps to the cell ptr points to (0 for pits)
+    dist = np.where(dirshort < 0, 0, 1).astype(np.int64)
+    # pointer jumping: after each pass ptr points twice as far downstream, until every ptr is a pit
+    while True:
+        nxt = ptr[ptr]
+        if np.array_equal(nxt, ptr):
+            break
+        dist += dist[ptr]
+        ptr = nxt
+
+    # catchment: pits numbered 1, 2, ... in the order of their index, every cell gets the number of its pit
+    pitid = np.zeros(n, dtype=np.int64)
+    pits = np.nonzero(lddcomp == 5)[0]
+    pitid[pits] = np.arange(1, pits.size + 1)
+    catchment = pitid[ptr]
+
+    # routing order: largest distance first, same distance by index
+    dirDown = np.lexsort((cells, -dist)).astype(np.int64)
+    return dirDown, catchment
 
 
 
@@ -243,85 +213,88 @@ def upstream1(downstruct, weight):
     return np.bincount(downstruct, weights=weight)[:-1]
 
 
-def downstream1(dirUp, weight):
+def catchment1(dirshort, points):
     """
-    calculated 1 cell downstream
+    Catchments of points: every cell gets the id of the most downstream point on its way to the pit (the cell
+    itself included), 0 if there is none. A point inside the catchment of another point does not get an own
+    catchment (same result as the former postorder version, now with NumPy).
 
-    :param dirUp:
-    :param weight:
-    :return: dowmnstream 1 cell
-    """
-
-    downstream = weight.copy()
-    k = 0
-    for i in dirUp:
-        for j in i:
-            downstream[j] = weight[k]
-        k += 1
-    return downstream
-
-
-def catchment1(dirUp, points):
-    """
-    calculates all cells which belongs to a catchment from point onward
-
-    :param dirUp:
-    :param points:
-    :return: subcatchment
+    :param dirshort: index of the downstream cell, -1 at pits
+    :param points: point ids (> 0), other cells <= 0
+    :return: catchment id of every cell
     """
 
-    subcatch = np.array(np.zeros(maskinfo['mapC'][0]), dtype=np.int64)
-    # if subcatchment = true -> calculation of subcatchment: every point is calculated
-    # if false: calculation of catchment: only point calculated which are not inside a bigger catchment
-    # from another point
+    points = np.asarray(points)
+    marked = np.where(points > 0, np.arange(points.size, dtype=np.int64), -1)
+    far = pointerJump(dirshort, marked, keepDownstream=True)
+    return np.where(far >= 0, points[np.maximum(far, 0)], 0).astype(np.int64)
 
 
-    for cell in range(maskinfo['mapC'][0]):
-        j = points[cell]
-        if (j > 0) and (subcatch[cell] < 1):
-            dirDown = []
-            postorder(dirUp, subcatch, cell, j, dirDown)
-            subcatch[cell] = j
-    return subcatch
-
-
-
-def subcatchment1(dirUp, points, ups):
+def subcatchment1(dirshort, points, ups=None):
     """
-    calculates subcatchments of points
+    Subcatchments of points: every cell gets the id of the nearest point on its way to the pit (the cell itself
+    included), 0 if there is none - nested points keep their own subcatchment.
+    (Same result as the former postorder version, which did the points by decreasing upstream area ups; ups is
+    not needed any more: a point downstream always has a larger upstream area.)
 
-    :param dirUp:
-    :param points:
-    :param ups:
-    :return: subcatchment
+    One cell per point id: if an id is at several cells, only the last cell (highest index) is used (warning).
+
+    :param dirshort: index of the downstream cell, -1 at pits
+    :param points: point ids (> 0), other cells <= 0
+    :param ups: not used (kept for the call)
+    :return: subcatchment id of every cell
     """
 
-    subcatch = np.array(np.zeros(maskinfo['mapC'][0]), dtype=np.int64)
-    # if subcatchment = true -> calculation of subcatchment: every point is calculated
-    # if false: calculation of catchment: only point calculated which are not inside a bigger catchment
-    # from another point
-
-    subs = {}
-    # sort waterbodies of reverse upstream area
-    for cell in range(maskinfo['mapC'][0]):
-        if points[cell] > 0:
-            subs[points[cell]] = [cell, ups[cell]]
-    subsort = sorted(list(subs.items()), key=lambda x: x[1][1], reverse=True)
-
-
-    # for cell in xrange(maskinfo['mapC'][0]):
-    for sub in subsort:
-        j = sub[0]
-        cell = sub[1][0]
-        dirDown = []
-        postorder(dirUp, subcatch, cell, j, dirDown)
-        subcatch[cell] = j
-
-    return subcatch
+    points = np.asarray(points)
+    idx = np.nonzero(points > 0)[0]
+    # last cell of each id
+    vals = points[idx]
+    _, lastrev = np.unique(vals[::-1], return_index=True)
+    keep = idx[::-1][lastrev]
+    if keep.size < idx.size:
+        double = np.unique(vals[np.isin(idx, keep, invert=True)])
+        msg = "Warning: subcatchments: " + str(double.size) + " point id(s) at more than one cell, only the last cell " \
+              "is used (e.g. id " + str(int(double[0])) + ")\n"
+        print(CWATMWarning(msg))
+    marked = np.full(points.size, -1, dtype=np.int64)
+    marked[keep] = keep
+    near = pointerJump(dirshort, marked, keepDownstream=False)
+    return np.where(near >= 0, points[np.maximum(near, 0)], 0).astype(np.int64)
 
 
 # ----------------------------------------------------------------
 
+
+
+def lddNetwork(ldd):
+    """
+    Repaired river network and upstream directions from a compressed ldd
+    (used by defLdd2 and routing_kinematic.catchment)
+
+    :param ldd: river network (compressed 1D, values 1-9)
+    :return: lddCompress (repaired ldd), dirshort (index of the downstream cell, -1 at pits), dirupLen, dirupID
+    """
+
+    # decompressing ldd from 1D -> 2D
+    dmap = maskinfo['maskall'].copy()
+    dmap[~maskinfo['maskflat']] = ldd[:]
+    ldd2D = dmap.reshape(maskinfo['shape']).astype(np.int64)
+    ldd2D[ldd2D.mask] = 0
+    # invalid ldd values inside the mask (not 1-9) become pits; otherwise the C code reads outside its direction
+    # table (negative values) and the cell and all cells upstream of it are not routed
+    # (only inside the mask: the line above also removes the mask of ldd2D, cells outside must stay 0)
+    ldd2D[~maskinfo['mask'] & ((ldd2D < 1) | (ldd2D > 9))] = 5
+
+    # every cell gets an order starting from 0 ...
+    lddshortOrder = np.arange(maskinfo['mapC'][0])
+    # decompress this map to 2D
+    lddOrder = decompress1(lddshortOrder)
+    lddOrder[maskinfo['mask']] = -1
+    lddOrder = np.array(lddOrder.data, dtype=np.int64)
+
+    lddCompress, dirshort = lddrepair(ldd2D, lddOrder)
+    dirupLen, dirupID = dirUpstream(dirshort)
+    return lddCompress, dirshort, dirupLen, dirupID
 
 
 def defLdd2(ldd):
@@ -332,37 +305,19 @@ def defLdd2(ldd):
     :return: ldd variables
     """
 
-    # decompressing ldd from 1D -> 2D
-    dmap = maskinfo['maskall'].copy()
-    dmap[~maskinfo['maskflat']] = ldd[:]
-    ldd2D = dmap.reshape(maskinfo['shape']).astype(np.int64)
-    ldd2D[ldd2D.mask] = 0
+    lddCompress, dirshort, dirupLen, dirupID = lddNetwork(ldd)
 
-    # every cell gets an order starting from 0 ...
-    lddshortOrder = np.arange(maskinfo['mapC'][0])
-    # decompress this map to 2D
-    lddOrder = decompress1(lddshortOrder)
-    lddOrder[maskinfo['mask']] = -1
-    lddOrder = np.array(lddOrder.data, dtype=np.int64)
-
-
-    lddCompress, dirshort = lddrepair(ldd2D, lddOrder)
-    dirUp, dirupLen, dirupID = dirUpstream(dirshort)
-
-    # for upstream calculation
-    inAr = np.arange(maskinfo['mapC'][0], dtype=np.int64)
-    # each upstream pixel gets the id of the downstream pixel
-    downstruct = downstream1(dirUp, inAr).astype(np.int64)
+    # for upstream calculation: each cell gets the id of the downstream cell
+    downstruct = np.where(dirshort >= 0, dirshort, np.arange(maskinfo['mapC'][0])).astype(np.int64)
     # all pits gets a high number
     downstruct[lddCompress == 5] = maskinfo['mapC'][0]
 
     # self.var.dirDown: direction downstream - from each cell the pointer to a downstream cell (can only be 1)
     # self.var.catchment: each catchment with a pit gets a own ID
-    dirDown = []
-    dirDown, catchment = dirDownstream(dirUp, lddCompress, dirDown)
+    dirDown, catchment = dirDownstream(dirshort, lddCompress)
     lendirDown = len(dirDown)
 
-    return lddCompress, dirshort, dirUp, dirupLen, dirupID, downstruct, catchment, dirDown, lendirDown
+    return lddCompress, dirshort, dirupLen, dirupID, downstruct, catchment, dirDown, lendirDown
 
 def lddrepair(lddnp, lddOrder):
     """

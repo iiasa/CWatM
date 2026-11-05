@@ -395,6 +395,12 @@ class initcondition(object):
                     initCondVar.append(coverType+"_"+ cond)
                     initCondVarValue.append(cond+"["+str(i)+"]")
 
+        # land cover fractions: the stores above belong to them (they change with moveIrrFallowToNonIrr and the yearly
+        # land cover maps) - a warm start moves the loaded water to the fractions of its first day (landcoverType)
+        for i, coverType in enumerate(self.var.coverTypes):
+            initCondVar.append("fracVegCover_" + coverType)
+            initCondVarValue.append("fracVegCover[" + str(i) + "]")
+
         self.var.includeCrops = False
         if "includeCrops" in option:
             self.var.includeCrops = checkOption('includeCrops')
@@ -431,12 +437,7 @@ class initcondition(object):
                 initCondVar.append('currentKY_' + str(c))
                 initCondVarValue.append('currentKY[' + str(c) + ']')
 
-        # water demand
-        initCondVar.append("unmetDemandPaddy")
-        initCondVarValue.append("unmetDemandPaddy")
-        initCondVar.append("unmetDemandNonpaddy")
-        initCondVarValue.append("unmetDemandNonpaddy")
-
+        # water demand (unmetDemandPaddy / unmetDemandNonpaddy removed 2026-11: always 0)
         initCondVar.append('unmetDemand_runningSum')
         initCondVarValue.append('unmetDemand_runningSum')
         
@@ -473,7 +474,9 @@ class initcondition(object):
                     initCondVarValue.append("seepagePond[" + str(No) + "]")
 
         # routing
-        routing = ["channelStorage", "discharge", "riverbedExchange"]
+        # (riverbedExchange removed 2026-11-04: never computed, always 0; old init files still load - the variable is
+        # not read any more)
+        routing = ["channelStorage", "discharge"]
         initCondVar.extend(routing)
         initCondVarValue.extend(routing)
         # inflow of the previous day (inflow.py): the routing interpolates the inflow of the day from it

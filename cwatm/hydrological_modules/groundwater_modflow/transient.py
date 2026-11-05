@@ -610,6 +610,13 @@ class groundwater_modflow:
         # percentage discrepancy error of each MODFLOW run: (number of the MODFLOW run, date, error in %)
         self.var.modflowdiscrepancy = []
 
+        # observed groundwater depth and depth adjuster for layer_outputs (before 2026-11 read in soil.initial)
+        if 'gw_depth_observations' in binding:
+            self.var.gwdepth_observations = readnetcdfWithoutTime(cbinding('gw_depth_observations'),
+                                                                  value='Groundwater depth')
+        if 'gw_depth_sim_obs' in binding:
+            self.var.gwdepth_adjuster = loadmap('gw_depth_sim_obs')
+
         # water table (layer 1) at ModFlow resolution and converted into CWatM map; head<n>, gwdepth<n> of each layer
         self.var.modflow_watertable = np.copy(head[0])
         self.var.head = self.grid.to_cwatm(head[0], mean=True)

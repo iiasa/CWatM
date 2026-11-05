@@ -48,9 +48,8 @@ class routing_kinematic(object):
     modflow                              Flag          True if modflow_coupling = True in settings file                        bool 
     load_initial                         Flag          Settings initLoad holds initial conditions for variables                bool 
     inflowM3                             Array         inflow to basin                                                         m3   
-    Crops                                Array         Internal: List of specific crops and Kc/Ky parameters                   --   
     compress_LR                          Array         boolean map as mask map for compressing lake/reservoir                  --   
-    dirUp                                Array         river network in upstream direction                                     --   
+    dirshort                             Array         index of the downstream cell (-1 at pits)                               --   
     lddCompress                          Array         compressed river network (without missing values)                       --   
     dirupLen_LR                          Array         number of bifurcation upstream lake/reservoir                           --   
     dirDown_LR                           Array         river network direktion downstream lake/reservoir                       --   
@@ -60,7 +59,6 @@ class routing_kinematic(object):
     fracAllCover                         Array                                                                                 --   
     riverbedExchangeM3                   Array         converting leakage in m3 (AI)                                           --   
     DtSec                                Array         number of seconds per timestep (default = 86400)                        s    
-    ETRef                                Array         potential evapotranspiration rate from reference crop                   m    
     EWRef                                Array         potential evaporation rate from water surface                           m    
     QInM3Old                             Array         Inflow from previous day                                                m3   
     waterBodyID                          Array         lakes/reservoirs map with a single ID for each lake/reservoir           --   
@@ -77,9 +75,8 @@ class routing_kinematic(object):
     inflowDay                            Array         inflow put into the routing during the day (sum of the sub steps)       m3   
     returnFlowLakeM3                     Array         return flow of lake cells, goes into the lake (not into the channel)    m3   
     downstruct                           Array         structure of the river network in downstream direction                  --   
-    sum_openWaterEvap                    Array         sum of open water evaporation from all different land cover types       m    
     chanLength                           Array         Input, Channel length                                                   m    
-    totalCrossSectionArea                Array         Total cross-sectional area [m2]: if initial value in binding equals -9  --   
+    totalCrossSectionArea                Array         Total cross-sectional area at half bankfull (initial storage, MODFLOW)  m2   
     dirupLen                             Array                                                                                 --   
     dirupID                              Array                                                                                 --   
     catchment                            Array                                                                                 --   
@@ -99,43 +96,18 @@ class routing_kinematic(object):
     alpPower                             Array                                                                                 --   
     channelAlpha                         Array                                                                                 --   
     invchannelAlpha                      Array                                                                                 --   
-    riverbedExchange                     Array         to avoid flip flop (AI)                                                 --   
-    EvapoChannel                         Array         Channel evaporation                                                     m3   
+    EvapoChannel                         Array         Channel evaporation                                                     m    
     QDelta                               Array         difference between old and new inlet flow  per sub step in order to ca  --   
-    sumsideflow                          Array         calculating average discharge during day and max discharge (AI)         --   
-    prechannelStorage                    Array                                                                                 --   
     avgdischarge                         Array         calculating average discharge during day and max discharge (AI)         --   
     maxdischarge                         Array         discharge at the end of a time step (AI)                                --   
     dis_outlet                           Array         discharge only at the outlets to sea or endorheic lakes, otherwise val  --   
-    humanConsumption                     Array                                                                                 --   
-    humanUse                             Array                                                                                 --   
-    natureUse                            Array                                                                                 --   
-    ETRefAverage_segments                Array                                                                                 --   
-    precipEffectiveAverage_segments      Array                                                                                 --   
-    head_segments                        Array         Simulated water level, averaged over adminSegments [masl]               m    
-    gwdepth_adjusted_segments            Array         Adjusted depth to groundwater table, averaged over adminSegments        m    
-    gwdepth_segments                     Array         Groundwater depth, averaged over adminSegments                          m    
-    adminSegments_area                   Array         Spatial area of domestic agents                                         m2   
     runoff_m3                            Array         back to [m]  # with and without in m3 (AI)                              --   
     openWaterEvap                        Array         Simulated evaporation from open areas                                   m    
-    infiltration                         Array         Water actually infiltrating the soil                                    m    
-    actTransTotal_paddy                  Array         Transpiration from paddy land cover                                     m    
-    actTransTotal_nonpaddy               Array         Transpiration from non-paddy land cover                                 m    
-    actTransTotal_crops_nonIrr           Array         Transpiration associated with specific non-irr crops                    m    
-    head                                 Array         Simulated ModFlow water level [masl]                                    m    
-    gwdepth_adjusted                     Array         Adjusted depth to groundwater table                                     m    
-    gwdepth                              Array         Depth to groundwater table                                              m    
-    fracVegCover                         Array         Fraction of specific land covers (0=forest, 1=grasslands, etc.)         %    
-    adminSegments                        Array         Domestic agents                                                         Int  
     cellArea                             Array         Area of cell                                                            m2   
     act_SurfaceWaterAbstract             Array         Surface water abstractions                                              m    
-    addtoevapotrans                      Array         Irrigation application loss to evaporation                              m    
     act_bigLakeResAbst                   Array         Abstractions to satisfy demands from lakes and reservoirs               m    
     act_smallLakeResAbst                 Array         Abstractions from small lakes at demand location                        m    
     returnFlow                           Array                                                                                 --   
-    act_nonIrrConsumption                Array         Non-irrigation consumption                                              m    
-    act_nonIrrWithdrawal                 Array         Non-irrigation withdrawals                                              m    
-    act_irrWithdrawal                    Array         Irrigation withdrawals                                                  m    
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -173,27 +145,17 @@ class routing_kinematic(object):
             Catchment map, x-coordinate offset, y-coordinate offset
         """
 
-        dmap = maskinfo['maskall'].copy()
-        dmap[~maskinfo['maskflat']] = ldd[:]
-        ldd2D = dmap.reshape(maskinfo['shape']).astype(np.int64)
-        ldd2D[ldd2D.mask] = 0
+        # repaired river network and upstream directions (same as for the routing, routing_sub.lddNetwork)
+        lddCompress, dirshort, dirupLen, dirupID = lddNetwork(ldd)
 
-        # every cell gets an order starting from 0 ...
-        lddshortOrder = np.arange(maskinfo['mapC'][0])
-        # decompress this map to 2D
-        lddOrder = decompress(lddshortOrder)
-        lddOrder[maskinfo['mask']] = -1
-        lddOrder = np.array(lddOrder.data, dtype=np.int64)
-
-        lddCompress, dirshort = lddrepair(ldd2D, lddOrder)
-        dirUp, dirupLen, dirupID = dirUpstream(dirshort)
-
-        c1 = catchment1(dirUp, point)
+        c1 = catchment1(dirshort, point)
 
         # decompressing catchment from 1D -> 2D
+        # plain array with 0 outside the mask (maskall holds random memory under its mask; a masked c2 passed on
+        # to maskfrompoint lets such values become active cells)
         dmap = maskinfo['maskall'].copy()
         dmap[~maskinfo['maskflat']] = c1[:]
-        c2 = dmap.reshape(maskinfo['shape']).astype(np.int64)
+        c2 = np.ma.filled(dmap, 0).reshape(maskinfo['shape']).astype(np.int64)
 
         if np.max(c2) == 0:
             return -1, -1, -1
@@ -223,8 +185,10 @@ class routing_kinematic(object):
         ldd = loadmap('Ldd')
         # l1 = decompress(ldd)
 
-        (self.var.lddCompress, dirshort, self.var.dirUp, self.var.dirupLen, self.var.dirupID,
+        # dirshort: index of the downstream cell (-1 at pits), used for catchments of gauges and lakes
+        (self.var.lddCompress, self.var.dirshort, self.var.dirupLen, self.var.dirupID,
          self.var.downstruct, self.var.catchment, self.var.dirDown, self.var.lendirDown) = defLdd2(ldd)
+        dirshort = self.var.dirshort
 
         # ---------------------------------------------------------------
         # parallel kinematic wave: number of threads (nodes)
@@ -282,6 +246,10 @@ class routing_kinematic(object):
         self.var.noRoutingSteps = int(loadmap('NoRoutingSteps'))
         # kinematic wave parameter: 0.6 is for broad sheet flow
         self.var.beta = loadmap('chanBeta')
+        # the kinematic wave (t6 library) takes beta as one number (fast path for 0.6)
+        if np.ndim(self.var.beta) > 0:
+            msg = "Error 175: chanBeta has to be a single number (e.g. 0.6), not a map\n"
+            raise CWATMError(msg)
         # Channel Manning's n
         self.var.chanMan = loadmap('chanMan') * manningsFactor
         # Channel gradient (fraction, dy/dx)
@@ -305,6 +273,11 @@ class routing_kinematic(object):
         # Corresponding sub-timestep (seconds)
         self.var.dtRouting = self.var.DtSec / self.var.noRoutingSteps
         self.var.invdtRouting = 1 / self.var.dtRouting
+        # sideflow [m3 per substep] -> [m2 s-1] for the kinematic wave: sideflowM3 / chanLength / dtRouting
+        self.var.sideflowFactor = self.var.invchanLength / self.var.dtRouting
+
+        # channel fraction of a cell, for the evaporation from channels (static)
+        self.var.channelFraction = np.minimum(1.0, self.var.chanWidth * self.var.chanLength / self.var.cellArea)
 
         # -----------------------------------------------
         # ***** CHANNEL GEOMETRY  ************************************
@@ -315,8 +288,8 @@ class routing_kinematic(object):
         # This can be used to initialise channel flow (see below)
         #TotalCrossSectionAreaHalfBankFull = 0.5 * self.var.TotalCrossSectionAreaBankFull
         # TotalCrossSectionAreaInitValue = loadmap('TotalCrossSectionAreaInitValue')
+        # Total cross-sectional area [m2]: half bankfull (also used by MODFLOW, groundwater_modflow/transient.py)
         self.var.totalCrossSectionArea = 0.5 * self.var.totalCrossSectionAreaBankFull
-        # Total cross-sectional area [m2]: if initial value in binding equals -9999 the value at half bankfull is used,
 
         # -----------------------------------------------
         # ***** CHANNEL ALPHA (KIN. WAVE)*****************************
@@ -350,7 +323,8 @@ class routing_kinematic(object):
         # ***** CHANNEL INITIAL DISCHARGE ****************************
 
         # channel water volume [m3]
-        # Initialise water volume in kinematic wave channels [m3]
+        # Initialise water volume in kinematic wave channels [m3]: 0.1 * half bankfull = 5 % of bankfull
+        # (if channelStorage is not loaded from an init file)
         channelStorageIni = self.var.totalCrossSectionArea * self.var.chanLength * 0.1
         self.var.channelStorage = self.var.load_initial("channelStorage", default=channelStorageIni)
 
@@ -362,10 +336,6 @@ class routing_kinematic(object):
                        self.var.invbeta
         self.var.discharge = self.var.load_initial("discharge", default=dischargeIni)
         #self.var.chanQKin = chanQKinIni
-
-        # self.var.riverbedExchange = globals.inZero.copy()
-        self.var.riverbedExchange = self.var.load_initial("riverbedExchange", default=globals.inZero.copy())
-        # self.var.discharge = self.var.chanQKin.copy()
 
 
         # if checkOption('includeWaterDemand'):
@@ -403,42 +373,17 @@ class routing_kinematic(object):
 
         Qnew = globals.inZero.copy()
 
-        # Evaporation from open channel
+        # Evaporation from open channel (channel fraction of the cell: self.var.channelFraction, from initial)
         # from big lakes/res and small lakes/res is calculated separately
-        channelFraction = np.minimum(1.0, self.var.chanWidth * self.var.chanLength / self.var.cellArea)
-        # put all the water area in which is not reflected in the lakes ,res
-        # channelFraction = np.maximum(self.var.fracVegCover[5], channelFraction)
-
         EWRefact = np.maximum(0.0, self.var.lakeEvaFactor * self.var.EWRef - self.var.openWaterEvap[5])
         # evaporation from channel minus the calculated evaporation from rainfall
-        self.var.EvapoChannel = EWRefact * channelFraction * self.var.cellArea
+        self.var.EvapoChannel = EWRefact * self.var.channelFraction * self.var.cellArea
         #self.var.EvapoChannel = self.var.EWRef * channelFraction * self.var.cellArea
-
-        # restrict to 95% of channel storage -> something should stay in the river
-        self.var.EvapoChannel = np.where(
-            (0.95 * self.var.channelStorage - self.var.EvapoChannel) > 0.0,
-            self.var.EvapoChannel,
-            0.95 * self.var.channelStorage)
+        # (restricted to 95 % of the channel storage below, after the lake cells are set to 0)
 
 
 
-        # riverbed infiltration (m3):
-        # - current implementation based on Inge's principle (later, will be based on groundater head (MODFLOW) and can be negative)
-        # - happening only if 0.0 < baseflow < nonFossilGroundwaterAbs
-        # - infiltration rate will be based on aquifer saturated conductivity
-        # - limited to fracWat
-        # - limited to available channelStorage
-        # - this infiltration will be handed to groundwater in the next time step
-
-        # used self.var.fracVegCover[5] instead of self.var.dynamicFracWat
-        """
-        self.var.riverbedExchange = np.maximum(0.0,  np.minimum(self.var.channelStorage, np.where(self.var.baseflow > 0.0, \
-                                np.where(self.var.nonFossilGroundwaterAbs > self.var.baseflow, \
-                                self.var.kSatAquifer * self.var.fracVegCover[5] * self.var.cellArea, \
-                                0.0), 0.0)))
-        # to avoid flip flop
-        self.var.riverbedExchange = np.minimum(self.var.riverbedExchange, 0.95 * self.var.channelStorage)
-        """
+        # riverbed infiltration: with MODFLOW riverbedExchangeM3 from landcoverType.py (taken from the channel below)
 
         if checkOption('includeWaterBodies'):
             # add reservoirs depending on year
@@ -447,26 +392,30 @@ class routing_kinematic(object):
             # evaporation from water bodies (m3), will be limited by available water in lakes and reservoirs
             # calculate outflow from lakes and reservoirs
 
-            # average evaporation overeach lake
-            EWRefavg = self.var.waterBodyIndex.average(EWRefact)
-            # evaporation for the whole lake for each routing step
-            eWaterBody = np.maximum(0.0, EWRefavg * self.var.lakeArea) / self.var.noRoutingSteps
-            # compressed to the number lakes
-            self.var.evapWaterBodyC = self.var.lakeEvaFactorC * np.compress(self.var.compress_LR, eWaterBody)
+            # evaporation rate of each lake: lakeEvaFactorC * EWRef - openWaterEvap[5], both averaged over the lake,
+            # the factor applied once (map value at the outlet, or the value from the reservoir Excel sheet)
+            # same rate as for channels and small lakes (before 2026-11-04 the factor was applied twice: in EWRefact
+            # and again here)
+            EWRefavgC = np.compress(self.var.compress_LR, self.var.waterBodyIndex.average(self.var.EWRef))
+            openWaterEvapavgC = np.compress(self.var.compress_LR, self.var.waterBodyIndex.average(self.var.openWaterEvap[5]))
+            lakeAreaC = np.compress(self.var.compress_LR, self.var.lakeArea)
+            # evaporation for the whole lake for each routing step, compressed to the number of lakes
+            self.var.evapWaterBodyC = np.maximum(0.0, self.var.lakeEvaFactorC * EWRefavgC - openWaterEvapavgC) * \
+                                      lakeAreaC / self.var.noRoutingSteps
             # no channel evaporation in lake cells: lake cells have no channel (pits of the lake network),
             # the evaporation of a lake is evapWaterBodyC
             self.var.EvapoChannel = np.where(self.var.waterBodyID > 0, 0., self.var.EvapoChannel)
-            #self.var.riverbedExchange = np.where(self.var.waterBodyID > 0, 0., self.var.riverbedExchange)
 
             # sum of all routingsteps of evaporation from lakes and reservoirs   - set to 0 each time step
             self.var.sumResEvapWaterBodyC = self.var.evapWaterBodyC * 0.
             self.var.sumLakeEvapWaterBodyC = self.var.evapWaterBodyC * 0.
 
-        EvapoChannelM3Dt = self.var.EvapoChannel / self.var.noRoutingSteps
+        # channel withdrawals of the day [m3]: MODFLOW leakage + channel abstraction; return flow into the channel [m3]
+        withdrawM3 = globals.inZero.copy()
+        returnM3 = 0.
         if self.var.modflow:
-            # removing water infiltrating from river to groundwater
-            riverbedExchangeDt = self.var.riverbedExchangeM3 / self.var.noRoutingSteps
-        # riverbedExchangeDt = self.var.riverbedExchange / self.var.noRoutingSteps
+            # water infiltrating from river to groundwater
+            withdrawM3 += self.var.riverbedExchangeM3
 
         if checkOption('inflow'):
             self.var.QDelta = (self.var.inflowM3 - self.var.QInM3Old) / self.var.noRoutingSteps
@@ -478,7 +427,6 @@ class routing_kinematic(object):
         # return flow of lake cells (water demand): lake cells have no channel -> handed to the lake module
         self.var.returnFlowLakeM3 = 0.
 
-        WDAddM3Dt = 0
         if checkOption('includeWaterDemand'):
             # self.var.act_SurfaceWaterAbstract includes channel abstractions as well as abstractions from lakes and reservoirs
             # In waterdemand.py: self.var.act_SurfaceWaterAbstract = self.var.act_SurfaceWaterAbstract + self.var.act_bigLakeResAbst + self.var.act_smallLakeResAbst
@@ -488,25 +436,19 @@ class routing_kinematic(object):
             if checkOption('includeWaterBodies'):
                 # (wastewater reuse act_bigLakeResAbst_wwt: taken from the wastewater reservoirs in water_demand.py,
                 # not from the channels - before 2026-10-16 it was taken from the channels too)
-                WDAddM3Dt = self.var.act_SurfaceWaterAbstract - \
+                channelAbstM = self.var.act_SurfaceWaterAbstract - \
                             (self.var.act_bigLakeResAbst + self.var.act_smallLakeResAbst + self.var.act_bigLakeResAbst_wwt)
             else:
-                WDAddM3Dt = self.var.act_SurfaceWaterAbstract
+                channelAbstM = self.var.act_SurfaceWaterAbstract
+            withdrawM3 += channelAbstM * self.var.cellArea
 
             # return flow from (m) non irrigation water demand
-            # WDAddM3Dt = WDAddM3Dt - self.var.nonIrrReturnFlowFraction * self.var.act_nonIrrDemand
-            WDAddM3Dt = WDAddM3Dt - self.var.returnFlow
             if checkOption('includeWaterBodies'):
                 # return flow of lake cells is not put into the channel of lake cells (pits of the lake network)
                 self.var.returnFlowLakeM3 = np.where(self.var.waterBodyID > 0, self.var.returnFlow * self.var.cellArea, 0.)
-                WDAddM3Dt = WDAddM3Dt + np.where(self.var.waterBodyID > 0, self.var.returnFlow, 0.)
-            WDAddM3Dt = WDAddM3Dt * self.var.cellArea / self.var.noRoutingSteps
-
-            # sideflowChanM3 -= self.var.sum_act_SurfaceWaterAbstract * self.var.cellArea
-            # return flow from (m) non irrigation water demand
-            # self.var.nonIrrReturnFlow = self.var.nonIrrReturnFlowFraction * self.var.nonIrrDemand
-            # sideflowChanM3 +=  self.var.nonIrrReturnFlow * self.var.cellArea
-            # sideflowChan = sideflowChanM3 * self.var.invchanLength * self.var.invdtRouting
+                returnM3 = np.where(self.var.waterBodyID > 0, 0., self.var.returnFlow) * self.var.cellArea
+            else:
+                returnM3 = self.var.returnFlow * self.var.cellArea
 
 
         # ------------------------------------------------------
@@ -518,65 +460,66 @@ class routing_kinematic(object):
         # ***** KINEMATIC WAVE                        ****************
         # ************************************************************
 
-        self.var.sumsideflow = 0
-        self.var.prechannelStorage = self.var.channelAlpha * self.var.chanLength * self.var.discharge ** self.var.beta
-
         self.var.avgdischarge = globals.inZero.copy()
         self.var.maxdischarge = globals.inZero.copy()
         avglakeoutflow = 0
         maxlakeoutflow = 0
 
-        # sideflow part which is the same in each substep, calculated once (same operations as before)
-        sideflowBaseM3 = runoffM3.copy()
-        # minus evaporation from channels
-        sideflowBaseM3 -= EvapoChannelM3Dt
-        if self.var.modflow:
-            # minus riverbed exchange
-            sideflowBaseM3 -= riverbedExchangeDt
+        # evaporation from channel restricted to 95% of channel storage -> something should stay in the river
+        self.var.EvapoChannel = np.where((0.95 * self.var.channelStorage - self.var.EvapoChannel) > 0.0,
+                                         self.var.EvapoChannel, 0.95 * self.var.channelStorage)
 
-        if checkOption('includeWaterDemand'):
-            sideflowBaseM3 -= WDAddM3Dt
-            # minus waterdemand + returnflow
+        # sideflow part which is the same in each substep, calculated once
+        # runoff + return flow - withdrawals (abstraction, leakage) - channel evaporation, spread evenly over the
+        # substeps
+        # (2026-11-05: taking the withdrawals from the storage at the start of the day (review B4 option a) was taken
+        # back - the reduced start discharge broke the water balance of the channels (Bhima +4 mm/yr): the lake inflow
+        # of a substep is the discharge of the cells upstream of the lake before the substep, so the water of the last
+        # substep, in transit into the lake, was cut at the start of the next day)
+        sideflowBaseM3 = runoffM3 + (returnM3 - withdrawM3 - self.var.EvapoChannel) / self.var.noRoutingSteps
+
+        # options and river network once for all substeps
+        inflowOn = checkOption('inflow')
+        lakesOn = checkOption('includeWaterBodies')
+        if lakesOn:
+            net = (self.var.levelOrder_LR, self.var.levelStart_LR, self.var.nlevels_LR, self.var.dirupLen_LR,
+                   self.var.dirupID_LR)
+        else:
+            net = (self.var.levelOrder, self.var.levelStart, self.var.nlevels, self.var.dirupLen, self.var.dirupID)
 
         for subrouting in range(self.var.noRoutingSteps):
 
             sideflowChanM3 = sideflowBaseM3.copy()
 
-            if checkOption('inflow'):
+            if inflowOn:
                 self.var.inflowDt = (self.var.QInM3Old + (subrouting + 1) * self.var.QDelta) / self.var.noRoutingSteps
                 # flow from inlets per sub step
                 sideflowChanM3 += self.var.inflowDt
                 self.var.inflowDay += self.var.inflowDt
 
-            if checkOption('includeWaterBodies'):
+            if lakesOn:
                 lakesResOut, lakeOutflowDis = self.lakes_reservoirs_module.dynamic_inloop(subrouting)
                 sideflowChanM3 += lakesResOut
 
-            else:
-                lakesResOut = 0
+            # [m3 per substep] -> [m2 s-1]
+            sideflowChan = sideflowChanM3 * self.var.sideflowFactor
 
-            # sideflowChan = sideflowChanM3 * self.var.invchanLength * self.var.InvDtSec
-            sideflowChan = sideflowChanM3 * self.var.invchanLength / self.var.dtRouting
-
-            if checkOption('includeWaterBodies'):
-                lib2.kinematicPar(self.var.discharge, sideflowChan, self.var.levelOrder_LR, self.var.levelStart_LR,
-                                  self.var.nlevels_LR, self.var.dirupLen_LR, self.var.dirupID_LR, Qnew,
-                                  self.var.channelAlpha, self.var.beta, self.var.dtRouting, self.var.chanLength,
-                                  self.var.nodesrouting)
+            lib2.kinematicPar(self.var.discharge, sideflowChan, net[0], net[1], net[2], net[3], net[4], Qnew,
+                              self.var.channelAlpha, self.var.beta, self.var.dtRouting, self.var.chanLength,
+                              self.var.nodesrouting)
+            if lakesOn:
                 avglakeoutflow = avglakeoutflow + lakeOutflowDis / self.var.noRoutingSteps
-                maxlakeoutflow = np.where(lakeOutflowDis > maxlakeoutflow, lakeOutflowDis , maxlakeoutflow)
+                maxlakeoutflow = np.maximum(maxlakeoutflow, lakeOutflowDis)
 
-            else:
-                lib2.kinematicPar(self.var.discharge, sideflowChan, self.var.levelOrder, self.var.levelStart,
-                                  self.var.nlevels, self.var.dirupLen, self.var.dirupID, Qnew,
-                                  self.var.channelAlpha, self.var.beta, self.var.dtRouting, self.var.chanLength,
-                                  self.var.nodesrouting)
-            self.var.discharge = Qnew.copy()
+            # new discharge; the old array is the buffer for the next substep (kinematicPar writes every cell)
+            self.var.discharge, Qnew = Qnew, self.var.discharge
 
-            self.var.sumsideflow = self.var.sumsideflow + sideflowChanM3
             # calculating average discharge during day and max discharge
-            self.var.avgdischarge = self.var.avgdischarge + self.var.discharge / self.var.noRoutingSteps
-            self.var.maxdischarge = np.where(self.var.discharge > self.var.maxdischarge, self.var.discharge , self.var.maxdischarge)
+            np.add(self.var.avgdischarge, self.var.discharge / self.var.noRoutingSteps, out=self.var.avgdischarge)
+            np.maximum(self.var.maxdischarge, self.var.discharge, out=self.var.maxdischarge)
+
+        # discharge of the kinematic wave at the end of the day (before the lake cells get the lake outflow)
+        Qnew = self.var.discharge
 
         # -- end substeping ---------------------
 
@@ -606,37 +549,8 @@ class routing_kinematic(object):
         # maybe later, but for now it is known as m3 -> put this active again PB May 2024
         self.var.EvapoChannel = self.var.EvapoChannel / self.var.cellArea
 
-
-        self.var.humanConsumption = globals.inZero.copy()
-        self.var.humanUse = globals.inZero.copy()
-        self.var.natureUse = globals.inZero.copy()
-        if 'includeCrops' in option:
-            if checkOption('includeCrops'):
-                for i in range(len(self.var.Crops)):
-                    self.var.humanConsumption += self.var.actTransTotal_crops_nonIrr[i]
-                    self.var.humanUse += self.var.actTransTotal_crops_nonIrr[i]
-
-        # self.var.natureUse = actTransTotal_grasslands - self.var.humanUse + self.var.EvapoChannel +
-        # self.var.sum_actBareSoilEvap + self.var.sum_interceptEvap + self.var.EvapWaterBodyM
-        # EvapWaterBodyM is EvapWaterBodyMOutlet spread over the lake
-
-        self.var.humanConsumption += (self.var.act_nonIrrConsumption + self.var.actTransTotal_paddy +
-                                       self.var.addtoevapotrans + self.var.actTransTotal_nonpaddy +
-                                       self.var.sum_openWaterEvap)
-        self.var.humanUse += (self.var.act_nonIrrWithdrawal + self.var.act_irrWithdrawal)
-        # + self.var.sum_openWaterEvap # + self.var.leakage # + reservoir evaporation
-
-        if 'adminSegments' in binding:
-            segIndex = self.var.adminSegmentsIndex
-            self.var.ETRefAverage_segments = segIndex.average(self.var.ETRef)
-            self.var.precipEffectiveAverage_segments = segIndex.average(self.var.infiltration[1])
-            if self.var.modflow:
-                self.var.head_segments = segIndex.average(self.var.head)
-                self.var.gwdepth_adjusted_segments = segIndex.average(self.var.gwdepth_adjusted)
-                self.var.gwdepth_segments = segIndex.average(self.var.gwdepth)
-
-            self.var.adminSegments_area = segIndex.average(
-                (self.var.fracVegCover[1] + self.var.fracVegCover[2] + self.var.fracVegCover[3]) * self.var.cellArea)
+        # humanConsumption, humanUse, natureUse and the averages per adminSegment (output only): since 2026-11-04 in
+        # water_demand.dynamic_output, computed only if they are in the output
 
 # ---------------------------------------------------------------------------------------
 

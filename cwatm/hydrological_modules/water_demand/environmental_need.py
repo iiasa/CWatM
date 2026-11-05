@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------
-# Name:        Waterdemand modules
+# Name:        Environmental water need
 # Purpose: Environmental water requirements module for ecosystem water allocation.
 # Calculates minimum flow requirements for maintaining aquatic ecosystem health.
 # Supports environmental flow standards and habitat preservation water needs.
@@ -9,8 +9,13 @@
 # CWatM is licensed under GNU GENERAL PUBLIC LICENSE Version 3.
 # -------------------------------------------------------------------------
 
+import numpy as np
 from cwatm.management_modules import globals
-from cwatm.management_modules.data_handling import returnBool, binding, readnetcdf2
+from cwatm.management_modules.data_handling import returnBool, checkOption, binding, option, readnetcdf2
+
+# environmental flow [m] without environmental flow maps: 0.01 mm stays in the channel
+ENVFLOW_OFF = 0.00001
+
 
 class waterdemand_environmental_need:
     """
@@ -30,25 +35,18 @@ class waterdemand_environmental_need:
         Parent CWatM model instance
 
 
-
-
-
-
-
-
-
-
     **Global variables**
     ===================================  ==========    ======================================================================  =====
     Variable [self.var]                  Type          Description                                                             Unit 
     ===================================  ==========    ======================================================================  =====
     cut_ef_map                           Flag          if TRUE calculated maps of environmental flow are clipped to the area   bool 
     use_environflow                      Flag          Use calculation of environmental flow                                   bool 
-    envFlowm3s                           Array         Amount of environmental flow                                            m3   
+    envFlowm3s                           Array         Environmental flow discharge of this month                              m3/s 
     M3toM                                Array         Coefficient to change units                                             --   
     chanLength                           Array         Input, Channel length                                                   m    
-    channelAlpha                         Array                                                                                 --   
-    envFlow                              Array                                                                                 --   
+    channelAlpha                         Array         Alpha of the kinematic wave of the routing, with calibration            --   
+    beta                                 Array         Beta of the kinematic wave                                              --   
+    envFlow                              Array         Channel storage at the environmental flow, kept in the channel          m    
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -73,8 +71,11 @@ class waterdemand_environmental_need:
         maps should be cut to the model domain, and initializes environmental flow
         variables for ecosystem water requirements.
         """
+        # use_environflow can be in the section of the module (binding) or in [OPTIONS] (option)
         if "use_environflow" in binding:
             self.var.use_environflow = returnBool('use_environflow')
+        elif "use_environflow" in option:
+            self.var.use_environflow = checkOption('use_environflow')
         else:
             self.var.use_environflow = False
         if self.var.use_environflow:
@@ -87,16 +88,19 @@ class waterdemand_environmental_need:
         Calculate dynamic environmental flow requirements for the current time step.
         
         Reads monthly environmental flow data from NetCDF files and transforms flow rates
-        from mÃ‚Â³/s to water depths in meters. Uses channel geometry parameters to convert
-        volumetric flow to equivalent water depth for hydrological calculations.
+        from m3/s to water depths in meters: the channel storage of the kinematic wave at this
+        discharge (alpha * length * Q ** beta, as in the routing), divided by the cell area.
         Sets minimum environmental flow when environmental flows are disabled.
         """
         if self.var.use_environflow:
             if globals.dateVar['newStart'] or globals.dateVar['newMonth']:
-                # envflow in [m3/s] -> [m]
-                self.var.envFlowm3s = readnetcdf2('EnvironmentalFlowFile', globals.dateVar['currDate'], "month",
-                                                   cut=self.var.cut_ef_map)  # in [m3/s]
+                # envflow in [m3/s] -> [m]: channel storage at this discharge, same formula as the routing
+                # negative values would give NaN in Q ** beta -> no abstraction from this cell: they become 0
+                # (no environmental flow). NaN inside the mask already stops readnetcdf2 with Error 106
+                self.var.envFlowm3s = np.maximum(
+                    readnetcdf2('EnvironmentalFlowFile', globals.dateVar['currDate'], "month",
+                                cut=self.var.cut_ef_map), 0.)  # in [m3/s]
                 self.var.envFlow = (self.var.M3toM * self.var.channelAlpha * self.var.chanLength *
-                                   self.var.envFlowm3s ** 0.6)  # in [m]
+                                   self.var.envFlowm3s ** self.var.beta)  # in [m]
         else:
-            self.var.envFlow = 0.00001  # 0.01mm
+            self.var.envFlow = ENVFLOW_OFF
