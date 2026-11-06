@@ -103,3 +103,117 @@ def read_sector_demand(var, filebinding, wd_date, time, withdrawalvar, consumpti
     # consumption cannot be more than withdrawal
     efficiency = np.minimum(1., divideValues(consumption, withdrawal))
     return withdrawal, consumption, efficiency
+
+# -------------------------------------------------------------------------
+# shared functions of the water allocation (water_demand.py and its parts)
+# -------------------------------------------------------------------------
+
+def set_zero(var, names):
+    """
+    Set each variable in names to its own map of zeros (globals.inZero.copy()).
+
+    Parameters
+    ----------
+    var : object
+        Model variable container (self.var)
+    names : list of str
+        Names of the variables
+    """
+    for name in names:
+        setattr(var, name, globals.inZero.copy())
+
+
+# withdrawal of each sector from each source [m]: Desal_Domestic ... GW_Irrigation
+SECTOR_SOURCE = [source + '_' + sector
+                 for source in ('Desal', 'Channel', 'Lift', 'wwt', 'Lake', 'Res', 'GW')
+                 for sector in ('Domestic', 'Industry', 'Livestock', 'Irrigation')]
+
+def split_sectors(total, pots):
+    """
+    Split the water of one source over the sectors, one after the other.
+
+    Each sector gets at most its potential: part_k = min(rest, pots[k]), rest = total - part_1 - ... - part_k
+    (subtracted one by one in this order, as in the code before 2026-11, so the results are bit-identical).
+
+    Parameters
+    ----------
+    total : ndarray
+        Water of the source [m].
+    pots : sequence of ndarray
+        Potential abstraction of each sector in the order of the allocation (Domestic, Livestock, Industry,
+        Irrigation) [m].
+
+    Returns
+    -------
+    tuple of (parts, rest)
+        parts : list of ndarray, the water of each sector [m]; rest : ndarray, total minus all parts [m]
+    """
+    parts = []
+    rest = total
+    for pot in pots:
+        part = np.minimum(rest, pot)
+        parts.append(part)
+        rest = rest - part
+    return parts, rest
+
+
+SECTORS = ('Domestic', 'Livestock', 'Industry', 'Irrigation')     # order of split_sectors and of the cascade
+SOURCES = ('Desal', 'Channel', 'Lift', 'wwt', 'Lake', 'Res', 'GW')  # order in which the sources are used
+DEMAND = {'Domestic': 'domesticDemand', 'Livestock': 'livestockDemand', 'Industry': 'industryDemand',
+          'Irrigation': 'totalIrrDemand'}
+
+# orders of the sums as in the code before the split of water_demand.py (2026-11) - kept for bit-identity
+# (float addition is not associative, a common order would change the last bit)
+ORDER_UNMET = ('Desal', 'Channel', 'wwt', 'Lift', 'Lake', 'Res', 'GW')                # unmet_<sector>
+ORDER_WITHDRAWAL_TOTAL = ('Desal', 'Channel', 'wwt', 'Lift', 'Lake', 'Res', 'GW')     # act_nonIrr/act_irrWithdrawal
+ORDER_WITHDRAWAL_SW = ('Desal', 'Channel', 'Lift', 'wwt', 'Lake', 'Res')              # act_irrWithdrawalSW
+ORDER_WITHDRAWAL_SECTOR = ('Channel', 'Lift', 'Desal', 'wwt', 'Lake', 'Res', 'GW')    # act_dom/liv/indWithdrawal
+
+
+def rest_of_demand(var, sector, sources):
+    """
+    Demand of a sector minus the water it got from the sources, subtracted one by one in this order [m].
+
+    Parameters
+    ----------
+    var : object
+        Model variables (domesticDemand ..., <source>_<sector>)
+    sector : str
+        'Domestic', 'Livestock', 'Industry' or 'Irrigation'
+    sources : sequence of str
+        Sources in the order of the subtraction, e.g. ('Desal', 'Channel')
+    """
+    rest = getattr(var, DEMAND[sector])
+    for source in sources:
+        rest = rest - getattr(var, source + '_' + sector)
+    return rest
+
+
+def pot_source(var, source, fraction):
+    """
+    Potential abstraction of each sector from one source [m], in SECTORS order.
+
+    min(fraction x demand, rest of the demand after the sources before it in SOURCES)
+
+    Parameters
+    ----------
+    var : object
+        Model variables
+    source : str
+        Source in SOURCES, e.g. 'GW'
+    fraction : str
+        Name pattern of the abstraction fractions with %s for the sector, e.g. 'gwAbstractionFraction_%s'
+    """
+    before = SOURCES[:SOURCES.index(source)]
+    return [np.minimum(getattr(var, fraction % sector) * getattr(var, DEMAND[sector]),
+                       rest_of_demand(var, sector, before)) for sector in SECTORS]
+
+
+def sum_vars(var, names):
+    """
+    Sum of var.<name>, added one by one from left to right in the given order [m].
+    """
+    total = getattr(var, names[0])
+    for name in names[1:]:
+        total = total + getattr(var, name)
+    return total

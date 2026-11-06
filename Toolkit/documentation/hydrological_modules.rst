@@ -285,6 +285,46 @@ water_demand.wastewater
     :undoc-members:
     :show-inheritance:
 
+water_demand.surface_water_abstraction
+--------------------------------------
+
+**Surface water abstraction: desalination, channel, lift areas, wastewater reuse, lakes, reservoirs**
+
+.. automodule:: cwatm.hydrological_modules.water_demand.surface_water_abstraction
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+water_demand.groundwater_abstraction
+------------------------------------
+
+**Groundwater abstraction: non-fossil, unmet demand or fossil groundwater, zonal abstraction, MODFLOW pumping**
+
+.. automodule:: cwatm.hydrological_modules.water_demand.groundwater_abstraction
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+water_demand.irrigation_agents
+------------------------------
+
+**Irrigation agents: limits of the irrigation abstraction per administrative segment**
+
+.. automodule:: cwatm.hydrological_modules.water_demand.irrigation_agents
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+water_demand.sector_demand
+--------------------------
+
+**Shared functions for the demand sectors and water sources**
+
+.. automodule:: cwatm.hydrological_modules.water_demand.sector_demand
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 
 Hydrology IV - Lakes, reservoirs and river
