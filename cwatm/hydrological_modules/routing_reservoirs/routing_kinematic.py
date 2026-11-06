@@ -11,7 +11,7 @@
 
 from cwatm.management_modules.data_handling import *
 from cwatm.hydrological_modules.routing_reservoirs.routing_sub import *
-from cwatm.hydrological_modules.lakes_reservoirs import *
+from cwatm.hydrological_modules.routing_reservoirs.lakes_reservoirs import lakes_reservoirs
 
 
 class routing_kinematic(object):

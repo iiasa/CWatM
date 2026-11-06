@@ -335,7 +335,7 @@ lakes_reservoirs module
 
 **Calculate water retention in lakes**
 
-.. automodule:: cwatm.hydrological_modules.lakes_reservoirs
+.. automodule:: cwatm.hydrological_modules.routing_reservoirs.lakes_reservoirs
     :members:
     :undoc-members:
     :show-inheritance:
@@ -345,7 +345,7 @@ lakes_res_small module
 
 **Calculate water retention in small lakes**
 
-.. automodule:: cwatm.hydrological_modules.lakes_res_small
+.. automodule:: cwatm.hydrological_modules.routing_reservoirs.lakes_res_small
     :members:
     :undoc-members:
     :show-inheritance:

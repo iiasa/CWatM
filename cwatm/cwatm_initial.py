@@ -33,10 +33,10 @@ from cwatm.hydrological_modules.water_demand.wastewater import waterdemand_waste
 from cwatm.hydrological_modules.capillarRise import capillarRise
 from cwatm.hydrological_modules.interception import interception
 from cwatm.hydrological_modules.runoff_concentration import runoff_concentration
-from cwatm.hydrological_modules.lakes_res_small import lakes_res_small
+from cwatm.hydrological_modules.routing_reservoirs.lakes_res_small import lakes_res_small
 from cwatm.hydrological_modules.environflow import environflow
 from cwatm.hydrological_modules.routing_reservoirs.routing_kinematic import routing_kinematic
-from cwatm.hydrological_modules.lakes_reservoirs import lakes_reservoirs
+from cwatm.hydrological_modules.routing_reservoirs.lakes_reservoirs import lakes_reservoirs
 from cwatm.hydrological_modules.waterquality1 import waterquality1
 from cwatm.management_modules.output import *
 from cwatm.management_modules.data_handling import *
