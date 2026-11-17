@@ -111,7 +111,7 @@ class environflow(object):
                 if free is not None and needed > free:
                     msg = "Environmental flow needs about %.1f GB of memory for its calculation, " % (needed / 1e9)
                     msg += "but only %.1f GB are free" % (free / 1e9)
-                    print(CWATMWarning(msg))
+                    print_cwatm_warning(msg)
 
             if not returnBool('calc_ef_afterRun'):
                 multinetdf(["EFDis"], startcheck='dateStart')
@@ -166,7 +166,7 @@ class environflow(object):
                 raise CWATMFileError(filename, msg, sname=name)
             msg = "Discharge files have no value at " + str(np.count_nonzero(always)) + " cells of the mask map: "
             msg += "their discharge is taken as 0 for the environmental flow"
-            print(CWATMWarning(msg))
+            print_cwatm_warning(msg)
             disall[:, always] = 0.
         del missing
 

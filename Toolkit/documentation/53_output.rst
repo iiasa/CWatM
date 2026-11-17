@@ -99,6 +99,41 @@ for example
    OUT_TSS_AreaAvg_MonthTot = Precipitation
 
 
+Or time series at lakes and reservoirs
+**************************************
+
+| Time series can also be written at the outlet cell of each lake, reservoir or wetland (water body) instead of the *Gauges*.
+| The key is *OUT_RES<n>_* + the time (Daily, MonthTot, MonthAvg, MonthEnd, AnnualTot, AnnualAvg, AnnualEnd).
+| *n* is the type of the water body (type from the map waterBodyTyp or from the Excel sheet *Reservoirs*):
+
+* 0 = all water bodies (type 1 to 6), *OUT_RES_* without a number is the same as *OUT_RES0_*
+* 1 = lakes
+* 2 = reservoirs
+* 3 = lake and reservoir
+* 4 = reservoir type 4 (pass-through of the inflow)
+* 5 = reservoir type 5 (water transfer point, no retention, no evaporation)
+* 6 = wetlands
+
+| The water bodies are the ones in *waterBodyID* (e.g. lakeresID.nc) and the new ones of the Excel sheet *Reservoirs* inside the mask map.
+| A reservoir without volume (run as a lake) keeps its type 2 or 3.
+| The file is named <variable>_res<n>_<time>.csv e.g. reservoir_transfers_out_M3_res5_daily.csv.
+| The columns are the water body IDs e.g. R4000006, sorted by ID, with the x, y of the outlet cell.
+| If there is no water body of type n in the model, a warning is given and no file is written.
+| TotalTot, TotalAvg (Error 181) and WaterCycle, WaterBalance (Error 182) are not possible.
+
+for example
+::
+
+   [OUTPUT]
+   OUT_Dir = $(FILE_PATHS:PathOut)
+   # storage of all lakes and reservoirs
+   OUT_RES0_Daily = lakeResStorage
+   # monthly average storage of the reservoirs
+   OUT_RES2_MonthAvg = resStorage
+   # water given by the transfer points
+   OUT_RES5_Daily = reservoir_transfers_out_M3
+
+
 
 
 Format of output in the settings file
@@ -126,6 +161,7 @@ An output directory can be defined and for each sort of output the variable(s) c
 | *OUT_* defines that this variable(s) are output
 | *MAP_* or *TSS_* defines if it is a spatial map or a time series of point(s)
 | *AreaSum_* or *AreaAvg_* after *TSS_* defines if the catchment sum of average upstream of the point is calculated
+| *RES<n>_* instead of *TSS_* gives a time series at the outlets of the lakes / reservoirs of type n (see above)
 | *Daily* or *MonthAvg* or .. is specifying the time
 | The variable is given after the equal sign e.g. * = discharge*
 | If more than one variable should be used for output, split with **,**

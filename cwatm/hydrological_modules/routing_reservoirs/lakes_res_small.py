@@ -11,6 +11,7 @@
 
 from cwatm.management_modules.data_handling import *
 from cwatm.hydrological_modules.routing_reservoirs.routing_sub import *
+from cwatm.hydrological_modules.routing_reservoirs.puls import lake_parameter_a, puls_factor, puls_outflow, start_volume
 
 
 from cwatm.management_modules.globals import *
@@ -103,11 +104,33 @@ class lakes_res_small(object):
         else:
             self.var.smalllakeDis0 = loadmap('smallwaterBodyDis')
         self.var.smalllakeDis0 = np.maximum(self.var.smalllakeDis0, 0.01)
-        chanwidth = 7.1 * np.power(self.var.smalllakeDis0, 0.539)
-        self.var.smalllakeA = loadmap('lakeAFactor') * 0.612 * 2 / 3 * chanwidth * (2 * 9.81) ** 0.5
-        self.var.smalllakeFactor = self.var.smalllakeArea / (self.var.DtSec * np.sqrt(self.var.smalllakeA))
-        # for faster calculation inside dynamic section
-        self.var.smalllakeFactorSqr = np.square(self.var.smalllakeFactor)
+        self.var.smalllakeA = lake_parameter_a(self.var.smalllakeDis0, loadmap('lakeAFactor'))
+        # Puls factor and its square (for faster calculation inside dynamic section)
+        self.var.smalllakeFactor, self.var.smalllakeFactorSqr = puls_factor(self.var.smalllakeArea, self.var.DtSec, self.var.smalllakeA)
+
+    def read_year(self):
+        """
+        Catchment part (smallpart) and area of the small lakes of the year (netCDF smallLakesRes, yearly)
+        and the new lake parameter A and Modified Puls factor
+        (year of the day with useResAndLakes and dynamicLakesRes, else fixLakesResYear)
+        """
+        if returnBool('useResAndLakes') and returnBool('dynamicLakesRes'):
+            year = datetime.datetime(dateVar['currDate'].year, 1, 1)
+        else:
+            year = datetime.datetime(int(binding['fixLakesResYear']), 1, 1)
+
+        # read which part of the cellarea is a lake/res catchment (sumed up for all lakes/res in a cell)
+        self.var.smallpart = (readnetcdf2('smallLakesRes', year, useDaily="yearly", value='watershedarea') *
+                              1000 * 1000)
+        self.var.smallpart = self.var.smallpart / self.var.cellArea
+        self.var.smallpart = np.minimum(1., self.var.smallpart)
+
+        # area of the small lakes: mult with 1,000,000 to convert from km2 to m2
+        self.var.smalllakeArea = (readnetcdf2('smallLakesRes', year, useDaily="yearly", value='area') *
+                                  1000 * 1000)
+
+        # lake parameter A and Modified Puls factor (depend on the area and - with averageRunoff - on smallpart)
+        self.puls_parameters()
 
     def initial(self):
         """
@@ -133,38 +156,21 @@ class lakes_res_small(object):
 
         if checkOption('includeWaterBodies') and returnBool('useSmallLakes'):
 
-            if returnBool('useResAndLakes') and returnBool('dynamicLakesRes'):
-                year = datetime.datetime(dateVar['currDate'].year, 1, 1)
-            else:
-                year = datetime.datetime(int(binding['fixLakesResYear']), 1, 1)
-
-
-            # read which part of the cellarea is a lake/res catchment (sumed up for all lakes/res in a cell)
-            self.var.smallpart = (readnetcdf2('smallLakesRes', year, useDaily="yearly", value='watershedarea') * 
-                                  1000 * 1000)
-            self.var.smallpart = self.var.smallpart / self.var.cellArea
-            self.var.smallpart = np.minimum(1., self.var.smallpart)
-
-            self.var.smalllakeArea = (readnetcdf2('smallLakesRes', year, useDaily="yearly", value='area') * 
-                                      1000 * 1000)
-
-
-            # lake parameter A and Modified Puls factor
-            self.puls_parameters()
+            # catchment part and area of the small lakes of the year, lake parameter A and Puls factor
+            self.read_year()
 
             # inflow in m3/s estimate
             # cells without a small lake get no starting inflow (smalllakeDis0 >= 0.01 is only for parameter A)
             inflowIni = np.where(self.var.smalllakeArea > 0, self.var.smalllakeDis0, 0.)
             self.var.smalllakeInflowOld = self.var.load_initial("smalllakeInflow", inflowIni)
             
-            old = self.var.smalllakeArea * np.sqrt(self.var.smalllakeInflowOld / self.var.smalllakeA)
+            old = start_volume(self.var.smalllakeArea, self.var.smalllakeInflowOld, self.var.smalllakeA)
             self.var.smalllakeVolumeM3 = self.var.load_initial("smalllakeStorage", old)
 
 
             smalllakeStorageIndicator = np.maximum(0.0, self.var.smalllakeVolumeM3 / self.var.DtSec + 
                                                    self.var.smalllakeInflowOld / 2)
-            out = np.square(-self.var.smalllakeFactor + np.sqrt(self.var.smalllakeFactorSqr + 
-                                                               2 * smalllakeStorageIndicator))
+            out = puls_outflow(smalllakeStorageIndicator, self.var.smalllakeFactor, self.var.smalllakeFactorSqr)
             # SI = S/dt + Q/2
             # solution of quadratic equation
             # 1. storage volume is increase proportional to elevation
@@ -181,6 +187,79 @@ class lakes_res_small(object):
 
    # ------------------ End init ------------------------------------------------------------------------------------
    # ----------------------------------------------------------------------------------------------------------------
+
+
+    def route(self, inflow):
+        """
+        Calculate small lake outflow using modified Puls method.
+        
+        Applies water balance equation to determine outflow from small lakes
+        based on current inflow, storage, and hydraulic characteristics.
+        
+        Parameters
+        ----------
+        inflow : numpy.ndarray
+            Inflow to small lakes [m3] per time step
+            
+        Returns
+        -------
+        numpy.ndarray
+            Lake outflow [m3] per time step
+            
+        Notes
+        -----
+        The modified Puls method solves:
+        (S2/dt + Qout2/2) = (S1/dt + Qout1/2) - Qout1 + (Qin1+Qin2)/2
+        
+        Includes evaporation losses from lake surface and updates
+        storage and water level conditions.
+        """
+
+        # ************************************************************
+        # ***** LAKE
+        # ************************************************************
+
+        inflowM3S = inflow / self.var.DtSec
+
+        # Lake inflow in [m3/s]
+        lakeIn = (inflowM3S + self.var.smalllakeInflowOld) * 0.5
+        # for Modified Puls Method: (S2/dtime + Qout2/2) = (S1/dtime + Qout1/2) - Qout1 + (Qin1 + Qin2)/2
+        # here: (Qin1 + Qin2)/2
+        self.var.smallLakeIn = lakeIn * self.var.DtSec / self.var.cellArea  # in [m]
+
+        # evaporation [m3] limited by the lake volume (not below 0) - same as in lakes_reservoirs.py
+        # rate as for channels and big lakes (routing_kinematic.py EWRefact): minus the evaporation of the
+        # water land cover fraction (openWaterEvap[5]), the small lakes are part of this fraction
+        evapRate = np.maximum(0., self.var.lakeEvaFactor * self.var.EWRef - self.var.openWaterEvap[5])
+        self.var.smallevapWaterBody = np.minimum(evapRate * self.var.smalllakeArea,
+                                                 np.maximum(self.var.smalllakeVolumeM3, 0.))
+        self.var.smalllakeVolumeM3 = self.var.smalllakeVolumeM3 - self.var.smallevapWaterBody
+        # lakestorage - evaporation from lakes
+
+        self.var.smalllakeInflowOld = inflowM3S
+        # Qin2 becomes Qin1 for the next time step
+
+        lakeStorageIndicator = np.maximum(0.0, self.var.smalllakeVolumeM3 / self.var.DtSec - 
+                                          0.5 * self.var.smalllakeOutflow + lakeIn)
+
+        # here S1/dtime - Qout1/2 + lakeIn , so that is the right part
+        # of the equation above
+
+        self.var.smalllakeOutflow = puls_outflow(lakeStorageIndicator, self.var.smalllakeFactor, self.var.smalllakeFactorSqr)
+
+        QsmallLakeOut = self.var.smalllakeOutflow * self.var.DtSec
+
+        self.var.smalllakeVolumeM3 = (lakeStorageIndicator - self.var.smalllakeOutflow * 0.5) * self.var.DtSec
+        # Lake storage
+
+        self.var.smalllakeStorage = (self.var.smalllakeStorage + lakeIn * self.var.DtSec - 
+                                     QsmallLakeOut - self.var.smallevapWaterBody)
+        # for mass balance, the lake storage is calculated every time step
+
+        self.var.smallevapWaterBody = self.var.smallevapWaterBody / self.var.cellArea  # back to [m]
+        self.var.smalllakeLevel = divideValues(self.var.smalllakeVolumeM3, self.var.smalllakeArea)
+
+        return QsmallLakeOut
 
 
     def dynamic(self):
@@ -206,86 +285,6 @@ class lakes_res_small(object):
         - Direct runoff to channel network (1-smallpart fraction)
         """
 
-        def dynamic_smalllakes(inflow):
-            """
-            Calculate small lake outflow using modified Puls method.
-            
-            Applies water balance equation to determine outflow from small lakes
-            based on current inflow, storage, and hydraulic characteristics.
-            
-            Parameters
-            ----------
-            inflow : numpy.ndarray
-                Inflow to small lakes [m3] per time step
-                
-            Returns
-            -------
-            numpy.ndarray
-                Lake outflow [m3] per time step
-                
-            Notes
-            -----
-            The modified Puls method solves:
-            (S2/dt + Qout2/2) = (S1/dt + Qout1/2) - Qout1 + (Qin1+Qin2)/2
-            
-            Includes evaporation losses from lake surface and updates
-            storage and water level conditions.
-            """
-
-            # ************************************************************
-            # ***** LAKE
-            # ************************************************************
-
-            inflowM3S = inflow / self.var.DtSec
-
-            # Lake inflow in [m3/s]
-            lakeIn = (inflowM3S + self.var.smalllakeInflowOld) * 0.5
-            # for Modified Puls Method: (S2/dtime + Qout2/2) = (S1/dtime + Qout1/2) - Qout1 + (Qin1 + Qin2)/2
-            # here: (Qin1 + Qin2)/2
-            self.var.smallLakeIn = lakeIn * self.var.DtSec / self.var.cellArea  # in [m]
-
-            # evaporation [m3] limited by the lake volume (not below 0) - same as in lakes_reservoirs.py
-            # rate as for channels and big lakes (routing_kinematic.py EWRefact): minus the evaporation of the
-            # water land cover fraction (openWaterEvap[5]), the small lakes are part of this fraction
-            evapRate = np.maximum(0., self.var.lakeEvaFactor * self.var.EWRef - self.var.openWaterEvap[5])
-            self.var.smallevapWaterBody = np.minimum(evapRate * self.var.smalllakeArea,
-                                                     np.maximum(self.var.smalllakeVolumeM3, 0.))
-            self.var.smalllakeVolumeM3 = self.var.smalllakeVolumeM3 - self.var.smallevapWaterBody
-            # lakestorage - evaporation from lakes
-
-            self.var.smalllakeInflowOld = inflowM3S
-            # Qin2 becomes Qin1 for the next time step
-
-            lakeStorageIndicator = np.maximum(0.0, self.var.smalllakeVolumeM3 / self.var.DtSec - 
-                                              0.5 * self.var.smalllakeOutflow + lakeIn)
-
-            # here S1/dtime - Qout1/2 + lakeIn , so that is the right part
-            # of the equation above
-
-            self.var.smalllakeOutflow = np.square(-self.var.smalllakeFactor + 
-                                                 np.sqrt(self.var.smalllakeFactorSqr + 2 * lakeStorageIndicator))
-
-            QsmallLakeOut = self.var.smalllakeOutflow * self.var.DtSec
-
-            self.var.smalllakeVolumeM3 = (lakeStorageIndicator - self.var.smalllakeOutflow * 0.5) * self.var.DtSec
-            # Lake storage
-
-            self.var.smalllakeStorage = (self.var.smalllakeStorage + lakeIn * self.var.DtSec - 
-                                         QsmallLakeOut - self.var.smallevapWaterBody)
-            # for mass balance, the lake storage is calculated every time step
-
-            self.var.smallevapWaterBody = self.var.smallevapWaterBody / self.var.cellArea  # back to [m]
-            self.var.smalllakeLevel = divideValues(self.var.smalllakeVolumeM3, self.var.smalllakeArea)
-
-            return QsmallLakeOut
-
-        # ---------------------------------------------------------------------------------------------
-        # ---------------------------------------------------------------------------------------------
-
-
-
-        # ---------------------------------------------------------------------------------------------
-        # ---------------------------------------------------------------------------------------------
         # Small lake and reservoirs
 
         if checkOption('includeWaterBodies') and returnBool('useSmallLakes'):
@@ -293,26 +292,14 @@ class lakes_res_small(object):
             # check years
             # new year: area of the new year (at the start this is done in initial)
             if dateVar['newYear'] and not dateVar['newStart']:
-                if returnBool('useResAndLakes') and returnBool('dynamicLakesRes'):
-                    year = datetime.datetime(dateVar['currDate'].year, 1, 1)
-                else:
-                    year = datetime.datetime(int(binding['fixLakesResYear']), 1, 1)
-                self.var.smallpart = (readnetcdf2('smallLakesRes', year, useDaily="yearly", 
-                                                    value='watershedarea') * 1000 * 1000)
-                self.var.smallpart = self.var.smallpart / self.var.cellArea
-                self.var.smallpart = np.minimum(1., self.var.smallpart)
-
-                self.var.smalllakeArea = (readnetcdf2('smallLakesRes', year, useDaily="yearly", 
-                                                         value='area') * 1000 * 1000)
-                # mult with 1,000,000 to convert from km2 to m2
-                # new area (and smallpart) -> new lake parameter A and Modified Puls factor
-                self.puls_parameters()
+                # catchment part and area of the new year, new lake parameter A and Puls factor
+                self.read_year()
 
 
 
             # runoff of the catchment part of the small lakes goes into the lakes [m3]
             inflow = self.var.smallpart * self.var.runoff_m3
-            self.var.smallLakeout = dynamic_smalllakes(inflow)  # [m3]
+            self.var.smallLakeout = self.route(inflow)  # [m3]
             # runoff of the cell [m3] = small lake outflow + runoff of the rest of the cell
             self.var.runoff_m3 = self.var.smallLakeout + (1 - self.var.smallpart) * self.var.runoff_m3
 

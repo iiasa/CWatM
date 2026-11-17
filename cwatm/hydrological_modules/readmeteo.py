@@ -176,6 +176,7 @@ class readmeteo(object):
     temp                                 Array         average temperature in the unit of the input maps: K or degC (output)   input
     usepySnowClim                        Flag          Flag to use pySnowClim                                                  --   
     SnowFactor                           Array         Multiplier applied to precipitation that falls as snow                  --   
+    precipitation_factor                 Number        Calibration factor for precipitation and rain on glacier (default 1.0)  --   
     ===================================  ==========    ======================================================================  =====
 
     """
@@ -338,6 +339,9 @@ class readmeteo(object):
             self.var.glaciermeltMaps = 'MeltGlacierMaps'
             if not self.var.includeOnlyGlaciersMelt:
                 self.var.glacierrainMaps = 'PrecGlacierMaps'
+
+        # calibration factor for precipitation and rain on glacier: optional, default 1.0
+        self.var.precipitation_factor = loadmap('precipitation_factor') if 'precipitation_factor' in binding else 1.0
 
 
         # use radiation term in snow melt
@@ -722,6 +726,7 @@ class readmeteo(object):
             # output variables prec and temp in the unit of the input maps (as in a normal run)
             self.var.prec = self.var.Precipitation / self.var.con_precipitation
             self.var.temp = self.var.Tavg + self.var.ZeroKelvin if self.var.TemperatureInKelvin else self.var.Tavg.copy()
+            self.calib_factors()
             return
         # End calibration warm run
 
@@ -767,8 +772,7 @@ class readmeteo(object):
         if self.var.includeGlaciers:
             self.var.GlacierMelt = readmeteodata(self.var.glaciermeltMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = 1,glacier=True)
             # Glaciermelt and Glacierrain is preprocessed after OGGM to have a factor of 1.0
-            # -> here glacier melt is again multiplied by the CwatM snow factor to have the same values
-            self.var.GlacierMelt = self.var.GlacierMelt * self.var.SnowFactor
+            # -> glacier melt is multiplied by the CwatM snow factor in calib_factors (after store_calib)
             # extendback -> if simulation starts earlier than first glacier map -> day of the year of first year is used
             if not self.var.includeOnlyGlaciersMelt:
                 self.var.GlacierRain = readmeteodata(self.var.glacierrainMaps, dateVar['currDate'], addZeros=True, mapsscale = True, extendback = 1, glacier=True)
@@ -916,6 +920,24 @@ class readmeteo(object):
                 self.var.Tdew -= ZeroKelvin
             # check on the first date if the dewpoint is really in the same unit as the temperature
             self.check_celsius(self.var.Tdew, 'TdewMaps')
+
+        # calibration factors: not in the meteo run (-k) -> store_calib stores the meteo data without factors
+        if not Flags['calib']:
+            self.calib_factors()
+
+    def calib_factors(self):
+        """
+        Multiply the meteo input with the calibration factors precipitation_factor and SnowFactor.
+
+        Called at the end of dynamic in normal runs and after the meteo data is restored in the warm runs.
+        Not called in the meteo run (-k): the stored meteo data has no factors, every warm run uses its own.
+        No *= : in the warm runs the arrays are views of the (shared) stored meteo data.
+        """
+        self.var.Precipitation = self.var.Precipitation * self.var.precipitation_factor
+        if self.var.includeGlaciers:
+            self.var.GlacierMelt = self.var.GlacierMelt * self.var.SnowFactor
+            if not self.var.includeOnlyGlaciersMelt:
+                self.var.GlacierRain = self.var.GlacierRain * self.var.precipitation_factor
 
     def store_calib(self):
         """

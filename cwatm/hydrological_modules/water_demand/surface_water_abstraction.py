@@ -13,7 +13,7 @@ import numpy as np
 from cwatm.management_modules import globals
 from cwatm.management_modules.globals import dateVar, option
 from cwatm.management_modules.replace_pcr import npareatotal, npareaaverage, npareamaximum, AreaIndex
-from cwatm.management_modules.messages import CWATMError, CWATMWarning
+from cwatm.management_modules.messages import CWATMError, CWATMWarning, print_cwatm_warning
 from cwatm.management_modules.data_handling import (returnBool, binding, loadmap, divideValues, checkOption,
                                                      readnetcdf2)
 from cwatm.hydrological_modules.water_demand.sector_demand import set_zero, split_sectors, pot_source
@@ -345,8 +345,8 @@ class waterdemand_surfacewater(object):
                     self.var.swAbstractionFraction_Lift_Industry = loadmap('swAbstractionFraction_Lift_Industry')
                     self.var.swAbstractionFraction_Lift_Irrigation = loadmap('swAbstractionFraction_Lift_Irrigation')
                 elif not self.var.activate_irrigation_agents:
-                    print(CWATMWarning("using_lift_areas = True but sectorSourceAbstractionFractions = False: "
-                                       "the lift fractions are 0, the lift areas take no water"))
+                    print_cwatm_warning("using_lift_areas = True but sectorSourceAbstractionFractions = False: "
+                                        "the lift fractions are 0, the lift areas take no water")
 
         # -------------------------------------------
         # partitioningGroundSurfaceAbstraction

@@ -334,7 +334,7 @@ class snow(object):
             # different number of snow layers in the init file: every layer gets the cell mean of the file layers (keeps the water)
             msg = "Warning: init file has " + str(nFile) + " snow layers (SnowCover1 ...) but NumberSnowLayers = " + \
                   str(self.var.numberSnowLayers) + " -> every snow layer starts with the cell mean of the file"
-            print(CWATMWarning(msg))
+            print_cwatm_warning(msg)
             meanSnow = np.mean([self.var.load_initial("SnowCover", number=k + 1) for k in range(nFile)], axis=0) if nFile > 0 else 0.0
             for i in range(self.var.numberSnowLayers):
                 self.var.SnowCoverS.append(meanSnow + globals.inZero)
@@ -613,7 +613,7 @@ class snow(object):
         if self.var.snowmelt_radiation and not self.var.useSnowAlbedo:
             msg = "Warning: snowmelt_radiation = True but useSnowAlbedo = False: snow melt uses the full short wave " \
                   "radiation without snow albedo -> SnowMeltRad has to account for the albedo"
-            print(CWATMWarning(msg))
+            print_cwatm_warning(msg)
         # snow albedo is only used in radiation snow melt -> not calculated (and not saved) without snowmelt_radiation
         self.var.useSnowAlbedo = self.var.useSnowAlbedo and self.var.snowmelt_radiation
         if not self.var.useSnowAlbedo:

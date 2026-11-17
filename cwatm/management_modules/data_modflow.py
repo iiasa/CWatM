@@ -43,7 +43,9 @@ def on_modflow_grid(filename, shape, transform):
     """True if filename is a raster with the ModFlow grid (same shape and transform as modflow_basin)"""
     try:
         with rasterio.open(filename) as src:
-            return src.shape == shape and src.transform.almost_equals(transform)
+            # coefficients by name: almost_equals() iterates the Affine, which fails with affine 3.x + attrs < 23.2
+            t = src.transform
+            return src.shape == shape and all(abs(getattr(t, k) - getattr(transform, k)) < 1e-5 for k in 'abcdef')
     except Exception:
         return False
 

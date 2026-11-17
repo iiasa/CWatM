@@ -263,9 +263,10 @@ outputTypTss = ['daily', 'monthtot', 'monthavg', 'monthend', 'annualtot', 'annua
 """list: Valid output types for time series outputs.
 Similar to outputTypMap but without spatial-only options like 'once' and '12month'."""
 
-outputTypTss2 = ['tss', 'areasum', 'areaavg']
+outputTypTss2 = ['tss', 'areasum', 'areaavg', 'res0', 'res1', 'res2', 'res3', 'res4', 'res5', 'res6']
 """list: Valid aggregation methods for time series outputs.
-Defines whether time series should be point values, area sums, or area averages."""
+Defines whether time series should be point values, area sums, area averages or values at the outlets of the
+water bodies of type n (res<n>: 0 = all, 1 = lakes, 2 = reservoirs ... 6 = wetlands; key OUT_RES<n>_<type>)."""
 
 reportTimeSerieAct = {}
 reportMapsAll = {}

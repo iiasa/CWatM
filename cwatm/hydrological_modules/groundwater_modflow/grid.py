@@ -187,8 +187,8 @@ class ModflowGrid:
         # index pairs of overlapping CWatM / ModFlow cells (before 2026-10-13 optionally read from .npy files:
         # modflow_indices_from_files - no longer used)
         if 'modflow_indices_from_files' in binding and returnBool('modflow_indices_from_files'):
-            print(CWATMWarning("Warning: modflow_indices_from_files is not used any more - the index pairs of CWatM "
-                               "and ModFlow cells are computed from modflow_basin and MaskMap"))
+            print_cwatm_warning("Warning: modflow_indices_from_files is not used any more - the index pairs of CWatM "
+                                "and ModFlow cells are computed from modflow_basin and MaskMap")
         # ModFlow grid without CRS: same CRS as CWatM
         cw_crs = cwatm_crs()
         pairs = overlap_table(transform, self.basin.shape, cw_crs if modflow_crs is None else modflow_crs, maskmapAttr['x'],

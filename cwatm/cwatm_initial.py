@@ -348,9 +348,9 @@ class CWATModel_ini(DynamicModel):
         self.lakes_res_small_module.initial()
 
         if checkOption('includeWaterBodies'):
-            self.lakes_reservoirs_module.initWaterbodies()
-            self.lakes_reservoirs_module.initial_lakes()
-            self.lakes_reservoirs_module.initial_reservoirs()
+            self.lakes_reservoirs_module.initial()
+        # points of the water body output OUT_RES<n>_... (outlets are known only after lakes_reservoirs.initial)
+        self.output_module.initial_res()
         self.waterdemand_module.initial()
         self.environflow_module.initial()
         self.waterquality1.initial()

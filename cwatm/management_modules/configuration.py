@@ -185,6 +185,8 @@ def parse_configuration(settingsFileName):
         If a value in [OPTIONS] is neither True/False nor an integer (Error 142).
         If an output key is not OUT_Dir, OUT_TSS_... or OUT_MAP_ + a type of
         outputTypMap (Error 145).
+        If an OUT_RES... key is not OUT_RES_ / OUT_RES0_ ... OUT_RES6_ + a type of
+        outputTypTss without totaltot / totalavg (Error 181).
 
     Notes
     -----
@@ -290,13 +292,27 @@ def parse_configuration(settingsFileName):
                         # split into timeseries and maps
                         if opt.lower()[4:8] == "tss_":
                             outTss[index], check_section = splitout(config.get(sec, opt), check_section)
+                        elif opt.lower()[4:7] == "res":
+                            # water body output OUT_RES<n>_<type> (OUT_RES_ = OUT_RES0_): time series at the outlets of the
+                            # water bodies of type n (0 = all) -> stored as time series outTss[sec_out_tss_res<n>_<type>]
+                            kind, _, timetype = opt.lower()[4:].partition("_")
+                            if kind == "res":
+                                kind = "res0"
+                            restypes = [t for t in outputTypTss if not t.startswith("total")]
+                            if kind not in ["res" + str(n) for n in range(7)] or timetype not in restypes:
+                                msg = "Error 181: Output key: \"" + opt + "\" in section [" + sec + "] is not possible!\n"
+                                msg += "Water body output has to be OUT_RES_ or OUT_RES0_ ... OUT_RES6_ + one of these: " + ", ".join(restypes) + "\n"
+                                msg += "(0 = all water bodies, 1 = lakes, 2 = reservoirs, 3 = lake and reservoir, 4 and 5 = reservoir types 4 and 5, 6 = wetlands)"
+                                raise CWATMError(msg)
+                            index = sec.lower() + "_out_tss_" + kind + "_" + timetype
+                            outTss[index], check_section = splitout(config.get(sec, opt), check_section)
                         else:
                             # map output: OUT_MAP_<type> - other names are not written by output.py
                             # (and gave a misleading Error 132 with a single letter as variable name)
                             if opt.lower()[4:8] != "map_" or opt.lower()[8:] not in outputTypMap:
                                 msg = "Error 145: Output key: \"" + opt + "\" in section [" + sec + "] is not possible!\n"
                                 msg += "Map output has to be OUT_MAP_ + one of these: " + ", ".join(outputTypMap) + "\n"
-                                msg += "(time series: OUT_TSS_..., output folder: OUT_Dir)"
+                                msg += "(time series: OUT_TSS_..., water bodies: OUT_RES<n>_..., output folder: OUT_Dir)"
                                 raise CWATMError(msg)
                             outMap[index], check_section = splitout(config.get(sec, opt), check_section)
 
@@ -308,7 +324,7 @@ def parse_configuration(settingsFileName):
                         msg = "Key: \"" + opt + "\" is in section [" + bindsec[opt] + "] and [" + sec + "] with different values\n"
                         msg += "[" + bindsec[opt] + "] " + opt + " = " + dict.get(binding, opt) + "\n"
                         msg += "[" + sec + "] " + opt + " = " + value + "   <- this value is used\n"
-                        print(CWATMWarning(msg))
+                        print_cwatm_warning(msg)
                     binding[opt] = value
                     bindsec[opt] = sec
 
@@ -380,7 +396,7 @@ def check_settings_keys():
                 msgs.append("Key: \"" + lower[close[0]] + "\" in the settingsfile is not used - is it a misspelled \"" + key + "\"?")
 
     for msg in msgs:
-        print(CWATMWarning(msg + "\n"))
+        print_cwatm_warning(msg + "\n")
     return msgs
 
 

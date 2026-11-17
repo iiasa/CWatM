@@ -112,7 +112,7 @@ def checkmap(name, value, map):
                 msg = "Reference file for the check has no list of input files (global attribute version_inputfiles)\n"
                 msg += "or cannot be read: " + refile + "\n"
             msg += "The input maps are checked without comparison to a reference"
-            print(CWATMWarning(msg))
+            print_cwatm_warning(msg)
         else:
             versioning['refvalue'] = True
 

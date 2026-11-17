@@ -34,8 +34,8 @@ def steady_state(gw, basin, head):
     """
     print('\n=> MODFLOW steady state (run_only_steady_state = True): no time step of CWatM')
     if 'include_rch_drn_steady_state' in binding and not setting_bool('include_rch_drn_steady_state'):
-        print(CWATMWarning("Warning: include_rch_drn_steady_state is not used - the steady state always has "
-                           "recharge and drains"))
+        print_cwatm_warning("Warning: include_rch_drn_steady_state is not used - the steady state always has "
+                            "recharge and drains")
     top = gw.layer_boundaries[0]
     permeability = gw.permeability * steady_multiplier(gw.nlay, 'cal_prm')
     multiplier_v = steady_multiplier(gw.nlay, 'cal_prm_v')
@@ -52,11 +52,11 @@ def steady_state(gw, basin, head):
         # with dbd / cooley / super_complex; set to 0: converged in 1.3 s)
         longterm = globals.inZero + loadmap('longterm_recharge')
         if np.any(longterm < 0):
-            print(CWATMWarning("Warning: longterm_recharge < 0 in " + str(int(np.sum(longterm < 0))) +
-                               " cells - set to 0 for the steady state"))
+            print_cwatm_warning("Warning: longterm_recharge < 0 in " + str(int(np.sum(longterm < 0))) +
+                                " cells - set to 0 for the steady state")
         recharge = gw.grid.to_modflow(np.maximum(longterm, 0), nanvalue=0, all_cells=True)
     else:
-        print(CWATMWarning("Warning: longterm_recharge is missing - steady state with 0.0001 m/day recharge"))
+        print_cwatm_warning("Warning: longterm_recharge is missing - steady state with 0.0001 m/day recharge")
         recharge = np.full((gw.grid.nrow, gw.grid.ncol), 0.0001)
 
     # constant head in layer 1: chd_boundary_map 1 (or the head with chd_absolute = True), -9999: no constant head
@@ -84,8 +84,8 @@ def steady_state(gw, basin, head):
     model.set_recharge(recharge)
     model.step()
     if not model.converged:
-        print(CWATMWarning("Warning: the MODFLOW steady state did not converge - the head in steady_state_heads.nc "
-                           "is not reliable; use another modflow_solver_steady or change Ndays_steady"))
+        print_cwatm_warning("Warning: the MODFLOW steady state did not converge - the head in steady_state_heads.nc "
+                            "is not reliable; use another modflow_solver_steady or change Ndays_steady")
     heads = model.decompress(np.asarray(model.head, dtype=np.float64)).reshape(
         (gw.nlay, gw.grid.nrow, gw.grid.ncol))
     model.finalize()

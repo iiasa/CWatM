@@ -243,7 +243,7 @@ class CWATMWarning(Warning):
 
     This class provides standardized warning messages for situations that
     don't stop model execution but should be brought to the user's attention.
-    It is printed, not raised: print(CWATMWarning(msg)).
+    It is printed, not raised: print_cwatm_warning(msg).
 
     Parameters
     ----------
@@ -261,6 +261,14 @@ class CWATMWarning(Warning):
 
     def __init__(self, msg):
         super().__init__("\n========================== CWATM Warning =============================\n" + msg)
+
+
+def print_cwatm_warning(msg):
+    """Print a CWATMWarning - nothing with flag -v (veryquiet)."""
+    # lazy import: globals.py imports messages.py
+    from cwatm.management_modules.globals import Flags
+    if not Flags['veryquiet']:
+        print(CWATMWarning(msg))
 
 
 class CWATMRunInfo(Warning):

@@ -275,7 +275,7 @@ class snow_pysnowclim(object):
                       "coordinate of the mask map"
                 if np.max(np.abs(self.var.lat)) > 90.:
                     msg += " - but the y coordinate is not a latitude (projected grid?) -> put latitude in the settings"
-                print(CWATMWarning(msg))
+                print_cwatm_warning(msg)
 
         # snow pack variables of pySnowClim which are saved / loaded as initial conditions
         self.var.pySnowClimInitVars = ['lastpacktemp', 'snowage', 'lastalbedo', 'lastswe', 'lastsnowdepth', 'packsnowdensity', 'lastpackcc',
@@ -307,7 +307,7 @@ class snow_pysnowclim(object):
             if len(numbers) != self.var.numberSnowSamples:
                 msg = "Warning: " + loadInitFilepySnowClim + " has " + str(len(numbers)) + " snow samples but NumberSnowSamples = " + \
                       str(self.var.numberSnowSamples) + " -> every sample starts with the mean of the samples in the file"
-                print(CWATMWarning(msg))
+                print_cwatm_warning(msg)
             for v in self.var.pySnowClimInitVars:
                 values = [readnetcdfInitial(loadInitFilepySnowClim, v + k, default=None) for k in numbers]
                 # variable missing in init file (warning) -> keep the cold-start value of Snowpack (not a scalar 0)
@@ -325,7 +325,7 @@ class snow_pysnowclim(object):
             self.var.SnowCover = np.mean(self.var.SnowCoverS, axis=0)
         elif self.var.loadInit:
             msg = "Warning: load_initial = True but load_initial_pySnowClim = False -> the pySnowClim snow pack starts empty"
-            print(CWATMWarning(msg))
+            print_cwatm_warning(msg)
 
         # Saving initial condition
         self.var.saveInitpySnowClim = False

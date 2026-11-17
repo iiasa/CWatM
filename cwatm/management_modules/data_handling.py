@@ -1048,13 +1048,15 @@ def readCoord(name):
             rows = raster.shape[0]
             cols = raster.shape[1]
 
-        cell = gt[0]
+        # gt.a, gt.c, gt.f instead of gt[0], gt[2], gt[5]: indexing an Affine fails with some affine versions
+        # (TypeError: No '__dict__' attribute on 'Affine' instance to cache '_astuple' property)
+        cell = gt.a
         invcell = invcellsize(cell)
 
         # getgeotransform only delivers single precision!
         cell = 1 / invcell
-        lon = gt[2]
-        lat = gt[5]
+        lon = gt.c
+        lat = gt.f
         #lon = 1 / round(1 / (x1 - int(x1)), 4) + int(x1)
         #lat = 1 / round(1 / (y1 - int(y1)), 4) + int(y1)
         mapcoords[key] = lat, lon, cell, invcell, rows, cols
@@ -2240,7 +2242,7 @@ def readnetcdfInitial(name, value, default=0.0, warn=True):
         if warn:
             default_text = str(default) if np.ndim(default) == 0 else "map with mean " + str(np.mean(default))
             msg = "Warning: Initial value: " + value + " is not included in: " + name + " - using default: " + default_text
-            print(CWATMWarning(msg))
+            print_cwatm_warning(msg)
         return default
 
 
@@ -2501,7 +2503,7 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
         msg = "No values in: " + varname + " on date: " + date1 +"\nCould not write: " + netfile
         if not flag:
             nf1.close()   # a new file is closed, an appended file stays open (ncappend)
-        print(CWATMWarning(msg))
+        print_cwatm_warning(msg)
         return False
 
     if modflow:

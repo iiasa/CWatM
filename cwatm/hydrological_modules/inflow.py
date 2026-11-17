@@ -162,7 +162,7 @@ class inflow(object):
                     raise CWATMError(msg)
                 if lost:
                     msg = "Inflow points of the map: " + inflowPointsMap + " outside the mask map are not used: "
-                    print(CWATMWarning(msg + " ".join(lost)))
+                    print_cwatm_warning(msg + " ".join(lost))
 
             inDir = cbinding('In_Dir')
             inflowFile = cbinding('QInTS').split()

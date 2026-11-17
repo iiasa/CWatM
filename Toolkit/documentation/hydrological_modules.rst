@@ -333,7 +333,7 @@ Hydrology IV - Lakes, reservoirs and river
 lakes_reservoirs module
 -----------------------
 
-**Calculate water retention in lakes**
+**Lakes and reservoirs: coordinator (water bodies, network, water balance, outflow)**
 
 .. automodule:: cwatm.hydrological_modules.routing_reservoirs.lakes_reservoirs
     :members:
@@ -346,6 +346,56 @@ lakes_res_small module
 **Calculate water retention in small lakes**
 
 .. automodule:: cwatm.hydrological_modules.routing_reservoirs.lakes_res_small
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+puls module
+-----------
+
+**Shared Modified Puls formulas for lakes and small lakes**
+
+.. automodule:: cwatm.hydrological_modules.routing_reservoirs.puls
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+reservoir_transfers module
+--------------------------
+
+**Water transfers between reservoirs (rules 1-6)**
+
+.. automodule:: cwatm.hydrological_modules.routing_reservoirs.reservoir_transfers
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+reservoirs module
+-----------------
+
+**Reservoir routine: storage limits, outflows, releases**
+
+.. automodule:: cwatm.hydrological_modules.routing_reservoirs.reservoirs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+wetlands module
+---------------
+
+**Wetlands (water body type 6): triangular shape, variable area, maximum level**
+
+.. automodule:: cwatm.hydrological_modules.routing_reservoirs.wetlands
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+lakes module
+------------
+
+**Lakes: Modified Puls approach, warm start**
+
+.. automodule:: cwatm.hydrological_modules.routing_reservoirs.lakes
     :members:
     :undoc-members:
     :show-inheritance:

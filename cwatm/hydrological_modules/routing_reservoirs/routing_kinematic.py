@@ -11,7 +11,6 @@
 
 from cwatm.management_modules.data_handling import *
 from cwatm.hydrological_modules.routing_reservoirs.routing_sub import *
-from cwatm.hydrological_modules.routing_reservoirs.lakes_reservoirs import lakes_reservoirs
 
 
 class routing_kinematic(object):
@@ -28,8 +27,6 @@ class routing_kinematic(object):
         Model variables container
     model : object
         CWatM model instance
-    lakes_reservoirs_module : object
-        Lakes and reservoirs module instance
 
 
 
@@ -123,7 +120,6 @@ class routing_kinematic(object):
         """
         self.var = model.var
         self.model = model
-        self.lakes_reservoirs_module = lakes_reservoirs(model)
 
     def catchment(self, point, ldd):
         """
@@ -498,7 +494,7 @@ class routing_kinematic(object):
                 self.var.inflowDay += self.var.inflowDt
 
             if lakesOn:
-                lakesResOut, lakeOutflowDis = self.lakes_reservoirs_module.dynamic_inloop(subrouting)
+                lakesResOut, lakeOutflowDis = self.model.lakes_reservoirs_module.dynamic_inloop(subrouting)
                 sideflowChanM3 += lakesResOut
 
             # [m3 per substep] -> [m2 s-1]

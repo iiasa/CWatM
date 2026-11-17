@@ -268,7 +268,7 @@ class evaporation(object):
                                 nocrop - 1, nocrop - 1)
                             msg += " are not included in: " + self.var.initLoadFile + "\n"
                             msg += "using 0 (as before 2026-10) - they are set on the 1st of the next month"
-                            print(CWATMWarning(msg))
+                            print_cwatm_warning(msg)
 
                 if dateVar['newStart'] or dateVar['newYear']:
 

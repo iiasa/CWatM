@@ -237,7 +237,7 @@ def subcatchment1(dirshort, points, ups=None):
     (Same result as the former postorder version, which did the points by decreasing upstream area ups; ups is
     not needed any more: a point downstream always has a larger upstream area.)
 
-    One cell per point id: if an id is at several cells, only the last cell (highest index) is used (warning).
+    One cell per point id: if an id is at several cells, only the last cell (highest index) is used (no warning).
 
     :param dirshort: index of the downstream cell, -1 at pits
     :param points: point ids (> 0), other cells <= 0
@@ -251,11 +251,6 @@ def subcatchment1(dirshort, points, ups=None):
     vals = points[idx]
     _, lastrev = np.unique(vals[::-1], return_index=True)
     keep = idx[::-1][lastrev]
-    if keep.size < idx.size:
-        double = np.unique(vals[np.isin(idx, keep, invert=True)])
-        msg = "Warning: subcatchments: " + str(double.size) + " point id(s) at more than one cell, only the last cell " \
-              "is used (e.g. id " + str(int(double[0])) + ")\n"
-        print(CWATMWarning(msg))
     marked = np.full(points.size, -1, dtype=np.int64)
     marked[keep] = keep
     near = pointerJump(dirshort, marked, keepDownstream=False)

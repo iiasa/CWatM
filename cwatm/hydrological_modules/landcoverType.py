@@ -776,12 +776,6 @@ class landcoverType(object):
             tooLarge = fracSum > 1.0 + 1e-6
             if np.any(tooLarge):
                 self.var.fracVegCover[:] = np.where(tooLarge, self.var.fracVegCover / fracSum, self.var.fracVegCover)
-                if not getattr(self, 'fracSumWarned', False):
-                    self.fracSumWarned = True
-                    msg = "Land cover fractions: sealed + water + paddy + non paddy is above 1 in " + \
-                          str(np.count_nonzero(tooLarge)) + " cells (max. %.3f)" % np.max(fracSum) + \
-                          " - all fractions are divided by their sum there (warning shown once)"
-                    print(CWATMWarning(msg))
 
 
             # Adjust because of Glaciers. If glaicers than glacier area should be taken from grassland

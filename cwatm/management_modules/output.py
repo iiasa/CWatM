@@ -47,7 +47,7 @@ class outputTssMap(object):
     -----
     The output system supports multiple output formats:
     - NetCDF maps for spatial data with temporal aggregation
-    - Time series files (CSV) for gauge point data
+    - Time series files (CSV) for gauge point data and for the outlets of lakes / reservoirs (OUT_RES<n>_...)
     - Text dumps for debugging and analysis
     - Progress monitoring for GUI integration
     
@@ -76,6 +76,8 @@ class outputTssMap(object):
     sampleAdresses                       List          outflowpoints as 1D index                                               --   
     outpoints                            List          output points (Gauges)                                                  --   
     noOutpoints                          Number        number of output points                                                 --   
+    resAdresses                          Dictionary    OUT_RES<n>_: outlet cell of each water body ID of type n (key n)        --   
+    resOutpoints                         Dictionary    OUT_RES<n>_: x, y of these outlets [x1, y1, x2, y2 ...] (key n)         --   
     evalCatch                            Array         indeces of a subbasin in the mask                                       --   
     catcharea                            Array         catchment area of the subbaSIN                                          m2   
     watercycle                           List          WaterCycle columns: [variable, sum type, flux/storage type]             --   
@@ -171,23 +173,15 @@ class outputTssMap(object):
             """
 
             sampleAdresses = {}
-            outp = []
-            # allpoints = np.where(maskinfo["mask"].data == False)
-            allpoints = np.where(maskinfo["mask"] == False)
 
             for i in np.flatnonzero(out > 0):
                 if out[i] in sampleAdresses:
                     msg = "Gauge number " + str(out[i]) + " is used for more than one cell in the gauge map - only the last cell is used"
-                    print(CWATMWarning(msg))
+                    print_cwatm_warning(msg)
                 sampleAdresses[out[i]] = i
 
             # coordinates in the same order as the output columns (sorted gauge numbers)
-            for key in sorted(sampleAdresses):
-                i = sampleAdresses[key]
-                outx = allpoints[1][i] * maskmapAttr['cell'] + maskmapAttr['x'] + maskmapAttr['cell'] / 2
-                outy = maskmapAttr['y'] - allpoints[0][i] * maskmapAttr['cell'] - maskmapAttr['cell'] / 2
-                outp.append(outx)
-                outp.append(outy)
+            outp = self.cellcoords([sampleAdresses[key] for key in sorted(sampleAdresses)])
 
             return sampleAdresses, outp
 
@@ -246,8 +240,9 @@ class outputTssMap(object):
 
                         placeholder = []
                         info.append(placeholder)
-                        if ismap:
-                            info.append(type)  # set type to create variable later on first timestep
+                        # type: maps create the variable on the first timestep; time series: kind of points
+                        # e.g. "daily", "areasum_daily", "res2_daily"
+                        info.append(type)
                         out[key][i] = info
                         i += 1
 
@@ -286,7 +281,7 @@ class outputTssMap(object):
                 lost = np.setdiff1d(gaugemap[gaugemap > 0].astype(np.int64), outpoints[outpoints > 0])
                 if lost.size > 0:
                     msg = "Gauges " + ", ".join(str(g) for g in lost) + " in \"Gauges\" are on cells outside the mask map - no output for them"
-                    print(CWATMWarning(msg))
+                    print_cwatm_warning(msg)
             else:
                 if len(coord) == 1:
                     msg = "Error 221: Checking output-points file\n"
@@ -575,6 +570,60 @@ class outputTssMap(object):
                     self.outvarparsed[entry[1]] = parseoutvar(entry[1])
 
 
+    def cellcoords(self, cells):
+        """
+        x, y of the cell centres (model projection) of compressed cell indices: [x1, y1, x2, y2, ...]
+        (used for the gauges and the outlets of the water bodies)
+        """
+        allpoints = np.where(maskinfo["mask"] == False)
+        outp = []
+        for i in cells:
+            outp.append(allpoints[1][i] * maskmapAttr['cell'] + maskmapAttr['x'] + maskmapAttr['cell'] / 2)
+            outp.append(maskmapAttr['y'] - allpoints[0][i] * maskmapAttr['cell'] - maskmapAttr['cell'] / 2)
+        return outp
+
+    def initial_res(self):
+        """
+        Points of the water body output OUT_RES<n>_<type>: the outlet cells of the water bodies of type n
+        (0 = all types 1-6, 1 = lakes, 2 = reservoirs, 3 = lake and reservoir, 4, 5 = reservoir types 4, 5,
+        6 = wetlands), columns R<ID> sorted by the water body ID.
+        The type is the one of the map / Excel (waterBodyTyp_unchanged), also for a reservoir without
+        volume which is run as a lake.
+        Called after lakes_reservoirs.initial (in output.initial the water bodies are not known yet).
+        No water body of type n -> warning and no output.
+        """
+        self.var.resAdresses = {}
+        self.var.resOutpoints = {}
+        for tss in list(outTss.keys()):
+            kind = tss.split('_')[-2]
+            if kind[:3] != "res":
+                continue
+            n = int(kind[3:])
+            # settings key for the messages: sec_out_tss_res<n>_<type> -> OUT_RES<n>_<type> in section [SEC]
+            sec = tss.split("_out_tss_")[0].upper()
+            key = "OUT_" + kind.upper() + "_" + tss.split('_')[-1]
+            for i in range(len(outTss[tss])):
+                if outTss[tss][i] == "None":
+                    continue
+                if outTss[tss][i][1] in ["WaterCycle", "WaterBalance"]:
+                    msg = "Error 182: Output: \"" + key + " = " + outTss[tss][i][1] + "\" in section [" + sec + "] is not possible!\n"
+                    msg += "WaterCycle and WaterBalance are catchment balances (OUT_TSS_...), not values of a water body"
+                    raise CWATMError(msg)
+                if n not in self.var.resAdresses:
+                    adresses = {}
+                    if checkOption('includeWaterBodies'):
+                        for cell in np.flatnonzero(self.var.waterBodyOut):
+                            typ = self.var.waterBodyTyp_unchanged[cell]
+                            if (n == 0 and 1 <= typ <= 6) or typ == n:
+                                adresses[int(self.var.waterBodyOut[cell])] = cell
+                    self.var.resAdresses[n] = dict(sorted(adresses.items()))
+                    self.var.resOutpoints[n] = self.cellcoords(list(self.var.resAdresses[n].values()))
+                if not self.var.resAdresses[n]:
+                    msg = "Output: \"" + key + " = " + outTss[tss][i][1] + "\" in section [" + sec + "]: "
+                    msg += ("no water body" if n == 0 else "no water body of type " + str(n)) + " in the model - no output"
+                    print_cwatm_warning(msg)
+                    outTss[tss][i] = "None"
+
 
     def soil_terms(self):
         """
@@ -787,6 +836,16 @@ class outputTssMap(object):
             """
             return np.bincount(self.var.catchZero[key], weights=weights[self.var.catchIndex[key]], minlength=1)[0]
 
+        def points(expression):
+            """
+            Points of a time series output: the gauges, or for OUT_RES<n>_... the outlets of the water bodies of type n
+            :return: addresses {key: cell index} (sorted keys = columns), x/y list of the points, column prefix
+            """
+            kind = expression[4].split('_')[0]
+            if kind[:3] == "res":
+                n = int(kind[3:])
+                return self.var.resAdresses[n], self.var.resOutpoints[n], "R"
+            return self.var.sampleAdresses, self.var.outpoints, "G"
 
         def sample3(expression, map, daymonthyear):
             """
@@ -809,10 +868,11 @@ class outputTssMap(object):
             Notes
             -----
             Handles three types of spatial aggregation:
-            - Point values: Direct sampling at gauge coordinates
+            - Point values: Direct sampling at gauge coordinates, or for OUT_RES<n>_... at the outlets of the
+              water bodies of type n (see points)
             - Area averages: Catchment-weighted mean values
             - Area sums: Catchment-weighted total values
-            
+
             Accumulates values during simulation and writes complete time series
             to a CSV file at the end of the simulation period.
             """
@@ -831,7 +891,8 @@ class outputTssMap(object):
             if areatype in ['areaavg','areasum']:
                 # weights calculated once and used for all gauges
                 weights = map * self.var.cellArea
-            for key in sorted(self.var.sampleAdresses):
+            adresses = points(expression)[0]
+            for key in sorted(adresses):
                 if areatype in ['areaavg','areasum']:
                     # value from catchment
                     v = catchsum(weights, key)
@@ -841,8 +902,8 @@ class outputTssMap(object):
                             v = 0.
                         else:
                             v = v / self.var.catcharea[key]
-                else: # from single cell
-                   v = map[self.var.sampleAdresses[key]]
+                else: # from single cell (gauge or outlet of a water body)
+                   v = map[adresses[key]]
                 value.append(v)
             expression[3].append(value)
 
@@ -1067,10 +1128,10 @@ class outputTssMap(object):
             Creates comprehensive CSV header with:
             - Model run metadata (settings file, execution time, version info)
             - Git branch and hash information for reproducibility
-            - Longitude coordinates row for all gauges
-            - Latitude coordinates row for all gauges
-            - Column headers with gauge identifiers (G1, G2, etc.)
-            
+            - Longitude coordinates row for all gauges (or water body outlets)
+            - Latitude coordinates row for all gauges (or water body outlets)
+            - Column headers with gauge identifiers (G1, G2, etc.) or water body IDs (R4000006 etc.)
+
             Header provides all information needed to interpret time series data
             and reproduce the model run that generated the output.
             """
@@ -1085,7 +1146,7 @@ class outputTssMap(object):
 
             outputFile.write(header)
 
-            loc = self.var.outpoints
+            adresses, loc, prefix = points(expression)
             xrow = "xloc"
             yrow = "yloc"
             head = "Date"
@@ -1095,8 +1156,8 @@ class outputTssMap(object):
             for y in loc[1::2]:
                 yrow = yrow +"," + "%#.4f" % round(y, 4)
             yrow = yrow + "\n"
-            for key in sorted(self.var.sampleAdresses):
-                head = head + ",G" + str(key)
+            for key in sorted(adresses):
+                head = head + "," + prefix + str(key)
             head = head + "\n"
 
             outputFile.write(xrow)

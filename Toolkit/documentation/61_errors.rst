@@ -211,7 +211,7 @@ This part deals with genuine problems. Please look for your error number
     "`E142`_", "An option in [OPTIONS] is neither True/False nor an integer", "[OPTIONS]", "Write True or False (or an integer) e.g. includeWaterDemand = True", "configuration", "splitout"
     "`E143`_", "Placeholder cannot be read - it has to be $(SECTION:KEY) or $(KEY)", "Any key with $(...)", "Check the brackets and the colon of the placeholder", "configuration", "get"
     "`E144`_", "Section [OPTIONS] is not written in capital letters", "[OPTIONS]", "Write [OPTIONS]", "configuration", "splitout"
-    "`E145`_", "Output key is not possible - it has to be OUT_MAP or OUT_TSS with a valid type (e.g. OUT_MAP_Daily\, OUT_TSS_MonthAvg)", "output keys e.g. OUT_MAP_Daily\, OUT_TSS_MonthAvg", "Check the writing of the output key", "configuration", "splitout"
+    "`E145`_", "Output key is not possible - it has to be OUT_MAP\, OUT_TSS or OUT_RES with a valid type (e.g. OUT_MAP_Daily\, OUT_TSS_MonthAvg)", "output keys e.g. OUT_MAP_Daily\, OUT_TSS_MonthAvg","Check the writing of the output key", "configuration", "splitout"
     "`E146`_", "nlay is smaller than 1", "nlay", "Set nlay = 1 or more (number of ModFlow layers)", "groundwater_modflow transient", "initial"
     "`E147`_", "The CRS of the CWatM grid (MaskMap) is not known - needed for the overlap of CWatM and ModFlow cells", "MaskMap\, cwatm_crs", "Set cwatm_crs = EPSG:... in [GROUNDWATER_MODFLOW] or use a MaskMap with CRS", "groundwater_modflow grid", "cwatm_crs"
     "`E148`_", "More than half of the active ModFlow cells are not inside the CWatM mask", "modflow_basin\, MaskMap", "Check modflow_basin\, MaskMap and the CRS of both (cwatm_crs)", "groundwater_modflow grid", "ModflowGrid"
@@ -220,6 +220,35 @@ This part deals with genuine problems. Please look for your error number
     "`E151`_", "The MODFLOW solver in modflow_solver is not known", "modflow_solver", "Use one of: simple\, complex\, super_complex\, cooley", "groundwater_modflow transient", "read_settings"
     "`E152`_", "MODFLOW gives a wrong head (not a number or > 1e6 m) - the MODFLOW solver did not converge", "modflow_solver\, modflow_timestep\, thickness<n>\, permeability<n>\, pumping", "Use another solver (modflow_solver = cooley\, complex or super_complex)\, a smaller modflow_timestep or check the aquifer properties", "groundwater_modflow transient", "modflow_run"
     "`E153`_", "The netCDF variable (e.g. topo_percentile_prm = z_p10) is not in the file at ModFlow resolution", "topo_percentile_modflow\, topo_percentile_prm", "Use one of the variables listed in the message", "groundwater_modflow grid", "read_map"
+    "`E154`_", "A map does not cover the whole mask map", "Any map", "Use a map which covers the mask map (the message gives the missing cells west and north)", "datahandling", "checkmapcover"
+    "`E155`_", "A map is not on the same grid as the mask map (shifted by a part of a cell)", "Any map", "Use a map with the same cell size and cell borders as the mask map", "datahandling", "checkmapcover"
+    "`E156`_", "Excel sheet Reservoir_transfers has less than 370 rows or a giving / receiving reservoir is not a whole number", "Excel_settings_file\, sheet Reservoir_transfers", "Use 4 rows + 366 days and whole numbers for the reservoirs (0 = from/to outside)", "initcondition", "reservoir_transfers"
+    "`E157`_", "Excel sheet Crops: growth stages are read as days but are not whole days or a season is shorter than 25 days", "Excel_settings_file\, sheet Crops", "Give whole days for GS1 to GS4 and a season of at least 25 days", "initcondition", "crops_initialise"
+    "`E158`_", "Inflow points are outside the mask map or in the same cell as another point\, or no inflow point is inside the mask map", "InflowPoints\, MaskMap", "Check the coordinates or the map of the inflow points", "inflow", "initial"
+    "`E159`_", "An inflow file has missing or negative values in this run", "In_Dir\, QInTS", "Give a value >= 0 for each day of the run", "inflow", "initial"
+    "`E160`_", "An inflow point has no column in the inflow files", "InflowPoints\, QInTS", "Add a column for each inflow point (the message lists the columns of the files)", "inflow", "initial"
+    "`E161`_", "An inflow file has no value for some days of this run", "In_Dir\, QInTS", "Give daily values from StepStart to StepEnd", "inflow", "initial"
+    "`E162`_", "The inflow files have a different number of rows", "QInTS", "Use inflow files with the same days", "inflow", "initial"
+    "`E163`_", "An inflow point number is in more than one cell of the inflow point map", "InflowPoints", "Use each number only once in the map", "inflow", "getlocOutpoints"
+    "`E164`_", "inflow = True needs includeRouting = True", "inflow\, includeRouting", "Set includeRouting = True or inflow = False", "inflow", "initial"
+    "`E165`_", "Environmental flow needs all 12 months from SpinUp to StepEnd", "calc_environflow\, SpinUp\, StepEnd", "Run at least one day in each month", "environflow", "initial"
+    "`E166`_", "The discharge file for the environmental flow starts too late or has not enough days", "OUT_MAP_Daily = discharge\, SpinUp\, StepStart\, StepEnd", "Use a discharge file which covers the whole period", "datahandling", "readDischargeFiles"
+    "`E167`_", "The discharge for the environmental flow has missing values on some days", "OUT_MAP_Daily = discharge", "Use a discharge file without missing values in the mask", "environflow", "dynamic"
+    "`E168`_", "An output key in a section without OUT_Dir", "OUT_Dir", "Add OUT_Dir = ... to the section with the output", "output", "appendinfo"
+    "`E169`_", "The discharge map for the environmental flow has another size than the mask map", "OUT_MAP_Daily = discharge\, MaskMap", "Use the discharge of a run with the same mask map", "datahandling", "readDischargeFiles"
+    "`E170`_", "waterquality = True needs includeRouting = True", "waterquality\, includeRouting", "Set includeRouting = True or waterquality = False", "waterquality1", "initial"
+    "`E171`_", "use_GeneralCropIrr = True needs the map GeneralCrop_Irr", "use_GeneralCropIrr\, GeneralCrop_Irr", "Add GeneralCrop_Irr to the settings file or set use_GeneralCropIrr = False", "evaporation", "dynamic"
+    "`E172`_", "use_GeneralCropnonIrr = True needs the map GeneralCrop_nonIrr", "use_GeneralCropnonIrr\, GeneralCrop_nonIrr", "Add GeneralCrop_nonIrr to the settings file or set use_GeneralCropnonIrr = False", "evaporation", "dynamic"
+    "`E173`_", "PET_modus is not a valid method for the potential evaporation", "PET_modus", "Use 1 (Penman-Monteith)\, 2 (Milly-Dunne)\, 3 (Penman-Monteith with CO2 correction)\, 4 (Priestley-Taylor) or 5 (modified Thornthwaite)", "readmeteo", "initial"
+    "`E174`_", "The CO2 file must have one CO2 value per year (not a map)", "co2conc", "Use a file with the variable CO2 with only the dimension time", "evaporationPot", "dynamic_1"
+    "`E175`_", "chanBeta has to be a single number\, not a map", "chanBeta", "Use one value e.g. chanBeta = 0.6", "routing_kinematic", "initial"
+    "`E176`_", "snowmelt_radiation = True needs SnowMeltRad", "snowmelt_radiation\, SnowMeltRad", "Add SnowMeltRad (calibration factor of the radiation snow melt\, about 1.0) to the settings file", "snow", "initial"
+    "`E177`_", "The variable is not in the netCDF file of a yearly map", "irrNonPaddy_efficiency (yearly netCDF stack)", "Use the name of the variable in the netCDF file", "datahandling", "loadmapYearly"
+    "`E178`_", "Irrigation efficiency is not > 0 and <= 1\, or fraction_IncreaseIrrigation_Nonpaddy < 1 (in cells with irrigated area)", "irrPaddy_efficiency\, irrNonPaddy_efficiency\, fraction_IncreaseIrrigation_Nonpaddy", "Use efficiencies > 0 and <= 1 and a factor >= 1", "irrigation", "checkEfficiency"
+    "`E179`_", "A reservoir outlet cell is in a command area but not on a canal of this command area - the canal leakage would be lost", "reservoir_command_areas\, canals", "Put the outlet cell of the reservoir on a canal cell of its command area\, or the command area number on the outlet cell", "surface_water_abstraction", "initial"
+    "`E180`_", "activate_irrigation_agents = True with monthly requests but no adminSegments map", "activate_irrigation_agents\, adminSegments", "Add adminSegments (the agent areas) or set activate_irrigation_agents = False", "irrigation_agents", "initial"
+    "`E181`_", "Water body output key is not possible - it has to be OUT_RES_ or OUT_RES0_ ... OUT_RES6_ with a time type (not TotalTot\, TotalAvg)", "output keys e.g. OUT_RES2_Daily", "Use n = 0 (all) ... 6 and Daily\, MonthTot\, MonthAvg\, MonthEnd\, AnnualTot\, AnnualAvg or AnnualEnd", "configuration", "splitout"
+    "`E182`_", "WaterCycle or WaterBalance as water body output (OUT_RES...)", "OUT_RES<n>_... = WaterCycle", "Use WaterCycle / WaterBalance with OUT_TSS_... (catchment of the gauges)", "output", "initial_res"
     "`E201`_", "Cannot load the maskmap as a file e.g. MaskMap = notexisting.tif", "MaskMap", "Make sure the file you put in MaskMap is existing and is a map e.g. \*.nc\, \*.map\, \*.tif", "datahandling", "loadsetclone"
     "`E202`_", "Your map is upside down", "Any map", "Make sure your map is in right order e.g. latitude coordinate are turned", "datahandling", "loadmap"
     "`E203`_", "Cannot find the map\, filename does not exists at this location", "Any map", "the datafile cannot be found\, the location is wrong or the file is missing", "datahandling", "loadmap"
@@ -710,7 +739,7 @@ E144
 
 E145
 ---------------------------------------------------------------------------
-  :Description:  Output key is not possible - it has to be OUT_MAP or OUT_TSS with a valid type (e.g. OUT_MAP_Daily, OUT_TSS_MonthAvg)
+  :Description:  Output key is not possible - it has to be OUT_MAP, OUT_TSS or OUT_RES with a valid type (e.g. OUT_MAP_Daily, OUT_TSS_MonthAvg)
   :Where:        output keys e.g. OUT_MAP_Daily, OUT_TSS_MonthAvg
   :What to do:   Check the writing of the output key
   :Module:       configuration, splitout
@@ -787,6 +816,296 @@ E153
   :Where:        topo_percentile_modflow, topo_percentile_prm
   :What to do:   Use one of the variables listed in the message
   :Module:       groundwater_modflow grid, read_map
+
+
+
+
+E154
+---------------------------------------------------------------------------
+  :Description:  A map does not cover the whole mask map
+  :Where:        Any map
+  :What to do:   Use a map which covers the mask map (the message gives the missing cells west and north)
+  :Module:       datahandling, checkmapcover
+
+
+
+
+E155
+---------------------------------------------------------------------------
+  :Description:  A map is not on the same grid as the mask map (shifted by a part of a cell)
+  :Where:        Any map
+  :What to do:   Use a map with the same cell size and cell borders as the mask map
+  :Module:       datahandling, checkmapcover
+
+
+
+
+E156
+---------------------------------------------------------------------------
+  :Description:  Excel sheet Reservoir_transfers has less than 370 rows or a giving / receiving reservoir is not a whole number
+  :Where:        Excel_settings_file, sheet Reservoir_transfers
+  :What to do:   Use 4 rows + 366 days and whole numbers for the reservoirs (0 = from/to outside)
+  :Module:       initcondition, reservoir_transfers
+
+
+
+
+E157
+---------------------------------------------------------------------------
+  :Description:  Excel sheet Crops: growth stages are read as days but are not whole days or a season is shorter than 25 days
+  :Where:        Excel_settings_file, sheet Crops
+  :What to do:   Give whole days for GS1 to GS4 and a season of at least 25 days
+  :Module:       initcondition, crops_initialise
+
+
+
+
+E158
+---------------------------------------------------------------------------
+  :Description:  Inflow points are outside the mask map or in the same cell as another point, or no inflow point is inside the mask map
+  :Where:        InflowPoints, MaskMap
+  :What to do:   Check the coordinates or the map of the inflow points
+  :Module:       inflow, initial
+
+
+
+
+E159
+---------------------------------------------------------------------------
+  :Description:  An inflow file has missing or negative values in this run
+  :Where:        In_Dir, QInTS
+  :What to do:   Give a value >= 0 for each day of the run
+  :Module:       inflow, initial
+
+
+
+
+E160
+---------------------------------------------------------------------------
+  :Description:  An inflow point has no column in the inflow files
+  :Where:        InflowPoints, QInTS
+  :What to do:   Add a column for each inflow point (the message lists the columns of the files)
+  :Module:       inflow, initial
+
+
+
+
+E161
+---------------------------------------------------------------------------
+  :Description:  An inflow file has no value for some days of this run
+  :Where:        In_Dir, QInTS
+  :What to do:   Give daily values from StepStart to StepEnd
+  :Module:       inflow, initial
+
+
+
+
+E162
+---------------------------------------------------------------------------
+  :Description:  The inflow files have a different number of rows
+  :Where:        QInTS
+  :What to do:   Use inflow files with the same days
+  :Module:       inflow, initial
+
+
+
+
+E163
+---------------------------------------------------------------------------
+  :Description:  An inflow point number is in more than one cell of the inflow point map
+  :Where:        InflowPoints
+  :What to do:   Use each number only once in the map
+  :Module:       inflow, getlocOutpoints
+
+
+
+
+E164
+---------------------------------------------------------------------------
+  :Description:  inflow = True needs includeRouting = True
+  :Where:        inflow, includeRouting
+  :What to do:   Set includeRouting = True or inflow = False
+  :Module:       inflow, initial
+
+
+
+
+E165
+---------------------------------------------------------------------------
+  :Description:  Environmental flow needs all 12 months from SpinUp to StepEnd
+  :Where:        calc_environflow, SpinUp, StepEnd
+  :What to do:   Run at least one day in each month
+  :Module:       environflow, initial
+
+
+
+
+E166
+---------------------------------------------------------------------------
+  :Description:  The discharge file for the environmental flow starts too late or has not enough days
+  :Where:        OUT_MAP_Daily = discharge, SpinUp, StepStart, StepEnd
+  :What to do:   Use a discharge file which covers the whole period
+  :Module:       datahandling, readDischargeFiles
+
+
+
+
+E167
+---------------------------------------------------------------------------
+  :Description:  The discharge for the environmental flow has missing values on some days
+  :Where:        OUT_MAP_Daily = discharge
+  :What to do:   Use a discharge file without missing values in the mask
+  :Module:       environflow, dynamic
+
+
+
+
+E168
+---------------------------------------------------------------------------
+  :Description:  An output key in a section without OUT_Dir
+  :Where:        OUT_Dir
+  :What to do:   Add OUT_Dir = ... to the section with the output
+  :Module:       output, appendinfo
+
+
+
+
+E169
+---------------------------------------------------------------------------
+  :Description:  The discharge map for the environmental flow has another size than the mask map
+  :Where:        OUT_MAP_Daily = discharge, MaskMap
+  :What to do:   Use the discharge of a run with the same mask map
+  :Module:       datahandling, readDischargeFiles
+
+
+
+
+E170
+---------------------------------------------------------------------------
+  :Description:  waterquality = True needs includeRouting = True
+  :Where:        waterquality, includeRouting
+  :What to do:   Set includeRouting = True or waterquality = False
+  :Module:       waterquality1, initial
+
+
+
+
+E171
+---------------------------------------------------------------------------
+  :Description:  use_GeneralCropIrr = True needs the map GeneralCrop_Irr
+  :Where:        use_GeneralCropIrr, GeneralCrop_Irr
+  :What to do:   Add GeneralCrop_Irr to the settings file or set use_GeneralCropIrr = False
+  :Module:       evaporation, dynamic
+
+
+
+
+E172
+---------------------------------------------------------------------------
+  :Description:  use_GeneralCropnonIrr = True needs the map GeneralCrop_nonIrr
+  :Where:        use_GeneralCropnonIrr, GeneralCrop_nonIrr
+  :What to do:   Add GeneralCrop_nonIrr to the settings file or set use_GeneralCropnonIrr = False
+  :Module:       evaporation, dynamic
+
+
+
+
+E173
+---------------------------------------------------------------------------
+  :Description:  PET_modus is not a valid method for the potential evaporation
+  :Where:        PET_modus
+  :What to do:   Use 1 (Penman-Monteith), 2 (Milly-Dunne), 3 (Penman-Monteith with CO2 correction), 4 (Priestley-Taylor) or 5 (modified Thornthwaite)
+  :Module:       readmeteo, initial
+
+
+
+
+E174
+---------------------------------------------------------------------------
+  :Description:  The CO2 file must have one CO2 value per year (not a map)
+  :Where:        co2conc
+  :What to do:   Use a file with the variable CO2 with only the dimension time
+  :Module:       evaporationPot, dynamic_1
+
+
+
+
+E175
+---------------------------------------------------------------------------
+  :Description:  chanBeta has to be a single number, not a map
+  :Where:        chanBeta
+  :What to do:   Use one value e.g. chanBeta = 0.6
+  :Module:       routing_kinematic, initial
+
+
+
+
+E176
+---------------------------------------------------------------------------
+  :Description:  snowmelt_radiation = True needs SnowMeltRad
+  :Where:        snowmelt_radiation, SnowMeltRad
+  :What to do:   Add SnowMeltRad (calibration factor of the radiation snow melt, about 1.0) to the settings file
+  :Module:       snow, initial
+
+
+
+
+E177
+---------------------------------------------------------------------------
+  :Description:  The variable is not in the netCDF file of a yearly map
+  :Where:        irrNonPaddy_efficiency (yearly netCDF stack)
+  :What to do:   Use the name of the variable in the netCDF file
+  :Module:       datahandling, loadmapYearly
+
+
+
+
+E178
+---------------------------------------------------------------------------
+  :Description:  Irrigation efficiency is not > 0 and <= 1, or fraction_IncreaseIrrigation_Nonpaddy < 1 (in cells with irrigated area)
+  :Where:        irrPaddy_efficiency, irrNonPaddy_efficiency, fraction_IncreaseIrrigation_Nonpaddy
+  :What to do:   Use efficiencies > 0 and <= 1 and a factor >= 1
+  :Module:       irrigation, checkEfficiency
+
+
+
+
+E179
+---------------------------------------------------------------------------
+  :Description:  A reservoir outlet cell is in a command area but not on a canal of this command area - the canal leakage would be lost
+  :Where:        reservoir_command_areas, canals
+  :What to do:   Put the outlet cell of the reservoir on a canal cell of its command area, or the command area number on the outlet cell
+  :Module:       surface_water_abstraction, initial
+
+
+
+
+E180
+---------------------------------------------------------------------------
+  :Description:  activate_irrigation_agents = True with monthly requests but no adminSegments map
+  :Where:        activate_irrigation_agents, adminSegments
+  :What to do:   Add adminSegments (the agent areas) or set activate_irrigation_agents = False
+  :Module:       irrigation_agents, initial
+
+
+
+
+E181
+---------------------------------------------------------------------------
+  :Description:  Water body output key is not possible - it has to be OUT_RES_ or OUT_RES0_ ... OUT_RES6_ with a time type (not TotalTot, TotalAvg)
+  :Where:        output keys e.g. OUT_RES2_Daily
+  :What to do:   Use n = 0 (all) ... 6 and Daily, MonthTot, MonthAvg, MonthEnd, AnnualTot, AnnualAvg or AnnualEnd
+  :Module:       configuration, splitout
+
+
+
+
+E182
+---------------------------------------------------------------------------
+  :Description:  WaterCycle or WaterBalance as water body output (OUT_RES...)
+  :Where:        OUT_RES<n>_... = WaterCycle
+  :What to do:   Use WaterCycle / WaterBalance with OUT_TSS_... (catchment of the gauges)
+  :Module:       output, initial_res
 
 
 
