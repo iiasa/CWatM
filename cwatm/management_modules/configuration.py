@@ -187,6 +187,7 @@ def parse_configuration(settingsFileName):
         outputTypMap (Error 145).
         If an OUT_RES... key is not OUT_RES_ / OUT_RES0_ ... OUT_RES6_ + a type of
         outputTypTss without totaltot / totalavg (Error 181).
+        If OUT_suffix has a character which is not possible in a file name (Error 184).
 
     Notes
     -----
@@ -286,7 +287,14 @@ def parse_configuration(settingsFileName):
                 if opt.lower()[0:4] == "out_":
                     index = sec.lower() + "_" + opt.lower()
 
-                    if opt.lower()[-4:] == "_dir":
+                    if opt.lower() == "out_suffix":
+                        # OUT_suffix: added to all output file names, e.g. discharge_daily_<suffix>.csv
+                        outSuffix[:] = [config.get(sec, opt).strip()]
+                        if any(c in outSuffix[0] for c in '<>:"/\\|?*'):
+                            msg = "Error 184: OUT_suffix = \"" + outSuffix[0] + "\" in section [" + sec + "] has a character which is not possible in a file name: < > : \" / \\ | ? *\n"
+                            msg += "For the value of another key use $(SECTION:key), e.g. OUT_suffix = $(FILE_PATHS:ScenarioName)"
+                            raise CWATMError(msg)
+                    elif opt.lower()[-4:] == "_dir":
                         outDir[sec] = config.get(sec, opt)
                     else:
                         # split into timeseries and maps
@@ -312,7 +320,7 @@ def parse_configuration(settingsFileName):
                             if opt.lower()[4:8] != "map_" or opt.lower()[8:] not in outputTypMap:
                                 msg = "Error 145: Output key: \"" + opt + "\" in section [" + sec + "] is not possible!\n"
                                 msg += "Map output has to be OUT_MAP_ + one of these: " + ", ".join(outputTypMap) + "\n"
-                                msg += "(time series: OUT_TSS_..., water bodies: OUT_RES<n>_..., output folder: OUT_Dir)"
+                                msg += "(time series: OUT_TSS_..., water bodies: OUT_RES<n>_..., output folder: OUT_Dir, file name suffix: OUT_suffix)"
                                 raise CWATMError(msg)
                             outMap[index], check_section = splitout(config.get(sec, opt), check_section)
 

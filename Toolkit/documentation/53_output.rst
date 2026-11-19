@@ -78,6 +78,18 @@ Or time series at specified points
    # e.g. Gauges = $(FILE_PATHS:PathRoot)/data/areamaps/gaugesRhine.tif
    GaugesLocal = True
 
+   # optional: names of the stations, separated by space or comma (a name cannot include a space or comma)
+   GaugesNames = Lobith Kaub
+
+| With *GaugesNames* the column headers of the .csv files (row 4) change from G1, G2 .. to G1_Lobith, G2_Kaub ..
+| The n-th name belongs to the n-th station (order of the coordinates in *Gauges*, or increasing gauge ID of a map).
+| Stations without a name keep G<n>, names without a station are ignored.
+| The columns R<ID> of OUT_RES<n>_ and the WaterCycle/WaterBalance headers are not changed.
+
+| All netCDF output maps get the global attribute *Gauges*: for each gauge name, lat, lon (or y, x for a
+| projected grid) and upstream area [km2], separated by blanks; the gauges are separated by ";", e.g.
+| Gauges: G1_Lobith 51.8500 6.1400 161975.5; G2_Kaub 50.2500 7.7500 140664.4
+
 
 Or time series as a catchment sum or average
 ********************************************
@@ -132,6 +144,26 @@ for example
    OUT_RES2_MonthAvg = resStorage
    # water given by the transfer points
    OUT_RES5_Daily = reservoir_transfers_out_M3
+
+
+Suffix for the output file names
+--------------------------------
+
+| With the optional key OUT_suffix all output files (OUT_TSS_..., OUT_MAP_..., OUT_RES...) get a suffix at the end of the name,
+| e.g. discharge_daily_<suffix>.csv or tws_monthend_<suffix>.nc. Without OUT_suffix (or with an empty value) the names are as before.
+| One OUT_suffix is used for the output of all sections. Characters which are not possible in a file name (< > : " / \\ | ? *) give Error 184.
+
+for example
+::
+
+   [FILE_PATHS]
+   ScenarioName = TestScenario
+
+   [OUTPUT]
+   OUT_Dir = $(FILE_PATHS:PathOut)
+   OUT_suffix = $(FILE_PATHS:ScenarioName)
+   # -> discharge_daily_TestScenario.csv
+   OUT_TSS_Daily = discharge
 
 
 

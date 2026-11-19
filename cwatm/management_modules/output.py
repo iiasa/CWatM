@@ -76,6 +76,7 @@ class outputTssMap(object):
     sampleAdresses                       List          outflowpoints as 1D index                                               --   
     outpoints                            List          output points (Gauges)                                                  --   
     noOutpoints                          Number        number of output points                                                 --   
+    gaugeLabel                           Dictionary    csv column / netCDF name of gauge n: G<n> or G<n>_<name> (GaugesNames)  --   
     resAdresses                          Dictionary    OUT_RES<n>_: outlet cell of each water body ID of type n (key n)        --   
     resOutpoints                         Dictionary    OUT_RES<n>_: x, y of these outlets [x1, y1, x2, y2 ...] (key n)         --   
     evalCatch                            Array         indeces of a subbasin in the mask                                       --   
@@ -213,6 +214,8 @@ class outputTssMap(object):
             """
 
             key = sec.lower() + name + type
+            # OUT_suffix: discharge_daily.csv -> discharge_daily_<suffix>.csv
+            suffix = "_" + outSuffix[0] if outSuffix and outSuffix[0] else ""
             if key in out:
                 if out[key][0] != "None":
                     i = 0
@@ -223,14 +226,14 @@ class outputTssMap(object):
                             raise CWATMError(msg)
                         if os.path.exists(outDir[sec]):
                             if ismap:
-                                info.append(os.path.join(outDir[sec], str(var) + "_" + type + ".nc"))
+                                info.append(os.path.join(outDir[sec], str(var) + "_" + type + suffix + ".nc"))
                                 #vars(self.var)[var+"_"+type] = 0
                                 # creates a var to sum/ average the results e.g. self.var.Precipitation_monthtot
                                 info.append(var)
                                 info.append(False)
 
                             else:
-                                info.append(os.path.join(outDir[sec], str(var) + "_" + type + ".csv"))
+                                info.append(os.path.join(outDir[sec], str(var) + "_" + type + suffix + ".csv"))
                                 info.append(var)
                                 # third place as for maps (not used for time series)
                                 info.append(True)
@@ -293,6 +296,14 @@ class outputTssMap(object):
             self.var.sampleAdresses, self.var.outpoints = getlocOutpoints(outpoints)  # for key in sorted(mydict):
 
         self.var.noOutpoints = len(self.var.sampleAdresses)
+        # optional GaugesNames: csv column G<n>_<name>; gauges without a name keep G<n>, names without a gauge are ignored
+        names = cbinding('GaugesNames').replace(',', ' ').split() if 'GaugesNames' in binding else []
+        keys = sorted(self.var.sampleAdresses)
+        self.var.gaugeLabel = {key: "G" + str(key) + ("_" + names[i] if i < len(names) else "") for i, key in enumerate(keys)}
+        # gauges as global attribute "Gauges" of the netCDF output: name, x, y (same order as the keys) and upstream area [km2]
+        gaugesNetcdf.clear()
+        for i, key in enumerate(keys):
+            gaugesNetcdf.append([self.var.gaugeLabel[key], self.var.outpoints[2 * i], self.var.outpoints[2 * i + 1], self.var.UpArea[self.var.sampleAdresses[key]] / 1e6])
 
         # check if catchment area calculation is necessary (areaavg, areasum or WaterCycle output)
         calcCatch = False
@@ -1157,7 +1168,7 @@ class outputTssMap(object):
                 yrow = yrow +"," + "%#.4f" % round(y, 4)
             yrow = yrow + "\n"
             for key in sorted(adresses):
-                head = head + "," + prefix + str(key)
+                head = head + "," + (self.var.gaugeLabel[key] if prefix == "G" else prefix + str(key))
             head = head + "\n"
 
             outputFile.write(xrow)

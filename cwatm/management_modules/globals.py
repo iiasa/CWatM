@@ -47,6 +47,8 @@ dateVar : dict
     Date and time variable management
 outDir, outMap, outTss : dict
     Output directory and file specifications
+outSuffix : list
+    OUT_suffix of the settings file: [suffix] or empty (no suffix)
 meteofiles : dict
     Meteorological input file tracking
 domain, indexes : dict
@@ -96,6 +98,7 @@ def globalclear():
     binding.clear()
     option.clear()
     metaNetcdfVar.clear()
+    gaugesNetcdf.clear()
 
     inputcounter.clear()
     flagmeteo.clear()
@@ -108,6 +111,7 @@ def globalclear():
     dateVar.clear()
 
     outDir.clear()
+    outSuffix.clear()
     outMap.clear()
     outTss.clear()
     outsection.clear()
@@ -166,6 +170,7 @@ def calibclear():
     # metadataNCDF, domain, indexes
     outTss.clear()
     outsection.clear()
+    outSuffix.clear()
     outputDir.clear()
     binding.clear()
     option.clear()
@@ -233,6 +238,7 @@ versioning = {}
 binding = KeyTrackDict()
 option = KeyTrackDict()
 metaNetcdfVar = {}
+gaugesNetcdf = []  # gauges for the netCDF attribute "Gauges": [name, x, y, upstream area km2] (output.py)
 
 inputcounter = {}
 flagmeteo = {}
@@ -249,6 +255,7 @@ dateVar = {}
 
 # Output variables
 outDir = {}
+outSuffix = []  # OUT_suffix: [suffix] -> output files e.g. discharge_daily_<suffix>.csv
 outMap = {}
 outTss = {}
 outsection = []

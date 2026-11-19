@@ -23,7 +23,7 @@
 <metanetcdf varname="unmetDemand_runningSum" unit="m"  standard_name="" long_name="" type="Array" dim="1D(N)" option="" priority="med" description="Unmet water demand (too less water availability)[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="totalET_WB" unit="m"  standard_name="" long_name="" type="Array" dim="1D(N)" option="includeRouting" priority="high" description="Total evapotranspiration including waterbodies[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="lakeReservoirStorage" unit="m3"  standard_name="" long_name="" type="Array" dim="1D(N)" option="includeRouting;includeWaterBodies" priority="high" description="Storage of lakes and reservoirs[1D(N)]"  title="CWATM" author="IIASA WAT" />
-<metanetcdf varname="tws_unmet" unit=""  standard_name="" long_name="" type="Array" dim="1D(N)" option="" priority="high" description="[1D(N)]"  title="CWATM" author="IIASA WAT" />
+<metanetcdf varname="tws_unmet" unit="m"  standard_name="" long_name="" type="Array" dim="1D(N)" option="" priority="high" description="[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="tws" unit="m"  standard_name="" long_name="Total water storage" type="Array" dim="1D(N)" option="" priority="high" description="Total water storage[1D(N)]"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="modflow" unit="bool"  standard_name="" long_name="" type="Flag" dim="" option="" priority="low" description="True if modflow_coupling = True in settings file"  title="CWATM" author="IIASA WAT" />
 <metanetcdf varname="stopaftersnow" unit=""  standard_name="" long_name="" type="Flag" dim="" option="" priority="low" description="stop run after snow calcualtion - for snow calibration (AI)"  title="CWATM" author="IIASA WAT" />

@@ -2258,6 +2258,11 @@ def initialIncluded(name, value):
 
 # --------------------------------------------------------------------------------------------
 
+def latlon_output():
+    """True if the output maps have lat/lon coordinates, False for y/x (name of the coordinates of the precipitation maps)"""
+    return not ('x' in metadataNCDF or 'X' in metadataNCDF)
+
+
 def ncgrid(nf1, row, col, axis=True, lonlat_fill=None):
     """
     Create and fill the x and y coordinates of a new netCDF file and copy the crs variable.
@@ -2282,7 +2287,7 @@ def ncgrid(nf1, row, col, axis=True, lonlat_fill=None):
     """
     # SHMI meteorogist have a capital X and Y
     fields = [('x', 'x', col, 'X', None), ('y', 'y', row, 'Y', None), ('X', 'x', col, 'X', None), ('Y', 'y', row, 'Y', None)]
-    latlon = not ('x' in metadataNCDF or 'X' in metadataNCDF)
+    latlon = latlon_output()
     if latlon:
         fields += [('lon', 'lon', col, 'X', lonlat_fill), ('lat', 'lat', row, 'Y', lonlat_fill)]
 
@@ -2398,6 +2403,9 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
         nf1.title = cbinding ("title")
         nf1.source = 'CWATM output maps'
         nf1.Conventions = 'CF-1.13'
+        # gauges: name (G<n> or G<n>_<GaugesNames>) lat lon (or y x) upstream area [km2]
+        if gaugesNetcdf:
+            nf1.Gauges = "; ".join("%s %.4f %.4f %.1f" % (g[0], g[2], g[1], g[3]) for g in gaugesNetcdf)
 
         try:
             nf1.setncatts(version_attributes())
