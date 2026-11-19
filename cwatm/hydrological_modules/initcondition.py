@@ -541,6 +541,8 @@ class initcondition(object):
         self.var.saveInit = returnBool('save_initial')
         if self.var.saveInit:
             self.var.saveInitFile = cbinding('initSave')
+            # Error 183 at the start if the folder of initSave is missing (not only on the first save date)
+            checkSaveFolder(self.var.saveInitFile, 'initSave')
             initdates = cbinding('StepInit').split()
             datetosaveInit(initdates,dateVar['dateBegin'],dateVar['dateEnd'])
 

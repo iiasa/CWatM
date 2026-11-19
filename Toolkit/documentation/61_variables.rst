@@ -852,7 +852,7 @@ This list of variables gives an overview of possible output variables.
     "V835","Yield_Irr","Relative monthly irrigated yield [crop specific]","%","Array","evaporation"
     "V836","Yield_nonIrr","Relative monthly non-irrigated yield [crop specific]","%","Array","evaporation"
     "V837","saturatedFrac","Share of the cell with the water table at the surface (MODFLOW seepage scheme)","--","Array","capillarRise"
-    "V838","depth_to_water","Depth of the MODFLOW water table below the topography (topo_modflow)","m","Array","transient"
+    "V838","depth_to_water","Depth of the MODFLOW water table below the topography (topo_modflow), = depth_to_water1","m","Array","transient"
     "V839","pondarea","Seepage pond area: max(capriseindex, saturatedFrac), share of the soil land covers","--","Array","soil"
     "V840","sum_seepage","Seepage into the pond (MODFLOW outflow not taken up by the soil), cell mean","m","Array","landcoverType"
     "V841","sum_seepageEvap","Evaporation from the seepage pond, cell mean","m","Array","landcoverType"
@@ -860,4 +860,5 @@ This list of variables gives an overview of possible output variables.
     "V843","pond2soil","Seepage pond overflow into the soil (layer 3 and 2 up to field capacity), cell mean","m","Array","landcoverType"
     "V844","over2river","Seepage pond overflow to the rivers (direct runoff), cell mean","m","Array","landcoverType"
     "V845","sum_capRiseFromAquifer","Capillary rise into the soil from the aquifer storage (negative recharge), cell mean","m","Array","landcoverType"
+    "V846","depth_to_water<n>","Depth of the water level in a well in MODFLOW layer n below the topography: topography - head of layer n (also confined; < 0: artesian)","m","Array","transient"
 

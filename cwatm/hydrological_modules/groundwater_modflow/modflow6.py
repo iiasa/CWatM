@@ -38,8 +38,12 @@ MF6_FUNCTIONS = ['initialize', 'finalize', 'get_end_time', 'get_current_time', '
                  'get_var_address', 'get_value_ptr', 'prepare_time_step', 'finalize_time_step',
                  'get_subcomponent_count', 'prepare_solve', 'solve', 'finalize_solve']
 
+# print_budget: number of MODFLOW time steps (length 1 each) of the one stress period - more than any run needs, so the
+# input files do not depend on the run length
+MF6_BUDGET_STEPS = 1000000
+
 # name of the MODFLOW library
-MF6_LIBRARY = {'Windows': 'libmf6.dll', 'Linux': 'libmf6.so', 'Darwin': 'libmf6.dylib'}
+MF6_LIBRARY ={'Windows': 'libmf6.dll', 'Linux': 'libmf6.so', 'Darwin': 'libmf6.dylib'}
 
 # settings of the MODFLOW solver IMS (modflow_solver in the settings file); cooley: Dor's version (modflow_layers_df)
 MF6_SOLVERS = {
@@ -111,7 +115,7 @@ def mf6_list(name, cells, values, binary):
 def mf6_input_hash(timestep, specific_storage, specific_yield, nlay, nrow, ncol, rowsize, colsize, top, bottom,
                    basin, topography, permeability, setpumpings=False, pumpingloc=None, binary=True,
                    permeability_vertical=None, confined=None, drain_elevation=None, solver=None, steady=False,
-                   perlen=1.0, constant_head=None):
+                   perlen=1.0, constant_head=None, print_budget=False):
     """
     Hash over everything that goes into the MODFLOW input files, the flopy version and the source code of this
     file (a code change writes the files new). The initial head and the run length are not part of the files
@@ -122,7 +126,7 @@ def mf6_input_hash(timestep, specific_storage, specific_yield, nlay, nrow, ncol,
     h.update(flopy.__version__.encode())
     for value in (timestep, specific_storage, specific_yield, nlay, nrow, ncol, rowsize, colsize, top, bottom,
                   basin, topography, permeability, setpumpings, pumpingloc, binary, permeability_vertical, confined,
-                  drain_elevation, solver, steady, perlen, constant_head):
+                  drain_elevation, solver, steady, perlen, constant_head, print_budget):
         if value is None:
             # not as array: an object array would give a memory address (different in each run)
             h.update(b'None')
@@ -143,7 +147,7 @@ class ModFlowSimulation:
     topography). Pumping wells (setpumpings) in the cells of pumpingloc ((nrow, ncol): layer 1, or (nlay, nrow,
     ncol)). load_from_disk: reuse the input files in <folder>/wd if no input changed (hash), binary: binary input
     files (else text). Solver: solver = simple, complex, super_complex, cooley or dbd (MF6_SOLVERS); solver None:
-    simple.
+    simple. print_budget: MODFLOW prints the volume budget of each time step into <name>.lst (transient only).
 
     Attributes used by transient.py: head (active cells), drainage (drain flow, m3 per period), actualwell_rate
     (actual pumping, m3 per period), basin, decompress, layer_flows, set_recharge, set_groundwater_abstraction, step,
@@ -153,9 +157,12 @@ class ModFlowSimulation:
     def __init__(self, name, folder, path_mf6dll, timestep, specific_storage, specific_yield, nlay, nrow, ncol,
                  rowsize, colsize, top, bottom, basin, head, topography, permeability, load_from_disk=False,
                  setpumpings=False, pumpingloc=None, verbose=False, binary=True, permeability_vertical=None,
-                 confined=None, drain_elevation=None, solver=None, steady=False, perlen=1.0, constant_head=None):
+                 confined=None, drain_elevation=None, solver=None, steady=False, perlen=1.0, constant_head=None,
+                 print_budget=False):
 
         self.name = name.upper()  # MODFLOW requires the name to be uppercase
+        # budget of each time step in <name>.lst: MODFLOW time steps advance (step); the steady state has one step
+        self.print_budget = print_budget and not steady
         self.dir_mf6dll = path_mf6dll
         self.nrow, self.ncol = nrow, ncol
         self.nlay = nlay
@@ -175,7 +182,7 @@ class ModFlowSimulation:
         input_hash = mf6_input_hash(timestep, specific_storage, specific_yield, nlay, nrow, ncol, rowsize, colsize,
                                     top, bottom, basin, topography, permeability, setpumpings, pumpingloc, binary,
                                     permeability_vertical, confined, drain_elevation, solver, steady, perlen,
-                                    constant_head)
+                                    constant_head, self.print_budget)
         reuse = load_from_disk and read_text(hash_file) == input_hash
 
         if reuse:
@@ -201,7 +208,11 @@ class ModFlowSimulation:
         sim = flopy.mf6.MFSimulation(sim_name=self.name, version='mf6', sim_ws=self.working_directory)
 
         # one stress period, solved again in each step (see step): the files do not depend on the run length
-        flopy.mf6.ModflowTdis(sim, nper=1, perioddata=[(float(perlen) if steady else 1.0, 1, 1)])
+        # print_budget: one stress period of MF6_BUDGET_STEPS time steps of length 1, one time step per step
+        if self.print_budget:
+            flopy.mf6.ModflowTdis(sim, nper=1, perioddata=[(float(MF6_BUDGET_STEPS), MF6_BUDGET_STEPS, 1.0)])
+        else:
+            flopy.mf6.ModflowTdis(sim, nper=1, perioddata=[(float(perlen) if steady else 1.0, 1, 1)])
 
         # iterative model solution. If the model fails with xmipy.errors.XMIError: MODFLOW 6 BMI, exception in:
         # finalize_solve () - use a smaller modflow_timestep, or another solver (modflow_solver)
@@ -211,7 +222,9 @@ class ModFlowSimulation:
         ims = MF6_SOLVERS[solver]
         if self.verbose:
             print('MODFLOW solver', solver, '- complexity', ims['complexity'])
-        flopy.mf6.ModflowIms(sim, print_option=None, **ims)
+        # Test DF
+        #flopy.mf6.ModflowIms(sim, print_option=None, **ims)
+        flopy.mf6.ModflowIms(sim, print_option= 'SUMMARY', **ims)
 
         # groundwater flow model (newtonoptions='under_relaxation' can help if there is no convergence)
         gwf = flopy.mf6.ModflowGwf(sim, modelname=self.name, newtonoptions='under_relaxation', print_input=False,
@@ -248,7 +261,11 @@ class ModFlowSimulation:
         # OC, MODFLOW prints the heads of the last time step of each period: Bhima 198 MB, +7 s). CWatM gets the
         # head through the BMI pointer. ('HEAD', 'FREQUENCY', 10) is every 10th time step of a stress period -
         # with 1 time step per period never, so TRANSIENT.hds stays empty
-        flopy.mf6.ModflowGwfoc(gwf, head_filerecord=f'{self.name}.hds', saverecord=[('HEAD', 'FREQUENCY', 10)])
+        # print_budget: only the volume budget of each time step is printed (no head saved or printed)
+        if self.print_budget:
+            flopy.mf6.ModflowGwfoc(gwf, printrecord=[('BUDGET', 'ALL')])
+        else:
+            flopy.mf6.ModflowGwfoc(gwf, head_filerecord=f'{self.name}.hds', saverecord=[('HEAD', 'FREQUENCY', 10)])
 
         flopy.mf6.ModflowGwfsto(gwf, save_flows=False, iconvert=celltype, ss=mf6_constant(specific_storage),
                                 sy=mf6_constant(specific_yield), steady_state=steady, transient=not steady)
@@ -419,10 +436,14 @@ class ModFlowSimulation:
         (as in GEB): MODFLOW uses the last solution as old head of the storage term, its time is not advanced.
         Bit-identical to one stress period per step (tested Bhima, Burgenland). No finalize_time_step: MODFLOW
         writes no output per time step (CWatM gets everything through the BMI pointers).
+        print_budget: a new MODFLOW time step each step (the first one is prepared in load_bmi) and finalize_time_step,
+        which prints the volume budget of the time step into <name>.lst
         self.converged: False if the outer iterations reached MXITER without convergence (transient.py warns)
         """
         t0 = time()
         self.converged = True
+        if self.print_budget and self.nstep > 0:
+            self.mf6.prepare_time_step(self.mf6.get_time_step())
         for solution_id in range(1, self.mf6.get_subcomponent_count() + 1):
             self.mf6.prepare_solve(solution_id)
             # convergence loop
@@ -432,6 +453,8 @@ class ModFlowSimulation:
             else:
                 self.converged = False
             self.mf6.finalize_solve(solution_id)
+        if self.print_budget:
+            self.mf6.finalize_time_step()
 
         self.nstep += 1
         if self.verbose:

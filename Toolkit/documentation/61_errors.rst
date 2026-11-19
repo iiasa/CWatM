@@ -249,6 +249,7 @@ This part deals with genuine problems. Please look for your error number
     "`E180`_", "activate_irrigation_agents = True with monthly requests but no adminSegments map", "activate_irrigation_agents\, adminSegments", "Add adminSegments (the agent areas) or set activate_irrigation_agents = False", "irrigation_agents", "initial"
     "`E181`_", "Water body output key is not possible - it has to be OUT_RES_ or OUT_RES0_ ... OUT_RES6_ with a time type (not TotalTot\, TotalAvg)", "output keys e.g. OUT_RES2_Daily", "Use n = 0 (all) ... 6 and Daily\, MonthTot\, MonthAvg\, MonthEnd\, AnnualTot\, AnnualAvg or AnnualEnd", "configuration", "splitout"
     "`E182`_", "WaterCycle or WaterBalance as water body output (OUT_RES...)", "OUT_RES<n>_... = WaterCycle", "Use WaterCycle / WaterBalance with OUT_TSS_... (catchment of the gauges)", "output", "initial_res"
+    "`E183`_", "save_initial = True but the folder of initSave does not exist (checked at the start\, not on the first save date)", "initSave", "Create the folder or change initSave", "initcondition", "initial"
     "`E201`_", "Cannot load the maskmap as a file e.g. MaskMap = notexisting.tif", "MaskMap", "Make sure the file you put in MaskMap is existing and is a map e.g. \*.nc\, \*.map\, \*.tif", "datahandling", "loadsetclone"
     "`E202`_", "Your map is upside down", "Any map", "Make sure your map is in right order e.g. latitude coordinate are turned", "datahandling", "loadmap"
     "`E203`_", "Cannot find the map\, filename does not exists at this location", "Any map", "the datafile cannot be found\, the location is wrong or the file is missing", "datahandling", "loadmap"
@@ -1106,6 +1107,16 @@ E182
   :Where:        OUT_RES<n>_... = WaterCycle
   :What to do:   Use WaterCycle / WaterBalance with OUT_TSS_... (catchment of the gauges)
   :Module:       output, initial_res
+
+
+
+
+E183
+---------------------------------------------------------------------------
+  :Description:  save_initial = True but the folder of initSave does not exist (checked at the start, not on the first save date - before: a Python PermissionError / FileNotFoundError when the first init file or MODFLOW head was written)
+  :Where:        initSave
+  :What to do:   Create the folder or change initSave
+  :Module:       initcondition, initial
 
 
 

@@ -119,7 +119,8 @@ class groundwater_modflow:
     gwlayer1_drain                       Array         Drain flow (baseflow + capillary rise) of layer 1 per MODFLOW run       m    
     gw_lateral                           Array         Lateral flow of all layers per MODFLOW run (WaterBalance)               m    
     gw_rechargeMoved                     Array         Recharge moved between CWatM cells by the ModFlow grid per MODFLOW run  m    
-    depth_to_water                       Array         Topography (topo_modflow) minus the head of layer 1                     m    
+    depth_to_water                       Array         Topography minus the head of layer 1 (= depth_to_water1)                m    
+    depth_to_water<n>                    Array         Depth of the water level in a well in layer n: topography - head n      m    
     firstout                             Number        Discharge of the first gauge (0 for the steady state run)               m3/s 
     modflow_seepage                      Flag          Seepage scheme with MODFLOW: modflow_seepage in settings, default True  bool 
     modflow_cover                        Array         Share of the CWatM cell covered by active ModFlow cells                 --   
@@ -218,12 +219,18 @@ class groundwater_modflow:
     def layer_outputs(self, head):
         """
         Head and groundwater depth below the top of each layer n at CWatM resolution: head<n>, gwdepth<n>, and the
-        groundwater depth of layer 1 (gwdepth, compared to observations) - at the start and after each MODFLOW run
+        groundwater depth of layer 1 (gwdepth, compared to observations) - at the start and after each MODFLOW run.
+        depth_to_water<n>: topography - head of layer n, the depth of the water level in a well in layer n (also
+        under confined conditions; < 0: artesian); depth_to_water = depth_to_water1 (capillarRise.py). A dry layer
+        keeps the head of MODFLOW (at or below its bottom), as head<n>
         """
         for n in range(1, self.nlay + 1):
             head_n = self.var.head if n == 1 else self.grid.to_cwatm(head[n - 1], mean=True)
             setattr(self.var, 'head' + str(n), head_n)
             setattr(self.var, 'gwdepth' + str(n), self.layer_top_cwatm[n - 1] - head_n)
+            # area mean of topography - head at ModFlow resolution (layer 1 as before: bit-identical)
+            setattr(self.var, 'depth_to_water' + str(n), self.grid.to_cwatm(self.topography - head[n - 1], mean=True))
+        self.var.depth_to_water = self.var.depth_to_water1
         self.var.gwdepth = self.top_cwatm - self.var.head
 
         if 'gw_depth_observations' in binding:
@@ -247,6 +254,8 @@ class groundwater_modflow:
         self.load_from_disk = setting_bool('load_modflow_from_disk', True)
         # MODFLOW input files: binary (default) or text (modflow_text_input = True)
         self.binary = not setting_bool('modflow_text_input')
+        # MODFLOW prints the volume budget of each MODFLOW time step into TRANSIENT.lst (default True)
+        self.print_budget = setting_bool('modflow_print_budget', True)
 
         # Define the size of the ModFlow time step - means that ModFlow is called each "modflow_timestep"
         self.var.modflow_timestep = int(loadmap('modflow_timestep'))
@@ -590,7 +599,8 @@ class groundwater_modflow:
             pumpingloc=pumpingloc,
             verbose=self.verbose,
             solver=self.solver,
-            binary=self.binary)
+            binary=self.binary,
+            print_budget=self.print_budget)
 
         # top of the aquifer at CWatM resolution (constant) for the groundwater depth, top of each layer for gwdepth<n>
         self.top_cwatm = self.grid.to_cwatm(self.layer_boundaries[0], mean=True)
@@ -657,7 +667,6 @@ class groundwater_modflow:
         self.var.sum_gwRechargeExported = globals.inZero.copy()
         self.var.balance_gw = globals.inZero.copy()
         self.var.groundwater_storage_total = self.grid.to_cwatm(self.storage_total)
-        self.var.depth_to_water = self.grid.to_cwatm(self.topography - head[0], mean=True)
         # share of each CWatM cell covered by active ModFlow cells (seepage scheme: saturated share, capillarRise.py)
         self.var.modflow_cover = self.grid.covered_area / self.grid.cwatm_cell_area
         if self.var.modflow_seepage:
@@ -914,7 +923,6 @@ class groundwater_modflow:
         balance = (groundwater_recharge_modflow - (capillar + baseflow) * self.var.modflow_timestep
                    - (self.storage_total - storage_total0) + actual_pumping_modflow_array / self.grid.cell_area)
         self.var.balance_gw = self.grid.to_cwatm(balance) * self.var.cellArea
-        self.var.depth_to_water = self.grid.to_cwatm(self.topography - head[0], mean=True)
 
         # fraction of saturated ModFlow cells in each CWatM cell (water table >= top of the aquifer)
         self.var.capriseindex = self.grid.fraction_to_cwatm(groundwater_outflow2)

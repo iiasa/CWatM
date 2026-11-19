@@ -2532,6 +2532,19 @@ def writenetcdf(netfile, prename, addname, varunits, inputmap, timeStamp, posCnt
 # --------------------------------------------------------------------------------------------
 
 
+def checkSaveFolder(filename, sname):
+    """
+    Error 183 if the folder of a file which is written later does not exist (e.g. initSave: the init file and the
+    MODFLOW head of a restart). Checked at the start - otherwise netCDF stops with a Python error (PermissionError on
+    Windows) only on the first save date, e.g. at the end of a long run
+    """
+    folder = os.path.dirname(os.path.abspath(filename))
+    if not os.path.isdir(folder):
+        msg = "Error 183: the folder for the files of " + sname + " does not exist: " + folder + "\n"
+        msg += "Create the folder or change " + sname + " in the settings file"
+        raise CWATMDirError(folder, msg, sname=sname)
+
+
 def writeIniNetcdf(netfile,varlist, inputlist):
     """
     Write initial condition NetCDF files for model restart.

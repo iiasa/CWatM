@@ -506,6 +506,11 @@ class landcoverType(object):
             self.var.thetar3.append(thetar_fact * (loadmap(pre + "thetar3")))
             i += 1
 
+        # thetas must be above thetar (wrange > 0): some soil maps have thetas <= thetar (e.g. isimip 5min: 345 cells)
+        for j in range(len(self.var.thetas1)):
+            for thetas, thetar in ((self.var.thetas1, self.var.thetar1), (self.var.thetas2, self.var.thetar2), (self.var.thetas3, self.var.thetar3)):
+                thetas[j] = np.maximum(thetas[j], thetar[j] + 0.01)
+
 
 
         # Van Genuchten n and m coefficients
